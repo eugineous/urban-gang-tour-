@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const NAV = [
+  { href: "/knowledge-base", icon: "🧠", label: "Knowledge Base" },
   { href: "/dashboard",  icon: "⚡", label: "Command Center" },
   { href: "/composer",   icon: "🎬", label: "Composer"       },
   { href: "/queue",      icon: "📅", label: "Queue"          },
@@ -14,6 +15,7 @@ const NAV = [
 ];
 
 const MOBILE_NAV = [
+  { href: "/knowledge-base", icon: "🧠", label: "KB" },
   { href: "/dashboard", icon: "⚡", label: "Home"    },
   { href: "/composer",  icon: "🎬", label: "Compose" },
   { href: "/queue",     icon: "📅", label: "Queue"   },

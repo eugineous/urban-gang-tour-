@@ -20,7 +20,8 @@ export async function GET(req: NextRequest) {
   };
 
   try {
-    const buffer = await generateImage(article, {});
+    const ratioParam = searchParams.get("ratio") === "4:5" ? "4:5" : "9:16";
+    const buffer = await generateImage(article, { ratio: ratioParam });
     return new NextResponse(buffer as unknown as BodyInit, {
       headers: { "Content-Type": "image/jpeg", "Cache-Control": "no-store" },
     });
@@ -31,10 +32,10 @@ export async function GET(req: NextRequest) {
 
 // POST /api/preview-image — accepts base64 image for carousel cover preview
 export async function POST(req: NextRequest) {
-  let body: { title?: string; category?: string; imageBase64?: string };
+  let body: { title?: string; category?: string; imageBase64?: string; ratio?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { title = "PPP TV KENYA NEWS", category = "GENERAL", imageBase64 } = body;
+  const { title = "PPP TV KENYA NEWS", category = "GENERAL", imageBase64, ratio } = body;
   if (!imageBase64) return NextResponse.json({ error: "imageBase64 required" }, { status: 400 });
 
   // Write base64 to a data URL so generateImage can fetch it
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
   };
 
   try {
-    const buffer = await generateImage(article, {});
+    const buffer = await generateImage(article, { ratio: ratio === "4:5" ? "4:5" : "9:16" });
     return new NextResponse(buffer as unknown as BodyInit, {
       headers: { "Content-Type": "image/jpeg", "Cache-Control": "no-store" },
     });

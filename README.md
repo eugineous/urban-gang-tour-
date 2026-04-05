@@ -90,6 +90,12 @@ Set in Vercel project settings:
 | `INSTAGRAM_ACCOUNT_ID`   | Instagram Business Account ID              |
 | `FACEBOOK_ACCESS_TOKEN`  | Meta page access token                     |
 | `FACEBOOK_PAGE_ID`       | Facebook Page ID                           |
+| `SUPABASE_URL`           | Supabase project URL (for Knowledge Base)  |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server only) |
+| `PPP_SITE_URL`           | Primary PPP TV site (RSS) feed base URL    |
+| `PPPTV_WORKER_URL`       | Cloudflare worker feed fallback            |
+| `GEMINI_API_KEY`         | Google Gemini API key for headlines        |
+| `NVIDIA_API_KEY`         | NVIDIA NIM key for captions                |
 
 ---
 

@@ -1,14 +1,78 @@
 import { GoogleGenAI } from "@google/genai";
 import { Article } from "./types";
+import { loadKnowledgeBase, KB_DEFAULTS } from "./knowledge-base";
 
 export interface AIContent {
   clickbaitTitle: string;
   caption: string;
 }
 
-// ── NVIDIA NIM API — used for caption body generation ─────────────────────────
 const NVIDIA_BASE = "https://integrate.api.nvidia.com/v1";
 const NVIDIA_MODEL = "meta/llama-3.1-8b-instruct";
+const HEADLINE_WORD_MIN = 4;
+const HEADLINE_WORD_MAX = 7;
+const CAPTION_WORD_MAX = 180;
+const EMOJI_MAX = 3;
+
+const BANNED_HEADLINE = ["BREAKING", "SHOCKING", "UNBELIEVABLE", "MUST SEE", "VIRAL", "TRENDING", "THIS IS CRAZY"];
+const FILLER = ["in a shocking turn", "according to reports", "sources say", "rumors", "allegedly"];
+
+let _gemini: GoogleGenAI | null = null;
+function getGeminiClient(apiKey: string): GoogleGenAI {
+  if (!_gemini) _gemini = new GoogleGenAI({ apiKey });
+  return _gemini;
+}
+
+function trimWords(text: string, min = HEADLINE_WORD_MIN, max = HEADLINE_WORD_MAX): string {
+  const parts = text.split(/\s+/).filter(Boolean);
+  const sliced = parts.slice(0, max);
+  if (sliced.length < min) return parts.slice(0, min).join(" ");
+  return sliced.join(" ");
+}
+
+function scrubHeadline(raw: string): string {
+  const up = raw.replace(/^"|"$/g, "").toUpperCase();
+  let cleaned = up;
+  BANNED_HEADLINE.forEach(b => { cleaned = cleaned.replace(new RegExp(b, "gi"), ""); });
+  cleaned = cleaned.replace(/[^A-Z0-9\s:'-]/g, " ").replace(/\s+/g, " ").trim();
+  cleaned = trimWords(cleaned);
+  return cleaned;
+}
+
+function stripLeadingHeadline(caption: string, headline: string): string {
+  const lines = caption.split("\n");
+  const first = lines[0].trim();
+  if (!first) return caption;
+  const h = headline.toLowerCase().slice(0, 60);
+  if (first.toLowerCase().includes(h) || first === first.toUpperCase()) {
+    lines.shift();
+    while (lines[0] === "") lines.shift();
+    return lines.join("\n");
+  }
+  return caption;
+}
+
+function limitEmojis(text: string): string {
+  const chars = Array.from(text);
+  let emojiCount = 0;
+  const filtered = chars.filter(ch => {
+    const cp = ch.codePointAt(0) ?? 0;
+    // Rough emoji range without ES2018 regex props
+    const isEmoji = cp >= 0x1f300 && cp <= 0x1fae0;
+    if (isEmoji) {
+      if (emojiCount >= EMOJI_MAX) return false;
+      emojiCount += 1;
+    }
+    return true;
+  });
+  return filtered.join("");
+}
+
+function wordClamp(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text.trim();
+  return words.slice(0, maxWords).join(" ").trim();
+}
 
 async function generateWithNvidia(prompt: string, systemPrompt: string): Promise<string> {
   const apiKey = process.env.NVIDIA_API_KEY;
@@ -26,7 +90,7 @@ async function generateWithNvidia(prompt: string, systemPrompt: string): Promise
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
       ],
-      temperature: 0.6,
+      temperature: 0.65,
       max_tokens: 800,
       top_p: 0.9,
     }),
@@ -42,171 +106,89 @@ async function generateWithNvidia(prompt: string, systemPrompt: string): Promise
   return data.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
-// ── Gemini — used for headline title generation ───────────────────────────────
-let _geminiClient: GoogleGenAI | null = null;
-function getGeminiClient(apiKey: string): GoogleGenAI {
-  if (!_geminiClient) _geminiClient = new GoogleGenAI({ apiKey });
-  return _geminiClient;
-}
-
-async function generateTitleWithGemini(article: Article): Promise<string> {
+async function generateHeadline(article: Article, kb = KB_DEFAULTS): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY not set");
-
   const client = getGeminiClient(apiKey);
   const prompt =
-    `Write an ALL CAPS headline for this article that makes someone stop scrolling and have to read it.\n\n` +
-    `TITLE: ${article.title}\n` +
-    `CATEGORY: ${article.category}\n` +
-    `SUMMARY: ${(article.summary || "").slice(0, 300)}\n\n` +
-    `Rules:\n` +
-    `- ALL CAPS only\n` +
-    `- Max 10 words — the shorter and sharper the better\n` +
-    `- Must be grounded in a real fact from the article (name, number, place, or event)\n` +
-    `- Write it the way a top newspaper editor would write a front-page headline — specific, urgent, impossible to ignore\n` +
-    `- Do NOT use generic filler words or clichés\n` +
-    `- No hashtags, no quotes\n` +
-    `- Reply with ONLY the headline`;
+    `${kb.headline_guide.content}\n\n` +
+    `Write one ALL CAPS headline for this article in ${HEADLINE_WORD_MIN}-${HEADLINE_WORD_MAX} words. Use real facts and names. No emojis, no hashtags.\n` +
+    `TITLE: ${article.title}\nCATEGORY: ${article.category}\nSUMMARY: ${(article.summary || "").slice(0, 400)}\n`;
 
   const response = await client.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt,
-    config: { temperature: 0.7, maxOutputTokens: 80 },
+    config: { temperature: 0.6, maxOutputTokens: 80 },
   });
-
-  return response.text?.trim().replace(/^["']|["']$/g, "").toUpperCase() ?? "";
+  const text = response.text?.trim() || article.title;
+  return scrubHeadline(text);
 }
 
-// ── Caption system prompt (for NVIDIA) ───────────────────────────────────────
-const CAPTION_SYSTEM = `You are the head of content at PPP TV Kenya — a popular Kenyan entertainment and news brand on Instagram and Facebook.
-
-Your job: write a social media caption that summarizes the story with real facts, hooks the reader, and makes them want to click the link for more.
-
-STRUCTURE (3 parts, blank lines between each):
-
-1. LEDE — one punchy sentence: WHO did WHAT, WHERE. Use a real name. No ALL CAPS.
-2. BODY — 2-4 sentences of real detail. Include names, numbers, places, dates, quotes. Give enough context that the reader understands the story — but leave the most interesting detail for the link.
-3. CTA — one short line ending with "Read more 👇" or "Full story 👇" or "Details in the link 👇"
-
-RULES:
-- NEVER start with the headline or title
-- NEVER use ALL CAPS in the body
-- Every sentence must have a specific fact (name, number, place, date, or quote)
-- No hashtags
-- Max 2 emojis total
-- No filler: "the internet is buzzing", "here's everything", "stay tuned", "you won't believe"
-- Keep it under 200 words total`;
-
-// ── Main export ───────────────────────────────────────────────────────────────
-export async function generateAIContent(
-  article: Article,
-  options?: { isVideo?: boolean; videoType?: string }
-): Promise<AIContent> {
-  const hasGemini = !!process.env.GEMINI_API_KEY;
-  const hasNvidia = !!process.env.NVIDIA_API_KEY;
-
-  const content = (article.fullBody?.trim().length ?? 0) > 50
-    ? article.fullBody.trim().slice(0, 2000)
-    : (article.summary?.trim() ?? "");
-
-  const captionPrompt =
-    `Write a PPP TV Kenya social media caption for this article:\n\n` +
-    `TITLE: ${article.title}\n` +
-    `CATEGORY: ${article.category}\n` +
-    `SOURCE: ${article.sourceName || "unknown"}\n` +
-    (content ? `ARTICLE:\n${content}\n\n` : "\n") +
-    `Summarize the key facts, hook the reader, then end with "Read more 👇"\n` +
-    `Use ONLY facts from the article. No hashtags. No fabrication.\n` +
-    `Reply with ONLY the caption text.`;
-
-  // Run title (Gemini) and caption (NVIDIA) in parallel
-  const results = await Promise.allSettled([
-    hasGemini ? generateTitleWithGemini(article) : Promise.reject("no gemini"),
-    hasNvidia ? generateWithNvidia(captionPrompt, CAPTION_SYSTEM) : Promise.reject("no nvidia"),
-  ]);
-
-  let clickbaitTitle = "";
-  let caption = "";
-
-  // Title — prefer Gemini, fall back to article title
-  if (results[0].status === "fulfilled" && results[0].value) {
-    clickbaitTitle = results[0].value;
-  } else {
-    if (results[0].status === "rejected") console.warn("[gemini] title failed:", results[0].reason);
-    clickbaitTitle = article.title.toUpperCase().slice(0, 100);
-  }
-
-  // Caption — prefer NVIDIA, fall back to Gemini, then excerpt
-  if (results[1].status === "fulfilled" && results[1].value) {
-    caption = results[1].value;
-  } else {
-    if (results[1].status === "rejected") console.warn("[nvidia] caption failed:", results[1].reason);
-    if (hasGemini) {
-      try { caption = await generateCaptionWithGemini(article, content); }
-      catch (err) { console.warn("[gemini] caption fallback failed:", err); }
-    }
-    if (!caption) caption = buildExcerptCaption(article);
-  }
-
-  // Safety: strip any headline that leaked into caption top
-  caption = stripLeadingHeadline(caption, article.title);
-  caption = caption.replace(/#\w+/g, "").replace(/\n{3,}/g, "\n\n").trim();
-  if (!caption || caption.length < 40) caption = buildExcerptCaption(article);
-
-  return { clickbaitTitle, caption };
+async function generateCaption(article: Article, kb = KB_DEFAULTS, content: string): Promise<string> {
+  const systemPrompt = `${kb.brand_voice.content}\n\n${kb.caption_guide.content}\n\n${kb.gen_z_guide.content}\n\n${kb.kenya_knowledge.content}`;
+  const userPrompt = `Write a PPP TV Kenya caption.\nTITLE: ${article.title}\nCATEGORY: ${article.category}\nSOURCE: ${article.sourceName || "unknown"}\n${content ? `ARTICLE:\n${content}\n` : ""}`;
+  const primary = await generateWithNvidia(userPrompt, systemPrompt);
+  return primary;
 }
 
-// ── Gemini caption fallback ───────────────────────────────────────────────────
-async function generateCaptionWithGemini(article: Article, content: string): Promise<string> {
-  const client = getGeminiClient(process.env.GEMINI_API_KEY!);
-  const prompt =
-    `Write a PPP TV Kenya social media caption.\n\n` +
-    `TITLE: ${article.title}\n` +
-    `CATEGORY: ${article.category}\n` +
-    (content ? `ARTICLE:\n${content}\n\n` : "\n") +
-    `Structure: lede sentence → body paragraph → question CTA\n` +
-    `Do NOT start with the headline. No hashtags. No ALL CAPS in body.\n` +
-    `Reply with ONLY the caption text.`;
-
-  const response = await client.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: { systemInstruction: CAPTION_SYSTEM, temperature: 0.7, maxOutputTokens: 800 },
-  });
-  return response.text?.trim() ?? "";
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function buildExcerptCaption(article: Article): string {
   const body = article.fullBody?.trim() || article.summary?.trim() || article.title;
-  const cleaned = body
-    .split(/\n+/)
-    .filter(line => {
-      const t = line.trim();
-      if (!t) return false;
-      const upperRatio = (t.match(/[A-Z]/g) || []).length / Math.max(t.replace(/\s/g, "").length, 1);
-      return upperRatio < 0.7;
-    })
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 500);
-  return (cleaned || article.title) + "\n\nWhat do you think? 👇";
+  const cleaned = body.split(/\n+/).join(" ").replace(/\s+/g, " ").slice(0, 400);
+  return `${cleaned}\n\nRead more ??`;
 }
 
-function stripLeadingHeadline(caption: string, originalTitle: string): string {
-  const lines = caption.split("\n");
-  const first = lines[0].trim();
-  if (first === first.toUpperCase() && first.length > 10 && first.replace(/[^A-Z]/g, "").length > 5) {
-    lines.shift();
-    while (lines.length && lines[0].trim() === "") lines.shift();
-    return lines.join("\n");
+export async function generateAIContent(article: Article, options?: { isVideo?: boolean; videoType?: string }): Promise<AIContent> {
+  const kb = await loadKnowledgeBase().catch(() => KB_DEFAULTS);
+
+  const content = (article.fullBody?.trim().length ?? 0) > 50
+    ? article.fullBody!.trim().slice(0, 2000)
+    : (article.summary?.trim() ?? "");
+
+  let clickbaitTitle = article.title;
+  let caption = "";
+
+  // Headline
+  try {
+    clickbaitTitle = await generateHeadline(article, kb);
+  } catch (err: any) {
+    console.warn("[gemini] headline fallback:", err.message);
+    clickbaitTitle = scrubHeadline(article.title);
   }
-  const titleNorm = originalTitle.toLowerCase().slice(0, 40);
-  if (first.toLowerCase().startsWith(titleNorm.slice(0, 30))) {
-    lines.shift();
-    while (lines.length && lines[0].trim() === "") lines.shift();
-    return lines.join("\n");
+
+  // Caption
+  try {
+    caption = await generateCaption({ ...article, title: clickbaitTitle }, kb, content);
+  } catch (err: any) {
+    console.warn("[caption] primary failed:", err.message);
   }
-  return caption;
+
+  // Gemini fallback if caption failed
+  if (!caption) {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (apiKey) {
+        const client = getGeminiClient(apiKey);
+        const response = await client.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: `${kb.caption_guide.content}\nWrite a caption for: ${article.title}\n${content}`,
+          config: { temperature: 0.7, maxOutputTokens: 400 },
+        });
+        caption = response.text?.trim() || "";
+      }
+    } catch (err: any) {
+      console.warn("[gemini] caption fallback failed:", err.message);
+    }
+  }
+
+  if (!caption || caption.length < 40) caption = buildExcerptCaption(article);
+
+  // Cleanup
+  caption = stripLeadingHeadline(caption, clickbaitTitle);
+  caption = caption.replace(new RegExp(FILLER.join("|"), "gi"), "");
+  caption = caption.replace(/#\w+/g, "");
+  caption = limitEmojis(caption);
+  caption = wordClamp(caption, CAPTION_WORD_MAX);
+  caption = caption.trim();
+
+  return { clickbaitTitle, caption };
 }

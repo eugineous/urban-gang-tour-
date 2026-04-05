@@ -51,7 +51,8 @@ const KENYA_TERMS = [
 
 function isKenyaRelevant(a: Article): boolean {
   const text = (a.title + " " + (a.summary || "") + " " + a.category + " " + (a.url || "")).toLowerCase();
-  // Also match .co.ke domains and common Kenya news sites
+  // Whitelist PPP domains outright
+  if ((a.url || "").includes("ppp-tv")) return true;
   if (text.includes(".co.ke") || text.includes("kenyans.co") || text.includes("tuko.co") || text.includes("standardmedia") || text.includes("nation.africa") || text.includes("the-star.co")) return true;
   return KENYA_TERMS.some(t => text.includes(t));
 }

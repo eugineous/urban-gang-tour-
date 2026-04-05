@@ -52,6 +52,16 @@ async function waitForIGContainer(containerId: string, token: string): Promise<v
   console.warn("[ig] container polling timed out — attempting publish anyway");
 }
 
+function validateEnv(): { ok: boolean; error?: string } {
+  const missing = [];
+  if (!process.env.INSTAGRAM_ACCESS_TOKEN) missing.push("INSTAGRAM_ACCESS_TOKEN");
+  if (!process.env.INSTAGRAM_ACCOUNT_ID) missing.push("INSTAGRAM_ACCOUNT_ID");
+  if (!process.env.FACEBOOK_ACCESS_TOKEN) missing.push("FACEBOOK_ACCESS_TOKEN");
+  if (!process.env.FACEBOOK_PAGE_ID) missing.push("FACEBOOK_PAGE_ID");
+  if (missing.length) return { ok: false, error: "Missing env: " + missing.join(", ") };
+  return { ok: true };
+}
+
 // ── Image posting to Instagram ───────────────────────────────────────────────
 async function publishToInstagram(post: SocialPost, imageBuffer: Buffer): Promise<{ success: boolean; postId?: string; error?: string }> {
   const token = process.env.INSTAGRAM_ACCESS_TOKEN;
@@ -109,7 +119,8 @@ async function publishToFacebook(post: SocialPost, imageBuffer: Buffer): Promise
     );
     const form = new FormData();
     form.append("source", blob, "image.jpg");
-    const fbCaption = post.articleUrl ? post.caption + "\n\n\uD83D\uDD17 " + post.articleUrl : post.caption;
+    const hasLink = post.articleUrl && post.caption?.includes(post.articleUrl);
+    const fbCaption = hasLink ? post.caption : post.articleUrl ? `${post.caption}\n\n\uD83D\uDD17 ${post.articleUrl}` : post.caption;
     form.append("caption", fbCaption);
     form.append("access_token", token);
     const res = await withRetry(() => fetch(`${GRAPH_API}/${pageId}/photos`, { method: "POST", body: form }));
@@ -122,13 +133,21 @@ async function publishToFacebook(post: SocialPost, imageBuffer: Buffer): Promise
   }
 }
 
-// Posts as branded image with video link in caption on both platforms
+  // Posts as branded image with video link in caption on both platforms
 export async function publish(
   posts: { ig?: SocialPost; fb?: SocialPost },
   imageBuffer: Buffer,
   _videoBuffer?: Buffer,
   _coverImageUrl?: string
 ): Promise<PublishResult> {
+  const envCheck = validateEnv();
+  if (!envCheck.ok) {
+    return {
+      instagram: { success: false, error: envCheck.error },
+      facebook: { success: false, error: envCheck.error },
+    };
+  }
+
   const [instagram, facebook] = await Promise.all([
     posts.ig ? publishToInstagram(posts.ig, imageBuffer) : Promise.resolve({ success: false, error: "skipped" }),
     posts.fb ? publishToFacebook(posts.fb, imageBuffer) : Promise.resolve({ success: false, error: "skipped" }),

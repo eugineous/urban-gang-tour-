@@ -3,9 +3,8 @@ import sharp from "sharp";
 import { Article } from "./types";
 import { PPP_LOGO_B64 } from "./ppp-logo-b64";
 
-const W = 1080, H = 1350;
+const DEFAULT_RATIO = "9:16";
 
-// ── Category colors — exact match to PPP TV site ─────────────────────────────
 const CAT_COLORS: Record<string, { bg: string; text: string }> = {
   CELEBRITY:     { bg: "#FF007A", text: "#FFFFFF" },
   FASHION:       { bg: "#ec4899", text: "#FFFFFF" },
@@ -61,37 +60,43 @@ async function fetchImageBuffer(url: string): Promise<Buffer | null> {
   } catch { return null; }
 }
 
-// Auto-size headline based on character count — big and bold
+function getDimensions(ratio: string): { w: number; h: number } {
+  if (ratio === "4:5") return { w: 1080, h: 1350 };
+  return { w: 1080, h: 1920 }; // 9:16 default
+}
+
 function getHeadlineFontSize(title: string): number {
   const chars = title.length;
-  if (chars <= 20) return 160;
-  if (chars <= 30) return 140;
-  if (chars <= 40) return 122;
-  if (chars <= 55) return 108;
-  if (chars <= 70) return 94;
-  if (chars <= 90) return 80;
-  if (chars <= 110) return 68;
-  return 58;
+  if (chars <= 20) return 170;
+  if (chars <= 30) return 150;
+  if (chars <= 40) return 128;
+  if (chars <= 55) return 112;
+  if (chars <= 70) return 96;
+  if (chars <= 90) return 82;
+  if (chars <= 110) return 70;
+  return 60;
 }
 
 export interface ImageOptions {
   isBreaking?: boolean;
-  storyFormat?: boolean;
+  ratio?: "9:16" | "4:5";
 }
 
 export async function generateImage(article: Article, opts: ImageOptions = {}): Promise<Buffer> {
   if (!article.imageUrl || article.imageUrl.trim() === "") {
-    throw new Error("NO_IMAGE: article has no imageUrl — skipping");
+    throw new Error("NO_IMAGE: article has no imageUrl � skipping");
   }
+
+  const ratio = opts.ratio || DEFAULT_RATIO;
+  const { w: W, h: H } = getDimensions(ratio);
 
   const [fontData, rawBg] = await Promise.all([
     loadFont(),
     fetchImageBuffer(article.imageUrl),
   ]);
 
-  if (!rawBg) throw new Error("NO_IMAGE: could not fetch imageUrl — skipping");
+  if (!rawBg) throw new Error("NO_IMAGE: could not fetch imageUrl � skipping");
 
-  // Resize background to full canvas
   let bgBase64: string | null = null;
   try {
     const resized = await sharp(rawBg)
@@ -121,7 +126,6 @@ export async function generateImage(article: Article, opts: ImageOptions = {}): 
           fontFamily: "BebasNeue",
         },
         children: [
-          // ── Full-bleed background image ──────────────────────────────────
           bgBase64
             ? {
                 type: "img",
@@ -137,46 +141,76 @@ export async function generateImage(article: Article, opts: ImageOptions = {}): 
             : {
                 type: "div",
                 props: {
-                  style: {
-                    position: "absolute", top: 0, left: 0, width: W, height: H,
-                    background: "#111", display: "flex",
-                  },
+                  style: { position: "absolute", top: 0, left: 0, width: W, height: H, background: "#111" },
                   children: [],
                 },
               },
 
-          // ── Gradient overlay: transparent top → solid black bottom ───────
+          // Gradient overlay
           {
             type: "div",
             props: {
               style: {
                 display: "flex",
                 position: "absolute", left: 0, right: 0, top: 0, height: H,
-                background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.88) 65%, rgba(0,0,0,1) 78%)",
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.9) 75%, rgba(0,0,0,1) 90%)",
               },
               children: [],
             },
           },
 
-          // ── PPP TV Logo — top-left corner, bigger and bolder ────────────
+          // Top ticker bar
           {
             type: "div",
             props: {
               style: {
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 70,
+                background: "rgba(0,0,0,0.75)",
                 display: "flex",
-                position: "absolute", top: 40, left: 40,
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 32px",
+                borderBottom: "2px solid rgba(255,255,255,0.08)",
               },
+              children: [
+                {
+                  type: "span",
+                  props: {
+                    style: { color: "#ff4d4f", fontSize: 30, letterSpacing: 1, fontWeight: 800 },
+                    children: "PPP TV KENYA",
+                  },
+                },
+                {
+                  type: "span",
+                  props: {
+                    style: { color: "#ddd", fontSize: 18, letterSpacing: 1, fontWeight: 700 },
+                    children: "24/7 GEN Z ENTERTAINMENT",
+                  },
+                },
+              ],
+            },
+          },
+
+          // Logo under ticker
+          {
+            type: "div",
+            props: {
+              style: { position: "absolute", top: 90, left: 40, display: "flex" },
               children: [{
                 type: "img",
                 props: {
                   src: PPP_LOGO_B64,
-                  style: { width: 280, height: 112, objectFit: "contain" },
+                  style: { width: 240, height: 96, objectFit: "contain" },
                 },
               }],
             },
           },
 
-          // ── Bottom content area ──────────────────────────────────────────
+          // Bottom content
           {
             type: "div",
             props: {
@@ -186,10 +220,9 @@ export async function generateImage(article: Article, opts: ImageOptions = {}): 
                 alignItems: "flex-start",
                 position: "absolute",
                 bottom: 0, left: 0, right: 0,
-                padding: "0 44px 48px 44px",
+                padding: "0 44px 56px 44px",
               },
               children: [
-                // Category pill — rounded, category color
                 {
                   type: "div",
                   props: {
@@ -205,20 +238,12 @@ export async function generateImage(article: Article, opts: ImageOptions = {}): 
                     children: [{
                       type: "span",
                       props: {
-                        style: {
-                          color: catText,
-                          fontSize: 38,
-                          fontWeight: 700,
-                          letterSpacing: 4,
-                          lineHeight: 1,
-                        },
+                        style: { color: catText, fontSize: 38, fontWeight: 700, letterSpacing: 4, lineHeight: 1 },
                         children: category,
                       },
                     }],
                   },
                 },
-
-                // Headline — ALL CAPS, bold white, auto-sized
                 {
                   type: "div",
                   props: {
@@ -235,8 +260,6 @@ export async function generateImage(article: Article, opts: ImageOptions = {}): 
                     children: title,
                   },
                 },
-
-                // "FOLLOW FOR MORE" pill — same category color
                 {
                   type: "div",
                   props: {
@@ -251,13 +274,7 @@ export async function generateImage(article: Article, opts: ImageOptions = {}): 
                     children: [{
                       type: "span",
                       props: {
-                        style: {
-                          color: catText,
-                          fontSize: 34,
-                          fontWeight: 700,
-                          letterSpacing: 5,
-                          lineHeight: 1,
-                        },
+                        style: { color: catText, fontSize: 34, fontWeight: 700, letterSpacing: 5, lineHeight: 1 },
                         children: "FOLLOW FOR MORE",
                       },
                     }],

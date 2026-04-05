@@ -6,7 +6,7 @@
  */
 
 const TTL_SECONDS = 30 * 24 * 60 * 60;
-const FEED_URL = "https://ppp-tv-worker.euginemicah.workers.dev/articles?limit=50";
+const FEED_URL = "https://ppp-tv-site.vercel.app/api/rss";
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
@@ -191,11 +191,12 @@ async function triggerAutomate(env) {
 }
 async function runPipeline(env) {
   console.log("[PPP TV] Pipeline started");
+  const feedUrl = env.PPP_FEED_URL || FEED_URL;
 
-  // 1. Fetch articles from PPP TV worker feed
+  // 1. Fetch articles from PPP TV worker/site feed
   let articles = [];
   try {
-    const res = await fetch(FEED_URL, { headers: { "User-Agent": "PPPTVAutoPoster/5.0" }, signal: AbortSignal.timeout(15000) });
+    const res = await fetch(feedUrl, { headers: { "User-Agent": "PPPTVAutoPoster/5.0" }, signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`Feed ${res.status}`);
     const data = await res.json();
     const rawArticles = Array.isArray(data) ? data : (data.articles || []);
@@ -434,7 +435,7 @@ async function runPipelineDebug(env) {
   const step = (msg) => { log.push(msg); console.log("[DEBUG]", msg); };
 
   step("Fetching feed...");
-  const res = await fetch(FEED_URL, { headers: { "User-Agent": "PPPTVAutoPoster/5.0" }, signal: AbortSignal.timeout(15000) });
+  const res = await fetch(env.PPP_FEED_URL || FEED_URL, { headers: { "User-Agent": "PPPTVAutoPoster/5.0" }, signal: AbortSignal.timeout(15000) });
   step(`Feed response: ${res.status} ${res.statusText}`);
   if (!res.ok) {
     const body = await res.text().catch(() => "");
