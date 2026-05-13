@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Marquee Ticker</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family: var(--font-body); overflow:hidden; }
+  .track { background: var(--ugt-magenta); border-top:3px solid #1A1A1A; border-bottom:3px solid #1A1A1A; padding: 14px 0; overflow:hidden; white-space:nowrap; }
+  .move { display:inline-block; animation: scroll 18s linear infinite; font-family: var(--font-display); font-size:32px; letter-spacing:-0.01em; text-transform:uppercase; color:#fff; }
+  .move span { color: var(--ugt-orange); margin: 0 14px; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .track.orange { background: var(--ugt-orange); margin-top:10px; }
+  .track.orange .move { color: #1A1A1A; }
+  .track.orange .move span { color: var(--ugt-magenta); }
+</style></head><body>
+<div class="track"><div class="move">FROM POTENTIAL TO PURPOSE <span>★</span> FROM POTENTIAL TO PURPOSE <span>★</span> FROM POTENTIAL TO PURPOSE <span>★</span> FROM POTENTIAL TO PURPOSE <span>★</span> </div></div>
+<div class="track orange"><div class="move">BOOKINGS OPEN <span>·</span> URBAN NEWS ON PPP TV <span>·</span> 30+ CREW <span>·</span> 8M EYEBALLS <span>·</span> BOOKINGS OPEN <span>·</span> URBAN NEWS ON PPP TV <span>·</span> </div></div>
+</body></html>

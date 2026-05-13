@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Radii & Borders</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:20px; background:#fff; font-family: var(--font-body); }
+  .grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:14px; }
+  .demo { background: var(--ugt-magenta-soft); border: var(--border-bold); height:70px; display:flex; align-items:center; justify-content:center; color: var(--ugt-magenta); font-weight:900; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+  .cap { font-size:10px; color:var(--ugt-ink-muted); text-align:center; margin-top:6px; font-family: ui-monospace, monospace; }
+  .sec { margin-top:14px; font-weight:800; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ugt-magenta); }
+</style></head><body>
+<div class="sec">Radii</div>
+<div class="grid" style="margin-top:8px;">
+  <div><div class="demo" style="border-radius:0;">Sharp</div><div class="cap">0</div></div>
+  <div><div class="demo" style="border-radius:6px;">Sm</div><div class="cap">6px</div></div>
+  <div><div class="demo" style="border-radius:12px;">Md</div><div class="cap">12px</div></div>
+  <div><div class="demo" style="border-radius:20px;">Lg</div><div class="cap">20px</div></div>
+  <div><div class="demo" style="border-radius:999px;">Pill</div><div class="cap">999px</div></div>
+</div>
+<div class="sec">Borders</div>
+<div class="grid" style="margin-top:8px;">
+  <div><div class="demo" style="border:1.5px solid #1A1A1A;">Thin</div><div class="cap">1.5px solid</div></div>
+  <div><div class="demo" style="border:3px solid #1A1A1A;">Bold</div><div class="cap">3px solid</div></div>
+  <div><div class="demo" style="border:6px solid #1A1A1A;">Mega</div><div class="cap">6px solid</div></div>
+  <div><div class="demo" style="border:3px dashed #1A1A1A;">Dashed</div><div class="cap">3px dashed</div></div>
+  <div><div class="demo" style="border-radius: 14px 4px 14px 4px; border:3px solid #1A1A1A;">Ticket</div><div class="cap">14 / 4 tag</div></div>
+</div>
+</body></html>

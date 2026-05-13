@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Cards</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background:#FDF0F7; font-family: var(--font-body); }
+  .grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:18px; }
+  .card { background:#fff; border:3px solid #1A1A1A; border-radius:16px; padding:16px; box-shadow: 6px 6px 0 #1A1A1A; }
+  .tape { position:relative; }
+  .tape::before { content:''; position:absolute; top:-8px; left:20px; width:60px; height:18px; background: rgba(245,166,35,.75); transform: rotate(-4deg); border-radius:2px; }
+  .eyebrow { font-weight:800; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ugt-magenta); margin-bottom:6px; }
+  h3 { font-family: var(--font-display); font-size:22px; text-transform:uppercase; margin:0 0 6px; letter-spacing:-0.01em; line-height:1; }
+  p { font-size:13px; color:var(--ugt-ink-2); margin:0; line-height:1.5; }
+  .ticket { background: var(--ugt-magenta); color:#fff; border-radius: 16px 4px 16px 4px; }
+  .ticket h3, .ticket p, .ticket .eyebrow { color:#fff; }
+  .ticket .eyebrow { opacity:.9; }
+</style></head><body>
+<div class="grid">
+  <div class="card tape">
+    <div class="eyebrow">Event · 30 May</div>
+    <h3>Koinange Girls</h3>
+    <p>First stop of the 2nd term. Talent search, modelling, awards concert, and the Urban News broadcast crew.</p>
+  </div>
+  <div class="card ticket">
+    <div class="eyebrow">Ticket Stub</div>
+    <h3>Bookings Open</h3>
+    <p>T-shaped stage, 30+ person crew, 8M potential eyeballs on PPP TV. Your school next?</p>
+  </div>
+  <div class="card" style="border-style:dashed;">
+    <div class="eyebrow">Scrapbook</div>
+    <h3>Urban Pods</h3>
+    <p>Five 30-min mentorship breakouts. Money, digital, leadership, mind, talent.</p>
+  </div>
+</div>
+</body></html>

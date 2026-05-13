@@ -1,0 +1,292 @@
+/* =========================================================
+   URBAN GANG TOUR — DESIGN TOKENS
+   From Potential to Purpose
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bangers&family=Permanent+Marker&family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  /* ---------- BRAND COLORS ---------- */
+  --ugt-magenta: #C7238E;         /* Primary — headings, logo accent, CTAs */
+  --ugt-magenta-deep: #9E1A6F;    /* Pressed / shadow side of logo */
+  --ugt-magenta-soft: #FDF0F7;    /* Alternating table rows, soft tints */
+
+  --ugt-orange: #F5A623;          /* Secondary — accents, sub-CTAs */
+  --ugt-orange-deep: #D98A08;     /* Hover / extrude shadow */
+  --ugt-orange-soft: #FFF8ED;     /* Warm accent bg */
+
+  --ugt-ink: #1A1A1A;             /* Dark body text / deep backgrounds */
+  --ugt-ink-2: #3A3A3A;           /* Secondary text on light */
+  --ugt-ink-muted: #6B6B6B;       /* Tertiary / captions */
+
+  --ugt-white: #FFFFFF;
+  --ugt-silver: #E8E8ED;          /* Logo "URBAN" silver highlight */
+  --ugt-silver-deep: #B8B8C0;     /* Silver shadow */
+
+  /* Sub-brand / partner accents */
+  --ugt-church-purple: #7B1FA2;   /* Destiny Life Church segments */
+  --ugt-church-purple-soft: #F3E5F5;
+  --ugt-green: #2E7D32;           /* Green Movement / tree planting */
+  --ugt-green-soft: #E8F5E9;
+  --ugt-pptv-blue: #1E40AF;       /* Broadcast / PPP TV contexts */
+
+  /* Semantic */
+  --ugt-bg: #FFFFFF;
+  --ugt-bg-elevated: #FDF0F7;
+  --ugt-bg-dark: #1A1A1A;
+  --ugt-bg-stage: #0A0A0A;        /* Concert/stage contexts — near black */
+  --ugt-fg: #1A1A1A;
+  --ugt-fg-inverse: #FFFFFF;
+  --ugt-fg-accent: #C7238E;
+  --ugt-border: #F1D7E6;
+  --ugt-border-strong: #1A1A1A;
+
+  /* ---------- TYPE FAMILIES ---------- */
+  /* Brand-spec font is Arial across all documents; on web we use these
+     as Google-Fonts-available fallbacks that match the energy of the
+     physical brand (chunky display, hand-lettered accents). */
+  --font-display: 'Anton', 'Arial Black', 'Helvetica Neue', sans-serif;          /* Big condensed headlines */
+  --font-display-alt: 'Archivo Black', 'Arial Black', sans-serif;                /* Wide chunky blocks */
+  --font-graffiti: 'Bangers', 'Anton', 'Arial Black', sans-serif;                /* Poster / category callouts */
+  --font-handwritten: 'Permanent Marker', 'Caveat', cursive;                     /* Dates, scrapbook tags */
+  --font-script: 'Caveat', 'Permanent Marker', cursive;                          /* Quick handwritten notes */
+  --font-body: 'Inter', Arial, 'Helvetica Neue', sans-serif;                     /* Body + UI */
+  --font-arial: Arial, 'Helvetica Neue', sans-serif;                             /* Strict brand-doc usage */
+
+  /* ---------- TYPE SCALE ----------
+     Targets a big, bold concert feel. Use display for anything over 32px. */
+  --fs-display-xl: clamp(64px, 10vw, 160px);  /* Hero "UGT" shouts */
+  --fs-display-l:  clamp(48px, 6vw, 96px);    /* Section openers */
+  --fs-display-m:  clamp(36px, 4.5vw, 64px);  /* Page titles */
+  --fs-h1: 56px;
+  --fs-h2: 40px;
+  --fs-h3: 28px;
+  --fs-h4: 22px;
+  --fs-body-lg: 20px;
+  --fs-body: 17px;
+  --fs-body-sm: 15px;
+  --fs-caption: 13px;
+  --fs-overline: 12px;
+
+  --lh-tight: 0.95;
+  --lh-snug: 1.1;
+  --lh-normal: 1.5;
+  --lh-loose: 1.65;
+
+  --tracking-loose: 0.08em;   /* Overlines, eyebrows */
+  --tracking-normal: 0;
+  --tracking-tight: -0.01em;
+  --tracking-crunch: -0.03em; /* Big display */
+
+  /* ---------- SPACING ---------- */
+  --s-0:   0;
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:   12px;
+  --s-4:   16px;
+  --s-5:   20px;
+  --s-6:   24px;
+  --s-8:   32px;
+  --s-10:  40px;
+  --s-12:  48px;
+  --s-16:  64px;
+  --s-20:  80px;
+  --s-24:  96px;
+  --s-32:  128px;
+
+  /* ---------- RADII ---------- */
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 40px;
+  --r-pill: 999px;
+  --r-tag: 14px 4px 14px 4px; /* Ticket-stub / sticker corners */
+
+  /* ---------- SHADOWS / ELEVATION ----------
+     "Sticker" shadows with a hard offset (magenta or ink) are the
+     signature. Soft shadows exist but play second fiddle. */
+  --shadow-sticker-ink: 6px 6px 0 #1A1A1A;
+  --shadow-sticker-magenta: 6px 6px 0 #C7238E;
+  --shadow-sticker-orange: 6px 6px 0 #F5A623;
+  --shadow-sticker-xs: 3px 3px 0 #1A1A1A;
+  --shadow-sticker-lg: 10px 10px 0 #1A1A1A;
+  --shadow-soft: 0 10px 30px rgba(199, 35, 142, 0.18);
+  --shadow-soft-lg: 0 20px 60px rgba(26, 26, 26, 0.25);
+  --shadow-glow-magenta: 0 0 40px rgba(199, 35, 142, 0.5);
+  --shadow-glow-orange: 0 0 40px rgba(245, 166, 35, 0.5);
+
+  /* ---------- BORDERS ---------- */
+  --border-thin: 1.5px solid var(--ugt-ink);
+  --border-bold: 3px solid var(--ugt-ink);
+  --border-mega: 6px solid var(--ugt-ink);
+  --border-dashed: 3px dashed var(--ugt-ink);
+
+  /* ---------- MOTION ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --dur-hero: 800ms;
+
+  /* ---------- GRADIENTS ---------- */
+  --grad-magenta-orange: linear-gradient(135deg, #C7238E 0%, #F5A623 100%);
+  --grad-magenta-deep: linear-gradient(180deg, #E0329F 0%, #9E1A6F 100%);
+  --grad-stage-glow: radial-gradient(ellipse at top, rgba(199,35,142,0.5) 0%, rgba(10,10,10,1) 70%);
+}
+
+/* =========================================================
+   SEMANTIC ELEMENT DEFAULTS
+   Apply these selectors OR the matching .ugt-* class.
+   ========================================================= */
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body, .ugt-body {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--ugt-fg);
+  background: var(--ugt-bg);
+}
+
+h1, .ugt-h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-l);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-crunch);
+  color: var(--ugt-ink);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+h2, .ugt-h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-m);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ugt-magenta);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+h3, .ugt-h3 {
+  font-family: var(--font-display-alt);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ugt-ink);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+h4, .ugt-h4 {
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: var(--fs-h4);
+  line-height: var(--lh-snug);
+  color: var(--ugt-ink);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-loose);
+  margin: 0;
+}
+
+p, .ugt-p {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-loose);
+  color: var(--ugt-ink);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.ugt-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: var(--fs-overline);
+  letter-spacing: var(--tracking-loose);
+  text-transform: uppercase;
+  color: var(--ugt-magenta);
+}
+
+.ugt-script {
+  font-family: var(--font-handwritten);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.ugt-graffiti {
+  font-family: var(--font-graffiti);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+code, pre, .ugt-mono {
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 0.92em;
+}
+
+/* =========================================================
+   SIGNATURE TREATMENTS
+   ========================================================= */
+
+/* Yellow highlighter under a word — like the calendar poster */
+.ugt-highlight {
+  background-image: linear-gradient(transparent 55%, var(--ugt-orange) 55%, var(--ugt-orange) 92%, transparent 92%);
+  background-repeat: no-repeat;
+  padding: 0 0.1em;
+}
+
+/* X-pattern underline (hand-drawn strike under text) */
+.ugt-xs-underline {
+  display: inline-block;
+  position: relative;
+}
+.ugt-xs-underline::after {
+  content: 'XXXXXXXXXXXXXXXX';
+  position: absolute; left: 0; right: 0; bottom: -0.8em;
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: 0.5em;
+  color: var(--ugt-white);
+  letter-spacing: 0.1em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Diagonal slash pattern under a headline */
+.ugt-slash-underline {
+  position: relative;
+  padding-bottom: 0.2em;
+}
+.ugt-slash-underline::after {
+  content: '';
+  position: absolute; left: 0; bottom: 0;
+  width: 60%;
+  height: 0.25em;
+  background-image: repeating-linear-gradient(-45deg, var(--ugt-orange) 0 3px, transparent 3px 7px);
+}
+
+/* Gradient magenta → orange text */
+.ugt-grad-text {
+  background: var(--grad-magenta-orange);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Scrapbook dashed border */
+.ugt-dashed-frame {
+  border: 3px dashed currentColor;
+  border-radius: var(--r-lg);
+}
+
+/* Hard-offset sticker card */
+.ugt-sticker {
+  background: var(--ugt-white);
+  border: var(--border-bold);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sticker-ink);
+}

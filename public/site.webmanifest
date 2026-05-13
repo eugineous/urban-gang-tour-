@@ -1,0 +1,16 @@
+{
+  "name": "Urban Gang Tour",
+  "short_name": "UGT",
+  "description": "Urban Gang Tour - From Potential to Purpose",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1f1f24",
+  "theme_color": "#1f1f24",
+  "icons": [
+    {
+      "src": "/assets/social/profile_square_1080.png",
+      "sizes": "1080x1080",
+      "type": "image/png"
+    }
+  ]
+}
