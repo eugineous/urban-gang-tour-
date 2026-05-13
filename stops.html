@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban Gang Tour Events 2026 | School &amp; Campus Tour Dates Kenya</title>
+  <meta name="description" content="The 2026 tour calendar. Senior Chief Koinange Girls 30 May, Loreto Kiambu 1 June, Gathirimu Girls Technical 4 July, PCEA Gituamba Girls announced soon. Now booking schools, universities, colleges and polytechnics countrywide.">
+  <meta name="keywords" content="Urban Gang Tour 2026, school events Kenya, university events Kenya, Koinange Girls, Loreto Kiambu, Gathirimu Girls, PCEA Gituamba, book a school event Kenya">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .filter-btn {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--magenta);
+      color: var(--white);
+      background: rgba(204,0,119,0.12);
+    }
+
+    .stops-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .stop-detail-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .stop-detail-card:hover {
+      border-color: var(--magenta);
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-glow);
+    }
+    .stop-card-header {
+      background: linear-gradient(135deg, var(--bg3), var(--bg4));
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .stop-card-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(204,0,119,0.07) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+    .stop-card-header .date-big {
+      font-family: var(--font-stamp);
+      font-size: 72px;
+      line-height: 1;
+      letter-spacing: -2px;
+      color: var(--orange);
+      position: relative;
+      z-index: 1;
+    }
+    .stop-card-header .date-month {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(240,232,255,0.5);
+      position: relative;
+      z-index: 1;
+    }
+    .stop-card-content { padding: 24px 28px 28px; }
+    .stop-card-content h3 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .stop-card-content .tagline {
+      font-style: italic;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .stop-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .stop-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .stop-meta-row strong { color: var(--off-white); }
+
+    .what-to-expect {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .what-to-expect h4 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 10px;
+    }
+    .what-to-expect ul { display: flex; flex-direction: column; gap: 6px; }
+    .what-to-expect li {
+      font-size: 13px;
+      color: var(--muted);
+      padding-left: 16px;
+      position: relative;
+    }
+    .what-to-expect li::before {
+      content: '✦';
+      position: absolute;
+      left: 0;
+      color: var(--magenta);
+      font-size: 8px;
+      top: 3px;
+    }
+
+    /* Open stop CTA */
+    .open-stop-card {
+      background: transparent;
+      border: 3px dashed rgba(204,0,119,0.4);
+      border-radius: var(--radius-xl);
+      padding: 48px 32px;
+      text-align: center;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 340px;
+    }
+    .open-stop-card:hover {
+      border-color: var(--magenta);
+      background: rgba(204,0,119,0.05);
+    }
+    .open-stop-card h3 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    .open-stop-card p { color: var(--muted); font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
+
+    @media (max-width: 1024px) {
+      .stops-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .stops-grid { grid-template-columns: 1fr; }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav class="nav" id="main-nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/logo-transparent.png" alt="Urban Gang Tour">
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="events.html">Events</a>
+    <a href="stops.html" class="active">Stops</a>
+    <a href="performers.html">Performers</a>
+    <a href="shop.html">Shop</a>
+    <a href="crew.html">Crew</a>
+    <a href="partners.html">Partners</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="events.html">Events</a>
+  <a href="stops.html">Stops</a><a href="performers.html">Performers</a><a href="shop.html">Shop</a>
+  <a href="crew.html">Crew</a><a href="partners.html">Partners</a><a href="contact.html">Book a Stop ↗</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-dots"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="live-badge reveal" style="margin-bottom:24px;"><div class="dot"></div> 2026 calendar · booking open</div>
+    <h1 class="h-display h1 reveal reveal-delay-1" style="margin-bottom:16px;">
+      The calendar is<br>
+      <span style="color:var(--orange);">building.</span><br>
+      <span style="-webkit-text-stroke:2px var(--magenta);color:transparent;">Yours is next.</span>
+    </h1>
+    <p class="reveal reveal-delay-2" style="font-size:18px;color:var(--muted);max-width:560px;line-height:1.7;">
+      Three schools locked in Kiambu, with PCEA Gituamba announced soon. Universities and colleges in conversation. If your institution wants in, the line is open.
+    </p>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner fast">
+    <div class="ticker-item">Koinange Girls - 30 May <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Loreto Kiambu - 1 June <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Gathirimu Girls - 4 July <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Bookings Open <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Is Your School Next? <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Koinange Girls - 30 May <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Loreto Kiambu - 1 June <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Gathirimu Girls - 4 July <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Bookings Open <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Is Your School Next? <span class="ticker-sep">✦</span></div>
+  </div>
+</div>
+
+<!-- FILTERS + STOPS -->
+<section class="section">
+  <div class="container">
+    <div class="filter-bar reveal">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="confirmed">Confirmed</button>
+      <button class="filter-btn" data-filter="open">Open</button>
+      <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+    </div>
+
+    <div class="stops-grid">
+      <!-- STOP 1 -->
+      <div class="stop-detail-card reveal" data-status="confirmed">
+        <div class="stop-card-header">
+          <span class="badge badge-confirmed" style="align-self:flex-start;position:relative;z-index:1;">Confirmed</span>
+          <div>
+            <div class="date-big">30</div>
+            <div class="date-month">May 2026 - Thursday</div>
+          </div>
+        </div>
+        <div class="stop-card-content">
+          <h3>Snr. Chief Koinange Girls</h3>
+          <div class="tagline">"Find your voice."</div>
+          <div class="stop-meta">
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span> <strong>Kiambaa, Kiambu County</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <strong>8:10 AM  -  5:00 PM</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> <strong>Est. 800+ students</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span> <strong>PPP TV broadcast</strong></div>
+          </div>
+          <div class="what-to-expect">
+            <h4>What to expect</h4>
+            <ul>
+              <li>5 Urban Pod breakout sessions</li>
+              <li>Main stage performances &amp; competitions</li>
+              <li>Talent showcase &amp; modelling</li>
+              <li>Teacher appreciation ceremony</li>
+              <li>Live TV capture for PPP TV Kenya</li>
+            </ul>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="gallery-koinange.html" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Recon gallery</a>
+            <a href="contact.html" class="btn btn-outline btn-sm">Inquire</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOP 2 -->
+      <div class="stop-detail-card reveal reveal-delay-1" data-status="confirmed">
+        <div class="stop-card-header">
+          <span class="badge badge-confirmed" style="align-self:flex-start;position:relative;z-index:1;">Confirmed</span>
+          <div>
+            <div class="date-big">1</div>
+            <div class="date-month">June 2026 - Monday</div>
+          </div>
+        </div>
+        <div class="stop-card-content">
+          <h3>Loreto Kiambu Girls High</h3>
+          <div class="tagline">"Own your story."</div>
+          <div class="stop-meta">
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span> <strong>Kiambu Town, Kiambu County</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <strong>8:10 AM  -  5:00 PM</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> <strong>Est. 700+ students</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span> <strong>PPP TV broadcast</strong></div>
+          </div>
+          <div class="what-to-expect">
+            <h4>What to expect</h4>
+            <ul>
+              <li>5 Urban Pod breakout sessions</li>
+              <li>Main stage performances &amp; competitions</li>
+              <li>Talent showcase &amp; modelling</li>
+              <li>Teacher appreciation ceremony</li>
+              <li>Live TV capture for PPP TV Kenya</li>
+            </ul>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="gallery-loreto.html" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Recon gallery</a>
+            <a href="contact.html" class="btn btn-outline btn-sm">Inquire</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOP 3 -->
+      <div class="stop-detail-card reveal reveal-delay-2" data-status="confirmed">
+        <div class="stop-card-header">
+          <span class="badge badge-confirmed" style="align-self:flex-start;position:relative;z-index:1;">Confirmed</span>
+          <div>
+            <div class="date-big">4</div>
+            <div class="date-month">July 2026 - Saturday</div>
+          </div>
+        </div>
+        <div class="stop-card-content">
+          <h3>Gathirimu Girls Technical High</h3>
+          <div class="tagline">"Skill is the superpower."</div>
+          <div class="stop-meta">
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span> <strong>Githunguri, Kiambu County</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <strong>8:10 AM  -  5:00 PM</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> <strong>Est. 600+ students</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span> <strong>PPP TV broadcast</strong></div>
+          </div>
+          <div class="what-to-expect">
+            <h4>What to expect</h4>
+            <ul>
+              <li>5 Urban Pod breakout sessions</li>
+              <li>Technical skills showcase</li>
+              <li>Main stage performances &amp; competitions</li>
+              <li>Teacher appreciation ceremony</li>
+              <li>Live TV capture for PPP TV Kenya</li>
+            </ul>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="gallery-gathirimu.html" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Recon gallery</a>
+            <a href="contact.html" class="btn btn-outline btn-sm">Inquire</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOP 4 - PCEA GITUAMBA (UPCOMING) -->
+      <div class="stop-detail-card reveal" data-status="upcoming">
+        <div class="stop-card-header" style="background:linear-gradient(135deg,var(--ugt-magenta) 0%,var(--ugt-purple) 100%);">
+          <span class="badge" style="align-self:flex-start;position:relative;z-index:1;background:var(--ugt-orange);color:var(--ugt-ink);font-weight:800;padding:6px 12px;border-radius:var(--radius-pill);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;">Upcoming</span>
+          <div>
+            <div class="date-big" style="color:var(--ugt-white);">TBD</div>
+            <div class="date-month" style="color:rgba(255,255,255,0.7);">Post half-term · 2026</div>
+          </div>
+        </div>
+        <div class="stop-card-content">
+          <h3>PCEA Gituamba Girls High</h3>
+          <div class="tagline">"With Madam Divina &amp; the team."</div>
+          <div class="stop-meta">
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span> <strong>Kiambu County</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> <strong>Date locking soon</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> <strong>Full UGT format</strong></div>
+            <div class="stop-meta-row"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span> <strong>PPP TV broadcast</strong></div>
+          </div>
+          <div class="what-to-expect">
+            <h4>What to expect</h4>
+            <ul>
+              <li>The full 10-lane battle programme</li>
+              <li>Mentorship sessions with working professionals</li>
+              <li>Urban Gang Snacks, Moments &amp; Merch on site</li>
+              <li>Tree planting with Delo Greens Movement</li>
+              <li>National TV episode on PPP TV Kenya</li>
+            </ul>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="contact.html" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Notify me</a>
+            <a href="contact.html" class="btn btn-outline btn-sm">Inquire</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPEN STOP -->
+      <div class="open-stop-card reveal reveal-delay-3" data-status="open">
+        <span class="badge badge-open" style="margin-bottom:16px;">Open</span>
+        <h3>Your stop.</h3>
+        <p>School. University. College. Polytechnic. Church. Mega event. If your audience is young and your ambitions are big, we are the right people to call. Countrywide, any term.</p>
+        <a href="contact.html" class="btn btn-primary">Propose a Stop →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOMO -->
+<section style="background:linear-gradient(135deg,var(--magenta),var(--purple));padding:80px 0;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.05) 1px,transparent 1px);background-size:22px 22px;"></div>
+  <div class="container" style="position:relative;z-index:2;text-align:center;">
+    <div class="reveal">
+      <p style="font-family:var(--font-stamp);font-size:14px;letter-spacing:3px;color:rgba(255,255,255,0.6);margin-bottom:12px;">The fight card</p>
+      <h2 style="font-family:var(--font-display);font-size:clamp(32px,5vw,64px);font-weight:700;color:var(--white);letter-spacing:-2px;line-height:1.05;margin-bottom:20px;">Ten battle lanes.<br>One Grand Champion.</h2>
+      <p style="color:rgba(255,255,255,0.75);font-size:17px;max-width:540px;margin:0 auto 36px;">Singing &amp; Rap · Dance · Spoken Word · Poetry · Modelling · News Reporting · Public Speaking · Art · Teachers' Competition · Eating Competition. Every category is a battle. Every winner has a TV moment that belongs to them.</p>
+      <a href="contact.html" class="btn btn-white btn-lg">Bring it to your school →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer"><div class="container">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <img src="assets/logo-dark.png" alt="Urban Gang Tour" style="width:52px;border-radius:50%;border:2px solid var(--magenta);">
+      <div class="footer-logo-name">Urban Gang <span>Tour</span></div>
+      <p>From Potential to Purpose. National TV. Real stages. Real talent.</p>
+      <p style="margin-top:10px;font-size:13px;color:var(--orange);">Urban News on PPP TV Kenya</p>
+      <div class="social-links">
+        <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+        <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+        <a href="https://facebook.com/urbangangtour" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.9 3.78-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99C18.34 21.13 22 16.99 22 12z"/></svg></a>
+        <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Explore</h5><ul>
+      <li><a href="about.html">About</a></li><li><a href="stops.html">Stops</a></li>
+      <li><a href="events.html">Events</a></li><li><a href="performers.html">Performers</a></li>
+      <li><a href="shop.html">Shop</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Tour</h5><ul>
+      <li><a href="stops.html">School stops</a></li><li><a href="crew.html">Crew</a></li>
+      <li><a href="partners.html">Partners</a></li><li><a href="contact.html">Book a stop</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Connect</h5><ul>
+      <li><a href="mailto:euginemicah@gmail.com">Email us</a></li>
+      <li><a href="https://wa.me/254799886247">WhatsApp</a></li>
+      <li><a href="https://instagram.com/urban_newsgang">Instagram</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Legal</h5><ul>
+      <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom">
+    <p>2026 <span>Urban Gang Tour</span> - Nairobi, Kenya</p>
+  </div>
+</div></footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+
+<script src="shared.js"></script>
+<script>
+  // Filter functionality
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.stop-detail-card, .open-stop-card').forEach(card => {
+        if (filter === 'all') { card.style.display = ''; return; }
+        const status = card.dataset.status;
+        card.style.display = (status === filter) ? '' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>

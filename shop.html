@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban Gang Tour Merch | Official Online Store Kenya</title>
+  <meta name="description" content="Official Urban Gang Tour merch. Tees, caps, hoodies, accessories  -  designed and produced by the UGT team. Limited drops, often sold out at events. Ship across Kenya.">
+  <meta name="keywords" content="Urban Gang Tour merch, Kenya streetwear, UGT hoodies, UGT tees, Urban Gang Merch shop, BN-6ASYVPW5">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .shop-hero-text {
+      font-family: var(--font-stamp);
+      font-size: clamp(80px, 15vw, 200px);
+      line-height: 0.9;
+      letter-spacing: -2px;
+      color: var(--white);
+      text-transform: uppercase;
+    }
+    .shop-hero-text .outline {
+      -webkit-text-stroke: 3px var(--magenta);
+      color: transparent;
+    }
+    .shop-hero-text .orange { color: var(--orange); }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .product-card:hover {
+      border-color: var(--magenta);
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-glow);
+    }
+    .product-img {
+      position: relative;
+      background: var(--bg3);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .product-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .product-card:hover .product-img img { transform: scale(1.05); }
+    .product-img-inner {
+      font-size: 80px;
+      opacity: 0.15;
+    }
+    .product-img-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      padding: 20px;
+    }
+    .product-img-label .item-name {
+      font-family: var(--font-stamp);
+      font-size: 28px;
+      letter-spacing: 3px;
+      color: rgba(240,232,255,0.4);
+      text-transform: uppercase;
+    }
+    .product-img-label .item-hint {
+      font-size: 11px;
+      color: rgba(240,232,255,0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .product-badge {
+      position: absolute;
+      top: 16px; right: 16px;
+    }
+    .product-body { padding: 20px 22px 24px; }
+    .product-name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+    .product-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .product-price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .product-price {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: -1px;
+    }
+    .product-price sub { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .size-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .size-btn {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: var(--transition);
+      background: transparent;
+    }
+    .size-btn:hover, .size-btn.active {
+      border-color: var(--magenta);
+      color: var(--white);
+      background: rgba(204,0,119,0.12);
+    }
+
+    /* Cart sidebar */
+    .cart-fab {
+      position: fixed;
+      bottom: 100px; right: 28px;
+      z-index: 900;
+      background: var(--magenta);
+      border-radius: var(--radius-pill);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(204,0,119,0.45);
+      transition: var(--transition);
+      border: none;
+    }
+    .cart-fab:hover {
+      background: var(--magenta2);
+      transform: translateY(-2px) scale(1.03);
+    }
+    .cart-count {
+      background: var(--orange);
+      color: var(--white);
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+    }
+
+    /* Scarcity bar */
+    .scarcity-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .scarcity-track {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .scarcity-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--magenta));
+      border-radius: 4px;
+    }
+    .scarcity-label { font-size: 12px; color: var(--orange); font-weight: 700; white-space: nowrap; }
+
+    /* Bundle card */
+    .bundle-card {
+      background: linear-gradient(135deg, var(--magenta), var(--purple) 60%, #4A0070);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .bundle-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    @media (max-width: 1024px) { .product-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .bundle-card { grid-template-columns: 1fr; gap: 24px; }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav class="nav" id="main-nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/logo-dark.png" alt="Urban Gang Tour">
+    <span>Urban Gang</span><div class="live-dot"></div>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="about.html">About</a><a href="events.html">Events</a>
+    <a href="stops.html">Stops</a><a href="performers.html">Performers</a>
+    <a href="shop.html" class="active">Shop</a><a href="crew.html">Crew</a>
+    <a href="partners.html">Partners</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="events.html">Events</a>
+  <a href="stops.html">Stops</a><a href="performers.html">Performers</a><a href="shop.html">Shop</a>
+  <a href="crew.html">Crew</a><a href="partners.html">Partners</a><a href="contact.html">Book a Stop ↗</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero" style="padding-bottom:60px;">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-dots"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="live-badge reveal" style="margin-bottom:24px;"><div class="dot"></div> Urban Gang Merch · BN-6ASYVPW5</div>
+    <div class="shop-hero-text reveal reveal-delay-1">
+      Wear it<br>
+      <span class="outline">like you</span><br>
+      <span class="orange">mean it.</span>
+    </div>
+    <p class="reveal reveal-delay-2" style="font-size:18px;color:rgba(240,232,255,0.7);max-width:560px;margin-top:20px;line-height:1.7;">
+      Everything here is designed and produced by our team. When you wear it, you are repping something real  -  a movement built in Kenyan schools, shot on PPP TV, and worn by the students who competed for it.
+    </p>
+    <div class="reveal reveal-delay-3" style="display:flex;align-items:center;gap:16px;margin-top:28px;flex-wrap:wrap;">
+      <div style="background:rgba(255,122,0,0.12);border:1px solid rgba(255,122,0,0.3);border-radius:var(--radius-pill);padding:10px 20px;font-family:var(--font-stamp);font-size:13px;letter-spacing:2px;color:var(--orange);">LIMITED DROPS</div>
+      <div style="background:rgba(204,0,119,0.12);border:1px solid var(--border);border-radius:var(--radius-pill);padding:10px 20px;font-family:var(--font-stamp);font-size:13px;letter-spacing:2px;color:var(--muted);">SHIPS COUNTRYWIDE</div>
+      <a href="https://wa.me/254799886247?text=Hi%20 - %20I%27d%20like%20to%20order%20Urban%20Gang%20Merch" target="_blank" rel="noopener" style="background:#25D366;color:#fff;border-radius:var(--radius-pill);padding:10px 20px;font-family:var(--font-stamp);font-size:13px;letter-spacing:2px;text-decoration:none;">ORDER ON WHATSAPP</a>
+    </div>
+  </div>
+</section>
+
+<!-- ORANGE TICKER -->
+<div class="ticker-wrap orange-strip"><div class="ticker-inner fast">
+  <div class="ticker-item">The drip is official <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">50 units only <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">Rep the movement <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">Look good doing it <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">First come first served <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">Urban Gang Tour merch <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">The drip is official <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">50 units only <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">Rep the movement <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">Look good doing it <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">First come first served <span class="ticker-sep">✦</span></div>
+  <div class="ticker-item">Urban Gang Tour merch <span class="ticker-sep">✦</span></div>
+</div></div>
+
+<!-- PRODUCTS -->
+<section class="section">
+  <div class="container">
+    <div class="flex-between reveal" style="margin-bottom:40px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="section-label">Term 2 drop</div>
+        <h2 class="h-display h3">The collection.</h2>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="filter-btn active" data-cat="all" onclick="filterProducts(this,'all')">All</button>
+        <button class="filter-btn" data-cat="tops" onclick="filterProducts(this,'tops')">Tops</button>
+        <button class="filter-btn" data-cat="headwear" onclick="filterProducts(this,'headwear')">Headwear</button>
+        <button class="filter-btn" data-cat="accessories" onclick="filterProducts(this,'accessories')">Accessories</button>
+      </div>
+    </div>
+
+    <div class="product-grid reveal reveal-delay-1">
+      <!-- Hoodie -->
+      <div class="product-card" data-cat="tops">
+        <div class="product-img" style="padding:0;">
+          <img src="assets/merch/tee-mock-front.png" alt="Urban Gang Tour Hoodie" style="width:100%;height:100%;object-fit:cover;">
+          <div class="product-badge"><span class="badge badge-open">New Drop</span></div>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Urban Gang Tour Hoodie</div>
+          <div class="product-sub">Heavyweight fleece - Embroidered logo - Magenta on black</div>
+          <div class="scarcity-bar">
+            <div class="scarcity-track"><div class="scarcity-fill" style="width:72%;"></div></div>
+            <div class="scarcity-label">14 left</div>
+          </div>
+          <div class="product-price-row">
+            <div class="product-price">KES 3,500<sub></sub></div>
+          </div>
+          <div class="size-selector">
+            <button class="size-btn">XS</button>
+            <button class="size-btn active">S</button>
+            <button class="size-btn">M</button>
+            <button class="size-btn">L</button>
+            <button class="size-btn">XL</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="addToCart(this,'Urban Gang Tour Hoodie','KES 3,500')">Add to Cart →</button>
+        </div>
+      </div>
+
+      <!-- Tee -->
+      <div class="product-card" data-cat="tops">
+        <div class="product-img" style="padding:0;">
+          <img src="assets/merch/tee-white-man.jpg" alt="Urban Gang Tee" style="width:100%;height:100%;object-fit:cover;object-position:top;">
+          <div class="product-badge"><span class="badge badge-confirmed">Bestseller</span></div>
+        </div>
+        <div class="product-body">
+          <div class="product-name">From Potential to Purpose Tee</div>
+          <div class="product-sub">100% cotton - Screen printed - Tagline on back</div>
+          <div class="scarcity-bar">
+            <div class="scarcity-track"><div class="scarcity-fill" style="width:55%;"></div></div>
+            <div class="scarcity-label">22 left</div>
+          </div>
+          <div class="product-price-row">
+            <div class="product-price">KES 1,800</div>
+          </div>
+          <div class="size-selector">
+            <button class="size-btn">XS</button>
+            <button class="size-btn">S</button>
+            <button class="size-btn active">M</button>
+            <button class="size-btn">L</button>
+            <button class="size-btn">XL</button>
+            <button class="size-btn">XXL</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="addToCart(this,'From Potential to Purpose Tee','KES 1,800')">Add to Cart →</button>
+        </div>
+      </div>
+
+      <!-- Cap -->
+      <div class="product-card" data-cat="headwear">
+        <div class="product-img" style="padding:0;">
+          <img src="assets/merch/tee-olive-woman.jpg" alt="Urban Gang Snapback" style="width:100%;height:100%;object-fit:cover;object-position:top;">
+        </div>
+        <div class="product-body">
+          <div class="product-name">Urban Gang Snapback</div>
+          <div class="product-sub">6-panel - Embroidered UGT mark - Adjustable</div>
+          <div class="scarcity-bar">
+            <div class="scarcity-track"><div class="scarcity-fill" style="width:40%;"></div></div>
+            <div class="scarcity-label">30 left</div>
+          </div>
+          <div class="product-price-row">
+            <div class="product-price">KES 1,200</div>
+          </div>
+          <div class="size-selector">
+            <button class="size-btn active">One Size</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="addToCart(this,'Urban Gang Snapback','KES 1,200')">Add to Cart →</button>
+        </div>
+      </div>
+
+      <!-- Tote -->
+      <div class="product-card" data-cat="accessories">
+        <div class="product-img" style="padding:0;">
+          <img src="assets/merch/tee-yellow-woman.jpg" alt="Urban Gang Tote" style="width:100%;height:100%;object-fit:cover;object-position:top;">
+        </div>
+        <div class="product-body">
+          <div class="product-name">Movement Tote Bag</div>
+          <div class="product-sub">Heavy canvas - Screen printed - Double-stitched straps</div>
+          <div class="scarcity-bar">
+            <div class="scarcity-track"><div class="scarcity-fill" style="width:30%;"></div></div>
+            <div class="scarcity-label">35 left</div>
+          </div>
+          <div class="product-price-row">
+            <div class="product-price">KES 800</div>
+          </div>
+          <div class="size-selector">
+            <button class="size-btn active">One Size</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="addToCart(this,'Movement Tote Bag','KES 800')">Add to Cart →</button>
+        </div>
+      </div>
+
+      <!-- Long sleeve -->
+      <div class="product-card" data-cat="tops">
+        <div class="product-img" style="padding:0;">
+          <img src="assets/merch/tee-mock-side.jpg" alt="Urban Gang Long Sleeve" style="width:100%;height:100%;object-fit:cover;object-position:top;">
+          <div class="product-badge"><span class="badge badge-upcoming">Pre-order</span></div>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Urban Gang Long Sleeve</div>
+          <div class="product-sub">Ribbed cuffs - Orange logo - Limited pre-order</div>
+          <div class="scarcity-bar">
+            <div class="scarcity-track"><div class="scarcity-fill" style="width:20%;"></div></div>
+            <div class="scarcity-label">Pre-order open</div>
+          </div>
+          <div class="product-price-row">
+            <div class="product-price">KES 2,200</div>
+          </div>
+          <div class="size-selector">
+            <button class="size-btn">S</button>
+            <button class="size-btn active">M</button>
+            <button class="size-btn">L</button>
+            <button class="size-btn">XL</button>
+          </div>
+          <button class="btn btn-orange" style="width:100%;justify-content:center;" onclick="addToCart(this,'Urban Gang Long Sleeve (Pre-order)','KES 2,200')">Pre-order →</button>
+        </div>
+      </div>
+
+      <!-- Sticker pack -->
+      <div class="product-card" data-cat="accessories">
+        <div class="product-img" style="padding:0;">
+          <img src="assets/merch/tee-mock-white.png" alt="UGT Sticker Pack" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div class="product-body">
+          <div class="product-name">UGT Sticker Pack</div>
+          <div class="product-sub">10 stickers - Holographic finish - Weatherproof</div>
+          <div class="scarcity-bar">
+            <div class="scarcity-track"><div class="scarcity-fill" style="width:15%;"></div></div>
+            <div class="scarcity-label">42 left</div>
+          </div>
+          <div class="product-price-row">
+            <div class="product-price">KES 350</div>
+          </div>
+          <div class="size-selector">
+            <button class="size-btn active">One Size</button>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="addToCart(this,'UGT Sticker Pack','KES 350')">Add to Cart →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUNDLE DEAL -->
+<section class="section section-dark">
+  <div class="container">
+    <div class="bundle-card reveal">
+      <div style="position:relative;z-index:1;">
+        <span class="badge badge-open" style="margin-bottom:16px;display:inline-block;">Best Value</span>
+        <h2 style="font-family:var(--font-display);font-size:clamp(28px,4vw,48px);font-weight:700;color:var(--white);letter-spacing:-1px;line-height:1.1;margin-bottom:12px;">The Starter Pack.</h2>
+        <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.6;margin-bottom:24px;">Hoodie + Tee + Cap + Sticker Pack. The full drip. One price. Limited to 20 bundles.</p>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:28px;">
+          <span style="font-family:var(--font-display);font-size:40px;font-weight:700;color:var(--orange);letter-spacing:-1px;">KES 5,500</span>
+          <span style="font-size:16px;color:rgba(255,255,255,0.4);text-decoration:line-through;">KES 6,700</span>
+          <span style="background:rgba(255,122,0,0.2);border:1px solid rgba(255,122,0,0.4);border-radius:var(--radius-pill);padding:4px 12px;font-size:12px;font-weight:700;color:var(--orange);">SAVE 18%</span>
+        </div>
+        <button class="btn btn-white btn-lg" onclick="addToCart(this,'The Starter Pack','KES 5,500')">Get the Starter Pack →</button>
+      </div>
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:14px 18px;">
+          <span style="font-size:24px;">👕</span>
+          <div>
+            <div style="font-weight:700;color:var(--white);font-size:15px;">Urban Gang Tour Hoodie</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">KES 3,500</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:14px 18px;">
+          <span style="font-size:24px;">👕</span>
+          <div>
+            <div style="font-weight:700;color:var(--white);font-size:15px;">From Potential to Purpose Tee</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">KES 1,800</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:14px 18px;">
+          <span style="font-size:24px;">🧢</span>
+          <div>
+            <div style="font-weight:700;color:var(--white);font-size:15px;">Urban Gang Snapback</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">KES 1,200</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:14px 18px;">
+          <span style="font-size:24px;">🎨</span>
+          <div>
+            <div style="font-weight:700;color:var(--white);font-size:15px;">UGT Sticker Pack</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">KES 350</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHIPPING INFO -->
+<section class="section">
+  <div class="container">
+    <div class="grid-3 reveal" style="gap:20px;">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">🚚</div>
+        <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--white);margin-bottom:8px;">Free Nairobi Delivery</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.6;">Free delivery within Nairobi CBD and environs on all orders above KES 2,000.</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;"><span class="ico ico-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span></div>
+        <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--white);margin-bottom:8px;">Countrywide Shipping</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.6;">We ship across Kenya. Delivery times vary by county. Contact us for rates outside Nairobi.</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">↩️</div>
+        <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--white);margin-bottom:8px;">7-Day Returns</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.6;">Unworn items in original condition. Raise a return request within 7 days of delivery.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOATING CART -->
+<button class="cart-fab" id="cart-fab" style="display:none;" onclick="openCart()">
+  🛒 <span id="cart-label">Cart</span>
+  <span class="cart-count" id="cart-count">0</span>
+</button>
+
+<!-- Cart drawer (simple) -->
+<div id="cart-drawer" style="display:none;position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--bg2);border-left:1px solid var(--border);z-index:1100;padding:32px 24px;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,0.5);">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <h3 style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--white);">Your Cart</h3>
+    <button onclick="closeCart()" style="color:var(--white);font-size:24px;background:none;border:none;cursor:pointer;">X</button>
+  </div>
+  <div id="cart-items" style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;"></div>
+  <div id="cart-empty" style="text-align:center;padding:40px 0;color:var(--muted);font-size:15px;">Your cart is empty.<br>Add some drip.</div>
+  <div id="cart-total" style="display:none;border-top:1px solid var(--border);padding-top:20px;margin-top:8px;">
+    <div style="display:flex;justify-content:space-between;font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--white);margin-bottom:16px;">
+      <span>Total</span><span id="total-amount">KES 0</span>
+    </div>
+    <a href="https://wa.me/254799886247?text=Hi! I'd like to order Urban Gang Tour merch." target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;">Order via WhatsApp →</a>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px;">We'll confirm your order and arrange payment + delivery via WhatsApp.</p>
+  </div>
+</div>
+
+<footer class="footer"><div class="container">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <img src="assets/logo-dark.png" alt="Urban Gang Tour" style="width:52px;border-radius:50%;border:2px solid var(--magenta);">
+      <div class="footer-logo-name">Urban Gang <span>Tour</span></div>
+      <p>Rep the movement. From Potential to Purpose. Limited drops only.</p>
+      <div class="social-links">
+        <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+        <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Pages</h5><ul>
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="stops.html">Stops</a></li><li><a href="events.html">Events</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Shop</h5><ul>
+      <li><a href="#">Hoodies</a></li><li><a href="#">Tees</a></li>
+      <li><a href="#">Headwear</a></li><li><a href="#">Accessories</a></li>
+      <li><a href="#">Starter Pack</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Help</h5><ul>
+      <li><a href="https://wa.me/254799886247">WhatsApp orders</a></li>
+      <li><a href="#">Shipping info</a></li>
+      <li><a href="#">Returns</a></li>
+      <li><a href="#">Size guide</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><p>2026 <span>Urban Gang Tour</span> - Nairobi, Kenya</p></div>
+</div></footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+
+<script src="shared.js"></script>
+<script>
+  let cart = [];
+
+  function filterProducts(btn, cat) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.product-card').forEach(card => {
+      card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+    });
+  }
+
+  function addToCart(btn, name, price) {
+    cart.push({ name, price });
+    btn.textContent = '✓ Added!';
+    btn.style.background = 'rgba(37,211,102,0.3)';
+    btn.style.borderColor = '#25D366';
+    setTimeout(() => {
+      btn.textContent = 'Add to Cart →';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+    }, 1500);
+    updateCartUI();
+  }
+
+  function updateCartUI() {
+    const fab = document.getElementById('cart-fab');
+    const count = document.getElementById('cart-count');
+    const items = document.getElementById('cart-items');
+    const empty = document.getElementById('cart-empty');
+    const total = document.getElementById('cart-total');
+    const totalAmt = document.getElementById('total-amount');
+
+    count.textContent = cart.length;
+    fab.style.display = cart.length > 0 ? 'flex' : 'none';
+
+    items.innerHTML = '';
+    if (cart.length === 0) {
+      empty.style.display = 'block';
+      total.style.display = 'none';
+    } else {
+      empty.style.display = 'none';
+      total.style.display = 'block';
+      cart.forEach((item, i) => {
+        const el = document.createElement('div');
+        el.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;gap:12px;';
+        el.innerHTML = `<div><div style="font-weight:700;color:var(--white);font-size:14px;">${item.name}</div><div style="font-size:13px;color:var(--orange);">${item.price}</div></div><button onclick="removeFromCart(${i})" style="color:var(--muted);font-size:18px;background:none;border:none;cursor:pointer;flex-shrink:0;">X</button>`;
+        items.appendChild(el);
+      });
+      totalAmt.textContent = 'KES ' + cart.reduce((acc, item) => {
+        const n = parseInt(item.price.replace(/[^0-9]/g, '')) || 0;
+        return acc + n;
+      }, 0).toLocaleString();
+    }
+  }
+
+  function removeFromCart(i) { cart.splice(i, 1); updateCartUI(); }
+  function openCart() { document.getElementById('cart-drawer').style.display = 'block'; }
+  function closeCart() { document.getElementById('cart-drawer').style.display = 'none'; }
+
+  // Size selector toggle
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const group = btn.closest('.size-selector');
+      group.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

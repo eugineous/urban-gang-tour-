@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban Gang Tour | Kenya's Premier School &amp; Campus Events Company</title>
+  <meta name="description" content="Urban Gang Tour brings Kenya's most electric talent, mentorship and awards experience to high schools, universities and campuses. Hosted by Eugine Micah and Lucy Ogunde. As seen on PPP TV Kenya.">
+  <meta name="keywords" content="events company Kenya, school events Kenya, university events Kenya, talent show Kenya, Urban Gang Tour, Eugine Micah, Lucy Ogunde, PPP TV, NACADA, school activation Kenya, brand activation Kenya, high school talent search">
+  <meta property="og:title" content="Urban Gang Tour | From Potential to Purpose">
+  <meta property="og:image" content="assets/facebook-cover.png">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ── HERO ──────────────────────────────────────────── */
+    .hero {
+      background: var(--ugt-bg-dark);
+      padding: 140px 0 0;
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--grad-stage-glow);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative; z-index: 1;
+      max-width: 1240px; margin: 0 auto;
+      padding: 0 40px; flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: end;
+    }
+    .hero-left { padding-bottom: 64px; }
+    .hero-chips {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(52px, 8vw, 112px);
+      line-height: var(--lh-tight);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-white);
+      margin-bottom: 24px;
+    }
+    .hero-headline .accent { color: var(--ugt-magenta); }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 48px; }
+    .hero-stats {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: var(--r-xl); overflow: hidden;
+      background: rgba(255,255,255,0.04);
+    }
+    .hero-stat {
+      padding: 20px 16px; text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat .num {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3.5vw, 44px);
+      color: var(--ugt-white); line-height: 1;
+      letter-spacing: var(--tracking-crunch);
+    }
+    .hero-stat .lbl {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.45); margin-top: 4px;
+    }
+    .hero-right {
+      position: relative;
+      display: flex; align-items: flex-end;
+      justify-content: center;
+    }
+    .hero-img-wrap {
+      position: relative; width: 100%; max-width: 480px;
+    }
+    .hero-img-wrap img {
+      width: 100%;
+      -webkit-mask-image: linear-gradient(to top, transparent 0%, black 14%);
+      mask-image: linear-gradient(to top, transparent 0%, black 14%);
+    }
+    .hero-flyer-badge {
+      position: absolute;
+      top: 40px; left: -20px;
+      width: 140px;
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      border: var(--border-bold);
+      box-shadow: var(--shadow-sticker-ink);
+      transform: rotate(-4deg);
+    }
+    .hero-flyer-badge img { width: 100%; display: block; }
+
+    /* ── STOPS SECTION ─────────────────────────────────── */
+    .stops-section { background: var(--ugt-bg); padding: 80px 0; }
+    .stops-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+
+    /* ── WHY SECTION ────────────────────────────────────── */
+    .why-section { background: var(--ugt-magenta-soft); padding: 80px 0; }
+    .why-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 0; border: var(--border-bold); border-radius: var(--r-xl);
+      overflow: hidden; background: var(--ugt-ink); box-shadow: var(--shadow-sticker-ink);
+    }
+    .why-item {
+      background: var(--ugt-white); padding: 32px 28px;
+      border-right: var(--border-bold);
+      transition: background var(--dur-base);
+    }
+    .why-item:last-child { border-right: none; }
+    .why-item:hover { background: var(--ugt-magenta-soft); }
+    .why-num {
+      font-family: var(--font-display); font-size: 64px;
+      color: rgba(204,0,119,0.15); line-height: 1;
+      margin-bottom: 16px; letter-spacing: var(--tracking-crunch);
+    }
+    .why-title {
+      font-family: var(--font-display-alt); font-size: 17px;
+      text-transform: uppercase; color: var(--ugt-ink);
+      margin-bottom: 10px;
+    }
+    .why-body { font-size: 14px; color: var(--ugt-ink-2); line-height: var(--lh-loose); }
+
+    /* ── PODS ───────────────────────────────────────────── */
+    .pods-section { background: var(--ugt-bg); padding: 80px 0; }
+    .pods-scroll {
+      display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px;
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .pods-scroll::-webkit-scrollbar { display: none; }
+    .pod-card {
+      flex: 0 0 240px;
+      background: var(--ugt-white); border: var(--border-bold);
+      border-radius: var(--r-xl); overflow: hidden;
+      box-shadow: var(--shadow-sticker-xs);
+      transition: transform var(--dur-base), box-shadow var(--dur-base);
+    }
+    .pod-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-sticker-ink); }
+    .pod-card-top {
+      background: var(--ugt-magenta); padding: 20px;
+      position: relative; overflow: hidden;
+    }
+    .pod-card-top::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+    .pod-num {
+      font-family: var(--font-display); font-size: 56px;
+      color: rgba(0,0,0,0.15); line-height: 1;
+      position: relative; z-index: 1;
+      letter-spacing: var(--tracking-crunch);
+    }
+    .pod-body { padding: 20px; }
+    .pod-title {
+      font-family: var(--font-display-alt); font-size: 17px;
+      text-transform: uppercase; color: var(--ugt-ink);
+      margin-bottom: 8px;
+    }
+    .pod-desc { font-size: 13px; color: var(--ugt-ink-2); line-height: 1.6; }
+
+    /* ── PROGRAMME ─────────────────────────────────────── */
+    .programme-section { background: var(--ugt-bg-dark); padding: 80px 0; }
+    .programme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; }
+    .programme-intro h2 { color: var(--ugt-white); }
+    .programme-intro p { color: rgba(255,255,255,0.6); margin-top: 16px; font-size: 16px; line-height: 1.7; }
+
+    /* ── CREW ───────────────────────────────────────────── */
+    .crew-section { background: var(--ugt-bg); padding: 80px 0; }
+    .crew-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+
+    /* ── PARTNERS ───────────────────────────────────────── */
+    .partners-section { background: var(--ugt-magenta-soft); padding: 80px 0; }
+    .partner-logos-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 16px;
+    }
+    .partner-logo-tile {
+      background: var(--ugt-white); border: var(--border-thin);
+      border-radius: var(--r-lg); padding: 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-sticker-xs);
+      transition: transform var(--dur-base), box-shadow var(--dur-base);
+    }
+    .partner-logo-tile:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sticker-ink); }
+    .partner-logo-tile img { height: 40px; max-width: 120px; object-fit: contain; }
+    .partner-logo-tile .name {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--ugt-ink-muted); text-align: center;
+    }
+
+    /* ── CTA ────────────────────────────────────────────── */
+    .cta-section { background: var(--ugt-ink); padding: 80px 0; position: relative; overflow: hidden; }
+    .cta-section::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 60% 50%, rgba(204,0,119,0.2) 0%, transparent 65%);
+    }
+    .cta-inner { position: relative; z-index: 1; max-width: 700px; }
+    .cta-inner .eyebrow { color: var(--ugt-orange); }
+    .cta-inner .eyebrow::before { background: var(--ugt-orange); }
+    .cta-headline { color: var(--ugt-white); margin: 12px 0 16px; }
+    .cta-sub { color: rgba(255,255,255,0.6); font-size: 18px; line-height: 1.65; margin-bottom: 32px; }
+    .cta-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+
+    @media (max-width: 1024px) {
+      .stops-grid { grid-template-columns: 1fr 1fr; }
+      .why-grid { grid-template-columns: 1fr 1fr; }
+      .why-item { border-bottom: var(--border-bold); }
+      .crew-grid { grid-template-columns: 1fr 1fr; }
+      .partner-logos-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .hero-stats { grid-template-columns: repeat(2,1fr); }
+      .stops-grid { grid-template-columns: 1fr; }
+      .why-grid { grid-template-columns: 1fr; }
+      .programme-grid { grid-template-columns: 1fr; }
+      .crew-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .crew-grid { grid-template-columns: 1fr; }
+      .hero-stats { grid-template-columns: repeat(2,1fr); }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- NAV -->
+<nav class="nav dark" id="main-nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/logo-transparent.png" alt="Urban Gang Tour">
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="about.html">About</a>
+    <a href="stops.html">Stops</a>
+    <a href="performers.html">Performers</a>
+    <a href="crew.html">Crew</a>
+    <a href="partners.html">Partners</a>
+    <a href="events.html">Events</a>
+    <a href="shop.html">Shop</a>
+    <a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="stops.html">Stops</a>
+  <a href="performers.html">Performers</a>
+  <a href="crew.html">Crew</a>
+  <a href="partners.html">Partners</a>
+  <a href="events.html">Events</a>
+  <a href="shop.html">Shop</a>
+  <a href="contact.html">Book a Stop</a>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left reveal">
+      <div class="hero-chips">
+        <span class="chip chip-live"><span class="dot"></span> Now booking 2026</span>
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);">High schools</span>
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);">Universities</span>
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);">Colleges · Polytechnics</span>
+      </div>
+
+      <h1 class="hero-headline">
+        We don't<br>
+        show up.<br>
+        <span class="accent">We take<br>over.</span>
+      </h1>
+
+      <p style="color:rgba(255,255,255,0.7);font-size:18px;line-height:1.7;max-width:520px;margin:-8px 0 28px;">An events company that builds days your school, your campus and your crowd will not stop talking about. Talent battles. Real conversations. National television. Hosted by <strong style="color:var(--ugt-white);">Eugine Micah</strong> and <strong style="color:var(--ugt-white);">Lucy Ogunde</strong>. Seen on PPP TV Kenya.</p>
+
+      <div class="hero-ctas">
+        <a href="contact.html" class="btn btn-magenta btn-lg">Book your school</a>
+        <a href="contact.html" class="btn btn-outline-white btn-lg">Book your campus</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="num" data-count="8" data-suffix="M+">8M+</div>
+          <div class="lbl">PPP TV reach</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num" data-count="400" data-suffix="K+">400K+</div>
+          <div class="lbl">Urban News daily</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num" data-count="10">10</div>
+          <div class="lbl">Battle categories</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num">LIVE</div>
+          <div class="lbl">Bookings 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-img-wrap">
+        <div class="hero-flyer-badge">
+          <img src="assets/concert-flyer.png" alt="Urban Gang Tour Term 2">
+        </div>
+        <img src="https://urban-gang-tour.vercel.app/assets/people/eugine-lucy.jpg" alt="Eugine Micah and Lucy Ogunde">
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticker at bottom of hero -->
+  <div class="ticker-wrap" style="margin-top:auto;">
+    <div class="ticker-inner fast">
+      <div class="ticker-item">Next stop · Snr Chief Koinange Girls · 30 May 2026 <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Loreto Kiambu · 1 June <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Gathirimu Girls Tech · 4 July <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">PCEA Gituamba Girls · announced soon <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Bookings open countrywide <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">+254 799 886 247 <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">High schools · Universities · Colleges <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">From Potential to Purpose <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Next stop · Snr Chief Koinange Girls · 30 May 2026 <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Loreto Kiambu · 1 June <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Gathirimu Girls Tech · 4 July <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">PCEA Gituamba Girls · announced soon <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">Bookings open countrywide <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">+254 799 886 247 <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">High schools · Universities · Colleges <span class="ticker-sep">*</span></div>
+      <div class="ticker-item">From Potential to Purpose <span class="ticker-sep">*</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SHOWREEL ═══ -->
+<section class="showreel-section">
+  <div class="showreel-container">
+    <div class="showreel-head reveal">
+      <div class="showreel-eyebrow">
+        <span class="rec-dot"></span>
+        <span>Recon Tape 01</span>
+        <span class="sep">/</span>
+        <span>Snr Chief Koinange Girls</span>
+        <span class="sep">/</span>
+        <span>May 2026</span>
+      </div>
+      <h2 class="showreel-title">
+        The showreel.
+        <span class="showreel-stamp">PRESS PLAY</span>
+      </h2>
+      <p class="showreel-sub">Before the stage was built, the crew walked the grounds. This is what they shot. This is what is coming back, with sound, on 30 May.</p>
+    </div>
+
+    <div class="showreel-frame reveal reveal-delay-1">
+      <!-- Film perforations -->
+      <div class="perfs perfs-left">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="perfs perfs-right">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <!-- Top status bar -->
+      <div class="reel-status reel-status-top">
+        <div class="status-left">
+          <span class="rec-dot"></span>
+          <span class="status-text">REC</span>
+          <span class="status-divider"></span>
+          <span class="status-text">SHOWREEL.01</span>
+        </div>
+        <div class="status-right">
+          <span class="status-text">16:9</span>
+          <span class="status-divider"></span>
+          <span class="status-text">HD</span>
+          <span class="status-divider"></span>
+          <span class="status-text" id="reel-time">00:00</span>
+        </div>
+      </div>
+
+      <!-- Video -->
+      <div class="reel-video-wrap">
+        <video id="showreel-video"
+               class="reel-video"
+               src="assets/videos/koinange-showreel.mp4"
+               muted
+               autoplay
+               loop
+               playsinline
+               preload="metadata"
+               poster=""
+               aria-label="Urban Gang Tour recon showreel at Senior Chief Koinange Girls High School">
+        </video>
+        <div class="reel-scan"></div>
+      </div>
+
+      <!-- Bottom control bar -->
+      <div class="reel-status reel-status-bottom">
+        <div class="status-left">
+          <button class="reel-btn" id="reel-sound" aria-label="Toggle sound">
+            <svg class="ico-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <line x1="23" y1="9" x2="17" y2="15"/>
+              <line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+            <svg class="ico-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" style="display:none;">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            <span class="reel-btn-label" id="reel-sound-label">Tap for sound</span>
+          </button>
+        </div>
+        <div class="status-right">
+          <a href="gallery-koinange.html" class="reel-btn reel-btn-ghost">
+            <span>Open recon gallery</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+          <button class="reel-btn reel-btn-icon" id="reel-fullscreen" aria-label="Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spec strip below -->
+    <div class="showreel-specs reveal reveal-delay-2">
+      <div class="spec-cell">
+        <div class="spec-label">Tape</div>
+        <div class="spec-value">Recon 01</div>
+      </div>
+      <div class="spec-cell">
+        <div class="spec-label">Location</div>
+        <div class="spec-value">Kiambaa, Kiambu</div>
+      </div>
+      <div class="spec-cell">
+        <div class="spec-label">School</div>
+        <div class="spec-value">Snr Chief Koinange Girls</div>
+      </div>
+      <div class="spec-cell">
+        <div class="spec-label">Show day</div>
+        <div class="spec-value">30 May 2026</div>
+      </div>
+      <div class="spec-cell spec-cell-cta">
+        <a href="gallery-koinange.html" class="spec-cta">
+          <span>9 reels in the gallery</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ── SHOWREEL ────────────────────────────────────────── */
+  .showreel-section {
+    background: var(--ugt-bg-dark);
+    padding: 90px 0 100px;
+    position: relative;
+    overflow: hidden;
+  }
+  .showreel-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(204,0,119,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,122,0,0.12) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  .showreel-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .showreel-head {
+    max-width: 760px;
+    margin-bottom: 40px;
+  }
+  .showreel-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-pill);
+    padding: 8px 16px;
+    margin-bottom: 24px;
+  }
+  .showreel-eyebrow .sep {
+    color: rgba(255,255,255,0.25);
+    font-weight: 400;
+  }
+  .showreel-eyebrow .rec-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--ugt-orange);
+    animation: rec-pulse 1.4s ease-in-out infinite;
+    box-shadow: 0 0 12px rgba(255,122,0,0.7);
+  }
+  @keyframes rec-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .showreel-title {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 7vw, 96px);
+    letter-spacing: var(--tracking-crunch);
+    text-transform: uppercase;
+    color: var(--ugt-white);
+    line-height: 0.95;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .showreel-stamp {
+    font-family: var(--font-handwritten);
+    font-size: 0.32em;
+    color: var(--ugt-orange);
+    letter-spacing: 0;
+    text-transform: none;
+    transform: rotate(-3deg);
+    background: rgba(255,122,0,0.08);
+    border: 1.5px dashed rgba(255,122,0,0.45);
+    padding: 6px 14px;
+    border-radius: var(--r-md);
+    line-height: 1;
+    align-self: center;
+  }
+  .showreel-sub {
+    color: rgba(255,255,255,0.65);
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 580px;
+  }
+
+  /* The cinematic frame */
+  .showreel-frame {
+    position: relative;
+    background: #0a0010;
+    border: 3px solid #1a1a1a;
+    border-radius: var(--r-2xl);
+    box-shadow:
+      0 30px 80px rgba(204,0,119,0.25),
+      0 0 0 1px rgba(255,255,255,0.05) inset;
+    overflow: hidden;
+    padding: 12px 56px;
+  }
+
+  /* Film perforations */
+  .perfs {
+    position: absolute;
+    top: 12px; bottom: 12px;
+    width: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .perfs-left { left: 10px; }
+  .perfs-right { right: 10px; }
+  .perfs span {
+    width: 16px;
+    height: 22px;
+    background: #0a0010;
+    border-radius: 3px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+  }
+
+  .reel-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    gap: 12px;
+    color: rgba(255,255,255,0.7);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .reel-status .status-left,
+  .reel-status .status-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .reel-status .status-divider {
+    width: 1px; height: 12px;
+    background: rgba(255,255,255,0.15);
+  }
+  .reel-status .rec-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--ugt-orange);
+    animation: rec-pulse 1.4s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(255,122,0,0.7);
+  }
+  .reel-status .status-text { color: rgba(255,255,255,0.85); }
+  .reel-status-bottom {
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .reel-status-top {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .reel-video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+    border-radius: var(--r-md);
+  }
+  .reel-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  /* subtle scan-line + vignette overlay */
+  .reel-scan {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%),
+      repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,0.02) 0,
+        rgba(255,255,255,0.02) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    mix-blend-mode: overlay;
+  }
+
+  /* Reel buttons */
+  .reel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--ugt-white);
+    border-radius: var(--r-pill);
+    padding: 7px 14px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background var(--dur-base), border-color var(--dur-base), transform var(--dur-base);
+    text-decoration: none;
+  }
+  .reel-btn:hover {
+    background: rgba(204,0,119,0.2);
+    border-color: var(--ugt-magenta);
+    transform: translateY(-1px);
+  }
+  .reel-btn.is-on {
+    background: var(--ugt-orange);
+    border-color: var(--ugt-orange);
+    color: var(--ugt-ink);
+  }
+  .reel-btn-icon {
+    padding: 7px 9px;
+  }
+  .reel-btn-ghost {
+    background: transparent;
+  }
+
+  /* Specs strip */
+  .showreel-specs {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+  }
+  .spec-cell {
+    padding: 20px 22px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .spec-cell:last-child { border-right: none; }
+  .spec-label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+  }
+  .spec-value {
+    font-family: var(--font-display-alt);
+    font-size: 14px;
+    color: var(--ugt-white);
+    letter-spacing: 0.01em;
+  }
+  .spec-cell-cta {
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+  .spec-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 20px 22px;
+    background: var(--ugt-magenta);
+    color: var(--ugt-white);
+    font-family: var(--font-display-alt);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background var(--dur-base);
+  }
+  .spec-cta:hover { background: var(--ugt-magenta-deep); }
+
+  @media (max-width: 900px) {
+    .showreel-section { padding: 60px 0 70px; }
+    .showreel-container { padding: 0 20px; }
+    .showreel-frame { padding: 10px 28px; }
+    .perfs { width: 22px; }
+    .perfs-left { left: 4px; }
+    .perfs-right { right: 4px; }
+    .perfs span { width: 12px; height: 14px; }
+    .showreel-specs { grid-template-columns: repeat(2, 1fr); }
+    .spec-cell { border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .spec-cell:nth-child(2n) { border-right: none; }
+    .spec-cell-cta { grid-column: 1 / -1; border-right: none; border-bottom: none; }
+    .reel-status { font-size: 9px; padding: 8px 4px; }
+    .reel-btn { padding: 6px 10px; font-size: 10px; }
+    .reel-btn-label { display: none; }
+    .reel-btn { padding: 7px 9px; }
+    #reel-sound .reel-btn-label { display: inline; }
+  }
+  @media (max-width: 520px) {
+    .showreel-frame { padding: 8px 20px; }
+    .perfs { display: none; }
+  }
+</style>
+
+<!-- ═══ TOUR STOPS ═══ -->
+<section class="stops-section">
+  <div class="container">
+    <div class="flex-between reveal" style="margin-bottom:40px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="eyebrow">2026 calendar · booking now</div>
+        <h2 class="h-display h-md" style="color:var(--ugt-ink);">The calendar is<br>filling up. Fast.</h2>
+        <p style="color:var(--ugt-ink-2);margin-top:12px;max-width:440px;font-size:16px;line-height:1.65;">Three schools confirmed in Kiambu. Gituamba booked for post-half term. Universities and colleges in conversation. If your institution wants in, the line is open.</p>
+      </div>
+      <a href="stops.html" class="btn btn-outline">See all stops</a>
+    </div>
+
+    <div class="stops-grid reveal reveal-delay-1">
+      <!-- Stop 1 -->
+      <div class="stop-card">
+        <div class="stop-card-date-row">
+          <div class="stop-card-date">30</div>
+          <div class="stop-card-month">May 2026</div>
+        </div>
+        <div class="stop-card-body">
+          <span class="chip chip-confirmed" style="align-self:flex-start;">Confirmed</span>
+          <div class="stop-card-name ugt-xs-underline">Senior Chief Koinange Girls</div>
+          <div class="stop-card-theme">Find your voice.</div>
+          <div class="stop-card-location">Kiambaa, Kiambu County</div>
+          <a href="gallery-koinange.html" class="btn btn-primary btn-sm" style="align-self:flex-start;margin-top:auto;">Recon gallery</a>
+        </div>
+      </div>
+      <!-- Stop 2 -->
+      <div class="stop-card">
+        <div class="stop-card-date-row" style="background:var(--ugt-orange);">
+          <div class="stop-card-date">1</div>
+          <div class="stop-card-month">June 2026</div>
+        </div>
+        <div class="stop-card-body">
+          <span class="chip chip-confirmed" style="align-self:flex-start;">Confirmed</span>
+          <div class="stop-card-name ugt-xs-underline">Loreto Kiambu Girls High School</div>
+          <div class="stop-card-theme">Own your story.</div>
+          <div class="stop-card-location">Kiambu Town, Kiambu County</div>
+          <a href="gallery-loreto.html" class="btn btn-primary btn-sm" style="align-self:flex-start;margin-top:auto;">Recon gallery</a>
+        </div>
+      </div>
+      <!-- Stop 3 -->
+      <div class="stop-card">
+        <div class="stop-card-date-row" style="background:var(--ugt-purple);">
+          <div class="stop-card-date">4</div>
+          <div class="stop-card-month">July 2026</div>
+        </div>
+        <div class="stop-card-body">
+          <span class="chip chip-confirmed" style="align-self:flex-start;">Confirmed</span>
+          <div class="stop-card-name ugt-xs-underline">Gathirimu Girls Technical High</div>
+          <div class="stop-card-theme">Skill is the superpower.</div>
+          <div class="stop-card-location">Githunguri, Kiambu County</div>
+          <a href="gallery-gathirimu.html" class="btn btn-primary btn-sm" style="align-self:flex-start;margin-top:auto;">Recon gallery</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ THREE PILLARS ═══ -->
+<section class="why-section">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:40px;">
+      <div class="eyebrow">What this is</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">Three pillars.<br>One unforgettable day.</h2>
+      <p style="color:var(--ugt-ink-2);margin-top:12px;max-width:560px;font-size:16px;line-height:1.65;">We walk into a school or campus with a full professional crew. A proper stage. DJs, hype, cameras, energy. Then we hand the mic to the students and let them show the country who they are.</p>
+    </div>
+    <div class="why-grid reveal reveal-delay-1">
+      <div class="why-item">
+        <div class="why-num">01</div>
+        <div class="why-title">Compete.</div>
+        <div class="why-body">Ten battle lanes. Singing, rap, dance, spoken word, poetry, modelling, news reporting, public speaking, art, even a teachers' competition. Real winners. Real certificates. A TV moment that belongs to them.</div>
+      </div>
+      <div class="why-item">
+        <div class="why-num">02</div>
+        <div class="why-title">Connect.</div>
+        <div class="why-body">Aspiring journalists shadow our camera crew. Future stylists work the runway with our modelling team. Young presenters share the stage with Eugine and Lucy. The career you dream about is standing in front of you for a day.</div>
+      </div>
+      <div class="why-item">
+        <div class="why-num">03</div>
+        <div class="why-title">Celebrate.</div>
+        <div class="why-body">From the first DJ set to the last award, this day belongs to your students. Tree planting. Group photos. Urban Gang Moments instant prints. Snacks. Real conversations. Smiles shared with people who actually care.</div>
+      </div>
+      <div class="why-item">
+        <div class="why-num">04</div>
+        <div class="why-title">Broadcast.</div>
+        <div class="why-body">Then we film it all and air it on national television. Urban News on PPP TV Kenya, with reach up to 8 million viewers. The school that hosts us becomes the school the country watched.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TEN BATTLE LANES ═══ -->
+<section class="pods-section">
+  <div class="container">
+    <div class="flex-between reveal" style="margin-bottom:36px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="eyebrow">The fight card</div>
+        <h2 class="h-display h-md" style="color:var(--ugt-ink);">Ten lanes.<br>One Grand Champion.</h2>
+        <p style="color:var(--ugt-ink-2);margin-top:12px;max-width:520px;font-size:15px;line-height:1.65;">Every category is a battle. Students compete directly. The crowd decides. The judges decide. The energy decides. Then we put it all on television.</p>
+      </div>
+      <a href="contact.html" class="btn btn-outline">Bring it to your school</a>
+    </div>
+    <div class="pods-scroll reveal reveal-delay-1">
+      <div class="pod-card">
+        <div class="pod-card-top"><div class="pod-num">01</div></div>
+        <div class="pod-body"><div class="pod-title">Singing &amp; Rap</div><div class="pod-desc">Voices that own the room before the chorus drops.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-orange);"><div class="pod-num">02</div></div>
+        <div class="pod-body"><div class="pod-title">Dance</div><div class="pod-desc">From the corridor to the runway. Choreography that moves a crowd.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-purple);"><div class="pod-num">03</div></div>
+        <div class="pod-body"><div class="pod-title">Spoken Word</div><div class="pod-desc">Truth spoken on purpose. The category that goes the quietest before it explodes.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-green);"><div class="pod-num">04</div></div>
+        <div class="pod-body"><div class="pod-title">Poetry</div><div class="pod-desc">Written, performed, judged. The page comes off it.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top"><div class="pod-num">05</div></div>
+        <div class="pod-body"><div class="pod-title">Modelling</div><div class="pod-desc">A proper runway run by Synapse Models. Posture, presence, identity.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-orange);"><div class="pod-num">06</div></div>
+        <div class="pod-body"><div class="pod-title">News Reporting</div><div class="pod-desc">Camera. Mic. Two minutes to make Kenya listen. Pure broadcast prep.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-purple);"><div class="pod-num">07</div></div>
+        <div class="pod-body"><div class="pod-title">Public Speaking</div><div class="pod-desc">No script. No retake. The future leaders of every classroom show themselves.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-green);"><div class="pod-num">08</div></div>
+        <div class="pod-body"><div class="pod-title">Art</div><div class="pod-desc">Live work, finished pieces, full visual identity. Kept by the school after we leave.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top" style="background:var(--ugt-ink);"><div class="pod-num">09</div></div>
+        <div class="pod-body"><div class="pod-title">Teachers' Competition</div><div class="pod-desc">The faculty steps up. Students lose their minds. Easily the loudest moment of the day.</div></div>
+      </div>
+      <div class="pod-card">
+        <div class="pod-card-top"><div class="pod-num">10</div></div>
+        <div class="pod-body"><div class="pod-title">Eating Competition</div><div class="pod-desc">Yes, it makes television. Yes, it is undefeated as content. Yes, your students want this.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ OUR OWN BRANDS ═══ -->
+<section style="background:var(--ugt-ink);padding:90px 0;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(204,0,119,0.08) 1px,transparent 1px);background-size:24px 24px;pointer-events:none;"></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="reveal" style="max-width:640px;margin-bottom:48px;">
+      <div class="eyebrow" style="color:var(--ugt-orange);">
+        <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+        On the ground, all day
+      </div>
+      <h2 class="h-display h-md" style="color:var(--ugt-white);margin-top:12px;">Three Urban Gang<br>brands. One venue.</h2>
+      <p style="color:rgba(255,255,255,0.65);font-size:16px;line-height:1.7;margin-top:14px;">We are not a promoter who books a venue and sends artists. The shop, the photobooth, the merch table  -  all run by our team, on every event day.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;" class="reveal reveal-delay-1">
+      <div style="background:var(--ugt-white);border:var(--border-bold);border-radius:var(--r-xl);padding:32px 28px;box-shadow:var(--shadow-sticker-magenta);">
+        <div style="font-family:var(--font-handwritten);font-size:20px;color:var(--ugt-magenta);margin-bottom:8px;transform:rotate(-2deg);display:inline-block;">our snack pop-up</div>
+        <h3 style="font-family:var(--font-display);font-size:34px;letter-spacing:var(--tracking-crunch);text-transform:uppercase;color:var(--ugt-ink);line-height:1;margin-bottom:14px;">Urban Gang Snacks</h3>
+        <p style="color:var(--ugt-ink-2);font-size:15px;line-height:1.65;">Affordable, fast, and a queue students happily stand in. Break time becomes its own celebration. Run on site by our own team.</p>
+      </div>
+      <div style="background:var(--ugt-white);border:var(--border-bold);border-radius:var(--r-xl);padding:32px 28px;box-shadow:var(--shadow-sticker-orange);">
+        <div style="font-family:var(--font-handwritten);font-size:20px;color:var(--ugt-orange);margin-bottom:8px;transform:rotate(-2deg);display:inline-block;">instant-print photo booth</div>
+        <h3 style="font-family:var(--font-display);font-size:34px;letter-spacing:var(--tracking-crunch);text-transform:uppercase;color:var(--ugt-ink);line-height:1;margin-bottom:14px;">Urban Gang Moments</h3>
+        <p style="color:var(--ugt-ink-2);font-size:15px;line-height:1.65;">Every student walks away with a physical memory from the day. The printer runs live. Photos hit WhatsApp status before the queue moves.</p>
+      </div>
+      <div style="background:var(--ugt-magenta);border:var(--border-bold);border-radius:var(--r-xl);padding:32px 28px;box-shadow:var(--shadow-sticker-ink);position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.08) 1px,transparent 1px);background-size:14px 14px;"></div>
+        <div style="position:relative;z-index:1;">
+          <div style="font-family:var(--font-handwritten);font-size:20px;color:var(--ugt-white);opacity:0.85;margin-bottom:8px;transform:rotate(-2deg);display:inline-block;">wear it like you mean it</div>
+          <h3 style="font-family:var(--font-display);font-size:34px;letter-spacing:var(--tracking-crunch);text-transform:uppercase;color:var(--ugt-white);line-height:1;margin-bottom:14px;">Urban Gang Merch</h3>
+          <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.65;">Tees, caps, hoodies, accessories. Limited drops at every event. Most pieces sell out before they ever reach the online store.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ RUN OF SHOW ═══ -->
+<section class="programme-section">
+  <div class="container">
+    <div class="programme-grid reveal">
+      <div class="programme-intro">
+        <div class="eyebrow" style="color:var(--ugt-orange);">
+          <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+          One day, explained
+        </div>
+        <h2 class="h-display h-md" style="color:var(--ugt-white);margin-top:12px;">A professional crew.<br>National television.<br>A student who will<br><span style="color:var(--ugt-orange);">never forget it.</span></h2>
+        <p>Eugine Micah and Lucy Ogunde steer every minute. From the first DJ set to the last award given out. That is not production value. That is identity.</p>
+        <div style="margin-top:32px;">
+          <img src="assets/people/dsc-8977.jpg" alt="Urban Gang Tour on stage" style="border-radius:var(--r-xl);border:var(--border-bold);box-shadow:var(--shadow-sticker-ink);">
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">Morning</div>
+          <div>
+            <div class="timeline-title">The day begins</div>
+            <div class="timeline-body">Stage up. PA running. Cameras rolling. Urban Gang Snacks open. By assembly bell, the venue is already transformed.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">Mid-morning</div>
+          <div>
+            <div class="timeline-title">The pods. The pairing.</div>
+            <div class="timeline-body">Mentorship sessions with working media, finance, digital, and modelling professionals. Students who want those careers shadow our crew live.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">Midday</div>
+          <div>
+            <div class="timeline-title">Battles go back to back</div>
+            <div class="timeline-body">Ten lanes. No filler. Eugine and Lucy on stage, pushing the crowd, calling out every winner by name.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">Afternoon</div>
+          <div>
+            <div class="timeline-title">Trees. Awards. Goosebumps.</div>
+            <div class="timeline-body">A meal shared with students. Trees planted with Delo Greens Movement. Awards ceremony with the dignity of a proper occasion. Then the PPP TV crew packs up the hard drives that will become a national broadcast.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CREW ═══ -->
+<section class="crew-section">
+  <div class="container">
+    <div class="flex-between reveal" style="margin-bottom:36px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="eyebrow">The faces</div>
+        <h2 class="h-display h-md" style="color:var(--ugt-ink);">Eugine and Lucy.<br>And a team that loves<br>this more than sleep.</h2>
+      </div>
+      <a href="crew.html" class="btn btn-outline">Meet everyone</a>
+    </div>
+    <div class="crew-grid reveal reveal-delay-1">
+      <div class="crew-card">
+        <div class="crew-card-img">
+          <img src="assets/people/eugine-micah.png" alt="Eugine Micah" loading="lazy">
+        </div>
+        <div class="crew-card-body">
+          <div class="crew-card-role">Co-Founder</div>
+          <div class="crew-card-name">Eugine Micah</div>
+          <div class="crew-card-note">Lead Host. Creative Director. He built this from zero and hosts every stop personally.</div>
+        </div>
+      </div>
+      <div class="crew-card">
+        <div class="crew-card-img">
+          <img src="assets/people/lucy-ogunde.jpg" alt="Lucy Ogunde" loading="lazy">
+        </div>
+        <div class="crew-card-body">
+          <div class="crew-card-role">Co-Founder</div>
+          <div class="crew-card-name">Lucy Ogunde</div>
+          <div class="crew-card-note">Co-Host. Community Architect. She makes the day feel like it belongs to the school.</div>
+        </div>
+      </div>
+      <div class="crew-card">
+        <div class="crew-card-img">
+          <img src="assets/people/hype-ola.jpg" alt="Hype Ola" loading="lazy">
+        </div>
+        <div class="crew-card-body">
+          <div class="crew-card-role">Experience Hub Lead</div>
+          <div class="crew-card-name">Hype Ola</div>
+          <div class="crew-card-note">Hypeman. When the crowd peaks, Hype Ola is why.</div>
+        </div>
+      </div>
+      <div class="crew-card">
+        <div class="crew-card-img">
+          <img src="assets/people/rania.webp" alt="Rania Martin" loading="lazy">
+        </div>
+        <div class="crew-card-body">
+          <div class="crew-card-role">Social Content Lead</div>
+          <div class="crew-card-name">Rania Martin</div>
+          <div class="crew-card-note">PPP TV Editor. After every stop, Rania is why the clips hit.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PARTNERS ═══ -->
+<section class="partners-section">
+  <div class="container">
+    <div class="flex-between reveal" style="margin-bottom:36px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="eyebrow">Partners already in the room</div>
+        <h2 class="h-display h-md" style="color:var(--ugt-ink);">Serious institutions.<br>Already here.</h2>
+      </div>
+      <a href="partners.html" class="btn btn-outline">See the partner story</a>
+    </div>
+    <div class="partner-logos-grid reveal reveal-delay-1">
+      <div class="partner-logo-tile"><img src="assets/logos/ppp-tv.png" alt="PPP TV Kenya"><div class="name">PPP TV Kenya</div></div>
+      <div class="partner-logo-tile"><img src="assets/logos/nacada.png" alt="NACADA"><div class="name">NACADA</div></div>
+      <div class="partner-logo-tile"><img src="assets/logos/synapse-models.png" alt="Synapse Models"><div class="name">Synapse Models</div></div>
+      <div class="partner-logo-tile"><img src="assets/logos/ashton-sounds.png" alt="Ashton Sounds"><div class="name">Ashton Sounds</div></div>
+      <div class="partner-logo-tile">
+        <div style="height:40px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;color:var(--ugt-green);letter-spacing:0.02em;">DELO GREENS</div>
+        <div class="name">Delo Greens Movement</div>
+      </div>
+      <div class="partner-logo-tile">
+        <div style="height:40px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;color:var(--ugt-orange);letter-spacing:0.02em;">HEWITT &amp; BENNET</div>
+        <div class="name">Hewitt &amp; Bennet College</div>
+      </div>
+      <div class="partner-logo-tile">
+        <div style="height:40px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:20px;color:var(--ugt-magenta);letter-spacing:0.02em;">TIBS</div>
+        <div class="name">TIBS College</div>
+      </div>
+      <div class="partner-logo-tile">
+        <div style="height:40px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display-alt);font-size:11px;color:var(--ugt-ink);letter-spacing:0.05em;">MOYO</div>
+        <div class="name">Moyo Response</div>
+      </div>
+      <div class="partner-logo-tile"><img src="assets/logos/experience-hub-logo.png" alt="The Experience Hub"><div class="name">The Experience Hub</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-inner reveal">
+      <div class="eyebrow" style="color:var(--ugt-orange);">
+        <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+        Ready to move
+      </div>
+      <h2 class="h-display h-md cta-headline">The next great Kenyan<br>artist, journalist, model,<br>or leader is sitting in a<br>classroom right now.</h2>
+      <p class="cta-sub">Bring us in and we will find them. School, university, college, polytechnic, mega event  -  if your audience is young and your ambitions are big, we are the right people to call.</p>
+      <div class="cta-chips">
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.55);border-color:rgba(255,255,255,0.2);">School bookings</span>
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.55);border-color:rgba(255,255,255,0.2);">Campus &amp; universities</span>
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.55);border-color:rgba(255,255,255,0.2);">Brand partnerships</span>
+        <span class="chip chip-outline" style="color:rgba(255,255,255,0.55);border-color:rgba(255,255,255,0.2);">Mega events</span>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a href="contact.html" class="btn btn-magenta btn-lg">Talk to Eugine and Lucy</a>
+        <a href="partners.html" class="btn btn-outline-white btn-lg">Partner with us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORANGE TICKER -->
+<div class="ticker-wrap orange">
+  <div class="ticker-inner">
+    <div class="ticker-item">Singing &amp; Rap <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Dance <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Spoken Word <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Poetry <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Modelling <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">News Reporting <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Public Speaking <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Art <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Teachers' Competition <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Eating Competition <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">From Potential to Purpose <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Singing &amp; Rap <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Dance <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Spoken Word <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Poetry <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Modelling <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">News Reporting <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Public Speaking <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Art <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Teachers' Competition <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Eating Competition <span class="ticker-sep">*</span></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/logo-transparent.png" alt="Urban Gang Tour" style="height:56px;width:auto;">
+        <p>Production-quality live events. High schools. Universities. Colleges. Polytechnics. Mega events. Hosted by Eugine Micah and Lucy Ogunde.</p>
+        <div class="broadcast">Urban News on PPP TV Kenya</div>
+        <div class="footer-social">
+          <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+          <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+          <a href="https://facebook.com/urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.9 3.78-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99C18.34 21.13 22 16.99 22 12z"/></svg></a>
+          <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+          <a href="https://wa.me/254799886247" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="about.html">About the movement</a></li>
+          <li><a href="stops.html">The 2026 calendar</a></li>
+          <li><a href="crew.html">Meet the crew</a></li>
+          <li><a href="partners.html">Partners and sponsors</a></li>
+          <li><a href="stops.html">Universities and colleges</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Who it serves</h5>
+        <ul>
+          <li><a href="stops.html">Schools and student leaders</a></li>
+          <li><a href="stops.html">Universities and campuses</a></li>
+          <li><a href="partners.html">Sponsors and brands</a></li>
+          <li><a href="performers.html">Performers and artists</a></li>
+          <li><a href="contact.html">Media collaborators</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:euginemicah@gmail.com">euginemicah@gmail.com</a></li>
+          <li><a href="https://instagram.com/urban_newsgang">@urban_newsgang</a></li>
+          <li><a href="https://wa.me/254799886247">+254799886247</a></li>
+          <li><a href="contact.html">Start a conversation</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">BN-6ASYVPW5</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Booking 2026 · Schools, universities, colleges, polytechnics · Countrywide</p>
+      <p><span>Urban Gang Tour</span> · From Potential to Purpose · 2026</p>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+
+<script src="shared.js"></script>
+<script>
+  // ── SHOWREEL CONTROLS ────────────────────────────────────
+  (function() {
+    const video = document.getElementById('showreel-video');
+    if (!video) return;
+
+    const soundBtn = document.getElementById('reel-sound');
+    const soundLabel = document.getElementById('reel-sound-label');
+    const icoMuted = soundBtn.querySelector('.ico-muted');
+    const icoSound = soundBtn.querySelector('.ico-sound');
+    const fsBtn = document.getElementById('reel-fullscreen');
+    const timeEl = document.getElementById('reel-time');
+
+    soundBtn.addEventListener('click', () => {
+      video.muted = !video.muted;
+      if (!video.muted) {
+        soundBtn.classList.add('is-on');
+        soundLabel.textContent = 'Sound on';
+        icoMuted.style.display = 'none';
+        icoSound.style.display = 'block';
+        // ensure playing on unmute
+        video.play().catch(()=>{});
+      } else {
+        soundBtn.classList.remove('is-on');
+        soundLabel.textContent = 'Tap for sound';
+        icoMuted.style.display = 'block';
+        icoSound.style.display = 'none';
+      }
+    });
+
+    fsBtn.addEventListener('click', () => {
+      const el = video;
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else if (el.requestFullscreen) {
+        el.requestFullscreen();
+      } else if (el.webkitEnterFullscreen) {
+        el.webkitEnterFullscreen();
+      }
+    });
+
+    const pad = (n) => String(Math.floor(n)).padStart(2, '0');
+    video.addEventListener('timeupdate', () => {
+      const t = video.currentTime || 0;
+      timeEl.textContent = pad(t / 60) + ':' + pad(t % 60);
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Urban Gang Tour | Talent, Mentorship &amp; Events | Kenya</title>
+  <meta name="description" content="Urban Gang Tour is an events company built by Eugine Micah and Lucy Ogunde  -  talent battles, mentorship, awards and national TV inside Kenyan high schools, universities and campuses.">
+  <meta name="keywords" content="about Urban Gang Tour, Eugine Micah, Lucy Ogunde, school events Kenya, university events Kenya, PPP TV, From Potential to Purpose, events company Nairobi">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .founder-quote {
+      background: var(--ugt-white); border: var(--border-bold); border-radius: var(--r-xl);
+      padding: 40px; box-shadow: var(--shadow-sticker-ink);
+      display: grid; grid-template-columns: 200px 1fr; gap: 32px; align-items: start;
+    }
+    .founder-quote img { border-radius: var(--r-lg); border: var(--border-bold); box-shadow: var(--shadow-sticker-xs); width: 200px; aspect-ratio: 3/4; object-fit: cover; object-position: top; }
+    blockquote { font-family: var(--font-display); font-size: clamp(22px,3vw,32px); line-height: 1.15; letter-spacing: var(--tracking-crunch); text-transform: uppercase; color: var(--ugt-ink); margin-bottom: 16px; }
+    .quote-mark { color: var(--ugt-magenta); }
+    .quote-attr { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ugt-ink-muted); }
+
+    .timeline-horiz {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 0;
+      border: var(--border-bold); border-radius: var(--r-xl); overflow: hidden;
+      box-shadow: var(--shadow-sticker-ink);
+    }
+    .tl-item {
+      background: var(--ugt-white); padding: 28px 24px; border-right: var(--border-bold);
+      transition: background var(--dur-base);
+    }
+    .tl-item:last-child { border-right: none; }
+    .tl-item:hover { background: var(--ugt-magenta-soft); }
+    .tl-year { font-family: var(--font-handwritten); font-size: 28px; color: var(--ugt-magenta); margin-bottom: 8px; }
+    .tl-event { font-family: var(--font-display-alt); font-size: 16px; text-transform: uppercase; color: var(--ugt-ink); margin-bottom: 8px; }
+    .tl-detail { font-size: 13px; color: var(--ugt-ink-2); line-height: 1.6; }
+
+    .objectives-list { display: flex; flex-direction: column; gap: 0; border: var(--border-bold); border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--shadow-sticker-ink); }
+    .obj-item { padding: 24px 28px; border-bottom: var(--border-thin); background: var(--ugt-white); display: grid; grid-template-columns: 48px 1fr; gap: 16px; align-items: start; transition: background var(--dur-base); }
+    .obj-item:last-child { border-bottom: none; }
+    .obj-item:hover { background: var(--ugt-magenta-soft); }
+    .obj-num { font-family: var(--font-display); font-size: 28px; color: var(--ugt-magenta); line-height: 1; letter-spacing: var(--tracking-crunch); }
+    .obj-text { font-size: 15px; color: var(--ugt-ink); line-height: 1.65; padding-top: 2px; }
+
+    .values-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; }
+    .value-card {
+      background: var(--ugt-white); border: var(--border-bold); border-radius: var(--r-xl);
+      padding: 24px 18px; text-align: center; box-shadow: var(--shadow-sticker-xs);
+      transition: transform var(--dur-base), box-shadow var(--dur-base);
+    }
+    .value-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sticker-ink); }
+    .value-word { font-family: var(--font-display); font-size: 18px; color: var(--ugt-magenta); letter-spacing: var(--tracking-crunch); text-transform: uppercase; display: block; margin-bottom: 8px; }
+    .value-desc { font-size: 13px; color: var(--ugt-ink-2); line-height: 1.55; }
+
+    .pods-list { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .pod-list-card {
+      background: var(--ugt-white); border: var(--border-bold); border-radius: var(--r-xl);
+      overflow: hidden; box-shadow: var(--shadow-sticker-xs);
+      transition: transform var(--dur-base), box-shadow var(--dur-base);
+    }
+    .pod-list-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sticker-ink); }
+    .pod-list-top { background: var(--ugt-magenta); padding: 16px 20px; position: relative; overflow: hidden; }
+    .pod-list-top::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(255,255,255,0.1) 1px,transparent 1px); background-size:14px 14px; }
+    .pod-list-num { font-family: var(--font-display); font-size: 48px; color: rgba(0,0,0,0.15); line-height: 1; position: relative; z-index: 1; letter-spacing: var(--tracking-crunch); }
+    .pod-list-body { padding: 18px 20px; }
+    .pod-list-title { font-family: var(--font-display-alt); font-size: 16px; text-transform: uppercase; color: var(--ugt-ink); margin-bottom: 8px; }
+    .pod-list-desc { font-size: 13px; color: var(--ugt-ink-2); line-height: 1.6; }
+
+    @media (max-width: 1024px) {
+      .values-grid { grid-template-columns: repeat(3,1fr); }
+      .timeline-horiz { grid-template-columns: 1fr 1fr; }
+      .tl-item { border-bottom: var(--border-bold); }
+    }
+    @media (max-width: 768px) {
+      .two-col { grid-template-columns: 1fr; }
+      .founder-quote { grid-template-columns: 1fr; }
+      .founder-quote img { width: 100%; }
+      .values-grid { grid-template-columns: 1fr 1fr; }
+      .pods-list { grid-template-columns: 1fr; }
+      .timeline-horiz { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .values-grid { grid-template-columns: 1fr; }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<nav class="nav dark" id="main-nav">
+  <a href="index.html" class="nav-logo"><img src="assets/logo-transparent.png" alt="Urban Gang Tour"></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="about.html" class="active">About</a><a href="stops.html">Stops</a>
+    <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+    <a href="partners.html">Partners</a><a href="events.html">Events</a>
+    <a href="shop.html">Shop</a><a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+  <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+  <a href="partners.html">Partners</a><a href="events.html">Events</a>
+  <a href="shop.html">Shop</a><a href="contact.html">Book a Stop</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow" style="color:var(--ugt-orange);margin-bottom:12px;">
+      <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+      About Urban Gang Tour
+    </div>
+    <h1 class="h-display h-lg" style="color:var(--ugt-white);margin-bottom:16px;">We are the day<br>students never forget.</h1>
+    <p style="color:rgba(255,255,255,0.65);font-size:var(--fs-body-lg);max-width:620px;line-height:var(--lh-loose);">Urban Gang Tour started with a simple question: what happens when you stop telling young people what to do and start giving them a stage? What happens is exactly what you would expect. They rise to it.</p>
+  </div>
+</section>
+
+<!-- WHAT IT IS -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div class="two-col reveal">
+      <div>
+        <div class="eyebrow" style="margin-bottom:16px;">The full picture</div>
+        <h2 class="h-display h-md" style="color:var(--ugt-ink);margin-bottom:20px;">A movement.<br>Not a show.</h2>
+        <p style="color:var(--ugt-ink-2);font-size:16px;line-height:1.75;margin-bottom:16px;">Built by <strong>Eugine Micah</strong> and <strong>Lucy Ogunde</strong>, Urban Gang Tour is a registered Kenyan events company that produces full-scale talent, mentorship and entertainment programmes for high schools, universities, colleges, and campus communities across the country.</p>
+        <p style="color:var(--ugt-ink-2);font-size:16px;line-height:1.75;margin-bottom:16px;">Every event is broadcast on Urban News on PPP TV Kenya, where the programme has reached up to <strong>8 million viewers nationally</strong>. From Potential to Purpose is not a tagline. It is the lens through which every part of what we do is designed.</p>
+        <p style="color:var(--ugt-ink-2);font-size:16px;line-height:1.75;">Students compete. Working professionals mentor. The crowd sings along. Trees go in the ground. Awards get handed out on stage. Then it all airs on national television. That is the whole brief.</p>
+      </div>
+      <div>
+        <img src="assets/people/dsc-2151.jpg" alt="Urban Gang Tour on stage" style="border-radius:var(--r-xl);border:var(--border-bold);box-shadow:var(--shadow-sticker-ink);width:100%;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION + VISION -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="two-col reveal">
+      <div style="background:var(--ugt-magenta);border:var(--border-bold);border-radius:var(--r-xl);padding:40px;box-shadow:var(--shadow-sticker-magenta);position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.08) 1px,transparent 1px);background-size:18px 18px;"></div>
+        <div style="position:relative;z-index:1;">
+          <div style="font-family:var(--font-body);font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:12px;">Mission</div>
+          <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);color:var(--ugt-white);line-height:1.1;letter-spacing:var(--tracking-crunch);text-transform:uppercase;margin-bottom:16px;">"Find Kenyan young people with real talent and give them a real stage."</h2>
+          <p style="font-size:15px;color:rgba(255,255,255,0.75);line-height:1.7;">That is the whole mission. No filler. No participation certificates. A proper platform for real talent, broadcast to millions.</p>
+        </div>
+      </div>
+      <div style="background:var(--ugt-white);border:var(--border-bold);border-radius:var(--r-xl);padding:40px;box-shadow:var(--shadow-sticker-ink);">
+        <div style="font-family:var(--font-body);font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:12px;">Vision</div>
+        <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,32px);color:var(--ugt-ink);line-height:1.1;letter-spacing:var(--tracking-crunch);text-transform:uppercase;margin-bottom:16px;">"A Kenya where no talented young person goes unseen."</h2>
+        <p style="font-size:15px;color:var(--ugt-ink-2);line-height:1.7;">Every county. Every school type. Every talent category. If you have something real, Urban Gang Tour will find you a stage.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER QUOTE -->
+<section class="section" style="background:var(--ugt-bg);" id="story">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:36px;">
+      <div class="eyebrow">The story</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">Where it started.</h2>
+    </div>
+    <div class="founder-quote reveal reveal-delay-1">
+      <img src="assets/people/eugine-micah.png" alt="Eugine Micah">
+      <div>
+        <blockquote><span class="quote-mark">"</span>What happens when you stop telling young people what to do and start giving them a stage? They rise to it. Every single time.</blockquote>
+        <div class="quote-attr">Eugine Micah · Co-Founder &amp; Lead Host · Urban News, PPP TV Kenya</div>
+        <p style="color:var(--ugt-ink-2);font-size:15px;line-height:1.75;margin-top:20px;"><strong>Eugine Micah</strong> is the face of Urban News on PPP TV Kenya, a daily programme with a national reach. He designs the format, books the talent, builds the partnerships, and holds the stage with the kind of energy that makes students lean in. <strong>Lucy Ogunde</strong> is the executive producer and co-host  -  the precision of someone who has thought through every detail and the warmth of someone who genuinely loves being in a room full of young people finding their voice. Together, they are the face and the engine of everything Urban Gang Tour produces.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OBJECTIVES -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:36px;">
+      <div class="eyebrow">Objectives</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">What this is<br>working toward.</h2>
+    </div>
+    <div class="objectives-list reveal reveal-delay-1">
+      <div class="obj-item"><div class="obj-num">01</div><div class="obj-text"><strong>Find what is already there.</strong> Every classroom in Kenya is hiding a future artist, journalist, model, or leader. We go in, build a stage, and let them be seen.</div></div>
+      <div class="obj-item"><div class="obj-num">02</div><div class="obj-text"><strong>Pair ambition with access.</strong> Aspiring journalists with our camera crew. Future stylists with our modelling team. Young presenters on stage with Eugine and Lucy. The career a student dreams about is standing in front of them for a day.</div></div>
+      <div class="obj-item"><div class="obj-num">03</div><div class="obj-text"><strong>Have real conversations.</strong> Mentorship that goes beyond the syllabus. Drug awareness with NACADA facilitators who speak how students actually speak. Real people. Real answers.</div></div>
+      <div class="obj-item"><div class="obj-num">04</div><div class="obj-text"><strong>Eat, plant, smile, share.</strong> A meal with the students. Trees with Delo Greens Movement. Group photos. Urban Gang Moments instant prints. The kind of day they describe to their parents at dinner.</div></div>
+      <div class="obj-item"><div class="obj-num">05</div><div class="obj-text"><strong>Put it on national television.</strong> The next day, the edit starts. Within weeks, their school is on Urban News on PPP TV Kenya. Up to 8 million viewers. A national audience to a student who never had one.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:32px;">
+      <div class="eyebrow">Values</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">What we stand on.</h2>
+    </div>
+    <div class="values-grid reveal reveal-delay-1">
+      <div class="value-card"><span class="value-word">Authenticity</span><div class="value-desc">No performance for performance sake. We keep it real in every room.</div></div>
+      <div class="value-card"><span class="value-word">Energy</span><div class="value-desc">We show up fully charged. Every event. Every crew member. Every time.</div></div>
+      <div class="value-card"><span class="value-word">Impact</span><div class="value-desc">Every stop should change something in a student, a school, a community.</div></div>
+      <div class="value-card"><span class="value-word">Accountability</span><div class="value-desc">We deliver what we promise. We show up on time and we do the work.</div></div>
+      <div class="value-card"><span class="value-word">Culture</span><div class="value-desc">Rooted in Kenyan youth culture. We do not import a vibe. We are the vibe.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:32px;">
+      <div class="eyebrow">Timeline</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">Where we have been.<br>Where we are going.</h2>
+    </div>
+    <div class="timeline-horiz reveal reveal-delay-1">
+      <div class="tl-item"><div class="tl-year">2025</div><div class="tl-event">Founded</div><div class="tl-detail">Eugine Micah and Lucy Ogunde launch Urban Gang Tour. The idea becomes a movement.</div></div>
+      <div class="tl-item"><div class="tl-year">2026 · Term 1</div><div class="tl-event">On PPP TV</div><div class="tl-detail">First school visits. Urban News on PPP TV Kenya begins its national run.</div></div>
+      <div class="tl-item"><div class="tl-year">2026 · Term 2</div><div class="tl-event">Kiambu &amp; Beyond</div><div class="tl-detail">Koinange Girls, Loreto Kiambu, Gathirimu Girls, PCEA Gituamba. TIBS College on campus.</div></div>
+      <div class="tl-item"><div class="tl-year">2027</div><div class="tl-event">Countrywide</div><div class="tl-detail">Universities, colleges, polytechnics, mega events. East Africa next.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT MAKES US DIFFERENT -->
+<section class="section" style="background:var(--ugt-bg);" id="different">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:32px;">
+      <div class="eyebrow">What makes us different</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">We are not a promoter.<br>We are the whole day.</h2>
+      <p style="color:var(--ugt-ink-2);margin-top:14px;max-width:580px;font-size:16px;line-height:1.7;">We are the production, the hosts, the mentors, the camera crew, the snack shop, the photobooth, the merch table, and the TV channel. All in one. All on the same day. All run by our own team.</p>
+    </div>
+    <div class="pods-list reveal reveal-delay-1">
+      <div class="pod-list-card">
+        <div class="pod-list-top"><div class="pod-list-num">01</div></div>
+        <div class="pod-list-body">
+          <div class="pod-list-title">Urban Gang Snacks</div>
+          <div class="pod-list-desc">Our own in-event shop. Affordable. Fast. Turns break time into something worth queuing for.</div>
+        </div>
+      </div>
+      <div class="pod-list-card">
+        <div class="pod-list-top" style="background:var(--ugt-orange);"><div class="pod-list-num">02</div></div>
+        <div class="pod-list-body">
+          <div class="pod-list-title">Urban Gang Moments</div>
+          <div class="pod-list-desc">Instant-print photobooth. Every student walks away with a physical memory of the day. The printer runs live.</div>
+        </div>
+      </div>
+      <div class="pod-list-card">
+        <div class="pod-list-top" style="background:var(--ugt-purple);"><div class="pod-list-num">03</div></div>
+        <div class="pod-list-body">
+          <div class="pod-list-title">Urban Gang Merch</div>
+          <div class="pod-list-desc">Tees, caps, hoodies, accessories. Branded merchandise students wear long after the buses leave.</div>
+        </div>
+      </div>
+      <div class="pod-list-card">
+        <div class="pod-list-top" style="background:var(--ugt-green);"><div class="pod-list-num">04</div></div>
+        <div class="pod-list-body">
+          <div class="pod-list-title">Mentorship that pairs</div>
+          <div class="pod-list-desc">Aspiring journalists work alongside our camera crew. Future stylists join the modelling team. A day in the career, not a talk about one.</div>
+        </div>
+      </div>
+      <div class="pod-list-card">
+        <div class="pod-list-top" style="background:var(--ugt-ink);"><div class="pod-list-num">05</div></div>
+        <div class="pod-list-body">
+          <div class="pod-list-title">Trees, food, smiles</div>
+          <div class="pod-list-desc">We plant with Delo Greens Movement. We eat with the students. We laugh. We share a meal with the same students who were on stage two hours earlier.</div>
+        </div>
+      </div>
+      <div class="pod-list-card" style="background:var(--ugt-magenta);border-color:var(--ugt-magenta);box-shadow:3px 3px 0 var(--ugt-magenta-deep);display:flex;flex-direction:column;justify-content:space-between;padding:28px;">
+        <p style="font-family:var(--font-display);font-size:22px;color:var(--ugt-white);line-height:1.1;letter-spacing:var(--tracking-crunch);text-transform:uppercase;">"When a student sees themselves on television, having spent the day learning from a professional in their chosen field, something shifts. That is the work."</p>
+        <a href="contact.html" class="btn btn-white btn-sm" style="align-self:flex-start;margin-top:20px;">Book a stop</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARTNERS -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:32px;">
+      <div class="eyebrow">Our partners</div>
+      <h2 class="h-display h-md" style="color:var(--ugt-ink);">The institutions<br>already operational.</h2>
+      <p style="color:var(--ugt-ink-2);margin-top:14px;max-width:580px;font-size:16px;line-height:1.7;">Not logos on a document. Partners who are in the room, on the ground, on every event day.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:var(--border-bold);border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-sticker-ink);" class="reveal reveal-delay-1">
+      <div style="background:var(--ugt-white);padding:24px 28px;border-right:var(--border-bold);border-bottom:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:6px;">Broadcast partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-ink);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">PPP TV Kenya</div>
+        <p style="font-size:14px;color:var(--ugt-ink-2);margin-top:8px;line-height:1.6;">Urban News on PPP TV Kenya. Up to 8 million viewers per episode.</p>
+      </div>
+      <div style="background:var(--ugt-white);padding:24px 28px;border-bottom:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:6px;">Official drug prevention partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-ink);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">NACADA</div>
+        <p style="font-size:14px;color:var(--ugt-ink-2);margin-top:8px;line-height:1.6;">National Authority on the Campaign Against Drug Abuse. Embedded in every school event.</p>
+      </div>
+      <div style="background:var(--ugt-white);padding:24px 28px;border-right:var(--border-bold);border-bottom:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:6px;">Environmental partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-ink);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">Delo Greens Movement</div>
+        <p style="font-size:14px;color:var(--ugt-ink-2);margin-top:8px;line-height:1.6;">Founded by King TAE. Tree planting integrated into every school visit. The aim: 10,000 schools across East &amp; Central Africa.</p>
+      </div>
+      <div style="background:var(--ugt-white);padding:24px 28px;border-bottom:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:6px;">Modelling &amp; wellness partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-ink);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">Synapse Models</div>
+        <p style="font-size:14px;color:var(--ugt-ink-2);margin-top:8px;line-height:1.6;">Professional modelling standards inside a school environment. Confidence as a serious capability.</p>
+      </div>
+      <div style="background:var(--ugt-white);padding:24px 28px;border-right:var(--border-bold);border-bottom:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:6px;">Stage audio partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-ink);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">Ashton Sounds</div>
+        <p style="font-size:14px;color:var(--ugt-ink-2);margin-top:8px;line-height:1.6;">Full PA, monitors, and live sound engineering. The audio is treated as seriously as the stage.</p>
+      </div>
+      <div style="background:var(--ugt-white);padding:24px 28px;border-bottom:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ugt-orange);margin-bottom:6px;">Campus partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-ink);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">Hewitt &amp; Bennet College</div>
+        <p style="font-size:14px;color:var(--ugt-ink-2);margin-top:8px;line-height:1.6;">NITA-certified, with campuses in Nairobi CBD, Buruburu and Thika. International placements across the UK, Canada, USA and Europe.</p>
+      </div>
+      <div style="background:var(--ugt-magenta);padding:24px 28px;border-right:var(--border-bold);">
+        <div style="font-family:var(--font-display-alt);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:6px;">Campus partner</div>
+        <div style="font-family:var(--font-display);font-size:24px;color:var(--ugt-white);letter-spacing:var(--tracking-crunch);text-transform:uppercase;">TIBS College</div>
+        <p style="font-size:14px;color:rgba(255,255,255,0.85);margin-top:8px;line-height:1.6;">Thika Institute of Business Studies. UGT extends from high school into higher education.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section section-dark">
+  <div class="container">
+    <div style="max-width:640px;" class="reveal">
+      <div class="eyebrow" style="color:var(--ugt-orange);">
+        <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+        Let's get to work
+      </div>
+      <h2 class="h-display h-md" style="color:var(--ugt-white);margin:12px 0 16px;">The next great Kenyan<br>artist is in a classroom<br>right now.</h2>
+      <p style="color:rgba(255,255,255,0.65);font-size:16px;line-height:1.7;margin-bottom:32px;">Bring us in and we will find them. Eugine Micah and Lucy Ogunde lead every conversation personally.</p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a href="contact.html" class="btn btn-magenta btn-lg">Book a stop</a>
+        <a href="partners.html" class="btn btn-outline-white btn-lg">Partner with us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="assets/logo-transparent.png" alt="Urban Gang Tour" style="height:56px;width:auto;">
+      <p>Production-quality live events in Kenyan schools. Students perform. National TV covers it.</p>
+      <div class="broadcast">Urban News on PPP TV Kenya</div>
+      <div class="footer-social">
+        <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+        <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+        <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Pages</h5><ul>
+      <li><a href="index.html">Home</a></li><li><a href="stops.html">Stops</a></li>
+      <li><a href="crew.html">Crew</a></li><li><a href="partners.html">Partners</a></li>
+      <li><a href="shop.html">Shop</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Connect</h5><ul>
+      <li><a href="contact.html">Book a stop</a></li>
+      <li><a href="mailto:euginemicah@gmail.com">euginemicah@gmail.com</a></li>
+      <li><a href="https://wa.me/254799886247">+254799886247</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Legal</h5><ul>
+      <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><p>2026 <span>Urban Gang Tour</span> · From Potential to Purpose</p></div>
+</div></footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+<script src="shared.js"></script>
+</body>
+</html>

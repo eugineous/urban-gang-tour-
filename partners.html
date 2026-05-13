@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Partners | Urban Gang Tour | Brand and Institutional Partners Kenya</title>
+  <meta name="description" content="Urban Gang Tour partners with Kenya's most passionate organisations to create events that educate, entertain, and leave something behind. NACADA, PPP TV Kenya, Synapse Models, The Experience Hub, Moyo Response, Delo Greens Movement, Ashton Sounds, Hewitt and Bennet International College, TIBS College.">
+  <meta name="keywords" content="Urban Gang Tour partners, NACADA partner, PPP TV partner Kenya, Synapse Models, Experience Hub, Moyo Response, Delo Greens Movement, Ashton Sounds, Hewitt and Bennet, TIBS College, brand activation Kenya, school events Kenya">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* Magazine layout */
+    .p-intro {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 64px;
+      align-items: start;
+      margin-bottom: 56px;
+    }
+    .p-intro h1 {
+      font-family: var(--font-display);
+      font-size: clamp(48px, 6vw, 84px);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-ink);
+      line-height: 0.98;
+      margin-bottom: 24px;
+    }
+    .p-intro h1 .accent { color: var(--ugt-magenta); }
+    .p-intro p {
+      color: var(--ugt-ink-2);
+      font-size: 17px;
+      line-height: 1.75;
+      margin-bottom: 14px;
+    }
+    .p-intro .quick {
+      background: var(--ugt-ink);
+      color: var(--ugt-white);
+      border-radius: var(--r-xl);
+      padding: 28px;
+      box-shadow: var(--shadow-sticker-ink);
+    }
+    .p-intro .quick h4 {
+      font-family: var(--font-display-alt);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ugt-orange);
+      margin-bottom: 16px;
+    }
+    .p-intro .quick ul { display: flex; flex-direction: column; gap: 10px; }
+    .p-intro .quick li {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      padding: 6px 0 6px 20px;
+      position: relative;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .p-intro .quick li:last-child { border-bottom: none; }
+    .p-intro .quick li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 14px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--ugt-magenta);
+    }
+    .p-intro .quick li.accent::before { background: var(--ugt-orange); }
+    .p-intro .quick li strong { color: var(--ugt-white); font-weight: 700; }
+
+    /* Partner article */
+    .partner-article {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 56px;
+      align-items: start;
+      padding: 56px 0;
+      border-bottom: var(--border-thin);
+    }
+    .partner-article:last-of-type { border-bottom: none; }
+    .partner-article.reverse { grid-template-columns: 1fr 360px; }
+    .partner-article .pa-mark {
+      position: sticky;
+      top: 100px;
+    }
+    .partner-article .pa-tile {
+      width: 100%;
+      aspect-ratio: 4/3;
+      border: var(--border-bold);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-sticker-ink);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ugt-white);
+      padding: 32px;
+    }
+    .partner-article .pa-tile img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+    }
+    .partner-article .pa-tile.magenta { background: var(--ugt-magenta); }
+    .partner-article .pa-tile.orange { background: var(--ugt-orange); }
+    .partner-article .pa-tile.ink { background: var(--ugt-ink); }
+    .partner-article .pa-tile.green { background: linear-gradient(160deg, #2e7d32 0%, #1f6b3a 100%); }
+    .partner-article .pa-tile.purple { background: linear-gradient(160deg, #7b00cc 0%, #4d0080 100%); }
+    .partner-article .pa-tile .text-mark {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 64px);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      line-height: 0.9;
+      text-align: center;
+    }
+    .partner-article .pa-tile.magenta .text-mark,
+    .partner-article .pa-tile.orange .text-mark,
+    .partner-article .pa-tile.ink .text-mark,
+    .partner-article .pa-tile.green .text-mark,
+    .partner-article .pa-tile.purple .text-mark {
+      color: var(--ugt-white);
+    }
+    .partner-article .pa-tile .text-mark small {
+      display: block;
+      font-family: var(--font-display-alt);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      margin-top: 12px;
+      opacity: 0.75;
+    }
+    .pa-meta {
+      margin-top: 14px;
+      font-family: var(--font-display-alt);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ugt-ink-muted);
+      text-align: center;
+    }
+    .pa-meta a { color: var(--ugt-magenta); text-decoration: none; }
+
+    .partner-article .pa-body .pa-tag {
+      display: inline-block;
+      background: var(--ugt-magenta-soft);
+      color: var(--ugt-magenta);
+      border: 1.5px solid var(--ugt-magenta);
+      border-radius: var(--r-pill);
+      padding: 6px 14px;
+      font-family: var(--font-display-alt);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .partner-article .pa-body .pa-tag.orange {
+      background: var(--ugt-orange-soft);
+      color: var(--ugt-orange-deep);
+      border-color: var(--ugt-orange);
+    }
+    .partner-article .pa-body h2 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 4.5vw, 56px);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-ink);
+      line-height: 0.98;
+      margin-bottom: 20px;
+    }
+    .partner-article .pa-body p {
+      color: var(--ugt-ink-2);
+      font-size: 17px;
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+    .partner-article .pa-body .pa-pull {
+      border-left: 4px solid var(--ugt-magenta);
+      padding: 10px 0 10px 20px;
+      margin: 20px 0;
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.4vw, 28px);
+      letter-spacing: var(--tracking-tight);
+      text-transform: none;
+      color: var(--ugt-ink);
+      line-height: 1.2;
+    }
+    .partner-article .pa-body .pa-pull.orange { border-left-color: var(--ugt-orange); }
+    .partner-article .pa-body ul.facts {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .partner-article .pa-body ul.facts li {
+      background: var(--ugt-white);
+      border: 1.5px solid var(--ugt-border);
+      border-radius: var(--r-md);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--ugt-ink-2);
+      line-height: 1.5;
+    }
+    .partner-article .pa-body ul.facts li strong {
+      display: block;
+      font-family: var(--font-display-alt);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ugt-magenta);
+      margin-bottom: 4px;
+    }
+
+    /* CTA strip */
+    .partner-cta {
+      background: var(--ugt-ink);
+      padding: 80px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .partner-cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 60% 50%, rgba(204,0,119,0.25) 0%, transparent 65%);
+    }
+    .partner-cta-inner {
+      position: relative; z-index: 1;
+      max-width: 760px;
+    }
+    .partner-cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 5.5vw, 72px);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-white);
+      line-height: 0.98;
+      margin-bottom: 16px;
+    }
+    .partner-cta h2 .accent { color: var(--ugt-orange); }
+    .partner-cta p {
+      color: rgba(255,255,255,0.7);
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .partner-cta .closer {
+      font-family: var(--font-display);
+      font-size: clamp(22px, 3vw, 32px);
+      color: var(--ugt-orange);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      margin-top: 24px;
+      line-height: 1.1;
+    }
+
+    @media (max-width: 1024px) {
+      .p-intro { grid-template-columns: 1fr; }
+      .partner-article, .partner-article.reverse {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .partner-article .pa-mark { position: static; max-width: 360px; }
+    }
+    @media (max-width: 720px) {
+      .partner-article .pa-body ul.facts { grid-template-columns: 1fr; }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<nav class="nav dark" id="main-nav">
+  <a href="index.html" class="nav-logo"><img src="assets/logo-transparent.png" alt="Urban Gang Tour"></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+    <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+    <a href="partners.html" class="active">Partners</a><a href="events.html">Events</a>
+    <a href="shop.html">Shop</a><a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+  <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+  <a href="partners.html">Partners</a><a href="events.html">Events</a>
+  <a href="shop.html">Shop</a><a href="contact.html">Book a Stop</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow" style="color:var(--ugt-orange);margin-bottom:12px;">
+      <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+      Our partners
+    </div>
+    <h1 class="h-display h-lg" style="color:var(--ugt-white);margin-bottom:16px;">These are the people<br>who show up with us.</h1>
+    <p style="color:rgba(255,255,255,0.65);font-size:var(--fs-body-lg);max-width:640px;line-height:var(--lh-loose);">Every partner in this list chose to be here because they believe in the same thing we do. That young people in Kenya deserve more than a seat in a classroom. They deserve a stage.</p>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner fast">
+    <div class="ticker-item">NACADA <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">PPP TV Kenya <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Synapse Models <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">The Experience Hub <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Delo Greens Movement <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Ashton Sounds <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Moyo Response <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Hewitt and Bennet College <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">TIBS College <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">NACADA <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">PPP TV Kenya <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Synapse Models <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">The Experience Hub <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Delo Greens Movement <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Ashton Sounds <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Moyo Response <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Hewitt and Bennet College <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">TIBS College <span class="ticker-sep">*</span></div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div class="p-intro reveal">
+      <div>
+        <h1>Nine partners.<br><span class="accent">One movement.</span></h1>
+        <p>Each one signed on because they understood what we are building. National TV. Drug prevention that students actually listen to. Modelling treated as a career skill, not a hobby. Live entertainment that does not let the day go flat. Trees that outlive the event. Sound that does justice to the stage. Medical response on standby. Campus partnerships that take us beyond the school gate.</p>
+        <p>This is not a logo wall. This is a working coalition.</p>
+      </div>
+      <div class="quick">
+        <h4>The full nine</h4>
+        <ul>
+          <li class="accent"><strong>NACADA</strong>  -  Drug Prevention</li>
+          <li class="accent"><strong>PPP TV Kenya</strong>  -  Broadcast</li>
+          <li><strong>Synapse Models</strong>  -  Modelling &amp; Wellness</li>
+          <li><strong>The Experience Hub</strong>  -  Entertainment</li>
+          <li><strong>Delo Greens Movement</strong>  -  Environment</li>
+          <li><strong>Ashton Sounds</strong>  -  Stage Audio</li>
+          <li><strong>Moyo Response</strong>  -  Medical</li>
+          <li class="accent"><strong>Hewitt and Bennet College</strong>  -  Campus</li>
+          <li class="accent"><strong>TIBS College</strong>  -  Campus</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ NACADA ═══ -->
+    <article class="partner-article reveal">
+      <div class="pa-mark">
+        <div class="pa-tile"><img src="assets/logos/nacada.png" alt="NACADA"></div>
+        <div class="pa-meta">Government · Confirmed for 2026</div>
+      </div>
+      <div class="pa-body">
+        <span class="pa-tag">Official Drug Prevention Partner</span>
+        <h2>NACADA</h2>
+        <p>The National Authority for the Campaign Against Drug Abuse does not just issue warnings. NACADA has certified facilitators who go into communities, speak the truth, and do the kind of work that changes the choices young people make before those choices change them.</p>
+        <p>Urban Gang Tour made them our Official Drug Prevention Partner because we refuse to run an event that is only about entertainment. At every school stop, a dedicated NACADA session runs inside the programme, led by facilitators who speak to students in the language students actually use. Real conversations. Real stories. Not a lecture.</p>
+        <div class="pa-pull">"This partnership is active. It is confirmed across our 2026 school calendar. And it is one of the things that makes Urban Gang Tour something more than a show."</div>
+      </div>
+    </article>
+
+    <!-- ═══ PPP TV ═══ -->
+    <article class="partner-article reverse reveal">
+      <div class="pa-body">
+        <span class="pa-tag">Official Broadcast Partner</span>
+        <h2>PPP TV Kenya</h2>
+        <p>Everything that happens at a UGT event is meant to be seen by more than the people in that field. <strong>Urban News on PPP TV Kenya</strong> is the broadcast engine that carries the stories of students on our stage to up to 8 million viewers nationally.</p>
+        <p>Eugine Micah and Lucy Ogunde are the faces of Urban News. Every school visit becomes a full TV episode. Every winner gets a national moment. Every institution gets seen by an audience that most schools will never reach on their own.</p>
+        <div class="pa-pull orange">"PPP TV is not just where we broadcast. It is where we prove that what happened that day was real."</div>
+        <ul class="facts">
+          <li><strong>Reach</strong>Up to 8M viewers per episode, nationally</li>
+          <li><strong>Format</strong>Full TV episode per school visit</li>
+          <li><strong>Hosts</strong>Eugine Micah &amp; Lucy Ogunde</li>
+          <li><strong>Status</strong>Active broadcast  -  confirmed 2026</li>
+        </ul>
+      </div>
+      <div class="pa-mark">
+        <div class="pa-tile ink">
+          <div class="text-mark">PPP<br>TV<small>Kenya · National</small></div>
+        </div>
+        <div class="pa-meta">Broadcast · 8M+ reach</div>
+      </div>
+    </article>
+
+    <!-- ═══ SYNAPSE MODELS ═══ -->
+    <article class="partner-article reveal">
+      <div class="pa-mark">
+        <div class="pa-tile"><img src="assets/logos/synapse-models.png" alt="Synapse Models"></div>
+        <div class="pa-meta">Founded by Esther Wambui Gakunju</div>
+      </div>
+      <div class="pa-body">
+        <span class="pa-tag">Modelling and Wellness Partner</span>
+        <h2>Synapse Models</h2>
+        <p>Founded by Esther Wambui Gakunju, Synapse Models is the organisation that turned modelling at Urban Gang Tour from a category into a conversation. Esther leads every modelling activity at every event, from the pre-event orientation to the runway itself, and brings a standard of professionalism to a school environment that students feel the moment she walks in.</p>
+        <p>But Synapse Models does something beyond the runway. Esther's presence at every event is also a wellness anchor. She is the person students gravitate towards when they need a real conversation, not a performance.</p>
+        <div class="pa-pull">"That combination of grace and substance is exactly what this programme needed."</div>
+      </div>
+    </article>
+
+    <!-- ═══ EXPERIENCE HUB ═══ -->
+    <article class="partner-article reverse reveal">
+      <div class="pa-body">
+        <span class="pa-tag">Entertainment Partner</span>
+        <h2>The Experience Hub</h2>
+        <p>The Experience Hub is the 30-person entertainment unit led by <strong>Hype Ola</strong> that turns the crowd at every Urban Gang Tour event into a participant rather than an audience. Three live hype sets per event. DJ Xavi on the decks. Khloe Nyarangi and five dancers on the floor. Hype Jay and Mercie Smalls on the mics.</p>
+        <p>This is not a playlist on shuffle. This is a live entertainment operation built specifically for the energy of a school or campus crowd.</p>
+        <div class="pa-pull orange">"Between battles, after winners are announced, during the lunch hour. Wherever the energy could dip, The Experience Hub is already there."</div>
+      </div>
+      <div class="pa-mark">
+        <div class="pa-tile"><img src="assets/logos/experience-hub-logo.png" alt="The Experience Hub"></div>
+        <div class="pa-meta">Led by Hype Ola · 30-person unit</div>
+      </div>
+    </article>
+
+    <!-- ═══ DELO GREENS ═══ -->
+    <article class="partner-article reveal">
+      <div class="pa-mark">
+        <div class="pa-tile green">
+          <div class="text-mark">Delo<br>Greens<small>Movement · Led by King TAE</small></div>
+        </div>
+        <div class="pa-meta">Founded by Justus Abuko · aka King TAE</div>
+      </div>
+      <div class="pa-body">
+        <span class="pa-tag" style="background:#E8F5E9;color:#1f6b3a;border-color:#2e7d32;">Official Environmental Partner</span>
+        <h2>Delo Greens<br>Movement</h2>
+        <p>Delo Greens Movement is a community-driven urban environmental organisation founded and led by Justus Abuko, known to the Urban Gang Tour family as <strong>King TAE, The African Eagle</strong>. DGM exists to re-green city spaces, fight the creep of climate change, and build a generation of young Kenyans who treat the earth the way it deserves to be treated.</p>
+        <p>When Urban Gang Tour plants a tree at the end of an event day, it is not a photo opportunity. It is DGM's work, done through our platform, at a scale that grows with every school we visit.</p>
+        <div class="pa-pull">"By the time a student who planted a tree with us is sitting their final exams, that tree will already be standing."</div>
+        <ul class="facts">
+          <li><strong>Goal</strong>10,000 schools across East &amp; Central Africa</li>
+          <li><strong>Reach</strong>50 campuses in 5 years</li>
+          <li><strong>Lead</strong>Justus Abuko (King TAE)</li>
+          <li><strong>Status</strong>Active at every UGT event</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══ ASHTON SOUNDS ═══ -->
+    <article class="partner-article reverse reveal">
+      <div class="pa-body">
+        <span class="pa-tag orange">Official Stage Audio Partner</span>
+        <h2>Ashton Sounds</h2>
+        <p>The stage sounds the way it does because of Ashton Sounds. Every PA system at every Urban Gang Tour event is their responsibility. Every microphone, every speaker stack, every clean transition between acts is the result of a team that takes live audio personally.</p>
+        <p>Ashton Sounds is headed by <strong>Jeff Ashton, CEO</strong>, who runs the technical operation alongside Fally Mark's Sauti Moto. That standard, behind every cable run and every monitor mix, is why the production sounds as serious as it looks.</p>
+        <div class="pa-pull orange">"Audio is not what you notice when it is right. It is what you notice when it is wrong. Ashton makes sure you never notice."</div>
+        <a href="https://ashtonsounds.github.io/Ashtonsounds/" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-family:var(--font-display-alt);font-size:13px;letter-spacing:0.06em;color:var(--ugt-magenta);">ashtonsounds.github.io →</a>
+      </div>
+      <div class="pa-mark">
+        <div class="pa-tile"><img src="assets/logos/ashton-sounds.png" alt="Ashton Sounds"></div>
+        <div class="pa-meta">CEO: Jeff Ashton · Tech partner Sauti Moto</div>
+      </div>
+    </article>
+
+    <!-- ═══ MOYO RESPONSE ═══ -->
+    <article class="partner-article reveal">
+      <div class="pa-mark">
+        <div class="pa-tile"><img src="assets/logos/moyo-response.png" alt="Moyo Response"></div>
+        <div class="pa-meta">Medical &amp; Emergency Standby</div>
+      </div>
+      <div class="pa-body">
+        <span class="pa-tag">Medical and Emergency Response Partner</span>
+        <h2>Moyo Response</h2>
+        <p>When hundreds or thousands of young people gather in one place, being prepared for the unexpected is not optional. Moyo Response is our medical and emergency response partner, ensuring that trained, equipped first-response capacity is present at every Urban Gang Tour event.</p>
+        <p>Their presence at our events means students, parents, and schools can relax. And it means that on the one day a year where a student stands in front of their entire school and takes the biggest risk of their year so far, the people around them are ready for anything.</p>
+        <div class="pa-pull">"Safety is not a feature. It is a precondition."</div>
+      </div>
+    </article>
+
+    <!-- ═══ HEWITT AND BENNET ═══ -->
+    <article class="partner-article reverse reveal">
+      <div class="pa-body">
+        <span class="pa-tag orange">Campus Partner</span>
+        <h2>Hewitt and Bennet<br>International College</h2>
+        <p>Hewitt and Bennet International College is a Kenya-based institution known for practical, career-focused training across <strong>healthcare, hospitality, and technical fields</strong>, with campuses in Nairobi CBD, Buruburu, and Thika. Their programmes are NITA-certified and built around guaranteed internship and attachment for every student, with a strong pipeline into international placements across the UK, Canada, the USA, and Europe.</p>
+        <p>Hewitt and Bennet joined the Urban Gang Tour family as a campus partner because they understand something most institutions take years to figure out: that confidence, self-expression, and the ability to hold a room are not soft skills. They are career skills.</p>
+        <div class="pa-pull orange">"The students they train go out into the world and represent Kenya in healthcare facilities, hotel lobbies, and aircraft cabins across the globe. UGT gives those same students a stage before they get there."</div>
+        <ul class="facts">
+          <li><strong>Campuses</strong>Nairobi CBD · Buruburu · Thika</li>
+          <li><strong>Certification</strong>NITA-certified programmes</li>
+          <li><strong>Fields</strong>Healthcare · Hospitality · Technical</li>
+          <li><strong>Placements</strong>UK · Canada · USA · Europe</li>
+        </ul>
+      </div>
+      <div class="pa-mark">
+        <div class="pa-tile orange">
+          <div class="text-mark">Hewitt<br>&amp; Bennet<small>International College · NITA-certified</small></div>
+        </div>
+        <div class="pa-meta">Campus · Healthcare, Hospitality, Tech</div>
+      </div>
+    </article>
+
+    <!-- ═══ TIBS ═══ -->
+    <article class="partner-article reveal">
+      <div class="pa-mark">
+        <div class="pa-tile magenta">
+          <div class="text-mark">TIBS<small>College · Thika Institute of Business Studies</small></div>
+        </div>
+        <div class="pa-meta">Higher education · Business &amp; Technical</div>
+      </div>
+      <div class="pa-body">
+        <span class="pa-tag">Campus Partner</span>
+        <h2>TIBS College</h2>
+        <p>TIBS College is one of Kenya's active business and technical training institutions and an important part of Urban Gang Tour's expansion into higher education. Their students are exactly the kind of young people the tour was built for: <strong>ambitious, industry-focused, and ready to compete</strong>.</p>
+        <p>The partnership brings Urban Gang Tour into a campus environment where the audience is older, the conversations in the mentorship sessions go deeper, and the talent on stage has already started thinking seriously about what they want to build with their lives.</p>
+        <div class="pa-pull">"TIBS is part of how Urban Gang Tour grows beyond the school gate."</div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="partner-cta">
+  <div class="container">
+    <div class="partner-cta-inner reveal">
+      <div class="eyebrow" style="color:var(--ugt-orange);">
+        <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+        Want to be on this page?
+      </div>
+      <h2 style="margin-top:12px;">We are building something that is<br><span class="accent">going to be talked about</span><br>in Kenyan youth culture<br>for a long time.</h2>
+      <p>If your brand, organisation, or institution wants to be part of it, the conversation starts here. Reach Eugine and Lucy directly.</p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a href="mailto:euginemicah@gmail.com" class="btn btn-magenta btn-lg">euginemicah@gmail.com</a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener" class="btn btn-outline-white btn-lg">WhatsApp +254 799 886 247</a>
+      </div>
+      <p class="closer">The right partners do<br>not just write a cheque.<br>They show up.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="assets/logo-transparent.png" alt="Urban Gang Tour" style="height:56px;width:auto;">
+      <p>Production-quality live events. High schools. Universities. Colleges. Polytechnics. Mega events. Hosted by Eugine Micah and Lucy Ogunde.</p>
+      <div class="broadcast">Urban News on PPP TV Kenya</div>
+      <div class="footer-social">
+        <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+        <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+        <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Pages</h5><ul>
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="stops.html">Stops</a></li><li><a href="crew.html">Crew</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Connect</h5><ul>
+      <li><a href="contact.html">Book a stop</a></li>
+      <li><a href="mailto:euginemicah@gmail.com">euginemicah@gmail.com</a></li>
+      <li><a href="https://wa.me/254799886247">+254799886247</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Legal</h5><ul>
+      <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+      <li><a href="#">BN-6ASYVPW5</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><p>2026 <span>Urban Gang Tour</span> · From Potential to Purpose · Nairobi, Kenya</p></div>
+</div></footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+<script src="shared.js"></script>
+</body>
+</html>

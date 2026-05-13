@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koinange Girls Recon | Urban Gang Tour Gallery</title>
+  <meta name="description" content="Reels from the Senior Chief Koinange Girls recon visit. The team walked the grounds. Here is what they captured.">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ── PAGE HEAD ───────────────────────────────────────── */
+    .gal-hero {
+      background: var(--ugt-bg-dark);
+      position: relative;
+      overflow: hidden;
+      padding: 140px 0 64px;
+    }
+    .gal-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--grad-stage-glow);
+      pointer-events: none;
+    }
+    .gal-hero-inner {
+      position: relative; z-index: 1;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    .gal-crumbs {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-body);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 28px;
+    }
+    .gal-crumbs a { color: rgba(255,255,255,0.7); transition: color var(--dur-base); }
+    .gal-crumbs a:hover { color: var(--ugt-orange); }
+    .gal-crumbs .sep { color: rgba(255,255,255,0.25); }
+    .gal-crumbs .here { color: var(--ugt-orange); }
+
+    .gal-header-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 56px;
+      align-items: end;
+    }
+    .gal-chips {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .gal-headline {
+      font-family: var(--font-display);
+      font-size: clamp(48px, 7vw, 96px);
+      line-height: var(--lh-tight);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-white);
+      margin-bottom: 20px;
+    }
+    .gal-headline .accent { color: var(--ugt-magenta); }
+    .gal-headline .scrawl {
+      font-family: var(--font-handwritten);
+      font-size: 0.5em;
+      color: var(--ugt-orange);
+      letter-spacing: 0;
+      text-transform: none;
+      display: inline-block;
+      transform: rotate(-3deg);
+      margin-left: 8px;
+    }
+    .gal-sub {
+      font-size: 17px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.65);
+      max-width: 540px;
+    }
+    .gal-meta-card {
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: var(--r-xl);
+      padding: 28px;
+    }
+    .gal-meta-row {
+      display: flex; justify-content: space-between;
+      gap: 16px; padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .gal-meta-row:last-child { border-bottom: none; }
+    .gal-meta-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .gal-meta-value {
+      font-family: var(--font-display-alt);
+      font-size: 14px;
+      color: var(--ugt-white);
+      text-align: right;
+    }
+
+    /* ── INTRO STRIP ─────────────────────────────────────── */
+    .intro-strip {
+      background: var(--ugt-bg);
+      padding: 64px 0 24px;
+    }
+    .intro-cols {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 40px;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    .intro-cols h3 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-crunch);
+      color: var(--ugt-ink);
+      line-height: 1.05;
+      margin-bottom: 12px;
+    }
+    .intro-cols p {
+      color: var(--ugt-ink-2);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .intro-stat {
+      background: var(--ugt-ink);
+      border-radius: var(--r-xl);
+      padding: 24px;
+      color: var(--ugt-white);
+    }
+    .intro-stat .num {
+      font-family: var(--font-display);
+      font-size: 64px;
+      line-height: 1;
+      letter-spacing: var(--tracking-crunch);
+      color: var(--ugt-orange);
+    }
+    .intro-stat .lbl {
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-top: 8px;
+      color: rgba(255,255,255,0.6);
+    }
+    .intro-stat.magenta { background: var(--ugt-magenta); }
+    .intro-stat.magenta .num { color: var(--ugt-white); }
+    .intro-stat.magenta .lbl { color: rgba(255,255,255,0.75); }
+
+    /* ── REEL GRID ───────────────────────────────────────── */
+    .reels-section {
+      background: var(--ugt-bg);
+      padding: 48px 0 96px;
+    }
+    .reels-head {
+      max-width: 1240px;
+      margin: 0 auto 40px;
+      padding: 0 40px;
+      display: flex; justify-content: space-between;
+      align-items: end; flex-wrap: wrap; gap: 20px;
+    }
+    .reels-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 4.5vw, 56px);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-crunch);
+      color: var(--ugt-ink);
+      line-height: 1.05;
+    }
+    .reels-head h2 .from {
+      display: block;
+      font-family: var(--font-handwritten);
+      font-size: 0.4em;
+      color: var(--ugt-magenta);
+      transform: rotate(-2deg);
+      margin-bottom: 4px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .reels-head p {
+      color: var(--ugt-ink-2);
+      font-size: 14px;
+      max-width: 380px;
+      line-height: 1.65;
+    }
+
+    .reels-grid {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .reel {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      background: #0c0010;
+      border: var(--border-bold);
+      box-shadow: var(--shadow-sticker-xs);
+      cursor: pointer;
+      transition: transform var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out);
+    }
+    .reel:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: var(--shadow-sticker-ink);
+    }
+    .reel video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .reel-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg,
+        rgba(0,0,0,0) 0%,
+        rgba(0,0,0,0) 45%,
+        rgba(17,0,24,0.55) 75%,
+        rgba(17,0,24,0.92) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px 16px 18px;
+      pointer-events: none;
+    }
+    .reel-tag {
+      display: inline-flex;
+      align-self: flex-start;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: var(--r-pill);
+      padding: 6px 12px 6px 10px;
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ugt-white);
+    }
+    .reel-tag .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--ugt-orange);
+    }
+    .reel-tag.role-host .dot { background: var(--ugt-magenta); }
+    .reel-tag.role-hype .dot { background: var(--ugt-orange); }
+    .reel-tag.role-crew .dot { background: var(--ugt-purple); }
+    .reel-tag.role-talent .dot { background: var(--ugt-green); }
+
+    .reel-info {
+      color: var(--ugt-white);
+    }
+    .reel-info .handle {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 2px;
+    }
+    .reel-info .name {
+      font-family: var(--font-display-alt);
+      font-size: 17px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .reel-info .role {
+      font-size: 11px;
+      color: var(--ugt-orange);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      font-weight: 700;
+    }
+    .reel-play {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px; height: 56px;
+      background: var(--ugt-magenta);
+      border: 3px solid var(--ugt-white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sticker-xs);
+      opacity: 0;
+      transition: opacity var(--dur-base);
+      pointer-events: none;
+    }
+    .reel:hover .reel-play { opacity: 1; }
+    .reel-play::before {
+      content: '';
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 10px 0 10px 16px;
+      border-color: transparent transparent transparent var(--ugt-white);
+      margin-left: 4px;
+    }
+
+    /* "Featured" first card */
+    .reel.featured {
+      grid-column: span 2;
+      grid-row: span 2;
+      aspect-ratio: auto;
+    }
+    .reel.featured .reel-info .name { font-size: 26px; }
+    .reel.featured .reel-tag { font-size: 11px; }
+
+    /* ── LIGHTBOX ────────────────────────────────────────── */
+    .lightbox {
+      position: fixed; inset: 0;
+      z-index: 2000;
+      background: rgba(8, 0, 12, 0.92);
+      backdrop-filter: blur(20px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-inner {
+      position: relative;
+      width: min(420px, 100%);
+      aspect-ratio: 9 / 16;
+      max-height: 90vh;
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 30px 80px rgba(204,0,119,0.35);
+    }
+    .lightbox-inner video {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    .lb-meta {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%);
+      color: var(--ugt-white);
+    }
+    .lb-meta .handle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      font-family: var(--font-body);
+      margin-bottom: 4px;
+    }
+    .lb-meta .name {
+      font-family: var(--font-display-alt);
+      font-size: 22px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .lb-meta .role {
+      font-size: 12px; color: var(--ugt-orange);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 6px; font-weight: 700;
+    }
+    .lb-close {
+      position: absolute;
+      top: -50px; right: 0;
+      width: 40px; height: 40px;
+      background: var(--ugt-white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display-alt);
+      font-size: 16px;
+      color: var(--ugt-ink);
+      cursor: pointer;
+      box-shadow: var(--shadow-sticker-xs);
+    }
+    .lb-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px; height: 48px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 50%;
+      color: var(--ugt-white);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-family: var(--font-display);
+      transition: background var(--dur-base), transform var(--dur-base);
+    }
+    .lb-nav:hover { background: var(--ugt-magenta); transform: translateY(-50%) scale(1.05); }
+    .lb-prev { left: -70px; }
+    .lb-next { right: -70px; }
+
+    /* ── NEXT-STOP CTA ───────────────────────────────────── */
+    .nextstop-section {
+      background: var(--ugt-ink);
+      padding: 80px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .nextstop-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(204,0,119,0.25) 0%, transparent 65%);
+    }
+    .nextstop-inner {
+      position: relative; z-index: 1;
+      max-width: 1240px; margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .nextstop-inner h2 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: var(--lh-tight);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-white);
+      margin-bottom: 16px;
+    }
+    .nextstop-inner h2 .accent { color: var(--ugt-orange); }
+    .nextstop-inner p {
+      color: rgba(255,255,255,0.65);
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .nextstop-nav {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .nextstop-card {
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: var(--r-xl);
+      padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      transition: background var(--dur-base), border-color var(--dur-base), transform var(--dur-base);
+    }
+    .nextstop-card:hover {
+      background: rgba(204,0,119,0.12);
+      border-color: var(--ugt-magenta);
+      transform: translateX(4px);
+    }
+    .nextstop-card .left .when {
+      font-family: var(--font-display-alt);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ugt-orange);
+      margin-bottom: 4px;
+    }
+    .nextstop-card .left .name {
+      font-family: var(--font-display-alt);
+      font-size: 18px;
+      color: var(--ugt-white);
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+    }
+    .nextstop-card .arrow {
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: rgba(255,255,255,0.4);
+      transition: color var(--dur-base), transform var(--dur-base);
+    }
+    .nextstop-card:hover .arrow { color: var(--ugt-orange); transform: translateX(4px); }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .gal-header-grid { grid-template-columns: 1fr; gap: 32px; }
+      .intro-cols { grid-template-columns: 1fr; gap: 24px; }
+      .reels-grid { grid-template-columns: repeat(3, 1fr); }
+      .reel.featured { grid-column: span 3; grid-row: span 1; aspect-ratio: 16 / 11; }
+      .nextstop-inner { grid-template-columns: 1fr; }
+      .lb-prev { left: 10px; }
+      .lb-next { right: 10px; }
+    }
+    @media (max-width: 720px) {
+      .gal-hero { padding: 110px 0 48px; }
+      .gal-hero-inner { padding: 0 24px; }
+      .intro-cols { padding: 0 24px; }
+      .reels-head { padding: 0 24px; }
+      .reels-grid { padding: 0 24px; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .reel.featured { grid-column: span 2; aspect-ratio: 9/16; }
+      .reel.featured .reel-info .name { font-size: 18px; }
+      .nextstop-inner { padding: 0 24px; }
+    }
+    @media (max-width: 480px) {
+      .reels-grid { grid-template-columns: 1fr 1fr; }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- NAV -->
+<nav class="nav dark" id="main-nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/logo-transparent.png" alt="Urban Gang Tour">
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="stops.html" class="active">Stops</a>
+    <a href="performers.html">Performers</a>
+    <a href="crew.html">Crew</a>
+    <a href="partners.html">Partners</a>
+    <a href="events.html">Events</a>
+    <a href="shop.html">Shop</a>
+    <a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="stops.html">Stops</a>
+  <a href="performers.html">Performers</a>
+  <a href="crew.html">Crew</a>
+  <a href="partners.html">Partners</a>
+  <a href="events.html">Events</a>
+  <a href="shop.html">Shop</a>
+  <a href="contact.html">Book a Stop</a>
+</div>
+
+<!-- ═══ GALLERY HERO ═══ -->
+<section class="gal-hero">
+  <div class="gal-hero-inner">
+    <div class="gal-crumbs reveal">
+      <a href="index.html">Home</a>
+      <span class="sep">/</span>
+      <a href="stops.html">Stops</a>
+      <span class="sep">/</span>
+      <span class="here">Koinange Girls · Recon Gallery</span>
+    </div>
+
+    <div class="gal-header-grid">
+      <div class="reveal">
+        <div class="gal-chips">
+          <span class="chip chip-live"><span class="dot"></span> Recon Reels</span>
+          <span class="chip chip-outline" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);">Stop 01 of 03</span>
+          <span class="chip chip-outline" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);">30 May 2026</span>
+        </div>
+        <h1 class="gal-headline">
+          We walked<br>the grounds.<br>
+          <span class="accent">Here's what<br>we saw.</span>
+          <span class="scrawl"> -  before show day</span>
+        </h1>
+        <p class="gal-sub">
+          Before any stage is built, the crew arrives. Senior Chief Koinange Girls hosted the team for the official recon. Every reel below was shot that day, by the people who will be back on 30 May to run the show.
+        </p>
+      </div>
+
+      <div class="gal-meta-card reveal reveal-delay-1">
+        <div class="gal-meta-row">
+          <span class="gal-meta-label">Stop</span>
+          <span class="gal-meta-value">Snr Chief Koinange Girls</span>
+        </div>
+        <div class="gal-meta-row">
+          <span class="gal-meta-label">Theme</span>
+          <span class="gal-meta-value">Find your voice</span>
+        </div>
+        <div class="gal-meta-row">
+          <span class="gal-meta-label">Location</span>
+          <span class="gal-meta-value">Kiambaa, Kiambu County</span>
+        </div>
+        <div class="gal-meta-row">
+          <span class="gal-meta-label">Show day</span>
+          <span class="gal-meta-value">30 May 2026 · Thursday</span>
+        </div>
+        <div class="gal-meta-row">
+          <span class="gal-meta-label">Recon crew</span>
+          <span class="gal-meta-value">9 reels shot</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner fast">
+    <div class="ticker-item">Recon complete <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">9 reels shot on site <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Stop 01 of 03 <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">30 May 2026 <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Koinange Girls <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Find your voice <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Recon complete <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">9 reels shot on site <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Stop 01 of 03 <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">30 May 2026 <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Koinange Girls <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Find your voice <span class="ticker-sep">*</span></div>
+  </div>
+</div>
+
+<!-- ═══ INTRO STRIP ═══ -->
+<section class="intro-strip">
+  <div class="intro-cols">
+    <div class="reveal">
+      <div class="eyebrow">What recon means</div>
+      <h3>The day before<br>the day.</h3>
+      <p>Recon is the day the crew walks the school. We meet the principal. We pace the stage. We test the sound from the back of the hall. We talk to the students who run the clubs. Nobody gets a microphone on show day unless the recon was done right.</p>
+    </div>
+    <div class="intro-stat reveal reveal-delay-1">
+      <div class="num">9</div>
+      <div class="lbl">Reels shot on site</div>
+    </div>
+    <div class="intro-stat magenta reveal reveal-delay-2">
+      <div class="num">30</div>
+      <div class="lbl">Days to show day</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ REELS GRID ═══ -->
+<section class="reels-section">
+  <div class="reels-head reveal">
+    <div>
+      <h2><span class="from">straight from the crew</span>The recon reel-roll.</h2>
+    </div>
+    <p>Click any reel to play it full-size. Each one was shot by a different crew member on the day. This is what the day before the day looks like.</p>
+  </div>
+
+  <div class="reels-grid" id="reels-grid">
+    <!-- Reels will be populated via JS for cleaner data management -->
+  </div>
+</section>
+
+<!-- ═══ NEXT STOP CTA ═══ -->
+<section class="nextstop-section">
+  <div class="nextstop-inner">
+    <div class="reveal">
+      <div class="eyebrow" style="color:var(--ugt-orange);">
+        <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+        The tour continues
+      </div>
+      <h2>Two more recons.<br><span class="accent">Two more reels.</span></h2>
+      <p>Koinange was Stop 01. Loreto and Gathirimu are next. The recon crew is already moving. Galleries unlock as soon as boots hit the ground.</p>
+    </div>
+    <div class="nextstop-nav reveal reveal-delay-1">
+      <a href="gallery-loreto.html" class="nextstop-card">
+        <div class="left">
+          <div class="when">Stop 02 · 1 June 2026</div>
+          <div class="name">Loreto Kiambu Girls High</div>
+        </div>
+        <div class="arrow">→</div>
+      </a>
+      <a href="gallery-gathirimu.html" class="nextstop-card">
+        <div class="left">
+          <div class="when">Stop 03 · 4 July 2026</div>
+          <div class="name">Gathirimu Girls Technical</div>
+        </div>
+        <div class="arrow">→</div>
+      </a>
+      <a href="stops.html" class="nextstop-card">
+        <div class="left">
+          <div class="when">All three stops</div>
+          <div class="name">See the full Term 2 calendar</div>
+        </div>
+        <div class="arrow">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ LIGHTBOX ═══ -->
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <div class="lightbox-inner">
+    <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous reel">‹</button>
+    <button class="lb-nav lb-next" id="lb-next" aria-label="Next reel">›</button>
+    <button class="lb-close" id="lb-close" aria-label="Close">X</button>
+    <video id="lb-video" controls playsinline></video>
+    <div class="lb-meta">
+      <div class="handle" id="lb-handle"></div>
+      <div class="name" id="lb-name"></div>
+      <div class="role" id="lb-role"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/logo-transparent.png" alt="Urban Gang Tour" style="height:56px;width:auto;">
+        <p>Production-quality live events in Kenyan schools. Students perform. Schools celebrate. National TV covers it.</p>
+        <div class="broadcast">Urban News on PPP TV Kenya</div>
+        <div class="footer-social">
+          <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+          <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+          <a href="https://facebook.com/urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.9 3.78-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99C18.34 21.13 22 16.99 22 12z"/></svg></a>
+          <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+          <a href="https://wa.me/254799886247" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Galleries</h5>
+        <ul>
+          <li><a href="gallery-koinange.html">Koinange Girls  -  Recon</a></li>
+          <li><a href="gallery-loreto.html">Loreto Kiambu  -  Coming soon</a></li>
+          <li><a href="gallery-gathirimu.html">Gathirimu  -  Coming soon</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="stops.html">The 2026 calendar</a></li>
+          <li><a href="crew.html">Meet the crew</a></li>
+          <li><a href="partners.html">Partners</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:euginemicah@gmail.com">euginemicah@gmail.com</a></li>
+          <li><a href="https://wa.me/254799886247">+254799886247</a></li>
+          <li><a href="contact.html">Book a stop</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">BN-6ASYVPW5</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Recon · Stop 01 · Senior Chief Koinange Girls · 30 May 2026</p>
+      <p><span>Urban Gang Tour</span> · From Potential to Purpose · 2026</p>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+
+<script src="shared.js"></script>
+<script>
+  // ── REEL DATA ───────────────────────────────────────────
+  const REELS = [
+    {
+      src: 'assets/videos/koinange/eugine-micah.mp4',
+      name: 'Eugine Micah',
+      handle: '@eugine.micah',
+      role: 'Co-Founder · Lead Host',
+      tag: 'On the ground',
+      tagClass: 'role-host',
+      featured: true
+    },
+    {
+      src: 'assets/videos/koinange/lucy-ogunde.mp4',
+      name: 'Lucy Ogunde',
+      handle: '@lucyogunde',
+      role: 'Co-Founder · Co-Host',
+      tag: 'Co-host POV',
+      tagClass: 'role-host'
+    },
+    {
+      src: 'assets/videos/koinange/hype-ola.mp4',
+      name: 'Hype Ola',
+      handle: '@hypeola',
+      role: 'Experience Hub Lead',
+      tag: 'Hype check',
+      tagClass: 'role-hype'
+    },
+    {
+      src: 'assets/videos/koinange/mc-paps.mp4',
+      name: 'MC Paps',
+      handle: '@paps_mc',
+      role: 'Main Stage MC',
+      tag: 'Stage prep',
+      tagClass: 'role-hype'
+    },
+    {
+      src: 'assets/videos/koinange/nyarangi.mp4',
+      name: 'Nyarangi',
+      handle: '@its_n.y.a.r.a.n.g.i',
+      role: 'Reels & Social Lead',
+      tag: 'Reel-roll',
+      tagClass: 'role-crew'
+    },
+    {
+      src: 'assets/videos/koinange/experience-hub.mp4',
+      name: 'The Experience Hub',
+      handle: '@theexperiencehubke',
+      role: 'Dance Crew · 5 dancers',
+      tag: 'Crew on site',
+      tagClass: 'role-talent'
+    },
+    {
+      src: 'assets/videos/koinange/jeff-dancer.mp4',
+      name: 'Jeff Dancer',
+      handle: '@jeffdancerke',
+      role: 'Choreography',
+      tag: 'Footwork',
+      tagClass: 'role-talent'
+    },
+    {
+      src: 'assets/videos/koinange/wambui-gakunju.mp4',
+      name: 'Wambui Gakunju',
+      handle: '@wambui_gakunju',
+      role: 'Talent · Performer',
+      tag: 'Talent recon',
+      tagClass: 'role-talent'
+    },
+    {
+      src: 'assets/videos/koinange/baba-harshna.mp4',
+      name: 'Baba Harshna',
+      handle: '@baba_harshna',
+      role: 'Guest · Recon partner',
+      tag: 'Walkthrough',
+      tagClass: 'role-crew'
+    }
+  ];
+
+  // ── RENDER GRID ────────────────────────────────────────
+  const grid = document.getElementById('reels-grid');
+  REELS.forEach((r, i) => {
+    const el = document.createElement('div');
+    el.className = 'reel' + (r.featured ? ' featured' : '') + ' reveal';
+    if (i % 2 === 1) el.classList.add('reveal-delay-1');
+    if (i % 3 === 2) el.classList.add('reveal-delay-2');
+    el.dataset.index = i;
+    el.innerHTML = `
+      <video muted loop playsinline preload="metadata" src="${r.src}#t=0.5"></video>
+      <div class="reel-play"></div>
+      <div class="reel-overlay">
+        <span class="reel-tag ${r.tagClass || ''}"><span class="dot"></span>${r.tag}</span>
+        <div class="reel-info">
+          <div class="handle">${r.handle}</div>
+          <div class="name">${r.name}</div>
+          <div class="role">${r.role}</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(el);
+
+    const video = el.querySelector('video');
+    // Hover preview
+    el.addEventListener('mouseenter', () => {
+      video.currentTime = 0;
+      video.play().catch(()=>{});
+    });
+    el.addEventListener('mouseleave', () => {
+      video.pause();
+      video.currentTime = 0;
+    });
+    // Click → lightbox
+    el.addEventListener('click', () => openLightbox(i));
+  });
+
+  // ── LIGHTBOX ───────────────────────────────────────────
+  const lb = document.getElementById('lightbox');
+  const lbVideo = document.getElementById('lb-video');
+  const lbHandle = document.getElementById('lb-handle');
+  const lbName = document.getElementById('lb-name');
+  const lbRole = document.getElementById('lb-role');
+  let lbIdx = 0;
+
+  function openLightbox(i) {
+    lbIdx = i;
+    setLbReel(REELS[i]);
+    lb.classList.add('open');
+    lb.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function setLbReel(r) {
+    lbVideo.src = r.src;
+    lbHandle.textContent = r.handle;
+    lbName.textContent = r.name;
+    lbRole.textContent = r.role;
+    lbVideo.play().catch(()=>{});
+  }
+  function closeLightbox() {
+    lb.classList.remove('open');
+    lb.setAttribute('aria-hidden', 'true');
+    lbVideo.pause();
+    lbVideo.removeAttribute('src');
+    lbVideo.load();
+    document.body.style.overflow = '';
+  }
+  function step(d) {
+    lbIdx = (lbIdx + d + REELS.length) % REELS.length;
+    setLbReel(REELS[lbIdx]);
+  }
+
+  document.getElementById('lb-close').addEventListener('click', closeLightbox);
+  document.getElementById('lb-prev').addEventListener('click', () => step(-1));
+  document.getElementById('lb-next').addEventListener('click', () => step(1));
+  lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performing Artists | Urban Gang Tour Events Kenya</title>
+  <meta name="description" content="We share the stage with people who have something to say. Music, dance, and spoken word at every Urban Gang Tour event  -  plus special appearances from Citizen TV's Prince Jude (Neema).">
+  <meta name="keywords" content="Kenya performing artists, Kenya school events artists, Urban Gang Tour performers, Prince Jude Neema, Citizen TV, live music Kenya, spoken word Kenya">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .performers-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .performer-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .performer-card:hover {
+      border-color: var(--magenta);
+      transform: translateY(-8px);
+      box-shadow: 0 24px 60px rgba(204,0,119,0.25);
+    }
+    .performer-img-wrap {
+      position: relative;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: var(--bg3);
+    }
+    .performer-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top;
+      transition: transform 0.5s ease;
+    }
+    .performer-card:hover .performer-img-wrap img { transform: scale(1.07); }
+    .performer-img-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 55%;
+      background: linear-gradient(to top, rgba(17,0,24,0.92), transparent);
+      pointer-events: none;
+    }
+    .performer-overlay {
+      position: absolute;
+      bottom: 16px; left: 16px; right: 16px;
+      z-index: 2;
+    }
+    .performer-category {
+      font-family: var(--font-stamp);
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      color: var(--orange);
+      margin-bottom: 4px;
+    }
+    .performer-name {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.5px;
+    }
+    .performer-stop {
+      font-size: 12px;
+      color: rgba(240,232,255,0.6);
+      margin-top: 4px;
+    }
+    .performer-body { padding: 16px 20px 20px; }
+    .performer-bio { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+    .performer-socials { display: flex; gap: 8px; }
+    .performer-socials a {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .performer-socials a:hover { border-color: var(--magenta); color: var(--white); }
+
+    /* Placeholder performer card */
+    .performer-placeholder {
+      background: var(--bg3);
+      border: 2px dashed rgba(204,0,119,0.3);
+      border-radius: var(--radius-xl);
+      aspect-ratio: 3/4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      gap: 12px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .performer-placeholder:hover { border-color: var(--magenta); background: rgba(204,0,119,0.05); }
+    .placeholder-icon { font-size: 40px; opacity: 0.4; }
+    .placeholder-text { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    .apply-section {
+      background: linear-gradient(135deg, var(--bg3), var(--bg4));
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .apply-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(204,0,119,0.06) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .category-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; }
+    .cat-btn {
+      font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 8px 16px;
+      border-radius: var(--radius-pill); border: 1.5px solid var(--border);
+      color: var(--muted); background: transparent; cursor: pointer; transition: var(--transition);
+    }
+    .cat-btn:hover, .cat-btn.active {
+      border-color: var(--magenta); color: var(--white); background: rgba(204,0,119,0.12);
+    }
+
+    @media (max-width: 1024px) { .performers-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 768px) { .performers-grid { grid-template-columns: repeat(2,1fr); } .apply-section { padding: 40px 24px; } }
+    @media (max-width: 480px) { .performers-grid { grid-template-columns: 1fr; } }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav class="nav" id="main-nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/logo-transparent.png" alt="Urban Gang Tour">
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="about.html">About</a><a href="events.html">Events</a>
+    <a href="stops.html">Stops</a><a href="performers.html" class="active">Performers</a>
+    <a href="shop.html">Shop</a><a href="crew.html">Crew</a><a href="partners.html">Partners</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="events.html">Events</a>
+  <a href="stops.html">Stops</a><a href="performers.html">Performers</a><a href="shop.html">Shop</a>
+  <a href="crew.html">Crew</a><a href="partners.html">Partners</a><a href="contact.html">Book a Stop ↗</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="page-hero-dots"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="live-badge reveal" style="margin-bottom:24px;"><div class="dot"></div> Booked by Eugine · Announced per stop</div>
+    <h1 class="h-display h1 reveal reveal-delay-1" style="margin-bottom:16px;">
+      We share the stage<br>
+      <span style="color:var(--orange);">with people who</span><br>
+      <span style="-webkit-text-stroke:2px var(--magenta);color:transparent;">have something to say.</span>
+    </h1>
+    <p class="reveal reveal-delay-2" style="font-size:18px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:32px;">
+      Every Urban Gang Tour event features live performances from artists who connect with a young audience. Music. Dance. Spoken word. For schools we bring artists whose songs students already know. For universities and mega events, we scale accordingly. Lineups announced as each stop confirms.
+    </p>
+    <a href="#apply" class="btn btn-primary reveal reveal-delay-3">Think you belong on this stage? Say less. →</a>
+  </div>
+</section>
+
+<div class="ticker-wrap orange-strip">
+  <div class="ticker-inner fast">
+    <div class="ticker-item">Music <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Spoken Word <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Dance <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Comedy <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Modelling <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Drama <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Real talent. Real stage. <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Music <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Spoken Word <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Dance <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Comedy <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Modelling <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Drama <span class="ticker-sep">✦</span></div>
+    <div class="ticker-item">Real talent. Real stage. <span class="ticker-sep">✦</span></div>
+  </div>
+</div>
+
+<!-- PERFORMERS GRID -->
+<section class="section">
+  <div class="container">
+    <div class="flex-between reveal" style="margin-bottom:32px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="section-label">Term 2 - 2026</div>
+        <h2 class="h-display h3">Artists who've graced the stage.</h2>
+      </div>
+    </div>
+
+    <div class="category-filter reveal">
+      <button class="cat-btn active" data-cat="all">All</button>
+      <button class="cat-btn" data-cat="music">Music</button>
+      <button class="cat-btn" data-cat="dance">Dance</button>
+      <button class="cat-btn" data-cat="spoken-word">Spoken Word</button>
+      <button class="cat-btn" data-cat="comedy">Comedy</button>
+      <button class="cat-btn" data-cat="modelling">Modelling</button>
+    </div>
+
+    <div class="performers-grid reveal reveal-delay-1">
+      <!-- Performers  -  placeholders until real talent is added -->
+      <div class="performer-card" data-cat="music">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--bg3),var(--bg4));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">🎤</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Music</div>
+            <div class="performer-name">Koinange Girls Performer</div>
+            <div class="performer-stop">Koinange Girls - 30 May</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">Vocalist. This is their moment. National TV. 8M+ reach. No cap  -  they understood the assignment.</div>
+          <div class="performer-socials">
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+            <a href="#" title="TikTok" style="font-size:11px;font-weight:800;">TT</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="performer-card" data-cat="dance">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--bg4),var(--bg3));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">💃</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Dance</div>
+            <div class="performer-name">Loreto Kiambu Dancer</div>
+            <div class="performer-stop">Loreto Kiambu - 1 June</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">Main character energy. Every move hits different. The crowd goes every time.</div>
+          <div class="performer-socials">
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+            <a href="#" title="TikTok" style="font-size:11px;font-weight:800;">TT</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="performer-card" data-cat="spoken-word">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,rgba(123,0,204,0.3),var(--bg3));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">📖</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Spoken Word</div>
+            <div class="performer-name">Gathirimu Poet</div>
+            <div class="performer-stop">Gathirimu Girls - 4 July</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">Words that hit like a punchline and land like a prayer. This one hits different.</div>
+          <div class="performer-socials">
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+            <a href="#" title="YouTube" style="font-size:11px;font-weight:800;">YT</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="performer-card" data-cat="modelling">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,rgba(255,122,0,0.15),var(--bg3));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">*</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Modelling</div>
+            <div class="performer-name">Synapse Models Talent</div>
+            <div class="performer-stop">Koinange Girls - 30 May</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">Synapse Models. Drip locked in. Stage presence is built different. No notes.</div>
+          <div class="performer-socials">
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="performer-card" data-cat="comedy">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,rgba(204,0,119,0.2),var(--bg3));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">😂</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Comedy</div>
+            <div class="performer-name">Opening Act Comedian</div>
+            <div class="performer-stop">Term 2 - Multiple stops</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">Keeps 800 students locked in. Sets the tone. Warms the crowd and never gives it back.</div>
+          <div class="performer-socials">
+            <a href="#" title="TikTok" style="font-size:11px;font-weight:800;">TT</a>
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="performer-card" data-cat="music">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--bg4),rgba(255,122,0,0.1));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">🎶</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Music</div>
+            <div class="performer-name">Guest Artist</div>
+            <div class="performer-stop">Term 2 - TBC</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">Headline energy. The crowd goes home with memory and proof. We don't miss.</div>
+          <div class="performer-socials">
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+            <a href="#" title="YouTube" style="font-size:11px;font-weight:800;">YT</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="performer-card" data-cat="dance">
+        <div class="performer-img-wrap">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--bg3),rgba(123,0,204,0.25));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:0.3;">🕺</div>
+          <div class="performer-overlay">
+            <div class="performer-category">Dance</div>
+            <div class="performer-name">Dance Crew</div>
+            <div class="performer-stop">Term 2 - Kiambu County</div>
+          </div>
+        </div>
+        <div class="performer-body">
+          <div class="performer-bio">The bag is secured. Synchronised energy. Real ones know this is the moment they trained for.</div>
+          <div class="performer-socials">
+            <a href="#" title="TikTok" style="font-size:11px;font-weight:800;">TT</a>
+            <a href="#" title="Instagram" style="font-size:11px;font-weight:800;">IG</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apply placeholder -->
+      <a href="#apply" class="performer-placeholder" style="text-decoration:none;">
+        <div class="placeholder-icon">+</div>
+        <span class="badge badge-open" style="margin-bottom:8px;">Open</span>
+        <div class="placeholder-text">Your spot on this stage is waiting. Apply to perform at Term 2.</div>
+        <div class="btn btn-primary btn-sm" style="margin-top:8px;">Apply Now</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- UPCOMING TEASER -->
+<section class="section section-dark">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:40px;">
+      <div class="section-label">Term 2 - Upcoming</div>
+      <h2 class="h-display h3">Upcoming performers<br>at Term 2 stops.</h2>
+      <p style="color:var(--muted);margin-top:12px;font-size:15px;">Confirmations dropping weekly. Watch this space.</p>
+    </div>
+    <div class="grid-3 reveal reveal-delay-1" style="gap:16px;">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;display:flex;align-items:center;gap:16px;">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--magenta),var(--purple));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🎤</div>
+        <div>
+          <div style="font-family:var(--font-stamp);font-size:11px;letter-spacing:2px;color:var(--orange);">Music</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--white);">TBA  -  Koinange Girls</div>
+          <div style="font-size:12px;color:var(--muted);">30 May 2026</div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;display:flex;align-items:center;gap:16px;">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--orange),#FF4D00);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">💃</div>
+        <div>
+          <div style="font-family:var(--font-stamp);font-size:11px;letter-spacing:2px;color:var(--orange);">Dance</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--white);">TBA  -  Loreto Kiambu</div>
+          <div style="font-size:12px;color:var(--muted);">1 June 2026</div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;display:flex;align-items:center;gap:16px;">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--purple),var(--purple-lt));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📖</div>
+        <div>
+          <div style="font-family:var(--font-stamp);font-size:11px;letter-spacing:2px;color:var(--orange);">Spoken Word</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--white);">TBA  -  Gathirimu Girls</div>
+          <div style="font-size:12px;color:var(--muted);">4 July 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLY -->
+<section class="section" id="apply">
+  <div class="container">
+    <div class="apply-section reveal">
+      <div style="position:relative;z-index:1;">
+        <span class="badge badge-open" style="margin-bottom:20px;display:inline-block;">Applications Open</span>
+        <h2 style="font-family:var(--font-display);font-size:clamp(32px,5vw,60px);font-weight:700;color:var(--white);letter-spacing:-1.5px;line-height:1.05;margin-bottom:16px;">
+          Think you belong<br>on this stage?
+        </h2>
+        <p style="font-size:clamp(16px,2vw,20px);color:var(--orange);font-weight:700;margin-bottom:8px;">Say less.</p>
+        <p style="color:var(--muted);font-size:16px;max-width:480px;margin:0 auto 40px;line-height:1.6;">
+          Music. Dance. Spoken word. Comedy. Modelling. Drama. If you have something real, we want to see it  -  and put it on national TV.
+        </p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+          <a href="contact.html?apply=performer" class="btn btn-primary btn-lg">Apply to Perform →</a>
+          <a href="contact.html" class="btn btn-outline btn-lg">Contact the Team</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <img src="assets/logo-dark.png" alt="Urban Gang Tour" style="width:52px;border-radius:50%;border:2px solid var(--magenta);">
+      <div class="footer-logo-name">Urban Gang <span>Tour</span></div>
+      <p>From Potential to Purpose. Real stages for real talent. National TV.</p>
+      <div class="social-links">
+        <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+        <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+        <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Pages</h5><ul>
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="stops.html">Stops</a></li><li><a href="events.html">Events</a></li>
+      <li><a href="shop.html">Shop</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Connect</h5><ul>
+      <li><a href="contact.html">Book a stop</a></li>
+      <li><a href="mailto:euginemicah@gmail.com">Email us</a></li>
+      <li><a href="https://wa.me/254799886247">WhatsApp</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Legal</h5><ul>
+      <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><p>2026 <span>Urban Gang Tour</span> - Nairobi, Kenya</p></div>
+</div></footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+<script src="shared.js"></script>
+<script>
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      document.querySelectorAll('.performer-card').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>

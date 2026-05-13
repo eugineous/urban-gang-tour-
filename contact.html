@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Urban Gang Tour | Book an Event or Partner With Us | Kenya</title>
+  <meta name="description" content="Book a school stop, propose a university event, start a brand partnership conversation, or make a media request. Eugine Micah and Lucy Ogunde lead every conversation personally. We respond within 24 hours.">
+  <meta name="keywords" content="contact Urban Gang Tour, book Urban Gang Tour, Eugine Micah email, Lucy Ogunde, partner with UGT, school event booking Kenya, brand activation Kenya">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .contact-tabs { display: flex; gap: 4px; background: #f0f0f0; border-radius: var(--r-pill); padding: 4px; flex-wrap: wrap; margin-bottom: 36px; }
+    .ctab {
+      flex: 1; min-width: 140px; padding: 11px 18px; border-radius: var(--r-pill);
+      background: transparent; color: var(--ugt-ink-2);
+      font-family: var(--font-body); font-size: 13px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer;
+      transition: background var(--dur-base), color var(--dur-base); border: none; text-align: center;
+    }
+    .ctab.active { background: var(--ugt-ink); color: var(--ugt-white); box-shadow: var(--shadow-sticker-xs); }
+    .ctab:not(.active):hover { background: rgba(26,26,26,0.06); color: var(--ugt-ink); }
+
+    .contact-panel { display: none; }
+    .contact-panel.active { display: block; }
+
+    .contact-lanes { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 32px; }
+    .lane-card {
+      background: var(--ugt-white); border: var(--border-bold); border-radius: var(--r-xl);
+      padding: 24px; box-shadow: var(--shadow-sticker-xs);
+      transition: transform var(--dur-base), box-shadow var(--dur-base);
+      cursor: pointer;
+    }
+    .lane-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sticker-ink); }
+    .lane-card.selected { border-color: var(--ugt-magenta); box-shadow: var(--shadow-sticker-magenta); }
+    .lane-title { font-family: var(--font-display-alt); font-size: 16px; text-transform: uppercase; color: var(--ugt-ink); margin-bottom: 8px; }
+    .lane-desc { font-size: 13px; color: var(--ugt-ink-2); line-height: 1.6; }
+
+    .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-full { grid-column: 1 / -1; }
+
+    .contact-direct { display: flex; flex-direction: column; gap: 14px; }
+    .contact-direct a {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--ugt-white); border: var(--border-bold); border-radius: var(--r-xl);
+      padding: 18px 20px; box-shadow: var(--shadow-sticker-xs); text-decoration: none;
+      color: var(--ugt-ink); transition: transform var(--dur-base), box-shadow var(--dur-base);
+    }
+    .contact-direct a:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sticker-ink); }
+    .contact-direct-icon {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 12px; flex-shrink: 0; border: var(--border-thin);
+    }
+    .contact-direct-label { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ugt-magenta); }
+    .contact-direct-value { font-size: 15px; color: var(--ugt-ink); font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .contact-lanes { grid-template-columns: 1fr; }
+      .form-2col { grid-template-columns: 1fr; }
+      .contact-tabs { flex-direction: column; border-radius: var(--r-xl); }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<nav class="nav dark" id="main-nav">
+  <a href="index.html" class="nav-logo"><img src="assets/logo-transparent.png" alt="Urban Gang Tour"></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+    <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+    <a href="partners.html">Partners</a><a href="events.html">Events</a>
+    <a href="shop.html">Shop</a><a href="contact.html" class="active">Contact</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+  <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+  <a href="partners.html">Partners</a><a href="events.html">Events</a>
+  <a href="shop.html">Shop</a><a href="contact.html">Book a Stop</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow" style="color:var(--ugt-orange);margin-bottom:12px;">
+      <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+      Talk to Eugine and Lucy
+    </div>
+    <h1 class="h-display h-lg" style="color:var(--ugt-white);margin-bottom:16px;">Let's get<br>to work.</h1>
+    <p style="color:rgba(255,255,255,0.65);font-size:var(--fs-body-lg);max-width:600px;line-height:var(--lh-loose);">Whether you are a principal bringing the tour to your school, a brand exploring activation, a campus admin curious about the university edition, or an artist who wants to be on stage with us  -  this is where it starts. Eugine and Lucy lead every conversation personally.</p>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner fast">
+    <div class="ticker-item">School bookings <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">University stops <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Sponsor packages <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Media requests <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Join the crew <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Apply to perform <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">24-hour response <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">School bookings <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">University stops <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Sponsor packages <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Media requests <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Join the crew <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Apply to perform <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">24-hour response <span class="ticker-sep">*</span></div>
+  </div>
+</div>
+
+<!-- CONTACT SECTION -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:64px;align-items:start;" class="reveal">
+      <!-- Left: direct contact -->
+      <div>
+        <div class="eyebrow" style="margin-bottom:20px;">Reach us directly</div>
+        <div class="contact-direct">
+          <a href="https://wa.me/254799886247" target="_blank" rel="noopener">
+            <div class="contact-direct-icon" style="background:rgba(37,211,102,0.1);border-color:#25D366;color:#25D366;">WA</div>
+            <div>
+              <div class="contact-direct-label">WhatsApp</div>
+              <div class="contact-direct-value">+254799886247</div>
+            </div>
+          </a>
+          <a href="mailto:euginemicah@gmail.com">
+            <div class="contact-direct-icon" style="background:var(--ugt-magenta-soft);border-color:var(--ugt-border);color:var(--ugt-magenta);">@</div>
+            <div>
+              <div class="contact-direct-label">Email</div>
+              <div class="contact-direct-value">euginemicah@gmail.com</div>
+            </div>
+          </a>
+          <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener">
+            <div class="contact-direct-icon" style="background:var(--ugt-magenta-soft);border-color:var(--ugt-border);color:var(--ugt-magenta);">IG</div>
+            <div>
+              <div class="contact-direct-label">Instagram</div>
+              <div class="contact-direct-value">@urban_newsgang</div>
+            </div>
+          </a>
+        </div>
+        <div style="margin-top:32px;background:var(--ugt-magenta-soft);border:var(--border-thin);border-radius:var(--r-xl);padding:20px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--ugt-magenta);margin-bottom:6px;">Location</div>
+          <div style="font-family:var(--font-display-alt);font-size:18px;text-transform:uppercase;color:var(--ugt-ink);margin-bottom:4px;">Nairobi, Kenya</div>
+          <div style="font-size:14px;color:var(--ugt-ink-2);">Operating countrywide across all 47 counties.</div>
+        </div>
+        <div style="margin-top:16px;background:var(--ugt-orange-soft);border:1.5px solid #ffd0a0;border-radius:var(--r-xl);padding:20px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--ugt-orange-deep);margin-bottom:6px;">Response time</div>
+          <div style="font-family:var(--font-display-alt);font-size:18px;text-transform:uppercase;color:var(--ugt-ink);">Within 24 hours</div>
+          <div style="font-size:13px;color:var(--ugt-ink-2);margin-top:4px;">WhatsApp is faster for booking requests.</div>
+        </div>
+      </div>
+
+      <!-- Right: tabbed forms -->
+      <div>
+        <div class="contact-tabs">
+          <button class="ctab active" onclick="switchTab(this,'book')">Book a Stop</button>
+          <button class="ctab" onclick="switchTab(this,'partner')">Partner</button>
+          <button class="ctab" onclick="switchTab(this,'crew')">Join Crew</button>
+          <button class="ctab" onclick="switchTab(this,'perform')">Perform</button>
+        </div>
+
+        <!-- BOOK A STOP -->
+        <div class="contact-panel active" id="panel-book">
+          <p style="font-size:15px;color:var(--ugt-ink-2);line-height:1.65;margin-bottom:24px;">For schools, universities, colleges, and large events. Fill this in and we will get back to you fast.</p>
+          <form style="display:flex;flex-direction:column;gap:16px;" onsubmit="submitForm(event)">
+            <div class="form-2col">
+              <div class="form-group"><label>Institution name</label><input type="text" placeholder="e.g. Nairobi School" required></div>
+              <div class="form-group"><label>Type</label><select required><option value="">Select</option><option>High School</option><option>University or College</option><option>Large Event</option><option>Other</option></select></div>
+              <div class="form-group"><label>County</label><input type="text" placeholder="e.g. Nairobi" required></div>
+              <div class="form-group"><label>Contact person</label><input type="text" placeholder="Your full name" required></div>
+              <div class="form-group"><label>Phone</label><input type="tel" placeholder="+254 7XX XXX XXX" required></div>
+              <div class="form-group"><label>Email</label><input type="email" placeholder="you@school.ac.ke" required></div>
+              <div class="form-group"><label>Estimated attendance</label><input type="text" placeholder="e.g. 500 to 800 students"></div>
+              <div class="form-group"><label>Preferred dates</label><input type="text" placeholder="e.g. Any date in July 2026"></div>
+            </div>
+            <div class="form-group"><label>How did you hear about Urban Gang Tour?</label><select><option value="">Select</option><option>Instagram</option><option>TikTok</option><option>PPP TV Kenya or Urban News</option><option>A colleague or friend</option><option>Another school</option><option>Other</option></select></div>
+            <div class="form-group"><label>Anything else?</label><textarea placeholder="Special requirements, questions, or context..."></textarea></div>
+            <button type="submit" class="btn btn-primary" style="justify-content:center;">Submit booking request</button>
+          </form>
+        </div>
+
+        <!-- PARTNER -->
+        <div class="contact-panel" id="panel-partner">
+          <p style="font-size:15px;color:var(--ugt-ink-2);line-height:1.65;margin-bottom:24px;">For brands, sponsors, and organisations. Tell us your goals and we will build a proposal around fit.</p>
+          <form style="display:flex;flex-direction:column;gap:16px;" onsubmit="submitForm(event)">
+            <div class="form-2col">
+              <div class="form-group"><label>Brand or company</label><input type="text" placeholder="e.g. Safaricom" required></div>
+              <div class="form-group"><label>Contact person</label><input type="text" placeholder="Name and title" required></div>
+              <div class="form-group"><label>Email</label><input type="email" placeholder="you@brand.com" required></div>
+              <div class="form-group"><label>Phone</label><input type="tel" placeholder="+254 7XX XXX XXX"></div>
+            </div>
+            <div class="form-group"><label>What do you want to achieve?</label><textarea placeholder="Brand visibility, TV coverage, community engagement, specific audience..." required></textarea></div>
+            <button type="submit" class="btn btn-primary" style="justify-content:center;">Submit partner inquiry</button>
+          </form>
+        </div>
+
+        <!-- CREW -->
+        <div class="contact-panel" id="panel-crew">
+          <p style="font-size:15px;color:var(--ugt-ink-2);line-height:1.65;margin-bottom:24px;">Full roles and volunteer positions available. If you have the skill and the energy, we want to hear from you.</p>
+          <form style="display:flex;flex-direction:column;gap:16px;" onsubmit="submitForm(event)">
+            <div class="form-2col">
+              <div class="form-group"><label>Full name</label><input type="text" placeholder="Your full name" required></div>
+              <div class="form-group"><label>Phone</label><input type="tel" placeholder="+254 7XX XXX XXX" required></div>
+              <div class="form-group"><label>Email</label><input type="email" placeholder="you@email.com" required></div>
+              <div class="form-group"><label>Role interest</label><select required><option value="">Select</option><option>Production or Technical</option><option>Sound Engineering</option><option>Photography or Video</option><option>Social Content</option><option>Logistics or Operations</option><option>MC or Hosting</option><option>Mentorship or Facilitation</option><option>Volunteer</option><option>Other</option></select></div>
+            </div>
+            <div class="form-group"><label>Tell us about yourself</label><textarea placeholder="Your experience, skills, and why you want to join..." required></textarea></div>
+            <div class="form-group"><label>Portfolio or social link (optional)</label><input type="url" placeholder="https://instagram.com/yourhandle"></div>
+            <button type="submit" class="btn btn-primary" style="justify-content:center;">Apply to join the crew</button>
+          </form>
+        </div>
+
+        <!-- PERFORM -->
+        <div class="contact-panel" id="panel-perform">
+          <p style="font-size:15px;color:var(--ugt-ink-2);line-height:1.65;margin-bottom:24px;">Music. Dance. Spoken word. Comedy. Modelling. Drama. If you have something real, apply here. National TV. Millions of viewers.</p>
+          <form style="display:flex;flex-direction:column;gap:16px;" onsubmit="submitForm(event)">
+            <div class="form-2col">
+              <div class="form-group"><label>Stage name</label><input type="text" placeholder="Your artist or stage name" required></div>
+              <div class="form-group"><label>Phone</label><input type="tel" placeholder="+254 7XX XXX XXX" required></div>
+              <div class="form-group"><label>Email</label><input type="email" placeholder="you@email.com" required></div>
+              <div class="form-group"><label>Category</label><select required><option value="">Select</option><option>Music (vocal)</option><option>Music (instrumental)</option><option>Dance (solo)</option><option>Dance (group)</option><option>Spoken Word or Poetry</option><option>Comedy</option><option>Modelling</option><option>Drama</option><option>Other</option></select></div>
+            </div>
+            <div class="form-group"><label>Your school or county</label><input type="text" placeholder="e.g. Alliance High School, Kiambu" required></div>
+            <div class="form-group"><label>Tell us about your talent</label><textarea placeholder="Describe your performance, experience, and why you belong on the Urban Gang Tour stage..." required></textarea></div>
+            <div class="form-group"><label>Video or social link (strongly recommended)</label><input type="url" placeholder="YouTube, TikTok, Instagram, or Google Drive link"></div>
+            <button type="submit" class="btn btn-primary" style="justify-content:center;">Apply to perform</button>
+          </form>
+        </div>
+
+        <!-- SUCCESS -->
+        <div id="success-msg" style="display:none;background:rgba(37,211,102,0.06);border:2px solid #25D366;border-radius:var(--r-xl);padding:40px;text-align:center;">
+          <h3 style="font-family:var(--font-display);font-size:28px;color:var(--ugt-ink);margin-bottom:8px;">Received.</h3>
+          <p style="color:var(--ugt-ink-2);font-size:15px;line-height:1.6;margin-bottom:20px;">We will respond within 24 hours via WhatsApp or email.</p>
+          <a href="https://wa.me/254799886247" target="_blank" class="btn btn-primary">Also reach us on WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="assets/logo-transparent.png" alt="Urban Gang Tour" style="height:56px;width:auto;">
+      <p>Production-quality live events in Kenyan schools. Students perform. National TV covers it.</p>
+      <div class="broadcast">Urban News on PPP TV Kenya</div>
+      <div class="footer-social">
+        <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+        <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+        <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+        <a href="https://wa.me/254799886247" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col"><h5>Pages</h5><ul>
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="stops.html">Stops</a></li><li><a href="shop.html">Shop</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Connect</h5><ul>
+      <li><a href="mailto:euginemicah@gmail.com">euginemicah@gmail.com</a></li>
+      <li><a href="https://wa.me/254799886247">+254799886247</a></li>
+      <li><a href="https://instagram.com/urban_newsgang">Instagram</a></li>
+    </ul></div>
+    <div class="footer-col"><h5>Legal</h5><ul>
+      <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><p>2026 <span>Urban Gang Tour</span> · From Potential to Purpose</p></div>
+</div></footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+<script src="shared.js"></script>
+<script>
+  function switchTab(btn, panel) {
+    document.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.contact-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + panel).classList.add('active');
+    document.getElementById('success-msg').style.display = 'none';
+  }
+  function submitForm(e) {
+    e.preventDefault();
+    e.target.style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+  }
+  const params = new URLSearchParams(window.location.search);
+  const apply = params.get('apply');
+  if (apply === 'performer') document.querySelectorAll('.ctab')[3].click();
+  else if (apply === 'crew') document.querySelectorAll('.ctab')[2].click();
+</script>
+</body>
+</html>

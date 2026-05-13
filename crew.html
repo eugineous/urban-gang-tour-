@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Crew | Urban Gang Tour | Kenya's Leading Youth Events Company</title>
+  <meta name="description" content="Meet the people behind Urban Gang Tour. Co-founded and hosted by Eugine Micah and Lucy Ogunde. A full professional team of hosts, MCs, DJs, dancers, camera crew, modelling leads, production and operations.">
+  <meta name="keywords" content="Urban Gang Tour crew, Eugine Micah, Lucy Ogunde, MC Paps, Hype Ola, Synapse Models, Ashton Sounds, Kenya events team, Urban News PPP TV">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ── MAGAZINE-STYLE LAYOUT ──────────────────────────── */
+    .crew-section-head {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 32px;
+      align-items: end;
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+      border-bottom: var(--border-bold);
+    }
+    .crew-section-head .num {
+      font-family: var(--font-display);
+      font-size: clamp(96px, 12vw, 180px);
+      color: var(--ugt-magenta);
+      letter-spacing: var(--tracking-crunch);
+      line-height: 0.85;
+    }
+    .crew-section-head .label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ugt-ink-muted);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .crew-section-head .title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-ink);
+      line-height: 1.02;
+      margin-bottom: 14px;
+    }
+    .crew-section-head .pull {
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ugt-ink-2);
+      line-height: 1.65;
+      max-width: 540px;
+    }
+
+    /* Founder hero treatment */
+    .founder-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .founder-card {
+      background: var(--ugt-white);
+      border: var(--border-bold);
+      border-radius: var(--r-2xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sticker-ink);
+      display: grid;
+      grid-template-columns: 240px 1fr;
+    }
+    .founder-card .pic {
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: var(--ugt-magenta-soft);
+    }
+    .founder-card .pic img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+    .founder-card .body {
+      padding: 28px 28px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .founder-card .stamp {
+      display: inline-flex;
+      align-self: flex-start;
+      background: var(--ugt-orange);
+      color: var(--ugt-ink);
+      padding: 6px 12px;
+      border-radius: var(--r-pill);
+      font-family: var(--font-display-alt);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .founder-card .name {
+      font-family: var(--font-display);
+      font-size: clamp(34px, 4vw, 52px);
+      letter-spacing: var(--tracking-crunch);
+      text-transform: uppercase;
+      color: var(--ugt-ink);
+      line-height: 0.95;
+      margin-bottom: 4px;
+    }
+    .founder-card .role {
+      font-family: var(--font-display-alt);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ugt-magenta);
+      margin-bottom: 14px;
+    }
+    .founder-card .bio {
+      font-size: 14px;
+      color: var(--ugt-ink-2);
+      line-height: 1.65;
+      flex: 1;
+    }
+    .founder-card .handle {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ugt-magenta);
+      letter-spacing: 0.04em;
+    }
+
+    /* Standard person grid */
+    .crew-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .crew-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
+
+    .p-card {
+      background: var(--ugt-white);
+      border: var(--border-bold);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sticker-xs);
+      transition: transform var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out);
+      display: flex;
+      flex-direction: column;
+    }
+    .p-card:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: var(--shadow-sticker-ink);
+    }
+    .p-card .pic {
+      aspect-ratio: 4/5;
+      background: var(--ugt-magenta-soft);
+      overflow: hidden;
+      position: relative;
+      border-bottom: var(--border-bold);
+    }
+    .p-card .pic img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+    .p-card .initial {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 120px;
+      color: var(--ugt-magenta);
+      opacity: 0.35;
+      letter-spacing: var(--tracking-crunch);
+      background: linear-gradient(160deg, var(--ugt-magenta-soft) 0%, var(--ugt-orange-soft) 100%);
+    }
+    .p-card .pic-tag {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: var(--ugt-ink);
+      color: var(--ugt-white);
+      font-family: var(--font-display-alt);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-radius: var(--r-pill);
+    }
+    .p-card .body { padding: 16px 18px 20px; flex: 1; display: flex; flex-direction: column; }
+    .p-card .role-tag {
+      font-family: var(--font-display-alt);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ugt-magenta);
+      margin-bottom: 6px;
+    }
+    .p-card .name {
+      font-family: var(--font-display-alt);
+      font-size: 18px;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: var(--ugt-ink);
+      line-height: 1.05;
+      margin-bottom: 4px;
+    }
+    .p-card .akas {
+      font-family: var(--font-handwritten);
+      font-size: 13px;
+      color: var(--ugt-orange);
+      margin-bottom: 10px;
+    }
+    .p-card .bio {
+      font-size: 13px;
+      color: var(--ugt-ink-2);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    /* Variants by section */
+    .p-card.heads .pic { background: linear-gradient(160deg, var(--ugt-magenta-soft) 0%, #fff 100%); }
+    .p-card.core  .pic .initial { color: var(--ugt-orange); background: linear-gradient(160deg, var(--ugt-orange-soft) 0%, #fff 100%); }
+    .p-card.core  .role-tag { color: var(--ugt-orange); }
+    .p-card.ops   .pic .initial { color: var(--ugt-purple); background: linear-gradient(160deg, #F5ECFD 0%, #fff 100%); }
+    .p-card.ops   .role-tag { color: var(--ugt-purple); }
+
+    .p-card.celebrity {
+      background: var(--ugt-ink);
+      color: var(--ugt-white);
+    }
+    .p-card.celebrity .role-tag { color: var(--ugt-orange); }
+    .p-card.celebrity .name { color: var(--ugt-white); }
+    .p-card.celebrity .bio { color: rgba(255,255,255,0.7); }
+
+    /* Pull quotes between sections */
+    .pull-quote {
+      background: var(--ugt-magenta);
+      border: var(--border-bold);
+      border-radius: var(--r-2xl);
+      box-shadow: var(--shadow-sticker-ink);
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+      margin: 80px 0;
+    }
+    .pull-quote::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle,rgba(255,255,255,0.08) 1px,transparent 1px);
+      background-size: 18px 18px;
+    }
+    .pull-quote-inner {
+      position: relative; z-index: 1;
+      max-width: 920px;
+    }
+    .pull-quote p {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: var(--tracking-crunch);
+      line-height: 1.1;
+      text-transform: uppercase;
+      color: var(--ugt-white);
+    }
+    .pull-quote .attr {
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-top: 20px;
+      font-weight: 700;
+    }
+
+    /* responsive */
+    @media (max-width: 1024px) {
+      .crew-grid-4 { grid-template-columns: repeat(3,1fr); }
+      .founder-hero { grid-template-columns: 1fr; }
+      .founder-card { grid-template-columns: 200px 1fr; }
+    }
+    @media (max-width: 768px) {
+      .crew-grid-3, .crew-grid-4 { grid-template-columns: repeat(2,1fr); }
+      .crew-section-head { grid-template-columns: 1fr; gap: 8px; }
+      .crew-section-head .num { font-size: 96px; }
+      .founder-card { grid-template-columns: 1fr; }
+      .founder-card .pic { aspect-ratio: 4/3; }
+    }
+    @media (max-width: 480px) {
+      .crew-grid-3, .crew-grid-4 { grid-template-columns: 1fr; }
+    }
+  
+    /* injected by icon sweep */
+    .ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+    .ico svg { display: block; }
+    .ico-lg svg { width: 28px; height: 28px; }
+    .social-links a svg, .footer-social a svg { width: 18px; height: 18px; }
+    .whatsapp-float svg { width: 28px; height: 28px; }
+
+  </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<nav class="nav dark" id="main-nav">
+  <a href="index.html" class="nav-logo"><img src="assets/logo-transparent.png" alt="Urban Gang Tour"></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+    <a href="performers.html">Performers</a><a href="crew.html" class="active">Crew</a>
+    <a href="partners.html">Partners</a><a href="events.html">Events</a>
+    <a href="shop.html">Shop</a><a href="contact.html">Contact</a>
+    <a href="contact.html" class="nav-cta">Book a Stop</a>
+  </div>
+  <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-overlay">
+  <button class="nav-overlay-close">X</button>
+  <a href="index.html">Home</a><a href="about.html">About</a><a href="stops.html">Stops</a>
+  <a href="performers.html">Performers</a><a href="crew.html">Crew</a>
+  <a href="partners.html">Partners</a><a href="events.html">Events</a>
+  <a href="shop.html">Shop</a><a href="contact.html">Book a Stop</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow" style="color:var(--ugt-orange);margin-bottom:12px;">
+      <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+      The crew
+    </div>
+    <h1 class="h-display h-lg" style="color:var(--ugt-white);margin-bottom:16px;">A team that loves this<br>more than it loves sleep.</h1>
+    <p style="color:rgba(255,255,255,0.65);font-size:var(--fs-body-lg);max-width:620px;line-height:var(--lh-loose);">Every event day, a full professional team shows up ready. Hosts. MCs. DJs. Hypeman. Camera crew. Stage management. Dancers. Modelling leads. Security. Production. Operations. These are the people behind it.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:24px;">
+      <span class="chip chip-ink">Steered by Eugine &amp; Lucy</span>
+      <span class="chip chip-ink">Founders. Heads. Core. Ops.</span>
+      <span class="chip chip-ink">On the clock, on the ground</span>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner fast">
+    <div class="ticker-item">Eugine Micah <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Lucy Ogunde <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">MC Paps <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Hype Ola <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Synapse Models <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Ashton Sounds <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">DJ Xavi <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">DJ Jayjey <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">DVJ Supreme <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Mark Davinci <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">King TAE <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Prince Jude <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Eugine Micah <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Lucy Ogunde <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">MC Paps <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Hype Ola <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Synapse Models <span class="ticker-sep">*</span></div>
+    <div class="ticker-item">Ashton Sounds <span class="ticker-sep">*</span></div>
+  </div>
+</div>
+
+<!-- ═══ FOUNDERS ═══ -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div class="crew-section-head reveal">
+      <div class="num">01</div>
+      <div>
+        <div class="label">Section one</div>
+        <div class="title">The face<br>of the brand.</div>
+        <p class="pull">Eugine and Lucy steer every event from the first DJ set to the last award. That is not production value. That is identity.</p>
+      </div>
+    </div>
+
+    <div class="founder-hero reveal reveal-delay-1">
+      <div class="founder-card">
+        <div class="pic"><img src="assets/people/eugine-micah.png" alt="Eugine Micah"></div>
+        <div class="body">
+          <span class="stamp">Co-Founder</span>
+          <div class="name">Eugine Micah</div>
+          <div class="role">Creative Director · Lead Host · Urban News</div>
+          <p class="bio">There is a specific kind of person who can hold a thousand students' attention from a stage, manage a TV production, close a brand partnership and still be the last one to leave the venue. Eugine is that person. He built Urban Gang Tour as a vehicle for what he has always believed: that Kenyan youth do not need to be entertained, they need to be unleashed. The primary face of the brand both on screen and in the rooms where decisions get made.</p>
+          <a href="https://instagram.com/euginemicah" class="handle" target="_blank" rel="noopener">@eugine.micah</a>
+        </div>
+      </div>
+      <div class="founder-card">
+        <div class="pic"><img src="assets/people/lucy-ogunde.jpg" alt="Lucy Ogunde"></div>
+        <div class="body">
+          <span class="stamp" style="background:var(--ugt-magenta);color:var(--ugt-white);">Co-Founder</span>
+          <div class="name">Lucy Ogunde</div>
+          <div class="role">Executive Producer · Co-Host · Urban News</div>
+          <p class="bio">Lucy is the kind of person a room adjusts itself around. She co-hosts every event with Eugine, leads production strategy, drives the business forward, and has a deep instinct for what students respond to on and off stage. She built the operational backbone of Urban Gang Tour from the ground up. Every school that has met Lucy has called back.</p>
+          <a href="https://instagram.com/lucyogunde" class="handle" target="_blank" rel="noopener">@lucyogunde</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ KEY PARTNERS ═══ -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="crew-section-head reveal">
+      <div class="num" style="color:var(--ugt-orange);">02</div>
+      <div>
+        <div class="label">Section two</div>
+        <div class="title">The key partners.</div>
+        <p class="pull">The people who hold whole pillars of the production. Programme, sound, entertainment, modelling  -  each one carried by someone with a track record and a real stake in what we are building.</p>
+      </div>
+    </div>
+    <div class="crew-grid-4 reveal reveal-delay-1">
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/mc-paps.webp" alt="MC Paps"></div>
+        <div class="body">
+          <div class="role-tag">Programme Overseer · MC</div>
+          <div class="name">MC Paps</div>
+          <div class="akas">Paps Nadhir Apapu</div>
+          <p class="bio">MC Paps can command any room and make every person in it feel like they were the one who mattered most. He oversees the full event programme, coordinates with school administration on the day, and brings a networks-first approach to building the brand's institutional relationships. Deeply invested in showing young Kenyans that the room they want to be in has always had space for them.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><div class="initial">F</div><div class="pic-tag">Sound Production</div></div>
+        <div class="body">
+          <div class="role-tag">Production Partner</div>
+          <div class="name">Fally Mark</div>
+          <div class="akas">CEO · Sauti Moto</div>
+          <p class="bio">Fally runs Sauti Moto, the production house that partners with Ashton Sounds to deliver the full technical experience at every Urban Gang Tour event. The kind of partner who has already thought of the thing you forgot to plan for, and who shows up early regardless. His commitment to live production craft is a direct investment in what every student experiences on the day.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/hype-ola.jpg" alt="Hype Ola"></div>
+        <div class="body">
+          <div class="role-tag">Head of Entertainment</div>
+          <div class="name">Hype Ola</div>
+          <div class="akas">Experience Hub lead</div>
+          <p class="bio">If the event has a heartbeat, Hype Ola is the one keeping it pumping. He leads the full entertainment crew, coordinates every DJ set, every hype break, every crowd moment across the day. The Experience Hub  -  UGT's signature entertainment sequence  -  is his domain. He has built a team of creatives around him with one shared goal: no student in that crowd has a reason to look away from the stage.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/wambui-gakunju.webp" alt="Esther Wambui Gakunju"></div>
+        <div class="body">
+          <div class="role-tag">Head of Modelling &amp; Wellness</div>
+          <div class="name">Esther Wambui Gakunju</div>
+          <div class="akas">Founder · Synapse Models</div>
+          <p class="bio">Esther founded Synapse Models and brought that vision directly into Urban Gang Tour. She leads all modelling activities on event day, from orientation to the runway, and takes the wellness and wellbeing of everyone in the venue personally. The person students with questions go to and the person who ensures the programme leaves people feeling better than it found them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="pull-quote reveal">
+    <div class="pull-quote-inner">
+      <p>"We do not just show up.<br>We take over. And then we hand the mic to the students and let them show the country who they are."</p>
+      <div class="attr"> -  Eugine &amp; Lucy</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HEADS OF DEPARTMENTS ═══ -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div class="crew-section-head reveal">
+      <div class="num" style="color:var(--ugt-purple);">03</div>
+      <div>
+        <div class="label">Section three</div>
+        <div class="title">Heads of departments.</div>
+        <p class="pull">Brand, content, decks, stage, environment, security. Six leads, six lanes, one production that runs because they cover the ground.</p>
+      </div>
+    </div>
+    <div class="crew-grid-4 reveal reveal-delay-1">
+      <div class="p-card heads">
+        <div class="pic"><div class="initial">E</div></div>
+        <div class="body">
+          <div class="role-tag">Brand Manager</div>
+          <div class="name">Enock Wanyama</div>
+          <p class="bio">Enock lives at the intersection of identity and presentation. He manages the visual and strategic consistency of the Urban Gang Tour brand across every touchpoint, ensures every partner-facing document reflects the standard the brand sets, and keeps the look of everything intentional. He cares about getting it right because he knows the difference it makes.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/rania.webp" alt="Rania Martin"></div>
+        <div class="body">
+          <div class="role-tag">Head of Social &amp; Content</div>
+          <div class="name">Rania Martin</div>
+          <p class="bio">Rania runs the content engine. On event day she is producing reels, coordinating with the camera crew, and building the social narrative that extends the event's reach from a school field to millions of feeds. Fast, precise, and with a genuine feel for what the audience responds to. Her work is how the world finds out what happened.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/dj-xavi.jpg" alt="DJ Xavi"></div>
+        <div class="body">
+          <div class="role-tag">Head of DJs · Resident DJ</div>
+          <div class="name">DJ Xavi</div>
+          <p class="bio">A television presenter and the resident DJ who sets the sonic tone for every event. He coordinates all DJ sets and handles every musical transition with the kind of reading of a room that only comes from years of doing it live. Responsible for making sure the crowd never has a reason to lose focus.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/kalamu-nyeusi.jpg" alt="Kalamu Nyeusi"></div>
+        <div class="body">
+          <div class="role-tag">Head Stage Manager · Spoken Word Lead</div>
+          <div class="name">Kalamu Nyeusi</div>
+          <p class="bio">Kalamu runs the stage with the calm authority of someone who has already thought through the twelve things that could go wrong. He manages programme flow, keeps time, and performs in the spoken word and poetry categories with genuine artistic conviction. He believes the stage is a sacred space  -  and it shows in how he manages it.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><div class="initial">T</div></div>
+        <div class="body">
+          <div class="role-tag">Head of Environment &amp; Vendors</div>
+          <div class="name">King TAE</div>
+          <div class="akas">The African Eagle</div>
+          <p class="bio">TAE oversees the green thread that runs through every Urban Gang Tour event. He founded and leads <strong>Delo Greens Movement</strong>, UGT's Official Environmental Partner, and brings that mission directly into the event day. Tree planting, environmental programming, vendor zone management, and overall time management across the venue are his responsibility. By the time a student who planted a tree with us is sitting their final exams, that tree will already be standing.</p>
+        </div>
+      </div>
+      <div class="p-card heads">
+        <div class="pic"><img src="assets/people/mark-davinci.jpg" alt="Mark Davinci"></div>
+        <div class="body">
+          <div class="role-tag">Head of Security</div>
+          <div class="name">Mark Davinci</div>
+          <p class="bio">Mark's job is to make sure nothing on event day disrupts the experience for the students, the crew or the partners. He works closely with school scouts, prefects and clubs to manage access, protect equipment, and handle crowd dynamics with precision. His presence at an event means everyone else can focus entirely on their role.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CORE TEAM ═══ -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="crew-section-head reveal">
+      <div class="num" style="color:var(--ugt-magenta);">04</div>
+      <div>
+        <div class="label">Section four</div>
+        <div class="title">The core team.</div>
+        <p class="pull">Dancers, MCs, sound engineers, videographers, camera operators, performers, hypemen  -  the people whose work is felt in every second of the event, even when they are not the one on the mic.</p>
+      </div>
+    </div>
+    <div class="crew-grid-4 reveal reveal-delay-1">
+      <div class="p-card core">
+        <div class="pic"><img src="assets/people/nyarangi.jpg" alt="Khloe Nyarangi"></div>
+        <div class="body">
+          <div class="role-tag">Dance Crew Lead</div>
+          <div class="name">Khloe Nyarangi</div>
+          <p class="bio">Khloe leads five dancers and is the person who warms the crowd up long before the main programme begins. She runs student dance workshops during the day, supports the modelling runway, and has a specific gift for making students who have never been on a stage feel like they belong on one.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><img src="assets/people/pauline-masika.png" alt="Pauline Masika"></div>
+        <div class="body">
+          <div class="role-tag">Sound Engineer</div>
+          <div class="name">Pauline Masika</div>
+          <p class="bio">Pauline handles all video and audio recording with the kind of technical attention that separates good content from great content. She sets up lapel mics, manages interview audio, and leads post-production on the content that goes to PPP TV. She is the reason the broadcasts sound the way they do.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><img src="assets/people/fred-oduor.jpg" alt="Fred Otieno"></div>
+        <div class="body">
+          <div class="role-tag">Actor · Model · MC Support</div>
+          <div class="name">Fred Otieno</div>
+          <p class="bio">Fred holds multiple roles in the production and does each one without drawing attention to the fact that he is doing three things at once. He supports backstage logistics, manages model lineups, and works alongside Paps when the programme needs an extra pair of hands on stage.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">K</div></div>
+        <div class="body">
+          <div class="role-tag">Videographer · Creative</div>
+          <div class="name">Khalif Arts</div>
+          <div class="akas">Innocent Kahanja</div>
+          <p class="bio">Khalif is the one with the camera at the angles everyone else missed. He covers the event floor, captures the experience from inside the crowd, and brings a creative eye to content that makes the social reels feel like they were made by someone who cared. Works closely with Rania to ensure no moment leaves the building without being recorded properly.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">J</div></div>
+        <div class="body">
+          <div class="role-tag">CEO · Ashton Sounds</div>
+          <div class="name">Jeff Ashton</div>
+          <p class="bio">Jeff Ashton is the CEO of Ashton Sounds  -  the official stage audio partner of Urban Gang Tour. Every PA system, every microphone, every monitor mix at every event runs through his team. He has built a reputation in Kenyan live production by treating audio with the same seriousness most people reserve for what they can see. The reason the stage does not just look good but sounds the part.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">J</div></div>
+        <div class="body">
+          <div class="role-tag">Dancer · Experience Hub</div>
+          <div class="name">Jeff Dancer</div>
+          <p class="bio">Jeff Dancer is one of the core performers of The Experience Hub. He brings choreography energy to the hype sets, supports the modelling runway, and runs student dance workshops during the day. The kind of mover students in the front row imitate before the day is over.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">D</div></div>
+        <div class="body">
+          <div class="role-tag">Dancer · Creative</div>
+          <div class="name">Drop Junior</div>
+          <div class="akas">Eugeno Lery</div>
+          <p class="bio">Drop Junior is part of the Experience Hub's performance engine. He performs in hype sets, assists with student dance workshops, and brings choreography energy that students in the front row feel directly.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">M</div></div>
+        <div class="body">
+          <div class="role-tag">Crowd Activation</div>
+          <div class="name">Mercie Smalls</div>
+          <p class="bio">Mercie is in all three hype sets and has the specific quality of making a crowd feel involved in something rather than just watching it. She leads student workshop sessions and keeps the energy in the venue from dipping during the natural pauses of a long event day.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><img src="assets/people/jayjey.jpg" alt="DJ Jayjey"></div>
+        <div class="body">
+          <div class="role-tag">DJ Partner</div>
+          <div class="name">DJ Jayjey</div>
+          <p class="bio">DJ Jayjey is a crowd reader and a serious DJ who understands that his role is to serve the room. He runs Experience Hub sets and is the lead point for university and campus programme extensions.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">S</div></div>
+        <div class="body">
+          <div class="role-tag">DJ Partner</div>
+          <div class="name">DVJ Supreme</div>
+          <p class="bio">A DJ Partner on the Urban Gang Tour roster  -  a youth-native selector who understands how to lift a stage and read what a crowd wants before they know they want it. Brings range across genres and a sense of moment that pairs naturally with the Experience Hub.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">H</div></div>
+        <div class="body">
+          <div class="role-tag">MC · Hypeman</div>
+          <div class="name">Hype Jay</div>
+          <div class="akas">James Kaloki</div>
+          <p class="bio">Hype Jay is the voice that bridges things when there is a gap to bridge. He works closely with Hype Ola to support the Experience Hub and holds the stage as on-stage MC during the hype breaks. He has a natural charisma that students respond to immediately.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><div class="initial">G</div></div>
+        <div class="body">
+          <div class="role-tag">Lead Camera Operator</div>
+          <div class="name">Gerial Bico</div>
+          <p class="bio">Gerial is the main stage camera. He covers the awards ceremony, the guest performances, and everything that is meant to be on television. His footage is the primary source for the PPP TV broadcast.</p>
+        </div>
+      </div>
+      <div class="p-card core">
+        <div class="pic"><img src="assets/people/george.jpg" alt="George Morgan"></div>
+        <div class="body">
+          <div class="role-tag">Camera Operator</div>
+          <div class="name">George Morgan</div>
+          <p class="bio">George covers the crowd, the reactions, and the stories between the stories. His B-roll and winner interview footage are what give the TV episode its humanity.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Special celebrity card -->
+    <div style="margin-top:24px;" class="reveal reveal-delay-2">
+      <div class="p-card celebrity" style="display:grid;grid-template-columns:280px 1fr;gap:0;">
+        <div class="pic" style="aspect-ratio:auto;border-right:var(--border-bold);border-bottom:none;background:var(--ugt-magenta);">
+          <div class="initial" style="color:var(--ugt-white);opacity:0.5;background:transparent;font-size:140px;"><svg viewBox="0 0 24 24" fill="currentColor" width="120" height="120" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div class="pic-tag" style="background:var(--ugt-orange);color:var(--ugt-ink);">As seen on Citizen TV</div>
+        </div>
+        <div class="body" style="padding:32px;">
+          <div class="role-tag">Celebrity Talent · Special Appearance</div>
+          <div class="name" style="font-size:32px;">Jayden / Prince Jude</div>
+          <div class="akas" style="color:var(--ugt-orange);font-size:15px;">Lead character in Neema · Citizen TV</div>
+          <p class="bio" style="font-size:15px;">A recognisable face from one of Kenya's most-watched television dramas. His presence at an event changes what the day means to students who watch Citizen TV and see one of their favourite characters walking through their school gate. Brings genuine warmth to every student interaction.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SUPPORT & OPS ═══ -->
+<section class="section" style="background:var(--ugt-bg);">
+  <div class="container">
+    <div class="crew-section-head reveal">
+      <div class="num" style="color:var(--ugt-green);">05</div>
+      <div>
+        <div class="label">Section five</div>
+        <div class="title">Support &amp; operations.</div>
+        <p class="pull">The operational engine that makes the visible part of the event possible. Logistics, transport, shop floors, electricals, the Urban Gang brands on the ground. Without them, the rest does not happen.</p>
+      </div>
+    </div>
+    <div class="crew-grid-4 reveal reveal-delay-1">
+      <div class="p-card ops">
+        <div class="pic"><div class="initial">F</div></div>
+        <div class="body">
+          <div class="role-tag">Logistics &amp; Merch Lead</div>
+          <div class="name">Ferooz Mkenya</div>
+          <p class="bio">Ferooz is the reason everything and everyone is in the right place at the right time. He manages transport on event day, runs the Urban Gang Merch stall, and is the operational engine that makes the visible part of the event possible.</p>
+        </div>
+      </div>
+      <div class="p-card ops">
+        <div class="pic"><div class="initial">T</div></div>
+        <div class="body">
+          <div class="role-tag">Transport · Shop Manager</div>
+          <div class="name">Thomson Sangara</div>
+          <p class="bio">Thomson supports the logistics operation and manages the Urban Gang Merch shop floor on event day. He is steady, reliable, and understands that the operational side of a great event is just as important as what happens on stage.</p>
+        </div>
+      </div>
+      <div class="p-card ops">
+        <div class="pic"><img src="assets/people/tony.webp" alt="Tony Lallez"></div>
+        <div class="body">
+          <div class="role-tag">Camera Operator</div>
+          <div class="name">Tony Lallez</div>
+          <p class="bio">Tony is embedded in the TV production segments alongside Eugine and Lucy. He shoots teaser content for the next school visit and handles the programme clips that go to broadcast.</p>
+        </div>
+      </div>
+      <div class="p-card ops">
+        <div class="pic"><div class="initial">J</div></div>
+        <div class="body">
+          <div class="role-tag">Model · Production Support</div>
+          <div class="name">Joel Doris</div>
+          <p class="bio">Joel moves across disciplines with ease. He models for the event, handles electrical and technical support on the ground, and steps in as Fally Mark's representative when the production needs someone who can speak to both the creative and technical sides.</p>
+        </div>
+      </div>
+      <div class="p-card ops">
+        <div class="pic"><div class="initial">M</div></div>
+        <div class="body">
+          <div class="role-tag">Urban Snacks Shop Manager</div>
+          <div class="name">Mercy</div>
+          <p class="bio">Mercy runs Urban Gang Snacks from setup to last sale. She manages inventory, handles the shop floor, and keeps the queue moving on a day when hundreds of students decide they want something to eat at the same time.</p>
+        </div>
+      </div>
+      <div class="p-card ops" style="background:var(--ugt-magenta);color:var(--ugt-white);justify-content:center;align-items:center;text-align:center;padding:32px 24px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--font-handwritten);font-size:24px;color:var(--ugt-white);transform:rotate(-3deg);">join the crew</div>
+        <div style="font-family:var(--font-display);font-size:26px;color:var(--ugt-white);letter-spacing:var(--tracking-crunch);text-transform:uppercase;line-height:1;">Want a seat<br>at this table?</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.55;">Creatives, event operators, partners  -  if you love what is being built here, reach out.</p>
+        <a href="contact.html" class="btn btn-white btn-sm" style="margin-top:6px;">Start the conversation</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section section-dark">
+  <div class="container">
+    <div style="max-width:640px;" class="reveal">
+      <div class="eyebrow" style="color:var(--ugt-orange);">
+        <span style="display:block;width:20px;height:2px;background:var(--ugt-orange);border-radius:2px;"></span>
+        Work with the crew
+      </div>
+      <h2 class="h-display h-md" style="color:var(--ugt-white);margin:12px 0 16px;">Booking schools, universities,<br>colleges and brands<br>countrywide.</h2>
+      <p style="color:rgba(255,255,255,0.65);font-size:16px;line-height:1.7;margin-bottom:32px;">Eugine and Lucy lead every conversation personally.</p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a href="contact.html" class="btn btn-magenta btn-lg">Book a stop</a>
+        <a href="partners.html" class="btn btn-outline-white btn-lg">See partner story</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/logo-transparent.png" alt="Urban Gang Tour" style="height:56px;width:auto;">
+        <p>Production-quality live events. High schools. Universities. Colleges. Polytechnics. Mega events. Hosted by Eugine Micah and Lucy Ogunde.</p>
+        <div class="broadcast">Urban News on PPP TV Kenya</div>
+        <div class="footer-social">
+          <a href="https://instagram.com/urban_newsgang" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 5.84a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2zm5.1-6.76a.94.94 0 1 1-1.88 0 .94.94 0 0 1 1.88 0z"/></svg></a>
+          <a href="https://tiktok.com/@urbangangtour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19.6 6.32a4.85 4.85 0 0 1-4.85-4.85h-3.13v13.4a2.94 2.94 0 1 1-2.94-2.94c.32 0 .64.05.94.15V8.85a6.07 6.07 0 0 0-.94-.07 6.07 6.07 0 1 0 6.07 6.07V8.5a8.05 8.05 0 0 0 4.85 1.62V6.32z"/></svg></a>
+          <a href="https://youtube.com/@urbannewsppp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.13C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.37.52A3.02 3.02 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3.02 3.02 0 0 0 2.13 2.13c1.87.52 9.37.52 9.37.52s7.5 0 9.37-.52a3.02 3.02 0 0 0 2.13-2.13c.5-1.87.5-5.8.5-5.8s0-3.93-.5-5.8zM9.6 15.6V8.4l6.24 3.6L9.6 15.6z"/></svg></a>
+          <a href="https://wa.me/254799886247" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col"><h5>Pages</h5><ul>
+        <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+        <li><a href="stops.html">Stops</a></li><li><a href="partners.html">Partners</a></li>
+        <li><a href="shop.html">Shop</a></li>
+      </ul></div>
+      <div class="footer-col"><h5>Connect</h5><ul>
+        <li><a href="contact.html">Book a stop</a></li>
+        <li><a href="mailto:euginemicah@gmail.com">euginemicah@gmail.com</a></li>
+        <li><a href="https://wa.me/254799886247">+254799886247</a></li>
+      </ul></div>
+      <div class="footer-col"><h5>Legal</h5><ul>
+        <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+        <li><a href="#">BN-6ASYVPW5</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-bottom"><p>2026 <span>Urban Gang Tour</span> · From Potential to Purpose · Nairobi, Kenya</p></div>
+  </div>
+</footer>
+
+<a href="https://wa.me/254799886247" class="whatsapp-float" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 14.32c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5c-1.7 0-3.37-.46-4.83-1.32l-.35-.2-3.58.94.96-3.49-.23-.36a9.46 9.46 0 0 1-1.45-5.08c0-5.23 4.25-9.48 9.48-9.48 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.78 6.7c0 5.23-4.25 9.48-9.48 9.48zm8.06-17.53A11.3 11.3 0 0 0 12.04.66C5.77.66.66 5.77.66 12.04c0 2 .52 3.95 1.52 5.67L.56 23.34l5.77-1.51a11.3 11.3 0 0 0 5.71 1.45h.01c6.27 0 11.38-5.11 11.38-11.38 0-3.04-1.18-5.9-3.33-8.05z"/></svg></a>
+<script src="shared.js"></script>
+</body>
+</html>
