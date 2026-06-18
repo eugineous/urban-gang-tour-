@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="Urban News">
+
+  <dc-import name="SiteNav" active="news" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- HERO : broadcast style -->
+  <div style="position: relative; overflow: hidden; background: linear-gradient(120deg, #1A0D16 0%, #2B0E22 60%, #0E1A24 130%)">
+    <div style="position: absolute; inset: 0; opacity: 0.4; background-image: repeating-linear-gradient(0deg, transparent 0px, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px)"></div>
+    <div style="position: relative; max-width: 1280px; margin: 0 auto; padding: 80px clamp(24px,5vw,70px) 60px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 50px; align-items: center">
+      <div>
+        <div style="display: inline-flex; align-items: center; gap: 10px; background: rgba(255,40,40,0.14); border: 1px solid rgba(255,70,70,0.5); color: #FF7A7A; border-radius: 999px; padding: 8px 16px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em">
+          <span style="width: 9px; height: 9px; border-radius: 50%; background: #FF4040; display: inline-block"></span> ON AIR · PPP TV KENYA
+        </div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(46px, 6vw, 86px); line-height: 1; text-transform: uppercase; margin-top: 18px">Urban News.<br><span style="color: #C7238E">The tour, on air.</span></div>
+        <div style="color: rgba(255,247,252,0.78); font-size: 16.5px; line-height: 1.7; margin-top: 16px; max-width: 540px">Hosted by <a href="The Gang.dc.html" style="color: #F5A623; font-weight: 700">Eugine Micah</a> and <a href="The Gang.dc.html" style="color: #F5A623; font-weight: 700">Lucy Ogunde</a> on PPP TV Kenya, Urban News follows the tour into every institution. A TV show with its own company behind it: Urban Gang Tour shoots it, PPP TV airs it, up to 8 million viewers watch it.</div>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px">
+          <a href="https://youtube.com/@urban_newsgang" target="_blank" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 14px; box-shadow: 0 12px 30px rgba(199,35,142,0.4)" style-hover="background: #E12FA3; transform: translateY(-2px)">▶ Watch Highlights</a>
+          <a href="https://instagram.com/urban_newsgang" target="_blank" style="border: 2px solid rgba(255,255,255,0.6); color: #fff; font-weight: 700; font-size: 15px; padding: 13px 26px; border-radius: 14px" style-hover="border-color: #F5A623; color: #F5A623">@urban_newsgang ↗</a>
+        </div>
+      </div>
+      <div style="position: relative">
+        <div style="position: relative; border-radius: 20px; overflow: hidden; border: 3px solid rgba(230,30,140,0.6); box-shadow: 0 30px 80px rgba(0,0,0,0.6); background: #000">
+          <video onClick="{{ toggleVideo }}" poster="assets/thumbs/recap_1.jpg" playsinline="true" src="assets/video/recap_1.mp4" controls="controls" preload="metadata" style="width: 100%; display: block; max-height: 460px; object-fit: cover; background: #000"></video>
+          <div style="position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #FF6B6B">● REC</div>
+          <img src="assets/brand/ppptv_logo.png" alt="PPP TV" style="position: absolute; bottom: 14px; right: 14px; height: 40px">
+        </div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 16px; margin-top: 12px; text-align: center; transform: rotate(-1deg)">latest from the road ↑</div>
+        <div style="margin-top: 20px">
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,247,252,0.5); text-transform: uppercase">On the couch this season</div>
+          <div style="display: flex; gap: 8px; margin-top: 10px">
+            <img loading="lazy" src="assets/news/albums/bobby/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/hype/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 16%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/moraa/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/kalamu/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 14%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/tamre/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 16%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALBUMS : guests & sessions -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 70px clamp(24px,5vw,70px) 10px">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap">
+      <div>
+        <div style="display: inline-block; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 13px; letter-spacing: 0.14em; padding: 7px 18px; border-radius: 999px; transform: rotate(-1deg)">🎙 ON THE COUCH</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(34px, 4.4vw, 56px); text-transform: uppercase; line-height: 1; margin-top: 14px">Guest <span style="color: #F5A623">albums</span></div>
+      </div>
+      <div style="color: rgba(255,247,252,0.62); font-size: 14px; line-height: 1.6; max-width: 390px">Every personality who pulled up to the Urban News set this season. Tap a face to open their full photo set.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 30px">
+      <sc-for list="{{ people }}" as="a" hint-placeholder-count="7">
+        <div onClick="{{ a.open }}" style="cursor: pointer; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4; border: 1px solid rgba(255,255,255,0.12); background: #1B1118" style-hover="border-color: #C7238E; transform: translateY(-5px)">
+          <img loading="lazy" src="{{ a.cover }}" alt="{{ a.name }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ a.pos }}">
+          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,5,8,0.95) 0%, rgba(10,5,8,0.15) 46%, transparent 74%)"></div>
+          <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.55); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; padding: 4px 10px; border-radius: 999px">📷 {{ a.count }}</div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 16px 18px">
+            <div style="display: inline-block; background: rgba(199,35,142,0.92); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 11px; border-radius: 999px">{{ a.tag }}</div>
+            <div style="font-family: 'Anton', sans-serif; font-size: 22px; line-height: 1.04; margin-top: 9px; text-transform: uppercase">{{ a.name }}</div>
+            <div style="color: #E96CC0; font-size: 12px; font-weight: 700; margin-top: 4px">View album →</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font-family: 'Anton', sans-serif; font-size: 22px; text-transform: uppercase; margin: 46px 0 0; color: rgba(255,247,252,0.92)">Sessions &amp; theme days</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 18px; margin-top: 18px">
+      <sc-for list="{{ sessions }}" as="a" hint-placeholder-count="2">
+        <div onClick="{{ a.open }}" style="cursor: pointer; position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 16/10; border: 1px solid rgba(255,255,255,0.12); background: #1B1118" style-hover="border-color: #F5A623; transform: translateY(-5px)">
+          <img loading="lazy" src="{{ a.cover }}" alt="{{ a.name }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ a.pos }}">
+          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,5,8,0.92) 4%, rgba(10,5,8,0.1) 60%, transparent 82%)"></div>
+          <div style="position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.55); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 999px">📷 {{ a.count }}</div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px 20px">
+            <div style="display: inline-block; background: #F5A623; color: #2E1C00; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 11px; border-radius: 999px">{{ a.tag }}</div>
+            <div style="font-family: 'Anton', sans-serif; font-size: 28px; line-height: 1; text-transform: uppercase; margin-top: 8px">{{ a.name }}</div>
+            <div style="color: #F5A623; font-size: 12.5px; font-weight: 700; margin-top: 5px">Open session →</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- SEGMENTS -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 20px">
+    <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap">
+      <div style="font-family: 'Anton', sans-serif; font-size: 26px; text-transform: uppercase">What the show <span style="color: #F5A623">covers</span></div>
+      <div style="color: rgba(255,247,252,0.5); font-size: 13px">Eight beats, every episode.</div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px">
+      <sc-for list="{{ segments }}" as="s" hint-placeholder-count="8">
+        <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 11px 16px" style-hover="border-color: #C7238E">
+          <div style="font-size: 17px">{{ s.icon }}</div>
+          <div style="font-weight: 600; font-size: 13.5px; line-height: 1.3">{{ s.t }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- HOSTS -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 20px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px">
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: rgba(199,35,142,0.08); border: 1px solid rgba(199,35,142,0.4); border-radius: 22px; padding: 26px 30px">
+        <img src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="width: 110px; height: 110px; object-fit: cover; border-radius: 50%; border: 4px solid #C7238E">
+        <div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 24px">EUGINE MICAH</div>
+          <div style="color: #E96CC0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em">CO HOST · CREATIVE DIRECTOR</div>
+          <a href="https://instagram.com/eugine.micah" target="_blank" style="display: inline-block; margin-top: 8px; color: #F5A623; font-size: 13px; font-weight: 700">@eugine.micah ↗</a>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.4); border-radius: 22px; padding: 26px 30px">
+        <img src="assets/p/lucy_2.jpg" alt="Lucy Ogunde" style="width: 110px; height: 110px; object-fit: cover; object-position: top; border-radius: 50%; border: 4px solid #F5A623">
+        <div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 24px">LUCY OGUNDE</div>
+          <div style="color: #F5A623; font-size: 13px; font-weight: 700; letter-spacing: 0.06em">CO HOST · EXECUTIVE PRODUCER</div>
+          <a href="https://instagram.com/lucyogunde" target="_blank" style="display: inline-block; margin-top: 8px; color: #F5A623; font-size: 13px; font-weight: 700">@lucyogunde ↗</a>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: linear-gradient(120deg, rgba(199,35,142,0.1), rgba(245,166,35,0.1)); border: 1px solid rgba(199,35,142,0.45); border-radius: 22px; padding: 26px 30px">
+        <img src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="width: 110px; height: 110px; object-fit: cover; border-radius: 50%; border: 4px solid #C7238E">
+        <div>
+          <div style="display: inline-block; background: linear-gradient(100deg, #C7238E, #F5A623); color: #fff; font-family: 'Anton', sans-serif; font-size: 10.5px; letter-spacing: 0.12em; padding: 4px 11px; border-radius: 999px">★ MAIN PARTNER</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 24px; margin-top: 7px">HYPE OLA</div>
+          <div style="color: #E96CC0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em">LEAD HYPE · THE EXPERIENCE HUB</div>
+          <a href="https://instagram.com/hypeola" target="_blank" style="display: inline-block; margin-top: 8px; color: #F5A623; font-size: 13px; font-weight: 700">@hypeola ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRAIGHT OFF THE SET -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 60px clamp(24px,5vw,70px) 10px">
+    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+      <div style="display: inline-block; background: #fff; color: #150E13; font-family: 'Anton', sans-serif; font-size: 13px; letter-spacing: 0.14em; padding: 7px 18px; border-radius: 999px; transform: rotate(-1deg)">📸 STRAIGHT OFF THE SET</div>
+      <div style="color: rgba(255,247,252,0.55); font-size: 13px">The LED wall, the lights, the energy — unedited.</div>
+    </div>
+    <div style="column-width: 250px; column-gap: 14px; margin-top: 26px">
+      <sc-for list="{{ gallery }}" as="src" hint-placeholder-count="9">
+        <img loading="lazy" src="{{ src }}" alt="Urban News studio" style="width: 100%; margin: 0 0 14px; border-radius: 14px; display: block; break-inside: avoid; border: 1px solid rgba(255,255,255,0.1)">
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- WATCH & FOLLOW -->
+  <div style="max-width: 1080px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px)">
+    <div style="background: rgba(255,255,255,0.04); border: 1px dashed rgba(245,166,35,0.5); border-radius: 22px; padding: 36px 40px">
+      <div style="font-family: 'Anton', sans-serif; font-size: 28px; text-transform: uppercase">📡 Watch &amp; follow</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; margin-top: 18px">
+        <div style="font-size: 14.5px; line-height: 1.8; color: rgba(255,247,252,0.8)">
+          <b style="color: #fff">On TV:</b> PPP TV Kenya broadcast. Air times announced per season on our socials.<br>
+          <b style="color: #fff">Clips &amp; highlights:</b> TikTok, Instagram, YouTube Shorts, Facebook, and X — all at <b style="color: #C7238E">@urban_newsgang</b>.
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-content: center">
+          <a href="https://tiktok.com/@urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 999px" style-hover="border-color: #C7238E">TikTok</a>
+          <a href="https://instagram.com/urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 999px" style-hover="border-color: #C7238E">Instagram</a>
+          <a href="https://youtube.com/@urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 999px" style-hover="border-color: #C7238E">YouTube</a>
+          <a href="https://facebook.com/urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 999px" style-hover="border-color: #C7238E">Facebook</a>
+          <a href="https://x.com/urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 999px" style-hover="border-color: #C7238E">X</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOR INSTITUTIONS -->
+  <div style="background: linear-gradient(100deg, #C7238E, #F5A623); padding: 60px; text-align: center">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(30px, 3.8vw, 48px); color: #fff; text-transform: uppercase">Every booked event includes a feature on Urban News.</div>
+    <div style="color: rgba(255,255,255,0.92); font-size: 15.5px; margin-top: 10px">Your school or campus, on national television.</div>
+    <a href="Book.dc.html" style="display: inline-block; margin-top: 24px; background: #150E13; color: #fff; font-weight: 700; font-size: 15.5px; padding: 16px 34px; border-radius: 14px" style-hover="background: #000; transform: translateY(-2px)">Book the Tour →</a>
+  </div>
+
+  <!-- ALBUM LIGHTBOX -->
+  <sc-if value="{{ active }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAlbum }}" style="position: fixed; inset: 0; z-index: 1000; background: rgba(8,4,7,0.95); backdrop-filter: blur(8px); display: flex; flex-direction: column; padding: clamp(14px,3vw,28px)">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 1100px; width: 100%; margin: 0 auto">
+        <div>
+          <div style="font-family: 'Anton', sans-serif; font-size: clamp(22px,3vw,32px); text-transform: uppercase; line-height: 1">{{ activeName }}</div>
+          <div style="color: #E96CC0; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px">{{ activeTag }} · {{ activeCount }} photos</div>
+        </div>
+        <div onClick="{{ closeAlbum }}" style="cursor: pointer; width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px" style-hover="background: #C7238E">✕</div>
+      </div>
+      <div onClick="{{ stop }}" style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 12px; max-width: 1100px; width: 100%; margin: 16px auto 0">
+        <div onClick="{{ prev }}" style="cursor: pointer; width: 46px; height: 46px; flex: none; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1" style-hover="background: #C7238E">‹</div>
+        <sc-if value="{{ activeImg }}" hint-placeholder-val="{{ false }}">
+          <img loading="lazy" src="{{ activeImg }}" alt="{{ activeName }}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.6)">
+        </sc-if>
+        <div onClick="{{ next }}" style="cursor: pointer; width: 46px; height: 46px; flex: none; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1" style-hover="background: #C7238E">›</div>
+      </div>
+      <div onClick="{{ stop }}" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 1100px; width: 100%; margin: 16px auto 0">
+        <sc-for list="{{ activeThumbs }}" as="t" hint-placeholder-count="0">
+          <div onClick="{{ t.go }}" style="cursor: pointer; width: 58px; height: 58px; border-radius: 9px; overflow: hidden; border: 2px solid {{ t.border }}; opacity: {{ t.op }}">
+            <img loading="lazy" src="{{ t.src }}" alt="" style="width: 100%; height: 100%; object-fit: cover">
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; font-size: 13px; flex-wrap: wrap">
+      <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+      <a href="Gallery.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Gallery</a>
+      <a href="Contact.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Contact</a>
+      <a href="https://instagram.com/urban_newsgang" target="_blank" style="color: #C7238E; font-weight: 700">@urban_newsgang</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { active: null, idx: 0 };
+
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        const i = hidden.indexOf(el);
+        if (i >= 0) hidden.splice(i, 1);
+      };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => {
+          if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px 20% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.65s ease, transform 0.65s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(24px)";
+          hidden.push(el);
+          io.observe(el);
+        }
+      });
+      const sweep = () => {
+        hidden.slice().forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el);
+        });
+      };
+      window.addEventListener("scroll", sweep, { passive: true });
+      window.addEventListener("resize", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+
+    this._key = (e) => {
+      if (!this.state.active) return;
+      if (e.key === "Escape") { this.setState({ active: null }); document.body.style.overflow = ""; }
+      else if (e.key === "ArrowRight") this.setState((s) => ({ idx: s.idx + 1 }));
+      else if (e.key === "ArrowLeft") this.setState((s) => ({ idx: s.idx - 1 }));
+    };
+    window.addEventListener("keydown", this._key);
+  }
+
+  renderVals() {
+    const mk = (slug, name, tag, count, pos) => {
+      const photos = Array.from({ length: count }, (_, i) => "assets/news/albums/" + slug + "/" + (i + 1) + ".jpg");
+      return { slug: slug, name: name, tag: tag, count: count, pos: pos, cover: photos[0], photos: photos,
+        open: () => { this.setState({ active: { name: name, tag: tag, photos: photos }, idx: 0 }); document.body.style.overflow = "hidden"; } };
+    };
+    const people = [
+      mk("bobby", "Bobby Junior", "Guest Artist", 5, "center 22%"),
+      mk("hype", "Hype Nollan", "Personality", 5, "center 16%"),
+      mk("kalamu", "Kalamu Nyeusi", "Spoken Word", 5, "center 14%"),
+      mk("moraa", "Moraa", "Campus Story", 4, "center 20%"),
+      mk("tamre", "Tamre", "Pageant Feature", 4, "center 16%"),
+      mk("xl3", "XL3", "Crew Feature", 5, "center 16%"),
+      mk("amanda", "Amanda", "On The Road", 4, "center 28%"),
+      mk("eugine", "Eugine Micah", "Host · Off Camera", 3, "center 22%")
+    ];
+    const sessions = [
+      mk("blueday", "Blue Day", "Theme Day · 21 May", 7, "center 30%"),
+      mk("xmas", "School Christmas", "Festive Special", 5, "center 28%")
+    ];
+    const A = this.state.active;
+    const len = A ? A.photos.length : 0;
+    const nIdx = A ? ((this.state.idx % len) + len) % len : 0;
+    return {
+      people: people,
+      sessions: sessions,
+      active: A,
+      activeName: A ? A.name : "",
+      activeTag: A ? A.tag : "",
+      activeCount: len,
+      activeImg: A ? A.photos[nIdx] : null,
+      activeThumbs: A ? A.photos.map((src, i) => ({ src: src, go: () => this.setState({ idx: i }), border: i === nIdx ? "#C7238E" : "transparent", op: i === nIdx ? 1 : 0.5 })) : [],
+      closeAlbum: () => { this.setState({ active: null }); document.body.style.overflow = ""; },
+      stop: (e) => e.stopPropagation(),
+      next: (e) => { if (e) e.stopPropagation(); this.setState((s) => ({ idx: s.idx + 1 })); },
+      prev: (e) => { if (e) e.stopPropagation(); this.setState((s) => ({ idx: s.idx - 1 })); },
+      toggleVideo: (e) => {
+        const v = e.currentTarget;
+        if (v.paused) {
+          document.querySelectorAll("video").forEach((o) => { if (o !== v) o.pause(); });
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          v.pause();
+        }
+      },
+      gallery: [
+        "assets/news/min/gal1.jpg", "assets/news/min/gal5.jpg", "assets/news/min/gal8.jpg",
+        "assets/news/min/gal2.jpg", "assets/news/min/gal7.jpg", "assets/news/min/gal4.jpg",
+        "assets/news/min/gal6.jpg", "assets/news/min/gal3.jpg", "assets/news/min/gal9.jpg"
+      ],
+      segments: [
+        { n: "01", icon: "🎬", t: "Show intro with the hosts on location" },
+        { n: "02", icon: "🏫", t: "School & institution feature" },
+        { n: "03", icon: "🎤", t: "Student interviews & stories" },
+        { n: "04", icon: "🧪", t: "Club visits & campus culture" },
+        { n: "05", icon: "🏆", t: "Battle highlights & winner moments" },
+        { n: "06", icon: "🤝", t: "Principal & leadership interviews" },
+        { n: "07", icon: "🎥", t: "Behind the scenes with the crew" },
+        { n: "08", icon: "📍", t: "Outro with next stop tease" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

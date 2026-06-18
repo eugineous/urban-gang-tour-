@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="Events">
+
+  <dc-import name="SiteNav" active="events" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- HERO : poster style -->
+  <div style="position: relative; background: radial-gradient(1000px 600px at 80% -20%, rgba(245,166,35,0.2), transparent 60%), radial-gradient(900px 500px at 10% 0%, rgba(199,35,142,0.4), transparent 60%), #150E13; padding: 70px clamp(24px,5vw,70px) 50px; overflow: hidden">
+    <div style="position: absolute; top: 0; bottom: 0; left: 30px; border-left: 3px dashed rgba(255,255,255,0.16)"></div>
+    <div style="max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 50px; align-items: center">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">the tour calendar</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(44px, 5.6vw, 80px); line-height: 1; text-transform: uppercase; margin-top: 10px">Where the tour has been.<br><span style="color: #C7238E">Where it is going.</span></div>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px">
+          <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20book%20the%20tour." target="_blank" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 14px; box-shadow: 0 12px 30px rgba(199,35,142,0.4)" style-hover="background: #E12FA3; transform: translateY(-2px)">Bookings Open · 0799 886 247</a>
+          <a href="Gallery.dc.html" style="border: 2px solid rgba(255,255,255,0.6); color: #fff; font-weight: 700; font-size: 15px; padding: 13px 26px; border-radius: 14px" style-hover="border-color: #F5A623; color: #F5A623">See Past Event Photos</a>
+        </div>
+      </div>
+      <div style="position: relative; display: flex; justify-content: center">
+        <div style="position: relative; background: #FFF7FC; padding: 12px 12px 16px; transform: rotate(3deg); border-radius: 6px; box-shadow: 0 24px 70px rgba(0,0,0,0.6); max-width: 320px">
+          <img src="assets/brand/poster_calendar.png" alt="2nd Term Calendar poster" style="width: 100%; display: block; border-radius: 3px">
+          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -15px; left: 50%; width: 120px; transform: translateX(-50%) rotate(-4deg); opacity: 0.92">
+          <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 13px; margin-top: 8px; text-align: center">the 2nd term drop · (4th July stop since called off)</div>
+        </div>
+        <img src="assets/brand/arrow_curved.png" alt="" style="position: absolute; bottom: -10px; left: -30px; width: 120px; filter: invert(1); opacity: 0.75; transform: rotate(40deg)">
+      </div>
+    </div>
+  </div>
+
+  <!-- NEXT CONFIRMED STOP (top) -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 12px">
+    <div style="position: relative; overflow: hidden; border-radius: 24px; background: linear-gradient(120deg, #C7238E, #9A1B6E); padding: 38px 42px">
+      <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
+      <div style="position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 28px; align-items: center">
+        <div>
+          <div style="display: inline-block; background: #150E13; color: #8FE89A; font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.14em; padding: 7px 16px; border-radius: 999px">★ NEXT CONFIRMED STOP</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: clamp(30px,4vw,46px); color: #fff; text-transform: uppercase; margin-top: 14px; line-height: 1.02">Ngeya Girls Senior School</div>
+          <div style="color: rgba(255,255,255,0.9); font-size: 14.5px; margin-top: 8px">Mai Mahiu, Naivasha · Nakuru County</div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px">
+            <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20details%20on%20the%20Ngeya%20Girls%20stop%20on%2024%20July%202026." target="_blank" style="background: #150E13; color: #fff; font-weight: 700; font-size: 14px; padding: 14px 24px; border-radius: 12px" style-hover="background: #000; transform: translateY(-2px)">Get Details · WhatsApp</a>
+            <a href="Book.dc.html" style="background: rgba(255,255,255,0.92); color: #C7238E; font-weight: 700; font-size: 14px; padding: 14px 24px; border-radius: 12px" style-hover="background: #fff">Book Your School →</a>
+          </div>
+        </div>
+        <div style="text-align: center; background: rgba(0,0,0,0.28); border-radius: 18px; padding: 24px 20px">
+          <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 16px">save the date</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 64px; color: #fff; line-height: 0.95; margin-top: 6px">24</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 22px; color: #fff; letter-spacing: 0.1em">JULY 2026</div>
+          <div style="color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 8px; letter-spacing: 0.08em">FULL TOUR · ALL 8 CATEGORIES</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETED + IN THE WORKS (side by side) -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 36px clamp(24px,5vw,70px) 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 378px), 1fr)); gap: 40px; align-items: start">
+
+    <!-- COMPLETED -->
+    <div>
+    <div style="font-family: 'Anton', sans-serif; font-size: 38px; text-transform: uppercase">2026 tour · <span style="color: #C7238E">completed stops</span></div>
+    <div style="display: flex; flex-direction: column; gap: 0; margin-top: 30px">
+      <sc-for list="{{ completed }}" as="ev" hint-placeholder-count="3">
+        <div style="display: grid; grid-template-columns: 84px auto 1fr; gap: 0; align-items: stretch">
+          <div style="text-align: right; padding: 22px 18px 22px 0">
+            <div style="font-family: 'Anton', sans-serif; font-size: 24px; color: #F5A623; line-height: 1">{{ ev.day }}</div>
+            <div style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,247,252,0.55); margin-top: 4px">{{ ev.month }}</div>
+          </div>
+          <div style="position: relative; width: 30px; display: flex; justify-content: center">
+            <div style="width: 3px; background: rgba(199,35,142,0.4)"></div>
+            <div style="position: absolute; top: 28px; width: 22px; height: 22px; border-radius: 50%; background: #C7238E; border: 4px solid #150E13; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff">✓</div>
+          </div>
+          <div style="padding: 18px 0 18px 22px">
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 22px 26px" style-hover="border-color: #C7238E; transform: translateX(4px)">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+                <div style="font-family: 'Anton', sans-serif; font-size: 22px">{{ ev.school }}</div>
+                <div style="background: rgba(199,35,142,0.2); color: #E96CC0; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; padding: 5px 12px; border-radius: 999px">✓ TOURED</div>
+              </div>
+              <div style="color: rgba(255,247,252,0.68); font-size: 14px; line-height: 1.6; margin-top: 8px">{{ ev.body }}</div>
+              <div style="display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; font-size: 13px; font-weight: 700">
+                <a href="Gallery.dc.html" style="color: #F5A623">📷 Photos</a>
+                <a href="Urban News.dc.html" style="color: #F5A623">📺 Urban News episode</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+    <!-- IN THE WORKS -->
+    <div>
+    <div style="font-family: 'Anton', sans-serif; font-size: 38px; text-transform: uppercase">In the <span style="color: #F5A623">works</span></div>
+    <div style="color: rgba(255,247,252,0.6); font-size: 14px; margin-top: 8px">The route the tour is building right now — confirmed, in talks, and in the pipeline. Follow <a href="https://instagram.com/urban_newsgang" target="_blank" style="color: #C7238E; font-weight: 700">@urban_newsgang</a> to catch the announcements first.</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 16px; margin-top: 26px">
+      <sc-for list="{{ upcoming }}" as="u" hint-placeholder-count="3">
+        <div style="position: relative; background: rgba(245,166,35,0.06); border: 2px dashed {{ u.border }}; border-radius: 18px; padding: 26px 22px" style-hover="transform: translateY(-4px)">
+          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; right: 22px; width: 90px; transform: rotate(5deg); opacity: 0.85">
+          <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 15px">{{ u.tag }}</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 21px; margin-top: 8px; line-height: 1.15">{{ u.name }}</div>
+          <div style="color: rgba(255,247,252,0.65); font-size: 13.5px; margin-top: 8px">{{ u.where }}</div>
+          <div style="display: inline-block; margin-top: 14px; background: {{ u.statusBg }}; color: {{ u.statusColor }}; font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; padding: 6px 12px; border-radius: 999px">{{ u.status }}</div>
+        </div>
+      </sc-for>
+    </div>
+    </div>
+  </div>
+
+  <!-- TICKETS / RSVP -->
+  <div style="max-width: 1080px; margin: 30px auto; padding: 0 clamp(24px,5vw,70px)">
+    <div style="position: relative; background: linear-gradient(120deg, #C7238E, #9A1B6E); border-radius: 24px; padding: 40px 44px; overflow: hidden">
+      <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 30px; align-items: center">
+        <div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 30px; text-transform: uppercase; color: #fff">🎟️ Tickets &amp; RSVP</div>
+          <div style="color: rgba(255,255,255,0.88); font-size: 14.5px; line-height: 1.65; margin-top: 10px; max-width: 560px">School stops are for the students of that school. For public events, Campus XP editions, and festival appearances, ticket links drop right here and on our socials the moment they go live. Want in early? RSVP on WhatsApp and we will put you on the list.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20put%20me%20on%20the%20early%20list%20for%20the%20next%20public%20event!" target="_blank" style="background: #150E13; color: #fff; font-weight: 700; font-size: 14px; padding: 14px 24px; border-radius: 12px; text-align: center" style-hover="background: #000; transform: translateY(-2px)">RSVP on WhatsApp</a>
+          <a href="https://instagram.com/urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.92); color: #C7238E; font-weight: 700; font-size: 14px; padding: 14px 24px; border-radius: 12px; text-align: center" style-hover="background: #fff; transform: translateY(-2px)">Follow for Drops</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="background: linear-gradient(100deg, #C7238E, #F5A623); padding: 60px; text-align: center; margin-top: 30px">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(32px, 4vw, 52px); color: #fff; text-transform: uppercase">Your institution could be the next stop.</div>
+    <a href="Book.dc.html" style="display: inline-block; margin-top: 24px; background: #150E13; color: #fff; font-weight: 700; font-size: 15.5px; padding: 16px 34px; border-radius: 14px" style-hover="background: #000; transform: translateY(-2px)">Book the Tour →</a>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; font-size: 13px; flex-wrap: wrap">
+      <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+      <a href="Gallery.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Gallery</a>
+      <a href="Contact.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Contact</a>
+      <a href="https://instagram.com/urban_newsgang" target="_blank" style="color: #C7238E; font-weight: 700">@urban_newsgang</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        const i = hidden.indexOf(el);
+        if (i >= 0) hidden.splice(i, 1);
+      };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => {
+          if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px 20% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.65s ease, transform 0.65s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(24px)";
+          hidden.push(el);
+          io.observe(el);
+        }
+      });
+      const sweep = () => {
+        hidden.slice().forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el);
+        });
+      };
+      window.addEventListener("scroll", sweep, { passive: true });
+      window.addEventListener("resize", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+  }
+
+  renderVals() {
+    return {
+      completed: [
+        { day: "06", month: "JUNE 2026", school: "PCEA Gituamba Girls High School", body: "Battles across all 8 categories, the full runway with crowning, the Urban Pods, tree planting with Delo Greens, and a wrap that fed straight into Urban News." },
+        { day: "01", month: "JUNE 2026", school: "Loreto Kiambu Girls High School", body: "A full day takeover with the full travelling crew, modelling directed by Synapse Models, and the Experience Hub running the energy." },
+        { day: "30", month: "MAY 2026", school: "Senior Chief Koinange Girls High School", body: "The stop that kicked off the 2nd term run. Talent battles, pods, awards, and the institution crown, all on camera." }
+      ],
+      upcoming: [
+        { tag: "in talks", name: "Tenwek Boys High School", where: "Bomet County", status: "IN TALKS", border: "rgba(245,166,35,0.55)", statusBg: "rgba(245,166,35,0.15)", statusColor: "#F5A623" },
+        { tag: "awaiting date", name: "Mai Mahiu Girls High School", where: "Naivasha · likely 3rd term", status: "DATE BEING SET", border: "rgba(245,166,35,0.55)", statusBg: "rgba(245,166,35,0.15)", statusColor: "#F5A623" },
+        { tag: "awaiting date", name: "Mai Mahiu Boys High School", where: "Naivasha · likely 3rd term", status: "DATE BEING SET", border: "rgba(245,166,35,0.55)", statusBg: "rgba(245,166,35,0.15)", statusColor: "#F5A623" },
+        { tag: "in the pipeline", name: "Ribe Girls High School", where: "Kilifi County", status: "IN THE PIPELINE", border: "rgba(255,255,255,0.2)", statusBg: "rgba(255,255,255,0.08)", statusColor: "rgba(255,247,252,0.82)" },
+        { tag: "in the pipeline", name: "Kikuyu High School", where: "Kiambu County", status: "IN THE PIPELINE", border: "rgba(255,255,255,0.2)", statusBg: "rgba(255,255,255,0.08)", statusColor: "rgba(255,247,252,0.82)" },
+        { tag: "no longer on the route", name: "Gathirimu Girls High School", where: "Kiambu County", status: "✕ CANCELLED", border: "rgba(255,90,90,0.45)", statusBg: "rgba(255,90,90,0.16)", statusColor: "#FF8A8A" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

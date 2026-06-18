@@ -1,7 +1,7 @@
 {
-    "name": "auto-news-station",
+    "name": "urban-gang-tour",
     "version": "1.0.0",
-    "description": "Automated Politics & Tech News Station with Carousel Generation",
+    "description": "Urban Gang Tour official website",
     "private": true,
     "scripts": {
         "dev": "next dev",

@@ -1,14 +1,14 @@
 {
-  "name": "PPP TV Command Center",
-  "short_name": "PPP TV",
-  "description": "PPP TV Kenya social media management dashboard",
-  "start_url": "/dashboard",
+  "name": "Urban Gang Tour",
+  "short_name": "UGT",
+  "description": "Urban Gang Tour official website",
+  "start_url": "/Home.dc.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#141414",
-  "theme_color": "#E50914",
+  "background_color": "#0d0b0f",
+  "theme_color": "#C7238E",
   "orientation": "any",
-  "categories": ["productivity", "social"],
+  "categories": ["entertainment", "events"],
   "icons": [
     {
       "src": "/icon-192.png",

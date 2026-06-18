@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    @keyframes ugt-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes ugt-pop { 0% { transform: scale(0.82) rotate(-10deg); opacity: 1; } 55% { transform: scale(1.14) rotate(3deg); } 75% { transform: scale(0.95) rotate(-1.5deg); } 100% { transform: scale(1) rotate(0deg); } }
+    @keyframes ugt-bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-12px) rotate(2deg); } }
+    @keyframes ugt-glow { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.16); } }
+    @keyframes ugt-spark { 0% { transform: scale(0) rotate(0deg); opacity: 0; } 30% { transform: scale(1.1) rotate(40deg); opacity: 1; } 100% { transform: scale(0) rotate(140deg); opacity: 0; } }
+    @keyframes ugt-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(199,35,142,0.55); } 70% { box-shadow: 0 0 0 14px rgba(199,35,142,0); } }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="Promo Reel — Final Concept">
+
+  <dc-import name="SiteNav" active="reel" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- ===== HERO / TITLE ===== -->
+  <div style="position: relative; overflow: hidden; background: radial-gradient(1100px 560px at 72% -8%, rgba(199,35,142,0.4), transparent 60%), radial-gradient(900px 520px at 6% 116%, rgba(245,166,35,0.18), transparent 60%), #150E13">
+    <div style="position: absolute; inset: 0; opacity: 0.5; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.4px); background-size: 22px 22px"></div>
+
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: clamp(34px,5vw,64px) clamp(22px,5vw,64px) 46px">
+      <div style="display: inline-flex; align-items: center; gap: 10px; background: rgba(245,166,35,0.12); border: 1px dashed rgba(245,166,35,0.6); color: #F5A623; border-radius: 999px; padding: 8px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #F5A623; display: inline-block; animation: ugt-glow 2.4s ease-in-out infinite"></span>
+        FINAL CUT · FUSED FROM 20 CONCEPTS · READY TO SHOOT / GENERATE
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 34px; align-items: end; margin-top: 22px">
+        <div>
+          <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">the reel ↓</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: clamp(58px, 9vw, 132px); line-height: 0.9; text-transform: uppercase; margin-top: 6px">
+            {{ reelTitle }}
+          </div>
+          <div style="font-family: 'Anton', sans-serif; font-size: clamp(20px, 2.4vw, 30px); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 10px; color: rgba(255,247,252,0.92)">
+            The Reveal · A 45-second talent-search hype reel
+          </div>
+          <div style="font-family: 'Permanent Marker', cursive; color: #C7238E; font-size: 26px; margin-top: 14px; transform: rotate(-1deg); text-shadow: 0 0 28px rgba(199,35,142,0.5)">From Potential to Purpose</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+            <sc-for list="{{ specs }}" as="sp" hint-placeholder-count="4">
+              <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(199,35,142,0.35); border-radius: 14px; padding: 14px 16px">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(255,247,252,0.55); text-transform: uppercase">{{ sp.k }}</div>
+                <div style="font-family: 'Anton', sans-serif; font-size: 22px; color: #F5A623; margin-top: 3px">{{ sp.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; background: linear-gradient(90deg, rgba(230,30,140,0.16), rgba(60,170,230,0.08)); border: 1px solid rgba(230,30,140,0.4); border-radius: 14px; padding: 12px 16px">
+            <img src="assets/brand/ppptv_logo.png" alt="PPP TV" style="height: 38px">
+            <div style="font-size: 12.5px; color: rgba(255,247,252,0.8); font-weight: 600; line-height: 1.4">Broadcast home: <b style="color:#fff">Urban News</b> on PPP TV Kenya · up to 8M reach</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ticker -->
+    <div style="position: relative; background: #C7238E; overflow: hidden; padding: 11px 0; border-top: 3px solid #F5A623; border-bottom: 3px solid #F5A623; transform: rotate(-0.5deg) scale(1.01)">
+      <div style="display: flex; white-space: nowrap; width: max-content; animation: ugt-marquee 24s linear infinite; font-family: 'Anton', sans-serif; font-size: 18px; letter-spacing: 0.1em; color: #fff">
+        <span style="padding: 0 24px">RAW TALENT</span><span style="color:#F5A623">★</span><span style="padding: 0 24px">A ROARING CROWD</span><span style="color:#F5A623">★</span><span style="padding: 0 24px">THE REVEAL</span><span style="color:#F5A623">★</span><span style="padding: 0 24px">FROM POTENTIAL TO PURPOSE</span><span style="color:#F5A623">★</span>
+        <span style="padding: 0 24px">RAW TALENT</span><span style="color:#F5A623">★</span><span style="padding: 0 24px">A ROARING CROWD</span><span style="color:#F5A623">★</span><span style="padding: 0 24px">THE REVEAL</span><span style="color:#F5A623">★</span><span style="padding: 0 24px">FROM POTENTIAL TO PURPOSE</span><span style="color:#F5A623">★</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== THE HOOK ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 64px clamp(22px,5vw,64px) 10px">
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 19px; transform: rotate(-1deg)">first 3 seconds — win or lose ↓</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px, 4.4vw, 60px); text-transform: uppercase; margin-top: 6px">The <span style="color:#C7238E">Hook</span></div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr); gap: 24px; margin-top: 24px; align-items: stretch">
+      <div style="position: relative; border-radius: 18px; overflow: hidden; border: 2px solid rgba(199,35,142,0.5); min-height: 320px">
+        <img src="assets/g/stage_3.jpg" alt="Hook frame" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%">
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(21,14,19,0.1) 40%, rgba(21,14,19,0.92))"></div>
+        <div style="position: absolute; top: 14px; left: 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #150E13; color: #F5A623; border: 1px solid rgba(245,166,35,0.5); padding: 5px 10px; border-radius: 6px; letter-spacing: 0.08em">00:00 · FRAME 1</div>
+        <div style="position: absolute; left: 18px; right: 18px; bottom: 18px">
+          <div style="font-family: 'Anton', sans-serif; font-size: clamp(22px, 3vw, 34px); line-height: 1; text-transform: uppercase; text-shadow: 0 4px 18px rgba(0,0,0,0.7)">"They told you to wait your turn."</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px 20px">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #C7238E; text-transform: uppercase">The hook line</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 26px; margin-top: 6px; text-transform: uppercase">{{ hookLine }}</div>
+          <div style="color: rgba(255,247,252,0.72); font-size: 14px; line-height: 1.6; margin-top: 8px">Open on black for 6 frames. One air-horn stab. SMASH CUT to a paint-covered student locking eyes with the lens — a human face in frame one out-retains any b-roll opener. No logo, no title card. The face <i>is</i> the hook.</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+          <div style="background: rgba(199,35,142,0.12); border: 1px solid rgba(199,35,142,0.4); border-radius: 16px; padding: 16px">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #E96CC0">CAMERA</div>
+            <div style="font-size: 13.5px; color: rgba(255,247,252,0.85); line-height: 1.55; margin-top: 6px">Snap zoom toward the eyes + 2-frame shutter stutter on the air-horn. Cut on impact.</div>
+          </div>
+          <div style="background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.4); border-radius: 16px; padding: 16px">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #F5A623">AUDIO</div>
+            <div style="font-size: 13.5px; color: rgba(255,247,252,0.85); line-height: 1.55; margin-top: 6px">Sub-bass hit + air-horn stab against near-silence. Tension before the build.</div>
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(245,166,35,0.45); border-radius: 16px; padding: 16px 18px">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: rgba(255,247,252,0.55)">WHY IT WORKS</div>
+          <div style="font-size: 13.5px; color: rgba(255,247,252,0.82); line-height: 1.6; margin-top: 6px">"Wait your turn" is a line every student has heard. It self-casts the viewer in the first second — the strongest share + comment trigger in the pattern read below.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STORYBOARD ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 70px clamp(22px,5vw,64px) 10px">
+    <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap">
+      <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px, 4.4vw, 60px); text-transform: uppercase">Story<span style="color:#C7238E">board</span></div>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(255,247,252,0.6)">9 beats · 0:45 · 9:16 vertical</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: 16px; margin-top: 26px">
+      <sc-for list="{{ shots }}" as="sh" hint-placeholder-count="9">
+        <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column" style-hover="border-color: #C7238E; transform: translateY(-4px)">
+          <div style="position: relative; aspect-ratio: 9/14; overflow: hidden">
+            <img loading="lazy" src="{{ sh.img }}" alt="{{ sh.beat }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ sh.pos }}">
+            <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(21,14,19,0.55) 0%, rgba(21,14,19,0) 26%, rgba(21,14,19,0) 56%, rgba(21,14,19,0.94))"></div>
+            <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; align-items: center">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #150E13; color: #F5A623; border: 1px solid rgba(245,166,35,0.5); padding: 4px 8px; border-radius: 6px">{{ sh.tc }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; background: rgba(199,35,142,0.85); color: #fff; padding: 4px 8px; border-radius: 6px">{{ sh.dur }}</span>
+            </div>
+            <div style="position: absolute; left: 12px; right: 12px; bottom: 12px">
+              <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 13px">{{ sh.label }}</div>
+              <div style="font-family: 'Anton', sans-serif; font-size: 19px; line-height: 1.02; text-transform: uppercase; margin-top: 2px; text-shadow: 0 3px 14px rgba(0,0,0,0.7)">{{ sh.beat }}</div>
+            </div>
+          </div>
+          <div style="padding: 14px 15px 16px; display: flex; flex-direction: column; gap: 10px">
+            <div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: rgba(255,247,252,0.5)">SHOT</div>
+              <div style="font-size: 13px; color: rgba(255,247,252,0.86); line-height: 1.5; margin-top: 3px">{{ sh.shot }}</div>
+            </div>
+            <div style="border-left: 2px solid #C7238E; padding-left: 10px">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #E96CC0">CAMERA</div>
+              <div style="font-size: 12.5px; color: rgba(255,247,252,0.78); line-height: 1.5; margin-top: 3px">{{ sh.cam }}</div>
+            </div>
+            <div style="border-left: 2px solid #F5A623; padding-left: 10px">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #F5A623">VO / AUDIO</div>
+              <div style="font-size: 12.5px; color: rgba(255,247,252,0.78); line-height: 1.5; margin-top: 3px"><b style="color:#FFF7FC">{{ sh.vo }}</b></div>
+              <div style="font-size: 11.5px; color: rgba(255,247,252,0.55); line-height: 1.45; margin-top: 3px">♪ {{ sh.audio }}</div>
+            </div>
+            <div style="background: rgba(245,166,35,0.1); border: 1px dashed rgba(245,166,35,0.4); border-radius: 8px; padding: 7px 10px">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: rgba(245,166,35,0.85)">ON-SCREEN</div>
+              <div style="font-family: 'Anton', sans-serif; font-size: 14px; text-transform: uppercase; margin-top: 2px; line-height: 1.05">{{ sh.text }}</div>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- ===== TWO COLUMNS: VOICEOVER + MUSIC ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 66px clamp(22px,5vw,64px) 10px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 22px; align-items: start">
+
+      <!-- VO -->
+      <div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(30px, 3.6vw, 46px); text-transform: uppercase">Voice<span style="color:#C7238E">over</span></div>
+        <div style="font-size: 13px; color: rgba(255,247,252,0.6); margin-top: 4px">Lead host energy (Eugine Micah). Sheng-inflected, hyped but clear. ~55 words total.</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 18px">
+          <sc-for list="{{ vo }}" as="v" hint-placeholder-count="8">
+            <div style="display: flex; gap: 14px; align-items: flex-start; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 15px">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #F5A623; min-width: 44px; padding-top: 1px">{{ v.tc }}</div>
+              <div style="font-size: 14.5px; color: rgba(255,247,252,0.9); line-height: 1.5">{{ v.line }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- MUSIC -->
+      <div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(30px, 3.6vw, 46px); text-transform: uppercase">Music &amp; <span style="color:#F5A623">Hype</span></div>
+        <div style="font-size: 13px; color: rgba(255,247,252,0.6); margin-top: 4px">Afro-house / amapiano log-drum spine with a gengetone switch-up. One reveal drop at 0:21.</div>
+        <div style="position: relative; margin-top: 18px; padding-left: 22px">
+          <div style="position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(#C7238E, #F5A623)"></div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <sc-for list="{{ cues }}" as="c" hint-placeholder-count="8">
+              <div style="position: relative; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 11px 15px">
+                <div style="position: absolute; left: -20px; top: 16px; width: 9px; height: 9px; border-radius: 50%; background: {{ c.dot }}; border: 2px solid #150E13"></div>
+                <div style="display: flex; gap: 12px; align-items: baseline">
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #F5A623">{{ c.tc }}</div>
+                  <div style="font-size: 13.5px; color: rgba(255,247,252,0.88); line-height: 1.45">{{ c.cue }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHOT LIST TABLE ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 66px clamp(22px,5vw,64px) 10px">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(30px, 3.6vw, 46px); text-transform: uppercase">Shot <span style="color:#C7238E">list</span> <span style="font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(255,247,252,0.6); text-transform:none">— production quick-reference</span></div>
+    <div style="overflow-x: auto; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px">
+      <table style="width: 100%; border-collapse: collapse; min-width: 720px; font-size: 13px">
+        <thead>
+          <tr style="background: rgba(199,35,142,0.16); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #F5A623; text-align: left">
+            <th style="padding: 12px 14px">#</th>
+            <th style="padding: 12px 14px">TC</th>
+            <th style="padding: 12px 14px">SHOT SIZE</th>
+            <th style="padding: 12px 14px">MOVE</th>
+            <th style="padding: 12px 14px">ACTION</th>
+            <th style="padding: 12px 14px">SOUND</th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{ shotlist }}" as="r" hint-placeholder-count="9">
+            <tr style="border-top: 1px solid rgba(255,255,255,0.07)">
+              <td style="padding: 11px 14px; font-family: 'Anton', sans-serif; color: #C7238E; font-size: 16px">{{ r.n }}</td>
+              <td style="padding: 11px 14px; font-family: 'JetBrains Mono', monospace; color: #F5A623">{{ r.tc }}</td>
+              <td style="padding: 11px 14px; color: rgba(255,247,252,0.9); font-weight: 600">{{ r.size }}</td>
+              <td style="padding: 11px 14px; color: rgba(255,247,252,0.78)">{{ r.move }}</td>
+              <td style="padding: 11px 14px; color: rgba(255,247,252,0.78)">{{ r.action }}</td>
+              <td style="padding: 11px 14px; color: rgba(255,247,252,0.65)">{{ r.sound }}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== AUDIENCE CTA SWITCHER ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 70px clamp(22px,5vw,64px) 10px">
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 19px; transform: rotate(-1deg)">the last 3 seconds change per room ↓</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(34px, 4.2vw, 56px); text-transform: uppercase; margin-top: 6px">Tailored <span style="color:#C7238E">end-card</span></div>
+    <div style="font-size: 14px; color: rgba(255,247,252,0.7); margin-top: 6px; max-width: 640px">Same 42 seconds. The final cut swaps the CTA, the spoken tag, and the on-screen action for the room you're playing to — so every export drives the <i>right</i> action, not just views.</div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px">
+      <sc-for list="{{ audTabs }}" as="t" hint-placeholder-count="5">
+        <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); gap: 22px; margin-top: 22px; align-items: stretch">
+      <!-- end card visual -->
+      <div style="position: relative; border-radius: 20px; overflow: hidden; border: 2px solid rgba(245,166,35,0.5); min-height: 300px; background: linear-gradient(135deg, #C7238E, #F5A623); display: flex; flex-direction: column; justify-content: space-between; padding: 28px">
+        <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
+        <div style="position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+          <img src="assets/brand/logo_transparent.png" alt="UGT" style="height: 64px; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5))">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(21,14,19,0.85); color: #F5A623; padding: 6px 10px; border-radius: 8px">00:42 · END-CARD</div>
+        </div>
+        <div style="position: relative">
+          <div style="font-family: 'Permanent Marker', cursive; color: #FFE7B8; font-size: 18px; transform: rotate(-1.5deg)">{{ activeAud.label }}</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: clamp(28px, 3.6vw, 46px); line-height: 0.98; text-transform: uppercase; color: #fff; margin-top: 6px; text-shadow: 0 4px 20px rgba(0,0,0,0.3)">{{ activeAud.cta }}</div>
+          <div style="display: inline-flex; align-items: center; gap: 10px; background: #150E13; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 20px; border-radius: 12px; margin-top: 18px; animation: ugt-pulse 2.4s infinite">
+            {{ activeAud.button }}
+          </div>
+        </div>
+      </div>
+
+      <!-- end card spec -->
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(199,35,142,0.4); border-radius: 16px; padding: 18px 20px">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #C7238E">SPOKEN TAG (VO 0:42)</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 22px; text-transform: uppercase; margin-top: 6px; line-height: 1.05">"{{ activeAud.vo }}"</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(245,166,35,0.4); border-radius: 16px; padding: 18px 20px">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #F5A623">THE RIGHT ACTION — KPI</div>
+          <div style="font-size: 14.5px; color: rgba(255,247,252,0.88); line-height: 1.55; margin-top: 6px">{{ activeAud.action }}</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.18); border-radius: 16px; padding: 18px 20px">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(255,247,252,0.55)">DISTRIBUTION</div>
+          <div style="font-size: 13.5px; color: rgba(255,247,252,0.8); line-height: 1.55; margin-top: 6px">{{ activeAud.dist }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCOREBOARD ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 70px clamp(22px,5vw,64px) 10px">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(34px, 4.2vw, 56px); text-transform: uppercase">Why <span style="color:#C7238E">this</span> won</div>
+    <div style="font-size: 14px; color: rgba(255,247,252,0.7); margin-top: 6px; max-width: 720px">20 concepts scored across 5 axes (hook, shareability, watch-through, brand fit, action pull). The top 5 below were fused — the strongest beat from each became a section of <b style="color:#fff">{{ reelTitle }}</b>.</div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 22px; margin-top: 24px; align-items: start">
+      <!-- finalists -->
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{ finalists }}" as="f" hint-placeholder-count="5">
+          <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div style="font-family: 'Anton', sans-serif; font-size: 24px; color: #F5A623; min-width: 30px">{{ f.rank }}</div>
+              <div style="flex: 1">
+                <div style="font-weight: 700; font-size: 15px; color: #FFF7FC">{{ f.name }}</div>
+                <div style="font-size: 12px; color: rgba(255,247,252,0.6); margin-top: 1px">kept → {{ f.kept }}</div>
+              </div>
+              <div style="font-family: 'Anton', sans-serif; font-size: 22px; color: #C7238E">{{ f.score }}</div>
+            </div>
+            <div style="height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; margin-top: 10px; overflow: hidden">
+              <div style="{{ f.bar }}"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- winner radar (bars) -->
+      <div style="background: linear-gradient(160deg, rgba(199,35,142,0.18), rgba(245,166,35,0.08)); border: 1px solid rgba(199,35,142,0.4); border-radius: 18px; padding: 24px">
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <div style="font-family: 'Anton', sans-serif; font-size: 30px; text-transform: uppercase; color: #fff">{{ reelTitle }}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,247,252,0.6)">the fused cut</div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 4px">
+          <div style="font-family: 'Anton', sans-serif; font-size: 56px; color: #F5A623; line-height: 1">96</div>
+          <div style="font-size: 13px; color: rgba(255,247,252,0.7)">/ 100 weighted</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+          <sc-for list="{{ axes }}" as="a" hint-placeholder-count="5">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px">
+                <span style="color: rgba(255,247,252,0.85); font-weight: 600">{{ a.k }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; color: #F5A623">{{ a.v }}</span>
+              </div>
+              <div style="height: 7px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden">
+                <div style="{{ a.bar }}"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- pattern read -->
+    <div style="margin-top: 26px">
+      <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 17px; transform: rotate(-0.8deg)">the pattern read it's built on ↓</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 12px">
+        <sc-for list="{{ insights }}" as="ins" hint-placeholder-count="5">
+          <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px" style-hover="border-color: #C7238E">
+            <div style="font-family: 'Anton', sans-serif; font-size: 15px; color: #C7238E; text-transform: uppercase; line-height: 1.1">{{ ins.title }}</div>
+            <div style="font-size: 12.5px; color: rgba(255,247,252,0.75); line-height: 1.55; margin-top: 6px">{{ ins.body }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 11.5px; color: rgba(255,247,252,0.45); margin-top: 12px; line-height: 1.5; font-style: italic">Pattern read synthesised from 30-day viral behaviour of Kenyan &amp; African Gen-Z creators (festival-of-colours edits, dance-challenge reels, reveal/watch-till-the-end formats, crowd-reaction stitches). Treat as a creative brief, not live platform metrics.</div>
+    </div>
+  </div>
+
+  <!-- ===== BRAND LOOK / VISUAL REFERENCE ===== -->
+  <div style="max-width: 1200px; margin: 0 auto; padding: 70px clamp(22px,5vw,64px) 10px">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(30px, 3.6vw, 46px); text-transform: uppercase">Brand <span style="color:#F5A623">look</span></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; margin-top: 20px">
+      <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,247,252,0.55); letter-spacing: 0.08em">PALETTE</div>
+        <div style="display: flex; gap: 8px; margin-top: 12px">
+          <div style="flex:1"><div style="height: 48px; border-radius: 8px; background: #150E13; border: 1px solid rgba(255,255,255,0.15)"></div><div style="font-family:'JetBrains Mono',monospace; font-size: 10px; color: rgba(255,247,252,0.6); margin-top: 5px">#150E13 base</div></div>
+          <div style="flex:1"><div style="height: 48px; border-radius: 8px; background: #C7238E"></div><div style="font-family:'JetBrains Mono',monospace; font-size: 10px; color: rgba(255,247,252,0.6); margin-top: 5px">#C7238E magenta</div></div>
+          <div style="flex:1"><div style="height: 48px; border-radius: 8px; background: #F5A623"></div><div style="font-family:'JetBrains Mono',monospace; font-size: 10px; color: rgba(255,247,252,0.6); margin-top: 5px">#F5A623 orange</div></div>
+          <div style="flex:1"><div style="height: 48px; border-radius: 8px; background: #FFF7FC; border: 1px solid rgba(255,255,255,0.15)"></div><div style="font-family:'JetBrains Mono',monospace; font-size: 10px; color: rgba(255,247,252,0.6); margin-top: 5px">#FFF7FC cream</div></div>
+        </div>
+        <div style="font-size: 12.5px; color: rgba(255,247,252,0.7); line-height: 1.5; margin-top: 14px">Dark base, magenta + orange accents only. Loud, high-contrast, festival-grade. Powder colour reads as the unofficial fifth colour.</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,247,252,0.55); letter-spacing: 0.08em">TYPE</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 30px; text-transform: uppercase; margin-top: 10px">ANTON — TITLES</div>
+        <div style="font-family: 'Permanent Marker', cursive; font-size: 20px; color: #F5A623; margin-top: 4px">Permanent Marker — the human hand</div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: rgba(255,247,252,0.8); margin-top: 8px">Space Grotesk — body &amp; UI · JetBrains Mono for timecodes &amp; specs.</div>
+        <div style="font-size: 12.5px; color: rgba(255,247,252,0.65); line-height: 1.5; margin-top: 12px">All on-screen text is ALL-CAPS Anton, punched in on the beat. Never more than 5 words on screen at once.</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,247,252,0.55); letter-spacing: 0.08em">MOTION GRAMMAR</div>
+        <div style="display: flex; flex-direction: column; gap: 7px; margin-top: 12px; font-size: 13px; color: rgba(255,247,252,0.85)">
+          <div>↯ Cut on the beat — no soft dissolves.</div>
+          <div>↯ Whip-pans + speed-ramps to transition.</div>
+          <div>↯ Handheld energy; locked-off only for the purpose beat.</div>
+          <div>↯ Logo always pops with overshoot + sparks.</div>
+          <div>↯ Crowd stays in frame — proof &gt; polish.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ref strip from real footage -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 16px">
+      <sc-for list="{{ refs }}" as="rf" hint-placeholder-count="6">
+        <div style="aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1)">
+          <img loading="lazy" src="{{ rf }}" alt="reference" style="width: 100%; height: 100%; object-fit: cover; display: block">
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- ===== FINAL STRIP ===== -->
+  <div style="position: relative; margin-top: 50px; background: linear-gradient(100deg, #C7238E, #F5A623); padding: 60px clamp(22px,5vw,64px); text-align: center; overflow: hidden">
+    <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; left: -60px; bottom: -80px; width: 360px; opacity: 0.15; filter: invert(1)">
+    <div style="font-family: 'Permanent Marker', cursive; color: #FFE7B8; font-size: 22px; transform: rotate(-1.2deg)">one reel. every room.</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(32px, 4.4vw, 58px); color: #fff; text-transform: uppercase; text-shadow: 0 4px 24px rgba(0,0,0,0.3); margin-top: 8px">Ready to shoot. Ready to generate.</div>
+    <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 24px">
+      <a href="Book.dc.html" style="background: #150E13; color: #fff; font-weight: 700; font-size: 15px; padding: 15px 30px; border-radius: 14px" style-hover="background: #000; transform: translateY(-2px)">Book the Tour</a>
+      <a href="Urban News.dc.html" style="background: rgba(255,255,255,0.92); color: #C7238E; font-weight: 700; font-size: 15px; padding: 15px 30px; border-radius: 14px" style-hover="background: #fff; transform: translateY(-2px)">Watch Urban News</a>
+    </div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(21,14,19,0.7); margin-top: 22px">9:16 master · 1:1 + 16:9 reframes · cutdowns at 0:15 / 0:30 / 0:45 · From Potential to Purpose</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:900},&quot;reelTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;ROAR&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hookLine&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;They told you to wait your turn.&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#C7238E&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { audience: "schools" };
+
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => { el.style.opacity = "1"; el.style.transform = "none"; const i = hidden.indexOf(el); if (i >= 0) hidden.splice(i, 1); };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => { if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); } });
+      }, { rootMargin: "0px 0px 18% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.6s ease, transform 0.6s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(22px)";
+          hidden.push(el); io.observe(el);
+        }
+      });
+      const sweep = () => hidden.slice().forEach((el) => { if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el); });
+      window.addEventListener("scroll", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? "#C7238E";
+    const AUD = {
+      schools: {
+        label: "For Schools",
+        cta: "Book your school for the next stop",
+        button: "WhatsApp · 0799 886 247",
+        vo: "Book your school for the next stop.",
+        action: "Drive booking enquiries from teachers, deputies & student councils. Primary KPI: inbound WhatsApp bookings per share.",
+        dist: "School pages, parent & alumni WhatsApp groups, county education handles. Pin as the institution's reel."
+      },
+      campus: {
+        label: "For Campuses",
+        cta: "Bring Campus XP to your university or college",
+        button: "Apply to host · DM @urban_newsgang",
+        vo: "Bring Campus XP to your university or college.",
+        action: "Activate comrades, SROs & entertainment clubs to lobby for a date. KPI: host-campus applications.",
+        dist: "Campus comrade pages, SRO handles, hostel & class WhatsApp groups, TikTok student creators."
+      },
+      brands: {
+        label: "For Brands",
+        cta: "Put your brand on the stage thousands of students are watching",
+        button: "Request the sponsor deck",
+        vo: "Put your brand on the stage thousands are watching.",
+        action: "Convert marketing leads into sponsorship conversations. KPI: sponsor-deck requests & activation bookings.",
+        dist: "LinkedIn + direct outreach to brand & agency leads; co-branded as a media-buy proof reel with PPP TV reach."
+      },
+      mega: {
+        label: "For Mega Events & Festivals",
+        cta: "This is the act that owns the crowd",
+        button: "Book the main-stage takeover",
+        vo: "This is the act that owns the crowd.",
+        action: "Position UGT as the crowd-control headline segment. KPI: festival & county-event bookings.",
+        dist: "Festival organisers, county culture offices, promoter networks; sent as a stage-package teaser."
+      },
+      talent: {
+        label: "For Talent & Crew",
+        cta: "Step up and audition",
+        button: "Audition · link in bio",
+        vo: "Step up and audition.",
+        action: "Convert viewers into entrants across the 8 battle categories. KPI: audition sign-ups & tagged friends.",
+        dist: "Open captions 'tag who's auditioning'; TikTok/IG Reels with the audition link; duet & stitch the reveal beat."
+      }
+    };
+    const audKeys = ["schools", "campus", "brands", "mega", "talent"];
+    const cur = this.state.audience;
+    const audTabs = audKeys.map((k) => {
+      const on = k === cur;
+      const base = "font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13.5px; padding: 11px 18px; border-radius: 999px; cursor: pointer; transition: all .15s ease; ";
+      const style = base + (on
+        ? "background: " + accent + "; color: #fff; border: 1px solid " + accent + "; box-shadow: 0 8px 22px rgba(199,35,142,0.35);"
+        : "background: rgba(255,255,255,0.05); color: rgba(255,247,252,0.8); border: 1px solid rgba(255,255,255,0.15);");
+      return { label: AUD[k].label, style, onClick: () => this.setState({ audience: k }) };
+    });
+
+    const fill = (pct, grad) => "height: 100%; border-radius: 99px; width: " + pct + "%; background: " + (grad || "linear-gradient(90deg," + accent + ",#F5A623)") + ";";
+
+    return {
+      reelTitle: this.props.reelTitle ?? "ROAR",
+      hookLine: this.props.hookLine ?? "They told you to wait your turn.",
+      specs: [
+        { k: "Duration", v: "0:45" },
+        { k: "Ratio", v: "9:16" },
+        { k: "Cutdowns", v: "15 · 30s" },
+        { k: "Reframes", v: "1:1 · 16:9" }
+      ],
+      shots: [
+        { tc: "00:00", dur: "0–3s", label: "cold open", beat: "The Hook", img: "assets/g/stage_3.jpg", pos: "center 28%",
+          shot: "ECU: a paint-covered student locks eyes with the lens, mid-grin, powder still falling.",
+          cam: "Open on black 6 frames → SMASH CUT in. Snap-zoom to the eyes; 2-frame shutter stutter.",
+          vo: "[silence · air-horn stab]", audio: "Sub-bass hit + air-horn", text: "They told you to wait your turn." },
+        { tc: "00:03", dur: "3–8s", label: "energy", beat: "Raw Talent", img: "assets/g/v3.jpg", pos: "center 35%",
+          shot: "Whip into a sea of students mid-dance, colour powder exploding, arms up.",
+          cam: "Whip-pan L→R, handheld; brief under-crank then snap back to speed.",
+          vo: "Every school has one. Every campus is hiding one.", audio: "Log-drum build + rising riser", text: "Raw talent." },
+        { tc: "00:08", dur: "8–14s", label: "the battle", beat: "Eight Battles", img: "assets/g/stage_10.jpg", pos: "center 20%",
+          shot: "Performer owns the platform, mic out, pointing into a packed crowd — battle in full swing.",
+          cam: "Low-angle handheld orbit around the performer; crowd kept in every frame.",
+          vo: "One stage. Eight battles. No script, no mercy.", audio: "Gengetone switch-up, hat rolls", text: "Dance · Rap · Vocals · Modelling · Comedy · MC · DJ · Drama" },
+        { tc: "00:14", dur: "14–20s", label: "the walk", beat: "The Stage Finds You", img: "assets/g/stage_6.jpg", pos: "center 30%",
+          shot: "Modelling runway: a student strides the red carpet in a lab coat — the career-dream reveal — crowd lining the edges.",
+          cam: "Jib/crane rise following the walk; cut on the beat to a dancer's drop (insert).",
+          vo: "Watch what happens when the mic finds the right person…", audio: "Riser + crowd 'Ayeee' swell", text: "The stage finds you." },
+        { tc: "00:20", dur: "20–26s", label: "★ payoff", beat: "The Reveal", img: "assets/g/v12.jpg", pos: "center 30%",
+          shot: "The turn: a performer faces a roaring, sun-lit crowd that erupts — the payoff held in slow-mo.",
+          cam: "Speed-ramp to 0.3× on the turn; push-in over the shoulder into the crowd.",
+          vo: "[BEAT DROP · crowd roar — no VO]", audio: "DROP — log-drum + real crowd roar", text: "The reveal." },
+        { tc: "00:26", dur: "26–32s", label: "arc", beat: "Crowd to Screen", img: "assets/g/stage_13.jpg", pos: "center 40%",
+          shot: "Crowd surge, hands in the air, paint and dust in the light; quick winner-crowning insert.",
+          cam: "Fast cuts on the bar; 1–2 frame flash-cuts between crowd and winner.",
+          vo: "From a face in the crowd… to a name on the screen.", audio: "Full groove, vocal chops", text: "From the crowd → on the screen" },
+        { tc: "00:32", dur: "32–38s", label: "tone shift", beat: "Purpose", img: "assets/g/event_7.jpg", pos: "center 35%",
+          shot: "Tone shift: host and students plant a tree at a mentorship pod — quieter, warmer, real.",
+          cam: "Slow slider / locked-off; natural sound bed breathes under the music.",
+          vo: "We don't just find talent. We walk it to purpose.", audio: "Filter down, warm pads", text: "From potential" },
+        { tc: "00:38", dur: "38–42s", label: "brand lock", beat: "Logo Hit", img: "assets/brand/video_poster.png", pos: "center center",
+          shot: "Logo hit on the dark base, magenta/orange sparks; PPP TV lockup snaps in.",
+          cam: "Logo pop (scale overshoot) + light whoosh; sparks fly off the mark.",
+          vo: "Urban Gang Tour. From Potential to Purpose.", audio: "Brass / air-horn button + whoosh", text: "To purpose · As seen on PPP TV Kenya" },
+        { tc: "00:42", dur: "42–45s", label: "CTA", beat: "Call to Action", img: "assets/g/event_11.jpg", pos: "center top",
+          shot: "Audience-specific end-card on magenta→orange: tailored CTA, WhatsApp + handle, swipe-up.",
+          cam: "Hard cut; text punches in on the beat; handle holds for the swipe-up.",
+          vo: "[audience tag — see end-card]", audio: "Final crowd 'Ayeee' tail", text: "Swaps by audience ↓" }
+      ],
+      vo: [
+        { tc: "0:00", line: "[ near-silence · single air-horn stab ]" },
+        { tc: "0:03", line: "Every school has one. Every campus is hiding one." },
+        { tc: "0:08", line: "One stage. Eight battles. No script, no mercy." },
+        { tc: "0:14", line: "Watch what happens when the mic finds the right person…" },
+        { tc: "0:20", line: "[ BEAT DROP · crowd roar — let it breathe, no VO ]" },
+        { tc: "0:26", line: "From a face in the crowd… to a name on the screen." },
+        { tc: "0:32", line: "We don't just find talent. We walk it to purpose." },
+        { tc: "0:38", line: "Urban Gang Tour. From Potential to Purpose." },
+        { tc: "0:42", line: "[ audience CTA tag — swaps per room, see end-card ]" }
+      ],
+      cues: [
+        { tc: "0:00", cue: "Air-horn stab + sub-bass hit against silence — tension.", dot: "#F5A623" },
+        { tc: "0:03", cue: "Amapiano log-drum build, rising riser under the energy.", dot: "#C7238E" },
+        { tc: "0:08", cue: "Gengetone switch-up — hats roll, tempo bites.", dot: "#C7238E" },
+        { tc: "0:14", cue: "Riser + crowd 'Ayeee' swell, snare build to the edge.", dot: "#F5A623" },
+        { tc: "0:20", cue: "THE DROP — log-drum + real crowd roar on the reveal.", dot: "#E12FA3" },
+        { tc: "0:26", cue: "Full groove, chopped vocal stabs over fast cuts.", dot: "#C7238E" },
+        { tc: "0:32", cue: "Filter sweep down, warm pads — the purpose turn.", dot: "#F5A623" },
+        { tc: "0:38", cue: "Brass / air-horn button + logo whoosh to close.", dot: "#E12FA3" }
+      ],
+      shotlist: [
+        { n: "1", tc: "00:00", size: "ECU face", move: "Snap zoom in", action: "Eye-lock, powder falling", sound: "Air-horn + sub hit" },
+        { n: "2", tc: "00:03", size: "WIDE crowd", move: "Whip-pan", action: "Mass dance, colour burst", sound: "Riser build" },
+        { n: "3", tc: "00:08", size: "MID", move: "Handheld orbit", action: "Performer commands crowd", sound: "Gengetone" },
+        { n: "4", tc: "00:14", size: "WIDE→MID", move: "Jib rise", action: "Runway walk reveal", sound: "Crowd swell" },
+        { n: "5", tc: "00:20", size: "OTS→WIDE", move: "Speed-ramp push", action: "The turn, crowd erupts", sound: "BEAT DROP + roar" },
+        { n: "6", tc: "00:26", size: "MIX", move: "Flash cuts", action: "Crowd surge + crowning", sound: "Full groove" },
+        { n: "7", tc: "00:32", size: "MID", move: "Slow slider", action: "Mentorship / tree-plant", sound: "Pads, nat sound" },
+        { n: "8", tc: "00:38", size: "GRAPHIC", move: "Logo pop", action: "Brand + PPP TV lockup", sound: "Brass button" },
+        { n: "9", tc: "00:42", size: "GRAPHIC", move: "Hard cut", action: "Audience CTA end-card", sound: "Crowd tail" }
+      ],
+      finalists: [
+        { rank: "1", name: "The Reveal", score: "94", kept: "the turn-to-crowd beat-drop payoff", bar: fill(94) },
+        { rank: "2", name: "Festival of Colours Cold Open", score: "91", kept: "paint-face eye-lock in the first 3s", bar: fill(91) },
+        { rank: "3", name: "8 Battles, No Script", score: "89", kept: "the rapid battle-category tag flicks", bar: fill(89) },
+        { rank: "4", name: "Face in the Crowd → Name on Screen", score: "88", kept: "the transformation arc + line", bar: fill(88) },
+        { rank: "5", name: "Potential to Purpose", score: "86", kept: "the mentorship tonal turn + tagline land", bar: fill(86) }
+      ],
+      axes: [
+        { k: "Hook strength (0–3s)", v: "96", bar: fill(96, "linear-gradient(90deg,#F5A623,#FFBE4D)") },
+        { k: "Shareability / tag triggers", v: "93", bar: fill(93) },
+        { k: "Watch-through / rewatch", v: "92", bar: fill(92) },
+        { k: "Brand fit (loud, raw)", v: "95", bar: fill(95, "linear-gradient(90deg,#F5A623,#FFBE4D)") },
+        { k: "Action pull (per audience)", v: "90", bar: fill(90) }
+      ],
+      insights: [
+        { title: "Frame-1 face beats b-roll", body: "A human face making eye contact in the first second out-retains scenic openers. We open on it — no logo, no title." },
+        { title: "Colour + motion = scroll-stop", body: "Festival-of-colours powder and whip-pans are instant stop-scroll bait and double as dance-challenge fuel." },
+        { title: "Withhold the reveal", body: "Holding the payoff (the turn + drop) to 0:20 drives watch-through and the rewatch loop the algorithm rewards." },
+        { title: "Real crowd = social proof", body: "Roaring, identifiable crowds trigger 'tag a friend who was there' — the strongest organic-reach lever." },
+        { title: "Self-cast the viewer", body: "'Every school has one' makes viewers cast themselves, then share to their own school/campus page to prove it." }
+      ],
+      refs: [
+        "assets/g/stage_3.jpg", "assets/g/v3.jpg", "assets/g/stage_10.jpg",
+        "assets/g/v12.jpg", "assets/g/stage_16.jpg", "assets/g/event_7.jpg"
+      ],
+      audTabs,
+      activeAud: AUD[cur]
+    };
+  }
+}
+</script>
+</body>
+</html>

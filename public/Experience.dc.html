@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="The Experience">
+
+  <dc-import name="SiteNav" active="experience" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- HERO -->
+  <div style="position: relative; overflow: hidden">
+    <img src="assets/g/stage_2.jpg" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.32">
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(21,14,19,0.6), #150E13 92%)"></div>
+    <div style="position: relative; max-width: 1280px; margin: 0 auto; padding: 110px clamp(24px,5vw,70px) 80px; text-align: center">
+      <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">what happens when the tour pulls up</div>
+      <div style="font-family: 'Anton', sans-serif; font-size: clamp(46px, 6vw, 88px); line-height: 1; text-transform: uppercase; margin-top: 12px">One day. One institution.<br><span style="color: #C7238E">Everything changes.</span></div>
+    </div>
+  </div>
+
+  <!-- BATTLE CATEGORIES -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 40px clamp(24px,5vw,70px)">
+    <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap">
+      <div style="font-family: 'Anton', sans-serif; font-size: 42px; text-transform: uppercase">The 8 battle <span style="color: #F5A623">categories</span></div>
+      <div style="color: rgba(255,247,252,0.6); font-size: 14px">Competitor vs competitor · judged live · winners crowned on stage</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 28px">
+      <sc-for list="{{ battles }}" as="b" hint-placeholder-count="8">
+        <div style="position: relative; background: rgba(255,255,255,0.04); border: 2px solid rgba(199,35,142,0.35); border-radius: 18px; padding: 24px 20px; overflow: hidden" style-hover="border-color: #C7238E; transform: translateY(-5px) rotate(-0.5deg)">
+          <div style="position: absolute; top: -16px; right: -6px; font-family: 'Anton', sans-serif; font-size: 74px; color: rgba(199,35,142,0.16)">{{ b.n }}</div>
+          <div style="font-size: 30px">{{ b.icon }}</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 21px; margin-top: 10px; letter-spacing: 0.02em">{{ b.title }}</div>
+          <div style="color: rgba(255,247,252,0.65); font-size: 13px; line-height: 1.55; margin-top: 6px">{{ b.body }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- RUNWAY -->
+  <div style="max-width: 1280px; margin: 30px auto 0; padding: 0 clamp(24px,5vw,70px)">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 0; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12)">
+      <div style="position: relative; min-height: 420px">
+        <img src="assets/pt/synapse_3.jpg" alt="Runway" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+        <div style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent 55%, #1B0F18)"></div>
+        <div style="position: absolute; top: 18px; left: 18px; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 15px; letter-spacing: 0.1em; padding: 8px 16px; border-radius: 999px; transform: rotate(-2deg)">THE T-SHAPED RUNWAY</div>
+      </div>
+      <div style="background: #1B0F18; padding: 44px 40px">
+        <div style="font-family: 'Anton', sans-serif; font-size: 34px; text-transform: uppercase">The modelling <span style="color: #C7238E">runway</span></div>
+        <div style="color: rgba(255,247,252,0.72); font-size: 15px; line-height: 1.65; margin-top: 12px">Four sub categories on a full T shaped runway stage, directed by <a href="Partners.dc.html" style="color: #F5A623; font-weight: 700">Synapse Models</a>:</div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px">
+          <sc-for list="{{ runway }}" as="r" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 16px">
+              <span style="color: #F5A623; font-family: 'Anton', sans-serif; font-size: 16px">{{ r.n }}</span>
+              <span style="font-weight: 600; font-size: 15px">{{ r.t }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top: 20px; background: rgba(245,166,35,0.1); border: 1px dashed rgba(245,166,35,0.5); border-radius: 14px; padding: 16px 18px; font-size: 14px; line-height: 1.6; color: #FFE9C7">
+          👑 The day ends with the crowning of <b>Mrs/Miss of the Institution</b>, presented by the Principal alongside Eugine and Lucy.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PODS -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 80px clamp(24px,5vw,70px) 30px">
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 20px; transform: rotate(-1deg)">real talk, real skills</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: 42px; text-transform: uppercase; margin-top: 6px">The Urban <span style="color: #C7238E">Pods</span></div>
+    <div style="color: rgba(255,247,252,0.7); font-size: 15px; margin-top: 10px; max-width: 640px; line-height: 1.6">Small group sessions running through the day, led by <a href="The Gang.dc.html" style="color: #F5A623; font-weight: 700">MC Paps</a>, our resident Mental Health Coach and MC. Five themes on the menu — each stop runs 3 to 5 pods depending on the topics of the day.</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 14px; margin-top: 28px">
+      <sc-for list="{{ pods }}" as="p" hint-placeholder-count="5">
+        <div style="background: {{ p.bg }}; border-radius: 18px; padding: 24px 18px; color: {{ p.fg }}" style-hover="transform: translateY(-5px) rotate(1deg)">
+          <div style="font-size: 30px">{{ p.icon }}</div>
+          <div style="font-family: 'Anton', sans-serif; font-size: 19px; margin-top: 12px; line-height: 1.1">{{ p.title }}</div>
+          <div style="font-size: 13px; line-height: 1.55; margin-top: 8px; opacity: 0.85">{{ p.body }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- STAGE + BROADCAST -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 60px clamp(24px,5vw,70px) 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 22px">
+    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 22px; padding: 36px">
+      <div style="font-family: 'Anton', sans-serif; font-size: 28px; text-transform: uppercase">🎪 The stage</div>
+      <div style="color: rgba(255,247,252,0.72); font-size: 15px; line-height: 1.7; margin-top: 12px">T shaped main stage with runway extension, branded backdrop, teardrop banners, full PA and DJ rig by our sound partners <a href="Partners.dc.html" style="color: #F5A623; font-weight: 700">Ashton Sounds</a>. Built for crowds from 400 students to festival scale.</div>
+    </div>
+    <div style="background: rgba(230,30,140,0.08); border: 1px solid rgba(230,30,140,0.4); border-radius: 22px; padding: 36px">
+      <div style="display: flex; align-items: center; gap: 14px">
+        <div style="font-family: 'Anton', sans-serif; font-size: 28px; text-transform: uppercase">📡 The broadcast</div>
+        <img src="assets/brand/ppptv_logo.png" alt="PPP TV" style="height: 38px">
+      </div>
+      <div style="color: rgba(255,247,252,0.72); font-size: 15px; line-height: 1.7; margin-top: 12px">Every event is filmed. Videography is mandatory at every stop, captured by <a href="Partners.dc.html" style="color: #F5A623; font-weight: 700">Vibes Studios</a> alongside PPP TV camera crews. Highlights feed <a href="Urban News.dc.html" style="color: #F5A623; font-weight: 700">Urban News</a> and short form content across TikTok, Instagram, YouTube Shorts, Facebook, and X. Winners do not just win on the day. <b style="color: #fff">They get seen.</b></div>
+    </div>
+  </div>
+
+  <!-- ON SITE EXPERIENCES -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 60px clamp(24px,5vw,70px) 20px">
+    <div style="font-family: 'Anton', sans-serif; font-size: 38px; text-transform: uppercase">On site <span style="color: #F5A623">experiences</span></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; margin-top: 26px">
+      <div style="position: relative; background: rgba(255,255,255,0.04); border: 1px dashed rgba(245,166,35,0.5); border-radius: 18px; padding: 26px">
+        <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -13px; left: 26px; width: 90px; transform: rotate(-4deg); opacity: 0.85">
+        <div style="font-size: 28px">🍿</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 21px; margin-top: 10px">URBAN GANG SNACKS</div>
+        <div style="color: rgba(255,247,252,0.68); font-size: 13.5px; line-height: 1.6; margin-top: 6px">Affordable snack shop at every event. Cheap, fast, and right next to the action.</div>
+      </div>
+      <div style="position: relative; background: rgba(255,255,255,0.04); border: 1px dashed rgba(199,35,142,0.55); border-radius: 18px; padding: 26px">
+        <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -13px; left: 26px; width: 90px; transform: rotate(3deg); opacity: 0.85">
+        <div style="font-size: 28px">📸</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 21px; margin-top: 10px">URBAN GANG MOMENTS</div>
+        <div style="color: rgba(255,247,252,0.68); font-size: 13.5px; line-height: 1.6; margin-top: 6px">Instant print photobooth, KES 20 per picture. Walk away with the day in your pocket.</div>
+      </div>
+      <a href="Shop.dc.html" style="position: relative; display: block; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.4); border-radius: 18px; padding: 26px; color: #FFF7FC" style-hover="border-color: #fff; transform: translateY(-3px)">
+        <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -13px; left: 26px; width: 90px; transform: rotate(-2deg); opacity: 0.85">
+        <div style="font-size: 28px">🧢</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 21px; margin-top: 10px">URBAN GANG MERCH</div>
+        <div style="color: rgba(255,247,252,0.68); font-size: 13.5px; line-height: 1.6; margin-top: 6px">Official tour merchandise: tees, hoodies, caps. Shop the drop →</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- AWARDS -->
+  <div style="max-width: 1080px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px)">
+    <div style="background: linear-gradient(150deg, rgba(245,166,35,0.14), rgba(199,35,142,0.12)); border-radius: 22px; border: 1px solid rgba(245,166,35,0.35); padding: 36px 40px; display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center">
+      <div style="font-size: 64px">🏆</div>
+      <div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 28px; text-transform: uppercase">Awards</div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 15px; line-height: 1.7; margin-top: 8px">Category winners, runner up recognition, participant certificates, and the institution crown. Awards are presented on camera, with partner branding on certificates where applicable.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="background: linear-gradient(100deg, #C7238E, #F5A623); padding: 60px; text-align: center">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(32px, 4vw, 52px); color: #fff; text-transform: uppercase">Bring this to your institution</div>
+    <a href="Book.dc.html" style="display: inline-block; margin-top: 24px; background: #150E13; color: #fff; font-weight: 700; font-size: 15.5px; padding: 16px 34px; border-radius: 14px" style-hover="background: #000; transform: translateY(-2px)">Book the Tour →</a>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; font-size: 13px; flex-wrap: wrap">
+      <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+      <a href="Events.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Tour Stops</a>
+      <a href="The Gang.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">The Gang</a>
+      <a href="Contact.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Contact</a>
+      <a href="https://instagram.com/urban_newsgang" target="_blank" style="color: #C7238E; font-weight: 700">@urban_newsgang</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        const i = hidden.indexOf(el);
+        if (i >= 0) hidden.splice(i, 1);
+      };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => {
+          if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px 20% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.65s ease, transform 0.65s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(24px)";
+          hidden.push(el);
+          io.observe(el);
+        }
+      });
+      const sweep = () => {
+        hidden.slice().forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el);
+        });
+      };
+      window.addEventListener("scroll", sweep, { passive: true });
+      window.addEventListener("resize", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+  }
+
+  renderVals() {
+    return {
+      battles: [
+        { n: "01", icon: "🎵", title: "MUSIC", body: "Singing and rap. Bring your voice, leave with a crowd." },
+        { n: "02", icon: "🕺", title: "DANCE", body: "Solo or crew. The floor decides who owns it." },
+        { n: "03", icon: "🎙️", title: "SPOKEN WORD", body: "Words that move rooms, judged live." },
+        { n: "04", icon: "✒️", title: "POETRY SLAM", body: "Head to head verses. Real stakes." },
+        { n: "05", icon: "😂", title: "COMEDY", body: "Two to three minutes to make a whole school laugh." },
+        { n: "06", icon: "🎭", title: "DRAMA & ACTING", body: "Scenes, skits, and stage presence." },
+        { n: "07", icon: "📰", title: "NEWS REPORTING", body: "Anchor the story. The best go on air." },
+        { n: "08", icon: "👠", title: "MODELLING RUNWAY", body: "The full T shaped runway, directed by Synapse Models." }
+      ],
+      runway: [
+        { n: "01", t: "Cultural & Traditional Wear" },
+        { n: "02", t: "Creative Wear" },
+        { n: "03", t: "Cosplay" },
+        { n: "04", t: "Professional Wear" }
+      ],
+      pods: [
+        { icon: "⭐", bg: "linear-gradient(160deg, #C7238E, #8E1864)", fg: "#fff", title: "DISCOVER YOUR TALENT", body: "Finding and owning your gift." },
+        { icon: "💸", bg: "linear-gradient(160deg, #F5A623, #C97F0A)", fg: "#2E1C00", title: "OWN YOUR MONEY", body: "Financial literacy for young people." },
+        { icon: "📱", bg: "linear-gradient(160deg, #3E2A3A, #251722)", fg: "#fff", title: "GO DIGITAL", body: "Content, platforms, and digital careers." },
+        { icon: "🧭", bg: "linear-gradient(160deg, #8E1864, #4A0D34)", fg: "#fff", title: "LEAD FROM WHERE YOU ARE", body: "Leadership without a title." },
+        { icon: "🧠", bg: "linear-gradient(160deg, #2E2440, #1A1428)", fg: "#fff", title: "MIND YOUR MIND", body: "Mental wellness, resilience, and healthy choices." }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

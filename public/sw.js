@@ -1,32 +1,39 @@
-// PPP TV Auto Poster — Service Worker
-const CACHE = 'ppptv-poster-v1';
-const SHELL = ['/', '/manifest.json'];
+// Urban Gang Tour service worker
+const CACHE = "urban-gang-tour-v1";
+const SHELL = ["/", "/Home.dc.html", "/manifest.json"];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+self.addEventListener("install", (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
   self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
-  // Network-first for API calls, cache-first for shell
-  if (e.request.url.includes('/api/')) {
-    e.respondWith(fetch(e.request).catch(() => new Response('{"error":"offline"}', { headers: { 'Content-Type': 'application/json' } })));
+self.addEventListener("fetch", (e) => {
+  // Network-first for API calls, cache-first for the static tour shell
+  if (e.request.url.includes("/api/")) {
+    e.respondWith(
+      fetch(e.request).catch(() => new Response('{"error":"offline"}', { headers: { "Content-Type": "application/json" } }))
+    );
   } else {
     e.respondWith(
-      caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
-        if (res.ok && e.request.method === 'GET') {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }))
+      caches.match(e.request).then((cached) =>
+        cached ||
+        fetch(e.request).then((res) => {
+          if (res.ok && e.request.method === "GET") {
+            const clone = res.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, clone));
+          }
+          return res;
+        })
+      )
     );
   }
 });

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; scroll-behavior: smooth; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="Book the Tour">
+
+  <dc-import name="SiteNav" active="book" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- HERO -->
+  <div style="position: relative; background: radial-gradient(900px 500px at 50% -20%, rgba(199,35,142,0.4), transparent 65%), #150E13; padding: 80px clamp(24px,5vw,70px) 50px; text-align: center">
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">we are always booking</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(46px, 6vw, 86px); line-height: 1; text-transform: uppercase; margin-top: 12px">Book the <span style="color: #C7238E">tour</span></div>
+    <div style="color: rgba(255,247,252,0.72); font-size: 16px; max-width: 620px; margin: 18px auto 0; line-height: 1.65">Four ways in. Every booking is quoted for your numbers and your calendar; rates are negotiable and we work with institutions of every size.</div>
+    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 30px">
+      <a href="#schools" style="background: rgba(199,35,142,0.15); border: 2px solid #C7238E; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 22px; border-radius: 999px" style-hover="background: #C7238E">🏫 Schools</a>
+      <a href="#campus" style="background: rgba(245,166,35,0.12); border: 2px solid #F5A623; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 22px; border-radius: 999px" style-hover="background: #F5A623; color: #2E1C00">🎓 Campus XP</a>
+      <a href="#brands" style="background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.6); color: #fff; font-weight: 700; font-size: 14px; padding: 12px 22px; border-radius: 999px" style-hover="background: #fff; color: #150E13">💼 Brands &amp; Sponsors</a>
+      <a href="#mega" style="background: rgba(230,30,140,0.1); border: 2px solid #E61E8C; color: #fff; font-weight: 700; font-size: 14px; padding: 12px 22px; border-radius: 999px" style-hover="background: #E61E8C">🎪 Mega Events</a>
+    </div>
+  </div>
+
+  <!-- SCHOOLS -->
+  <div id="schools" style="max-width: 1280px; margin: 0 auto; padding: 70px clamp(24px,5vw,70px) 40px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 44px; align-items: start">
+      <div>
+        <div style="display: inline-block; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.12em; padding: 8px 18px; border-radius: 999px; transform: rotate(-1.5deg)">LANE 01 · FOR SCHOOLS</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px,4vw,56px); text-transform: uppercase; margin-top: 14px; line-height: 1.02">Your school.<br><span style="color: #C7238E">Their stage.</span></div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 15.5px; line-height: 1.7; margin-top: 14px">A full day talent, mentorship, and awards takeover for your students, ending with a national TV feature.</div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 22px">
+          <sc-for list="{{ schoolGets }}" as="g" hint-placeholder-count="7">
+            <div style="display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; line-height: 1.55; color: rgba(255,247,252,0.85)">
+              <span style="color: #F5A623; font-weight: 700">✔</span><span>{{ g }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px">
+          <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20bring%20the%20tour%20to%20our%20school." target="_blank" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 14.5px; padding: 14px 26px; border-radius: 12px" style-hover="background: #E12FA3; transform: translateY(-2px)">Request a Quotation · WhatsApp</a>
+          <a href="Contact.dc.html" style="border: 2px solid rgba(255,255,255,0.5); color: #fff; font-weight: 700; font-size: 14.5px; padding: 12px 24px; border-radius: 12px" style-hover="border-color: #F5A623; color: #F5A623">Use the Form</a>
+        </div>
+      </div>
+      <div>
+        <div style="position: relative; max-width: 420px; margin: 0 auto; background: #FFF7FC; padding: 12px 12px 38px; transform: rotate(2.5deg); border-radius: 6px; box-shadow: 0 24px 60px rgba(0,0,0,0.5)">
+          <img src="assets/g/stage_12.jpg" alt="School crowd" style="width: 100%; aspect-ratio: 4/3.4; object-fit: cover; display: block">
+          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; left: 50%; width: 110px; transform: translateX(-50%) rotate(-3deg); opacity: 0.9">
+          <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 15px; margin-top: 10px; text-align: center">your students. their stage.</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px dashed rgba(245,166,35,0.5); border-radius: 16px; padding: 22px; margin-top: 28px">
+          <div style="font-family: 'Anton', sans-serif; font-size: 17px; color: #F5A623">HOW IT WORKS</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px">
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+              <div style="display: flex; gap: 14px; align-items: flex-start">
+                <div style="background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 14px; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0">{{ s.n }}</div>
+                <div style="font-size: 13.5px; line-height: 1.55; color: rgba(255,247,252,0.8)"><b style="color: #fff">{{ s.t }}</b> {{ s.b }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPUS -->
+  <div id="campus" style="background: #1B1118; border-top: 3px dashed rgba(245,166,35,0.4); padding: 70px 0 60px; margin-top: 30px">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 0 clamp(24px,5vw,70px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 44px; align-items: start">
+      <div>
+        <div style="position: relative; max-width: 420px; margin: 0 auto; background: #FFF7FC; padding: 12px 12px 38px; transform: rotate(-2.5deg); border-radius: 6px; box-shadow: 0 24px 60px rgba(0,0,0,0.5)">
+          <img src="assets/g/stage_11.jpg" alt="Campus" style="width: 100%; aspect-ratio: 4/4; object-fit: cover; display: block">
+          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; left: 50%; width: 110px; transform: translateX(-50%) rotate(4deg); opacity: 0.9">
+          <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 15px; margin-top: 10px; text-align: center">the tour, fully grown</div>
+        </div>
+      </div>
+      <div>
+        <div style="display: inline-block; background: #F5A623; color: #2E1C00; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.12em; padding: 8px 18px; border-radius: 999px; transform: rotate(1.5deg)">LANE 02 · UNIVERSITIES &amp; COLLEGES</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px,4vw,56px); text-transform: uppercase; margin-top: 14px; line-height: 1.02">Campus <span style="color: #F5A623">XP</span></div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 15.5px; line-height: 1.7; margin-top: 14px">High school built the movement. Campus is where it gets loud. A professional stage, national TV exposure, and direct access to brands and industry mentors.</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 22px">
+          <sc-for list="{{ campusGets }}" as="g" hint-placeholder-count="6">
+            <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.55; color: rgba(255,247,252,0.85); background: rgba(255,255,255,0.04); border-radius: 12px; padding: 12px 14px">
+              <span style="color: #F5A623">✦</span><span>{{ g }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background: rgba(245,166,35,0.08); border-left: 4px solid #F5A623; border-radius: 0 12px 12px 0; padding: 16px 20px; margin-top: 20px; font-size: 14px; line-height: 1.65; color: #FFE9C7">
+          🎬 <b>The student creator angle:</b> media, journalism, and communication students work alongside our crew as content creators, presenters, and production assistants, with formal recognition for their portfolios. Your students do not just attend the event. They help make it.
+        </div>
+        <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20am%20interested%20in%20a%20Campus%20XP%20event." target="_blank" style="display: inline-block; margin-top: 22px; background: #F5A623; color: #2E1C00; font-weight: 700; font-size: 14.5px; padding: 14px 26px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Book a Campus XP Consultation</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRANDS -->
+  <div id="brands" style="max-width: 1280px; margin: 0 auto; padding: 80px clamp(24px,5vw,70px) 40px">
+    <div style="text-align: center">
+      <div style="display: inline-block; background: #fff; color: #150E13; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.12em; padding: 8px 18px; border-radius: 999px; transform: rotate(-1deg)">LANE 03 · FOR BRANDS &amp; SPONSORS</div>
+      <div style="font-family: 'Anton', sans-serif; font-size: clamp(34px,4vw,54px); text-transform: uppercase; margin-top: 14px; line-height: 1.05">Your brand, in front of Kenya's youth.<br><span style="color: #C7238E">Live and on air.</span></div>
+      <div style="color: rgba(255,247,252,0.72); font-size: 15.5px; line-height: 1.65; max-width: 700px; margin: 14px auto 0">On stage, on camera, on certificates, and in the hands of thousands of students, with broadcast reach of up to 8 million viewers via PPP TV Kenya.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 36px">
+      <sc-for list="{{ plugIns }}" as="p" hint-placeholder-count="8">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 20px 18px" style-hover="border-color: #C7238E; transform: translateY(-4px)">
+          <div style="font-size: 24px">{{ p.icon }}</div>
+          <div style="font-weight: 700; font-size: 14.5px; margin-top: 10px; line-height: 1.35">{{ p.t }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 30px">
+      <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="4">
+        <div style="background: {{ t.bg }}; border-radius: 18px; padding: 26px 22px; color: {{ t.fg }}" style-hover="transform: translateY(-5px)">
+          <div style="font-family: 'Anton', sans-serif; font-size: 19px; letter-spacing: 0.04em">{{ t.name }}</div>
+          <div style="font-size: 13.5px; line-height: 1.6; margin-top: 10px; opacity: 0.9">{{ t.body }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="text-align: center; margin-top: 30px">
+      <div style="color: rgba(255,247,252,0.6); font-size: 13.5px">Every package is tailored. Details on request.</div>
+      <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20discuss%20a%20sponsorship." target="_blank" style="display: inline-block; margin-top: 16px; background: #fff; color: #C7238E; font-weight: 700; font-size: 14.5px; padding: 14px 28px; border-radius: 12px" style-hover="transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.2)">Request the Sponsor Catalogue</a>
+    </div>
+  </div>
+
+  <!-- MEGA EVENTS -->
+  <div id="mega" style="position: relative; margin-top: 40px; overflow: hidden">
+    <img src="assets/g/stage_2.jpg" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.25">
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #150E13, rgba(21,14,19,0.75) 30%, #150E13)"></div>
+    <div style="position: relative; max-width: 1080px; margin: 0 auto; padding: 90px clamp(24px,5vw,70px); text-align: center">
+      <div style="display: inline-block; background: #E61E8C; color: #fff; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.12em; padding: 8px 18px; border-radius: 999px; transform: rotate(1deg)">LANE 04 · MEGA EVENTS &amp; FESTIVALS</div>
+      <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px,4.6vw,60px); text-transform: uppercase; margin-top: 16px; line-height: 1.03">We do not just attend big events.<br><span style="color: #F5A623">We power them.</span></div>
+      <div style="color: rgba(255,247,252,0.78); font-size: 15.5px; line-height: 1.7; max-width: 680px; margin: 16px auto 0">A full production unit for festivals, expos, county celebrations, corporate fun days, and national youth activations. We arrive as one unit with our own crew, our own systems, and our own media machine. You get a plug and play youth experience with a national TV tail, not a vendor list to manage.</div>
+      <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 26px">
+        <sc-for list="{{ formats }}" as="f" hint-placeholder-count="4">
+          <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 10px 20px; font-size: 13.5px; font-weight: 600">{{ f }}</div>
+        </sc-for>
+      </div>
+      <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20am%20planning%20a%20large%20event%20and%20want%20to%20talk%20production." target="_blank" style="display: inline-block; margin-top: 30px; background: #E61E8C; color: #fff; font-weight: 700; font-size: 15px; padding: 16px 32px; border-radius: 14px; box-shadow: 0 14px 36px rgba(230,30,140,0.4)" style-hover="background: #FF3FA8; transform: translateY(-2px)">Talk to Us About Your Event</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; font-size: 13px; flex-wrap: wrap">
+      <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+      <a href="Events.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Tour Stops</a>
+      <a href="Contact.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Contact</a>
+      <a href="https://wa.me/254799886247" target="_blank" style="color: #C7238E; font-weight: 700">0799 886 247</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        const i = hidden.indexOf(el);
+        if (i >= 0) hidden.splice(i, 1);
+      };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => {
+          if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px 20% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.65s ease, transform 0.65s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(24px)";
+          hidden.push(el);
+          io.observe(el);
+        }
+      });
+      const sweep = () => {
+        hidden.slice().forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el);
+        });
+      };
+      window.addEventListener("scroll", sweep, { passive: true });
+      window.addEventListener("resize", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+  }
+
+  renderVals() {
+    return {
+      schoolGets: [
+        "A full production day: stage, sound, hosts, DJs, and a trained crew thirty to fifty strong",
+        "8 talent battle categories plus the modelling runway with 4 sub categories",
+        "Urban Pods — 3 to 5 per day depending on the topics — covering talent, money, digital skills, leadership, and mental wellness",
+        "The Mrs/Miss of the Institution crowning, presented by your Principal",
+        "Full event videography and a feature on Urban News, PPP TV Kenya",
+        "Social media coverage across TikTok, Instagram, YouTube Shorts, Facebook, and X",
+        "Certificates for participants and winners"
+      ],
+      steps: [
+        { n: "1", t: "Reach out.", b: "Tell us your school, student numbers, and preferred term dates." },
+        { n: "2", t: "Recon visit.", b: "Our team visits, meets your coordinators, and maps the venue." },
+        { n: "3", t: "Build up.", b: "We handle auditions guidance, programme, and production. You assign 1 to 2 staff coordinators." },
+        { n: "4", t: "Event day.", b: "We arrive early, build the stage, run the day, crown your stars, and film everything." }
+      ],
+      campusGets: [
+        "Festival grade production: T shaped runway stage, pro sound and lighting",
+        "All 8 battle categories at campus level, bigger prize positioning",
+        "Mrs/Miss of the Institution crowning with university leadership",
+        "Pods upgraded for campus: career, entrepreneurship, monetisation, wellness",
+        "Media lab: journalism students join our field team, build real portfolios",
+        "Brand activation zones for sponsors and campus partners"
+      ],
+      plugIns: [
+        { icon: "👑", t: "Title & naming rights" },
+        { icon: "🏆", t: "Named award categories" },
+        { icon: "🧠", t: "Sponsored Urban Pods" },
+        { icon: "🏕️", t: "Branded booths & sampling zones" },
+        { icon: "🎁", t: "Product placement in winner hampers" },
+        { icon: "🚩", t: "Stage & backdrop branding" },
+        { icon: "📺", t: "TV & social media integrations" },
+        { icon: "🌍", t: "CSR & impact partnerships" }
+      ],
+      tiers: [
+        { name: "PRESENTING PARTNER", bg: "linear-gradient(160deg, #C7238E, #8E1864)", fg: "#fff", body: "Naming rights across the national tour. Primary branding everywhere. TV credits on every episode." },
+        { name: "IMPACT PARTNER", bg: "linear-gradient(160deg, #F5A623, #C97F0A)", fg: "#2E1C00", body: "Major presence at all events. Owned segments and award categories. Rotating TV mentions." },
+        { name: "CATEGORY PARTNER", bg: "linear-gradient(160deg, #3E2A3A, #251722)", fg: "#fff", body: "Strong presence at select events or one owned segment nationwide." },
+        { name: "EVENT PARTNER", bg: "linear-gradient(160deg, #2E2440, #1A1428)", fg: "#fff", body: "Single event activation with booth, branding, and social coverage." }
+      ],
+      formats: ["🎪 Festival takeover", "🏞️ County & community events", "🚀 Corporate & brand activations", "🏅 Awards & galas"]
+    };
+  }
+}
+</script>
+</body>
+</html>

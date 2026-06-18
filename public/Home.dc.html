@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    @keyframes ugt-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes ugt-float { 0%,100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-4deg) translateY(-12px); } }
+    @keyframes ugt-pop { 0% { transform: scale(0.82) rotate(-10deg); opacity: 1; } 55% { transform: scale(1.14) rotate(3deg); opacity: 1; } 75% { transform: scale(0.95) rotate(-1.5deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+    @keyframes ugt-bob { 0%,100% { transform: translateY(0) rotate(-2.5deg); } 50% { transform: translateY(-14px) rotate(2.5deg); } }
+    @keyframes ugt-glowpulse { 0%,100% { opacity: 0.45; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.18); } }
+    @keyframes ugt-spark { 0% { transform: scale(0) rotate(0deg); opacity: 0; } 30% { transform: scale(1.15) rotate(40deg); opacity: 1; } 60% { transform: scale(0.9) rotate(80deg); opacity: 0.9; } 100% { transform: scale(0) rotate(140deg); opacity: 0; } }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="Home">
+
+  <dc-import name="SiteNav" active="home" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- HERO -->
+  <div style="position: relative; overflow: hidden; background: radial-gradient(1200px 600px at 70% -10%, rgba(199,35,142,0.35), transparent 60%), radial-gradient(900px 500px at 10% 110%, rgba(245,166,35,0.16), transparent 60%), #150E13">
+    <div style="position: absolute; inset: 0; opacity: 0.5; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.4px); background-size: 22px 22px"></div>
+    <div style="position: absolute; top: 0; bottom: 0; left: 36px; border-left: 3px dashed rgba(255,255,255,0.18)"></div>
+    <div style="position: absolute; top: 0; bottom: 0; right: 36px; border-right: 3px dashed rgba(255,255,255,0.18)"></div>
+
+    <div style="position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 30px; align-items: center; max-width: 1280px; margin: 0 auto; padding: clamp(36px,5vw,70px) clamp(24px,5vw,70px) 50px">
+      <div>
+        <div style="display: inline-flex; align-items: center; gap: 10px; background: rgba(245,166,35,0.12); border: 1px dashed rgba(245,166,35,0.6); color: #F5A623; border-radius: 999px; padding: 8px 16px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #F5A623; display: inline-block"></span>
+          KENYA'S LOUDEST YOUTH TALENT MOVEMENT
+        </div>
+        <div style="font-family: 'Anton', sans-serif; font-size: clamp(42px, 5.6vw, 88px); line-height: 1.02; margin-top: 22px; text-transform: uppercase">
+          Every stage<br>has a story.<br>
+          <span style="color: #C7238E; text-shadow: 0 0 40px rgba(199,35,142,0.55)">Yours starts here.</span>
+        </div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 24px; margin-top: 18px; transform: rotate(-1.5deg)">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.78); font-size: 17px; line-height: 1.65; max-width: 540px; margin-top: 16px">
+          Talent battles, life skills pods, a modelling runway, awards, and a TV broadcast that puts young people on screens across the country. From high school fields to university quads to festival main stages.
+        </div>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px">
+          <a href="Book.dc.html" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 16px 30px; border-radius: 14px; box-shadow: 0 12px 30px rgba(199,35,142,0.4)" style-hover="background: #E12FA3; transform: translateY(-2px)">Book the Tour</a>
+          <a href="Urban News.dc.html" style="border: 2px solid rgba(255,255,255,0.7); color: #fff; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 14px" style-hover="border-color: #F5A623; color: #F5A623">▶ Watch Urban News</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 28px; color: rgba(255,247,252,0.6); font-size: 13px; font-weight: 600">
+          <span>POWERED BY</span>
+          <img src="assets/brand/ppptv_logo.png" alt="PPP TV" style="height: 40px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5))">
+          <span style="letter-spacing: 0.08em">PPP TV KENYA · UP TO 8M VIEWERS</span>
+        </div>
+      </div>
+
+      <div onMouseMove="{{ heroTilt }}" onMouseLeave="{{ heroTiltReset }}" style="display: flex; flex-direction: column; align-items: center; gap: 28px; width: 100%; max-width: 480px; margin: 0 auto; justify-self: center; align-self: center">
+        <div style="width: min(240px, 56%)">{{ animatedLogo }}</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; align-items: start">
+          <div style="position: relative; background: #FFF7FC; padding: 8px 8px 9px; transform: rotate(-2.5deg); border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,0.5)">
+            <img src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="width: 100%; aspect-ratio: 1/1.15; object-fit: cover; display: block; border-radius: 3px">
+            <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -13px; left: 50%; width: 74px; transform: translateX(-50%) rotate(4deg); opacity: 0.9">
+            <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 11.5px; margin-top: 7px; text-align: center; line-height: 1.2">Eugine Micah<br>Lead Host</div>
+          </div>
+          <div style="position: relative; background: #FFF7FC; padding: 8px 8px 9px; transform: rotate(-1deg); border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); margin-top: 26px">
+            <img src="assets/p/lucy_3.jpg" alt="Lucy Ogunde" style="width: 100%; aspect-ratio: 1/1.15; object-fit: cover; display: block; border-radius: 3px">
+            <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -13px; left: 50%; width: 74px; transform: translateX(-50%) rotate(-2deg); opacity: 0.9">
+            <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 11.5px; margin-top: 7px; text-align: center; line-height: 1.2">Lucy Ogunde<br>Co Host</div>
+          </div>
+          <div style="position: relative; background: #FFF7FC; padding: 8px 8px 9px; transform: rotate(2.5deg); border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); margin-top: 12px">
+            <div style="position: absolute; top: -10px; right: -6px; z-index: 2; background: linear-gradient(100deg, #C7238E, #F5A623); color: #fff; font-family: 'Anton', sans-serif; font-size: 8.5px; letter-spacing: 0.1em; padding: 4px 8px; border-radius: 999px; transform: rotate(6deg); box-shadow: 0 4px 12px rgba(0,0,0,0.4)">MAIN PARTNER</div>
+            <img src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="width: 100%; aspect-ratio: 1/1.15; object-fit: cover; display: block; border-radius: 3px">
+            <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -13px; left: 50%; width: 74px; transform: translateX(-50%) rotate(-4deg); opacity: 0.9">
+            <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 11.5px; margin-top: 7px; text-align: center; line-height: 1.2">Hype Ola<br>Lead Hype</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TICKER -->
+    <div style="position: relative; background: #C7238E; overflow: hidden; padding: 12px 0; border-top: 3px solid #F5A623; border-bottom: 3px solid #F5A623; transform: rotate(-0.6deg) scale(1.01)">
+      <div style="display: flex; white-space: nowrap; width: max-content; animation: ugt-marquee 26s linear infinite; font-family: 'Anton', sans-serif; font-size: 19px; letter-spacing: 0.1em; color: #fff">
+        <span style="padding: 0 26px">BOOKINGS ALWAYS OPEN ★ 0799 886 247</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">FROM POTENTIAL TO PURPOSE</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">8 BATTLE CATEGORIES</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">URBAN PODS AT EVERY STOP</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">AS SEEN ON PPP TV KENYA</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">BOOKINGS ALWAYS OPEN ★ 0799 886 247</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">FROM POTENTIAL TO PURPOSE</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">8 BATTLE CATEGORIES</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">URBAN PODS AT EVERY STOP</span><span style="color: #F5A623">★</span>
+        <span style="padding: 0 26px">AS SEEN ON PPP TV KENYA</span><span style="color: #F5A623">★</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 64px clamp(20px,5vw,70px) 10px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="6">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(199,35,142,0.35); border-radius: 16px; padding: 22px 16px; text-align: center" style-hover="border-color: #C7238E; transform: translateY(-3px)">
+          <div style="font-family: 'Anton', sans-serif; font-size: 38px; color: #F5A623">{{ s.n }}</div>
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: rgba(255,247,252,0.7); margin-top: 6px; text-transform: uppercase">{{ s.label }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- THREE LANES -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 80px clamp(20px,5vw,70px) 30px">
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 20px; transform: rotate(-1deg)">pick your lane ↓</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(38px, 4.4vw, 64px); text-transform: uppercase; margin-top: 8px">Three lanes. <span style="color: #C7238E">One movement.</span></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; margin-top: 36px">
+      <a href="Book.dc.html#schools" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(199,35,142,0.4); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px) rotate(-0.5deg); border-color: #C7238E">
+        <img loading="lazy" src="assets/g/stage_9.jpg" alt="Schools" style="width: 100%; height: 240px; object-fit: cover; display: block; opacity: 0.85">
+        <div style="padding: 22px">
+          <div style="font-family: 'Anton', sans-serif; font-size: 28px; color: #C7238E">SCHOOLS</div>
+          <div style="color: rgba(255,247,252,0.75); font-size: 14.5px; line-height: 1.6; margin-top: 8px">A full day takeover. Talent battles, pods, modelling runway, awards, and a crowning. Your students. Their stage.</div>
+          <div style="color: #F5A623; font-weight: 700; font-size: 13.5px; margin-top: 14px; letter-spacing: 0.06em">FOR SCHOOLS →</div>
+        </div>
+      </a>
+      <a href="Book.dc.html#campus" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(245,166,35,0.4); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px); border-color: #F5A623">
+        <img loading="lazy" src="assets/g/stage_11.jpg" alt="Campus XP" style="width: 100%; height: 240px; object-fit: cover; display: block; opacity: 0.85">
+        <div style="padding: 22px">
+          <div style="font-family: 'Anton', sans-serif; font-size: 28px; color: #F5A623">UNIVERSITIES &amp; COLLEGES</div>
+          <div style="color: rgba(255,247,252,0.75); font-size: 14.5px; line-height: 1.6; margin-top: 8px">Campus XP. Bigger stage, bigger sound, broadcast ready. Talent meets career, brand, and platform.</div>
+          <div style="color: #F5A623; font-weight: 700; font-size: 13.5px; margin-top: 14px; letter-spacing: 0.06em">FOR CAMPUSES →</div>
+        </div>
+      </a>
+      <a href="Book.dc.html#mega" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(255,255,255,0.25); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px) rotate(0.5deg); border-color: #fff">
+        <img loading="lazy" src="assets/g/stage_2.jpg" alt="Mega Events" style="width: 100%; height: 240px; object-fit: cover; display: block; opacity: 0.85">
+        <div style="padding: 22px">
+          <div style="font-family: 'Anton', sans-serif; font-size: 28px; color: #fff">MEGA EVENTS &amp; FESTIVALS</div>
+          <div style="color: rgba(255,247,252,0.75); font-size: 14.5px; line-height: 1.6; margin-top: 8px">A full production crew, a T shaped runway stage, and a crowd machine. We plug into festivals, expos, and national activations.</div>
+          <div style="color: #F5A623; font-weight: 700; font-size: 13.5px; margin-top: 14px; letter-spacing: 0.06em">FOR MEGA EVENTS →</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- LATEST + NEXT STOPS -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 70px clamp(20px,5vw,70px) 30px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 40px; align-items: start">
+      <div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 40px; text-transform: uppercase">Latest <span style="color: #C7238E">stops</span></div>
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 24px">
+          <sc-for list="{{ stops }}" as="st" hint-placeholder-count="3">
+            <a href="Events.dc.html" style="display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; color: #FFF7FC" style-hover="border-color: #C7238E; transform: translateX(6px)">
+              <div style="font-family: 'Anton', sans-serif; font-size: 20px; color: #F5A623; min-width: 86px; line-height: 1.1">{{ st.date }}</div>
+              <div style="flex: 1">
+                <div style="font-weight: 700; font-size: 16px">{{ st.school }}</div>
+                <div style="color: rgba(255,247,252,0.6); font-size: 13px; margin-top: 2px">{{ st.note }}</div>
+              </div>
+              <div style="background: rgba(199,35,142,0.18); color: #E96CC0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; padding: 6px 12px; border-radius: 999px">✓ TOURED</div>
+            </a>
+          </sc-for>
+        </div>
+        <a href="Events.dc.html" style="display: inline-block; margin-top: 20px; color: #F5A623; font-weight: 700; font-size: 14px">See the full tour calendar →</a>
+      </div>
+
+      <div style="position: relative; background: linear-gradient(160deg, #C7238E, #8E1864); border-radius: 22px; padding: 34px 30px; overflow: hidden; box-shadow: 0 30px 70px rgba(199,35,142,0.35)">
+        <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; right: -40px; top: -30px; width: 240px; opacity: 0.18; filter: invert(1)">
+        <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; left: 34px; width: 120px; transform: rotate(-5deg); opacity: 0.85">
+        <div style="font-family: 'Permanent Marker', cursive; font-size: 22px; color: #FFD9A1; transform: rotate(-1.5deg)">bookings still open!</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 38px; line-height: 1.05; margin-top: 10px; text-transform: uppercase; color: #fff">Your institution could be the next stop.</div>
+        <div style="color: rgba(255,255,255,0.85); font-size: 14.5px; line-height: 1.6; margin-top: 12px">We are always booking. Schools, campuses, festivals, county events. The machine travels to you.</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px">
+          <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20bring%20the%20tour%20to%20our%20institution." target="_blank" style="background: #150E13; color: #fff; font-weight: 700; font-size: 14px; padding: 14px 22px; border-radius: 12px" style-hover="background: #000; transform: translateY(-2px)">WhatsApp · 0799 886 247</a>
+          <a href="Book.dc.html" style="background: #F5A623; color: #3A2300; font-weight: 700; font-size: 14px; padding: 14px 22px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Request a Quotation</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- URBAN NEWS STRIP -->
+  <div style="max-width: 1280px; margin: 50px auto 0; padding: 0 clamp(20px,5vw,70px)">
+    <a href="Urban News.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; gap: 26px; background: linear-gradient(90deg, rgba(230,30,140,0.16), rgba(60,170,230,0.1)); border: 1px solid rgba(230,30,140,0.4); border-radius: 20px; padding: 24px 30px; color: #FFF7FC" style-hover="border-color: #E61E8C; transform: translateY(-3px)">
+      <img src="assets/brand/ppptv_logo.png" alt="PPP TV" style="height: 64px">
+      <div style="flex: 1; min-width: 260px">
+        <div style="font-family: 'Anton', sans-serif; font-size: 26px; text-transform: uppercase">Urban News · The tour, on air</div>
+        <div style="color: rgba(255,247,252,0.7); font-size: 14px; margin-top: 4px">The show that follows the tour into every institution. Hosted by Eugine Micah &amp; Lucy Ogunde on PPP TV Kenya.</div>
+      </div>
+      <div style="background: #C7238E; color: #fff; font-weight: 700; font-size: 13.5px; padding: 12px 22px; border-radius: 999px">▶ WATCH</div>
+    </a>
+  </div>
+
+  <!-- GALLERY TEASER -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 80px clamp(20px,5vw,70px) 20px">
+    <div style="display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap">
+      <div style="font-family: 'Anton', sans-serif; font-size: 40px; text-transform: uppercase">Caught on <span style="color: #F5A623">camera</span></div>
+      <a href="Gallery.dc.html" style="color: #C7238E; font-weight: 700; font-size: 14px">Open the full gallery →</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); grid-auto-rows: 150px; gap: 12px; margin-top: 26px">
+      <a href="Gallery.dc.html" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_3.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_5.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="Gallery.dc.html" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_10.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_4.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="Gallery.dc.html" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_6.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/event_14.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_16.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+    </div>
+  </div>
+
+  <!-- MERCH TEASER -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 70px clamp(20px,5vw,70px) 20px">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 40px; align-items: center; background: rgba(255,255,255,0.03); border: 1px dashed rgba(245,166,35,0.5); border-radius: 24px; padding: 40px">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 20px; transform: rotate(-1.5deg)">rep the gang</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 42px; text-transform: uppercase; margin-top: 6px">Urban Gang <span style="color: #C7238E">Merch</span></div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 15px; line-height: 1.65; margin-top: 12px">Official tour tees and hoodies, straight from the merch tent to your wardrobe. Worn by the gang at every stop.</div>
+        <a href="Shop.dc.html" style="display: inline-block; margin-top: 22px; background: #F5A623; color: #3A2300; font-weight: 700; font-size: 14.5px; padding: 14px 26px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Shop the Drop →</a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px">
+        <a href="Shop.dc.html" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(-2deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/tee_3d_logo.png" alt="Tee" style="width: 100%; display: block"></a>
+        <a href="Shop.dc.html" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(1.5deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/tee_magenta.png" alt="Tee" style="width: 100%; display: block"></a>
+        <a href="Shop.dc.html" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/hoodie_black.png" alt="Hoodie" style="width: 100%; display: block"></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTNER WALL -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 70px clamp(20px,5vw,70px) 40px; text-align: center">
+    <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.2em; color: rgba(255,247,252,0.55)">TRUSTED BY MEDIA HOUSES, COLLEGES, AND CREATIVE BRANDS ACROSS KENYA</div>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 26px">
+      <sc-for list="{{ partners }}" as="p" hint-placeholder-count="9">
+        <a href="Partners.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,247,252,0.85); border-radius: 999px; padding: 10px 20px; font-weight: 600; font-size: 14px" style-hover="border-color: #C7238E; color: #fff; transform: translateY(-2px)">{{ p }}</a>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- FINAL CTA -->
+  <div style="position: relative; margin-top: 40px; background: linear-gradient(100deg, #C7238E, #F5A623); padding: 70px clamp(20px,5vw,70px); text-align: center; overflow: hidden">
+    <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; left: -60px; bottom: -80px; width: 360px; opacity: 0.15; filter: invert(1)">
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px, 4.6vw, 60px); color: #fff; text-transform: uppercase; text-shadow: 0 4px 24px rgba(0,0,0,0.3)">Ready to bring the tour to your people?</div>
+    <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 28px">
+      <a href="Book.dc.html" style="background: #150E13; color: #fff; font-weight: 700; font-size: 15.5px; padding: 16px 32px; border-radius: 14px" style-hover="transform: translateY(-2px); background: #000">Book the Tour</a>
+      <a href="Partners.dc.html" style="background: rgba(255,255,255,0.92); color: #C7238E; font-weight: 700; font-size: 15.5px; padding: 16px 32px; border-radius: 14px" style-hover="transform: translateY(-2px); background: #fff">Partner With Us</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 56px clamp(20px,5vw,70px) 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 36px">
+      <div>
+        <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="height: 84px">
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 17px; margin-top: 12px">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.6); font-size: 13.5px; line-height: 1.6; margin-top: 10px">Kenya's youth talent search, mentorship, and awards concert tour. Powered by PPP TV Kenya.</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+        <div style="font-weight: 700; letter-spacing: 0.1em; color: #C7238E; font-size: 12.5px">EXPLORE</div>
+        <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+        <a href="About.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">About</a>
+        <a href="Experience.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">The Experience</a>
+        <a href="Events.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Tour Stops</a>
+        <a href="Gallery.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Gallery</a>
+        <a href="Urban News.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Urban News</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+        <div style="font-weight: 700; letter-spacing: 0.1em; color: #C7238E; font-size: 12.5px">BOOK</div>
+        <a href="Book.dc.html#schools" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Schools</a>
+        <a href="Book.dc.html#campus" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Universities &amp; Colleges</a>
+        <a href="Book.dc.html#mega" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Mega Events</a>
+        <a href="Book.dc.html#brands" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Brands &amp; Sponsors</a>
+        <a href="Shop.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Merch Shop</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+        <div style="font-weight: 700; letter-spacing: 0.1em; color: #C7238E; font-size: 12.5px">CONNECT</div>
+        <a href="mailto:euginemicah@gmail.com" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">euginemicah@gmail.com</a>
+        <a href="https://wa.me/254799886247" target="_blank" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">WhatsApp · 0799 886 247</a>
+        <a href="https://instagram.com/urban_newsgang" target="_blank" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Instagram @urban_newsgang</a>
+        <a href="https://tiktok.com/@urban_newsgang" target="_blank" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">TikTok @urban_newsgang</a>
+        <a href="https://youtube.com/@urban_newsgang" target="_blank" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">YouTube @urban_newsgang</a>
+      </div>
+    </div>
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); padding: 18px clamp(20px,5vw,70px); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; max-width: 1280px; margin: 0 auto; color: rgba(255,247,252,0.45); font-size: 12.5px">
+      <span>© 2026 Urban Gang Tour. All rights reserved.</span>
+      <span>Nairobi, Kenya · Welcome to the gang 🧡💜</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tx: 0, ty: 0 };
+
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        const i = hidden.indexOf(el);
+        if (i >= 0) hidden.splice(i, 1);
+      };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => {
+          if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px 20% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.65s ease, transform 0.65s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(24px)";
+          hidden.push(el);
+          io.observe(el);
+        }
+      });
+      const sweep = () => {
+        hidden.slice().forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el);
+        });
+      };
+      window.addEventListener("scroll", sweep, { passive: true });
+      window.addEventListener("resize", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+  }
+
+  buildAnimatedLogo() {
+    const { tx, ty } = this.state;
+    const e = React.createElement;
+    const spark = (top, left, size, delay, color) => e("div", {
+      key: top + "-" + left,
+      style: {
+        position: "absolute", top, left, width: size, height: size, pointerEvents: "none",
+        background: color, clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
+        animation: "ugt-spark 2.6s ease-in-out " + delay + "s infinite"
+      }
+    });
+    return e("div", {
+      style: { position: "relative", width: "100%", perspective: "700px" }
+    }, [
+      e("div", {
+        key: "glow",
+        style: {
+          position: "absolute", inset: "-30%", borderRadius: "50%", pointerEvents: "none",
+          background: "radial-gradient(circle, rgba(199,35,142,0.55), rgba(245,166,35,0.18) 55%, transparent 72%)",
+          filter: "blur(18px)", animation: "ugt-glowpulse 3.4s ease-in-out infinite"
+        }
+      }),
+      e("div", {
+        key: "tilt",
+        style: {
+          transform: "rotateY(" + tx + "deg) rotateX(" + (-ty) + "deg)",
+          transition: "transform 0.18s ease-out", transformStyle: "preserve-3d"
+        }
+      },
+        e("div", { style: { animation: "ugt-pop 1.15s cubic-bezier(.34,1.56,.64,1)" } },
+          e("img", {
+            src: "assets/brand/logo_transparent.png", alt: "Urban Gang Tour",
+            style: { width: "100%", display: "block", animation: "ugt-bob 5s ease-in-out 1.2s infinite", filter: "drop-shadow(0 22px 44px rgba(0,0,0,0.75)) drop-shadow(0 0 26px rgba(199,35,142,0.35))" }
+          })
+        )
+      ),
+      spark("-8%", "78%", "26px", 0, "#F5A623"),
+      spark("12%", "-6%", "18px", 0.9, "#FFF7FC"),
+      spark("82%", "88%", "20px", 1.6, "#C7238E"),
+      spark("88%", "8%", "14px", 2.1, "#F5A623")
+    ]);
+  }
+
+  renderVals() {
+    return {
+      animatedLogo: this.buildAnimatedLogo(),
+      heroTilt: (ev) => {
+        const r = ev.currentTarget.getBoundingClientRect();
+        const tx = ((ev.clientX - r.left) / r.width - 0.5) * 22;
+        const ty = ((ev.clientY - r.top) / r.height - 0.5) * 16;
+        this.setState({ tx, ty });
+      },
+      heroTiltReset: () => this.setState({ tx: 0, ty: 0 }),
+      stats: [
+        { n: "8M+", label: "Potential viewers via PPP TV" },
+        { n: "5,000+", label: "Students reached live in 2026" },
+        { n: "50+", label: "Crew on the road" },
+        { n: "8", label: "Battle categories" },
+        { n: "3–5", label: "Urban Pods per stop" },
+        { n: "9", label: "Active partners" }
+      ],
+      stops: [
+        { date: "6 JUN", school: "PCEA Gituamba Girls High School", note: "Battles, runway, pods, crowning. Filmed for Urban News." },
+        { date: "1 JUN", school: "Loreto Kiambu Girls High School", note: "Full day takeover with the complete crew." },
+        { date: "30 MAY", school: "Senior Chief Koinange Girls High School", note: "Where the 2nd term run kicked off." }
+      ],
+      partners: ["PPP TV Kenya", "Vibes Studios", "Synapse Models", "The Experience Hub", "Moyo Response", "Ashton Sounds", "Delo Greens Movement", "TIBS College", "Hewitt & Bennet"]
+    };
+  }
+}
+</script>
+</body>
+</html>

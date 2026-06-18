@@ -1,34 +1,28 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
-import { RemoveLegacyBar } from "@/components/RemoveLegacyBar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
-const siteUrl = "https://ppptv-website.vercel.app";
+const siteUrl = "https://urban-gang-tour.vercel.app";
 
 export const metadata: Metadata = {
-  title: "PPP TV | Powerful • Precise • Pristine",
-  description:
-    "Kenya's first 24/7 music & entertainment channel. News, shows, hosts, artists, live streams, and campus culture.",
+  title: "Urban Gang Tour",
+  description: "Kenya's youth talent search, mentorship, and awards concert tour.",
   openGraph: {
-    title: "PPP TV | Powerful • Precise • Pristine",
-    description:
-      "Kenya's first 24/7 music & entertainment channel. News, shows, hosts, artists, live streams, and campus culture.",
+    title: "Urban Gang Tour",
+    description: "Kenya's youth talent search, mentorship, and awards concert tour.",
     url: siteUrl,
-    siteName: "PPP TV",
+    siteName: "Urban Gang Tour",
     images: [
       {
-        url: `${siteUrl}/og.png`,
+        url: `${siteUrl}/assets/brand/logo_transparent.png`,
         width: 1200,
         height: 630,
-        alt: "PPP TV",
+        alt: "Urban Gang Tour",
       },
     ],
     locale: "en_KE",
@@ -42,25 +36,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const adsenseClient = process.env.ADSENSE_CLIENT;
   return (
     <html lang="en">
-      <head>
-        {adsenseClient ? (
-          <Script
-            id="adsense-script"
-            async
-            strategy="afterInteractive"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
-            crossOrigin="anonymous"
-          />
-        ) : null}
-      </head>
-      <body className={`${spaceGrotesk.variable} antialiased bg-background text-foreground`}>
-        <Navbar />
-        <RemoveLegacyBar />
-        <main className="min-h-screen pb-12">{children}</main>
-        <Footer />
+      <body className={`${spaceGrotesk.variable} antialiased bg-[#0d0b0f] text-white`}>
+        {children}
       </body>
     </html>
   );

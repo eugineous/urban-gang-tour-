@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #150E13; }
+    * { box-sizing: border-box; }
+    a { text-decoration: none; }
+    ::selection { background: #C7238E; color: #fff; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', sans-serif; background: #150E13; color: #FFF7FC; min-height: 100vh" data-screen-label="The Gang">
+
+  <dc-import name="SiteNav" active="gang" style="position: sticky; top: 0; z-index: 100" hint-size="100%,64px"></dc-import>
+
+  <!-- HERO -->
+  <div style="position: relative; background: radial-gradient(1000px 500px at 50% -20%, rgba(199,35,142,0.45), transparent 65%), #150E13; padding: 80px clamp(24px,5vw,70px) 40px; text-align: center">
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">thirty to fifty strong, every event</div>
+    <div style="font-family: 'Anton', sans-serif; font-size: clamp(46px, 6vw, 88px); line-height: 1; text-transform: uppercase; margin-top: 10px">Meet the <span style="color: #C7238E">gang</span></div>
+    <div style="color: rgba(255,247,252,0.72); font-size: 16px; max-width: 640px; margin: 16px auto 0; line-height: 1.65">A trained crew builds, runs, and films every event. Hosts, MCs, DJs, dancers, models, medics, camera crews. These are the names that lead it.</div>
+  </div>
+
+  <!-- FOUNDERS -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 30px clamp(24px,5vw,70px)">
+    <div style="display: inline-block; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.14em; padding: 8px 20px; border-radius: 999px; transform: rotate(-1deg)">👑 FOUNDERS · EXECUTIVES · MAIN PARTNER</div>
+
+    <!-- EUGINE -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 24px; margin-top: 26px; background: rgba(255,255,255,0.03); border: 1px solid rgba(199,35,142,0.35); border-radius: 24px; padding: 26px; align-items: stretch">
+      <div style="position: relative; border-radius: 16px; overflow: hidden; min-height: 360px">
+        <img loading="lazy" src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+      </div>
+      <video onClick="{{ toggleVideo }}" poster="assets/thumbs/eugine.jpg" playsinline="true" src="assets/video/eugine.mp4" controls="controls" preload="metadata" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; border-radius: 16px; background: #000"></video>
+      <div style="padding: 10px 6px">
+        <div style="font-family: 'Anton', sans-serif; font-size: 38px; line-height: 1">EUGINE MICAH</div>
+        <div style="color: #C7238E; font-weight: 700; font-size: 14.5px; margin-top: 8px; letter-spacing: 0.04em">FOUNDER · CREATIVE DIRECTOR · LEAD HOST</div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 14.5px; line-height: 1.7; margin-top: 12px">The face and engine of the tour. TIBS College Valedictorian, Class of 2024. Co host of Urban News on PPP TV, leader of his own team, and the voice that opens every stage the tour builds.</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px">
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">🎤 Lead Host</div>
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">📺 Urban News Co Host</div>
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">👥 Team Holder</div>
+        </div>
+        <a href="https://instagram.com/eugine.micah" target="_blank" style="display: inline-block; margin-top: 16px; background: rgba(199,35,142,0.18); color: #E96CC0; font-weight: 700; font-size: 13.5px; padding: 9px 18px; border-radius: 999px" style-hover="background: #C7238E; color: #fff">@eugine.micah ↗</a>
+      </div>
+    </div>
+
+    <!-- LUCY -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 24px; margin-top: 22px; background: rgba(255,255,255,0.03); border: 1px solid rgba(245,166,35,0.35); border-radius: 24px; padding: 26px; align-items: stretch">
+      <div style="padding: 10px 6px">
+        <div style="font-family: 'Anton', sans-serif; font-size: 38px; line-height: 1">LUCY OGUNDE</div>
+        <div style="color: #F5A623; font-weight: 700; font-size: 14.5px; margin-top: 8px; letter-spacing: 0.04em">FOUNDER · CO HOST · EXECUTIVE PRODUCER</div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 14.5px; line-height: 1.7; margin-top: 12px">Co fronts every event and every Urban News episode, and leads her own team. The other half of the duo on every poster, every stage, and every broadcast.</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px">
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">🎤 Co Host</div>
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">🎬 Executive Producer</div>
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">👥 Team Holder</div>
+        </div>
+        <a href="https://instagram.com/lucyogunde" target="_blank" style="display: inline-block; margin-top: 16px; background: rgba(245,166,35,0.16); color: #F5A623; font-weight: 700; font-size: 13.5px; padding: 9px 18px; border-radius: 999px" style-hover="background: #F5A623; color: #2E1C00">@lucyogunde ↗</a>
+      </div>
+      <video onClick="{{ toggleVideo }}" poster="assets/thumbs/lucy.jpg" playsinline="true" src="assets/video/lucy.mp4" controls="controls" preload="metadata" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; border-radius: 16px; background: #000"></video>
+      <div style="position: relative; border-radius: 16px; overflow: hidden; min-height: 360px">
+        <img loading="lazy" src="assets/p/lucy_3.jpg" alt="Lucy Ogunde" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+      </div>
+    </div>
+
+    <!-- HYPE OLA : MAIN PARTNER -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 24px; margin-top: 22px; background: linear-gradient(120deg, rgba(199,35,142,0.1), rgba(245,166,35,0.1)); border: 1px solid rgba(199,35,142,0.5); border-radius: 24px; padding: 26px; align-items: stretch">
+      <div style="position: relative; border-radius: 16px; overflow: hidden; min-height: 360px">
+        <img loading="lazy" src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+      </div>
+      <video onClick="{{ toggleVideo }}" poster="assets/thumbs/hypeola.jpg" playsinline="true" src="assets/video/hypeola.mp4" controls="controls" preload="metadata" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; border-radius: 16px; background: #000"></video>
+      <div style="padding: 10px 6px">
+        <div style="display: inline-block; background: linear-gradient(100deg, #C7238E, #F5A623); color: #fff; font-family: 'Anton', sans-serif; font-size: 11.5px; letter-spacing: 0.12em; padding: 5px 13px; border-radius: 999px; transform: rotate(-1deg)">★ MAIN PARTNER</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 38px; line-height: 1; margin-top: 12px">HYPE OLA</div>
+        <div style="color: #E96CC0; font-weight: 700; font-size: 14.5px; margin-top: 8px; letter-spacing: 0.04em">MAIN PARTNER · HEAD OF ENTERTAINMENT · THE EXPERIENCE HUB</div>
+        <div style="color: rgba(255,247,252,0.75); font-size: 14.5px; line-height: 1.7; margin-top: 12px">The third pillar the whole tour leans on. Hype Ola leads The Experience Hub and holds his own team — a 30 strong energy unit with 5+ dancers per event. Wherever Eugine and Lucy take the mic, Hype Ola owns the energy that fills the room. Pivotal to every stop the tour makes.</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px">
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">🔥 Head of Entertainment</div>
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">⚡ The Experience Hub</div>
+          <div style="background: rgba(255,255,255,0.06); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600">👥 Team Holder</div>
+        </div>
+        <a href="https://instagram.com/hypeola" target="_blank" style="display: inline-block; margin-top: 16px; background: rgba(199,35,142,0.18); color: #E96CC0; font-weight: 700; font-size: 13.5px; padding: 9px 18px; border-radius: 999px" style-hover="background: #C7238E; color: #fff">@hypeola ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE STRUCTURE -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 20px">
+    <div style="display: inline-block; background: #F5A623; color: #2E1C00; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.14em; padding: 8px 20px; border-radius: 999px; transform: rotate(1deg)">🎯 THE STRUCTURE</div>
+    <div style="color: rgba(255,247,252,0.6); font-size: 13.5px; margin-top: 12px">Every title holder runs their own lane. Eugine, Lucy, and Hype Ola hold teams; everyone else holds an individual title.</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 18px; margin-top: 24px">
+      <sc-for list="{{ structure }}" as="m" hint-placeholder-count="8">
+        <div style="position: relative; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden" style-hover="border-color: #C7238E; transform: translateY(-5px)">
+          <sc-if value="{{ m.img }}" hint-placeholder-val="{{ true }}">
+            <img loading="lazy" src="{{ m.img }}" alt="{{ m.name }}" style="width: 100%; height: 210px; object-fit: cover; object-position: top; display: block">
+          </sc-if>
+          <sc-if value="{{ m.noimg }}" hint-placeholder-val="{{ false }}">
+            <div style="width: 100%; height: 210px; display: flex; align-items: center; justify-content: center; background: {{ m.bg }}; font-family: 'Anton', sans-serif; font-size: 56px; color: rgba(255,255,255,0.85)">{{ m.initials }}</div>
+          </sc-if>
+          <div style="padding: 18px 18px 20px">
+            <div style="font-family: 'Anton', sans-serif; font-size: 19px; line-height: 1.1">{{ m.name }}</div>
+            <div style="color: #F5A623; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; margin-top: 5px; text-transform: uppercase">{{ m.role }}</div>
+            <div style="color: rgba(255,247,252,0.65); font-size: 12.5px; line-height: 1.55; margin-top: 8px">{{ m.bio }}</div>
+            <sc-if value="{{ m.ig }}" hint-placeholder-val="{{ false }}">
+              <a href="{{ m.igUrl }}" target="_blank" style="display: inline-block; margin-top: 10px; color: #E96CC0; font-size: 12.5px; font-weight: 700">{{ m.ig }} ↗</a>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- ENTERTAINMENT + MODELLING + MEDIA -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 20px">
+    <div style="display: inline-block; background: #fff; color: #150E13; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.14em; padding: 8px 20px; border-radius: 999px; transform: rotate(-1deg)">🎉 ENTERTAINMENT · MODELLING · MEDIA</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 18px; margin-top: 24px">
+      <sc-for list="{{ crew }}" as="m" hint-placeholder-count="8">
+        <div style="position: relative; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden" style-hover="border-color: #F5A623; transform: translateY(-5px)">
+          <sc-if value="{{ m.img }}" hint-placeholder-val="{{ true }}">
+            <img loading="lazy" src="{{ m.img }}" alt="{{ m.name }}" style="width: 100%; height: 210px; object-fit: cover; object-position: top; display: block">
+          </sc-if>
+          <sc-if value="{{ m.noimg }}" hint-placeholder-val="{{ false }}">
+            <div style="width: 100%; height: 210px; display: flex; align-items: center; justify-content: center; background: {{ m.bg }}; font-family: 'Anton', sans-serif; font-size: 56px; color: rgba(255,255,255,0.85)">{{ m.initials }}</div>
+          </sc-if>
+          <div style="padding: 18px 18px 20px">
+            <div style="font-family: 'Anton', sans-serif; font-size: 19px; line-height: 1.1">{{ m.name }}</div>
+            <div style="color: #F5A623; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; margin-top: 5px; text-transform: uppercase">{{ m.role }}</div>
+            <div style="color: rgba(255,247,252,0.65); font-size: 12.5px; line-height: 1.55; margin-top: 8px">{{ m.bio }}</div>
+            <sc-if value="{{ m.ig }}" hint-placeholder-val="{{ false }}">
+              <a href="{{ m.igUrl }}" target="_blank" style="display: inline-block; margin-top: 10px; color: #E96CC0; font-size: 12.5px; font-weight: 700">{{ m.ig }} ↗</a>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- DANCERS & CREATIVES : video reels -->
+  <div style="background: #1B1118; border-top: 3px dashed rgba(199,35,142,0.4); padding: 60px 0; margin-top: 40px">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 0 clamp(24px,5vw,70px)">
+      <div style="display: inline-block; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.14em; padding: 8px 20px; border-radius: 999px; transform: rotate(-1deg)">🕺 DANCERS, CREATIVES &amp; THE ENERGY UNIT</div>
+      <div style="color: rgba(255,247,252,0.6); font-size: 13.5px; margin-top: 12px">Tap play. This is what the crowd sees.</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 18px; margin-top: 24px">
+        <sc-for list="{{ dancers }}" as="d" hint-placeholder-count="8">
+          <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden" style-hover="border-color: #C7238E; transform: translateY(-5px)">
+            <sc-if value="{{ d.video }}" hint-placeholder-val="{{ true }}">
+              <video onClick="{{ toggleVideo }}" poster="{{ d.poster }}" playsinline="true" src="{{ d.video }}" controls="controls" preload="metadata" style="width: 100%; height: 300px; object-fit: cover; display: block; background: #000"></video>
+            </sc-if>
+            <sc-if value="{{ d.img }}" hint-placeholder-val="{{ false }}">
+              <img src="{{ d.img }}" alt="{{ d.name }}" style="width: 100%; height: 300px; object-fit: cover; object-position: top; display: block">
+            </sc-if>
+            <div style="padding: 16px 18px 18px">
+              <div style="font-family: 'Anton', sans-serif; font-size: 18px; line-height: 1.1">{{ d.name }}</div>
+              <div style="color: #F5A623; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; margin-top: 4px; text-transform: uppercase">{{ d.role }}</div>
+              <a href="{{ d.igUrl }}" target="_blank" style="display: inline-block; margin-top: 8px; color: #E96CC0; font-size: 12.5px; font-weight: 700">{{ d.ig }} ↗</a>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARTISTS ON TOUR -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 60px clamp(24px,5vw,70px) 20px">
+    <div style="display: inline-block; background: #F5A623; color: #2E1C00; font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 0.14em; padding: 8px 20px; border-radius: 999px; transform: rotate(1deg)">🎵 ARTISTS WHO RIDE WITH THE TOUR</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 24px">
+      <sc-for list="{{ artists }}" as="a" hint-placeholder-count="3">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden" style-hover="border-color: #F5A623; transform: translateY(-5px)">
+          <video onClick="{{ toggleVideo }}" poster="{{ a.poster }}" playsinline="true" src="{{ a.video }}" controls="controls" preload="metadata" style="width: 100%; height: 320px; object-fit: cover; display: block; background: #000"></video>
+          <div style="padding: 16px 18px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap">
+            <div>
+              <div style="font-family: 'Anton', sans-serif; font-size: 19px">{{ a.name }}</div>
+              <div style="color: #F5A623; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase">{{ a.role }}</div>
+            </div>
+            <a href="{{ a.igUrl }}" target="_blank" style="color: #E96CC0; font-size: 12.5px; font-weight: 700">{{ a.ig }} ↗</a>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- RECRUITMENT -->
+  <div style="max-width: 1080px; margin: 40px auto; padding: 0 clamp(24px,5vw,70px)">
+    <div style="position: relative; border: 2px dashed rgba(245,166,35,0.6); border-radius: 22px; padding: 36px 40px; text-align: center; background: rgba(245,166,35,0.05)">
+      <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -15px; left: 50%; width: 120px; transform: translateX(-50%) rotate(-3deg); opacity: 0.9">
+      <div style="font-family: 'Anton', sans-serif; font-size: 30px; text-transform: uppercase">Want to join a future crew?</div>
+      <div style="color: rgba(255,247,252,0.7); font-size: 14.5px; margin-top: 8px">Reach out with your skill and your county. Dancers, MCs, camera operators, medics, logistics. The gang keeps growing.</div>
+      <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20join%20the%20crew!%20My%20skill%3A%20" target="_blank" style="display: inline-block; margin-top: 18px; background: #F5A623; color: #2E1C00; font-weight: 700; font-size: 14.5px; padding: 14px 28px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Join the Gang · WhatsApp</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
+        <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; font-size: 13px; flex-wrap: wrap">
+      <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+      <a href="Partners.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Partners</a>
+      <a href="Gallery.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Gallery</a>
+      <a href="https://instagram.com/urban_newsgang" target="_blank" style="color: #C7238E; font-weight: 700">@urban_newsgang</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    setTimeout(() => {
+      const root = document.querySelector("[data-screen-label]");
+      if (!root || !window.IntersectionObserver) return;
+      const hidden = [];
+      const reveal = (el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        const i = hidden.indexOf(el);
+        if (i >= 0) hidden.splice(i, 1);
+      };
+      let ioFired = false;
+      const io = new IntersectionObserver((es) => {
+        ioFired = true;
+        es.forEach((en) => {
+          if (en.isIntersecting) { reveal(en.target); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px 20% 0px" });
+      Array.from(root.children).forEach((el) => {
+        if (el.tagName !== "DIV") return;
+        if (el.getBoundingClientRect().top > window.innerHeight) {
+          el.style.transition = "opacity 0.65s ease, transform 0.65s cubic-bezier(.22,1,.36,1)";
+          el.style.opacity = "0.35";
+          el.style.transform = "translateY(24px)";
+          hidden.push(el);
+          io.observe(el);
+        }
+      });
+      const sweep = () => {
+        hidden.slice().forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 1.25) reveal(el);
+        });
+      };
+      window.addEventListener("scroll", sweep, { passive: true });
+      window.addEventListener("resize", sweep, { passive: true });
+      setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
+    }, 120);
+  }
+
+  _poster(p) {
+    if (!p) return "assets/brand/video_poster.png";
+    const n = p.split("/").pop().replace(".mp4", ".jpg");
+    if (n === "wambui.jpg" || n === "vibes_3.jpg") return "assets/brand/video_poster.png";
+    return "assets/thumbs/" + n;
+  }
+  renderVals() {
+    const vals = {
+      _thumb: 0,
+      toggleVideo: (e) => {
+        const v = e.currentTarget;
+        if (v.paused) {
+          document.querySelectorAll("video").forEach((o) => { if (o !== v) o.pause(); });
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          v.pause();
+        }
+      },
+      structure: [
+        { name: "MARK DAVINCI", role: "The Overseer · Merch & Printing", bio: "Oversees the whole machine on event day, co runs security with Fred, and heads all Urban Gang merchandise and printing.", img: "assets/p/mark_davinci.jpg", ig: false },
+        { name: "FRED (BABA HARSHNA)", role: "Stage Manager · Security", bio: "Runs the stage clock and keeps every act on cue, while co holding security with Mark.", img: "assets/p/fred_oduor.jpeg", ig: "@baba_harshna", igUrl: "https://instagram.com/baba_harshna" },
+        { name: "TAE (JUSTUS)", role: "Tree Planting & Environment", bio: "CEO of Delo Greens Movement. Leads the tree planting and environmental action at every stop.", noimg: true, initials: "TAE", bg: "linear-gradient(150deg, #2E7D32, #123A15)", ig: false },
+        { name: "KALAMU NYEUSI", role: "Branding & Visibility", bio: "Spoken word and poetry lead turned brand guardian. Makes sure the gang is seen, everywhere.", img: "assets/p/kalamu_2.jpg", ig: "@kalamunyeusi", igUrl: "https://instagram.com/kalamunyeusi" },
+        { name: "MC PAPS", role: "Urban Pods Leader", bio: "Mental Health Coach and MC. Leads the Urban Pods — 3 to 5 sessions per stop on talent, money, digital, leadership, and the mind.", img: "assets/p/mc_paps.jpg", ig: "@paps_mc", igUrl: "https://instagram.com/paps_mc" },
+        { name: "FEROOZ MKENYA", role: "Transport & Logistics", bio: "Moves the machine from county to county. Trucks, kit, crew, and the travelling merch tent.", img: "assets/p/ferooz_1.jpg", ig: "@ferooz_mkenya", igUrl: "https://instagram.com/ferooz_mkenya" },
+        { name: "PAULINE MASIKA", role: "Sound Engineer", bio: "Video and audio recording. The reason every battle sounds as big as it felt.", img: "assets/p/pauline_2.png", ig: false },
+        { name: "THE ROAMING MASCOT", role: "Crowd Mascot", bio: "The panda you cannot miss. Roams every crowd, every stop, every photo.", img: "assets/p/mascot_1.jpg", ig: "@the_roaming_mascot", igUrl: "https://instagram.com/the_roaming_mascot" }
+      ],
+      crew: [
+        { name: "MC LARRY RAJ", role: "MC & Hype Opener", bio: "First voice on the mic. Opens the day and hands the crowd over at full temperature.", noimg: true, initials: "LR", bg: "linear-gradient(150deg, #F5A623, #7A5200)", ig: "@mc_larryraj", igUrl: "https://instagram.com/mc_larryraj" },
+        { name: "DJ XAVI", role: "DJ", bio: "Holds the decks across battles, runway, and hype sets. The heartbeat of the day.", img: "assets/p/dj_xavi.jpg", ig: false },
+        { name: "DJ CARIAN", role: "DJ", bio: "Second pair of hands on the decks. Keeps the transitions seamless from first bell to crowning.", img: "assets/p/dj_carian.jpg", ig: false },
+        { name: "DJ JAYJEY", role: "DJ", bio: "Rounds out the DJ unit — battles, runway walks, and hype sets all get their own sound.", img: "assets/p/dj_jayjey.jpg", ig: false },
+        { name: "ESTHER GAKUNJU", role: "Head of Modelling & Pageantry", bio: "Leads Synapse Models. Directs the runway and the Mrs/Miss of the Institution pageant.", img: "assets/p/wambui_2.jpg", ig: "@wambui_gakunju", igUrl: "https://instagram.com/wambui_gakunju" },
+        { name: "MC DINJO", role: "Official Videographer · The Experience Hub", bio: "Rolls with Hype Ola's Experience Hub unit and captures every event as the tour's official videographer.", img: "assets/pt/vibes_2.jpg", ig: false },
+        { name: "GEORGE MORGAN", role: "Cameraman · PPP TV", bio: "PPP TV camera crew. Frames the broadcast feed that ends up on national screens.", img: "assets/p/george_morgan.jpg", ig: false },
+        { name: "TONY LALLEZ", role: "Cameraman · PPP TV", bio: "PPP TV camera crew. Second angle on every battle, every crowning, every eruption.", img: "assets/p/tony_lallez.jpg", ig: false },
+        { name: "CAPTAIN DIA", role: "Creative & Performer", bio: "Part of the creative core that keeps the gang's look and energy unmistakable.", img: "assets/p/captain_dia_1.jpg", ig: "@_captain_dia", igUrl: "https://instagram.com/_captain_dia" }
+      ],
+      dancers: [
+        { name: "KHLOE NYARANGI", role: "Dance Crew Lead", video: "assets/video/nyarangi.mp4", ig: "@its_n.y.a.r.a.n.g.i", igUrl: "https://instagram.com/its_n.y.a.r.a.n.g.i" },
+        { name: "JEFF", role: "Dancer", video: "assets/video/jeff.mp4", ig: "@jeffdancerke", igUrl: "https://instagram.com/jeffdancerke" },
+        { name: "DROP JUNIOR", role: "Dancer & Creative", video: "assets/video/dropjunior.mp4", ig: "@drop__junior", igUrl: "https://instagram.com/drop__junior" },
+        { name: "MERCIE SMALLS", role: "Dancer · Experience Hub", video: "assets/video/mercie.mp4", ig: "@mercie_smalls", igUrl: "https://instagram.com/mercie_smalls" },
+        { name: "MC PAPS", role: "Pods Leader · On the Mic", video: "assets/video/paps.mp4", ig: "@paps_mc", igUrl: "https://instagram.com/paps_mc" },
+        { name: "MC LARRY RAJ", role: "Hype Opener · Live", video: "assets/video/larryraj.mp4", ig: "@mc_larryraj", igUrl: "https://instagram.com/mc_larryraj" },
+        { name: "HYPE OLA", role: "Head of Entertainment · Live", video: "assets/video/hypeola.mp4", ig: "@hypeola", igUrl: "https://instagram.com/hypeola" },
+        { name: "KAREMBO EILAHD", role: "Dancer & Performer", video: "assets/video/karembo.mp4", ig: "@karembo_eilahd", igUrl: "https://instagram.com/karembo_eilahd" },
+        { name: "RANIA MARTIN", role: "Creative & Performer", img: "assets/p/rania.jpg", ig: false },
+        { name: "GIG REAL", role: "Creative & Performer", img: "assets/p/gigreal.jpg", ig: false }
+      ],
+      artists: [
+        { name: "STARICON", role: "Performing Artist", video: "assets/video/staricon.mp4", ig: "@staricon_official", igUrl: "https://instagram.com/staricon_official" },
+        { name: "OLEMOJO", role: "Performing Artist", video: "assets/video/olemojo.mp4", ig: "@olemojo__", igUrl: "https://instagram.com/olemojo__" },
+        { name: "MUGA", role: "Performing Artist", video: "assets/video/muga.mp4", ig: "@88.muga", igUrl: "https://instagram.com/88.muga" },
+        { name: "KING IBRA", role: "Performing Artist", video: "assets/video/kingibra.mp4", ig: "@king_ibra_official", igUrl: "https://instagram.com/king_ibra_official" },
+        { name: "STARICON · ENCORE", role: "Second Set", video: "assets/video/staricon_2.mp4", ig: "@staricon_official", igUrl: "https://instagram.com/staricon_official" },
+        { name: "OLEMOJO · ENCORE", role: "Second Set", video: "assets/video/olemojo_2.mp4", ig: "@olemojo__", igUrl: "https://instagram.com/olemojo__" }
+      ]
+    };
+    vals.dancers = vals.dancers.map((d) => ({ ...d, poster: this._poster(d.video) }));
+    vals.artists = vals.artists.map((a) => ({ ...a, poster: this._poster(a.video) }));
+    return vals;
+  }
+}
+</script>
+</body>
+</html>
