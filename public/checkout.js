@@ -35,6 +35,7 @@
         ev.preventDefault();
         setState(function (p) { return Object.assign({}, p, { step: "creating", error: "" }); });
         var createdOrderId = null;
+        var createdTotalKes = null;
         fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -53,6 +54,7 @@
               throw new Error(res.data.error || "Something went wrong, try again");
             }
             createdOrderId = res.data.orderId;
+            createdTotalKes = res.data.totalKes;
             setState(function (p) { return Object.assign({}, p, { step: "paying", orderId: res.data.orderId, totalKes: res.data.totalKes }); });
             return fetch("/api/mpesa/stkpush", {
               method: "POST",
@@ -72,6 +74,20 @@
                 .then(function (order) {
                   if (order.status === "paid") {
                     clearInterval(pollRef.current);
+                    if (window.gtag) {
+                      window.gtag("event", "purchase", {
+                        transaction_id: createdOrderId,
+                        value: createdTotalKes,
+                        currency: "KES",
+                        items: [{
+                          item_id: props.item.itemKey,
+                          item_name: props.item.name,
+                          item_category: props.item.kind,
+                          item_variant: props.item.variant || undefined,
+                          quantity: props.item.qty || 1,
+                        }],
+                      });
+                    }
                     setState(function (p) { return Object.assign({}, p, { step: "paid" }); });
                   } else if (order.status === "failed" || attempts > 40) {
                     clearInterval(pollRef.current);
