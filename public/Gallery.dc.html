@@ -29,7 +29,8 @@
 
   <!-- HERO -->
   <div style="position: relative; background: radial-gradient(900px 500px at 50% -20%, rgba(199,35,142,0.4), transparent 65%), #150E13; padding: 70px clamp(24px,5vw,70px) 30px; text-align: center">
-    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">shot by Vibes Studios &amp; Urban Gang Tour crews</div>
+    <div style="display: inline-flex; background: #150E13; border-radius: 999px; padding: 9px 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transform: rotate(-1deg)"><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; margin-right: 6px; color: #F5A623">CAUGHT</span><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; color: #fff">LIVE</span></div>
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg); margin-top: 10px">shot by Vibes Studios &amp; Urban Gang Tour crews</div>
     <div style="font-family: 'Anton', sans-serif; font-size: clamp(44px, 5.6vw, 80px); line-height: 1; text-transform: uppercase; margin-top: 10px">The <span style="color: #C7238E">gallery</span></div>
     <div style="margin-top: 28px">
       <div style="font-family: 'Permanent Marker', cursive; color: rgba(245,166,35,0.85); font-size: 15px; transform: rotate(-1deg)">by moment ↓</div>
@@ -52,7 +53,7 @@
     <div style="columns: 280px; column-gap: 14px">
       <sc-for list="{{ photos }}" as="p" hint-placeholder-count="12">
         <div onClick="{{ p.onClick }}" style="cursor: zoom-in; break-inside: avoid; margin-bottom: 14px; position: relative; border-radius: 14px; overflow: hidden; background: #1D1218" style-hover="transform: scale(1.015)">
-          <img loading="lazy" src="{{ p.src }}" alt="{{ p.cap }}" style="width: 100%; display: block">
+          <img loading="lazy" src="{{ p.src }}" alt="{{ p.cap }}" style="background:#1B1118;width: 100%; display: block">
           <div style="position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(21,14,19,0.9)); padding: 26px 14px 10px; font-size: 12px; font-weight: 600; color: rgba(255,247,252,0.9)">{{ p.cap }}</div>
         </div>
       </sc-for>
@@ -82,7 +83,7 @@
   <!-- LIGHTBOX -->
   <sc-if value="{{ lightboxOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeLightbox }}" style="position: fixed; inset: 0; z-index: 100; background: rgba(10,5,8,0.93); display: flex; align-items: center; justify-content: center; padding: 40px; cursor: zoom-out">
-      <img src="{{ lightboxSrc }}" alt="" style="max-width: 92%; max-height: 88vh; border-radius: 10px; box-shadow: 0 40px 120px rgba(0,0,0,0.8)">
+      <img src="{{ lightboxSrc }}" alt="" style="background:#1B1118;max-width: 92%; max-height: 88vh; border-radius: 10px; box-shadow: 0 40px 120px rgba(0,0,0,0.8)">
       <div style="position: absolute; bottom: 26px; left: 0; right: 0; text-align: center; color: rgba(255,247,252,0.85); font-size: 14px; font-weight: 600">{{ lightboxCap }}</div>
       <div onClick="{{ prevImage }}" style="position: absolute; left: 22px; top: 50%; transform: translateY(-50%); cursor: pointer; background: rgba(199,35,142,0.85); color: #fff; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px" style-hover="background: #C7238E">‹</div>
       <div onClick="{{ nextImage }}" style="position: absolute; right: 22px; top: 50%; transform: translateY(-50%); cursor: pointer; background: rgba(199,35,142,0.85); color: #fff; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px" style-hover="background: #C7238E">›</div>
@@ -93,7 +94,7 @@
   <!-- FOOTER -->
   <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
     <div style="display: flex; align-items: center; gap: 14px">
-      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="background:#1B1118;height: 50px">
       <div>
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
         <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>

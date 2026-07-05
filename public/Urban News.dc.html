@@ -46,17 +46,17 @@
         <div style="position: relative; border-radius: 20px; overflow: hidden; border: 3px solid rgba(230,30,140,0.6); box-shadow: 0 30px 80px rgba(0,0,0,0.6); background: #000">
           <video onClick="{{ toggleVideo }}" poster="assets/thumbs/recap_1.jpg" playsinline="true" src="assets/video/recap_1.mp4" controls="controls" preload="metadata" style="width: 100%; display: block; max-height: 460px; object-fit: cover; background: #000"></video>
           <div style="position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #FF6B6B">● REC</div>
-          <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="position: absolute; bottom: 14px; right: 14px; height: 40px">
+          <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="background:#1B1118;position: absolute; bottom: 14px; right: 14px; height: 40px">
         </div>
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 16px; margin-top: 12px; text-align: center; transform: rotate(-1deg)">latest from the road ↑</div>
         <div style="margin-top: 20px">
           <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,247,252,0.5); text-transform: uppercase">On the couch this season</div>
           <div style="display: flex; gap: 8px; margin-top: 10px">
-            <img loading="lazy" src="assets/news/albums/bobby/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
-            <img loading="lazy" src="assets/news/albums/hype/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 16%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
-            <img loading="lazy" src="assets/news/albums/moraa/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
-            <img loading="lazy" src="assets/news/albums/kalamu/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 14%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
-            <img loading="lazy" src="assets/news/albums/tamre/1.jpg" alt="" style="flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 16%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/bobby/1.jpg" alt="" style="background:#1B1118;flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/hype/1.jpg" alt="" style="background:#1B1118;flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 16%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/moraa/1.jpg" alt="" style="background:#1B1118;flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/kalamu/1.jpg" alt="" style="background:#1B1118;flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 14%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
+            <img loading="lazy" src="assets/news/albums/tamre/1.jpg" alt="" style="background:#1B1118;flex: 1; min-width: 0; aspect-ratio: 1; object-fit: cover; object-position: center 16%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14)">
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 30px">
       <sc-for list="{{ people }}" as="a" hint-placeholder-count="7">
         <div onClick="{{ a.open }}" style="cursor: pointer; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4; border: 1px solid rgba(255,255,255,0.12); background: #1B1118" style-hover="border-color: #C7238E; transform: translateY(-5px)">
-          <img loading="lazy" src="{{ a.cover }}" alt="{{ a.name }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ a.pos }}">
+          <img loading="lazy" src="{{ a.cover }}" alt="{{ a.name }}" style="background:#1B1118;position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ a.pos }}">
           <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,5,8,0.95) 0%, rgba(10,5,8,0.15) 46%, transparent 74%)"></div>
           <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.55); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; padding: 4px 10px; border-radius: 999px">📷 {{ a.count }}</div>
           <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 16px 18px">
@@ -91,7 +91,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 18px; margin-top: 18px">
       <sc-for list="{{ sessions }}" as="a" hint-placeholder-count="2">
         <div onClick="{{ a.open }}" style="cursor: pointer; position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 16/10; border: 1px solid rgba(255,255,255,0.12); background: #1B1118" style-hover="border-color: #F5A623; transform: translateY(-5px)">
-          <img loading="lazy" src="{{ a.cover }}" alt="{{ a.name }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ a.pos }}">
+          <img loading="lazy" src="{{ a.cover }}" alt="{{ a.name }}" style="background:#1B1118;position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: {{ a.pos }}">
           <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,5,8,0.92) 4%, rgba(10,5,8,0.1) 60%, transparent 82%)"></div>
           <div style="position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.55); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 999px">📷 {{ a.count }}</div>
           <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px 20px">
@@ -124,7 +124,7 @@
   <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 20px">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px">
       <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: rgba(199,35,142,0.08); border: 1px solid rgba(199,35,142,0.4); border-radius: 22px; padding: 26px 30px">
-        <img src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="width: 110px; height: 110px; object-fit: cover; border-radius: 50%; border: 4px solid #C7238E">
+        <img src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="background:#1B1118;width: 110px; height: 110px; object-fit: cover; border-radius: 50%; border: 4px solid #C7238E">
         <div>
           <div style="font-family: 'Anton', sans-serif; font-size: 24px">EUGINE MICAH</div>
           <div style="color: #E96CC0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em">CO HOST · CREATIVE DIRECTOR</div>
@@ -132,7 +132,7 @@
         </div>
       </div>
       <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.4); border-radius: 22px; padding: 26px 30px">
-        <img src="assets/p/lucy_2.jpg" alt="Lucy Ogunde" style="width: 110px; height: 110px; object-fit: cover; object-position: top; border-radius: 50%; border: 4px solid #F5A623">
+        <img src="assets/p/lucy_portrait.jpg" alt="Lucy Ogunde" style="background:#1B1118;width: 110px; height: 110px; object-fit: cover; object-position: top; border-radius: 50%; border: 4px solid #F5A623">
         <div>
           <div style="font-family: 'Anton', sans-serif; font-size: 24px">LUCY OGUNDE</div>
           <div style="color: #F5A623; font-size: 13px; font-weight: 700; letter-spacing: 0.06em">CO HOST · EXECUTIVE PRODUCER</div>
@@ -140,7 +140,7 @@
         </div>
       </div>
       <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: linear-gradient(120deg, rgba(199,35,142,0.1), rgba(245,166,35,0.1)); border: 1px solid rgba(199,35,142,0.45); border-radius: 22px; padding: 26px 30px">
-        <img src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="width: 110px; height: 110px; object-fit: cover; border-radius: 50%; border: 4px solid #C7238E">
+        <img src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="background:#1B1118;width: 110px; height: 110px; object-fit: cover; border-radius: 50%; border: 4px solid #C7238E">
         <div>
           <div style="display: inline-block; background: linear-gradient(100deg, #C7238E, #F5A623); color: #fff; font-family: 'Anton', sans-serif; font-size: 10.5px; letter-spacing: 0.12em; padding: 4px 11px; border-radius: 999px">★ MAIN PARTNER</div>
           <div style="font-family: 'Anton', sans-serif; font-size: 24px; margin-top: 7px">HYPE OLA</div>
@@ -159,7 +159,7 @@
     </div>
     <div style="column-width: 250px; column-gap: 14px; margin-top: 26px">
       <sc-for list="{{ gallery }}" as="src" hint-placeholder-count="9">
-        <img loading="lazy" src="{{ src }}" alt="Urban News studio" style="width: 100%; margin: 0 0 14px; border-radius: 14px; display: block; break-inside: avoid; border: 1px solid rgba(255,255,255,0.1)">
+        <img loading="lazy" src="{{ src }}" alt="Urban News studio" style="background:#1B1118;width: 100%; margin: 0 0 14px; border-radius: 14px; display: block; break-inside: avoid; border: 1px solid rgba(255,255,255,0.1)">
       </sc-for>
     </div>
   </div>
@@ -204,14 +204,14 @@
       <div onClick="{{ stop }}" style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 12px; max-width: 1100px; width: 100%; margin: 16px auto 0">
         <div onClick="{{ prev }}" style="cursor: pointer; width: 46px; height: 46px; flex: none; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1" style-hover="background: #C7238E">‹</div>
         <sc-if value="{{ activeImg }}" hint-placeholder-val="{{ false }}">
-          <img loading="lazy" src="{{ activeImg }}" alt="{{ activeName }}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.6)">
+          <img loading="lazy" src="{{ activeImg }}" alt="{{ activeName }}" style="background:#1B1118;max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.6)">
         </sc-if>
         <div onClick="{{ next }}" style="cursor: pointer; width: 46px; height: 46px; flex: none; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1" style-hover="background: #C7238E">›</div>
       </div>
       <div onClick="{{ stop }}" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 1100px; width: 100%; margin: 16px auto 0">
         <sc-for list="{{ activeThumbs }}" as="t" hint-placeholder-count="0">
           <div onClick="{{ t.go }}" style="cursor: pointer; width: 58px; height: 58px; border-radius: 9px; overflow: hidden; border: 2px solid {{ t.border }}; opacity: {{ t.op }}">
-            <img loading="lazy" src="{{ t.src }}" alt="" style="width: 100%; height: 100%; object-fit: cover">
+            <img loading="lazy" src="{{ t.src }}" alt="" style="background:#1B1118;width: 100%; height: 100%; object-fit: cover">
           </div>
         </sc-for>
       </div>
@@ -221,7 +221,7 @@
   <!-- FOOTER -->
   <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
     <div style="display: flex; align-items: center; gap: 14px">
-      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="background:#1B1118;height: 50px">
       <div>
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
         <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>

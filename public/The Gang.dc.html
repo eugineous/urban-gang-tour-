@@ -29,7 +29,8 @@
 
   <!-- HERO -->
   <div style="position: relative; background: radial-gradient(1000px 500px at 50% -20%, rgba(199,35,142,0.45), transparent 65%), #150E13; padding: 80px clamp(24px,5vw,70px) 40px; text-align: center">
-    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">thirty to fifty strong, every event</div>
+    <div style="display: inline-flex; background: #150E13; border-radius: 999px; padding: 9px 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transform: rotate(-1deg)"><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; margin-right: 6px; color: #F5A623">MEET THE</span><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; color: #fff">CREW</span></div>
+    <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg); margin-top: 10px">thirty to fifty strong, every event</div>
     <div style="font-family: 'Anton', sans-serif; font-size: clamp(46px, 6vw, 88px); line-height: 1; text-transform: uppercase; margin-top: 10px">Meet the <span style="color: #C7238E">gang</span></div>
     <div style="color: rgba(255,247,252,0.72); font-size: 16px; max-width: 640px; margin: 16px auto 0; line-height: 1.65">A trained crew builds, runs, and films every event. Hosts, MCs, DJs, dancers, models, medics, camera crews. These are the names that lead it.</div>
   </div>
@@ -41,7 +42,7 @@
     <!-- EUGINE -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 24px; margin-top: 26px; background: rgba(255,255,255,0.03); border: 1px solid rgba(199,35,142,0.35); border-radius: 24px; padding: 26px; align-items: stretch">
       <div style="position: relative; border-radius: 16px; overflow: hidden; min-height: 360px">
-        <img loading="lazy" src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+        <img loading="lazy" src="assets/p/eugine_4.jpg" alt="Eugine Micah" style="background:#1B1118;position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
       </div>
       <video onClick="{{ toggleVideo }}" poster="assets/thumbs/eugine.jpg" playsinline="true" src="assets/video/eugine.mp4" controls="controls" preload="metadata" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; border-radius: 16px; background: #000"></video>
       <div style="padding: 10px 6px">
@@ -72,14 +73,14 @@
       </div>
       <video onClick="{{ toggleVideo }}" poster="assets/thumbs/lucy.jpg" playsinline="true" src="assets/video/lucy.mp4" controls="controls" preload="metadata" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; border-radius: 16px; background: #000"></video>
       <div style="position: relative; border-radius: 16px; overflow: hidden; min-height: 360px">
-        <img loading="lazy" src="assets/p/lucy_3.jpg" alt="Lucy Ogunde" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+        <img loading="lazy" src="assets/p/lucy_portrait.jpg" alt="Lucy Ogunde" style="background:#1B1118;position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
       </div>
     </div>
 
     <!-- HYPE OLA : MAIN PARTNER -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 24px; margin-top: 22px; background: linear-gradient(120deg, rgba(199,35,142,0.1), rgba(245,166,35,0.1)); border: 1px solid rgba(199,35,142,0.5); border-radius: 24px; padding: 26px; align-items: stretch">
       <div style="position: relative; border-radius: 16px; overflow: hidden; min-height: 360px">
-        <img loading="lazy" src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+        <img loading="lazy" src="assets/p/hype_ola_2.jpg" alt="Hype Ola" style="background:#1B1118;position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
       </div>
       <video onClick="{{ toggleVideo }}" poster="assets/thumbs/hypeola.jpg" playsinline="true" src="assets/video/hypeola.mp4" controls="controls" preload="metadata" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; border-radius: 16px; background: #000"></video>
       <div style="padding: 10px 6px">
@@ -105,7 +106,7 @@
       <sc-for list="{{ structure }}" as="m" hint-placeholder-count="8">
         <div style="position: relative; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden" style-hover="border-color: #C7238E; transform: translateY(-5px)">
           <sc-if value="{{ m.img }}" hint-placeholder-val="{{ true }}">
-            <img loading="lazy" src="{{ m.img }}" alt="{{ m.name }}" style="width: 100%; height: 210px; object-fit: cover; object-position: top; display: block">
+            <img loading="lazy" src="{{ m.img }}" alt="{{ m.name }}" style="background:#1B1118;width: 100%; height: 210px; object-fit: cover; object-position: top; display: block">
           </sc-if>
           <sc-if value="{{ m.noimg }}" hint-placeholder-val="{{ false }}">
             <div style="width: 100%; height: 210px; display: flex; align-items: center; justify-content: center; background: {{ m.bg }}; font-family: 'Anton', sans-serif; font-size: 56px; color: rgba(255,255,255,0.85)">{{ m.initials }}</div>
@@ -130,7 +131,7 @@
       <sc-for list="{{ crew }}" as="m" hint-placeholder-count="8">
         <div style="position: relative; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; overflow: hidden" style-hover="border-color: #F5A623; transform: translateY(-5px)">
           <sc-if value="{{ m.img }}" hint-placeholder-val="{{ true }}">
-            <img loading="lazy" src="{{ m.img }}" alt="{{ m.name }}" style="width: 100%; height: 210px; object-fit: cover; object-position: top; display: block">
+            <img loading="lazy" src="{{ m.img }}" alt="{{ m.name }}" style="background:#1B1118;width: 100%; height: 210px; object-fit: cover; object-position: top; display: block">
           </sc-if>
           <sc-if value="{{ m.noimg }}" hint-placeholder-val="{{ false }}">
             <div style="width: 100%; height: 210px; display: flex; align-items: center; justify-content: center; background: {{ m.bg }}; font-family: 'Anton', sans-serif; font-size: 56px; color: rgba(255,255,255,0.85)">{{ m.initials }}</div>
@@ -160,7 +161,7 @@
               <video onClick="{{ toggleVideo }}" poster="{{ d.poster }}" playsinline="true" src="{{ d.video }}" controls="controls" preload="metadata" style="width: 100%; height: 300px; object-fit: cover; display: block; background: #000"></video>
             </sc-if>
             <sc-if value="{{ d.img }}" hint-placeholder-val="{{ false }}">
-              <img src="{{ d.img }}" alt="{{ d.name }}" style="width: 100%; height: 300px; object-fit: cover; object-position: top; display: block">
+              <img src="{{ d.img }}" alt="{{ d.name }}" style="background:#1B1118;width: 100%; height: 300px; object-fit: cover; object-position: top; display: block">
             </sc-if>
             <div style="padding: 16px 18px 18px">
               <div style="font-family: 'Anton', sans-serif; font-size: 18px; line-height: 1.1">{{ d.name }}</div>
@@ -195,7 +196,7 @@
   <!-- RECRUITMENT -->
   <div style="max-width: 1080px; margin: 40px auto; padding: 0 clamp(24px,5vw,70px)">
     <div style="position: relative; border: 2px dashed rgba(245,166,35,0.6); border-radius: 22px; padding: 36px 40px; text-align: center; background: rgba(245,166,35,0.05)">
-      <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -15px; left: 50%; width: 120px; transform: translateX(-50%) rotate(-3deg); opacity: 0.9">
+      <img src="assets/brand/tape.png" alt="" style="background:#1B1118;position: absolute; top: -15px; left: 50%; width: 120px; transform: translateX(-50%) rotate(-3deg); opacity: 0.9">
       <div style="font-family: 'Anton', sans-serif; font-size: 30px; text-transform: uppercase">Want to join a future crew?</div>
       <div style="color: rgba(255,247,252,0.7); font-size: 14.5px; margin-top: 8px">Reach out with your skill and your county. Dancers, MCs, camera operators, medics, logistics. The gang keeps growing.</div>
       <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20join%20the%20crew!%20My%20skill%3A%20" target="_blank" style="display: inline-block; margin-top: 18px; background: #F5A623; color: #2E1C00; font-weight: 700; font-size: 14.5px; padding: 14px 28px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Join the Gang · WhatsApp</a>
@@ -205,7 +206,7 @@
   <!-- FOOTER -->
   <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
     <div style="display: flex; align-items: center; gap: 14px">
-      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="background:#1B1118;height: 50px">
       <div>
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
         <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>

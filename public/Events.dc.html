@@ -32,7 +32,8 @@
     <div style="position: absolute; top: 0; bottom: 0; left: 30px; border-left: 3px dashed rgba(255,255,255,0.16)"></div>
     <div style="max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 50px; align-items: center">
       <div>
-        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">the tour calendar</div>
+        <div style="display: inline-flex; background: #150E13; border-radius: 999px; padding: 9px 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transform: rotate(-1deg)"><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; margin-right: 6px; color: #F5A623">2ND TERM</span><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; color: #fff">CALENDAR</span></div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg); margin-top: 10px">the tour calendar</div>
         <div style="font-family: 'Anton', sans-serif; font-size: clamp(44px, 5.6vw, 80px); line-height: 1; text-transform: uppercase; margin-top: 10px">Where the tour has been.<br><span style="color: #C7238E">Where it is going.</span></div>
         <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px">
           <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20book%20the%20tour." target="_blank" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 14px; box-shadow: 0 12px 30px rgba(199,35,142,0.4)" style-hover="background: #E12FA3; transform: translateY(-2px)">Bookings Open · 0799 886 247</a>
@@ -41,11 +42,11 @@
       </div>
       <div style="position: relative; display: flex; justify-content: center">
         <div style="position: relative; background: #FFF7FC; padding: 12px 12px 16px; transform: rotate(3deg); border-radius: 6px; box-shadow: 0 24px 70px rgba(0,0,0,0.6); max-width: 320px">
-          <img src="assets/brand/poster_calendar.png" alt="2nd Term Calendar poster" style="width: 100%; display: block; border-radius: 3px">
-          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -15px; left: 50%; width: 120px; transform: translateX(-50%) rotate(-4deg); opacity: 0.92">
+          <img src="assets/brand/poster_calendar.png" alt="2nd Term Calendar poster" style="background:#1B1118;width: 100%; display: block; border-radius: 3px">
+          <img src="assets/brand/tape.png" alt="" style="background:#1B1118;position: absolute; top: -15px; left: 50%; width: 120px; transform: translateX(-50%) rotate(-4deg); opacity: 0.92">
           <div style="font-family: 'Permanent Marker', cursive; color: #1A1A1A; font-size: 13px; margin-top: 8px; text-align: center">the 2nd term drop · (4th July stop since called off)</div>
         </div>
-        <img src="assets/brand/arrow_curved.png" alt="" style="position: absolute; bottom: -10px; left: -30px; width: 120px; filter: invert(1); opacity: 0.75; transform: rotate(40deg)">
+        <img src="assets/brand/arrow_curved.png" alt="" style="background:#1B1118;position: absolute; bottom: -10px; left: -30px; width: 120px; filter: invert(1); opacity: 0.75; transform: rotate(40deg)">
       </div>
     </div>
   </div>
@@ -53,7 +54,7 @@
   <!-- NEXT CONFIRMED STOP (top) -->
   <div style="max-width: 1280px; margin: 0 auto; padding: 50px clamp(24px,5vw,70px) 12px">
     <div style="position: relative; overflow: hidden; border-radius: 24px; background: linear-gradient(120deg, #C7238E, #9A1B6E); padding: 38px 42px">
-      <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
+      <img src="assets/brand/brush_zigzag.png" alt="" style="background:#1B1118;position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
       <div style="position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 28px; align-items: center">
         <div>
           <div style="display: inline-block; background: #150E13; color: #8FE89A; font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.14em; padding: 7px 16px; border-radius: 999px">★ NEXT CONFIRMED STOP</div>
@@ -116,7 +117,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 16px; margin-top: 26px">
       <sc-for list="{{ upcoming }}" as="u" hint-placeholder-count="3">
         <div style="position: relative; background: rgba(245,166,35,0.06); border: 2px dashed {{ u.border }}; border-radius: 18px; padding: 26px 22px" style-hover="transform: translateY(-4px)">
-          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; right: 22px; width: 90px; transform: rotate(5deg); opacity: 0.85">
+          <img src="assets/brand/tape.png" alt="" style="background:#1B1118;position: absolute; top: -14px; right: 22px; width: 90px; transform: rotate(5deg); opacity: 0.85">
           <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 15px">{{ u.tag }}</div>
           <div style="font-family: 'Anton', sans-serif; font-size: 21px; margin-top: 8px; line-height: 1.15">{{ u.name }}</div>
           <div style="color: rgba(255,247,252,0.65); font-size: 13.5px; margin-top: 8px">{{ u.where }}</div>
@@ -130,7 +131,7 @@
   <!-- TICKETS / RSVP -->
   <div style="max-width: 1080px; margin: 30px auto; padding: 0 clamp(24px,5vw,70px)">
     <div style="position: relative; background: linear-gradient(120deg, #C7238E, #9A1B6E); border-radius: 24px; padding: 40px 44px; overflow: hidden">
-      <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
+      <img src="assets/brand/brush_zigzag.png" alt="" style="background:#1B1118;position: absolute; right: -50px; top: -40px; width: 280px; opacity: 0.16; filter: invert(1)">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 30px; align-items: center">
         <div>
           <div style="font-family: 'Anton', sans-serif; font-size: 30px; text-transform: uppercase; color: #fff">🎟️ Tickets &amp; RSVP</div>
@@ -153,7 +154,7 @@
   <!-- FOOTER -->
   <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
     <div style="display: flex; align-items: center; gap: 14px">
-      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="height: 50px">
+      <img src="assets/brand/logo.png" alt="Urban Gang Tour" style="background:#1B1118;height: 50px">
       <div>
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
         <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>

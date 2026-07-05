@@ -37,8 +37,8 @@
       </div>
       <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px,4.6vw,58px); line-height: 1.05; text-transform: uppercase; margin-top: 16px">{{ article.title }}</div>
       <div style="position: relative; margin-top: 28px">
-        <img src="{{ article.img }}" alt="" style="width: 100%; max-height: 460px; object-fit: cover; border-radius: 18px; display: block">
-        <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; left: 40px; width: 110px; transform: rotate(-4deg); opacity: 0.9">
+        <img src="{{ article.img }}" alt="" style="background:#1B1118;width: 100%; max-height: 460px; object-fit: cover; border-radius: 18px; display: block">
+        <img src="assets/brand/tape.png" alt="" style="background:#1B1118;position: absolute; top: -14px; left: 40px; width: 110px; transform: rotate(-4deg); opacity: 0.9">
       </div>
       <sc-for list="{{ article.paras }}" as="p" hint-placeholder-count="5">
         <div style="color: rgba(255,247,252,0.82); font-size: 16.5px; line-height: 1.85; margin-top: 22px">{{ p }}</div>
@@ -46,7 +46,7 @@
       <div style="margin-top: 30px; border-left: 5px solid #F5A623; background: rgba(245,166,35,0.07); border-radius: 0 16px 16px 0; padding: 22px 26px; font-family: 'Permanent Marker', cursive; font-size: 21px; color: #FFE9C7; line-height: 1.5">{{ article.quote }}</div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 30px">
         <sc-for list="{{ article.strip }}" as="s" hint-placeholder-count="3">
-          <img src="{{ s }}" alt="" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; display: block">
+          <img src="{{ s }}" alt="" style="background:#1B1118;width: 100%; height: 180px; object-fit: cover; border-radius: 12px; display: block">
         </sc-for>
       </div>
       <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px">
@@ -61,7 +61,8 @@
     <div>
       <!-- HERO -->
       <div style="position: relative; background: radial-gradient(900px 500px at 50% -20%, rgba(199,35,142,0.42), transparent 65%), #150E13; padding: 70px clamp(24px,5vw,70px) 20px; text-align: center">
-        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg)">stories from the road</div>
+        <div style="display: inline-flex; background: #150E13; border-radius: 999px; padding: 9px 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transform: rotate(-1deg)"><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; margin-right: 6px; color: #F5A623">FROM THE</span><span style="font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.05em; color: #fff">ROAD</span></div>
+        <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 22px; transform: rotate(-1.5deg); margin-top: 10px">stories from the road</div>
         <div style="font-family: 'Anton', sans-serif; font-size: clamp(44px, 5.6vw, 80px); line-height: 1; text-transform: uppercase; margin-top: 10px">The <span style="color: #C7238E">blog</span></div>
         <div style="color: rgba(255,247,252,0.72); font-size: 15.5px; max-width: 560px; margin: 14px auto 0; line-height: 1.65">Every stop has a story. We write them down so the country can keep up.</div>
       </div>
@@ -70,7 +71,7 @@
       <div style="max-width: 1280px; margin: 0 auto; padding: 40px clamp(24px,5vw,70px) 10px">
         <div onClick="{{ openFeatured }}" style="cursor: pointer; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); border-radius: 26px; overflow: hidden; border: 1px solid rgba(199,35,142,0.4); background: #1B0F18" style-hover="border-color: #C7238E; transform: translateY(-4px)">
           <div style="position: relative; min-height: 380px">
-            <img src="{{ featured.img }}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+            <img src="{{ featured.img }}" alt="" style="background:#1B1118;position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
             <div style="position: absolute; top: 18px; left: 18px; background: #F5A623; color: #2E1C00; font-family: 'Anton', sans-serif; font-size: 13px; letter-spacing: 0.12em; padding: 7px 16px; border-radius: 999px; transform: rotate(-2deg)">★ LATEST STORY</div>
           </div>
           <div style="padding: 44px 44px 40px">
@@ -87,7 +88,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 22px">
           <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
             <div onClick="{{ c.onClick }}" style="cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; overflow: hidden" style-hover="border-color: #C7238E; transform: translateY(-5px)">
-              <img loading="lazy" src="{{ c.img }}" alt="" style="width: 100%; height: 200px; object-fit: cover; display: block">
+              <img loading="lazy" src="{{ c.img }}" alt="" style="background:#1B1118;width: 100%; height: 200px; object-fit: cover; display: block">
               <div style="padding: 22px 22px 24px">
                 <div style="color: rgba(255,247,252,0.55); font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em">{{ c.date }} · {{ c.tag }}</div>
                 <div style="font-family: 'Anton', sans-serif; font-size: 21px; line-height: 1.12; margin-top: 8px; text-transform: uppercase">{{ c.title }}</div>
@@ -100,7 +101,7 @@
 
         <!-- NEXT STORY TEASE -->
         <div style="position: relative; margin-top: 30px; border: 2px dashed rgba(245,166,35,0.55); border-radius: 20px; padding: 28px 32px; background: rgba(245,166,35,0.05); display: flex; align-items: center; gap: 22px; flex-wrap: wrap">
-          <img src="assets/brand/tape.png" alt="" style="position: absolute; top: -14px; left: 30px; width: 100px; transform: rotate(-4deg); opacity: 0.9">
+          <img src="assets/brand/tape.png" alt="" style="background:#1B1118;position: absolute; top: -14px; left: 30px; width: 100px; transform: rotate(-4deg); opacity: 0.9">
           <div style="font-size: 34px">✍️</div>
           <div style="flex: 1; min-width: 240px">
             <div style="font-family: 'Anton', sans-serif; font-size: 20px; text-transform: uppercase">The next story is being written on the road</div>
@@ -115,7 +116,7 @@
   <!-- FOOTER -->
   <div style="border-top: 1px solid rgba(199,35,142,0.3); background: #110A0F; padding: 30px clamp(24px,5vw,70px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px">
     <div style="display: flex; align-items: center; gap: 14px">
-      <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="height: 50px">
+      <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="background:#1B1118;height: 50px">
       <div>
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 14px">From Potential to Purpose</div>
         <div style="color: rgba(255,247,252,0.5); font-size: 12px">© 2026 Urban Gang Tour · Nairobi, Kenya</div>
