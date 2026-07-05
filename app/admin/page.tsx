@@ -28,6 +28,16 @@ interface TicketEvent {
   ticketTypes: CatalogItem[];
 }
 
+interface YoutubeVideo {
+  id: string;
+  title: string;
+  thumbnail: string;
+  publishedAt: string;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+}
+
 function money(kes: number) {
   return `KES ${kes.toLocaleString("en-KE")}`;
 }
@@ -66,7 +76,7 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [tab, setTab] = useState<"orders" | "catalog">("orders");
+  const [tab, setTab] = useState<"orders" | "catalog" | "stats">("orders");
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -74,6 +84,9 @@ export default function AdminPage() {
   const [merch, setMerch] = useState<CatalogItem[] | null>(null);
   const [events, setEvents] = useState<TicketEvent[] | null>(null);
   const [catalogMsg, setCatalogMsg] = useState("");
+
+  const [videos, setVideos] = useState<YoutubeVideo[] | null>(null);
+  const [statsError, setStatsError] = useState("");
 
   const loadOrders = useCallback(async () => {
     const res = await fetch("/api/ugt-admin/orders");
@@ -110,6 +123,20 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "catalog" && merch === null) loadCatalog();
   }, [tab, merch, loadCatalog]);
+
+  useEffect(() => {
+    if (tab !== "stats" || videos !== null) return;
+    fetch("/api/ugt-admin/youtube-stats")
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setStatsError(data.error || "Failed to load YouTube stats");
+          return;
+        }
+        setVideos(data.videos);
+      })
+      .catch(() => setStatsError("Failed to load YouTube stats"));
+  }, [tab, videos]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -185,7 +212,7 @@ export default function AdminPage() {
       <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 34, textTransform: "uppercase" }}>Admin</div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 20, borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
-        {(["orders", "catalog"] as const).map((t) => (
+        {(["orders", "catalog", "stats"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -201,7 +228,7 @@ export default function AdminPage() {
               cursor: "pointer",
             }}
           >
-            {t === "orders" ? "Orders & Tickets" : "Catalog & Prices"}
+            {t === "orders" ? "Orders & Tickets" : t === "catalog" ? "Catalog & Prices" : "YouTube Stats"}
           </button>
         ))}
       </div>
@@ -428,6 +455,52 @@ export default function AdminPage() {
                 Save events
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "stats" && (
+        <div style={{ marginTop: 30 }}>
+          {statsError && <div style={{ color: "#FF6B6B", fontSize: 13, marginBottom: 16 }}>{statsError}</div>}
+          {!statsError && videos === null && <div style={{ color: "rgba(255,247,252,0.6)" }}>Loading...</div>}
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+            {(videos || []).map((v) => (
+              <a
+                key={v.id}
+                href={`https://www.youtube.com/watch?v=${v.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "block",
+                  width: 280,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(199,35,142,0.3)",
+                  borderRadius: 14,
+                  overflow: "hidden",
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
+              >
+                {v.thumbnail && <img src={v.thumbnail} alt={v.title} style={{ width: "100%", display: "block", background: "#1B1118" }} />}
+                <div style={{ padding: 14 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.3 }}>{v.title}</div>
+                  <div style={{ display: "flex", gap: 16, marginTop: 12 }}>
+                    <div>
+                      <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 18, color: "#F5A623" }}>{v.viewCount.toLocaleString("en-KE")}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,247,252,0.55)" }}>VIEWS</div>
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 18, color: "#F5A623" }}>{v.likeCount.toLocaleString("en-KE")}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,247,252,0.55)" }}>LIKES</div>
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 18, color: "#F5A623" }}>{v.commentCount.toLocaleString("en-KE")}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,247,252,0.55)" }}>COMMENTS</div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       )}
