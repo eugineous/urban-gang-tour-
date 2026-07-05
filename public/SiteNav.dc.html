@@ -136,12 +136,17 @@ class Component extends DCLogic {
     this.onMq = () => this.setState({ mobile: this.mq.matches, menuOpen: false });
     this.setState({ mobile: this.mq.matches });
     if (this.mq.addEventListener) this.mq.addEventListener("change", this.onMq);
-    this.adTimer = setTimeout(() => this.setState({ adOpen: true }), 4500);
+    this.adTimer = setTimeout(() => this.openAd(), 6000);
     this.adRotate = setInterval(() => this.setState(s => ({ adIndex: (s.adIndex + 1) % 3 })), 9000);
+  }
+  openAd() {
+    this.setState({ adOpen: true });
+    clearTimeout(this.adAutoClose);
+    this.adAutoClose = setTimeout(() => this.setState({ adOpen: false }), 9000);
   }
   componentWillUnmount() {
     if (this.mq && this.mq.removeEventListener) this.mq.removeEventListener("change", this.onMq);
-    clearTimeout(this.adTimer); clearTimeout(this.adReopen); clearInterval(this.adRotate);
+    clearTimeout(this.adTimer); clearTimeout(this.adReopen); clearTimeout(this.adAutoClose); clearInterval(this.adRotate);
   }
 
   renderVals() {
@@ -210,13 +215,14 @@ class Component extends DCLogic {
       openMenu: () => this.setState({ menuOpen: true }),
       closeMenu: () => this.setState({ menuOpen: false }),
       links, mob,
-      adVisible: this.state.adOpen && !(this.state.menuOpen && this.state.mobile),
+      adVisible: this.state.adOpen && !this.state.mobile,
       adImg: ads[this.state.adIndex % ads.length].img,
       adName: ads[this.state.adIndex % ads.length].name,
       closeAd: () => {
         this.setState({ adOpen: false });
+        clearTimeout(this.adAutoClose);
         clearTimeout(this.adReopen);
-        this.adReopen = setTimeout(() => this.setState(s => ({ adOpen: true, adIndex: (s.adIndex + 1) % 3 })), 28000);
+        this.adReopen = setTimeout(() => { this.setState(s => ({ adIndex: (s.adIndex + 1) % 3 })); this.openAd(); }, 45000);
       }
     };
   }

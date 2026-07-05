@@ -63,6 +63,15 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Send every *.vercel.app host (the production alias, the
+      // -roylandz-media alias, and every preview-deployment URL) to the
+      // real domain - the brand should never be visibly "hosted on vercel".
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "(?<sub>.*)\\.vercel\\.app" }],
+        destination: "https://urbangangtour.co.ke/:path*",
+        permanent: true,
+      },
       { source: "/Home.dc.html", destination: "/", permanent: true },
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${encodeURIComponent(file)}`,
