@@ -9,6 +9,8 @@ const PUBLIC_PATHS = [
   "/api/automate-secret",
   "/api/mpesa/callback", // Safaricom's webhook - no session, must stay reachable
   "/api/orders", // order creation + status polling, used from public checkout UI
+  "/api/catalog", // read-only prices/items shown on Shop and Events pages
+  "/checkout.js",
   "/favicon.ico",
   "/robots.txt",
   "/sitemap.xml",

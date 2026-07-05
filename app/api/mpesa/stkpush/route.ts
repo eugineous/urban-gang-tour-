@@ -7,7 +7,13 @@ export async function POST(req: NextRequest) {
   const orderId = body?.orderId;
   if (!orderId) return NextResponse.json({ error: "orderId is required" }, { status: 400 });
 
-  const order = await getOrder(orderId);
+  let order;
+  try {
+    order = await getOrder(orderId);
+  } catch (err) {
+    console.error("Failed to look up order:", err);
+    return NextResponse.json({ error: "Couldn't reach order storage, try again in a moment" }, { status: 500 });
+  }
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
   if (order.status !== "pending") {
     return NextResponse.json({ error: `Order is already ${order.status}` }, { status: 409 });

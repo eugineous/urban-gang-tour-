@@ -27,13 +27,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Enter a valid Safaricom number, e.g. 0712345678" }, { status: 400 });
   }
 
-  const order = await createOrder({
-    kind,
-    items: [{ key: item.key, name: item.name, qty: quantity, unitPriceKes: item.priceKes, variant }],
-    phone: msisdn,
-    buyerName,
-    buyerEmail,
-  });
-
-  return NextResponse.json({ orderId: order.id, totalKes: order.totalKes });
+  try {
+    const order = await createOrder({
+      kind,
+      items: [{ key: item.key, name: item.name, qty: quantity, unitPriceKes: item.priceKes, variant }],
+      phone: msisdn,
+      buyerName,
+      buyerEmail,
+    });
+    return NextResponse.json({ orderId: order.id, totalKes: order.totalKes });
+  } catch (err) {
+    console.error("Failed to create order:", err);
+    return NextResponse.json({ error: "Couldn't start your order, try again in a moment" }, { status: 500 });
+  }
 }

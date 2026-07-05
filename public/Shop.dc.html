@@ -9,6 +9,7 @@
 <meta property="og:title" content="Shop — Urban Gang Tour Merch">
 <meta property="og:description" content="Official Urban Gang Tour merch. Pick a piece, pick a size, order straight through WhatsApp.">
 <script src="./support.js"></script>
+<script src="/checkout.js"></script>
 </head>
 <body>
 <x-dc>
@@ -55,14 +56,22 @@
             <div style="position: absolute; top: 14px; left: 14px; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 12px; letter-spacing: 0.12em; padding: 6px 14px; border-radius: 999px; transform: rotate(-2deg)">{{ p.tag }}</div>
           </div>
           <div style="padding: 22px 22px 26px">
-            <div style="font-family: 'Anton', sans-serif; font-size: 22px">{{ p.name }}</div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+              <div style="font-family: 'Anton', sans-serif; font-size: 22px">{{ p.name }}</div>
+              <sc-if value="{{ p.priceKes }}" hint-placeholder-val="{{ true }}">
+                <div style="font-family: 'Anton', sans-serif; font-size: 18px; color: #F5A623; white-space: nowrap">KES {{ p.priceLabel }}</div>
+              </sc-if>
+            </div>
             <div style="color: rgba(255,247,252,0.65); font-size: 13.5px; line-height: 1.6; margin-top: 6px">{{ p.desc }}</div>
             <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap">
               <sc-for list="{{ p.sizes }}" as="s" hint-placeholder-count="5">
                 <div onClick="{{ s.onClick }}" style="cursor: {{ s.cursor }}; min-width: 40px; height: 36px; padding: 0 13px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid {{ s.border }}; background: {{ s.bg }}; color: {{ s.color }}; font-weight: 700; font-size: 12.5px; letter-spacing: 0.02em" style-hover="border-color: #F5A623">{{ s.label }}</div>
               </sc-for>
             </div>
-            <a href="{{ p.orderUrl }}" target="_blank" style="display: block; text-align: center; margin-top: 18px; background: #C7238E; color: #fff; font-weight: 700; font-size: 14.5px; padding: 14px; border-radius: 12px" style-hover="background: #E12FA3; transform: translateY(-2px)">Order on WhatsApp →</a>
+            <sc-if value="{{ p.priceKes }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ p.buyNow }}" style="cursor: pointer; text-align: center; margin-top: 18px; background: #C7238E; color: #fff; font-weight: 700; font-size: 14.5px; padding: 14px; border-radius: 12px" style-hover="background: #E12FA3; transform: translateY(-2px)">Pay with M-Pesa →</div>
+            </sc-if>
+            <a href="{{ p.orderUrl }}" target="_blank" style="display: block; text-align: center; margin-top: 10px; background: rgba(255,255,255,0.06); color: #fff; font-weight: 700; font-size: 13px; padding: 12px; border-radius: 12px" style-hover="background: rgba(255,255,255,0.12)">Or order on WhatsApp →</a>
           </div>
         </div>
       </sc-for>
@@ -149,9 +158,15 @@ class Component extends DCLogic {
       window.addEventListener("resize", sweep, { passive: true });
       setTimeout(() => { if (!ioFired) hidden.slice().forEach(reveal); }, 2000);
     }, 120);
+
+    fetch("/api/catalog").then(r => r.json()).then(data => {
+      const byKey = {};
+      (data.merch || []).forEach(m => { byKey[m.key] = m; });
+      this.setState({ catalog: byKey });
+    }).catch(() => {});
   }
 
-  state = { sel: { tee3d: "L", puff: "L", hoodie: "L", pinkcity: "L", babytee: "M", crewneck: "L", jersey: "L", wristbands: "Magenta" } };
+  state = { sel: { tee3d: "L", puff: "L", hoodie: "L", pinkcity: "L", babytee: "M", crewneck: "L", jersey: "L", wristbands: "Magenta" }, catalog: null };
 
   renderVals() {
     const SIZES = ["S", "M", "L", "XL", "2XL"];
@@ -196,11 +211,22 @@ class Component extends DCLogic {
       label: d.info, cursor: "default", onClick: () => {},
       border: "rgba(255,255,255,0.14)", bg: "rgba(255,255,255,0.05)", color: "rgba(255,247,252,0.7)"
     }];
+    const catalog = this.state.catalog || {};
     const products = defs.map(d => {
       const sel = this.state.sel[d.key];
       const chips = d.opt === "size" ? mkSize(d, sel) : d.opt === "color" ? mkColor(d, sel) : mkInfo(d);
       const filled = d.order.replace("{v}", sel || "");
-      return { ...d, sizes: chips, orderUrl: "https://wa.me/254799886247?text=" + encodeURIComponent(filled) };
+      const priced = catalog[d.key];
+      return {
+        ...d,
+        sizes: chips,
+        orderUrl: "https://wa.me/254799886247?text=" + encodeURIComponent(filled),
+        priceKes: priced ? priced.priceKes : null,
+        priceLabel: priced ? priced.priceKes.toLocaleString("en-KE") : "",
+        buyNow: () => window.UGTCheckout && window.UGTCheckout.open({
+          kind: "merch", itemKey: d.key, name: d.name, variant: sel, priceKes: priced ? priced.priceKes : null
+        })
+      };
     });
     return {
       products,
