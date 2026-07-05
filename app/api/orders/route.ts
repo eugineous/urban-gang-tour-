@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder } from "@/lib/orders";
-import { findCatalogItem } from "@/content/catalog";
+import { findCatalogItemLive } from "@/lib/catalog-store";
 import { normalizeMsisdn } from "@/lib/mpesa";
 
 // Creates a pending order. The price is looked up server-side from the
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
   }
 
-  const item = findCatalogItem(kind, eventKey ?? null, itemKey);
+  const item = await findCatalogItemLive(kind, eventKey ?? null, itemKey);
   if (!item) return NextResponse.json({ error: "Unknown item" }, { status: 400 });
 
   const msisdn = normalizeMsisdn(String(phone || ""));

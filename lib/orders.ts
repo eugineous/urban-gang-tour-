@@ -1,18 +1,23 @@
 import { Redis } from "@upstash/redis";
 import { randomUUID } from "node:crypto";
 
+// The Vercel Marketplace Upstash integration prefixes env var names with
+// whatever the store is named (this project's is "UrbanGang_..."), so the
+// plain UPSTASH_REDIS_REST_URL/TOKEN names never actually appear. Support
+// both so this doesn't silently break again if the store gets recreated
+// under a different name or a plain Upstash account is connected later.
+const REDIS_URL = process.env.UrbanGang_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UrbanGang_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
 let redis: Redis | null = null;
 function db(): Redis {
   if (!redis) {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    if (!REDIS_URL || !REDIS_TOKEN) {
       throw new Error(
         "Storage isn't connected yet - add an Upstash Redis database from the Vercel Storage tab."
       );
     }
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
+    redis = new Redis({ url: REDIS_URL, token: REDIS_TOKEN });
   }
   return redis;
 }
