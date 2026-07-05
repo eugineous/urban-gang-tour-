@@ -8,6 +8,11 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   {
     key: "Content-Security-Policy",
+    // unsafe-eval + unpkg.com are load-bearing, not leftover: every public/*.dc.html
+    // page loads React/ReactDOM/Babel from unpkg.com at runtime and Babel-transpiles
+    // the inline dc-script block via `new Function` (see public/support.js, aka
+    // dc-runtime). Removing either one white-screens every marketing page - do not
+    // "clean this up" without first replacing dc-runtime's in-browser transpilation.
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
@@ -15,7 +20,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
-      "connect-src 'self' https://graph.facebook.com https://auto-ppp-tv.euginemicah.workers.dev",
+      "connect-src 'self'",
       "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
     ].join("; "),
   },

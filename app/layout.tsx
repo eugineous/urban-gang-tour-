@@ -7,14 +7,19 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-sans",
 });
 
-const siteUrl = "https://urban-gang-tour.vercel.app";
+const siteUrl = "https://urbangangtour.co.ke";
+const description =
+  "Urban Gang Tour is a Kenyan events company founded by Eugine Micah and Lucy Ogunde, running a youth talent search, mentorship, and awards concert tour countrywide.";
 
 export const metadata: Metadata = {
-  title: "Urban Gang Tour",
-  description: "Kenya's youth talent search, mentorship, and awards concert tour.",
+  title: {
+    default: "Urban Gang Tour — Kenyan Events Company",
+    template: "%s — Urban Gang Tour",
+  },
+  description,
   openGraph: {
-    title: "Urban Gang Tour",
-    description: "Kenya's youth talent search, mentorship, and awards concert tour.",
+    title: "Urban Gang Tour — Kenyan Events Company",
+    description,
     url: siteUrl,
     siteName: "Urban Gang Tour",
     images: [
@@ -31,6 +36,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 };
 
+const organizationLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Urban Gang Tour",
+  url: siteUrl,
+  logo: `${siteUrl}/assets/brand/logo_transparent.png`,
+  description,
+  founder: [
+    { "@type": "Person", name: "Eugine Micah" },
+    { "@type": "Person", name: "Lucy Ogunde" },
+  ],
+  sameAs: ["https://instagram.com/urban_newsgang"],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,6 +58,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${spaceGrotesk.variable} antialiased bg-[#0d0b0f] text-white`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
+        />
         {children}
       </body>
     </html>
