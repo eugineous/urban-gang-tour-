@@ -26,7 +26,7 @@
   <!-- DESKTOP BAR -->
   <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
     <div style="display: flex; align-items: center; gap: 16px; padding: 9px 24px; background: rgba(17,10,15,0.96); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(199,35,142,0.3)">
-      <a href="Home.dc.html" style="display: flex; align-items: center; gap: 11px; text-decoration: none">
+      <a href="/" style="display: flex; align-items: center; gap: 11px; text-decoration: none">
         <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="height: 44px; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6))">
         <span style="display: flex; flex-direction: column; line-height: 1">
           <span style="font-family: 'Anton', sans-serif; font-size: 14.5px; letter-spacing: 0.1em; color: #FFF7FC">URBAN GANG TOUR</span>
@@ -58,19 +58,19 @@
           </sc-if>
         </sc-for>
       </div>
-      <a href="Book.dc.html" style="text-decoration: none; background: linear-gradient(110deg, #C7238E 10%, #E12FA3 35%, #F5A623 60%, #C7238E 90%); background-size: 250% 100%; color: #fff; font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; padding: 12px 21px; border-radius: 999px; white-space: nowrap; animation: ugt-ctaglow 2.8s ease-in-out infinite, ugt-shimmer 5s linear infinite" style-hover="transform: translateY(-2px) scale(1.06) rotate(-1deg)">BOOK THE TOUR →</a>
+      <a href="/book" style="text-decoration: none; background: linear-gradient(110deg, #C7238E 10%, #E12FA3 35%, #F5A623 60%, #C7238E 90%); background-size: 250% 100%; color: #fff; font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; padding: 12px 21px; border-radius: 999px; white-space: nowrap; animation: ugt-ctaglow 2.8s ease-in-out infinite, ugt-shimmer 5s linear infinite" style-hover="transform: translateY(-2px) scale(1.06) rotate(-1deg)">BOOK THE TOUR →</a>
     </div>
   </sc-if>
 
   <!-- MOBILE BAR -->
   <sc-if value="{{ mobileBar }}" hint-placeholder-val="{{ false }}">
     <div style="display: flex; align-items: center; gap: 10px; padding: 9px 14px; background: rgba(17,10,15,0.97); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(199,35,142,0.3)">
-      <a href="Home.dc.html" style="display: flex; align-items: center; gap: 9px; text-decoration: none">
+      <a href="/" style="display: flex; align-items: center; gap: 9px; text-decoration: none">
         <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="height: 40px; display: block">
         <span style="font-family: 'Anton', sans-serif; font-size: 13px; letter-spacing: 0.08em; color: #FFF7FC">URBAN GANG<br><span style="color: #F5A623">TOUR</span></span>
       </a>
       <div style="flex: 1"></div>
-      <a href="Book.dc.html" style="text-decoration: none; background: #C7238E; color: #fff; font-weight: 700; font-size: 11.5px; letter-spacing: 0.05em; padding: 10px 15px; border-radius: 999px; white-space: nowrap">BOOK</a>
+      <a href="/book" style="text-decoration: none; background: #C7238E; color: #fff; font-weight: 700; font-size: 11.5px; letter-spacing: 0.05em; padding: 10px 15px; border-radius: 999px; white-space: nowrap">BOOK</a>
       <div onClick="{{ openMenu }}" style="cursor: pointer; width: 46px; height: 46px; border-radius: 13px; border: 1px solid rgba(199,35,142,0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; background: rgba(199,35,142,0.1); transition: transform 0.25s cubic-bezier(.34,1.56,.64,1)" style-hover="transform: rotate(8deg) scale(1.08); background: rgba(199,35,142,0.3)">
         <div style="width: 20px; height: 2.5px; border-radius: 2px; background: #FFF7FC"></div>
         <div style="width: 14px; height: 2.5px; border-radius: 2px; background: #F5A623; align-self: flex-start; margin-left: 13px"></div>
@@ -97,7 +97,7 @@
       </sc-for>
     </div>
     <div style="padding: 16px 26px 44px; display: flex; flex-direction: column; gap: 12px">
-      <a href="Book.dc.html" style="text-decoration: none; text-align: center; background: linear-gradient(100deg, #C7238E, #E12FA3); color: #fff; font-weight: 700; font-size: 15px; padding: 16px; border-radius: 14px">BOOK THE TOUR →</a>
+      <a href="/book" style="text-decoration: none; text-align: center; background: linear-gradient(100deg, #C7238E, #E12FA3); color: #fff; font-weight: 700; font-size: 15px; padding: 16px; border-radius: 14px">BOOK THE TOUR →</a>
       <div style="display: flex; gap: 10px">
         <a href="https://wa.me/254799886247" target="_blank" style="flex: 1; text-decoration: none; text-align: center; background: rgba(30,122,67,0.25); border: 1px solid rgba(91,217,106,0.45); color: #8FE89A; font-weight: 700; font-size: 13.5px; padding: 13px; border-radius: 12px">💬 WhatsApp</a>
         <a href="https://instagram.com/urban_newsgang" target="_blank" style="flex: 1; text-decoration: none; text-align: center; background: rgba(199,35,142,0.16); border: 1px solid rgba(199,35,142,0.5); color: #E96CC0; font-weight: 700; font-size: 13.5px; padding: 13px; border-radius: 12px">📸 Instagram</a>
@@ -108,12 +108,12 @@
 </sc-if>
 
 <!-- GLOBAL FLOATING CTAs (render on every page via SiteNav) -->
-<a href="Book.dc.html" style="position: fixed; right: 16px; bottom: 16px; z-index: 250; display: flex; align-items: center; gap: 9px; text-decoration: none; background: linear-gradient(110deg, #C7238E 10%, #E12FA3 45%, #F5A623 95%); background-size: 200% 100%; color: #fff; font-family: 'Anton', sans-serif; font-size: 15px; letter-spacing: 0.06em; padding: 15px 22px; border-radius: 999px; box-shadow: 0 14px 34px rgba(199,35,142,0.5); animation: ugt-bookpulse 2.4s ease-in-out infinite, ugt-shimmer 5s linear infinite" style-hover="transform: translateY(-3px) scale(1.05) rotate(-1deg)"><span style="font-size: 17px">📣</span> BOOK US NOW</a>
+<a href="/book" style="position: fixed; right: 16px; bottom: 16px; z-index: 250; display: flex; align-items: center; gap: 9px; text-decoration: none; background: linear-gradient(110deg, #C7238E 10%, #E12FA3 45%, #F5A623 95%); background-size: 200% 100%; color: #fff; font-family: 'Anton', sans-serif; font-size: 15px; letter-spacing: 0.06em; padding: 15px 22px; border-radius: 999px; box-shadow: 0 14px 34px rgba(199,35,142,0.5); animation: ugt-bookpulse 2.4s ease-in-out infinite, ugt-shimmer 5s linear infinite" style-hover="transform: translateY(-3px) scale(1.05) rotate(-1deg)"><span style="font-size: 17px">📣</span> BOOK US NOW</a>
 
 <sc-if value="{{ adVisible }}" hint-placeholder-val="{{ false }}">
   <div style="position: fixed; left: 16px; bottom: 16px; z-index: 240; width: 230px; background: #1D1218; border: 1px solid rgba(245,166,35,0.5); border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; animation: ugt-adslide 0.55s cubic-bezier(.34,1.56,.64,1)">
     <div onClick="{{ closeAd }}" style="position: absolute; top: 8px; right: 8px; z-index: 2; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px" style-hover="background: #000">✕</div>
-    <a href="Shop.dc.html" style="display: block; text-decoration: none; color: #FFF7FC">
+    <a href="/shop" style="display: block; text-decoration: none; color: #FFF7FC">
       <div style="position: relative; background: #F2EFEC; height: 148px; overflow: hidden">
         <img src="{{ adImg }}" alt="{{ adName }}" style="width: 100%; height: 100%; object-fit: cover; display: block">
         <div style="position: absolute; top: 10px; left: 10px; background: #C7238E; color: #fff; font-family: 'Anton', sans-serif; font-size: 10.5px; letter-spacing: 0.1em; padding: 5px 11px; border-radius: 999px; transform: rotate(-2deg)">OFFICIAL MERCH</div>
@@ -163,35 +163,35 @@ class Component extends DCLogic {
       items: items.map(it => ({ ...it, color: it.key === active ? A : "#FFF7FC" }))
     });
     const links = [
-      mk("HOME", "Home.dc.html", ["home"]),
+      mk("HOME", "/", ["home"]),
       mkDrop("tour", "THE TOUR", ["about", "experience", "partners"], [
-        { label: "About Us", sub: "who we are & our impact", href: "About.dc.html", key: "about" },
-        { label: "The Experience", sub: "battles, runway & pods", href: "Experience.dc.html", key: "experience" },
-        { label: "Partners", sub: "the gang behind the gang", href: "Partners.dc.html", key: "partners" }
+        { label: "About Us", sub: "who we are & our impact", href: "/about", key: "about" },
+        { label: "The Experience", sub: "battles, runway & pods", href: "/experience", key: "experience" },
+        { label: "Partners", sub: "the gang behind the gang", href: "/partners", key: "partners" }
       ]),
-      mk("EVENTS", "Events.dc.html", ["events", "book"]),
-      mk("THE GANG", "The Gang.dc.html", ["gang"]),
+      mk("EVENTS", "/events", ["events", "book"]),
+      mk("THE GANG", "/the-gang", ["gang"]),
       mkDrop("media", "MEDIA", ["gallery", "news", "blog"], [
-        { label: "Gallery", sub: "photos & reels from the road", href: "Gallery.dc.html", key: "gallery" },
-        { label: "Urban News", sub: "the show on Urban Gang Tour", href: "Urban News.dc.html", key: "news" },
-        { label: "The Blog", sub: "stories from the road", href: "Blog.dc.html", key: "blog" }
+        { label: "Gallery", sub: "photos & reels from the road", href: "/gallery", key: "gallery" },
+        { label: "Urban News", sub: "the show on Urban Gang Tour", href: "/urban-news", key: "news" },
+        { label: "The Blog", sub: "stories from the road", href: "/blog", key: "blog" }
       ]),
-      mk("SHOP", "Shop.dc.html", ["shop"]),
-      mk("CONTACT", "Contact.dc.html", ["contact"])
+      mk("SHOP", "/shop", ["shop"]),
+      mk("CONTACT", "/contact-us", ["contact"])
     ];
     const mob = [
-      { label: "Home", href: "Home.dc.html", key: "home" },
-      { label: "About Us", href: "About.dc.html", key: "about" },
-      { label: "The Experience", href: "Experience.dc.html", key: "experience" },
-      { label: "Events", href: "Events.dc.html", key: "events" },
-      { label: "Book the Tour", href: "Book.dc.html", key: "book" },
-      { label: "The Gang", href: "The Gang.dc.html", key: "gang" },
-      { label: "Partners", href: "Partners.dc.html", key: "partners" },
-      { label: "Gallery", href: "Gallery.dc.html", key: "gallery" },
-      { label: "Urban News", href: "Urban News.dc.html", key: "news" },
-      { label: "The Blog", href: "Blog.dc.html", key: "blog" },
-      { label: "Shop", href: "Shop.dc.html", key: "shop" },
-      { label: "Contact", href: "Contact.dc.html", key: "contact" }
+      { label: "Home", href: "/", key: "home" },
+      { label: "About Us", href: "/about", key: "about" },
+      { label: "The Experience", href: "/experience", key: "experience" },
+      { label: "Events", href: "/events", key: "events" },
+      { label: "Book the Tour", href: "/book", key: "book" },
+      { label: "The Gang", href: "/the-gang", key: "gang" },
+      { label: "Partners", href: "/partners", key: "partners" },
+      { label: "Gallery", href: "/gallery", key: "gallery" },
+      { label: "Urban News", href: "/urban-news", key: "news" },
+      { label: "The Blog", href: "/blog", key: "blog" },
+      { label: "Shop", href: "/shop", key: "shop" },
+      { label: "Contact", href: "/contact-us", key: "contact" }
     ].map((m, i) => ({
       ...m,
       n: i + 1 < 10 ? "0" + (i + 1) : "" + (i + 1),

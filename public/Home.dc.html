@@ -55,8 +55,8 @@
           Talent battles, life skills pods, a modelling runway, awards, and a TV broadcast that puts young people on screens across the country. From high school fields to university quads to festival main stages.
         </div>
         <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px">
-          <a href="Book.dc.html" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 16px 30px; border-radius: 14px; box-shadow: 0 12px 30px rgba(199,35,142,0.4)" style-hover="background: #E12FA3; transform: translateY(-2px)">Book the Tour</a>
-          <a href="Urban News.dc.html" style="border: 2px solid rgba(255,255,255,0.7); color: #fff; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 14px" style-hover="border-color: #F5A623; color: #F5A623">▶ Watch Urban News</a>
+          <a href="/book" style="background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 16px 30px; border-radius: 14px; box-shadow: 0 12px 30px rgba(199,35,142,0.4)" style-hover="background: #E12FA3; transform: translateY(-2px)">Book the Tour</a>
+          <a href="/urban-news" style="border: 2px solid rgba(255,255,255,0.7); color: #fff; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 14px" style-hover="border-color: #F5A623; color: #F5A623">▶ Watch Urban News</a>
         </div>
         <div style="display: flex; align-items: center; gap: 12px; margin-top: 28px; color: rgba(255,247,252,0.6); font-size: 13px; font-weight: 600">
           <span>POWERED BY</span>
@@ -122,7 +122,7 @@
     <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 20px; transform: rotate(-1deg)">pick your lane ↓</div>
     <div style="font-family: 'Anton', sans-serif; font-size: clamp(38px, 4.4vw, 64px); text-transform: uppercase; margin-top: 8px">Three lanes. <span style="color: #C7238E">One movement.</span></div>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; margin-top: 36px">
-      <a href="Book.dc.html#schools" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(199,35,142,0.4); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px) rotate(-0.5deg); border-color: #C7238E">
+      <a href="/book#schools" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(199,35,142,0.4); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px) rotate(-0.5deg); border-color: #C7238E">
         <img loading="lazy" src="assets/g/stage_9.jpg" alt="Schools" style="width: 100%; height: 240px; object-fit: cover; display: block; opacity: 0.85">
         <div style="padding: 22px">
           <div style="font-family: 'Anton', sans-serif; font-size: 28px; color: #C7238E">SCHOOLS</div>
@@ -130,7 +130,7 @@
           <div style="color: #F5A623; font-weight: 700; font-size: 13.5px; margin-top: 14px; letter-spacing: 0.06em">FOR SCHOOLS →</div>
         </div>
       </a>
-      <a href="Book.dc.html#campus" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(245,166,35,0.4); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px); border-color: #F5A623">
+      <a href="/book#campus" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(245,166,35,0.4); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px); border-color: #F5A623">
         <img loading="lazy" src="assets/g/stage_11.jpg" alt="Campus XP" style="width: 100%; height: 240px; object-fit: cover; display: block; opacity: 0.85">
         <div style="padding: 22px">
           <div style="font-family: 'Anton', sans-serif; font-size: 28px; color: #F5A623">UNIVERSITIES &amp; COLLEGES</div>
@@ -138,7 +138,7 @@
           <div style="color: #F5A623; font-weight: 700; font-size: 13.5px; margin-top: 14px; letter-spacing: 0.06em">FOR CAMPUSES →</div>
         </div>
       </a>
-      <a href="Book.dc.html#mega" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(255,255,255,0.25); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px) rotate(0.5deg); border-color: #fff">
+      <a href="/book#mega" style="position: relative; display: block; border-radius: 20px; overflow: hidden; border: 2px solid rgba(255,255,255,0.25); background: #1D1218; color: #FFF7FC" style-hover="transform: translateY(-6px) rotate(0.5deg); border-color: #fff">
         <img loading="lazy" src="assets/g/stage_2.jpg" alt="Mega Events" style="width: 100%; height: 240px; object-fit: cover; display: block; opacity: 0.85">
         <div style="padding: 22px">
           <div style="font-family: 'Anton', sans-serif; font-size: 28px; color: #fff">MEGA EVENTS &amp; FESTIVALS</div>
@@ -156,7 +156,7 @@
         <div style="font-family: 'Anton', sans-serif; font-size: 40px; text-transform: uppercase">Latest <span style="color: #C7238E">stops</span></div>
         <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 24px">
           <sc-for list="{{ stops }}" as="st" hint-placeholder-count="3">
-            <a href="Events.dc.html" style="display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; color: #FFF7FC" style-hover="border-color: #C7238E; transform: translateX(6px)">
+            <a href="/events" style="display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; color: #FFF7FC" style-hover="border-color: #C7238E; transform: translateX(6px)">
               <div style="font-family: 'Anton', sans-serif; font-size: 20px; color: #F5A623; min-width: 86px; line-height: 1.1">{{ st.date }}</div>
               <div style="flex: 1">
                 <div style="font-weight: 700; font-size: 16px">{{ st.school }}</div>
@@ -166,7 +166,7 @@
             </a>
           </sc-for>
         </div>
-        <a href="Events.dc.html" style="display: inline-block; margin-top: 20px; color: #F5A623; font-weight: 700; font-size: 14px">See the full tour calendar →</a>
+        <a href="/events" style="display: inline-block; margin-top: 20px; color: #F5A623; font-weight: 700; font-size: 14px">See the full tour calendar →</a>
       </div>
 
       <div style="position: relative; background: linear-gradient(160deg, #C7238E, #8E1864); border-radius: 22px; padding: 34px 30px; overflow: hidden; box-shadow: 0 30px 70px rgba(199,35,142,0.35)">
@@ -177,7 +177,7 @@
         <div style="color: rgba(255,255,255,0.85); font-size: 14.5px; line-height: 1.6; margin-top: 12px">We are always booking. Schools, campuses, festivals, county events. The machine travels to you.</div>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px">
           <a href="https://wa.me/254799886247?text=Hi%20UGT%2C%20I%20want%20to%20bring%20the%20tour%20to%20our%20institution." target="_blank" style="background: #150E13; color: #fff; font-weight: 700; font-size: 14px; padding: 14px 22px; border-radius: 12px" style-hover="background: #000; transform: translateY(-2px)">WhatsApp · 0799 886 247</a>
-          <a href="Book.dc.html" style="background: #F5A623; color: #3A2300; font-weight: 700; font-size: 14px; padding: 14px 22px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Request a Quotation</a>
+          <a href="/book" style="background: #F5A623; color: #3A2300; font-weight: 700; font-size: 14px; padding: 14px 22px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Request a Quotation</a>
         </div>
       </div>
     </div>
@@ -185,7 +185,7 @@
 
   <!-- URBAN NEWS STRIP -->
   <div style="max-width: 1280px; margin: 50px auto 0; padding: 0 clamp(20px,5vw,70px)">
-    <a href="Urban News.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; gap: 26px; background: linear-gradient(90deg, rgba(230,30,140,0.16), rgba(60,170,230,0.1)); border: 1px solid rgba(230,30,140,0.4); border-radius: 20px; padding: 24px 30px; color: #FFF7FC" style-hover="border-color: #E61E8C; transform: translateY(-3px)">
+    <a href="/urban-news" style="display: flex; flex-wrap: wrap; align-items: center; gap: 26px; background: linear-gradient(90deg, rgba(230,30,140,0.16), rgba(60,170,230,0.1)); border: 1px solid rgba(230,30,140,0.4); border-radius: 20px; padding: 24px 30px; color: #FFF7FC" style-hover="border-color: #E61E8C; transform: translateY(-3px)">
       <img src="assets/brand/logo_transparent.png" alt="Urban Gang Tour" style="height: 64px">
       <div style="flex: 1; min-width: 260px">
         <div style="font-family: 'Anton', sans-serif; font-size: 26px; text-transform: uppercase">Urban News · The tour, on air</div>
@@ -199,16 +199,16 @@
   <div style="max-width: 1280px; margin: 0 auto; padding: 80px clamp(20px,5vw,70px) 20px">
     <div style="display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap">
       <div style="font-family: 'Anton', sans-serif; font-size: 40px; text-transform: uppercase">Caught on <span style="color: #F5A623">camera</span></div>
-      <a href="Gallery.dc.html" style="color: #C7238E; font-weight: 700; font-size: 14px">Open the full gallery →</a>
+      <a href="/gallery" style="color: #C7238E; font-weight: 700; font-size: 14px">Open the full gallery →</a>
     </div>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); grid-auto-rows: 150px; gap: 12px; margin-top: 26px">
-      <a href="Gallery.dc.html" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_3.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
-      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_5.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
-      <a href="Gallery.dc.html" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_10.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
-      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_4.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
-      <a href="Gallery.dc.html" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_6.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
-      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/event_14.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
-      <a href="Gallery.dc.html" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_16.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_3.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_5.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_10.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_4.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="grid-row: span 2; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.02)"><img loading="lazy" src="assets/g/stage_6.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/event_14.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
+      <a href="/gallery" style="border-radius: 14px; overflow: hidden" style-hover="transform: scale(1.03)"><img loading="lazy" src="assets/g/stage_16.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></a>
     </div>
   </div>
 
@@ -219,12 +219,12 @@
         <div style="font-family: 'Permanent Marker', cursive; color: #F5A623; font-size: 20px; transform: rotate(-1.5deg)">rep the gang</div>
         <div style="font-family: 'Anton', sans-serif; font-size: 42px; text-transform: uppercase; margin-top: 6px">Urban Gang <span style="color: #C7238E">Merch</span></div>
         <div style="color: rgba(255,247,252,0.75); font-size: 15px; line-height: 1.65; margin-top: 12px">Official tour tees and hoodies, straight from the merch tent to your wardrobe. Worn by the gang at every stop.</div>
-        <a href="Shop.dc.html" style="display: inline-block; margin-top: 22px; background: #F5A623; color: #3A2300; font-weight: 700; font-size: 14.5px; padding: 14px 26px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Shop the Drop →</a>
+        <a href="/shop" style="display: inline-block; margin-top: 22px; background: #F5A623; color: #3A2300; font-weight: 700; font-size: 14.5px; padding: 14px 26px; border-radius: 12px" style-hover="background: #FFBE4D; transform: translateY(-2px)">Shop the Drop →</a>
       </div>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px">
-        <a href="Shop.dc.html" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(-2deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/tee_3d_logo.png" alt="Tee" style="width: 100%; display: block"></a>
-        <a href="Shop.dc.html" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(1.5deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/tee_magenta.png" alt="Tee" style="width: 100%; display: block"></a>
-        <a href="Shop.dc.html" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/hoodie_black.png" alt="Hoodie" style="width: 100%; display: block"></a>
+        <a href="/shop" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(-2deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/tee_3d_logo.png" alt="Tee" style="width: 100%; display: block"></a>
+        <a href="/shop" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(1.5deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/tee_magenta.png" alt="Tee" style="width: 100%; display: block"></a>
+        <a href="/shop" style="background: #fff; border-radius: 14px; overflow: hidden; transform: rotate(-1deg)" style-hover="transform: rotate(0deg) scale(1.04)"><img loading="lazy" src="assets/merch/hoodie_black.png" alt="Hoodie" style="width: 100%; display: block"></a>
       </div>
     </div>
   </div>
@@ -234,7 +234,7 @@
     <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.2em; color: rgba(255,247,252,0.55)">TRUSTED BY MEDIA HOUSES, COLLEGES, AND CREATIVE BRANDS ACROSS KENYA</div>
     <div style="display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 26px">
       <sc-for list="{{ partners }}" as="p" hint-placeholder-count="9">
-        <a href="Partners.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,247,252,0.85); border-radius: 999px; padding: 10px 20px; font-weight: 600; font-size: 14px" style-hover="border-color: #C7238E; color: #fff; transform: translateY(-2px)">{{ p }}</a>
+        <a href="/partners" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,247,252,0.85); border-radius: 999px; padding: 10px 20px; font-weight: 600; font-size: 14px" style-hover="border-color: #C7238E; color: #fff; transform: translateY(-2px)">{{ p }}</a>
       </sc-for>
     </div>
   </div>
@@ -244,8 +244,8 @@
     <img src="assets/brand/brush_zigzag.png" alt="" style="position: absolute; left: -60px; bottom: -80px; width: 360px; opacity: 0.15; filter: invert(1)">
     <div style="font-family: 'Anton', sans-serif; font-size: clamp(36px, 4.6vw, 60px); color: #fff; text-transform: uppercase; text-shadow: 0 4px 24px rgba(0,0,0,0.3)">Ready to bring the tour to your people?</div>
     <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 28px">
-      <a href="Book.dc.html" style="background: #150E13; color: #fff; font-weight: 700; font-size: 15.5px; padding: 16px 32px; border-radius: 14px" style-hover="transform: translateY(-2px); background: #000">Book the Tour</a>
-      <a href="Partners.dc.html" style="background: rgba(255,255,255,0.92); color: #C7238E; font-weight: 700; font-size: 15.5px; padding: 16px 32px; border-radius: 14px" style-hover="transform: translateY(-2px); background: #fff">Partner With Us</a>
+      <a href="/book" style="background: #150E13; color: #fff; font-weight: 700; font-size: 15.5px; padding: 16px 32px; border-radius: 14px" style-hover="transform: translateY(-2px); background: #000">Book the Tour</a>
+      <a href="/partners" style="background: rgba(255,255,255,0.92); color: #C7238E; font-weight: 700; font-size: 15.5px; padding: 16px 32px; border-radius: 14px" style-hover="transform: translateY(-2px); background: #fff">Partner With Us</a>
     </div>
   </div>
 
@@ -259,20 +259,20 @@
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
         <div style="font-weight: 700; letter-spacing: 0.1em; color: #C7238E; font-size: 12.5px">EXPLORE</div>
-        <a href="Home.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
-        <a href="About.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">About</a>
-        <a href="Experience.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">The Experience</a>
-        <a href="Events.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Tour Stops</a>
-        <a href="Gallery.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Gallery</a>
-        <a href="Urban News.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Urban News</a>
+        <a href="/" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Home</a>
+        <a href="/about" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">About</a>
+        <a href="/experience" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">The Experience</a>
+        <a href="/events" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Tour Stops</a>
+        <a href="/gallery" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Gallery</a>
+        <a href="/urban-news" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Urban News</a>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
         <div style="font-weight: 700; letter-spacing: 0.1em; color: #C7238E; font-size: 12.5px">BOOK</div>
-        <a href="Book.dc.html#schools" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Schools</a>
-        <a href="Book.dc.html#campus" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Universities &amp; Colleges</a>
-        <a href="Book.dc.html#mega" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Mega Events</a>
-        <a href="Book.dc.html#brands" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Brands &amp; Sponsors</a>
-        <a href="Shop.dc.html" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Merch Shop</a>
+        <a href="/book#schools" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Schools</a>
+        <a href="/book#campus" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Universities &amp; Colleges</a>
+        <a href="/book#mega" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Mega Events</a>
+        <a href="/book#brands" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">For Brands &amp; Sponsors</a>
+        <a href="/shop" style="color: rgba(255,247,252,0.75)" style-hover="color: #fff">Merch Shop</a>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
         <div style="font-weight: 700; letter-spacing: 0.1em; color: #C7238E; font-size: 12.5px">CONNECT</div>

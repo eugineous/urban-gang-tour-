@@ -30,9 +30,46 @@ const securityHeaders = [
   },
 ];
 
+// Clean-URL slug -> the real static file in public/. Kept as one map so
+// rewrites (slug serves the file) and redirects (old filename URL -> slug)
+// can't drift apart.
+const DC_PAGES = {
+  about: "About.dc.html",
+  blog: "Blog.dc.html",
+  book: "Book.dc.html",
+  "contact-us": "Contact.dc.html",
+  events: "Events.dc.html",
+  experience: "Experience.dc.html",
+  gallery: "Gallery.dc.html",
+  partners: "Partners.dc.html",
+  "promo-reel": "Promo Reel.dc.html",
+  shop: "Shop.dc.html",
+  "the-gang": "The Gang.dc.html",
+  "urban-news": "Urban News.dc.html",
+};
+
 const nextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+  async rewrites() {
+    return [
+      { source: "/", destination: "/Home.dc.html" },
+      ...Object.entries(DC_PAGES).map(([slug, file]) => ({
+        source: `/${slug}`,
+        destination: `/${encodeURIComponent(file)}`,
+      })),
+    ];
+  },
+  async redirects() {
+    return [
+      { source: "/Home.dc.html", destination: "/", permanent: true },
+      ...Object.entries(DC_PAGES).map(([slug, file]) => ({
+        source: `/${encodeURIComponent(file)}`,
+        destination: `/${slug}`,
+        permanent: true,
+      })),
+    ];
   },
   images: {
     domains: [

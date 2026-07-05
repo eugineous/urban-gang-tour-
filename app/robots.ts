@@ -17,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         "/hosts",
         "/shows",
         "/projects",
-        "/contact",
+        "/contact$", // legacy PPP TV route only - not a prefix match against /contact-us
         "/tushinde-ad-guide",
       ],
     },
