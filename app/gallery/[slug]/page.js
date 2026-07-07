@@ -53,6 +53,8 @@ export async function generateMetadata({ params }) {
   return {
     title: `${g.title} Gallery | Urban Gang Tour`,
     description: g.description,
+    keywords: `${g.title}, Urban Gang Tour gallery, Kenyan school events, youth talent Kenya, school concert Kenya, PPP TV Kenya`,
+    alternates: { canonical: `https://urbangangtour.co.ke/gallery/${params.slug}` },
   };
 }
 

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Dot } from 'lucide-react';
 
 export const metadata = {
   title: 'Urban Gang Tour | From Potential to Purpose',
@@ -33,10 +34,10 @@ export default function HomePage() {
       <div className="ticker-wrap">
         <div className="ticker-inner">
           {['Singing & Rap','Dance','Spoken Word','Poetry','Modelling','News Reporting','Public Speaking','Art','Teachers Competition','Eating Competition','From Potential to Purpose'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['Singing & Rap','Dance','Spoken Word','Poetry','Modelling','News Reporting','Public Speaking','Art','Teachers Competition','Eating Competition','From Potential to Purpose'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>
@@ -198,10 +199,10 @@ export default function HomePage() {
       <div className="ticker-wrap orange">
         <div className="ticker-inner">
           {['Singing & Rap','Dance','Spoken Word','Poetry','Modelling','News Reporting','Public Speaking','Art','Teachers Competition','Eating Competition','From Potential to Purpose'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['Singing & Rap','Dance','Spoken Word','Poetry','Modelling','News Reporting','Public Speaking','Art','Teachers Competition','Eating Competition','From Potential to Purpose'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>

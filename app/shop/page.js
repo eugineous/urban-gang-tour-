@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { Dot } from 'lucide-react';
 
 export const metadata = {
   title: 'Shop | Urban Gang Merch',
   description: 'Urban Gang Tour merchandise. Tees, caps, hoodies, accessories. Limited drops at every event. Ships countrywide.',
+  keywords: 'Urban Gang Tour merch, UGT shop, Kenyan school events, youth talent Kenya, school concert Kenya, PPP TV Kenya, Urban Gang Tour tee, UGT hoodie',
+  alternates: { canonical: 'https://urbangangtour.co.ke/shop' },
 };
 
 const PRODUCTS = [
@@ -35,10 +38,10 @@ export default function ShopPage() {
       <div className="ticker-wrap orange">
         <div className="ticker-inner fast">
           {['Tees','Caps','Hoodies','Tote Bags','Sticker Packs','Event Exclusives','Limited Drops','Ships Countrywide'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['Tees','Caps','Hoodies','Tote Bags','Sticker Packs','Event Exclusives','Limited Drops','Ships Countrywide'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>

@@ -1,0 +1,22 @@
+{
+  "name": "urban-gang-tour",
+  "version": "1.0.0",
+  "description": "> **From Potential to Purpose.** > The brand kit for Kenya's largest high school talent search, mentorship, and awards concert programme. This system is built for anyone designing for UGT — posters, decks, social reels, stage backdrops, the website, merch, or the PPP TV broadcast overlays.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@upstash/redis": "^1.38.0",
+    "fast-check": "^4.8.0",
+    "lucide-react": "^1.23.0",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-icons": "^5.7.0"
+  }
+}

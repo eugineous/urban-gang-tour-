@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { Dot } from 'lucide-react';
 
 export const metadata = {
   title: 'Tour Stops | Urban Gang Tour 2026',
   description: 'The 2026 Urban Gang Tour calendar. Schools, universities, colleges and campuses across Kenya.',
+  keywords: 'Urban Gang Tour stops 2026, Kenyan school events, school concert Kenya, youth talent Kenya, PPP TV Kenya, UGT calendar, school tour Kenya',
+  alternates: { canonical: 'https://urbangangtour.co.ke/stops' },
 };
 
 export default function StopsPage() {
@@ -21,10 +24,10 @@ export default function StopsPage() {
       <div className="ticker-wrap">
         <div className="ticker-inner fast">
           {['Koinange Girls - 30 May','Loreto Kiambu - 1 June','Gathirimu Girls - 4 July','Bookings Open','Is Your School Next?'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">✦</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['Koinange Girls - 30 May','Loreto Kiambu - 1 June','Gathirimu Girls - 4 July','Bookings Open','Is Your School Next?'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">✦</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>

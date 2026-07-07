@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { Dot } from 'lucide-react';
 
 export const metadata = {
   title: 'Performers | Urban Gang Tour',
   description: 'Artists and performers on the Urban Gang Tour stage. Music, dance, spoken word, comedy, modelling. Lineups announced per stop.',
+  keywords: 'Urban Gang Tour performers, Kenyan school events, youth talent Kenya, school concert Kenya, PPP TV Kenya, UGT artists, Kenya live performers',
+  alternates: { canonical: 'https://urbangangtour.co.ke/performers' },
 };
 
 export default function PerformersPage() {
@@ -22,10 +25,10 @@ export default function PerformersPage() {
       <div className="ticker-wrap orange">
         <div className="ticker-inner fast">
           {['Music','Spoken Word','Dance','Comedy','Modelling','Drama','Real talent. Real stage.'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">✦</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['Music','Spoken Word','Dance','Comedy','Modelling','Drama','Real talent. Real stage.'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">✦</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>

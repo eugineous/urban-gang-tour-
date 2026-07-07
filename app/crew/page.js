@@ -1,23 +1,26 @@
 import Link from 'next/link';
+import { Dot } from 'lucide-react';
 
 export const metadata = {
   title: 'The Crew | Urban Gang Tour',
   description: 'Meet the Urban Gang Tour crew. Hosts, MCs, DJs, hypeman, camera crew, stage management, dancers, modelling leads.',
+  keywords: 'Urban Gang Tour crew, Eugine Micah, Lucy Ogunde, Kenyan school events, youth talent Kenya, school concert Kenya, PPP TV Kenya, UGT team',
+  alternates: { canonical: 'https://urbangangtour.co.ke/crew' },
 };
 
 const CREW = [
-  {img:'/assets/people/eugine-micah.png',role:'Co-Founder · Lead Host',name:'Eugine Micah',note:'He built this from zero. Hosts every stop personally. The face of Urban News on PPP TV Kenya.'},
-  {img:'/assets/people/lucy-ogunde.jpg',role:'Co-Founder · Co-Host',name:'Lucy Ogunde',note:'Executive producer and co-host. The precision and the warmth. She makes the day feel like it belongs to the school.'},
-  {img:'/assets/people/hype-ola.jpg',role:'Experience Hub Lead · Hypeman',name:'Hype Ola',note:'When the crowd peaks, Hype Ola is why. The energy in the room is his responsibility and he takes it seriously.'},
-  {img:'/assets/people/mc-paps.webp',role:'MC',name:'MC Paps',note:'The voice between the moments. Steers the crowd through every transition without losing a single person.'},
-  {img:'/assets/people/rania-martin.webp',role:'Social Content Lead',name:'Rania Martin',note:'PPP TV Editor. After every stop, Rania is why the clips hit. The edit that makes the school famous.'},
-  {img:'/assets/people/dj-xavi.jpg',role:'DJ',name:'DJ Xavi',note:'Sets the tone from the first track. The crowd does not know the day has started until DJ Xavi says it has.'},
-  {img:'/assets/people/dj-jayjey.jpg',role:'DJ',name:'DJ Jayjey',note:'Energy management. Reads the room and adjusts. The DJ who keeps the battles alive between rounds.'},
-  {img:'/assets/people/dj-carian.jpg',role:'DJ',name:'DJ Carian',note:'The closer. When the awards are done and the crowd needs one last push, DJ Carian delivers it.'},
-  {img:'/assets/people/mark-davinci.jpg',role:'Dancer · Choreographer',name:'Mark Davinci',note:'Choreography that moves a crowd. The dance lane is his and he runs it like a competition should be run.'},
-  {img:'/assets/people/kalamu-nyeusi.jpg',role:'Spoken Word',name:'Kalamu Nyeusi',note:'Truth spoken on purpose. The spoken word category is the quietest before it explodes. Kalamu is why.'},
-  {img:'/assets/people/george-morgan.jpg',role:'Camera · Production',name:'George Morgan',note:'The eye behind the lens. Every clip that airs on PPP TV started with George in the right position.'},
-  {img:'/assets/people/pauline-masika.jpg',role:'Synapse Models Lead',name:'Pauline Masika',note:'Professional modelling standards inside a school environment. Confidence as a serious capability.'},
+  {img:'/assets/people/eugine-micah.png',role:'Co-Founder · Lead Host',name:'Eugine Micah',note:'He built this from zero. Hosts every stop personally. The face of Urban News on PPP TV Kenya.',slug:'eugine-micah'},
+  {img:'/assets/people/lucy-ogunde.jpg',role:'Co-Founder · Co-Host',name:'Lucy Ogunde',note:'Executive producer and co-host. The precision and the warmth. She makes the day feel like it belongs to the school.',slug:'lucy-ogunde'},
+  {img:'/assets/people/hype-ola.jpg',role:'Experience Hub Lead · Hypeman',name:'Hype Ola',note:'When the crowd peaks, Hype Ola is why. The energy in the room is his responsibility and he takes it seriously.',slug:'hype-ola'},
+  {img:'/assets/people/mc-paps.webp',role:'MC',name:'MC Paps',note:'The voice between the moments. Steers the crowd through every transition without losing a single person.',slug:'mc-paps'},
+  {img:'/assets/people/rania-martin.webp',role:'Social Content Lead',name:'Rania Martin',note:'PPP TV Editor. After every stop, Rania is why the clips hit. The edit that makes the school famous.',slug:'rania-martin'},
+  {img:'/assets/people/dj-xavi.jpg',role:'DJ',name:'DJ Xavi',note:'Sets the tone from the first track. The crowd does not know the day has started until DJ Xavi says it has.',slug:'dj-xavi'},
+  {img:'/assets/people/dj-jayjey.jpg',role:'DJ',name:'DJ Jayjey',note:'Energy management. Reads the room and adjusts. The DJ who keeps the battles alive between rounds.',slug:'dj-jayjey'},
+  {img:'/assets/people/dj-carian.jpg',role:'DJ',name:'DJ Carian',note:'The closer. When the awards are done and the crowd needs one last push, DJ Carian delivers it.',slug:'dj-carian'},
+  {img:'/assets/people/mark-davinci.jpg',role:'Dancer · Choreographer',name:'Mark Davinci',note:'Choreography that moves a crowd. The dance lane is his and he runs it like a competition should be run.',slug:'mark-davinci'},
+  {img:'/assets/people/kalamu-nyeusi.jpg',role:'Spoken Word',name:'Kalamu Nyeusi',note:'Truth spoken on purpose. The spoken word category is the quietest before it explodes. Kalamu is why.',slug:'kalamu-nyeusi'},
+  {img:'/assets/people/george-morgan.jpg',role:'Camera · Production',name:'George Morgan',note:'The eye behind the lens. Every clip that airs on PPP TV started with George in the right position.',slug:'george-morgan'},
+  {img:'/assets/people/pauline-masika.jpg',role:'Synapse Models Lead',name:'Pauline Masika',note:'Professional modelling standards inside a school environment. Confidence as a serious capability.',slug:'pauline-masika'},
 ];
 
 export default function CrewPage() {
@@ -39,10 +42,10 @@ export default function CrewPage() {
       <div className="ticker-wrap">
         <div className="ticker-inner fast">
           {['Eugine Micah','Lucy Ogunde','MC Paps','Hype Ola','Synapse Models','Ashton Sounds','DJ Xavi','DJ Jayjey','Mark Davinci','Kalamu Nyeusi','Rania Martin'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['Eugine Micah','Lucy Ogunde','MC Paps','Hype Ola','Synapse Models','Ashton Sounds','DJ Xavi','DJ Jayjey','Mark Davinci','Kalamu Nyeusi','Rania Martin'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>
@@ -55,14 +58,17 @@ export default function CrewPage() {
           </div>
           <div className="crew-grid reveal reveal-delay-1">
             {CREW.map(c => (
-              <div key={c.name} className="crew-card">
-                <div className="crew-card-img"><img src={c.img} alt={c.name} loading="lazy" /></div>
-                <div className="crew-card-body">
-                  <div className="crew-card-role">{c.role}</div>
-                  <div className="crew-card-name">{c.name}</div>
-                  <div className="crew-card-note">{c.note}</div>
+              <Link key={c.name} href={`/people/${c.slug}`} style={{textDecoration:'none',display:'block'}}>
+                <div className="crew-card" style={{height:'100%'}}>
+                  <div className="crew-card-img"><img src={c.img} alt={c.name} loading="lazy" /></div>
+                  <div className="crew-card-body">
+                    <div className="crew-card-role">{c.role}</div>
+                    <div className="crew-card-name">{c.name}</div>
+                    <div className="crew-card-note">{c.note}</div>
+                    <div style={{marginTop:'12px',fontSize:'13px',fontWeight:700,color:'var(--ugt-magenta)',letterSpacing:'0.02em'}}>View profile →</div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

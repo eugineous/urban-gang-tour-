@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { Dot } from 'lucide-react';
 
 export const metadata = {
   title: 'Partners | Urban Gang Tour',
   description: 'The institutions and brands that show up with Urban Gang Tour. NACADA, PPP TV Kenya, Synapse Models, Ashton Sounds, Delo Greens Movement and more.',
+  keywords: 'Urban Gang Tour partners, PPP TV Kenya, NACADA Kenya, school events sponsors, Kenyan school events, youth talent Kenya, school concert Kenya, UGT partners',
+  alternates: { canonical: 'https://urbangangtour.co.ke/partners' },
 };
 
 const PARTNERS = [
@@ -31,10 +34,10 @@ export default function PartnersPage() {
       <div className="ticker-wrap">
         <div className="ticker-inner fast">
           {['NACADA','PPP TV Kenya','Synapse Models','The Experience Hub','Delo Greens Movement','Ashton Sounds','Moyo Response','Hewitt and Bennet College','TIBS College'].map((t,i) => (
-            <div key={i} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={i} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
           {['NACADA','PPP TV Kenya','Synapse Models','The Experience Hub','Delo Greens Movement','Ashton Sounds','Moyo Response','Hewitt and Bennet College','TIBS College'].map((t,i) => (
-            <div key={`b${i}`} className="ticker-item">{t} <span className="ticker-sep">*</span></div>
+            <div key={`b${i}`} className="ticker-item">{t} <Dot aria-hidden="true" className="ticker-sep" /></div>
           ))}
         </div>
       </div>

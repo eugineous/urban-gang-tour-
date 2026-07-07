@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Dot } from "lucide-react";
 import { site } from "@/lib/site-data";
 
 /* ─────────────────────────────────────────────
@@ -147,13 +148,15 @@ export function Marquee() {
     "Bookings open",
     site.brand.motto,
   ];
-  const text = items.join(" · ");
+  const track = items.map((item, i) => (
+    <span key={i}>{item}<Dot aria-hidden="true" className="ticker-sep" /></span>
+  ));
   return (
     <div className="marquee">
       <div className="marquee__track marquee__track--xl">
-        <span>{text}</span>
-        <span>{text}</span>
-        <span>{text}</span>
+        <span>{track}</span>
+        <span>{track}</span>
+        <span>{track}</span>
       </div>
     </div>
   );
