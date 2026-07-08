@@ -1,0 +1,8 @@
+# ads.txt for urbangangtour.co.ke
+#
+# No ad network account exists yet for this domain. Once one is created
+# (Google AdSense, Google Ad Manager, or another network), replace the
+# line below with the real publisher record the network issues -
+# typically: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+#
+# See https://iabtechlab.com/ads-txt/ for the spec.
