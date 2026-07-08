@@ -12,7 +12,7 @@ export default function NewsPage() {
         <SectionHeading
           eyebrow="News"
           title="Full stories with original images"
-          description="External feeds are enriched via readable extraction—no blank cards, no missing hero shots. Use ?force=1 to bust cache."
+          description="External feeds are enriched via readable extraction, no blank cards, no missing hero shots. Use ?force=1 to bust cache."
           cta={
             <a
               href="/api/news?limit=200&force=1"

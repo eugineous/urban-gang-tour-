@@ -29,12 +29,12 @@ const description =
 
 export const metadata: Metadata = {
   title: {
-    default: "Urban Gang Tour — Events, Media & Talent Production, Kenya",
-    template: "%s — Urban Gang Tour",
+    default: "Urban Gang Tour - Events, Media and Talent Production in Kenya",
+    template: "%s - Urban Gang Tour",
   },
   description,
   openGraph: {
-    title: "Urban Gang Tour — Events, Media & Talent Production, Kenya",
+    title: "Urban Gang Tour - Events, Media and Talent Production in Kenya",
     description,
     url: siteUrl,
     siteName: "Urban Gang Tour",

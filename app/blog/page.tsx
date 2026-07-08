@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BLOG_POSTS } from "@/content/blog";
 import { BlogNav, BlogFooter } from "./_shared";
 
-const title = "Stories from the Road — Urban Gang Tour Blog";
+const title = "Stories from the Road";
 const description =
   "Recaps, milestones, and behind-the-scenes stories from every Urban Gang Tour stop across Kenya - the countrywide youth festival experience.";
 
@@ -20,7 +20,7 @@ export default function BlogListPage() {
   const blogLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: "Urban Gang Tour — Stories from the Road",
+    name: "Urban Gang Tour Newsroom",
     url: "https://urbangangtour.co.ke/blog",
     publisher: { "@type": "Organization", name: "Urban Gang Tour", logo: "https://urbangangtour.co.ke/assets/brand/logo_transparent.png" },
     blogPost: BLOG_POSTS.map((p) => ({

@@ -7,7 +7,7 @@ import BuyButton from "../_components/BuyButton";
 import { getTicketEvents } from "@/lib/catalog-store";
 import { NEXT_STOP, COMPLETED_STOPS, UPCOMING_STOPS } from "@/content/tour";
 
-const title = "Tour Calendar — Urban Gang Tour";
+const title = "Tour Calendar";
 const description =
   "Where the Urban Gang Tour has been, and where it's going next. Completed stops, upcoming dates, and ticketed public events.";
 

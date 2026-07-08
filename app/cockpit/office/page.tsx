@@ -53,7 +53,7 @@ export default function OfficePage() {
                 <div className="space-y-1">
                   {item.preview.map((p) => (
                     <div key={p.id} className="text-xs text-white/70">
-                      <span className="font-semibold text-white">{p.id}</span> — {p.title}
+                      <span className="font-semibold text-white">{p.id}</span> - {p.title}
                     </div>
                   ))}
                 </div>
@@ -78,7 +78,7 @@ export default function OfficePage() {
                   <div className="grid md:grid-cols-2 gap-2">
                     {items.map((i) => (
                       <div key={i.id} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80">
-                        <span className="font-semibold text-white">{i.id}</span> — {i.title}
+                        <span className="font-semibold text-white">{i.id}</span> - {i.title}
                       </div>
                     ))}
                   </div>

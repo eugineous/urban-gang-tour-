@@ -5,7 +5,7 @@ import Reveal from "../_components/Reveal";
 import TeamCard from "./_TeamCard";
 import { LEADERSHIP, OPERATIONS_CREW, ENERGY_UNIT, TOURING_ARTISTS } from "@/content/team";
 
-const title = "The Gang — Urban Gang Tour Crew";
+const title = "The Gang";
 const description =
   "Meet the people who build, run, and film every Urban Gang Tour event: leadership, production, entertainment, and the touring artists who ride with the tour.";
 

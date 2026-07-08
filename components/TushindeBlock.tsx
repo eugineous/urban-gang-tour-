@@ -16,7 +16,7 @@ export function TushindeBlock() {
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Tushinde.com</p>
           <h3 className="mt-2 text-2xl font-semibold text-white md:text-3xl">
-            Fast payouts, live odds, daily boosts — showcased with responsible, high-impact placements.
+            Fast payouts, live odds, daily boosts, showcased with responsible, high-impact placements.
           </h3>
           <p className="mt-3 text-sm text-white/70">
             We ship original artwork (PNG icons, no emojis), reserve responsive slots, and align with 18+ / responsible gaming requirements.

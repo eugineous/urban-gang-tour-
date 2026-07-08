@@ -30,7 +30,7 @@ export default function ContactPage() {
         <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
           <h3 className="text-white font-semibold">Pitch your story</h3>
           <p className="text-sm text-white/70">
-            Share a link and 2–3 bullets; the desk will review for Urban News or Campus Xposure.
+            Share a link and 2-3 bullets; the desk will review for Urban News or Campus Xposure.
           </p>
         </div>
         <AdSlot />

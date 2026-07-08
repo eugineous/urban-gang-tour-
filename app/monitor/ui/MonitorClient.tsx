@@ -57,15 +57,15 @@ export function MonitorClient({ officeItems }: { officeItems: OfficeItem[] }) {
     };
   }, []);
 
-  const ts = live?.timestamp ? format(new Date(live.timestamp), "HH:mm:ss") : "—";
+  const ts = live?.timestamp ? format(new Date(live.timestamp), "HH:mm:ss") : "-";
 
   return (
     <>
       <section className="grid md:grid-cols-4 gap-4">
-        <Card label="Actions" value={live?.actions ?? "—"} ts={ts} />
-        <Card label="Posts" value={live?.posts ?? "—"} ts={ts} />
-        <Card label="Trends" value={live?.trends ?? "—"} ts={ts} />
-        <Card label="Agents" value={live?.agentsActive ?? "—"} ts={ts} />
+        <Card label="Actions" value={live?.actions ?? "-"} ts={ts} />
+        <Card label="Posts" value={live?.posts ?? "-"} ts={ts} />
+        <Card label="Trends" value={live?.trends ?? "-"} ts={ts} />
+        <Card label="Agents" value={live?.agentsActive ?? "-"} ts={ts} />
       </section>
 
       <section className="grid lg:grid-cols-5 gap-4">
@@ -124,10 +124,10 @@ function MetricCard({ icon, title, data }: { icon: string; title: string; data?:
         <span>{icon}</span>
         <span className="font-semibold text-white">{title}</span>
       </div>
-      <Row label="Followers" value={data?.followers ?? "—"} />
-      <Row label="Posts" value={data?.posts ?? "—"} />
-      <Row label="Engagement" value={data?.engagement ?? "—"} />
-      <Row label="Impressions" value={data?.impressions ?? "—"} />
+      <Row label="Followers" value={data?.followers ?? "-"} />
+      <Row label="Posts" value={data?.posts ?? "-"} />
+      <Row label="Engagement" value={data?.engagement ?? "-"} />
+      <Row label="Impressions" value={data?.impressions ?? "-"} />
     </div>
   );
 }

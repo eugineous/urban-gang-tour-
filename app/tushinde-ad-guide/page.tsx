@@ -17,7 +17,7 @@ const promoteSteps = [
 const checklist = [
   "Confirm the site allows third-party ads or affiliate links.",
   "Tag links with UTM parameters; verify dashboards are reporting.",
-  "Test 2–3 creative variants for 7–14 days before scaling.",
+  "Test 2-3 creative variants for 7-14 days before scaling.",
   "Keep spacing between ads; avoid crowding primary content.",
 ];
 

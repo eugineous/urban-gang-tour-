@@ -34,7 +34,7 @@ const BASE_AGENTS: AgentState[] = [
   { name: "ORATOR", company: "LinkedElite", role: "Content", status: "active", task: "Write carousel", eta: "12m" },
   { name: "CHIEF", company: "PagePower", role: "CEO", status: "active", task: "Review comments", eta: "07m" },
   { name: "ROOT", company: "WebBoss", role: "CEO", status: "active", task: "SEO crawl", eta: "09m" },
-  { name: "SOVEREIGN", company: "IntelCore", role: "Supreme", status: "active", task: "Route commands", eta: "—" },
+  { name: "SOVEREIGN", company: "IntelCore", role: "Supreme", status: "active", task: "Route commands", eta: "-" },
   { name: "SENTRY", company: "IntelCore", role: "Crisis", status: "alert", task: "Crisis scan", eta: "Running" },
   { name: "MEMORY", company: "IntelCore", role: "Learning", status: "active", task: "Post-metrics sync", eta: "15m" },
 ];

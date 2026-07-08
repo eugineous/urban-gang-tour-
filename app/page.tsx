@@ -8,7 +8,7 @@ import BuyButton from "./_components/BuyButton";
 import { BLOG_POSTS } from "@/content/blog";
 import { TICKET_EVENTS } from "@/content/catalog";
 
-const title = "Urban Gang Tour — Kenya's Touring Youth Festival";
+const title = "Urban Gang Tour, Kenya's Touring Youth Festival";
 const description =
   "Urban Gang Tour produces live touring festivals, talent search battles, mentorship programs, and broadcast content across Kenya. Founded by Eugine Micah and Lucy Ogunde.";
 
