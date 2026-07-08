@@ -8,14 +8,14 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   {
     key: "Content-Security-Policy",
-    // unsafe-eval + unpkg.com are load-bearing, not leftover: every public/*.dc.html
-    // page loads React/ReactDOM/Babel from unpkg.com at runtime and Babel-transpiles
-    // the inline dc-script block via `new Function` (see public/support.js, aka
-    // dc-runtime). Removing either one white-screens every marketing page - do not
-    // "clean this up" without first replacing dc-runtime's in-browser transpilation.
+    // Every page is now a real Next.js route - the old dc-runtime (public/support.js,
+    // React/Babel loaded from unpkg.com at runtime, in-browser transpilation via
+    // `new Function`) has been fully retired along with the last public/*.dc.html
+    // file. 'unsafe-eval' and unpkg.com are dropped because nothing needs them
+    // anymore; re-add only if a future page brings back client-side eval.
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.googletagmanager.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
@@ -30,36 +30,33 @@ const securityHeaders = [
   },
 ];
 
-// Clean-URL slug -> the real static file in public/. Kept as one map so
-// rewrites (slug serves the file) and redirects (old filename URL -> slug)
-// can't drift apart.
-// Pages migrated off this map are real Next.js routes under app/ instead:
-// each one gets full server rendering with no runtime Babel transpilation.
-// The matching .dc.html file stays on disk during the migration but is no
-// longer routed to - see the extra redirects below.
-// Migrated so far: blog (app/blog/), the-gang (app/the-gang/), events (app/events/),
-// contact-us (app/contact-us/), shop (app/shop/), book (app/book/), about (app/about/),
-// partners (app/partners/), experience (app/experience/), gallery (app/gallery/),
-// urban-news (app/urban-news/). The Promo Reel page was retired, not migrated: it
-// was an internal shot-list/creative-brief document (VO scripts, music cues,
-// production scoring), not real public content, and nothing else on the site
-// linked to it.
-const DC_PAGES = {};
+// Every marketing page is a real Next.js route under app/ now. The old
+// dc-runtime (public/*.dc.html, client-side Babel transpilation) is fully
+// retired; these redirects just catch anyone with an old filename URL
+// bookmarked or indexed and send them to the real route.
+const LEGACY_REDIRECTS = [
+  { source: "/Home.dc.html", destination: "/" },
+  { source: "/Blog.dc.html", destination: "/blog" },
+  { source: "/The%20Gang.dc.html", destination: "/the-gang" },
+  { source: "/Events.dc.html", destination: "/events" },
+  { source: "/Contact.dc.html", destination: "/contact-us" },
+  { source: "/Shop.dc.html", destination: "/shop" },
+  { source: "/Book.dc.html", destination: "/book" },
+  { source: "/About.dc.html", destination: "/about" },
+  { source: "/Partners.dc.html", destination: "/partners" },
+  { source: "/Experience.dc.html", destination: "/experience" },
+  { source: "/Gallery.dc.html", destination: "/gallery" },
+  { source: "/Urban%20News.dc.html", destination: "/urban-news" },
+  // Promo Reel was retired outright (internal shot-list/creative-brief
+  // document, not real public content) rather than migrated - both its old
+  // filename and its old clean slug now land on the real photo/video gallery.
+  { source: "/Promo%20Reel.dc.html", destination: "/gallery" },
+  { source: "/promo-reel", destination: "/gallery" },
+];
 
 const nextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
-  },
-  async rewrites() {
-    return [
-      // "/" is a real Next.js route (app/page.tsx) - no rewrite needed.
-      // Home.dc.html still exists on disk during the migration but is no
-      // longer routed to; direct hits redirect below.
-      ...Object.entries(DC_PAGES).map(([slug, file]) => ({
-        source: `/${slug}`,
-        destination: `/${encodeURIComponent(file)}`,
-      })),
-    ];
   },
   async redirects() {
     return [
@@ -72,25 +69,7 @@ const nextConfig = {
         destination: "https://urbangangtour.co.ke/:path*",
         permanent: true,
       },
-      { source: "/Home.dc.html", destination: "/", permanent: true },
-      { source: "/Blog.dc.html", destination: "/blog", permanent: true },
-      { source: "/The%20Gang.dc.html", destination: "/the-gang", permanent: true },
-      { source: "/Events.dc.html", destination: "/events", permanent: true },
-      { source: "/Contact.dc.html", destination: "/contact-us", permanent: true },
-      { source: "/Shop.dc.html", destination: "/shop", permanent: true },
-      { source: "/Book.dc.html", destination: "/book", permanent: true },
-      { source: "/About.dc.html", destination: "/about", permanent: true },
-      { source: "/Partners.dc.html", destination: "/partners", permanent: true },
-      { source: "/Experience.dc.html", destination: "/experience", permanent: true },
-      { source: "/Gallery.dc.html", destination: "/gallery", permanent: true },
-      { source: "/Urban%20News.dc.html", destination: "/urban-news", permanent: true },
-      { source: "/Promo%20Reel.dc.html", destination: "/gallery", permanent: true },
-      { source: "/promo-reel", destination: "/gallery", permanent: true },
-      ...Object.entries(DC_PAGES).map(([slug, file]) => ({
-        source: `/${encodeURIComponent(file)}`,
-        destination: `/${slug}`,
-        permanent: true,
-      })),
+      ...LEGACY_REDIRECTS.map((r) => ({ ...r, permanent: true })),
     ];
   },
   images: {
