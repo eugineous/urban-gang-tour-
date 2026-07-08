@@ -38,6 +38,13 @@ interface YoutubeVideo {
   commentCount: number;
 }
 
+interface AuditEntry {
+  action: string;
+  summary: string;
+  actor: string;
+  at: number;
+}
+
 function money(kes: number) {
   return `KES ${kes.toLocaleString("en-KE")}`;
 }
@@ -76,7 +83,7 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [tab, setTab] = useState<"orders" | "catalog" | "stats">("orders");
+  const [tab, setTab] = useState<"orders" | "catalog" | "stats" | "activity">("orders");
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -87,6 +94,9 @@ export default function AdminPage() {
 
   const [videos, setVideos] = useState<YoutubeVideo[] | null>(null);
   const [statsError, setStatsError] = useState("");
+
+  const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
+  const [auditError, setAuditError] = useState("");
 
   const loadOrders = useCallback(async () => {
     const res = await fetch("/api/ugt-admin/orders");
@@ -137,6 +147,20 @@ export default function AdminPage() {
       })
       .catch(() => setStatsError("Failed to load YouTube stats"));
   }, [tab, videos]);
+
+  useEffect(() => {
+    if (tab !== "activity" || auditLog !== null) return;
+    fetch("/api/ugt-admin/audit-log")
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setAuditError(data.error || "Failed to load activity log");
+          return;
+        }
+        setAuditLog(data.entries);
+      })
+      .catch(() => setAuditError("Failed to load activity log"));
+  }, [tab, auditLog]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -212,7 +236,7 @@ export default function AdminPage() {
       <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 34, textTransform: "uppercase" }}>Admin</div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 20, borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
-        {(["orders", "catalog", "stats"] as const).map((t) => (
+        {(["orders", "catalog", "stats", "activity"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -228,7 +252,7 @@ export default function AdminPage() {
               cursor: "pointer",
             }}
           >
-            {t === "orders" ? "Orders & Tickets" : t === "catalog" ? "Catalog & Prices" : "YouTube Stats"}
+            {t === "orders" ? "Orders & Tickets" : t === "catalog" ? "Catalog & Prices" : t === "stats" ? "YouTube Stats" : "Activity Log"}
           </button>
         ))}
       </div>
@@ -500,6 +524,42 @@ export default function AdminPage() {
                   </div>
                 </div>
               </a>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab === "activity" && (
+        <div style={{ marginTop: 30 }}>
+          <div style={{ color: "rgba(255,247,252,0.6)", fontSize: 13, marginBottom: 16 }}>
+            Every catalog and event price change, newest first. The panel has one shared password rather than
+            per-user accounts, so entries are attributed by request IP.
+          </div>
+          {auditError && <div style={{ color: "#FF6B6B", fontSize: 13, marginBottom: 16 }}>{auditError}</div>}
+          {!auditError && auditLog === null && <div style={{ color: "rgba(255,247,252,0.6)" }}>Loading...</div>}
+          {auditLog && auditLog.length === 0 && (
+            <div style={{ color: "rgba(255,247,252,0.5)", padding: "20px 0" }}>No activity recorded yet.</div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {(auditLog || []).map((entry, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  gap: 16,
+                  padding: "12px 14px",
+                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                  fontSize: 13.5,
+                }}
+              >
+                <div style={{ color: "rgba(255,247,252,0.45)", whiteSpace: "nowrap", minWidth: 150 }}>
+                  {new Date(entry.at).toLocaleString("en-KE")}
+                </div>
+                <div style={{ color: "#F5A623", fontWeight: 700, whiteSpace: "nowrap", minWidth: 90 }}>
+                  {entry.action}
+                </div>
+                <div style={{ color: "rgba(255,247,252,0.9)", flex: 1 }}>{entry.summary}</div>
+                <div style={{ color: "rgba(255,247,252,0.4)", fontSize: 12, whiteSpace: "nowrap" }}>{entry.actor}</div>
+              </div>
             ))}
           </div>
         </div>
