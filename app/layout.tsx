@@ -63,6 +63,17 @@ const organizationLd = {
     { "@type": "Person", name: "Eugine Micah" },
     { "@type": "Person", name: "Lucy Ogunde" },
   ],
+  email: "admin@urbangangtour.co.ke",
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      contactType: "bookings",
+      email: "admin@urbangangtour.co.ke",
+      telephone: "+254799886247",
+      areaServed: "KE",
+      availableLanguage: ["en", "sw"],
+    },
+  ],
   sameAs: [
     "https://instagram.com/urban_newsgang",
     "https://facebook.com/urban_newsgang",

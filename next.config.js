@@ -37,11 +37,11 @@ const securityHeaders = [
 // each one gets full server rendering with no runtime Babel transpilation.
 // The matching .dc.html file stays on disk during the migration but is no
 // longer routed to - see the extra redirects below.
-// Migrated so far: blog (app/blog/), the-gang (app/the-gang/), events (app/events/).
+// Migrated so far: blog (app/blog/), the-gang (app/the-gang/), events (app/events/),
+// contact-us (app/contact-us/).
 const DC_PAGES = {
   about: "About.dc.html",
   book: "Book.dc.html",
-  "contact-us": "Contact.dc.html",
   experience: "Experience.dc.html",
   gallery: "Gallery.dc.html",
   partners: "Partners.dc.html",
@@ -80,6 +80,7 @@ const nextConfig = {
       { source: "/Blog.dc.html", destination: "/blog", permanent: true },
       { source: "/The%20Gang.dc.html", destination: "/the-gang", permanent: true },
       { source: "/Events.dc.html", destination: "/events", permanent: true },
+      { source: "/Contact.dc.html", destination: "/contact-us", permanent: true },
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${encodeURIComponent(file)}`,
         destination: `/${slug}`,
