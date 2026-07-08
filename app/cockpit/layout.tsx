@@ -1,6 +1,8 @@
 ﻿import type { ReactNode } from "react";
 import { Bebas_Neue, Inter } from "next/font/google";
-import "../globals.css";
+// Root layout (app/layout.tsx) already imports globals.css - re-importing it
+// here from a nested layout was corrupting Next.js's CSS chunk splitting,
+// causing most routes to link an empty CSS bundle instead of the real one.
 
 const bebas = Bebas_Neue({ weight: "400", subsets: ["latin"], variable: "--font-bebas" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });

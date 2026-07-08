@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Space_Grotesk, Anton, Permanent_Marker } from "next/font/google";
+import CheckoutProvider from "./_components/CheckoutProvider";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-X1WKKF846J";
@@ -24,16 +25,16 @@ const permanentMarker = Permanent_Marker({
 
 const siteUrl = "https://urbangangtour.co.ke";
 const description =
-  "Urban Gang Tour is a Kenyan events company founded by Eugine Micah and Lucy Ogunde, running a youth talent search, mentorship, and awards concert tour countrywide.";
+  "Urban Gang Tour is a Kenyan events and production company founded by Eugine Micah and Lucy Ogunde. Touring festivals, broadcast content, talent and artiste management, mentorship programs, and brand activations across Kenya.";
 
 export const metadata: Metadata = {
   title: {
-    default: "Urban Gang Tour — Kenyan Events Company",
+    default: "Urban Gang Tour — Events, Media & Talent Production, Kenya",
     template: "%s — Urban Gang Tour",
   },
   description,
   openGraph: {
-    title: "Urban Gang Tour — Kenyan Events Company",
+    title: "Urban Gang Tour — Events, Media & Talent Production, Kenya",
     description,
     url: siteUrl,
     siteName: "Urban Gang Tour",
@@ -91,7 +92,7 @@ export default function RootLayout({
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
-        {children}
+        <CheckoutProvider>{children}</CheckoutProvider>
       </body>
     </html>
   );

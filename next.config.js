@@ -57,7 +57,9 @@ const nextConfig = {
   },
   async rewrites() {
     return [
-      { source: "/", destination: "/Home.dc.html" },
+      // "/" is a real Next.js route (app/page.tsx) - no rewrite needed.
+      // Home.dc.html still exists on disk during the migration but is no
+      // longer routed to; direct hits redirect below.
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${slug}`,
         destination: `/${encodeURIComponent(file)}`,
