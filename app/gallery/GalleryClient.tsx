@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { GALLERY_PHOTOS, GALLERY_REELS, MOMENT_FILTERS, PEOPLE_FILTERS } from "@/content/gallery";
 
@@ -83,12 +84,14 @@ export default function GalleryClient() {
               onClick={() => setLightbox(i)}
               className="group relative mb-3.5 block w-full overflow-hidden rounded-2xl bg-surface-raised [break-inside:avoid]"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={p.src}
                 alt={p.cap}
+                width={p.width}
+                height={p.height}
                 loading="lazy"
-                className="block w-full transition-transform duration-300 ease-out group-hover:scale-[1.015]"
+                sizes="(max-width: 640px) 90vw, 280px"
+                className="block h-auto w-full transition-transform duration-300 ease-out group-hover:scale-[1.015]"
               />
               <div
                 className="absolute inset-x-0 bottom-0 px-3.5 pb-2.5 pt-[1.625rem] text-left text-[12px] font-semibold text-paper/90"
