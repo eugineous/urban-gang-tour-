@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
@@ -21,8 +22,7 @@ export default function ExperiencePage() {
       <Nav />
 
       <section className="relative overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/g/stage_2.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.32]" />
+        <Image src="/assets/g/stage_2.jpg" alt="" fill priority sizes="100vw" className="object-cover opacity-[0.32]" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(21,14,19,0.6), #150E13 92%)" }} />
         <div className="relative mx-auto max-w-[1280px] px-6 py-28 text-center sm:px-10 sm:py-36">
           <Reveal>
@@ -67,8 +67,7 @@ export default function ExperiencePage() {
         <Reveal>
           <div className="mx-auto grid max-w-[1280px] grid-cols-1 overflow-hidden rounded-3xl border border-white/10 lg:grid-cols-2">
             <div className="relative min-h-[380px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/pt/synapse_3.jpg" alt="Runway" className="absolute inset-0 h-full w-full object-cover" />
+              <Image src="/assets/pt/synapse_3.jpg" alt="Runway" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, #1B0F18)" }} />
               <div className="absolute left-[1.125rem] top-[1.125rem] -rotate-2 rounded-full bg-magenta px-4 py-2 font-display text-[15px] tracking-wide text-paper">
                 THE T-SHAPED RUNWAY
@@ -153,8 +152,7 @@ export default function ExperiencePage() {
             <div className="rounded-3xl border border-[#E61E8C]/40 bg-[#E61E8C]/[0.08] p-9">
               <div className="flex items-center gap-3.5">
                 <div className="font-display text-[26px] uppercase">The broadcast</div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" className="h-9" />
+                <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} className="h-9 w-auto" />
               </div>
               <p className="mt-3 text-[15px] leading-relaxed text-paper/[0.72]">
                 Every event is filmed. Videography is mandatory at every stop, captured by{" "}

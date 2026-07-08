@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
@@ -86,14 +87,16 @@ export default function UrbanNewsPage() {
               <div className="text-[11px] font-bold uppercase tracking-wide text-paper/50">On the couch this season</div>
               <div className="mt-2.5 flex gap-2">
                 {["bobby", "hype", "moraa", "kalamu", "tamre"].map((s) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={s}
-                    src={`/assets/news/albums/${s}/1.jpg`}
-                    alt=""
-                    loading="lazy"
-                    className="aspect-square min-w-0 flex-1 rounded-[10px] border border-white/15 object-cover"
-                  />
+                  <div key={s} className="relative aspect-square min-w-0 flex-1 overflow-hidden rounded-[10px] border border-white/15">
+                    <Image
+                      src={`/assets/news/albums/${s}/1.jpg`}
+                      alt=""
+                      fill
+                      loading="lazy"
+                      sizes="18vw"
+                      className="object-cover"
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -156,13 +159,9 @@ export default function UrbanNewsPage() {
           ].map((h, i) => (
             <Reveal key={h.name} delay={i * 0.06}>
               <div className="flex items-center gap-[1.375rem] rounded-3xl border border-magenta/40 bg-magenta/[0.08] p-7">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={h.img}
-                  alt={h.name}
-                  className="h-[110px] w-[110px] shrink-0 rounded-full border-4 border-magenta object-cover"
-                  style={{ objectPosition: h.pos }}
-                />
+                <div className="relative h-[110px] w-[110px] shrink-0 overflow-hidden rounded-full border-4 border-magenta">
+                  <Image src={h.img} alt={h.name} fill sizes="110px" className="object-cover" style={{ objectPosition: h.pos }} />
+                </div>
                 <div>
                   {h.badge && (
                     <div
@@ -194,14 +193,16 @@ export default function UrbanNewsPage() {
               <div className="text-[13px] text-paper/55">The LED wall, the lights, the energy, unedited.</div>
             </div>
             <div className="mt-[1.625rem] [column-gap:14px] [columns:250px]">
-              {STUDIO_GALLERY.map((src) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={src}
-                  src={src}
+              {STUDIO_GALLERY.map((photo) => (
+                <Image
+                  key={photo.src}
+                  src={photo.src}
                   alt="Urban News studio"
+                  width={photo.width}
+                  height={photo.height}
                   loading="lazy"
-                  className="mb-3.5 block w-full rounded-2xl border border-white/10 [break-inside:avoid]"
+                  sizes="(max-width: 640px) 90vw, 250px"
+                  className="mb-3.5 block h-auto w-full rounded-2xl border border-white/10 [break-inside:avoid]"
                 />
               ))}
             </div>

@@ -28,16 +28,18 @@ export const SESSION_ALBUMS: Album[] = [
   mkAlbum("xmas", "School Christmas", "Festive Special", 5, "center 28%"),
 ];
 
+// Real pixel dimensions (not guessed) so next/image can size these correctly
+// in the CSS-column masonry layout without cropping to a forced aspect ratio.
 export const STUDIO_GALLERY = [
-  "/assets/news/min/gal1.jpg",
-  "/assets/news/min/gal5.jpg",
-  "/assets/news/min/gal8.jpg",
-  "/assets/news/min/gal2.jpg",
-  "/assets/news/min/gal7.jpg",
-  "/assets/news/min/gal4.jpg",
-  "/assets/news/min/gal6.jpg",
-  "/assets/news/min/gal3.jpg",
-  "/assets/news/min/gal9.jpg",
+  { src: "/assets/news/min/gal1.jpg", width: 1400, height: 1399 },
+  { src: "/assets/news/min/gal5.jpg", width: 1400, height: 1867 },
+  { src: "/assets/news/min/gal8.jpg", width: 1400, height: 1050 },
+  { src: "/assets/news/min/gal2.jpg", width: 1400, height: 2096 },
+  { src: "/assets/news/min/gal7.jpg", width: 1400, height: 1400 },
+  { src: "/assets/news/min/gal4.jpg", width: 1400, height: 2096 },
+  { src: "/assets/news/min/gal6.jpg", width: 1400, height: 1401 },
+  { src: "/assets/news/min/gal3.jpg", width: 1400, height: 1750 },
+  { src: "/assets/news/min/gal9.jpg", width: 1400, height: 2096 },
 ];
 
 export const SEGMENTS = [

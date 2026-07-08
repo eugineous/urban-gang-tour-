@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 const REEL = [
   { id: "P7a9iFNE33g", title: "Loreto Kiambu Girls High" },
@@ -36,12 +37,13 @@ export default function VideoHero() {
   return (
     <section className="relative flex min-h-[92vh] items-end overflow-hidden bg-ink">
       {/* Poster frame: the actual LCP element. Always painted, never removed. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={`https://img.youtube.com/vi/${REEL[0].id}/maxresdefault.jpg`}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-        fetchPriority="high"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
       />
 
       {videoReady && (

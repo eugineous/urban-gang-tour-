@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
@@ -64,8 +65,7 @@ export default function TheGangPage() {
               <Reveal key={p.name} delay={i * 0.08}>
                 <div className="overflow-hidden rounded-3xl border border-white/10 bg-surface">
                   <div className="relative aspect-[4/5] w-full overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.img} alt={p.name} className="h-full w-full object-cover" />
+                    <Image src={p.img} alt={p.name} fill sizes="(max-width: 1024px) 90vw, 30vw" className="object-cover" />
                   </div>
                   <div className="p-7">
                     <div className="font-display text-2xl uppercase leading-tight tracking-[-0.02em]">{p.name}</div>

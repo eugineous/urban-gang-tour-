@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
@@ -81,8 +82,7 @@ export default function PartnersPage() {
               </div>
               <div className="flex justify-center">
                 <div className="-rotate-2 rounded-3xl bg-paper p-9 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/assets/brand/logo_horizontal.png" alt="Urban Gang Tour" className="w-[260px]" />
+                  <Image src="/assets/brand/logo_horizontal.png" alt="Urban Gang Tour" width={2400} height={600} className="h-auto w-[260px]" />
                 </div>
               </div>
             </div>
@@ -158,8 +158,9 @@ export default function PartnersPage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <Reveal delay={0.05}>
               <div className="overflow-hidden rounded-3xl border" style={{ borderColor: "rgba(220,40,40,0.4)", background: "#1A0B0B" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/pt/moyo_2.jpg" alt="Moyo Response team" loading="lazy" className="h-[190px] w-full object-cover" />
+                <div className="relative h-[190px] w-full">
+                  <Image src="/assets/pt/moyo_2.jpg" alt="Moyo Response team" fill loading="lazy" sizes="(max-width: 640px) 100vw, 33vw" className="object-cover" />
+                </div>
                 <div className="p-6">
                   <div className="font-display text-[22px] text-[#FF6B6B]">Moyo Response</div>
                   <div className="mt-1 text-[11px] font-bold tracking-wide text-[#FF9C9C]">SAFETY AND FIRST AID PARTNER</div>
@@ -175,8 +176,9 @@ export default function PartnersPage() {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="overflow-hidden rounded-3xl border" style={{ borderColor: "rgba(46,125,50,0.5)", background: "#0B140C" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/g/event_8.jpg" alt="Tree planting with Delo Greens" className="h-[190px] w-full object-cover" />
+                <div className="relative h-[190px] w-full">
+                  <Image src="/assets/g/event_8.jpg" alt="Tree planting with Delo Greens" fill loading="lazy" sizes="(max-width: 640px) 100vw, 33vw" className="object-cover" />
+                </div>
                 <div className="p-6">
                   <div className="font-display text-[22px] text-[#5BD96A]">Delo Greens Movement</div>
                   <div className="mt-1 text-[11px] font-bold tracking-wide text-[#8FE89A]">ENVIRONMENTAL PARTNER</div>
@@ -338,21 +340,24 @@ function PartnerFeature({
   const imageBlock = logoTile ? (
     <div className="grid min-h-[280px] grid-cols-2 gap-1">
       <div className="flex items-center justify-center bg-paper p-5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[0]} alt={name} loading="lazy" className="w-4/5 max-w-[200px]" />
+        <Image src={images[0]} alt={name} width={900} height={900} loading="lazy" className="w-4/5 max-w-[200px]" />
       </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={images[1]} alt={`${name} team`} className="h-full w-full object-cover" />
+      <div className="relative">
+        <Image src={images[1]} alt={`${name} team`} fill loading="lazy" sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
+      </div>
     </div>
   ) : (
     <div className="grid min-h-[280px] grid-cols-2 gap-1">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={images[0]} alt={name} loading="lazy" className="h-full w-full object-cover" />
+      <div className="relative">
+        <Image src={images[0]} alt={name} fill loading="lazy" sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
+      </div>
       <div className="grid grid-rows-2 gap-1">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[1]} alt="" loading="lazy" className="h-full w-full object-cover" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[2]} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <div className="relative">
+          <Image src={images[1]} alt="" fill loading="lazy" sizes="(max-width: 1024px) 25vw, 12vw" className="object-cover" />
+        </div>
+        <div className="relative">
+          <Image src={images[2]} alt="" fill loading="lazy" sizes="(max-width: 1024px) 25vw, 12vw" className="object-cover" />
+        </div>
       </div>
     </div>
   );

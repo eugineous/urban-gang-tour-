@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -17,8 +18,7 @@ export function BlogNav() {
     <div className="sticky top-0 z-50 border-b border-[#C7238E]/25 bg-[#150E13]/95 backdrop-blur">
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-4 px-6 py-3">
         <Link href="/" className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" className="h-10 bg-[#1B1118]" />
+          <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} priority className="h-10 w-auto bg-[#1B1118]" />
           <span className="font-[family-name:var(--font-display)] text-sm uppercase tracking-wide text-white">
             Urban Gang Tour
           </span>
@@ -45,8 +45,7 @@ export function BlogFooter() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#C7238E]/30 bg-[#110A0F] px-6 py-8 sm:px-[clamp(24px,5vw,70px)]">
       <div className="flex items-center gap-3.5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" className="h-[50px] bg-[#1B1118]" />
+        <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} loading="lazy" className="h-[50px] w-auto bg-[#1B1118]" />
         <div>
           <div className="font-[family-name:var(--font-marker)] text-sm text-[#F5A623]">From Potential to Purpose</div>
           <div className="text-xs text-white/50">© 2026 Urban Gang Tour · Nairobi, Kenya</div>

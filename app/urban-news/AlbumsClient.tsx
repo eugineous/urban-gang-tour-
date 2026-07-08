@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { GUEST_ALBUMS, SESSION_ALBUMS, type Album } from "@/content/urban-news";
 
@@ -41,12 +42,13 @@ export default function AlbumsClient() {
             onClick={() => open(a)}
             className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-white/10 bg-surface-raised transition-all duration-150 ease-out hover:-translate-y-1 hover:border-magenta"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={a.photos[0]}
               alt={a.name}
+              fill
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
+              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 22vw"
+              className="object-cover"
               style={{ objectPosition: a.pos }}
             />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,5,8,0.95) 0%, rgba(10,5,8,0.15) 46%, transparent 74%)" }} />
@@ -69,12 +71,13 @@ export default function AlbumsClient() {
             onClick={() => open(a)}
             className="group relative aspect-[16/10] overflow-hidden rounded-3xl border border-white/10 bg-surface-raised transition-all duration-150 ease-out hover:-translate-y-1 hover:border-gold"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={a.photos[0]}
               alt={a.name}
+              fill
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
+              sizes="(max-width: 1024px) 90vw, 45vw"
+              className="object-cover"
               style={{ objectPosition: a.pos }}
             />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,5,8,0.92) 4%, rgba(10,5,8,0.1) 60%, transparent 82%)" }} />
@@ -147,11 +150,10 @@ export default function AlbumsClient() {
                   key={src}
                   type="button"
                   onClick={() => setIdx(i)}
-                  className="h-[58px] w-[58px] overflow-hidden rounded-lg border-2"
+                  className="relative h-[58px] w-[58px] overflow-hidden rounded-lg border-2"
                   style={{ borderColor: i === nIdx ? "#C7238E" : "transparent", opacity: i === nIdx ? 1 : 0.5 }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <Image src={src} alt="" fill sizes="58px" className="object-cover" />
                 </button>
               ))}
             </div>

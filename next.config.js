@@ -86,6 +86,7 @@ const nextConfig = {
       "naibuzz.com",
       "notjustok.com",
       "static01.nyt.com",
+      "img.youtube.com", // VideoHero poster frame on the homepage
     ],
   },
   webpack: (config, { isServer }) => {

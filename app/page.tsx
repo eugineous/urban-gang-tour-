@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Nav from "./_components/Nav";
 import Footer from "./_components/Footer";
 import VideoHero from "./_components/VideoHero";
@@ -163,13 +164,14 @@ export default function HomePage() {
             {recentPosts.map((post, i) => (
               <Reveal key={post.slug} delay={i * 0.08}>
                 <Link href={`/blog/${post.slug}`} className="group block">
-                  <div className="overflow-hidden rounded-2xl">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                  <div className="relative h-56 w-full overflow-hidden rounded-2xl bg-surface">
+                    <Image
                       src={post.img}
                       alt={post.title}
+                      fill
                       loading="lazy"
-                      className="h-56 w-full bg-surface object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      sizes="(max-width: 640px) 90vw, 30vw"
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     />
                   </div>
                   <div className="mt-4 text-[12.5px] font-semibold uppercase tracking-wide text-paper/45">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
@@ -90,8 +91,9 @@ export default function BookPage() {
 
           <Reveal delay={0.1}>
             <div className="mx-auto max-w-[420px] -rotate-2 rounded-md bg-paper p-3 pb-9 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/g/stage_12.jpg" alt="School crowd" className="aspect-[4/3.4] w-full bg-surface object-cover" />
+              <div className="relative aspect-[4/3.4] w-full overflow-hidden bg-surface">
+                <Image src="/assets/g/stage_12.jpg" alt="School crowd" fill sizes="(max-width: 640px) 90vw, 420px" className="object-cover" />
+              </div>
               <div className="mt-2.5 text-center font-marker text-[15px] text-ink">your students. their stage.</div>
             </div>
             <div className="mt-7 rounded-2xl border border-dashed border-gold/50 bg-white/[0.03] p-6">
@@ -117,8 +119,9 @@ export default function BookPage() {
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-start gap-11 lg:grid-cols-2">
           <Reveal>
             <div className="mx-auto max-w-[420px] rotate-2 rounded-md bg-paper p-3 pb-9 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/g/stage_11.jpg" alt="Campus" className="aspect-square w-full bg-surface-raised object-cover" />
+              <div className="relative aspect-square w-full overflow-hidden bg-surface-raised">
+                <Image src="/assets/g/stage_11.jpg" alt="Campus" fill sizes="(max-width: 640px) 90vw, 420px" className="object-cover" />
+              </div>
               <div className="mt-2.5 text-center font-marker text-[15px] text-ink">the tour, fully grown</div>
             </div>
           </Reveal>
@@ -215,8 +218,7 @@ export default function BookPage() {
       </section>
 
       <section id="mega" className="relative mt-4 overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/g/stage_2.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <Image src="/assets/g/stage_2.jpg" alt="" fill sizes="100vw" className="object-cover opacity-25" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #150E13, rgba(21,14,19,0.75) 30%, #150E13)" }} />
         <div className="relative mx-auto max-w-[1080px] px-6 py-24 text-center sm:px-10">
           <Reveal>

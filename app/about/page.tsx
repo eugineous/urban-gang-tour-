@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
@@ -44,8 +45,9 @@ export default function AboutPage() {
           </Reveal>
           <Reveal delay={0.1}>
             <div className="mx-auto w-full max-w-[380px] rotate-3 rounded-md bg-paper p-3 pb-10 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/g/stage_1.jpg" alt="On stage" className="aspect-[3/3.4] w-full bg-surface object-cover" />
+              <div className="relative aspect-[3/3.4] w-full overflow-hidden bg-surface">
+                <Image src="/assets/g/stage_1.jpg" alt="On stage" fill sizes="(max-width: 640px) 90vw, 380px" className="object-cover" />
+              </div>
               <div className="mt-2.5 text-center font-marker text-[15px] text-ink">
                 one day. one institution. everything changes.
               </div>
@@ -128,8 +130,9 @@ export default function AboutPage() {
       <section className="px-6 py-14 sm:px-10">
         <Reveal>
           <div className="relative mx-auto grid max-w-[1080px] grid-cols-[auto_1fr] items-center gap-8 rounded-r-3xl border-l-4 border-gold bg-gold/[0.07] p-9 sm:p-11">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/p/eugine_3.jpg" alt="Eugine Micah" className="h-[130px] w-[130px] rounded-full border-4 border-magenta object-cover" />
+            <div className="relative h-[130px] w-[130px] shrink-0 overflow-hidden rounded-full border-4 border-magenta">
+              <Image src="/assets/p/eugine_3.jpg" alt="Eugine Micah" fill sizes="130px" className="object-cover" />
+            </div>
             <div>
               <div className="text-[21px] font-medium leading-relaxed text-[#FFE9C7]">
                 &quot;Every school we walk into, there is a star nobody has noticed yet. Our job is to make
@@ -181,8 +184,7 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-stretch gap-6 sm:grid-cols-3">
           <Reveal>
             <div className="relative min-h-[320px] overflow-hidden rounded-3xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/p/eugine_4.jpg" alt="Eugine Micah" className="absolute inset-0 h-full w-full object-cover" />
+              <Image src="/assets/p/eugine_4.jpg" alt="Eugine Micah" fill sizes="(max-width: 1024px) 90vw, 30vw" className="object-cover" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 45%, rgba(21,14,19,0.95))" }} />
               <div className="absolute bottom-0 p-[1.375rem]">
                 <div className="font-display text-2xl">EUGINE MICAH</div>
@@ -192,8 +194,7 @@ export default function AboutPage() {
           </Reveal>
           <Reveal delay={0.06}>
             <div className="relative min-h-[320px] overflow-hidden rounded-3xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/p/lucy_portrait.jpg" alt="Lucy Ogunde" className="absolute inset-0 h-full w-full object-cover object-top" />
+              <Image src="/assets/p/lucy_portrait.jpg" alt="Lucy Ogunde" fill sizes="(max-width: 1024px) 90vw, 30vw" className="object-cover object-top" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 45%, rgba(21,14,19,0.95))" }} />
               <div className="absolute bottom-0 p-[1.375rem]">
                 <div className="font-display text-2xl">LUCY OGUNDE</div>
@@ -206,8 +207,7 @@ export default function AboutPage() {
               href="/the-gang"
               className="flex min-h-[320px] flex-col items-center justify-center gap-3.5 rounded-3xl border-2 border-dashed border-magenta/60 p-6 text-center transition-colors duration-150 hover:border-magenta hover:bg-magenta/[0.08]"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/brand/logo_transparent.png" alt="" className="w-[110px]" />
+              <Image src="/assets/brand/logo_transparent.png" alt="" width={1024} height={1024} className="h-auto w-[110px]" />
               <div className="font-display text-[22px]">MEET THE FULL GANG</div>
               <p className="text-[13.5px] text-paper/65">
                 A crew thirty to fifty strong. Hosts, DJs, dancers, models, medics, camera crews.

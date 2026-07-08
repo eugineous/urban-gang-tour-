@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import BuyButton from "../_components/BuyButton";
 import { SIZES, COLORS, type MerchProduct } from "@/content/merch";
 import type { CatalogItem } from "@/content/catalog";
@@ -17,12 +18,13 @@ export default function ProductCard({ product, price }: { product: MerchProduct;
   return (
     <div className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] transition-all duration-150 ease-out hover:-translate-y-1 hover:border-magenta">
       <div className="relative aspect-square overflow-hidden bg-[#F2EFEC]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={product.img}
           alt={price?.name || product.key}
+          fill
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
         <div className="absolute left-3.5 top-3.5 -rotate-2 rounded-full bg-magenta px-3.5 py-1.5 font-display text-[11px] uppercase tracking-wide text-paper">
           {product.tag}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const SOCIALS = [
   { href: "https://instagram.com/urban_newsgang", label: "Instagram" },
@@ -34,8 +35,7 @@ export default function Footer() {
       <div className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" className="h-12 w-auto" />
+            <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} loading="lazy" className="h-12 w-auto" />
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed text-paper/60">
               Urban Gang Tour builds and produces youth culture experiences across Kenya: live tours,
               broadcast content, talent development, and brand activations.

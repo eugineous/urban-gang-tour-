@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { BLOG_POSTS } from "@/content/blog";
 import { BlogNav, BlogFooter } from "./_shared";
 
@@ -58,9 +59,8 @@ export default function BlogListPage() {
           href={`/blog/${featured.slug}`}
           className="grid grid-cols-1 overflow-hidden rounded-[26px] border border-[#C7238E]/40 bg-[#1B0F18] transition hover:border-[#C7238E] hover:-translate-y-1 sm:grid-cols-2"
         >
-          <div className="relative min-h-[320px] sm:min-h-[380px]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={featured.img} alt={featured.title} className="absolute inset-0 h-full w-full bg-[#1B1118] object-cover" />
+          <div className="relative min-h-[320px] bg-[#1B1118] sm:min-h-[380px]">
+            <Image src={featured.img} alt={featured.title} fill priority sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" />
             <div className="absolute left-[18px] top-[18px] -rotate-2 rounded-full bg-[#F5A623] px-4 py-[7px] font-[family-name:var(--font-display)] text-[13px] uppercase tracking-wide text-[#2E1C00]">
               ★ Latest story
             </div>
@@ -86,8 +86,9 @@ export default function BlogListPage() {
               href={`/blog/${p.slug}`}
               className="overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] transition hover:border-[#C7238E] hover:-translate-y-1"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.img} alt={p.title} loading="lazy" className="h-[200px] w-full bg-[#1B1118] object-cover" />
+              <div className="relative h-[200px] w-full bg-[#1B1118]">
+                <Image src={p.img} alt={p.title} fill loading="lazy" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
+              </div>
               <div className="p-[22px] pb-6">
                 <div className="text-[12.5px] font-bold tracking-wide text-white/55">
                   {p.dateLabel} · {p.tag}

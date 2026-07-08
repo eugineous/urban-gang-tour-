@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { CrewMember } from "@/content/team";
 
 function initials(name: string) {
@@ -16,12 +17,13 @@ export default function TeamCard({ member }: { member: CrewMember }) {
     <div className="group overflow-hidden rounded-2xl border border-white/10 bg-surface transition-colors duration-200 ease-out hover:border-magenta/60">
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-raised">
         {member.img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={member.img}
             alt={member.name}
+            fill
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 18vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-surface-raised">

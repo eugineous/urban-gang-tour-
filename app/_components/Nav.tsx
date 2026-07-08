@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
 const LINKS = [
@@ -40,8 +41,7 @@ export default function Nav() {
     >
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4 sm:px-10">
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" className="h-9 w-auto" />
+          <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} priority className="h-9 w-auto" />
           <span className="hidden font-display text-sm uppercase tracking-[-0.01em] text-paper sm:block">
             Urban Gang Tour
           </span>

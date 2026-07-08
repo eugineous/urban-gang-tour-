@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, findBlogPost } from "@/content/blog";
 import { BlogNav, BlogFooter } from "../_shared";
@@ -88,9 +89,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.title}
         </h1>
 
-        <div className="relative mt-7">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.img} alt={post.title} className="block max-h-[460px] w-full rounded-[18px] bg-[#1B1118] object-cover" />
+        <div className="relative mt-7 h-[460px] w-full overflow-hidden rounded-[18px] bg-[#1B1118]">
+          <Image src={post.img} alt={post.title} fill priority sizes="(max-width: 768px) 100vw, 720px" className="object-cover" />
         </div>
 
         {post.paras.map((p, i) => (
@@ -105,8 +105,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         <div className="mt-[30px] grid grid-cols-3 gap-3">
           {post.strip.map((s, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={i} src={s} alt="" className="h-[180px] w-full rounded-xl bg-[#1B1118] object-cover" />
+            <div key={i} className="relative h-[180px] w-full overflow-hidden rounded-xl bg-[#1B1118]">
+              <Image src={s} alt="" fill loading="lazy" sizes="33vw" className="object-cover" />
+            </div>
           ))}
         </div>
 
