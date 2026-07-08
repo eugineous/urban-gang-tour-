@@ -15,19 +15,31 @@ const MERCH_KEY = "catalog:merch";
 const EVENTS_KEY = "catalog:events";
 
 // Falls back to the static seed in content/catalog.ts when storage isn't
-// connected or hasn't been edited yet, so checkout keeps working either way.
+// connected, hasn't been edited yet, OR a read fails (Upstash blip, timeout,
+// rate limit) - a transient storage hiccup should degrade prices to the last
+// known-good seed, not take down the Shop and Events pages entirely.
 export async function getMerchCatalog(): Promise<CatalogItem[]> {
   const client = db();
   if (!client) return MERCH_CATALOG;
-  const stored = await client.get<CatalogItem[]>(MERCH_KEY);
-  return stored ?? MERCH_CATALOG;
+  try {
+    const stored = await client.get<CatalogItem[]>(MERCH_KEY);
+    return stored ?? MERCH_CATALOG;
+  } catch (err) {
+    console.error("Failed to read merch catalog from storage, serving static seed:", err);
+    return MERCH_CATALOG;
+  }
 }
 
 export async function getTicketEvents(): Promise<TicketEvent[]> {
   const client = db();
   if (!client) return TICKET_EVENTS;
-  const stored = await client.get<TicketEvent[]>(EVENTS_KEY);
-  return stored ?? TICKET_EVENTS;
+  try {
+    const stored = await client.get<TicketEvent[]>(EVENTS_KEY);
+    return stored ?? TICKET_EVENTS;
+  } catch (err) {
+    console.error("Failed to read ticket events from storage, serving static seed:", err);
+    return TICKET_EVENTS;
+  }
 }
 
 export async function saveMerchCatalog(items: CatalogItem[]): Promise<void> {
