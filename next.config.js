@@ -74,27 +74,8 @@ const nextConfig = {
   },
   images: {
     domains: [
-      "upload.wikimedia.org",
-      "commons.wikimedia.org",
-      "ppptv-v2.vercel.app",
-      "ichef.bbci.co.uk",
-      "www.standardmedia.co.ke",
-      "deadline.com",
-      "variety.com",
-      "cdn.standardmedia.co.ke",
-      "www.kenyans.co.ke",
-      "naibuzz.com",
-      "notjustok.com",
-      "static01.nyt.com",
       "img.youtube.com", // VideoHero poster frame on the homepage
     ],
-  },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      const existing = Array.isArray(config.externals) ? config.externals : [];
-      config.externals = [...existing, "axios", "undici", "cheerio"];
-    }
-    return config;
   },
 };
 
