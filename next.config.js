@@ -33,10 +33,11 @@ const securityHeaders = [
 // Clean-URL slug -> the real static file in public/. Kept as one map so
 // rewrites (slug serves the file) and redirects (old filename URL -> slug)
 // can't drift apart.
-// NOTE: "blog" is intentionally absent here - /blog and /blog/[slug] are real
-// Next.js routes (app/blog/) so each post gets a server-rendered, crawlable
-// page with its own NewsArticle schema. Blog.dc.html still exists on disk but
-// is no longer routed to.
+// Pages migrated off this map are real Next.js routes under app/ instead:
+// each one gets full server rendering with no runtime Babel transpilation.
+// The matching .dc.html file stays on disk during the migration but is no
+// longer routed to - see the extra redirects below.
+// Migrated so far: blog (app/blog/), the-gang (app/the-gang/).
 const DC_PAGES = {
   about: "About.dc.html",
   book: "Book.dc.html",
@@ -47,7 +48,6 @@ const DC_PAGES = {
   partners: "Partners.dc.html",
   "promo-reel": "Promo Reel.dc.html",
   shop: "Shop.dc.html",
-  "the-gang": "The Gang.dc.html",
   "urban-news": "Urban News.dc.html",
 };
 
@@ -79,6 +79,7 @@ const nextConfig = {
       },
       { source: "/Home.dc.html", destination: "/", permanent: true },
       { source: "/Blog.dc.html", destination: "/blog", permanent: true },
+      { source: "/The%20Gang.dc.html", destination: "/the-gang", permanent: true },
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${encodeURIComponent(file)}`,
         destination: `/${slug}`,
