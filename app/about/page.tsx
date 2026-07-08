@@ -67,7 +67,7 @@ export default function AboutPage() {
                 actually speak the language of young people, a modelling runway, an awards ceremony, and
                 a broadcast on national TV through Urban News.
               </p>
-              <div className="mt-4.5 -rotate-1 font-marker text-xl text-magenta">
+              <div className="mt-[1.125rem] -rotate-1 font-marker text-xl text-magenta">
                 We are not a one off event company. We are a movement that keeps showing up.
               </div>
             </div>
@@ -184,7 +184,7 @@ export default function AboutPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/p/eugine_4.jpg" alt="Eugine Micah" className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 45%, rgba(21,14,19,0.95))" }} />
-              <div className="absolute bottom-0 p-5.5">
+              <div className="absolute bottom-0 p-[1.375rem]">
                 <div className="font-display text-2xl">EUGINE MICAH</div>
                 <div className="text-[13.5px] font-semibold text-gold">Founder, Creative Director, Lead Host</div>
               </div>
@@ -195,7 +195,7 @@ export default function AboutPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/p/lucy_portrait.jpg" alt="Lucy Ogunde" className="absolute inset-0 h-full w-full object-cover object-top" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 45%, rgba(21,14,19,0.95))" }} />
-              <div className="absolute bottom-0 p-5.5">
+              <div className="absolute bottom-0 p-[1.375rem]">
                 <div className="font-display text-2xl">LUCY OGUNDE</div>
                 <div className="text-[13.5px] font-semibold text-gold">Founder, Co Host, Executive Producer</div>
               </div>

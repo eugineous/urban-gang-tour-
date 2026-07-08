@@ -48,7 +48,7 @@ export default function PartnersPage() {
           >
             <div className="grid grid-cols-1 items-center gap-9 lg:grid-cols-2">
               <div>
-                <div className="inline-block rounded-full bg-ink px-4.5 py-2 font-display text-[13px] tracking-wide text-paper">
+                <div className="inline-block rounded-full bg-ink px-[1.125rem] py-2 font-display text-[13px] tracking-wide text-paper">
                   THE POWER BEHIND THE TOUR
                 </div>
                 <div className="mt-3.5 font-display text-[clamp(2.1rem,4vw,3.4rem)] uppercase leading-[1.02] text-paper">
@@ -316,7 +316,7 @@ function PartnerFeature({
         </div>
       </div>
       <div className="mt-3 text-[15px] leading-relaxed text-paper/75">{body}</div>
-      <div className="mt-4.5 flex flex-wrap gap-2.5">
+      <div className="mt-[1.125rem] flex flex-wrap gap-2.5">
         {tags.map((t) => (
           <div key={t.label} className="rounded-full bg-white/[0.06] px-4 py-2 text-[13px] font-semibold">
             {t.label}

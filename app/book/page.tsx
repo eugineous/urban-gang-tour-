@@ -52,7 +52,7 @@ export default function BookPage() {
       <section id="schools" className="px-6 pb-16 pt-14 sm:px-10">
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-start gap-11 lg:grid-cols-2">
           <Reveal>
-            <div className="inline-block -rotate-1 rounded-full bg-magenta px-4.5 py-2 font-display text-[13px] uppercase tracking-wide text-paper">
+            <div className="inline-block -rotate-1 rounded-full bg-magenta px-[1.125rem] py-2 font-display text-[13px] uppercase tracking-wide text-paper">
               Lane 01, for schools
             </div>
             <h2 className="mt-3.5 text-balance font-display text-[clamp(2.1rem,4vw,3.4rem)] uppercase leading-[1.02]">
@@ -99,7 +99,7 @@ export default function BookPage() {
               <div className="mt-3 flex flex-col gap-3.5">
                 {BOOKING_STEPS.map((s) => (
                   <div key={s.n} className="flex items-start gap-3.5">
-                    <div className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-magenta font-display text-[13px] text-paper">
+                    <div className="flex h-[1.625rem] w-[1.625rem] shrink-0 items-center justify-center rounded-full bg-magenta font-display text-[13px] text-paper">
                       {s.n}
                     </div>
                     <div className="text-[13.5px] leading-relaxed text-paper/80">
@@ -123,7 +123,7 @@ export default function BookPage() {
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="inline-block rotate-1 rounded-full bg-gold px-4.5 py-2 font-display text-[13px] uppercase tracking-wide text-ink">
+            <div className="inline-block rotate-1 rounded-full bg-gold px-[1.125rem] py-2 font-display text-[13px] uppercase tracking-wide text-ink">
               Lane 02, universities and colleges
             </div>
             <h2 className="mt-3.5 text-balance font-display text-[clamp(2.1rem,4vw,3.4rem)] uppercase leading-[1.02]">
@@ -161,7 +161,7 @@ export default function BookPage() {
       <section id="brands" className="px-6 py-20 sm:px-10">
         <div className="mx-auto max-w-[1280px] text-center">
           <Reveal>
-            <div className="inline-block -rotate-1 rounded-full bg-paper px-4.5 py-2 font-display text-[13px] uppercase tracking-wide text-ink">
+            <div className="inline-block -rotate-1 rounded-full bg-paper px-[1.125rem] py-2 font-display text-[13px] uppercase tracking-wide text-ink">
               Lane 03, for brands and sponsors
             </div>
             <h2 className="mx-auto mt-3.5 max-w-3xl text-balance font-display text-[clamp(2rem,4vw,3.2rem)] uppercase leading-[1.05]">
@@ -220,7 +220,7 @@ export default function BookPage() {
         <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #150E13, rgba(21,14,19,0.75) 30%, #150E13)" }} />
         <div className="relative mx-auto max-w-[1080px] px-6 py-24 text-center sm:px-10">
           <Reveal>
-            <div className="inline-block rotate-1 rounded-full bg-[#E61E8C] px-4.5 py-2 font-display text-[13px] uppercase tracking-wide text-paper">
+            <div className="inline-block rotate-1 rounded-full bg-[#E61E8C] px-[1.125rem] py-2 font-display text-[13px] uppercase tracking-wide text-paper">
               Lane 04, mega events and festivals
             </div>
             <h2 className="mx-auto mt-4 max-w-3xl text-balance font-display text-[clamp(2.1rem,4.6vw,3.75rem)] uppercase leading-[1.03]">
