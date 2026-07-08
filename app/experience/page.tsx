@@ -78,7 +78,7 @@ export default function ExperiencePage() {
               <h2 className="font-display text-[clamp(1.8rem,3.4vw,2.2rem)] uppercase">
                 The modelling <span className="text-magenta">runway</span>
               </h2>
-              <p className="mt-3 text-[15px] leading-relaxed text-paper/72">
+              <p className="mt-3 text-[15px] leading-relaxed text-paper/[0.72]">
                 Four sub categories on a full T shaped runway stage, directed by{" "}
                 <Link href="/partners" className="font-bold text-gold">
                   Synapse Models
@@ -139,7 +139,7 @@ export default function ExperiencePage() {
           <Reveal>
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-9">
               <div className="font-display text-[26px] uppercase">The stage</div>
-              <p className="mt-3 text-[15px] leading-relaxed text-paper/72">
+              <p className="mt-3 text-[15px] leading-relaxed text-paper/[0.72]">
                 T shaped main stage with runway extension, branded backdrop, teardrop banners, full PA
                 and DJ rig by our sound partners{" "}
                 <Link href="/partners" className="font-bold text-gold">
@@ -156,7 +156,7 @@ export default function ExperiencePage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" className="h-9" />
               </div>
-              <p className="mt-3 text-[15px] leading-relaxed text-paper/72">
+              <p className="mt-3 text-[15px] leading-relaxed text-paper/[0.72]">
                 Every event is filmed. Videography is mandatory at every stop, captured by{" "}
                 <Link href="/partners" className="font-bold text-gold">
                   Vibes Studios
@@ -185,7 +185,7 @@ export default function ExperiencePage() {
               const card = (
                 <div className="relative rounded-2xl border border-dashed border-gold/50 bg-white/[0.04] p-[1.625rem] transition-all duration-150 ease-out hover:border-gold hover:-translate-y-1">
                   <div className="font-display text-[21px]">{e.title.toUpperCase()}</div>
-                  <p className="mt-1.5 text-[13.5px] leading-relaxed text-paper/68">{e.body}</p>
+                  <p className="mt-1.5 text-[13.5px] leading-relaxed text-paper/[0.68]">{e.body}</p>
                 </div>
               );
               return (

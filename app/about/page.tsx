@@ -35,7 +35,7 @@ export default function AboutPage() {
             <h1 className="mt-3 text-balance font-display text-[clamp(2.75rem,5.6vw,5rem)] uppercase leading-[0.98] tracking-[-0.03em]">
               We turn <span className="text-magenta">potential</span> into <span className="text-gold">purpose</span>
             </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-paper/78">
+            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-paper/[0.78]">
               Urban Gang Tour is a Kenyan events company founded by Eugine Micah and Lucy Ogunde, running
               a youth talent search, mentorship, and awards concert programme. We move countrywide: high
               schools, universities, colleges, and large scale events. An independent company with its
@@ -117,7 +117,7 @@ export default function AboutPage() {
                 <div className="rounded-2xl border border-dashed border-gold/45 bg-white/[0.04] p-6 transition-all duration-150 ease-out hover:-translate-y-1 hover:border-gold">
                   <div className="font-display text-[28px] text-gold">{d.n}</div>
                   <div className="mt-2 text-[15px] font-bold">{d.title}</div>
-                  <p className="mt-2 text-[13.5px] leading-relaxed text-paper/68">{d.body}</p>
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-paper/[0.68]">{d.body}</p>
                 </div>
               </Reveal>
             ))}
@@ -159,7 +159,7 @@ export default function AboutPage() {
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: p.color }} />
                   <div className="mt-3.5 text-[16px] font-bold">{p.title}</div>
-                  <p className="mt-2 text-[13.5px] leading-relaxed text-paper/68">{p.body}</p>
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-paper/[0.68]">{p.body}</p>
                 </div>
               </Reveal>
             ))}

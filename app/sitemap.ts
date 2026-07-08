@@ -19,7 +19,6 @@ const MARKETING_SLUGS = [
   "shop",
   "the-gang",
   "urban-news",
-  "promo-reel",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

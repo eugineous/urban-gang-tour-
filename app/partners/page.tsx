@@ -54,7 +54,7 @@ export default function PartnersPage() {
                 <div className="mt-3.5 font-display text-[clamp(2.1rem,4vw,3.4rem)] uppercase leading-[1.02] text-paper">
                   Urban Gang Tour
                 </div>
-                <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-white/92">
+                <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-white/[0.92]">
                   Urban Gang Tour is an events company founded by Eugine Micah and Lucy Ogunde, powered
                   by its own crew and close creative partners, including Hype Ola of The Experience Hub,
                   Jeff Ashton of Ashton Sounds, and Esther Wambui Gakunju of Synapse Models. The tour
@@ -163,7 +163,7 @@ export default function PartnersPage() {
                 <div className="p-6">
                   <div className="font-display text-[22px] text-[#FF6B6B]">Moyo Response</div>
                   <div className="mt-1 text-[11px] font-bold tracking-wide text-[#FF9C9C]">SAFETY AND FIRST AID PARTNER</div>
-                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-paper/72">
+                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-paper/[0.72]">
                     On site emergency response and first aid coverage at every single event. If 1,000
                     students are jumping, Moyo is standing by.
                   </p>
@@ -180,7 +180,7 @@ export default function PartnersPage() {
                 <div className="p-6">
                   <div className="font-display text-[22px] text-[#5BD96A]">Delo Greens Movement</div>
                   <div className="mt-1 text-[11px] font-bold tracking-wide text-[#8FE89A]">ENVIRONMENTAL PARTNER</div>
-                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-paper/72">
+                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-paper/[0.72]">
                     Founded and led by CEO <b className="text-paper">Justus (TAE)</b>, championing tree
                     planting and environmental action with young audiences at every stop.
                   </p>
@@ -199,7 +199,7 @@ export default function PartnersPage() {
                 <div className="p-6">
                   <div className="font-display text-[22px] text-gold">Ashton Sounds</div>
                   <div className="mt-1 text-[11px] font-bold tracking-wide text-[#FFC96B]">STAGE AND SOUND PARTNER</div>
-                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-paper/72">
+                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-paper/[0.72]">
                     Professional stage and sound production for tour events, owned and headed by{" "}
                     <b className="text-paper">Jeff Ashton</b>, the engine behind the rig at every stop.
                   </p>
@@ -223,7 +223,7 @@ export default function PartnersPage() {
                     <div className="text-[11px] font-bold tracking-wide text-[#A9C8FF]">INSTITUTIONAL MEDIA PARTNER</div>
                   </div>
                 </div>
-                <p className="mt-3.5 text-[14px] leading-relaxed text-paper/72">
+                <p className="mt-3.5 text-[14px] leading-relaxed text-paper/[0.72]">
                   Active sponsorship partner. TIBS journalism and media students join the tour as content
                   creators through the <b className="text-paper">TIBS Media Lab</b> activation, real
                   events, real portfolios. Eugine Micah is a TIBS Valedictorian, Class of 2024.
@@ -244,7 +244,7 @@ export default function PartnersPage() {
                     <div className="text-[11px] font-bold tracking-wide text-[#F0DC9A]">STRATEGIC BRAND PARTNER 2026</div>
                   </div>
                 </div>
-                <p className="mt-3.5 text-[14px] leading-relaxed text-paper/72">
+                <p className="mt-3.5 text-[14px] leading-relaxed text-paper/[0.72]">
                   Hewitt and Bennet International College rides with the tour as Brand Ambassador
                   partner, holding the education category presence across every 2026 stop.
                 </p>

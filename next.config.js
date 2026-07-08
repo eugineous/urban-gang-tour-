@@ -39,11 +39,12 @@ const securityHeaders = [
 // longer routed to - see the extra redirects below.
 // Migrated so far: blog (app/blog/), the-gang (app/the-gang/), events (app/events/),
 // contact-us (app/contact-us/), shop (app/shop/), book (app/book/), about (app/about/),
-// partners (app/partners/), experience (app/experience/), gallery (app/gallery/).
-const DC_PAGES = {
-  "promo-reel": "Promo Reel.dc.html",
-  "urban-news": "Urban News.dc.html",
-};
+// partners (app/partners/), experience (app/experience/), gallery (app/gallery/),
+// urban-news (app/urban-news/). The Promo Reel page was retired, not migrated: it
+// was an internal shot-list/creative-brief document (VO scripts, music cues,
+// production scoring), not real public content, and nothing else on the site
+// linked to it.
+const DC_PAGES = {};
 
 const nextConfig = {
   async headers() {
@@ -82,6 +83,9 @@ const nextConfig = {
       { source: "/Partners.dc.html", destination: "/partners", permanent: true },
       { source: "/Experience.dc.html", destination: "/experience", permanent: true },
       { source: "/Gallery.dc.html", destination: "/gallery", permanent: true },
+      { source: "/Urban%20News.dc.html", destination: "/urban-news", permanent: true },
+      { source: "/Promo%20Reel.dc.html", destination: "/gallery", permanent: true },
+      { source: "/promo-reel", destination: "/gallery", permanent: true },
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${encodeURIComponent(file)}`,
         destination: `/${slug}`,
