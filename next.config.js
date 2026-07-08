@@ -38,9 +38,8 @@ const securityHeaders = [
 // The matching .dc.html file stays on disk during the migration but is no
 // longer routed to - see the extra redirects below.
 // Migrated so far: blog (app/blog/), the-gang (app/the-gang/), events (app/events/),
-// contact-us (app/contact-us/), shop (app/shop/), book (app/book/).
+// contact-us (app/contact-us/), shop (app/shop/), book (app/book/), about (app/about/).
 const DC_PAGES = {
-  about: "About.dc.html",
   experience: "Experience.dc.html",
   gallery: "Gallery.dc.html",
   partners: "Partners.dc.html",
@@ -81,6 +80,7 @@ const nextConfig = {
       { source: "/Contact.dc.html", destination: "/contact-us", permanent: true },
       { source: "/Shop.dc.html", destination: "/shop", permanent: true },
       { source: "/Book.dc.html", destination: "/book", permanent: true },
+      { source: "/About.dc.html", destination: "/about", permanent: true },
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${encodeURIComponent(file)}`,
         destination: `/${slug}`,
