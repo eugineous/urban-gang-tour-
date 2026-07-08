@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Anton, Permanent_Marker } from "next/font/google";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-X1WKKF846J";
@@ -8,6 +8,18 @@ const GA_MEASUREMENT_ID = "G-X1WKKF846J";
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const anton = Anton({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
+});
+
+const permanentMarker = Permanent_Marker({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-marker",
 });
 
 const siteUrl = "https://urbangangtour.co.ke";
@@ -50,7 +62,12 @@ const organizationLd = {
     { "@type": "Person", name: "Eugine Micah" },
     { "@type": "Person", name: "Lucy Ogunde" },
   ],
-  sameAs: ["https://instagram.com/urban_newsgang"],
+  sameAs: [
+    "https://instagram.com/urban_newsgang",
+    "https://facebook.com/urban_newsgang",
+    "https://tiktok.com/@urban_newsgang",
+    "https://youtube.com/@urban_newsgang",
+  ],
 };
 
 export default function RootLayout({
@@ -60,7 +77,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${spaceGrotesk.variable} antialiased bg-[#0d0b0f] text-white`}>
+      <body className={`${spaceGrotesk.variable} ${anton.variable} ${permanentMarker.variable} antialiased bg-[#0d0b0f] text-white`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}

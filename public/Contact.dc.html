@@ -80,14 +80,14 @@
             <div style="color: #FF8A8A; font-size: 13.5px; font-weight: 600">{{ error }}</div>
           </sc-if>
           <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center">
-            <div onClick="{{ sendIt }}" style="cursor: pointer; background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 15px 32px; border-radius: 14px; letter-spacing: 0.04em" style-hover="background: #E12FA3; transform: translateY(-2px)">SEND IT 🚀</div>
+            <div onClick="{{ sendIt }}" style="cursor: pointer; background: #C7238E; color: #fff; font-weight: 700; font-size: 15px; padding: 15px 32px; border-radius: 14px; letter-spacing: 0.04em" style-hover="background: #E12FA3; transform: translateY(-2px)">SEND IT <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><path d="M12 2c3 1 5 5 5 9 0 3-1 5-2 6l-1 2-2-2-2 2-1-2c-1-1-2-3-2-6 0-4 2-8 5-9z"/><circle cx="12" cy="9" r="1.6"/><path d="M8 15l-3 3M16 15l3 3M9 20l1-3M15 20l-1-3"/></svg></div>
             <div style="color: rgba(255,247,252,0.55); font-size: 12.5px">Opens your email app, addressed to euginemicah@gmail.com</div>
           </div>
         </div>
       </sc-if>
       <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
         <div style="text-align: center; padding: 50px 20px">
-          <div style="font-size: 54px">🧡💜</div>
+          <div style="font-size: 54px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><path d="M20.8 8.6a5 5 0 0 0-8.5-3.6L12 5.3l-.3-.3a5 5 0 0 0-8.5 3.6c0 2.9 2.7 5.2 6.8 8.7L12 20l2-1.7c4.1-3.5 6.8-5.8 6.8-8.7z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><path d="M20.8 8.6a5 5 0 0 0-8.5-3.6L12 5.3l-.3-.3a5 5 0 0 0-8.5 3.6c0 2.9 2.7 5.2 6.8 8.7L12 20l2-1.7c4.1-3.5 6.8-5.8 6.8-8.7z"/></svg></div>
           <div style="font-family: 'Anton', sans-serif; font-size: 32px; margin-top: 14px; text-transform: uppercase">Welcome to the gang.</div>
           <div style="color: rgba(255,247,252,0.7); font-size: 15px; margin-top: 10px; line-height: 1.6">Your email draft is open and ready to send. We reply within 48 hours.</div>
           <div onClick="{{ resetForm }}" style="cursor: pointer; display: inline-block; margin-top: 20px; border: 2px solid rgba(255,255,255,0.4); color: #fff; font-weight: 700; font-size: 13.5px; padding: 11px 22px; border-radius: 999px" style-hover="border-color: #F5A623; color: #F5A623">Send another message</div>
@@ -98,7 +98,7 @@
     <!-- DIRECT CHANNELS -->
     <div style="display: flex; flex-direction: column; gap: 18px">
       <div style="background: linear-gradient(150deg, #1E7A43, #0F4326); border-radius: 22px; padding: 30px">
-        <div style="font-family: 'Anton', sans-serif; font-size: 22px; color: #fff">💬 SKIP THE FORM. WHATSAPP US.</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 22px; color: #fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><path d="M4 5h16v11H9l-5 4z"/></svg> SKIP THE FORM. WHATSAPP US.</div>
         <div style="color: rgba(255,255,255,0.85); font-size: 13.5px; margin-top: 6px">0799 886 247 · tap an opener:</div>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px">
           <sc-for list="{{ waButtons }}" as="w" hint-placeholder-count="4">
@@ -108,10 +108,10 @@
       </div>
 
       <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 22px; padding: 28px">
-        <div style="font-family: 'Anton', sans-serif; font-size: 19px">📧 EMAIL</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 19px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 6l9 7 9-7"/></svg> EMAIL</div>
         <a href="mailto:euginemicah@gmail.com" style="display: inline-block; color: #F5A623; font-weight: 700; font-size: 15px; margin-top: 8px">euginemicah@gmail.com</a>
         <div style="border-top: 1px dashed rgba(255,255,255,0.18); margin: 18px 0"></div>
-        <div style="font-family: 'Anton', sans-serif; font-size: 19px">📲 SOCIALS · @urban_newsgang</div>
+        <div style="font-family: 'Anton', sans-serif; font-size: 19px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/><path d="M20 6a6 6 0 0 0-6-4M22 6a8 8 0 0 0-8-6"/></svg> SOCIALS · @urban_newsgang</div>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px">
           <a href="https://instagram.com/urban_newsgang" target="_blank" style="background: rgba(199,35,142,0.16); color: #E96CC0; font-weight: 700; font-size: 13px; padding: 9px 16px; border-radius: 999px" style-hover="background: #C7238E; color: #fff">Instagram</a>
           <a href="https://tiktok.com/@urban_newsgang" target="_blank" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 13px; padding: 9px 16px; border-radius: 999px" style-hover="border-color: #C7238E">TikTok</a>
@@ -211,7 +211,7 @@ class Component extends DCLogic {
       sent: s.sent,
       sendIt: () => {
         if (!s.name.trim() || !s.message.trim()) {
-          this.setState({ error: "Give us at least your name and a message, gang. 🙏" });
+          this.setState({ error: "Give us at least your name and a message, gang. <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.15em"><path d="M12 3v9M8 21c0-4 1-6 4-6s4 2 4 6M6 15c1-3 2-4 6-4s5 1 6 4"/></svg>" });
           return;
         }
         const subject = encodeURIComponent("[UGT Website] " + s.intent + " - " + s.name);

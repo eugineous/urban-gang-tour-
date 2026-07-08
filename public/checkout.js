@@ -123,13 +123,13 @@
         body = e("div", { style: { textAlign: "center", padding: "20px 0", color: "#fff" } }, "Setting up your order...");
       } else if (s.step === "paying") {
         body = e("div", { style: { textAlign: "center", padding: "10px 0" } },
-          e("div", { style: { fontSize: 40 } }, "📲"),
+          e("div", { style: { color: "#F5A623" }, dangerouslySetInnerHTML: { __html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/><path d="M20 6a6 6 0 0 0-6-4M22 6a8 8 0 0 0-8-6"/></svg>' } }),
           e("div", { style: { color: "#fff", fontWeight: 700, marginTop: 10 } }, "Check your phone"),
           e("div", { style: { color: "rgba(255,247,252,0.7)", fontSize: 13.5, marginTop: 6 } }, "Enter your M-Pesa PIN to complete the KES " + s.totalKes.toLocaleString("en-KE") + " payment.")
         );
       } else if (s.step === "paid") {
         body = e("div", { style: { textAlign: "center", padding: "10px 0" } },
-          e("div", { style: { fontSize: 40 } }, "✅"),
+          e("div", { style: { color: "#8FE89A" }, dangerouslySetInnerHTML: { __html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/></svg>' } }),
           e("div", { style: { color: "#8FE89A", fontWeight: 700, marginTop: 10, fontSize: 17 } }, "Payment confirmed!"),
           e("div", { style: { color: "rgba(255,247,252,0.7)", fontSize: 13.5, marginTop: 6 } }, "A confirmation email is on its way if you provided one. Welcome to the gang.")
         );
