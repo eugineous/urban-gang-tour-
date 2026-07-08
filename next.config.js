@@ -39,9 +39,8 @@ const securityHeaders = [
 // longer routed to - see the extra redirects below.
 // Migrated so far: blog (app/blog/), the-gang (app/the-gang/), events (app/events/),
 // contact-us (app/contact-us/), shop (app/shop/), book (app/book/), about (app/about/),
-// partners (app/partners/), experience (app/experience/).
+// partners (app/partners/), experience (app/experience/), gallery (app/gallery/).
 const DC_PAGES = {
-  gallery: "Gallery.dc.html",
   "promo-reel": "Promo Reel.dc.html",
   "urban-news": "Urban News.dc.html",
 };
@@ -82,6 +81,7 @@ const nextConfig = {
       { source: "/About.dc.html", destination: "/about", permanent: true },
       { source: "/Partners.dc.html", destination: "/partners", permanent: true },
       { source: "/Experience.dc.html", destination: "/experience", permanent: true },
+      { source: "/Gallery.dc.html", destination: "/gallery", permanent: true },
       ...Object.entries(DC_PAGES).map(([slug, file]) => ({
         source: `/${encodeURIComponent(file)}`,
         destination: `/${slug}`,
