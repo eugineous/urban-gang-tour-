@@ -12,36 +12,23 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export default function TeamCard({ member }: { member: CrewMember }) {
+export default function TeamCard({ member, tilt = "-rotate-1" }: { member: CrewMember; tilt?: string }) {
   return (
-    <div className="group overflow-hidden rounded-2xl border border-white/10 bg-surface transition-colors duration-200 ease-out hover:border-magenta/60">
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-raised">
+    <div className={`overflow-hidden rounded-2xl border-[3px] border-ink bg-white shadow-[5px_5px_0_#111] transition-transform duration-150 ease-out hover:-translate-y-1 ${tilt} hover:rotate-0`}>
+      <div className="relative aspect-square w-full overflow-hidden border-b-[3px] border-ink bg-concrete">
         {member.img ? (
-          <Image
-            src={member.img}
-            alt={member.name}
-            fill
-            loading="lazy"
-            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 18vw"
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-          />
+          <Image src={member.img} alt={member.name} fill loading="lazy" sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 18vw" className="object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface-raised">
-            <span className="font-display text-5xl text-paper/20">{initials(member.name)}</span>
+          <div className="flex h-full w-full items-center justify-center bg-concrete">
+            <span className="font-display text-4xl text-ink/25">{initials(member.name)}</span>
           </div>
         )}
       </div>
-      <div className="p-5">
-        <div className="font-display text-[17px] uppercase leading-tight tracking-[-0.02em]">{member.name}</div>
-        <div className="mt-1 text-[11.5px] font-bold uppercase tracking-wide text-gold">{member.role}</div>
-        {member.bio && <p className="mt-2.5 text-[12.5px] leading-relaxed text-paper/60">{member.bio}</p>}
+      <div className="p-3.5">
+        <div className="font-display text-[16px] uppercase leading-tight">{member.name}</div>
+        <div className="mt-1 text-[11px] font-bold text-magenta">{member.role}</div>
         {member.ig && (
-          <a
-            href={`https://instagram.com/${member.ig}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-block text-[12.5px] font-bold text-magenta-bright"
-          >
+          <a href={`https://instagram.com/${member.ig}`} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[11.5px] font-bold text-ink/60">
             @{member.ig}
           </a>
         )}

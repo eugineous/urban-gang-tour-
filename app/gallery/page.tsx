@@ -16,25 +16,24 @@ export const metadata: Metadata = {
 
 export default function GalleryPage() {
   return (
-    <div className="min-h-screen bg-ink text-paper">
+    <div className="min-h-screen bg-cyan">
       <Nav />
 
-      <section className="px-6 pb-2 pt-20 text-center sm:px-10 sm:pt-28">
-        <div
-          className="mx-auto max-w-[760px]"
-          style={{ background: "radial-gradient(900px 500px at 50% -20%, rgba(199,35,142,0.4), transparent 65%)" }}
-        >
+      <div className="border-b-4 border-ink bg-cyan px-6 py-14 text-center sm:px-10">
+        <div className="mx-auto max-w-[760px]">
           <Reveal>
-            <div className="inline-flex -rotate-1 rounded-full bg-surface px-4 py-1.5 shadow-magenta">
-              <span className="font-display text-[11px] uppercase tracking-wide text-gold">Caught live</span>
-            </div>
-            <div className="mt-3 -rotate-1 font-marker text-xl text-gold">shot by Vibes Studios and Urban Gang Tour crews</div>
-            <h1 className="mt-3 text-balance font-display text-[clamp(2.75rem,6vw,5rem)] uppercase leading-[0.96] tracking-[-0.03em]">
-              The <span className="text-magenta">gallery</span>
+            <div className="inline-block -rotate-2 rounded-full border-2 border-ink bg-ink px-4 py-2 font-badge text-[13px] text-gold">THE PHOTO WALL</div>
+            <h1 className="mt-4 font-display text-[clamp(40px,7vw,80px)] uppercase leading-[0.9]" style={{ textShadow: "4px 4px 0 #fff" }}>
+              Every School.
+              <br />
+              <span className="rounded border-[3px] border-ink bg-magenta px-2.5 text-white">Its Own Catalogue.</span>
             </h1>
+            <p className="mx-auto mt-3.5 max-w-[600px] text-[16px] font-semibold leading-relaxed">
+              Shot on the road by Vibes Studios and the crew.
+            </p>
           </Reveal>
         </div>
-      </section>
+      </div>
 
       <div className="text-center">
         <GalleryClient />

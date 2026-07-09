@@ -5,9 +5,8 @@ import Reveal from "../_components/Reveal";
 import ContactForm from "./ContactForm";
 import { CONTACT_EMAIL, WHATSAPP_OPENERS } from "./constants";
 
-const title = "Contact and Bookings";
-const description =
-  "Bookings, partnerships, media, or joining the crew. One form, fast replies. We reply within 48 hours.";
+const title = "Contact & Bookings";
+const description = "Bookings, partnerships, media, or joining the crew. One form, fast replies. We reply within 48 hours.";
 
 export const metadata: Metadata = {
   title,
@@ -20,48 +19,42 @@ const WHATSAPP_NUMBER = "254799886247";
 
 export default function ContactUsPage() {
   return (
-    <div className="min-h-screen bg-ink text-paper">
+    <div className="min-h-screen bg-gold">
       <Nav />
 
-      <section className="px-6 pb-10 pt-20 text-center sm:px-10 sm:pt-28">
-        <div
-          className="mx-auto max-w-[760px]"
-          style={{ background: "radial-gradient(900px 500px at 50% -20%, rgba(199,35,142,0.35), transparent 65%)" }}
-        >
+      <div className="border-b-4 border-ink bg-magenta px-6 py-14 text-center sm:px-10">
+        <div className="mx-auto max-w-[700px]">
           <Reveal>
-            <div className="inline-flex -rotate-1 rounded-full bg-surface px-4 py-1.5 shadow-magenta">
-              <span className="font-display text-[11px] uppercase tracking-wide text-gold">Get in touch</span>
-            </div>
-            <div className="mt-3 -rotate-1 font-marker text-xl text-gold">we reply within 48 hours</div>
-            <h1 className="mt-3 text-balance font-display text-[clamp(2.75rem,6vw,5rem)] uppercase leading-[0.96] tracking-[-0.03em]">
-              Let us <span className="text-magenta">talk</span>
+            <div className="inline-block -rotate-2 rounded-full border-2 border-ink bg-ink px-4 py-2 font-badge text-[13px] text-gold">BOOK THE TOUR</div>
+            <h1 className="mt-4 font-display text-[clamp(40px,7vw,80px)] uppercase leading-[0.9] text-ink" style={{ textShadow: "4px 4px 0 #fff" }}>
+              Let&apos;s <span className="rounded border-[3px] border-ink bg-gold px-2.5">Talk</span>
             </h1>
-            <p className="mx-auto mt-4 max-w-[540px] text-[15.5px] leading-relaxed text-paper/70">
-              Bookings, partnerships, media, or joining the crew. One form, fast replies. Welcome to the gang.
+            <p className="mx-auto mt-3.5 max-w-[540px] text-[16px] font-semibold leading-relaxed text-white">
+              Bookings, partnerships, media, or joining the crew. One form, fast replies.
             </p>
           </Reveal>
         </div>
-      </section>
+      </div>
 
-      <section className="px-6 pb-24 sm:px-10">
-        <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-start gap-10 lg:grid-cols-[1.3fr_1fr]">
+      <div className="px-6 py-14 sm:px-10">
+        <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-start gap-8 lg:grid-cols-[1.3fr_1fr]">
           <Reveal>
             <ContactForm />
           </Reveal>
 
           <Reveal delay={0.08}>
-            <div className="flex flex-col gap-5">
-              <div className="rounded-3xl p-8" style={{ background: "linear-gradient(150deg, #1E7A43, #0F4326)" }}>
-                <div className="font-display text-xl uppercase text-paper">Skip the form. WhatsApp us.</div>
-                <div className="mt-1.5 text-[13.5px] text-paper/85">0799 886 247, tap an opener:</div>
-                <div className="mt-4 flex flex-col gap-2.5">
+            <div className="flex flex-col gap-4">
+              <div className="rounded-2xl border-[3px] border-ink bg-success p-7 text-white shadow-[6px_6px_0_#111]">
+                <div className="font-display text-xl uppercase">Skip the form. WhatsApp us.</div>
+                <div className="mt-1.5 text-[13.5px] text-white/90">0799 886 247, tap an opener:</div>
+                <div className="mt-4 flex flex-col gap-2">
                   {WHATSAPP_OPENERS.map((text) => (
                     <a
                       key={text}
                       href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-xl border border-white/25 bg-white/10 px-4 py-3.5 text-[13.5px] font-semibold text-paper transition-all duration-150 ease-out hover:translate-x-1 hover:bg-white/20"
+                      className="rounded-lg border-2 border-white/40 bg-white/10 px-4 py-3 text-[13px] font-semibold transition-all duration-150 ease-out hover:translate-x-1"
                     >
                       &quot;{text}&quot;
                     </a>
@@ -69,48 +62,38 @@ export default function ContactUsPage() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7">
+              <div className="rounded-2xl border-[3px] border-ink bg-white p-6 shadow-[5px_5px_0_#111]">
                 <div className="font-display text-lg uppercase">Email</div>
-                <a href={`mailto:${CONTACT_EMAIL}`} className="mt-2 inline-block text-[15px] font-bold text-gold">
+                <a href={`mailto:${CONTACT_EMAIL}`} className="mt-1.5 inline-block text-[14.5px] font-bold text-magenta">
                   {CONTACT_EMAIL}
                 </a>
-                <div className="my-4 border-t border-dashed border-white/15" />
+                <div className="my-3.5 border-t-2 border-dashed border-ink/20" />
                 <div className="font-display text-lg uppercase">Socials, @urban_newsgang</div>
-                <div className="mt-3 flex flex-wrap gap-2.5">
+                <div className="mt-2.5 flex flex-wrap gap-2">
                   {[
-                    { href: "https://instagram.com/urban_newsgang", label: "Instagram", accent: true },
+                    { href: "https://instagram.com/urban_newsgang", label: "Instagram" },
                     { href: "https://tiktok.com/@urban_newsgang", label: "TikTok" },
                     { href: "https://youtube.com/@urban_newsgang", label: "YouTube" },
                     { href: "https://facebook.com/urban_newsgang", label: "Facebook" },
                   ].map((s) => (
-                    <a
-                      key={s.label}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={
-                        s.accent
-                          ? "rounded-full bg-magenta/15 px-4 py-2 text-[13px] font-bold text-magenta-bright transition-colors duration-150 hover:bg-magenta hover:text-paper"
-                          : "rounded-full border border-white/20 bg-white/[0.07] px-4 py-2 text-[13px] font-bold text-paper transition-colors duration-150 hover:border-magenta"
-                      }
-                    >
+                    <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-ink bg-concrete px-3.5 py-1.5 text-[12.5px] font-bold">
                       {s.label}
                     </a>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-3xl border-2 border-dashed border-gold/55 bg-gold/5 p-6">
-                <div className="font-marker text-lg text-gold">our promise:</div>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-paper/80">
-                  We reply within 48 hours. Every quotation is built for your numbers, rates are negotiable
-                  and we work with institutions of every size.
+              <div className="rounded-2xl border-2 border-dashed border-ink bg-cyan/40 p-5">
+                <div className="font-marker text-lg">our promise:</div>
+                <p className="mt-1.5 text-[13.5px] font-medium leading-relaxed">
+                  We reply within 48 hours. Every quotation is built for your numbers, rates are
+                  negotiable and we work with institutions of every size.
                 </p>
               </div>
             </div>
           </Reveal>
         </div>
-      </section>
+      </div>
 
       <Footer />
     </div>

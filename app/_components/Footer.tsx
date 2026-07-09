@@ -1,113 +1,91 @@
 import Link from "next/link";
 import Image from "next/image";
 
-const SOCIALS = [
-  { href: "https://instagram.com/urban_newsgang", label: "Instagram" },
-  { href: "https://facebook.com/urban_newsgang", label: "Facebook" },
-  { href: "https://tiktok.com/@urban_newsgang", label: "TikTok" },
-  { href: "https://youtube.com/@urban_newsgang", label: "YouTube" },
+const EXPLORE = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/experience", label: "The Experience" },
+  { href: "/events", label: "Tour Stops" },
+  { href: "/blog", label: "Urban News" },
+  { href: "/the-gang", label: "The Gang" },
+  { href: "/shop", label: "Shop" },
 ];
 
-const COLUMNS = [
-  {
-    title: "Company",
-    links: [
-      { href: "/about", label: "About" },
-      { href: "/the-gang", label: "The Gang" },
-      { href: "/partners", label: "Partners" },
-      { href: "/blog", label: "Newsroom" },
-    ],
-  },
-  {
-    title: "Work With Us",
-    links: [
-      { href: "/events", label: "Tours" },
-      { href: "/book", label: "Book the Tour" },
-      { href: "/contact-us", label: "Sponsor an Event" },
-      { href: "/shop", label: "Merch" },
-    ],
-  },
+const BOOK = [
+  { href: "/book#brands", label: "For Brands" },
+  { href: "/book#schools", label: "For Schools" },
+  { href: "/book#campus", label: "For Campuses" },
+  { href: "/book#mega", label: "For Mega Events" },
+  { href: "/partners", label: "Partners" },
+];
+
+const SOCIALS = [
+  { href: "https://www.tiktok.com/@urban_newsgang", label: "TikTok", bg: "bg-ink" },
+  { href: "https://www.instagram.com/urban_newsgang", label: "Instagram", bg: "bg-magenta" },
+  { href: "https://www.youtube.com/@urban_newsgang", label: "YouTube", bg: "bg-cyan" },
+  { href: "https://www.facebook.com/urban_newsgang", label: "Facebook", bg: "bg-ink" },
+  { href: "https://x.com/urban_newsgang", label: "X", bg: "bg-gold" },
 ];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-ink">
-      <div className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
-          <div>
-            <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} loading="lazy" className="h-12 w-auto" />
-            <p className="mt-5 max-w-sm text-[14px] leading-relaxed text-paper/60">
-              Urban Gang Tour builds and produces youth culture experiences across Kenya: live tours,
-              broadcast content, talent development, and brand activations.
-            </p>
-            <div className="mt-6 flex gap-3">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.href}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-paper/70 transition-all duration-150 ease-out hover:border-magenta hover:text-paper active:scale-[0.95]"
-                >
-                  <SocialIcon platform={s.label} />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {COLUMNS.map((col) => (
-            <div key={col.title}>
-              <div className="font-display text-sm uppercase tracking-wide text-paper/40">{col.title}</div>
-              <ul className="mt-4 flex flex-col gap-3">
-                {col.links.map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} className="text-[14px] text-paper/75 transition-colors duration-150 hover:text-paper">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+    <footer className="border-t-4 border-gold bg-ink px-6 pb-8 pt-14 text-white sm:px-10">
+      <div className="mx-auto grid max-w-[1320px] grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Image src="/assets/brand/logo_transparent.png" alt="Urban Gang Tour" width={1024} height={1024} className="h-[60px] w-auto" />
+          <div className="mt-3 font-marker text-[19px] text-gold">From Potential to Purpose</div>
+          <p className="mt-2 max-w-[280px] text-[13.5px] leading-relaxed text-white/70">
+            Kenya&apos;s youth talent search, mentorship, and awards concert tour. Live, and on the national screen.
+          </p>
         </div>
-
-        <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center">
-          <div className="font-marker text-sm text-gold">From Potential to Purpose</div>
-          <div className="text-[13px] text-paper/40">Copyright 2026 Urban Gang Tour. Nairobi, Kenya.</div>
+        <div>
+          <div className="mb-3.5 font-display text-lg uppercase text-gold">Explore</div>
+          <div className="flex flex-col gap-2.5 text-[14px] font-semibold">
+            {EXPLORE.map((l) => (
+              <Link key={l.href} href={l.href} className="text-white/75 transition-colors duration-150 hover:text-gold">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="mb-3.5 font-display text-lg uppercase text-gold">Book Us</div>
+          <div className="flex flex-col gap-2.5 text-[14px] font-semibold">
+            {BOOK.map((l) => (
+              <Link key={l.href} href={l.href} className="text-white/75 transition-colors duration-150 hover:text-gold">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="mb-3.5 font-display text-lg uppercase text-gold">Connect</div>
+          <a href="mailto:admin@urbangangtour.co.ke" className="block text-[14px] font-semibold text-white/75 hover:text-gold">
+            admin@urbangangtour.co.ke
+          </a>
+          <div className="mt-1 text-[14px] text-white/75">@urban_newsgang</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {SOCIALS.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className={`flex h-9 w-9 items-center justify-center rounded-lg border-2 border-white text-[12px] font-bold text-white ${s.bg}`}
+              >
+                {s.label[0]}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
+      <div className="mx-auto mt-10 flex max-w-[1320px] flex-wrap items-center justify-between gap-3 border-t-2 border-dashed border-white/30 pt-6 text-[12.5px] text-white/60">
+        <div>© 2026 Urban Gang Tour · Nairobi, Kenya · From Potential to Purpose</div>
+        <Link href="/admin" className="text-white/30 hover:text-white/60">
+          Staff
+        </Link>
+      </div>
     </footer>
-  );
-}
-
-function SocialIcon({ platform }: { platform: string }) {
-  const common = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, width: 17, height: 17 };
-  if (platform === "Instagram")
-    return (
-      <svg {...common}>
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="0.9" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  if (platform === "Facebook")
-    return (
-      <svg {...common}>
-        <path d="M14 9h3V5h-3a4 4 0 0 0-4 4v2H7v4h3v6h4v-6h3l1-4h-4v-2c0-.5.5-1 1-1z" />
-      </svg>
-    );
-  if (platform === "TikTok")
-    return (
-      <svg {...common}>
-        <path d="M14 3v11.5a3.5 3.5 0 1 1-3-3.46" />
-        <path d="M14 3a5 5 0 0 0 5 5" />
-      </svg>
-    );
-  return (
-    <svg {...common}>
-      <rect x="3" y="6" width="18" height="12" rx="3" />
-      <path d="M11 10l4 2-4 2z" fill="currentColor" stroke="none" />
-    </svg>
   );
 }

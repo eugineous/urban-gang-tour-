@@ -147,9 +147,9 @@ export default function CheckoutProvider({ children }: { children: React.ReactNo
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.2 }}
             onClick={close}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/85 p-5"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/80 p-5"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 8 }}
@@ -157,25 +157,23 @@ export default function CheckoutProvider({ children }: { children: React.ReactNo
               exit={{ opacity: 0, scale: 0.97 }}
               transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[400px] rounded-3xl border border-magenta/40 bg-surface p-8"
+              className="w-full max-w-[400px] rounded-[22px] border-4 border-ink bg-white p-8 shadow-[10px_10px_0_#111]"
             >
               <div className="flex items-center justify-between">
-                <div className="font-display text-lg uppercase text-paper">Checkout</div>
+                <div className="font-display text-lg uppercase text-ink">Checkout</div>
                 <button
                   onClick={close}
                   aria-label="Close"
-                  className="text-paper/50 transition-colors duration-150 hover:text-paper active:scale-[0.95]"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-ink bg-white text-lg text-ink"
                 >
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
+                  ×
                 </button>
               </div>
 
               <div className="mt-5">
                 {step === "phone" && (
                   <form onSubmit={submitPhone} className="flex flex-col gap-3.5">
-                    <div className="text-sm text-paper/80">
+                    <div className="text-sm font-semibold text-ink/80">
                       Buying: {itemLabel}
                       {item?.priceKes ? ` - KES ${item.priceKes.toLocaleString("en-KE")}` : ""}
                     </div>
@@ -186,41 +184,40 @@ export default function CheckoutProvider({ children }: { children: React.ReactNo
                       placeholder="Safaricom number, e.g. 0712345678"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="rounded-[10px] border border-white/25 bg-ink px-3.5 py-3.5 text-[15px] text-paper outline-none transition-colors duration-150 focus:border-magenta"
+                      className="rounded-[10px] border-2 border-ink px-3.5 py-3.5 text-[15px] text-ink outline-none transition-colors duration-150 focus:border-magenta"
                     />
-                    {error && <div className="text-[13px] text-red-400">{error}</div>}
+                    {error && <div className="text-[13px] font-semibold text-magenta">{error}</div>}
                     <button
                       type="submit"
-                      className="rounded-[10px] bg-magenta py-3.5 text-[15px] font-bold text-paper transition-all duration-150 ease-out hover:bg-magenta-bright active:scale-[0.97]"
+                      className="rounded-[12px] border-[3px] border-ink bg-magenta py-3.5 text-[15px] font-bold text-white shadow-[4px_4px_0_#111] transition-all duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111] active:scale-[0.97]"
                     >
                       Pay with M-Pesa
                     </button>
                   </form>
                 )}
                 {step === "creating" && (
-                  <div className="py-5 text-center text-paper">Setting up your order...</div>
+                  <div className="py-5 text-center font-semibold text-ink">Setting up your order...</div>
                 )}
                 {step === "paying" && (
                   <div className="py-2.5 text-center">
-                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#F5A623" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
+                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
                       <rect x="7" y="2" width="10" height="20" rx="2" />
                       <line x1="11" y1="18" x2="13" y2="18" />
                       <path d="M20 6a6 6 0 0 0-6-4M22 6a8 8 0 0 0-8-6" />
                     </svg>
-                    <div className="mt-2.5 font-bold text-paper">Check your phone</div>
-                    <div className="mt-1.5 text-[13.5px] text-paper/70">
+                    <div className="mt-2.5 font-bold text-ink">Check your phone</div>
+                    <div className="mt-1.5 text-[13.5px] font-medium text-ink/70">
                       Enter your M-Pesa PIN to complete the KES {totalKes.toLocaleString("en-KE")} payment.
                     </div>
                   </div>
                 )}
                 {step === "paid" && (
                   <div className="py-2.5 text-center">
-                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#8FE89A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M8 12.5l2.5 2.5L16 9" />
-                    </svg>
-                    <div className="mt-2.5 text-[17px] font-bold text-[#8FE89A]">Payment confirmed</div>
-                    <div className="mt-1.5 text-[13.5px] text-paper/70">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-ink bg-success text-2xl text-white">
+                      ✓
+                    </div>
+                    <div className="mt-2.5 text-[17px] font-bold text-success">Payment confirmed</div>
+                    <div className="mt-1.5 text-[13.5px] font-medium text-ink/70">
                       A confirmation email is on its way if you provided one. Welcome to the gang.
                     </div>
                   </div>

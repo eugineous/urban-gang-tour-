@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import BuyButton from "../_components/BuyButton";
 import { SIZES, COLORS, type MerchProduct } from "@/content/merch";
 import type { CatalogItem } from "@/content/catalog";
@@ -16,69 +15,61 @@ export default function ProductCard({ product, price }: { product: MerchProduct;
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderText)}`;
 
   return (
-    <div className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] transition-all duration-150 ease-out hover:-translate-y-1 hover:border-magenta">
-      <div className="relative aspect-square overflow-hidden bg-[#F2EFEC]">
-        <Image
-          src={product.img}
-          alt={price?.name || product.key}
-          fill
-          loading="lazy"
-          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        />
-        <div className="absolute left-3.5 top-3.5 -rotate-2 rounded-full bg-magenta px-3.5 py-1.5 font-display text-[11px] uppercase tracking-wide text-paper">
-          {product.tag}
-        </div>
-      </div>
-      <div className="p-6">
-        <div className="flex items-baseline justify-between gap-2.5">
-          <div className="font-display text-[19px] uppercase leading-tight">{price?.name || product.key}</div>
+    <div className="relative pt-4">
+      <div className="absolute left-1/2 top-0 z-10 h-6 w-3.5 -translate-x-1/2 rounded-lg border-2 border-ink bg-concrete" />
+      <div className="overflow-hidden rounded-[18px] border-[3px] border-ink bg-white shadow-[5px_6px_0_#111]">
+        <div className="relative aspect-square border-b-2 border-dashed border-ink bg-white">
+          <img src={product.img} alt={price?.name || product.key} className="h-full w-full object-contain p-3.5" />
+          <span className="absolute left-[-34px] top-3 -rotate-45 border-2 border-ink bg-magenta px-9 py-0.5 text-[10px] font-bold uppercase text-white">
+            {product.tag}
+          </span>
           {price && (
-            <div className="shrink-0 font-display text-[16px] text-gold">KES {price.priceKes.toLocaleString("en-KE")}</div>
+            <span className="absolute bottom-2.5 right-2.5 rotate-3 rounded-lg border-2 border-ink bg-gold px-2.5 py-1 font-display text-[15px] shadow-[2px_2px_0_#111]">
+              KES {price.priceKes.toLocaleString("en-KE")}
+            </span>
           )}
         </div>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-paper/60">{product.desc}</p>
+        <div className="flex flex-col p-3.5">
+          <div className="font-display text-[15px] uppercase leading-none">{price?.name || product.key}</div>
+          <p className="mt-1.5 text-[12px] font-medium leading-relaxed text-ink/60">{product.desc}</p>
 
-        {product.optionType !== "one" && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {options.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setSelected(opt)}
-                className="min-w-[38px] rounded-lg border-2 px-3 py-2 text-[12px] font-bold text-paper transition-colors duration-150 hover:border-gold"
-                style={{
-                  borderColor: selected === opt ? "#C7238E" : "rgba(255,255,255,0.2)",
-                  background: selected === opt ? "#C7238E" : "transparent",
-                }}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        )}
-        {product.optionType === "one" && (
-          <div className="mt-4 inline-block rounded-lg border-2 border-white/10 bg-white/[0.05] px-3 py-2 text-[12px] font-bold text-paper/70">
-            {product.info || "One size"}
-          </div>
-        )}
+          {product.optionType !== "one" && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {options.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setSelected(opt)}
+                  className={`min-w-[36px] rounded-md border-2 border-ink px-2.5 py-1.5 text-[11.5px] font-bold ${selected === opt ? "bg-magenta text-white" : "bg-white"}`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+          {product.optionType === "one" && (
+            <div className="mt-3 inline-block rounded-md border-2 border-ink/20 bg-concrete px-2.5 py-1.5 text-[11.5px] font-bold text-ink/70">
+              {product.info || "One size"}
+            </div>
+          )}
 
-        {price && (
-          <BuyButton
-            className="mt-4 w-full rounded-xl bg-magenta py-3.5 text-center text-[14px] font-bold text-paper transition-all duration-150 ease-out hover:bg-magenta-bright active:scale-[0.97]"
-            item={{ kind: "merch", itemKey: product.key, name: price.name, variant: selected, priceKes: price.priceKes }}
+          {price && (
+            <BuyButton
+              className="mt-3 w-full rounded-lg border-[3px] border-ink bg-cyan py-2.5 text-center text-[12.5px] font-bold uppercase text-ink transition-colors duration-150 hover:bg-gold"
+              item={{ kind: "merch", itemKey: product.key, name: price.name, variant: selected, priceKes: price.priceKes }}
+            >
+              Pay with M-Pesa
+            </BuyButton>
+          )}
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 block rounded-lg border-2 border-ink/15 bg-concrete py-2.5 text-center text-[12px] font-bold text-ink/80"
           >
-            Pay with M-Pesa
-          </BuyButton>
-        )}
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2.5 block rounded-xl bg-white/[0.06] py-3 text-center text-[13px] font-bold text-paper transition-colors duration-150 hover:bg-white/[0.12]"
-        >
-          Or order on WhatsApp
-        </a>
+            Or order on WhatsApp
+          </a>
+        </div>
       </div>
     </div>
   );

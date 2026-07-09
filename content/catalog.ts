@@ -1,7 +1,3 @@
-// PLACEHOLDER PRICES - nothing here has been confirmed by Eugine/Lucy yet.
-// These exist so the checkout flow is testable end-to-end in the M-Pesa
-// sandbox. Update the priceKes values (and add real ticketed events) before
-// this ever goes live with a real Paybill/Till.
 export interface CatalogItem {
   key: string;
   name: string;
@@ -9,24 +5,24 @@ export interface CatalogItem {
   variants?: string[];
 }
 
+// The approved v25 merch line (14 products), prices as approved in the
+// design handoff. Apparel carries size variants; everything else adds
+// directly to the cart.
 export const MERCH_CATALOG: CatalogItem[] = [
-  { key: "tee3d", name: "3D Logo Tee - Black", priceKes: 1500, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "puff", name: "Magenta Puff Tee", priceKes: 1500, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "hoodie", name: "Embroidered Hoodie", priceKes: 3000, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "pinkcity", name: "Pink City Tee", priceKes: 1500, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "babytee", name: "Baby Tee - White", priceKes: 1300, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "crewneck", name: "Crewneck - Black", priceKes: 2200, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "jersey", name: "Event Jersey", priceKes: 2500, variants: ["S", "M", "L", "XL", "2XL"] },
-  { key: "cap", name: "Tour Cap", priceKes: 800 },
-  { key: "buckethat", name: "Bucket Hat", priceKes: 900 },
-  { key: "beanie", name: "Beanie - Black", priceKes: 700 },
-  { key: "tote", name: "Gang Tote", priceKes: 600 },
-  { key: "waistbag", name: "Waist Bag", priceKes: 1000 },
-  { key: "drawstring", name: "Drawstring Bag", priceKes: 600 },
-  { key: "bottle", name: "Water Bottle", priceKes: 700 },
-  { key: "lanyard", name: "Lanyard", priceKes: 300 },
-  { key: "wristbands", name: "Wristbands", priceKes: 200, variants: ["Black", "Magenta", "Orange"] },
-  { key: "stickers", name: "Sticker Pack", priceKes: 250 },
+  { key: "magenta-tee", name: "Magenta Oversized Tee", priceKes: 2500, variants: ["S", "M", "L", "XL", "XXL"] },
+  { key: "crewneck", name: "Black Crewneck Sweatshirt", priceKes: 3800, variants: ["S", "M", "L", "XL", "XXL"] },
+  { key: "snapback", name: "Structured Snapback", priceKes: 1800 },
+  { key: "bucket-hat", name: "Bucket Hat", priceKes: 1600 },
+  { key: "tote", name: "Canvas Tote", priceKes: 1200 },
+  { key: "beanie", name: "Cuffed Beanie", priceKes: 1400 },
+  { key: "bottle", name: "Insulated Bottle", priceKes: 2200 },
+  { key: "wristbands", name: "Wristband Pack", priceKes: 500 },
+  { key: "gym-sack", name: "Drawstring Gym Sack", priceKes: 1500 },
+  { key: "baby-tee", name: "Cropped Baby Tee", priceKes: 2200, variants: ["S", "M", "L", "XL", "XXL"] },
+  { key: "jersey", name: "Football Jersey", priceKes: 3200, variants: ["S", "M", "L", "XL", "XXL"] },
+  { key: "waist-bag", name: "Crossbody Waist Bag", priceKes: 2000 },
+  { key: "lanyard", name: "Woven Lanyard", priceKes: 400 },
+  { key: "stickers", name: "Sticker Sheet", priceKes: 300 },
 ];
 
 export interface TicketEvent {
@@ -38,9 +34,9 @@ export interface TicketEvent {
 
 export const TICKET_EVENTS: TicketEvent[] = [
   {
-    key: "ngeya-girls-24-jul",
-    name: "Ngeya Girls Senior School",
-    dateLabel: "24 July 2026 - Mai Mahiu, Naivasha",
+    key: "lari-boys-19-jul",
+    name: "Urban Gang Tour - Lari Boys High School",
+    dateLabel: "Sunday, 19 July 2026 - Kimende, Lari, Kiambu County",
     ticketTypes: [{ key: "general", name: "General Entry", priceKes: 200 }],
   },
 ];

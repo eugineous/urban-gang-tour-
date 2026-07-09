@@ -4,11 +4,11 @@ import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
-import { DIFFERENTIATORS, IMPACT_PILLARS, IMPACT_NUMBERS } from "@/content/about";
+import { IMPACT_PILLARS, IMPACT_NUMBERS } from "@/content/about";
 
-const title = "About";
+const title = "About & The Gang";
 const description =
-  "Urban Gang Tour is a Kenyan events company founded by Eugine Micah and Lucy Ogunde, running a youth talent search, mentorship, and awards concert programme touring high schools, universities, colleges, and large-scale events.";
+  "Urban Gang Tour is a Kenyan youth entertainment and media company founded by Eugine Micah and Lucy Ogunde: a travelling school tour, mentorship, a modelling runway, and a national broadcast on Urban News.";
 
 export const metadata: Metadata = {
   title,
@@ -17,222 +17,171 @@ export const metadata: Metadata = {
   openGraph: { title, description, url: "/about", type: "website" },
 };
 
+const DIFFERENTIATORS = [
+  { n: "01", title: "We come to you", body: "The full production travels: stage, sound, crew, cameras, hosts." },
+  { n: "02", title: "Talent, showcased & awarded", body: "Every talent gets a stage — music, dance, spoken word, comedy, modelling and more — judged and crowned." },
+  { n: "03", title: "Mentorship built in", body: "Urban Pods on sexual education, substance abuse, career, digital literacy and life run alongside the stage." },
+  { n: "04", title: "National broadcast", body: "Every stop feeds Urban News on PPP TV Kenya, plus short-form content everywhere." },
+  { n: "05", title: "A real crew", body: "Hosts, DJs, stage managers, videographers, models, medics, and mentorship facilitators." },
+];
+
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-ink text-paper">
+    <div className="min-h-screen bg-magenta">
       <Nav />
 
-      <section className="relative overflow-hidden px-6 pb-14 pt-20 sm:px-10 sm:pt-28">
-        <div
-          className="absolute inset-0"
-          style={{ background: "radial-gradient(1000px 500px at 30% -20%, rgba(199,35,142,0.4), transparent 65%)" }}
-        />
-        <div className="relative mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-12 lg:grid-cols-2">
+      <div className="border-b-4 border-ink bg-magenta px-6 py-14 sm:px-10">
+        <div className="mx-auto max-w-[1000px]">
           <Reveal>
-            <div className="inline-flex -rotate-1 rounded-full bg-surface px-4 py-1.5 shadow-magenta">
-              <span className="font-display text-[11px] uppercase tracking-wide text-gold">Our story</span>
-            </div>
-            <div className="mt-3 -rotate-1 font-marker text-xl text-gold">who we are</div>
-            <h1 className="mt-3 text-balance font-display text-[clamp(2.75rem,5.6vw,5rem)] uppercase leading-[0.98] tracking-[-0.03em]">
-              We turn <span className="text-magenta">potential</span> into <span className="text-gold">purpose</span>
+            <div className="inline-block -rotate-2 rounded-full border-2 border-ink bg-ink px-4 py-2 font-badge text-[13px] text-gold">WHO WE ARE</div>
+            <h1 className="mt-4 font-display text-[clamp(40px,7vw,88px)] uppercase leading-[0.9] text-ink" style={{ textShadow: "4px 4px 0 #fff" }}>
+              We Turn Potential
+              <br />
+              Into <span className="rounded border-[3px] border-ink bg-cyan px-2.5">Purpose</span>
             </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-paper/[0.78]">
-              Urban Gang Tour is a Kenyan events company founded by Eugine Micah and Lucy Ogunde, running
-              a youth talent search, mentorship, and awards concert programme. We move countrywide: high
-              schools, universities, colleges, and large scale events. An independent company with its
-              own crew and systems, where every stop airs on Urban News.
+            <p className="mt-5 max-w-2xl text-[18px] font-medium leading-relaxed text-white">
+              Urban Gang Tour is a Kenyan entertainment and media company. We create the moments, own the
+              production, and carry them to the national screen. When a brand, an institution, or a name
+              wants to reach young Kenya where it actually lives, this is the room they come to.
             </p>
           </Reveal>
-          <Reveal delay={0.1}>
-            <div className="mx-auto w-full max-w-[380px] rotate-3 rounded-md bg-paper p-3 pb-10 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-              <div className="relative aspect-[3/3.4] w-full overflow-hidden bg-surface">
-                <Image src="/assets/g/stage_1.jpg" alt="On stage" fill sizes="(max-width: 640px) 90vw, 380px" className="object-cover" />
-              </div>
-              <div className="mt-2.5 text-center font-marker text-[15px] text-ink">
-                one day. one institution. everything changes.
-              </div>
-            </div>
-          </Reveal>
         </div>
-      </section>
+      </div>
 
-      <section className="px-6 py-14 sm:px-10">
-        <Reveal>
-          <div className="mx-auto grid max-w-[1080px] grid-cols-[auto_1fr] gap-8">
-            <div className="w-1.5 rounded-full" style={{ background: "linear-gradient(#C7238E, #F5A623)" }} />
-            <div>
-              <div className="font-display text-4xl uppercase">Our story</div>
-              <p className="mt-3.5 text-[16.5px] leading-loose text-paper/80">
-                Urban Gang Tour was born from a simple frustration: Kenya is overflowing with young talent
-                that never gets a stage, a mentor, or a camera. So we built all three into one travelling
-                machine. One day. One institution. Talent battles judged live, life skills pods that
-                actually speak the language of young people, a modelling runway, an awards ceremony, and
-                a broadcast on national TV through Urban News.
-              </p>
-              <div className="mt-[1.125rem] -rotate-1 font-marker text-xl text-magenta">
-                We are not a one off event company. We are a movement that keeps showing up.
+      <div className="border-b-4 border-ink bg-white px-6 py-12 sm:px-10">
+        <div className="mx-auto flex max-w-[1000px] flex-wrap items-center gap-8">
+          <div className="flex flex-none">
+            <div className="w-[180px] -rotate-[5deg] rounded border-2 border-ink/15 bg-white p-2.5 pb-8 shadow-[0_12px_24px_rgba(17,17,17,0.25)]">
+              <div className="relative aspect-square overflow-hidden">
+                <Image src="/assets/p/eugine_4.jpg" alt="Eugine Micah — Co-Founder, Urban Gang Tour" fill sizes="180px" className="object-cover" />
               </div>
+              <div className="mt-2 text-center font-marker text-[14px]">eugine — the face</div>
+            </div>
+            <div className="ml-[-24px] mt-6 w-[180px] rotate-3 rounded border-2 border-ink/15 bg-white p-2.5 pb-8 shadow-[0_12px_24px_rgba(17,17,17,0.25)]">
+              <div className="relative aspect-square overflow-hidden">
+                <Image src="/assets/p/lucy_portrait.jpg" alt="Lucy Ogunde — Co-Founder, Urban Gang Tour" fill sizes="180px" className="object-cover" />
+              </div>
+              <div className="mt-2 text-center font-marker text-[14px]">lucy — the voice</div>
             </div>
           </div>
-        </Reveal>
-      </section>
+          <div className="min-w-[260px] flex-1">
+            <div className="-rotate-1 font-marker text-lg text-magenta">it started with these two</div>
+            <h2 className="mt-1.5 font-display text-[clamp(26px,4vw,44px)] uppercase leading-[0.92]">
+              Founded On A Mic
+              <br />
+              And A Promise
+            </h2>
+            <p className="mt-3 text-[15px] font-medium leading-relaxed text-ink/80">
+              Eugine Micah and Lucy Ogunde built the Urban Gang Tour from one school hall into a national
+              movement — him on the mic, her holding the room, both carrying every stop to the country on
+              Urban News. The whole thing still runs on their promise: every young person deserves one
+              loud day where the country learns their name.
+            </p>
+            <Link href="/the-gang" className="mt-4 inline-block rounded-xl border-[3px] border-ink bg-ink px-5 py-3 font-display text-[15px] text-gold shadow-[4px_4px_0_#E6218C]">
+              Meet The Whole Gang →
+            </Link>
+          </div>
+        </div>
+      </div>
 
-      <section className="px-6 py-7 sm:px-10">
-        <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-5 sm:grid-cols-2">
-          <Reveal>
-            <div
-              className="relative overflow-hidden rounded-3xl p-9"
-              style={{ background: "linear-gradient(150deg, #C7238E, #91186A)" }}
-            >
-              <div className="font-display text-[26px] text-[#FFD9EF]">Mission</div>
-              <p className="mt-3 text-[16.5px] leading-relaxed text-paper">
-                To discover, mentor, and platform young Kenyan talent through live events, life skills
-                education, and national broadcast, turning raw potential into real purpose.
+      <div className="border-b-4 border-ink bg-white px-6 py-12 sm:px-10">
+        <div className="mx-auto grid max-w-[1000px] grid-cols-1 gap-8 sm:grid-cols-[1.3fr_1fr]">
+          <div>
+            <h2 className="mb-3.5 font-display text-[38px] uppercase">Our Story</h2>
+            <p className="mb-3.5 font-medium leading-relaxed text-ink/80">
+              Kenya is overflowing with young talent that never gets a stage, a mentor, or a camera. So we
+              built all three into one travelling machine. One day, one institution: talent showcases
+              judged live, life-skills pods that actually speak the language of young people, a full
+              modelling runway, an awards ceremony, and a broadcast on national TV through Urban News on
+              PPP TV Kenya.
+            </p>
+            <p className="font-medium leading-relaxed text-ink/80">
+              We are not a one-off event company. We are the crew behind the culture, the sound, the
+              stage, the cameras, the moment, and the movement that keeps growing every time we show up
+              somewhere new.
+            </p>
+          </div>
+          <div className="grid gap-4">
+            <div className="rounded-2xl border-[3px] border-ink bg-magenta p-6 text-white shadow-[6px_6px_0_#111]">
+              <div className="font-display text-[22px] uppercase">Mission</div>
+              <p className="mt-2 text-[14px] font-medium leading-relaxed">
+                Discover, mentor, and platform young Kenyan talent through live events, life skills, and
+                national broadcast, turning raw potential into real purpose.
               </p>
             </div>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <div
-              className="relative overflow-hidden rounded-3xl p-9"
-              style={{ background: "linear-gradient(150deg, #F5A623, #C97F0A)" }}
-            >
-              <div className="font-display text-[26px] text-[#4A2D00]">Vision</div>
-              <p className="mt-3 text-[16.5px] font-medium leading-relaxed text-[#2E1C00]">
+            <div className="rounded-2xl border-[3px] border-ink bg-cyan p-6 shadow-[6px_6px_0_#111]">
+              <div className="font-display text-[22px] uppercase">Vision</div>
+              <p className="mt-2 text-[14px] font-medium leading-relaxed">
                 To be Africa&apos;s leading youth talent and mentorship tour, where every young person, in
                 every county, has a stage within reach.
               </p>
             </div>
-          </Reveal>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <section className="px-6 pb-8 pt-16 sm:px-10">
-        <div className="mx-auto max-w-[1280px]">
-          <Reveal>
-            <h2 className="font-display text-[clamp(1.9rem,4vw,2.6rem)] uppercase">
-              What makes us <span className="text-magenta">different</span>
-            </h2>
-          </Reveal>
-          <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="border-b-4 border-ink bg-gold px-6 py-12 sm:px-10">
+        <div className="mx-auto max-w-[1000px]">
+          <h2 className="mb-6 font-display text-[38px] uppercase">What Makes Us Different</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {DIFFERENTIATORS.map((d, i) => (
               <Reveal key={d.n} delay={i * 0.05}>
-                <div className="rounded-2xl border border-dashed border-gold/45 bg-white/[0.04] p-6 transition-all duration-150 ease-out hover:-translate-y-1 hover:border-gold">
-                  <div className="font-display text-[28px] text-gold">{d.n}</div>
-                  <div className="mt-2 text-[15px] font-bold">{d.title}</div>
-                  <p className="mt-2 text-[13.5px] leading-relaxed text-paper/[0.68]">{d.body}</p>
+                <div className="rounded-2xl border-[3px] border-ink bg-white p-5 shadow-[5px_5px_0_#111]">
+                  <div className="font-display text-[38px] leading-[0.8] text-magenta">{d.n}</div>
+                  <div className="mt-1.5 font-display text-[17px] uppercase leading-tight">{d.title}</div>
+                  <p className="mt-1.5 text-[12.5px] font-medium leading-relaxed text-ink/75">{d.body}</p>
                 </div>
               </Reveal>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="px-6 py-14 sm:px-10">
-        <Reveal>
-          <div className="relative mx-auto grid max-w-[1080px] grid-cols-[auto_1fr] items-center gap-8 rounded-r-3xl border-l-4 border-gold bg-gold/[0.07] p-9 sm:p-11">
-            <div className="relative h-[130px] w-[130px] shrink-0 overflow-hidden rounded-full border-4 border-magenta">
-              <Image src="/assets/p/eugine_3.jpg" alt="Eugine Micah" fill sizes="130px" className="object-cover" />
-            </div>
-            <div>
-              <div className="text-[21px] font-medium leading-relaxed text-[#FFE9C7]">
-                &quot;Every school we walk into, there is a star nobody has noticed yet. Our job is to make
-                sure the whole country notices.&quot;
-              </div>
-              <div className="mt-3.5 font-bold text-gold">Eugine Micah</div>
-              <div className="text-[13.5px] text-paper/60">Founder, Creative Director and Lead Host</div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section className="border-y-2 border-dashed border-magenta/40 bg-surface px-6 py-16 sm:px-10">
-        <div className="mx-auto max-w-[1280px]">
-          <Reveal>
-            <div className="-rotate-1 font-marker text-lg text-gold">the tour leaves more than memories</div>
-            <div className="mt-1.5 font-display text-[clamp(1.9rem,4vw,2.6rem)] uppercase">
-              Impact <span className="text-magenta">pillars</span>
-            </div>
-          </Reveal>
-          <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="border-b-4 border-ink bg-white px-6 py-14 sm:px-10">
+        <div className="mx-auto max-w-[1080px]">
+          <div className="-rotate-1 font-marker text-lg text-magenta">the tour leaves more than memories</div>
+          <h2 className="mb-6 mt-1 font-display text-[clamp(28px,4vw,44px)] uppercase">
+            Impact <span className="text-magenta">Pillars</span>
+          </h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {IMPACT_PILLARS.map((p, i) => (
               <Reveal key={p.title} delay={i * 0.06}>
-                <div
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-all duration-150 ease-out hover:-translate-y-1"
-                  style={{ borderColor: "rgba(255,255,255,0.1)" }}
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: p.color }} />
-                  <div className="mt-3.5 text-[16px] font-bold">{p.title}</div>
-                  <p className="mt-2 text-[13.5px] leading-relaxed text-paper/[0.68]">{p.body}</p>
+                <div className="rounded-2xl border-2 border-ink/12 bg-concrete p-5">
+                  <div className="h-9 w-9 rounded-lg border-2 border-ink" style={{ background: p.color }} />
+                  <div className="mt-3 text-[15px] font-bold">{p.title}</div>
+                  <p className="mt-1.5 text-[12.5px] font-medium leading-relaxed text-ink/70">{p.body}</p>
                 </div>
               </Reveal>
             ))}
           </div>
-          <Reveal delay={0.2}>
-            <div className="mt-10 grid grid-cols-2 gap-3.5 sm:grid-cols-5">
-              {IMPACT_NUMBERS.map((n) => (
-                <div key={n.label} className="border-r border-dashed border-white/15 p-2.5 text-center last:border-r-0">
-                  <div className="font-display text-[34px] text-gold">{n.v}</div>
-                  <div className="mt-1 text-[12px] uppercase tracking-wide text-paper/65">{n.label}</div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="px-6 py-16 sm:px-10">
-        <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-stretch gap-6 sm:grid-cols-3">
-          <Reveal>
-            <div className="relative min-h-[320px] overflow-hidden rounded-3xl">
-              <Image src="/assets/p/eugine_4.jpg" alt="Eugine Micah" fill sizes="(max-width: 1024px) 90vw, 30vw" className="object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 45%, rgba(21,14,19,0.95))" }} />
-              <div className="absolute bottom-0 p-[1.375rem]">
-                <div className="font-display text-2xl">EUGINE MICAH</div>
-                <div className="text-[13.5px] font-semibold text-gold">Founder, Creative Director, Lead Host</div>
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {IMPACT_NUMBERS.map((n) => (
+              <div key={n.label} className="border-r-2 border-dashed border-ink/15 p-2 text-center last:border-r-0">
+                <div className="font-display text-[30px] text-magenta">{n.v}</div>
+                <div className="mt-1 text-[11px] font-bold uppercase tracking-wide text-ink/65">{n.label}</div>
               </div>
-            </div>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <div className="relative min-h-[320px] overflow-hidden rounded-3xl">
-              <Image src="/assets/p/lucy_portrait.jpg" alt="Lucy Ogunde" fill sizes="(max-width: 1024px) 90vw, 30vw" className="object-cover object-top" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 45%, rgba(21,14,19,0.95))" }} />
-              <div className="absolute bottom-0 p-[1.375rem]">
-                <div className="font-display text-2xl">LUCY OGUNDE</div>
-                <div className="text-[13.5px] font-semibold text-gold">Founder, Co Host, Executive Producer</div>
-              </div>
-            </div>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <Link
-              href="/the-gang"
-              className="flex min-h-[320px] flex-col items-center justify-center gap-3.5 rounded-3xl border-2 border-dashed border-magenta/60 p-6 text-center transition-colors duration-150 hover:border-magenta hover:bg-magenta/[0.08]"
-            >
-              <Image src="/assets/brand/logo_transparent.png" alt="" width={1024} height={1024} className="h-auto w-[110px]" />
-              <div className="font-display text-[22px]">MEET THE FULL GANG</div>
-              <p className="text-[13.5px] text-paper/65">
-                A crew thirty to fifty strong. Hosts, DJs, dancers, models, medics, camera crews.
-              </p>
-            </Link>
-          </Reveal>
-        </div>
-      </section>
-
-      <section
-        className="px-6 py-16 text-center sm:px-10"
-        style={{ background: "linear-gradient(100deg, #C7238E, #F5A623)" }}
-      >
-        <Reveal>
-          <div className="font-display text-[clamp(2rem,4vw,3.25rem)] uppercase text-paper">Impact needs partners.</div>
-          <div className="mt-6 flex flex-wrap justify-center gap-4">
-            <Link href="/partners" className="rounded-2xl bg-ink px-8 py-4 text-[15px] font-bold text-paper transition-all duration-150 ease-out hover:bg-black active:scale-[0.97]">
-              Partner With Us
-            </Link>
-            <Link href="/book" className="rounded-2xl bg-white/90 px-8 py-4 text-[15px] font-bold text-magenta transition-all duration-150 ease-out hover:bg-white active:scale-[0.97]">
-              Bring the Tour to Your Institution
-            </Link>
+            ))}
           </div>
-        </Reveal>
-      </section>
+        </div>
+      </div>
+
+      <div className="border-b-4 border-ink bg-ink px-6 py-14 sm:px-10">
+        <div className="mx-auto max-w-[900px] rounded-2xl border-4 border-gold bg-magenta p-8 shadow-[10px_10px_0_rgba(255,212,0,0.3)]">
+          <div className="font-display text-[clamp(22px,3.2vw,34px)] leading-[1.2] text-white">
+            &quot;Every school we walk into, there is a star nobody has noticed yet. Our job is to make
+            sure the whole country notices.&quot;
+          </div>
+          <div className="mt-4 font-marker text-[19px] text-gold">Eugine Micah · Co-Founder &amp; Creative Director</div>
+        </div>
+        <div className="mt-7 flex flex-wrap justify-center gap-3.5">
+          <Link href="/the-gang" className="rounded-xl border-[3px] border-ink bg-gold px-6 py-4 font-display text-[17px] text-ink shadow-[5px_5px_0_#E6218C]">
+            Meet the Full Gang
+          </Link>
+          <Link href="/experience" className="rounded-xl border-2 border-white px-6 py-4 font-display text-[17px] text-white">
+            See the Experience
+          </Link>
+        </div>
+      </div>
 
       <Footer />
     </div>

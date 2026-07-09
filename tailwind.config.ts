@@ -12,6 +12,11 @@ export default {
         magenta: {
           DEFAULT: "#E6218C",
           deep: "#C11778",
+          bright: "#FF3FA8",
+        },
+        gold: {
+          DEFAULT: "#FFD400",
+          bright: "#FFE066",
         },
         yellow: {
           DEFAULT: "#FFD400",
@@ -22,6 +27,8 @@ export default {
         ink: "#111111",
         paper: "#F7F1E4",
         concrete: "#f3efe6",
+        surface: "#1B0F18",
+        "surface-raised": "#241621",
         success: "#1F8A5B",
         live: "#FF3B30",
       },
@@ -43,6 +50,8 @@ export default {
         "card5-yellow": "5px 5px 0 #FFD400",
         "card5-magenta": "5px 5px 0 #E6218C",
         "card5-cyan": "5px 5px 0 #21C7E6",
+        magenta: "5px 5px 0 #E6218C",
+        gold: "5px 5px 0 #FFD400",
       },
       rotate: {
         "2": "2deg",
@@ -70,6 +79,8 @@ export default {
         floatY: "floatY 5s ease-in-out infinite",
         spinSlow: "spinSlow 18s linear infinite",
         marquee: "ugtMarquee 26s linear infinite",
+        "marquee-fast": "ugtMarquee 20s linear infinite",
+        "marquee-slow": "ugtMarquee 40s linear infinite",
         wob: "wob 3.2s ease-in-out infinite",
         pop: "pop .5s cubic-bezier(.2,.7,.2,1) both",
         blink: "blink 1.4s step-start infinite",

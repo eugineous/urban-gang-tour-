@@ -3,16 +3,7 @@
 import { useState } from "react";
 import { CONTACT_EMAIL } from "./constants";
 
-const INTENTS = [
-  "School Booking",
-  "Campus Booking",
-  "Mega Event",
-  "Sponsorship",
-  "Partnership",
-  "Media",
-  "Join the Crew",
-  "Other",
-];
+const INTENTS = ["School Booking", "Campus Booking", "Mega Event", "Sponsorship", "Partnership", "Media", "Join the Crew", "Other"];
 
 export default function ContactForm() {
   const [name, setName] = useState("");
@@ -50,20 +41,13 @@ export default function ContactForm() {
 
   if (sent) {
     return (
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-9 text-center sm:p-14">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-magenta/15 text-magenta-bright">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
-            <path d="M20.8 8.6a5 5 0 0 0-8.5-3.6L12 5.3l-.3-.3a5 5 0 0 0-8.5 3.6c0 2.9 2.7 5.2 6.8 8.7L12 20l2-1.7c4.1-3.5 6.8-5.8 6.8-8.7z" />
-          </svg>
-        </div>
-        <div className="mt-5 font-display text-3xl uppercase leading-tight">Welcome to the gang.</div>
-        <p className="mt-3 text-[15px] leading-relaxed text-paper/65">
+      <div className="rounded-2xl border-[3px] border-ink bg-white p-9 text-center shadow-[6px_6px_0_#111] sm:p-14">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-ink bg-magenta text-[38px] text-white">✓</div>
+        <div className="mt-4.5 font-display text-3xl uppercase">Welcome to the gang.</div>
+        <p className="mx-auto mt-3 max-w-sm font-medium text-ink/70">
           Your email draft is open and ready to send. We reply within 48 hours.
         </p>
-        <button
-          onClick={resetForm}
-          className="mt-6 rounded-full border-2 border-white/25 px-6 py-3 text-[13.5px] font-bold text-paper transition-all duration-150 ease-out hover:border-gold hover:text-gold active:scale-[0.97]"
-        >
+        <button onClick={resetForm} className="mt-5 rounded-full border-2 border-ink px-6 py-3 text-[13.5px] font-bold">
           Send another message
         </button>
       </div>
@@ -71,59 +55,33 @@ export default function ContactForm() {
   }
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 sm:p-9">
-      <div className="flex flex-col gap-5">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="rounded-2xl border-[3px] border-ink bg-white p-7 shadow-[8px_8px_0_#111] sm:p-9">
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <Field label="Name">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[14.5px] text-paper outline-none transition-colors focus:border-magenta"
-            />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="w-full rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
           </Field>
-          <Field label="Organisation / Institution">
-            <input
-              value={org}
-              onChange={(e) => setOrg(e.target.value)}
-              placeholder="School, brand, or company"
-              className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[14.5px] text-paper outline-none transition-colors focus:border-magenta"
-            />
+          <Field label="Organisation">
+            <input value={org} onChange={(e) => setOrg(e.target.value)} placeholder="School / brand / event" className="w-full rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
           </Field>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <Field label="Email">
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[14.5px] text-paper outline-none transition-colors focus:border-magenta"
-            />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className="w-full rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
           </Field>
-          <Field label="Phone / WhatsApp">
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="07XX XXX XXX"
-              className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[14.5px] text-paper outline-none transition-colors focus:border-magenta"
-            />
+          <Field label="WhatsApp">
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Best number to reach you" className="w-full rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
           </Field>
         </div>
         <div>
-          <div className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-paper/65">
-            I am reaching out about
-          </div>
+          <div className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-ink/65">I am reaching out about</div>
           <div className="flex flex-wrap gap-2">
             {INTENTS.map((i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setIntent(i)}
-                className="rounded-full border-2 px-4 py-2 text-[13px] font-semibold text-paper transition-all duration-150 ease-out hover:border-gold active:scale-[0.97]"
-                style={{
-                  background: intent === i ? "#C7238E" : "rgba(255,255,255,0.05)",
-                  borderColor: intent === i ? "#C7238E" : "rgba(255,255,255,0.2)",
-                }}
+                className={`rounded-full border-2 border-ink px-4 py-2 text-[12.5px] font-semibold ${intent === i ? "bg-magenta text-white" : "bg-white"}`}
               >
                 {i}
               </button>
@@ -131,24 +89,12 @@ export default function ContactForm() {
           </div>
         </div>
         <Field label="Message">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Tell us what you have in mind."
-            rows={5}
-            className="w-full resize-y rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[14.5px] text-paper outline-none transition-colors focus:border-magenta"
-          />
+          <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Tell us the date, the ground, and the vision." rows={4} className="w-full resize-y rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
         </Field>
-        {error && <div className="text-[13.5px] font-semibold text-red-300">{error}</div>}
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={sendIt}
-            className="rounded-2xl bg-magenta px-8 py-4 text-[15px] font-bold uppercase tracking-wide text-paper transition-all duration-150 ease-out hover:bg-magenta-bright active:scale-[0.97]"
-          >
-            Send it
-          </button>
-          <div className="text-[12.5px] text-paper/55">Opens your email app, addressed to {CONTACT_EMAIL}</div>
-        </div>
+        {error && <div className="text-[13.5px] font-semibold text-magenta">{error}</div>}
+        <button onClick={sendIt} className="rounded-xl border-[3px] border-ink bg-magenta py-4 font-display text-[18px] uppercase text-white shadow-[5px_5px_0_#111] transition-transform duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111]">
+          SEND IT
+        </button>
       </div>
     </div>
   );
@@ -157,7 +103,7 @@ export default function ContactForm() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-paper/65">{label}</div>
+      <div className="mb-1.5 text-[12.5px] font-bold uppercase tracking-wide text-ink/65">{label}</div>
       {children}
     </div>
   );
