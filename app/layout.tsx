@@ -58,6 +58,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             starved behind the static shell's images/video on media-heavy pages. */}
         <link rel="preload" as="fetch" href="/v25-template.html" crossOrigin="anonymous" />
         <link rel="preload" as="script" href="/support.js" />
+        <link rel="preload" as="script" href="/vendor/react.production.min.js" />
+        <link rel="preload" as="script" href="/vendor/react-dom.production.min.js" />
       </head>
       <body>
         {/* Site-wide structured data on every page */}

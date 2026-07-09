@@ -12,6 +12,13 @@ export function V25App({ page }: { page: string }) {
   useEffect(() => {
     const w = window as any;
     w.__UGT_PAGE = page;
+    // Serve React from our own origin (fast, deterministic — no unpkg latency).
+    // support.js reads window.__resources[cdnUrl] and uses the local path instead.
+    w.__resources = {
+      'https://unpkg.com/react@18.3.1/umd/react.production.min.js': '/vendor/react.production.min.js',
+      'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js': '/vendor/react-dom.production.min.js',
+      ...(w.__resources || {}),
+    };
 
     const host = document.getElementById('v25-host');
     if (!host || host.getAttribute('data-booted') === '1') return;
