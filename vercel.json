@@ -1,6 +1,5 @@
 {
-  "framework": null,
-  "buildCommand": "echo skip",
-  "installCommand": "echo skip",
-  "outputDirectory": "."
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
 }
