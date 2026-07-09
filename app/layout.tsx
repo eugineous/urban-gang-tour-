@@ -52,6 +52,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
+        <script src="https://accounts.google.com/gsi/client" async defer />
       </head>
       <body>
         {/* Site-wide structured data on every page */}
