@@ -29,3 +29,6 @@ next-env.d.ts
 # vercel
 .vercel
 .env*.local
+
+# copied from /assets at build by scripts/sync-assets.mjs
+public/assets/
