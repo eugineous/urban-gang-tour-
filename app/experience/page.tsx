@@ -4,7 +4,7 @@ import Image from "next/image";
 import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
-import { BATTLES, RUNWAY_CATEGORIES, PODS, ON_SITE_EXPERIENCES } from "@/content/experience";
+import { SHOWCASES, RUNWAY_CATEGORIES, PODS, ON_SITE_EXPERIENCES } from "@/content/experience";
 
 const title = "The Tour — The Experience";
 const description = "What happens when the Urban Gang Tour pulls up: one day, one institution, talent showcases judged live, mentorship pods, and a modelling runway.";
@@ -56,7 +56,7 @@ export default function ExperiencePage() {
             <div className="text-[14px] font-semibold text-ink/60">Judged live, winners crowned on stage</div>
           </div>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {BATTLES.map((b, i) => (
+            {SHOWCASES.map((b, i) => (
               <Reveal key={b.n} delay={(i % 4) * 0.05}>
                 <div className="relative overflow-hidden rounded-2xl border-[3px] border-ink bg-concrete p-6 shadow-[5px_5px_0_#111] transition-transform duration-150 ease-out hover:-translate-y-1">
                   <div className="pointer-events-none absolute -right-1.5 -top-4 font-display text-[70px] text-magenta/15">{b.n}</div>
