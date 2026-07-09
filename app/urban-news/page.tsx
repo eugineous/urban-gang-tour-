@@ -49,6 +49,37 @@ export default function UrbanNewsPage() {
         </div>
       </div>
 
+      <div className="border-b-4 border-gold bg-ink px-6 pb-14 sm:px-10">
+        <div className="mx-auto max-w-[1000px]">
+          <div className="overflow-hidden rounded-[20px] border-4 border-ink bg-black shadow-[8px_8px_0_#21C7E6]">
+            <div className="flex items-center gap-2.5 border-b-[3px] border-ink bg-magenta px-4 py-3">
+              <span className="h-2.5 w-2.5 animate-blink rounded-full bg-white" />
+              <span className="font-badge text-[12px] uppercase text-white">Urban News — full playlist</span>
+            </div>
+            <div className="aspect-video">
+              <iframe
+                src="https://www.youtube.com/embed/videoseries?list=PLWRdLORbKcqU"
+                title="Urban News — full playlist"
+                loading="lazy"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full border-0"
+              />
+            </div>
+            <div className="bg-ink px-4 py-3 text-center">
+              <a
+                href="https://www.youtube.com/playlist?list=PLWRdLORbKcqU"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-badge text-[13px] text-gold"
+              >
+                WATCH EVERY EPISODE ON YOUTUBE →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="border-b-4 border-ink bg-white px-6 py-14 sm:px-10">
         <div className="mx-auto max-w-[1200px]">
           <Reveal>

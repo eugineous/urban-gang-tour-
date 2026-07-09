@@ -13,20 +13,35 @@ export default function ContactForm() {
   const [intent, setIntent] = useState(INTENTS[0]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  function sendIt() {
+  async function sendIt() {
     if (!name.trim() || !message.trim()) {
       setError("Give us at least your name and a message, gang.");
       return;
     }
-    const subject = encodeURIComponent(`[UGT Website] ${intent} - ${name}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nOrganisation: ${org || "-"}\nEmail: ${email || "-"}\nPhone/WhatsApp: ${phone || "-"}\nReaching out about: ${intent}\n\n${message}`
-    );
-    window.open(`mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`, "_blank");
     setError("");
-    setSent(true);
+    setSending(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, org, email, phone, intent, message }),
+      });
+      if (!res.ok) throw new Error("post failed");
+      setSent(true);
+    } catch {
+      // never lose the message: fall back to an email draft
+      const subject = encodeURIComponent(`[UGT Website] ${intent} - ${name}`);
+      const body = encodeURIComponent(
+        `Name: ${name}\nOrganisation: ${org || "-"}\nEmail: ${email || "-"}\nPhone/WhatsApp: ${phone || "-"}\nReaching out about: ${intent}\n\n${message}`
+      );
+      window.open(`mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+      setSent(true);
+    } finally {
+      setSending(false);
+    }
   }
 
   function resetForm() {
@@ -92,8 +107,8 @@ export default function ContactForm() {
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Tell us the date, the ground, and the vision." rows={4} className="w-full resize-y rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
         </Field>
         {error && <div className="text-[13.5px] font-semibold text-magenta">{error}</div>}
-        <button onClick={sendIt} className="rounded-xl border-[3px] border-ink bg-magenta py-4 font-display text-[18px] uppercase text-white shadow-[5px_5px_0_#111] transition-transform duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111]">
-          SEND IT
+        <button onClick={sendIt} disabled={sending} className="rounded-xl border-[3px] border-ink bg-magenta py-4 font-display text-[18px] uppercase text-white shadow-[5px_5px_0_#111] transition-transform duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111] disabled:opacity-60">
+          {sending ? "SENDING…" : "SEND IT"}
         </button>
       </div>
     </div>

@@ -7,6 +7,7 @@ import Reveal from "./_components/Reveal";
 import BuyButton from "./_components/BuyButton";
 import TypedWord from "./_components/TypedWord";
 import CountdownStrip from "./_components/CountdownStrip";
+import VideoRail from "./_components/VideoRail";
 import { BLOG_POSTS } from "@/content/blog";
 import { TICKET_EVENTS } from "@/content/catalog";
 import { NEXT_STOP, COMPLETED_STOPS } from "@/content/tour";
@@ -64,15 +65,24 @@ export default function HomePage() {
       {/* HERO */}
       <div className="relative overflow-hidden">
         <div className="relative min-h-[86vh]">
-          <Image src="/assets/g/stage_9.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+          <video
+            src="/assets/video/hero-main.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
           <div
             className="absolute inset-0"
-            style={{ background: "linear-gradient(100deg, rgba(230,33,140,.85) 20%, rgba(230,33,140,.55) 70%, rgba(230,33,140,.35))" }}
+            style={{ background: "linear-gradient(100deg, rgba(230,33,140,.82) 20%, rgba(230,33,140,.5) 68%, rgba(230,33,140,.28))" }}
           />
-          <div className="relative mx-auto flex min-h-[86vh] max-w-[1320px] items-center px-6 py-16 sm:px-10">
+          <div className="relative mx-auto grid min-h-[86vh] max-w-[1320px] grid-cols-1 items-center gap-8 px-6 py-16 sm:px-10 lg:grid-cols-[1.1fr_0.9fr]">
             <Reveal className="max-w-2xl">
               <div className="inline-flex -rotate-2 items-center gap-2 rounded-full border-2 border-white bg-ink px-4 py-2 font-sans text-[12px] font-bold uppercase tracking-[0.1em] text-white">
-                <span className="h-2.5 w-2.5 rounded-full bg-live" /> Live &amp; On Air · PPP TV Kenya
+                <span className="h-2.5 w-2.5 animate-blink rounded-full bg-live" /> Live &amp; On Air · PPP TV Kenya
               </div>
               <h1 className="mt-5 font-display text-[clamp(48px,8vw,104px)] uppercase leading-[0.86] text-ink" style={{ textShadow: "4px 4px 0 #fff" }}>
                 You Already
@@ -101,6 +111,15 @@ export default function HomePage() {
                 </Link>
               </div>
             </Reveal>
+            <div className="relative hidden items-center justify-center lg:flex">
+              <div className="absolute aspect-square w-[82%] rounded-full border-4 border-ink bg-gold" />
+              <img
+                src="/assets/brand/ugt-logo-v2.png"
+                alt="Urban Gang Tour"
+                className="relative w-full max-w-[440px] animate-floatY"
+                style={{ filter: "drop-shadow(6px 8px 0 rgba(17,17,17,0.85))" }}
+              />
+            </div>
           </div>
         </div>
 
@@ -136,6 +155,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* video rail */}
+      <VideoRail />
 
       {/* ticket booth */}
       <div className="border-b-4 border-ink bg-ink px-6 py-14 sm:px-10">

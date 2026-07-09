@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Space_Grotesk, Anton, Bungee, Permanent_Marker } from "next/font/google";
 import CheckoutProvider from "./_components/CheckoutProvider";
+import ScrollProgress from "./_components/ScrollProgress";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-X1WKKF846J";
@@ -139,6 +140,7 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${anton.variable} ${bungee.variable} ${permanentMarker.variable} antialiased`}
       >
+        <ScrollProgress />
         <a href="#main-content" className="skip-to-content">
           Skip to content
         </a>
