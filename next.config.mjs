@@ -5,6 +5,14 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   // v25 assets live in /assets and are copied into /public/assets at build time
   // by scripts/sync-assets.mjs so we never have to move 77MB of media in git.
+  // afterFiles rewrite: only fires when no real file exists at /assets/*.
+  // On production (public/assets present) it never triggers; on the isolated
+  // preview (no media uploaded) it proxies images/video from the live domain.
+  async rewrites() {
+    return [
+      { source: '/assets/:path*', destination: 'https://urbangangtour.co.ke/assets/:path*' },
+    ];
+  },
   async headers() {
     return [
       {

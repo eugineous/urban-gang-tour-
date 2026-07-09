@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { routeByPath, SITE } from '@/lib/site';
+import { V25App } from './V25App';
 
 // Renders the faithful v25 markup for a page. When a captured fragment exists at
 // app/_rendered/<page>.html it is emitted verbatim (server-rendered — a crawler
@@ -25,13 +26,22 @@ export function RenderedPage({ pathName }: { pathName: string }) {
   const captured = readCaptured(page);
 
   if (captured) {
-    // captured markup already contains its own <main>; wrap in a fragment div
-    return <div dangerouslySetInnerHTML={{ __html: captured }} />;
+    // captured markup already contains its own <main>; wrap in a fragment div.
+    // V25App then boots the live interactive runtime for this page on top.
+    return (
+      <>
+        <div dangerouslySetInnerHTML={{ __html: captured }} />
+        <V25App page={page} />
+      </>
+    );
   }
 
   // Faithful fallback — v25 palette + type. Real, unique, indexable content per URL.
+  // V25App still boots the live interactive runtime for this page on top.
   const heading = (r?.nav || r?.title.split('—')[0].trim() || 'Urban Gang Tour').toUpperCase();
   return (
+    <>
+    <V25App page={page} />
     <main style={{ background: '#E6218C', minHeight: '60vh', padding: '64px 22px 90px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div
@@ -104,5 +114,6 @@ export function RenderedPage({ pathName }: { pathName: string }) {
         </div>
       </div>
     </main>
+    </>
   );
 }

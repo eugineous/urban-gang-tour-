@@ -62,12 +62,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
           dangerouslySetInnerHTML={{ __html: ICON_SPRITE }}
         />
-        <div style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
+        {/* SSR shell: full server-rendered page for crawlers + first paint.
+            v25's live runtime boots into #v25-host and then hides this. */}
+        <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
           <MobileNav />
           <div dangerouslySetInnerHTML={{ __html: HEADER_HTML }} />
           {children}
           <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
+        {/* mount point for the live interactive v25 app (client-only) */}
+        <div id="v25-host" />
       </body>
     </html>
   );
