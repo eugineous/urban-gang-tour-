@@ -19,6 +19,7 @@ export function V25App({ page }: { page: string }) {
 
     let poll: ReturnType<typeof setInterval> | undefined;
     let done = false;
+    let attempts = 0;
 
     const reveal = () => {
       if (done) return;
@@ -33,24 +34,36 @@ export function V25App({ page }: { page: string }) {
       }
     };
 
-    fetch('/v25-template.html')
-      .then((r) => r.text())
-      .then((html) => {
-        host.innerHTML = html; // injects <x-dc> + <script data-dc-script>
-        const s = document.createElement('script');
-        s.src = '/support.js';
-        s.async = false;
-        document.body.appendChild(s); // support.js auto-boots on load
-        poll = setInterval(reveal, 120);
-        setTimeout(() => poll && clearInterval(poll), 20000);
-      })
-      .catch(() => {
-        // enhancement failed: leave the SSR shell in place (still fully usable)
-        host.removeAttribute('data-booted');
-      });
+    const attempt = () => {
+      attempts += 1;
+      // the layout preloads this, so it resolves from cache almost instantly
+      fetch('/v25-template.html', { cache: 'force-cache' })
+        .then((r) => r.text())
+        .then((html) => {
+          host.innerHTML = html; // injects <x-dc> + <script data-dc-script>
+          const s = document.createElement('script');
+          s.src = '/support.js';
+          s.async = false;
+          document.body.appendChild(s); // support.js auto-boots on load
+          if (poll) clearInterval(poll);
+          poll = setInterval(reveal, 100);
+        })
+        .catch(() => {
+          if (attempts < 3) setTimeout(attempt, 1500);
+        });
+    };
+
+    attempt();
+    // safety: if the runtime hasn't rendered in 6s, re-attempt the boot once
+    const watchdog = setTimeout(() => {
+      if (!done && attempts < 3) { host.innerHTML = ''; attempt(); }
+    }, 6000);
+    const hardStop = setTimeout(() => poll && clearInterval(poll), 25000);
 
     return () => {
       if (poll) clearInterval(poll);
+      clearTimeout(watchdog);
+      clearTimeout(hardStop);
     };
   }, [page]);
 

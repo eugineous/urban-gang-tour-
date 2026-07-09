@@ -54,6 +54,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
+        {/* Load the v25 runtime + template with priority so boot never gets
+            starved behind the static shell's images/video on media-heavy pages. */}
+        <link rel="preload" as="fetch" href="/v25-template.html" crossOrigin="anonymous" />
+        <link rel="preload" as="script" href="/support.js" />
       </head>
       <body>
         {/* Site-wide structured data on every page */}
