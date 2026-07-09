@@ -1,6 +1,6 @@
 export const SCHOOL_GETS = [
   "A full production day: stage, sound, hosts, DJs, and a trained crew thirty to fifty strong",
-  "8 talent battle categories plus the modelling runway with 4 sub categories",
+  "Talent showcases across every discipline plus the modelling runway with 4 sub categories",
   "Urban Pods, 3 to 5 per day depending on the topics, covering talent, money, digital skills, leadership, and mental wellness",
   "The Mrs/Miss of the Institution crowning, presented by your Principal",
   "Full event videography and a feature on Urban News, Urban Gang Tour",
@@ -17,7 +17,7 @@ export const BOOKING_STEPS = [
 
 export const CAMPUS_GETS = [
   "Festival grade production: T shaped runway stage, pro sound and lighting",
-  "All 8 battle categories at campus level, bigger prize positioning",
+  "All showcase categories at campus level, bigger prize positioning",
   "Mrs/Miss of the Institution crowning with university leadership",
   "Pods upgraded for campus: career, entrepreneurship, monetisation, wellness",
   "Media lab: journalism students join our field team, build real portfolios",

@@ -1,4 +1,4 @@
-export const BATTLES = [
+export const SHOWCASES = [
   { n: "01", title: "Music", body: "Singing and rap. Bring your voice, leave with a crowd." },
   { n: "02", title: "Dance", body: "Solo or crew. The floor decides who owns it." },
   { n: "03", title: "Spoken Word", body: "Words that move rooms, judged live." },

@@ -47,7 +47,7 @@ export const SEGMENTS = [
   "School and institution feature",
   "Student interviews and stories",
   "Club visits and campus culture",
-  "Battle highlights and winner moments",
+  "Showcase highlights and winner moments",
   "Principal and leadership interviews",
   "Behind the scenes with the crew",
   "Outro with next stop tease",

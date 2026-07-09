@@ -72,7 +72,7 @@ export const GALLERY_PHOTOS: GalleryPhoto[] = [
   },
   {
     "src": "/assets/g/stage_10.jpg",
-    "cap": "Battle round, judged live",
+    "cap": "Showcase round, judged live",
     "cat": "stage",
     "who": "vibes",
     "width": 615,
@@ -104,7 +104,7 @@ export const GALLERY_PHOTOS: GalleryPhoto[] = [
   },
   {
     "src": "/assets/g/stage_14.jpg",
-    "cap": "Dance battle entry",
+    "cap": "Dance showcase entry",
     "cat": "stage",
     "who": "vibes",
     "width": 615,
@@ -216,7 +216,7 @@ export const GALLERY_PHOTOS: GalleryPhoto[] = [
   },
   {
     "src": "/assets/g/v2.jpg",
-    "cap": "Mid-battle, shot by Vibes",
+    "cap": "Mid-showcase, shot by Vibes",
     "cat": "stage",
     "who": "",
     "width": 615,
@@ -1391,7 +1391,7 @@ export const GALLERY_REELS: GalleryReel[] = [
   },
   {
     "src": "/assets/video/ung_5.mp4",
-    "cap": "Battle round highlights",
+    "cap": "Showcase round highlights",
     "poster": "/assets/thumbs/ung_5.jpg"
   },
   {

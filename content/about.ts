@@ -1,6 +1,6 @@
 export const DIFFERENTIATORS = [
   { n: "01", title: "We come to you", body: "The full production travels: stage, sound, crew, cameras, hosts." },
-  { n: "02", title: "Battles, not showcases", body: "Competitor vs competitor in 8 categories. Real stakes, real winners, real crowns." },
+  { n: "02", title: "Showcases with real stakes", body: "Competitor vs competitor, judged live. Real stakes, real winners, real crowns." },
   { n: "03", title: "Mentorship built in", body: "Five Urban Pods covering talent, money, digital skills, leadership, and mental wellness." },
   { n: "04", title: "National broadcast", body: "Every stop feeds Urban News plus short form content on every platform." },
   { n: "05", title: "A real crew", body: "A trained crew thirty to fifty strong per event: hosts, DJs, stage managers, videographers, models, medics." },

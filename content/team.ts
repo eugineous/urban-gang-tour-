@@ -19,7 +19,7 @@ export const LEADERSHIP: Leader[] = [
   {
     name: "Eugine Micah",
     role: "Founder, Creative Director & Lead Host",
-    bio: "The face and engine of the tour. TIBS College valedictorian, Class of 2024. Co-hosts Urban News on Urban Gang Tour, leads his own team, and opens every stage the tour builds.",
+    bio: "The face and engine of the tour. Class of 2024 valedictorian. Co-hosts Urban News on Urban Gang Tour, leads his own team, and opens every stage the tour builds.",
     img: "/assets/p/eugine_4.jpg",
     ig: "eugine.micah",
     tags: ["Lead Host", "Urban News Co-Host", "Team Holder"],
@@ -49,14 +49,14 @@ export const OPERATIONS_CREW: CrewMember[] = [
   { name: "Kalamu Nyeusi", role: "Branding & Visibility", bio: "Spoken word and poetry lead turned brand guardian. Makes sure the gang is seen, everywhere.", img: "/assets/p/kalamu_2.jpg", ig: "kalamunyeusi" },
   { name: "MC Paps", role: "Urban Pods Leader", bio: "Mental health coach and MC. Leads the Urban Pods, three to five sessions per stop on talent, money, digital, leadership, and mind.", img: "/assets/p/mc_paps.jpg", ig: "paps_mc" },
   { name: "Ferooz Mkenya", role: "Transport & Logistics", bio: "Moves the machine county to county: trucks, kit, crew, and the travelling merch tent.", img: "/assets/p/ferooz_1.jpg", ig: "ferooz_mkenya" },
-  { name: "Pauline Masika", role: "Sound Engineer", bio: "Video and audio recording. The reason every battle sounds as big as it felt.", img: "/assets/p/pauline_2.png" },
+  { name: "Pauline Masika", role: "Sound Engineer", bio: "Video and audio recording. The reason every showcase sounds as big as it felt.", img: "/assets/p/pauline_2.png" },
   { name: "MC Larry Raj", role: "MC & Hype Opener", bio: "First voice on the mic. Opens the day and hands the crowd over at full temperature.", ig: "mc_larryraj" },
-  { name: "DJ Xavi", role: "DJ", bio: "Holds the decks across battles, runway, and hype sets.", img: "/assets/p/dj_xavi.jpg" },
+  { name: "DJ Xavi", role: "DJ", bio: "Holds the decks across showcases, runway, and hype sets.", img: "/assets/p/dj_xavi.jpg" },
   { name: "DJ Carian", role: "DJ", bio: "Second pair of hands on the decks, seamless transitions from first bell to crowning.", img: "/assets/p/dj_carian.jpg" },
-  { name: "DJ JayJey", role: "DJ", bio: "Rounds out the DJ unit across battles, runway walks, and hype sets.", img: "/assets/p/dj_jayjey.jpg" },
+  { name: "DJ JayJey", role: "DJ", bio: "Rounds out the DJ unit across showcases, runway walks, and hype sets.", img: "/assets/p/dj_jayjey.jpg" },
   { name: "Esther Gakunju", role: "Head of Modelling & Pageantry", bio: "Leads Synapse Models. Directs the runway and the Mrs/Miss of the Institution pageant.", img: "/assets/p/esther_wambui.jpg", ig: "wambui_gakunju" },
   { name: "George Morgan", role: "Cameraman", bio: "Urban Gang Tour camera crew. Frames the broadcast feed that reaches national screens.", img: "/assets/p/george_morgan.jpg" },
-  { name: "Tony Lallez", role: "Cameraman", bio: "Urban Gang Tour camera crew. Second angle on every battle, every crowning, every eruption." },
+  { name: "Tony Lallez", role: "Cameraman", bio: "Urban Gang Tour camera crew. Second angle on every showcase, every crowning, every eruption." },
 ];
 
 export const ENERGY_UNIT: CrewMember[] = [
