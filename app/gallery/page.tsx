@@ -3,8 +3,6 @@ import Nav from "../_components/Nav";
 import Footer from "../_components/Footer";
 import Reveal from "../_components/Reveal";
 import GalleryClient from "./GalleryClient";
-import { listGalleryPhotos } from "@/lib/gallery-photos";
-import type { GalleryPhoto } from "@/content/gallery";
 
 const title = "Gallery";
 const description = "Photos and reels from the road, shot by Vibes Studios and the Urban Gang Tour crew.";
@@ -16,22 +14,7 @@ export const metadata: Metadata = {
   openGraph: { title, description, url: "/gallery", type: "website" },
 };
 
-export const dynamic = "force-dynamic";
-
-export default async function GalleryPage() {
-  const uploaded: GalleryPhoto[] = await listGalleryPhotos()
-    .then((rows) =>
-      rows.map((r) => ({
-        src: r.url,
-        cap: r.caption,
-        cat: r.category,
-        who: "crew",
-        width: r.width,
-        height: r.height,
-      }))
-    )
-    .catch(() => []);
-
+export default function GalleryPage() {
   return (
     <div className="min-h-screen bg-cyan">
       <Nav />
@@ -53,7 +36,7 @@ export default async function GalleryPage() {
       </div>
 
       <div className="text-center">
-        <GalleryClient uploadedPhotos={uploaded} />
+        <GalleryClient />
       </div>
 
       <Footer />

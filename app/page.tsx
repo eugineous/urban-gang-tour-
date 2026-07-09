@@ -40,7 +40,7 @@ const AUDIENCES = [
 ];
 
 const PARTNERS_LOOP = [
-  "The Experience Hub", "Ashton Sounds", "Synapse Models", "Vibes Studios", "Moyo Response", "Delo Greens Movement",
+  "The Experience Hub", "Ashton Sounds", "Synapse Models", "Vibes Studios", "Moyo Response", "Delo Greens Movement", "TIBS College", "Hewitt & Bennet",
 ];
 
 const HEADLINERS = [...LEADERSHIP.map((p) => ({ name: p.name, role: p.role, img: p.img })), ...OPERATIONS_CREW.slice(0, 4).filter((m) => m.img).map((m) => ({ name: m.name, role: m.role, img: m.img! }))];

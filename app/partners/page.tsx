@@ -21,6 +21,8 @@ const PARTNERS = [
   { name: "Moyo Response", role: "Safety & First Aid", blurb: "On-site emergency response and first aid coverage at every single event.", ig: "moyo_response" },
   { name: "Delo Greens Movement", role: "Environmental Partner", blurb: "Founded and led by CEO Justus (Tae), championing tree planting and environmental action at every stop.", ig: "" },
   { name: "Ashton Sounds", role: "Stage & Sound Partner", blurb: "Professional stage and sound production for tour events, led by Jeff Ashton.", ig: "" },
+  { name: "TIBS College", role: "Institutional Media Partner", blurb: "TIBS journalism and media students join the tour as content creators through the TIBS Media Lab activation.", ig: "" },
+  { name: "Hewitt & Bennet", role: "Strategic Brand Partner", blurb: "Rides with the tour as Brand Ambassador partner, holding the education category presence across every 2026 stop.", ig: "" },
 ];
 
 export default function PartnersPage() {

@@ -14,34 +14,19 @@ export default function ContactForm() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
 
-  async function sendIt() {
+  function sendIt() {
     if (!name.trim() || !message.trim()) {
       setError("Give us at least your name and a message, gang.");
       return;
     }
-    setSending(true);
+    const subject = encodeURIComponent(`[UGT Website] ${intent} - ${name}`);
+    const body = encodeURIComponent(
+      `Name: ${name}\nOrganisation: ${org || "-"}\nEmail: ${email || "-"}\nPhone/WhatsApp: ${phone || "-"}\nReaching out about: ${intent}\n\n${message}`
+    );
+    window.open(`mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`, "_blank");
     setError("");
-    try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, org, email, phone, intent, message }),
-      });
-      if (!res.ok) throw new Error();
-      setSent(true);
-    } catch {
-      // Still get the message to us even if the request failed.
-      const subject = encodeURIComponent(`[UGT Website] ${intent} - ${name}`);
-      const emailBody = encodeURIComponent(
-        `Name: ${name}\nOrganisation: ${org || "-"}\nEmail: ${email || "-"}\nPhone/WhatsApp: ${phone || "-"}\nReaching out about: ${intent}\n\n${message}`
-      );
-      window.open(`mailto:${CONTACT_EMAIL}?subject=${subject}&body=${emailBody}`, "_blank");
-      setSent(true);
-    } finally {
-      setSending(false);
-    }
+    setSent(true);
   }
 
   function resetForm() {
@@ -60,7 +45,7 @@ export default function ContactForm() {
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-ink bg-magenta text-[38px] text-white">✓</div>
         <div className="mt-4.5 font-display text-3xl uppercase">Welcome to the gang.</div>
         <p className="mx-auto mt-3 max-w-sm font-medium text-ink/70">
-          Your message is in. We reply within 48 hours.
+          Your email draft is open and ready to send. We reply within 48 hours.
         </p>
         <button onClick={resetForm} className="mt-5 rounded-full border-2 border-ink px-6 py-3 text-[13.5px] font-bold">
           Send another message
@@ -107,12 +92,8 @@ export default function ContactForm() {
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Tell us the date, the ground, and the vision." rows={4} className="w-full resize-y rounded-lg border-2 border-ink px-4 py-3 text-[14.5px] outline-none focus:border-magenta" />
         </Field>
         {error && <div className="text-[13.5px] font-semibold text-magenta">{error}</div>}
-        <button
-          onClick={sendIt}
-          disabled={sending}
-          className="rounded-xl border-[3px] border-ink bg-magenta py-4 font-display text-[18px] uppercase text-white shadow-[5px_5px_0_#111] transition-transform duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111] disabled:opacity-60"
-        >
-          {sending ? "SENDING..." : "SEND IT"}
+        <button onClick={sendIt} className="rounded-xl border-[3px] border-ink bg-magenta py-4 font-display text-[18px] uppercase text-white shadow-[5px_5px_0_#111] transition-transform duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111]">
+          SEND IT
         </button>
       </div>
     </div>

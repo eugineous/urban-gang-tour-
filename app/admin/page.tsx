@@ -45,28 +45,6 @@ interface AuditEntry {
   at: number;
 }
 
-interface Booking {
-  id: number;
-  name: string;
-  org: string | null;
-  email: string | null;
-  phone: string | null;
-  intent: string;
-  message: string;
-  status: "new" | "review" | "confirmed";
-  created_at: string;
-}
-
-interface GalleryPhoto {
-  id: number;
-  category: string;
-  url: string;
-  caption: string;
-  width: number;
-  height: number;
-  created_at: string;
-}
-
 function money(kes: number) {
   return `KES ${kes.toLocaleString("en-KE")}`;
 }
@@ -85,35 +63,22 @@ function slugify(name: string) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `item-${Date.now()}`;
 }
 
-const TABS = ["bookings", "orders", "catalog", "gallery", "stats", "activity"] as const;
+const TABS = ["orders", "catalog", "stats", "activity"] as const;
 const TAB_LABEL: Record<(typeof TABS)[number], string> = {
-  bookings: "Bookings Inbox",
   orders: "Orders & Tickets",
   catalog: "Catalog & Prices",
-  gallery: "Gallery Manager",
   stats: "YouTube Stats",
   activity: "Activity Log",
-};
-
-const GALLERY_CAP = 100;
-
-const BOOKING_STATUS_COLOR: Record<Booking["status"], string> = {
-  new: "#E6218C",
-  review: "#FFD400",
-  confirmed: "#1F8A5B",
 };
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [tab, setTab] = useState<(typeof TABS)[number]>("bookings");
+  const [tab, setTab] = useState<(typeof TABS)[number]>("orders");
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [loadError, setLoadError] = useState("");
-
-  const [bookings, setBookings] = useState<Booking[] | null>(null);
-  const [bookingsError, setBookingsError] = useState("");
 
   const [merch, setMerch] = useState<CatalogItem[] | null>(null);
   const [events, setEvents] = useState<TicketEvent[] | null>(null);
@@ -124,12 +89,6 @@ export default function AdminPage() {
 
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [auditError, setAuditError] = useState("");
-
-  const [galleryCategory, setGalleryCategory] = useState("");
-  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[] | null>(null);
-  const [galleryError, setGalleryError] = useState("");
-  const [galleryUploading, setGalleryUploading] = useState(false);
-  const [galleryMsg, setGalleryMsg] = useState("");
 
   const loadOrders = useCallback(async () => {
     const res = await fetch("/api/ugt-admin/orders");
@@ -166,79 +125,6 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "catalog" && merch === null) loadCatalog();
   }, [tab, merch, loadCatalog]);
-
-  useEffect(() => {
-    if (tab !== "bookings" || bookings !== null) return;
-    fetch("/api/ugt-admin/bookings")
-      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
-      .then(({ ok, data }) => {
-        if (!ok) {
-          setBookingsError(data.error || "Failed to load bookings");
-          return;
-        }
-        setBookings(data.bookings);
-      })
-      .catch(() => setBookingsError("Failed to load bookings"));
-  }, [tab, bookings]);
-
-  const loadGallery = useCallback(async (category: string) => {
-    if (!category.trim()) {
-      setGalleryPhotos(null);
-      return;
-    }
-    setGalleryError("");
-    const res = await fetch(`/api/ugt-admin/gallery?category=${encodeURIComponent(category.trim())}`);
-    const data = await res.json();
-    if (!res.ok) {
-      setGalleryError(data.error || "Failed to load photos");
-      return;
-    }
-    setGalleryPhotos(data.photos);
-  }, []);
-
-  async function uploadGalleryFiles(files: FileList | null) {
-    if (!files || files.length === 0 || !galleryCategory.trim()) return;
-    setGalleryUploading(true);
-    setGalleryMsg("");
-    const form = new FormData();
-    form.set("category", galleryCategory.trim());
-    Array.from(files).forEach((f) => form.append("files", f));
-    try {
-      const res = await fetch("/api/ugt-admin/gallery", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) {
-        setGalleryMsg(data.error || "Upload failed");
-      } else {
-        setGalleryMsg(`Uploaded ${data.uploaded} photo(s)${data.skipped ? `, ${data.skipped} skipped (cap reached)` : ""}.`);
-        loadGallery(galleryCategory);
-      }
-    } catch {
-      setGalleryMsg("Upload failed");
-    } finally {
-      setGalleryUploading(false);
-    }
-  }
-
-  async function deleteGalleryPhoto(id: number) {
-    const res = await fetch("/api/ugt-admin/gallery", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (res.ok) setGalleryPhotos((prev) => (prev || []).filter((p) => p.id !== id));
-  }
-
-  async function setBookingStatus(id: number, status: Booking["status"]) {
-    const res = await fetch("/api/ugt-admin/bookings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setBookings((prev) => (prev || []).map((b) => (b.id === id ? data.booking : b)));
-    }
-  }
 
   useEffect(() => {
     if (tab !== "stats" || videos !== null) return;
@@ -365,106 +251,6 @@ export default function AdminPage() {
             </button>
           ))}
         </div>
-
-        {tab === "bookings" && (
-          <div className="mt-6">
-            <div className="mb-4 text-[13px] text-ink/60">
-              Every Work With Us / Contact form submission, newest first.
-            </div>
-            {bookingsError && <div className="mb-4 text-[13px] font-semibold text-magenta">{bookingsError}</div>}
-            {!bookingsError && bookings === null && <div className="text-ink/60">Loading...</div>}
-            {bookings && bookings.length === 0 && <div className="py-5 text-ink/50">No bookings yet.</div>}
-            <div className="flex flex-col gap-3">
-              {(bookings || []).map((b) => (
-                <div key={b.id} className="rounded-xl border-[3px] border-ink bg-white p-4 shadow-[3px_3px_0_#111]">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <div className="font-display text-[18px] uppercase">{b.name}</div>
-                      <div className="text-[12.5px] font-bold uppercase tracking-wide text-magenta">{b.intent}</div>
-                      <div className="mt-1 text-[12px] text-ink/50">{new Date(b.created_at).toLocaleString("en-KE")}</div>
-                    </div>
-                    <div className="flex gap-1.5">
-                      {(["new", "review", "confirmed"] as const).map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => setBookingStatus(b.id, s)}
-                          className="rounded-full border-2 px-3 py-1.5 text-[11px] font-bold uppercase"
-                          style={
-                            b.status === s
-                              ? { background: BOOKING_STATUS_COLOR[s], borderColor: "#111", color: s === "review" ? "#111" : "#fff" }
-                              : { borderColor: "#111", background: "#fff", color: "#111" }
-                          }
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 text-[12.5px] text-ink/70">
-                    {b.org && <span>{b.org}</span>}
-                    {b.email && <span>{b.email}</span>}
-                    {b.phone && <span>{b.phone}</span>}
-                  </div>
-                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-ink/85">{b.message}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {tab === "gallery" && (
-          <div className="mt-6">
-            <div className="mb-4 text-[13px] text-ink/60">
-              Pick a school or category, then bulk-upload photos. Images are compressed automatically (max 1600px,
-              JPEG q92) and capped at {GALLERY_CAP} per category.
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <input
-                className={`${INPUT_CLASS} max-w-[280px]`}
-                value={galleryCategory}
-                placeholder="School / category key, e.g. lari-boys"
-                onChange={(e) => setGalleryCategory(e.target.value)}
-                onBlur={() => loadGallery(galleryCategory)}
-              />
-              <button onClick={() => loadGallery(galleryCategory)} className={`${BTN_CLASS} bg-concrete`}>
-                Load
-              </button>
-              <label className={`${BTN_CLASS} cursor-pointer bg-magenta text-white ${galleryUploading ? "opacity-60" : ""}`}>
-                {galleryUploading ? "Uploading..." : "+ Upload photos"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  disabled={galleryUploading || !galleryCategory.trim()}
-                  onChange={(e) => uploadGalleryFiles(e.target.files)}
-                  className="hidden"
-                />
-              </label>
-              {galleryPhotos && (
-                <span className="text-[12.5px] font-bold text-ink/60">
-                  {galleryPhotos.length}/{GALLERY_CAP} in &quot;{galleryCategory}&quot;
-                </span>
-              )}
-            </div>
-            {galleryMsg && <div className="mt-2.5 text-[13px] font-semibold text-magenta">{galleryMsg}</div>}
-            {galleryError && <div className="mt-2.5 text-[13px] font-semibold text-magenta">{galleryError}</div>}
-
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-              {(galleryPhotos || []).map((p) => (
-                <div key={p.id} className="relative overflow-hidden rounded-lg border-[3px] border-ink bg-white shadow-[3px_3px_0_#111]">
-                  <img src={p.url} alt={p.caption} className="block aspect-square w-full object-cover" />
-                  <button
-                    onClick={() => deleteGalleryPhoto(p.id)}
-                    aria-label="Delete photo"
-                    className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-white text-magenta"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {tab === "orders" && (
           <>
