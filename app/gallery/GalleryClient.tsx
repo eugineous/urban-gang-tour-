@@ -2,17 +2,19 @@
 
 import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { GALLERY_PHOTOS, GALLERY_REELS, MOMENT_FILTERS, PEOPLE_FILTERS } from "@/content/gallery";
+import { GALLERY_PHOTOS, GALLERY_REELS, MOMENT_FILTERS, PEOPLE_FILTERS, type GalleryPhoto } from "@/content/gallery";
 
-export default function GalleryClient() {
+export default function GalleryClient({ uploadedPhotos = [] }: { uploadedPhotos?: GalleryPhoto[] }) {
   const [filter, setFilter] = useState("all");
   const [lightbox, setLightbox] = useState(-1);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
 
+  const allPhotos = useMemo(() => [...uploadedPhotos, ...GALLERY_PHOTOS], [uploadedPhotos]);
+
   const photos = useMemo(() => {
-    if (filter === "all") return GALLERY_PHOTOS;
-    return GALLERY_PHOTOS.filter((p) => p.cat === filter || p.who === filter);
-  }, [filter]);
+    if (filter === "all") return allPhotos;
+    return allPhotos.filter((p) => p.cat === filter || p.who === filter);
+  }, [filter, allPhotos]);
 
   const lb = lightbox >= 0 && lightbox < photos.length ? photos[lightbox] : null;
 
