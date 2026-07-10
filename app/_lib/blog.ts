@@ -32,11 +32,14 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
     if (db()) {
       const rows = await q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published ORDER BY date DESC`);
       if (rows.length) {
+        // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
+        // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.
+        const iso = (d: any) => (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10);
         return rows.map((r: any) => ({
           slug: r.slug,
           headline: r.headline,
-          datePublished: String(r.date).slice(0, 10),
-          dateModified: String(r.date).slice(0, 10),
+          datePublished: iso(r.date),
+          dateModified: iso(r.date),
           section: r.section || 'News',
           image: r.image || '/assets/poster.png',
           description: r.dek || '',
