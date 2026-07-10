@@ -91,3 +91,13 @@ All keys live in environment variables, server-side only. Never commit or paste 
 
 ## Housekeeping
 Removed dead files (`nextjs-update/`, `sw.js`, `CrewRotator.dc.html`, old `.dc.html`) where present.
+
+## PARKED — WhatsApp / Meta API (resume anytime)
+Meta app **"Urban Gang Tour"** already created: App ID `1338478978482580`,
+business portfolio "Eugine Micah", WhatsApp + Facebook Login attached.
+Resume at: developers.facebook.com → My Apps → Urban Gang Tour → WhatsApp →
+**Step 1: Try it out** → copy Temporary access token + Phone number ID →
+Vercel env vars `META_WA_TOKEN`, `META_WA_PHONE_ID`, `META_WA_SELF` → redeploy.
+For production messaging: Step 3 Business verification (takes days — start early).
+NOTE: the public wa.me chat widget needs NONE of this — set the number in
+Control Room → Comms and it goes live immediately.
