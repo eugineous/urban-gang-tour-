@@ -5,6 +5,7 @@ import { ICON_SPRITE } from './_components/iconSprite';
 import { HEADER_HTML } from './_components/headerHtml';
 import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
+import { CookieConsent } from './_components/CookieConsent';
 import { MobileNav } from './_components/MobileNav';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <noscript>
           <style>{`#boot-veil{display:none !important}`}</style>
         </noscript>
+        <CookieConsent />
       </body>
     </html>
   );

@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
-import { metadataForPath } from '@/app/_lib/seo';
+import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { RenderedPage } from '@/app/_components/RenderedPage';
 
 const PATH = '/events';
 
-export const metadata: Metadata = metadataForPath(PATH);
+export const revalidate = 300;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return metadataForPathDynamic(PATH);
+}
 
 export default function Page() {
   return (

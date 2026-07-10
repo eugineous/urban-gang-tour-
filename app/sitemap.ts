@@ -4,7 +4,7 @@ import { getBlogPosts } from './_lib/blog';
 
 // Lists every crawlable URL, including each /blog/[slug]. /admin is excluded
 // (noindex). robots.ts points crawlers here.
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const pages = ROUTES.filter((r) => r.path !== '/admin').map((r) => ({
     url: SITE.domain + (r.path === '/' ? '' : r.path),
@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: r.priority,
   }));
 
-  const posts = getBlogPosts().map((p) => ({
+  const posts = (await getBlogPosts()).map((p) => ({
     url: `${SITE.domain}/blog/${p.slug}`,
     lastModified: new Date(p.dateModified),
     changeFrequency: 'monthly' as const,
