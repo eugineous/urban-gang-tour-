@@ -324,6 +324,7 @@
 <input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email â€” receipt sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="Phone (M-Pesa) &amp; delivery contact" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
 <button type="submit" style="width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay &amp; Get Receipt</button>
+<button type="button" onClick="{{ payCard }}" style="width:100%;margin-top:10px;padding:15px;border:3px solid #111;border-radius:13px;background:#21C7E6;color:#111;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay with Card</button>
 </form>
 </sc-if>
 <sc-if value="{{ coStageDone }}" hint-placeholder-val="{{ false }}">
@@ -1823,6 +1824,7 @@ class Component extends DCLogic {
   closeCheckout = () => this.setState(s=>({checkout:{...s.checkout,stage:null}}));
   closeCheckoutBg = (e) => { if(e.target===e.currentTarget) this.closeCheckout(); };
   setCo = (k,v) => this.setState(s=>({checkout:{...s.checkout,[k]:v}}));
+  payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
   saveLS = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
   loadLS = (k,d) => { try{ const v=JSON.parse(localStorage.getItem(k)||'null'); return Array.isArray(v)?v:d; }catch(e){ return d; } };
   confirmOrder = (e) => { if(e&&e.preventDefault)e.preventDefault(); const s=this.state, co=s.checkout; if(!co.name.trim()||!co.email.trim()||!s.cart.length) return; const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:p.price,total:p.price*l.qty}; }); const total=lines.reduce((a,b)=>a+b.total,0); const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-M'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:co.name.trim(),email:co.email.trim(),phone:(co.phone||'').trim(),lines,total}; const rec={kind:'Merch',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:lines.map(l=>l.name+' Ã—'+l.qty).join(', ')}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); this.setState({checkout:{...co,stage:'done',order},cart:[],orders}); };
@@ -1949,7 +1951,7 @@ class Component extends DCLogic {
       coLines:s.cart.map(l=>{ const p=prodById(l.id); return {name:p.name+(l.size?' Â· '+l.size:''),qty:l.qty,totalFmt:this.fmt(p.price*l.qty)}; }),
       coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone,
       onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value),
-      confirmOrder:this.confirmOrder, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,
+      confirmOrder:this.confirmOrder, payCard:this.payCard, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,
       coOrder:(s.checkout.order||{invoice:'',ref:'',date:'',name:'',email:'',total:0}),
       coOrderLines:(s.checkout.order?s.checkout.order.lines.map(l=>({name:l.name,qty:l.qty,unitFmt:this.fmt(l.unit),totalFmt:this.fmt(l.total)})):[]),
       coOrderTotalFmt:(s.checkout.order?this.fmt(s.checkout.order.total):''),

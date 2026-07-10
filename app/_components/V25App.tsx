@@ -13,6 +13,25 @@ export function V25App({ page }: { page: string }) {
   useEffect(() => {
     const w = window as any;
     w.__UGT_PAGE = page;
+    // Card checkout bridge: the v25 template's "Pay with Card" button calls
+    // this with the same {id, qty} cart lines the M-Pesa order flow sends.
+    // The server re-prices everything from lib/server/catalog.ts and answers
+    // with a hosted checkout URL. Paystack first (KES, Kenyan settlement),
+    // Stripe as the fallback rail when Paystack is not configured.
+    w.__UGT_CARD_PAY = async (items: { id: string; qty: number }[], email?: string) => {
+      try {
+        const body: { items: { id: string; qty: number }[]; email?: string } = { items };
+        if (email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) body.email = email;
+        const payload = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+        let r = await fetch('/api/paystack/checkout', payload);
+        if (r.status === 503 || r.status === 502) r = await fetch('/api/stripe/checkout', payload);
+        const d = await r.json().catch(() => ({}));
+        if (d && d.url) location.href = d.url;
+        else alert('Card payments are not available right now');
+      } catch {
+        alert('Card payments are not available right now');
+      }
+    };
     // Serve React from our own origin (fast, deterministic — no unpkg latency).
     // support.js reads window.__resources[cdnUrl] and uses the local path instead.
     w.__resources = {

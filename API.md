@@ -42,6 +42,28 @@ env set. 200 `{ok,id,total,stk}` · 503 payment not configured · 429 (8/min/IP)
 ### POST /api/mpesa/callback
 Daraja result hook: marks order `paid` (+receipt) or `failed`. Always 200-acks.
 
+### POST /api/stripe/checkout
+Body: `{items:[{id,qty}], email?}` — strict: item objects may carry ONLY
+`id`+`qty` (qty 1–20, ≤30 lines, ids must exist in `lib/server/catalog.ts`).
+Prices computed server-side; client prices are never trusted. Writes a
+`pending` ledger row (`pay_method='card'`, `stripe_session`) BEFORE creating
+the Stripe Checkout Session (mode `payment`, currency `kes`,
+`metadata.order_id`, idempotency key derived from the order id so retries
+reuse one session). 200 `{ok,id,total,url}` (redirect the browser to `url`) ·
+400 · 429 (8/min/IP) · 500 ledger write failed (alerts owner) ·
+502 Stripe error · 503 `card_not_configured` / `db_not_configured`.
+Success returns to `/pay/success?session_id=…`, cancel returns to `/shop`.
+
+### POST /api/stripe/webhook
+Stripe server-to-server hook (Origin-exempt; verified via
+`stripe-signature` + `STRIPE_WEBHOOK_SECRET`, 400 on bad signature, 503 when
+unconfigured). Dashboard-registered events: `checkout.session.completed`
+(marks the `metadata.order_id` row `paid`, stores `stripe_payment_intent`,
+audit-logs; alerts owner when reconciliation fails),
+`payment_intent.payment_failed` (marks a still-`pending` order `failed`),
+`payment_intent.succeeded` (acknowledged; session completion is the source of
+truth). Always 200-acks handled/ignored events.
+
 ### POST /api/subscribe
 Body: `{email}`. Newsletter list. 200 · 400 · 429 (5/min/IP) · 503 no DB.
 
@@ -84,8 +106,10 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
 ## Env vars (server-side only — never client-exposed)
 `DATABASE_URL, SESSION_SECRET, ADMIN_ACCESS_CODE, RESEND_API_KEY, BOOKINGS_FROM,
 BOOKINGS_TO, MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,
-MPESA_PASSKEY, MPESA_ENV, MPESA_CALLBACK_URL, META_WA_TOKEN, META_WA_PHONE_ID,
+MPESA_PASSKEY, MPESA_ENV, MPESA_CALLBACK_URL, STRIPE_SECRET_KEY,
+STRIPE_WEBHOOK_SECRET, META_WA_TOKEN, META_WA_PHONE_ID,
 META_WA_SELF, META_IG_TOKEN, META_IG_USER_ID, META_FB_PAGE_ID, META_FB_PAGE_TOKEN`
+(`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is the one intentionally client-safe key.)
 
 ## Scale notes
 In-memory rate limits are per-instance; swap to Upstash Redis
