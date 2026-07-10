@@ -32,3 +32,6 @@ next-env.d.ts
 
 # copied from /assets at build by scripts/sync-assets.mjs
 public/assets/
+
+*.orig.mp4
+ffmpeg2pass-*
