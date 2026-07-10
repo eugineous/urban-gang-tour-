@@ -24,18 +24,23 @@ async function announceArticle(post: { slug: string; headline: string; dek: stri
   const summary = [post.headline, post.dek].filter(Boolean).join('\n\n');
   let posted = false;
 
-  if (facebookConfigured()) {
+  // The owner's Instagram already cross-posts to the Facebook page. Set
+  // META_AUTOPOST_TARGETS=ig to let that cross-post carry Facebook and avoid
+  // double-posting; default posts to both directly.
+  const targets = (process.env.META_AUTOPOST_TARGETS || 'fb,ig').toLowerCase();
+
+  if (targets.includes('fb') && facebookConfigured()) {
     const r = await postToFacebookPage({ message: `${summary}\n\n${url}`, link: url });
     console.log(`[social] facebook ${post.slug}: ${r.ok ? 'posted' : 'failed - ' + r.error}`);
     if (r.ok) posted = true;
   }
-  if (instagramConfigured()) {
+  if (targets.includes('ig') && instagramConfigured()) {
     // IG needs a public absolute https image URL; site-relative paths resolve
     // against the production domain, anything else skips IG.
     const img = post.image.startsWith('https://') ? post.image
       : post.image.startsWith('/') ? SITE.domain + post.image : '';
     if (img) {
-      const caption = `${summary}\n\nRead the full story - link in bio. #UrbanGangTour #UrbanNews`;
+      const caption = `${summary}\n\nRead the full story - link in bio. #UrbanGangTour #UrbanNews #Yezaskiii`;
       const r = await postToInstagram({ imageUrl: img, caption });
       console.log(`[social] instagram ${post.slug}: ${r.ok ? 'posted' : 'failed - ' + r.error}`);
       if (r.ok) posted = true;
