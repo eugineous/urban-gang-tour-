@@ -53,7 +53,10 @@ export function BottomTabBar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const sync = () => setPath(window.location.pathname);
+    const sync = () => {
+      setPath(window.location.pathname);
+      setOpen(false); // navigating closes the menu sheet
+    };
     sync();
     // v25's in-app nav uses history.pushState (patched go()/goWork()) — wrap it
     // once so the active tab tracks those URL changes too.

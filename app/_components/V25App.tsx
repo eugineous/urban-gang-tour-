@@ -75,9 +75,43 @@ export function V25App({ page }: { page: string }) {
     };
 
     attempt();
-    // in-app nav pushes real URLs (patched go()/goWork() in the template);
-    // browser back/forward re-renders the route server-side for consistency
-    const onPop = () => window.location.reload();
+    // Instant in-app navigation. Once the runtime is booted it exposes
+    // window.__UGT_GO (patched go() in the template). Internal links then
+    // switch pages in-app — no full reload, no re-boot — which is what makes
+    // taps feel instant on mobile. Crawlers still see real <a href> URLs.
+    const PATH_TO_PAGE: Record<string, string> = {
+      '/': 'home', '/about': 'about', '/the-gang': 'gang', '/experience': 'exp',
+      '/shop': 'shop', '/urban-news': 'news', '/gallery': 'gallery',
+      '/partners': 'partners', '/events': 'events', '/book': 'contact',
+      '/contact-us': 'contact',
+    };
+    const onLinkClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a || a.target === '_blank' || a.origin !== location.origin) return;
+      const w2 = window as any;
+      const p = a.pathname.replace(/\/+$/, '') || '/';
+      if (p === '/work-with-us' && typeof w2.__UGT_GO_WORK === 'function') {
+        e.preventDefault();
+        w2.__UGT_GO_WORK('brands');
+      } else if (PATH_TO_PAGE[p] && typeof w2.__UGT_GO === 'function') {
+        e.preventDefault();
+        w2.__UGT_GO(PATH_TO_PAGE[p]);
+      } else {
+        return;
+      }
+      // notify chrome UI (tab bar / menu sheet) even when the URL didn't change
+      window.dispatchEvent(new Event('ugt:nav'));
+    };
+    document.addEventListener('click', onLinkClick);
+    // browser back/forward: switch in-app when possible, else full reload
+    const onPop = () => {
+      const w2 = window as any;
+      const p = location.pathname.replace(/\/+$/, '') || '/';
+      if (p === '/work-with-us' && typeof w2.__UGT_GO_WORK === 'function') w2.__UGT_GO_WORK('brands');
+      else if (PATH_TO_PAGE[p] && typeof w2.__UGT_GO === 'function') w2.__UGT_GO(PATH_TO_PAGE[p]);
+      else window.location.reload();
+    };
     window.addEventListener('popstate', onPop);
     // news/blog cards: any rendered <article id="<slug>"> opens its full story
     const onCardClick = (e: MouseEvent) => {
@@ -99,6 +133,7 @@ export function V25App({ page }: { page: string }) {
       clearTimeout(hardStop);
       clearTimeout(veilCap);
       window.removeEventListener('popstate', onPop);
+      document.removeEventListener('click', onLinkClick);
       document.removeEventListener('click', onCardClick);
     };
   }, [page]);

@@ -1,0 +1,14 @@
+import { webkit, devices } from 'playwright';
+const browser = await webkit.launch();
+const page = await (await browser.newContext({ ...devices['iPhone 13'] })).newPage();
+await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+await page.waitForFunction(() => typeof window.__UGT_GO === 'function', null, { timeout: 30000 });
+const a = page.locator('button:has-text("Accept")').first();
+if (await a.count()) await a.tap();
+await page.evaluate(() => { window.__MARKER = 'alive'; });
+await page.locator('.ugt-tabbar a', { hasText: 'Shop' }).tap();
+await page.waitForFunction(() => location.pathname === '/shop', null, { timeout: 5000 });
+await page.waitForTimeout(800);
+const r = await page.evaluate(() => ({ marker: window.__MARKER || 'WIPED (full reload)', path: location.pathname, shopContent: /WEAR THE CULTURE/i.test(document.body.innerText) }));
+console.log(JSON.stringify(r));
+await browser.close();

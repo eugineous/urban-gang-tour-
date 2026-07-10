@@ -103,6 +103,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `setTimeout(function(){var h=document.getElementById('v25-host');var v=document.getElementById('boot-veil');if(v&&(!h||!h.getAttribute('data-booted'))){v.classList.add('gone');setTimeout(function(){v.remove()},400);}},1200);`,
           }}
         />
+        {/* error beacon: surfaces real visitor errors (iOS Safari especially,
+            where we can't attach a debugger) in the Vercel function logs */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var n=0;function send(m,s,l){if(n++>4)return;try{var b=JSON.stringify({msg:String(m).slice(0,500),src:String(s||'').slice(0,200),line:l||0,page:location.pathname,ua:navigator.userAgent});navigator.sendBeacon?navigator.sendBeacon('/api/client-error',b):fetch('/api/client-error',{method:'POST',body:b,keepalive:true});}catch(e){}}window.addEventListener('error',function(e){send(e.message,e.filename,e.lineno);});window.addEventListener('unhandledrejection',function(e){send('unhandledrejection: '+(e.reason&&e.reason.message||e.reason),'',0);});})();`,
+          }}
+        />
         <CookieConsent />
       </body>
     </html>
