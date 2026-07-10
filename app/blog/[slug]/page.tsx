@@ -56,9 +56,26 @@ export default async function BlogPost(
               {new Date(post.datePublished).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · Urban News · by Eugine Micah &amp; Lucy Ogunde
             </div>
             <p style={{ fontSize: 17.5, fontWeight: 600, lineHeight: 1.6, color: '#333', margin: '14px 0 18px' }}>{post.description}</p>
-            {post.body.map((para, i) => (
-              <p key={i} style={{ fontSize: 16, lineHeight: 1.8, color: '#222', margin: '0 0 16px' }}>{para}</p>
-            ))}
+            {post.body.map((para, i) => {
+              // longform conventions: "## " → section heading, "> " → pull quote
+              if (para.startsWith('## ')) {
+                return (
+                  <h2 key={i} style={{ fontFamily: "'Anton'", fontSize: 'clamp(21px,3.4vw,28px)', textTransform: 'uppercase', color: '#111', margin: '30px 0 12px', lineHeight: 1.15 }}>
+                    {para.slice(3)}
+                  </h2>
+                );
+              }
+              if (para.startsWith('> ')) {
+                return (
+                  <blockquote key={i} style={{ margin: '22px 0', padding: '14px 18px', background: '#FFF7D6', borderLeft: '6px solid #FFD400', border: '2px solid #111', borderLeftWidth: 8, borderRadius: 12, fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: '#111' }}>
+                    {para.slice(2)}
+                  </blockquote>
+                );
+              }
+              return (
+                <p key={i} style={{ fontSize: 16, lineHeight: 1.8, color: '#222', margin: '0 0 16px' }}>{para}</p>
+              );
+            })}
             <div style={{ marginTop: 26, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
               <a href="/blog" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>← All stories</a>
               <a href="/urban-news" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>Urban News</a>

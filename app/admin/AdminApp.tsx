@@ -76,6 +76,34 @@ export default function AdminApp() {
     else setErr(data.error === 'wrong_code' ? 'Wrong access code.' : data.error === 'admin_not_configured' ? 'ADMIN_ACCESS_CODE env var is not set in Vercel.' : 'Login failed: ' + (data.error || status));
   };
 
+  // Google Sign-In (GIS) — alternative to the access code. The gsi/client
+  // script is loaded globally in the layout; render the button once the
+  // login card is showing and the library is ready.
+  useEffect(() => {
+    if (authed !== false) return;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+    let tries = 0;
+    const t = setInterval(() => {
+      const g = (window as any).google?.accounts?.id;
+      const holder = document.getElementById('gsi-admin-btn');
+      if (g && holder && !holder.childElementCount) {
+        clearInterval(t);
+        g.initialize({
+          client_id: clientId,
+          callback: async (resp: any) => {
+            setErr('');
+            const { status, data } = await api('/api/admin/google', { method: 'POST', body: JSON.stringify({ credential: resp.credential }) });
+            if (status === 200) { setAuthed(true); const s = await load('stats'); setStats(s[0] || null); }
+            else setErr(data.error === 'not_authorised' ? 'This Google account is not authorised for the Control Room.' : 'Google sign-in failed: ' + (data.error || status));
+          },
+        });
+        g.renderButton(holder, { theme: 'filled_black', size: 'large', width: 320, text: 'signin_with' });
+      } else if (++tries > 40) clearInterval(t);
+    }, 250);
+    return () => clearInterval(t);
+  }, [authed, load]);
+
   const save = async (kind: string, data: any, after?: () => void) => {
     setBusy(true);
     const r = await api('/api/admin/save', { method: 'POST', body: JSON.stringify({ kind, data }) });
@@ -99,6 +127,10 @@ export default function AdminApp() {
           <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 64, margin: '0 auto 10px' }} />
           <h1 style={{ fontFamily: 'Anton', fontSize: 28, margin: '0 0 4px' }}>CONTROL ROOM</h1>
           <div style={{ color: '#888', fontSize: 12, marginBottom: 16 }}>authorised staff only</div>
+          <div id="gsi-admin-btn" style={{ display: 'flex', justifyContent: 'center', minHeight: 44, marginBottom: 14 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 12px', color: '#aaa', fontSize: 12 }}>
+            <span style={{ flex: 1, borderTop: '1px solid #ddd' }} /> or use your access code <span style={{ flex: 1, borderTop: '1px solid #ddd' }} />
+          </div>
           <input style={inp} type="password" placeholder="Access code" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && login()} />
           {err && <div style={{ color: '#c00', fontSize: 13, marginTop: 8 }}>{err}</div>}
           <button style={{ ...btnDark, width: '100%', marginTop: 12, color: C.yellow }} onClick={login}>ENTER CONTROL ROOM</button>
