@@ -7,6 +7,7 @@ import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
 import { MobileNav } from './_components/MobileNav';
+import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
 export const metadata: Metadata = {
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         {/* mount point for the live interactive v25 app (client-only) */}
         <div id="v25-host" />
+        <WhatsAppWidget />
         {/* Boot veil: hides the pre-boot shell flash; removed the instant the
             live app renders (or by fallback timer). Hidden entirely for no-JS
             visitors and crawlers via noscript. */}

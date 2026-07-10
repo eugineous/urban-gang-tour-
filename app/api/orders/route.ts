@@ -24,7 +24,8 @@ export async function POST(req: Request) {
     }
   }
   if (typeof name !== 'string' || name.length < 2 || name.length > 100) return NextResponse.json({ error: 'invalid_name' }, { status: 400 });
-  if (typeof email !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ error: 'invalid_email' }, { status: 400 });
+  const emailStr = typeof email === 'string' && email ? email : '';
+  if (emailStr && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailStr)) return NextResponse.json({ error: 'invalid_email' }, { status: 400 }); // email OPTIONAL: guests pay via M-Pesa with phone only
   const msisdn = normalizePhone(String(phone || ''));
   if (!msisdn) return NextResponse.json({ error: 'invalid_phone_use_254' }, { status: 400 });
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
   const id = 'ORD-' + Date.now().toString(36).toUpperCase();
   if (typeof idempotencyKey === 'string' && idempotencyKey) seen.set(idempotencyKey, { id, ts: Date.now() });
-  console.log('[order]', JSON.stringify({ id, items, total, name, email, msisdn }));
+  console.log('[order]', JSON.stringify({ id, items, total, name, email: emailStr, msisdn }));
 
   // persist order (ledger for admin reconciliation)
   try {
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
     if (db()) {
       await q(
         `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [id, JSON.stringify(items), total, name, email, msisdn]
+        [id, JSON.stringify(items), total, name, emailStr, msisdn]
       );
     }
   } catch (e) { console.error('[order-db]', e); }
