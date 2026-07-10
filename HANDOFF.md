@@ -101,3 +101,16 @@ Vercel env vars `META_WA_TOKEN`, `META_WA_PHONE_ID`, `META_WA_SELF` → redeploy
 For production messaging: Step 3 Business verification (takes days — start early).
 NOTE: the public wa.me chat widget needs NONE of this — set the number in
 Control Room → Comms and it goes live immediately.
+
+## WhatsApp Business Platform - state as of 2026-07-10
+
+Meta app: Urban Gang Tour (app id 1338478978482580), business id 701875228088222.
+- DONE: webhook configured and verified (callback https://urbangangtour.co.ke/api/whatsapp/webhook, verify token in Vercel env WHATSAPP_VERIFY_TOKEN). Webhook route: app/api/whatsapp/webhook/route.ts; senders: lib/whatsapp.ts.
+- DONE: app submission fields (icon, privacy https://urbangangtour.co.ke/privacy-policy, terms /terms, category Entertainment, namespace urbangangtour, app domain). Ineligible-for-submission banner cleared.
+- DONE: env WHATSAPP_PHONE_NUMBER_ID=1257991034055153, WHATSAPP_WABA_ID=1350859730410865 (production+development).
+- WABA "Eugine Micah" (1350859730410865) is PENDING REVIEW at Meta; phone +254 799 886247 NOT REGISTERED until review passes. Subscribe-webhooks toggle disabled until then.
+- OWNER STEPS REMAINING:
+  1. Wait for WABA review, then Register the phone (Use cases > WhatsApp > Step 2) and flip Subscribe webhooks ON.
+  2. App secret: Settings > Basic > App secret > Show (password wall) -> set as Vercel env WHATSAPP_APP_SECRET (required before inbound webhooks process).
+  3. Generate a permanent access token (Business settings > System users) -> Vercel env WHATSAPP_ACCESS_TOKEN.
+  4. Add payment method (needed for business-initiated messages) and complete Business verification, then publish the app.
