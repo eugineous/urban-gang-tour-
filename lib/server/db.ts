@@ -9,7 +9,9 @@ export function db(): Pool | null {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: 3,
-      ssl: process.env.DATABASE_URL.includes('localhost') ? undefined : { rejectUnauthorized: false },
+      // Neon serves publicly trusted certificates - verify them (an
+      // unverified TLS link to the database invites MITM).
+      ssl: process.env.DATABASE_URL.includes('localhost') ? undefined : { rejectUnauthorized: true },
     });
   }
   return pool;

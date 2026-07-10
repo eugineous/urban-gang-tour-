@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
-// App-style bottom tab bar â€” the primary mobile navigation. Always visible on
-// small screens (â‰¤900px), so nobody has to discover a burger icon. Rendered
+// App-style bottom tab bar — the primary mobile navigation. Always visible on
+// small screens (≤900px), so nobody has to discover a burger icon. Rendered
 // OUTSIDE #ssr-shell so it survives the v25 runtime boot (the old mobile menu
 // lived inside the shell and vanished the moment the app booted).
 // z-index sits below v25's own overlays (menu 130 / cart 150 / modals 160+)
@@ -32,7 +33,7 @@ const MENU_LINKS: { href: string; label: string; big?: boolean }[] = [
   { href: '/account', label: 'My Account' },
 ];
 
-// Official profiles â€” shown as a compact icon row in the menu sheet footer.
+// Official profiles — shown as a compact icon row in the menu sheet footer.
 const SOCIALS: { href: string; label: string; icon: string }[] = [
   { href: 'https://www.facebook.com/profile.php?id=61572771956199', label: 'Urban Gang on Facebook', icon: 'facebook' },
   { href: 'https://www.instagram.com/urban_newsgang', label: 'Urban Gang on Instagram', icon: 'instagram' },
@@ -68,7 +69,11 @@ function Icon({ name }: { name: string }) {
 }
 
 export function BottomTabBar() {
-  const [path, setPath] = useState('/');
+  // Seed from the routed pathname so server and client agree on the active
+  // tab during hydration (seeding '/' mismatched on every other route and
+  // threw React error 418 on all pages).
+  const routedPath = usePathname();
+  const [path, setPath] = useState(routedPath || '/');
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -77,7 +82,7 @@ export function BottomTabBar() {
       setOpen(false); // navigating closes the menu sheet
     };
     sync();
-    // v25's in-app nav uses history.pushState (patched go()/goWork()) â€” wrap it
+    // v25's in-app nav uses history.pushState (patched go()/goWork()) — wrap it
     // once so the active tab tracks those URL changes too.
     const w = window as any;
     if (!w.__ugtPushWrapped) {
@@ -113,7 +118,7 @@ export function BottomTabBar() {
           <div className="ugt-sheet-head">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" />
-            <button className="ugt-sheet-close" aria-label="Close menu" onClick={() => setOpen(false)}>âœ•</button>
+            <button className="ugt-sheet-close" aria-label="Close menu" onClick={() => setOpen(false)}>✕</button>
           </div>
           <nav className="ugt-sheet-links">
             {MENU_LINKS.map((l) => (
@@ -131,7 +136,7 @@ export function BottomTabBar() {
               ))}
             </div>
             <a href="mailto:admin@urbangangtour.co.ke">admin@urbangangtour.co.ke</a>
-            <span>From Potential to Purpose Â· Kenya</span>
+            <span>From Potential to Purpose · Kenya</span>
           </div>
         </div>
       )}

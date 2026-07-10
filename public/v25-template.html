@@ -1197,7 +1197,7 @@
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 <label style="display:block"><span style="font-weight:700;font-size:13px">Name</span><input value="{{ form.name }}" onChange="{{ onName }}" required placeholder="Your name" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px"></label>
 <label style="display:block"><span style="font-weight:700;font-size:13px">Organisation</span><input value="{{ form.org }}" onChange="{{ onOrg }}" placeholder="School / brand / event" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px"></label>
-<label style="display:block"><span style="font-weight:700;font-size:13px">Email</span><input type="email" value="{{ form.email }}" onChange="{{ onEmail }}" required placeholder="you@email.com" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px"></label>
+<label style="display:block"><span style="font-weight:700;font-size:13px">Email</span><input type="email" value="{{ form.email }}" onChange="{{ onEmail }}" required placeholder="admin@urbangangtour.co.ke" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px"></label>
 <label style="display:block"><span style="font-weight:700;font-size:13px">WhatsApp</span><input value="{{ form.phone }}" onChange="{{ onPhone }}" placeholder="Best number to reach you" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px"></label>
 </div>
 <label style="display:block;margin-top:14px"><span style="font-weight:700;font-size:13px">I am reaching out about</span>
@@ -1421,7 +1421,7 @@
 <label style="display:block"><span style="font-weight:700;font-size:13px">Access code</span><input type="password" value="{{ admin.pass }}" onChange="{{ onAdminPass }}" placeholder="Enter access code" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111"></label>
 <sc-if value="{{ hasAdminErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-size:13px;margin-top:12px;font-weight:700">{{ adminErr }}</div></sc-if>
 <button type="submit" style="margin-top:18px;width:100%;padding:15px;border:3px solid #111;border-radius:12px;background:#111;color:#FFD400;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">ENTER CONTROL ROOM</button>
-<div style="text-align:center;color:#999;font-size:11.5px;margin-top:12px;line-height:1.5">Sign in with the authorised Google account (euginemicah@gmail.com) or the access code.</div>
+<div style="text-align:center;color:#999;font-size:11.5px;margin-top:12px;line-height:1.5">Authorised staff only. Use the Control Room at /admin to sign in.</div>
 </form>
 </div>
 </div>
@@ -1856,8 +1856,8 @@ class Component extends DCLogic {
   rejectBlog = (id) => { const inbox=this.loadLS('ugt_inbox',[]).filter(x=>x.id!==id); this.saveLS('ugt_inbox',inbox); this.setState(s=>({bookings:s.bookings.filter(x=>x.id!==id)})); this.flash('Submission removed.'); };
   setAdmin = (k,v) => this.setState(s=>({admin:{...s.admin,[k]:v,err:''}}));
   CLIENT_ID = '891554517634-ca1ksf4cva8hfu32ig4bm6ol9d09se78.apps.googleusercontent.com';
-  ADMIN_EMAIL = 'euginemicah@gmail.com';
-  adminLogin = (e) => { if(e&&e.preventDefault) e.preventDefault(); this.setState(s=>{ const p=(s.admin.pass||'').trim(); if(p==='241220') return {admin:{...s.admin,authed:true,err:'',role:'super',name:'Super Admin',perms:['bookings','orders','stops','blog','gallery','team'],tab:'bookings'}}; const a=this.loadLS('ugt_admins',[]).find(x=>x.pass===p); if(a){ const first={blog:'newsroom',gallery:'galleryman',bookings:'bookings',orders:'orders',stops:'events'}; const tab=first[a.perms[0]]||'bookings'; return {admin:{...s.admin,authed:true,err:'',role:'limited',name:a.name,perms:a.perms,tab}}; } return {admin:{...s.admin,err:'Wrong access code. Ask the Super Admin for your password.'}}; }); };
+  ADMIN_EMAIL = '';
+  adminLogin = (e) => { if(e&&e.preventDefault) e.preventDefault(); this.setState(s=>{ const p=(s.admin.pass||'').trim(); if(false) return {admin:{...s.admin,authed:true,err:'',role:'super',name:'Super Admin',perms:['bookings','orders','stops','blog','gallery','team'],tab:'bookings'}}; const a=this.loadLS('ugt_admins',[]).find(x=>x.pass===p); if(a){ const first={blog:'newsroom',gallery:'galleryman',bookings:'bookings',orders:'orders',stops:'events'}; const tab=first[a.perms[0]]||'bookings'; return {admin:{...s.admin,authed:true,err:'',role:'limited',name:a.name,perms:a.perms,tab}}; } return {admin:{...s.admin,err:'Wrong access code. Ask the Super Admin for your password.'}}; }); };
   decodeJwt = (t) => { try{ const p=t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(atob(p).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''))); }catch(e){ return {}; } };
   onGoogleCred = (resp) => { const data=this.decodeJwt(resp.credential||''); const email=(data.email||'').toLowerCase(); if(email===this.ADMIN_EMAIL){ this.setState(s=>({admin:{...s.admin,authed:true,role:'super',name:'Super Admin',perms:['bookings','orders','stops','blog','gallery','team'],email,err:''}})); } else { this.setState(s=>({admin:{...s.admin,err:'That Google account is not authorised for the Control Room.'}})); } };
   initGoogle = () => {

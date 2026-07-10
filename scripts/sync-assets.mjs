@@ -15,7 +15,8 @@ async function main() {
     return;
   }
   await mkdir(destDir, { recursive: true });
-  await cp(src, dest, { recursive: true });
+  // .orig.* are local pre-compression masters (gitignored) - never ship them
+  await cp(src, dest, { recursive: true, filter: (p) => !/\.orig\.[a-z0-9]+$/i.test(p) });
   const s = await stat(dest);
   console.log('[sync-assets] copied /assets -> /public/assets', s.isDirectory() ? '(ok)' : '');
 }

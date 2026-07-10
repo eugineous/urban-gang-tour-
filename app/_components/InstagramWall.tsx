@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-// "From the Gram" â€” official Instagram embeds for the admin-curated wall.
+// "From the Gram" — official Instagram embeds for the admin-curated wall.
 // The embed script is heavy, so it loads lazily: only once the section
 // scrolls near the viewport (IntersectionObserver, 600px early margin).
 
