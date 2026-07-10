@@ -80,6 +80,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         {/* mount point for the live interactive v25 app (client-only) */}
         <div id="v25-host" />
+        {/* Boot veil: hides the pre-boot shell flash; removed the instant the
+            live app renders (or by fallback timer). Hidden entirely for no-JS
+            visitors and crawlers via noscript. */}
+        <div id="boot-veil" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 84, width: 'auto' }} />
+          <div className="boot-veil-bar"><span /></div>
+        </div>
+        <noscript>
+          <style>{`#boot-veil{display:none !important}`}</style>
+        </noscript>
       </body>
     </html>
   );

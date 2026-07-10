@@ -49,3 +49,10 @@ input,textarea,select{font-family:inherit}
   .ugt-mnav-panel a{background:#fff;border:3px solid #111;border-radius:14px;padding:11px 18px;box-shadow:3px 3px 0 #111;font-family:'Space Grotesk';font-weight:700;text-transform:uppercase;font-size:14px;color:#111}
   .ugt-mnav-panel a.ugt-mnav-cta{background:#FFD400}
 }
+
+/* --- boot veil (not in v25): covers the pre-boot shell, removed on app boot --- */
+#boot-veil{position:fixed;inset:0;z-index:9999;background:#E6218C;display:flex;flex-direction:column;gap:22px;align-items:center;justify-content:center;transition:opacity .35s ease}
+#boot-veil.gone{opacity:0;pointer-events:none}
+.boot-veil-bar{width:180px;height:10px;border:3px solid #111;border-radius:100px;background:#fff;overflow:hidden}
+.boot-veil-bar span{display:block;height:100%;width:40%;background:#FFD400;border-right:3px solid #111;animation:veilslide 1s ease-in-out infinite alternate}
+@keyframes veilslide{from{transform:translateX(-10%)}to{transform:translateX(160%)}}
