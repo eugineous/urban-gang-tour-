@@ -20,14 +20,9 @@ const nextConfig = {
       { source: '/merch', destination: '/shop', permanent: true },
     ];
   },
-  // afterFiles rewrite: only fires when no real file exists at /assets/*.
-  // On production (public/assets present) it never triggers; on the isolated
-  // preview (no media uploaded) it proxies images/video from the live domain.
-  async rewrites() {
-    return [
-      { source: '/assets/:path*', destination: 'https://urbangangtour.co.ke/assets/:path*' },
-    ];
-  },
+  // NOTE: the old preview-era rewrite that proxied missing /assets/* to the
+  // live domain was removed: on production it proxied to ITSELF, so any
+  // missing asset produced a 508 request loop instead of a clean 404.
   async headers() {
     return [
       {
