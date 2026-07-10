@@ -74,6 +74,10 @@ export function V25App({ page }: { page: string }) {
     };
 
     attempt();
+    // in-app nav pushes real URLs (patched go()/goWork() in the template);
+    // browser back/forward re-renders the route server-side for consistency
+    const onPop = () => window.location.reload();
+    window.addEventListener('popstate', onPop);
     // safety: if the runtime hasn't rendered in 6s, re-attempt the boot once
     const watchdog = setTimeout(() => {
       if (!done && attempts < 3) { host.innerHTML = ''; attempt(); }
@@ -85,6 +89,7 @@ export function V25App({ page }: { page: string }) {
       clearTimeout(watchdog);
       clearTimeout(hardStop);
       clearTimeout(veilCap);
+      window.removeEventListener('popstate', onPop);
     };
   }, [page]);
 
