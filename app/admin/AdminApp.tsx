@@ -1,9 +1,24 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 
 // Urban Gang Control Room — real, database-backed admin.
 // Styling follows v25: magenta/yellow/cyan, Anton headers, hard shadows.
+
+// UGT Ops Suite tools live in their own lazy chunks so this shell stays light.
+const opsLoading = () => <div style={{ background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 }}>Loading tool...</div>;
+const OpsDashboard = dynamic(() => import('./ops/OpsDashboard'), { ssr: false, loading: opsLoading });
+const Budgeter = dynamic(() => import('./ops/Budgeter'), { ssr: false, loading: opsLoading });
+const Invoices = dynamic(() => import('./ops/Invoices'), { ssr: false, loading: opsLoading });
+const Payments = dynamic(() => import('./ops/Payments'), { ssr: false, loading: opsLoading });
+const Contacts = dynamic(() => import('./ops/Contacts'), { ssr: false, loading: opsLoading });
+const Payouts = dynamic(() => import('./ops/Payouts'), { ssr: false, loading: opsLoading });
+const Expenses = dynamic(() => import('./ops/Expenses'), { ssr: false, loading: opsLoading });
+const Pipeline = dynamic(() => import('./ops/Pipeline'), { ssr: false, loading: opsLoading });
+const Promos = dynamic(() => import('./ops/Promos'), { ssr: false, loading: opsLoading });
+const Checklists = dynamic(() => import('./ops/Checklists'), { ssr: false, loading: opsLoading });
+const Reviews = dynamic(() => import('./ops/Reviews'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
 const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
@@ -14,6 +29,8 @@ const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSi
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
 const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic'] as const;
+const OPS_TABS = ['Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
+type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 
 async function api(path: string, opts?: RequestInit) {
   const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
@@ -24,7 +41,7 @@ export default function AdminApp() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
-  const [tab, setTab] = useState<(typeof TABS)[number]>('Dashboard');
+  const [tab, setTab] = useState<Tab>('Dashboard');
   const [rows, setRows] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
@@ -149,14 +166,35 @@ export default function AdminApp() {
         <button style={btnDark} onClick={async () => { await api('/api/admin/login', { method: 'DELETE' }); setAuthed(false); }}>Log out</button>
       </div>
       {setupInfo && <div style={{ ...card, marginBottom: 14, padding: 10, fontSize: 13 }}>{setupInfo}</div>}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
         {TABS.map((t) => (
           <button key={t} style={{ ...btn, background: tab === t ? C.pink : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18, alignItems: 'center' }}>
+        <span style={{ fontFamily: 'Anton', fontSize: 13, color: '#fff', WebkitTextStroke: '0.5px #111', letterSpacing: '.06em' }}>OPS</span>
+        {OPS_TABS.map((t) => (
+          <button key={t} style={{ ...btn, background: tab === t ? '#C7238E' : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
+        ))}
+      </div>
       {toast && <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50, ...card, padding: '10px 16px', background: C.yellow }}>{toast}</div>}
 
-      {tab === 'Dashboard' && <Dashboard stats={stats} />}
+      {tab === 'Dashboard' && (
+        <div style={{ display: 'grid', gap: 14 }}>
+          <OpsDashboard />
+          <Dashboard stats={stats} />
+        </div>
+      )}
+      {tab === 'Budgeter' && <Budgeter />}
+      {tab === 'Invoices' && <Invoices />}
+      {tab === 'Payments' && <Payments />}
+      {tab === 'Contacts' && <Contacts />}
+      {tab === 'Payouts' && <Payouts />}
+      {tab === 'Expenses' && <Expenses />}
+      {tab === 'Pipeline' && <Pipeline />}
+      {tab === 'Promos' && <Promos />}
+      {tab === 'Checklists' && <Checklists />}
+      {tab === 'Reviews' && <Reviews />}
       {tab === 'Bookings' && (
         <Table rows={rows} cols={['id', 'name', 'org', 'type', 'email', 'phone', 'message', 'status']}
           exportKind="bookings"

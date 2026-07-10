@@ -1,0 +1,529 @@
+import { NextResponse } from 'next/server';
+import { q, db } from '@/lib/server/db';
+import { isAdmin } from '@/lib/server/session';
+import {
+  ensureOpsSchema, opsAudit, createNumberedDocument, DocType,
+  LEAD_STAGES, DEFAULT_CHECKLIST_TEMPLATE,
+} from '@/lib/server/ops';
+import { docTotals, DocLine } from '@/lib/ops/budget-calc';
+
+// UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
+// the /api/admin/data + /api/admin/save conventions the admin panel already
+// uses. Admin-gated, 503 when DATABASE_URL is missing, audit on mutations.
+// Roles: admin only (isAdmin cookie). Public/anon: 401 on everything.
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+function bad(error: string, status = 400) {
+  return NextResponse.json({ error }, { status });
+}
+
+function s(v: unknown, max = 300): string {
+  return String(v ?? '').slice(0, max);
+}
+function intOrNull(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) ? n : null;
+}
+function dateOrNull(v: unknown): string | null {
+  const t = String(v ?? '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : null;
+}
+
+async function paidForInvoice(invoiceId: number): Promise<number> {
+  const r = await q<{ paid: string }>(`SELECT COALESCE(SUM(amount),0) AS paid FROM ops_payments WHERE invoice_id=$1`, [invoiceId]);
+  return Number(r[0]?.paid || 0);
+}
+
+export async function GET(req: Request) {
+  if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!db()) return bad('db_not_configured', 503);
+  const url = new URL(req.url);
+  const view = url.searchParams.get('view') || '';
+  const id = intOrNull(url.searchParams.get('id'));
+  const eventId = intOrNull(url.searchParams.get('eventId'));
+  try {
+    await ensureOpsSchema();
+    switch (view) {
+      case 'events': {
+        const rows = await q(`
+          SELECT e.*,
+            (SELECT MAX(version) FROM ops_budgets b WHERE b.event_id=e.id) AS latest_budget_version,
+            (SELECT COALESCE(SUM(amount),0) FROM ops_payments p WHERE p.event_id=e.id) AS paid_total
+          FROM ops_events e ORDER BY e.event_date DESC NULLS LAST, e.id DESC LIMIT 500`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'event': {
+        if (!id) return bad('missing_id');
+        const ev = await q(`SELECT * FROM ops_events WHERE id=$1`, [id]);
+        if (!ev.length) return bad('not_found', 404);
+        const budgets = await q(`SELECT id, version, created_at FROM ops_budgets WHERE event_id=$1 ORDER BY version DESC`, [id]);
+        const latest = await q(`SELECT id, version, data FROM ops_budgets WHERE event_id=$1 ORDER BY version DESC LIMIT 1`, [id]);
+        const payments = await q(`SELECT * FROM ops_payments WHERE event_id=$1 ORDER BY paid_on DESC, id DESC`, [id]);
+        const payouts = await q(`SELECT * FROM ops_crew_payouts WHERE event_id=$1 ORDER BY id`, [id]);
+        const expenses = await q(`SELECT * FROM ops_expenses WHERE event_id=$1 ORDER BY spent_on DESC, id DESC`, [id]);
+        const checklist = await q(`SELECT * FROM ops_checklist_items WHERE event_id=$1 ORDER BY sort, id`, [id]);
+        return NextResponse.json({ ok: true, event: ev[0], budgets, latestBudget: latest[0] || null, payments, payouts, expenses, checklist });
+      }
+      case 'budget': {
+        if (!id) return bad('missing_id');
+        const rows = await q(`SELECT b.*, e.name AS event_name FROM ops_budgets b JOIN ops_events e ON e.id=b.event_id WHERE b.id=$1`, [id]);
+        if (!rows.length) return bad('not_found', 404);
+        return NextResponse.json({ ok: true, row: rows[0] });
+      }
+      case 'budgets': {
+        if (!eventId) return bad('missing_eventId');
+        const rows = await q(`SELECT id, version, created_at FROM ops_budgets WHERE event_id=$1 ORDER BY version DESC`, [eventId]);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'documents': {
+        const type = url.searchParams.get('type');
+        const rows = await q(`
+          SELECT d.*, e.name AS event_name,
+            COALESCE((SELECT SUM(p.amount) FROM ops_payments p WHERE p.invoice_id=d.id),0) AS paid
+          FROM ops_documents d LEFT JOIN ops_events e ON e.id=d.event_id
+          ${type ? 'WHERE d.doc_type=$1' : ''}
+          ORDER BY d.id DESC LIMIT 500`, type ? [s(type, 20)] : []);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'payments': {
+        const rows = await q(`
+          SELECT p.*, e.name AS event_name, d.doc_number AS invoice_number
+          FROM ops_payments p
+          LEFT JOIN ops_events e ON e.id=p.event_id
+          LEFT JOIN ops_documents d ON d.id=p.invoice_id
+          ORDER BY p.paid_on DESC, p.id DESC LIMIT 500`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'contacts': {
+        const rows = await q(`SELECT * FROM ops_contacts ORDER BY org, name LIMIT 1000`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'leads': {
+        const rows = await q(`SELECT * FROM ops_leads ORDER BY updated_at DESC LIMIT 500`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'promos': {
+        const rows = await q(`SELECT * FROM ops_promos ORDER BY id DESC LIMIT 200`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'checklist_templates': {
+        const existing = await q(`SELECT * FROM ops_checklist_templates ORDER BY sort, id`);
+        if (existing.length) return NextResponse.json({ ok: true, rows: existing });
+        // First run: seed the master template so the tool is usable immediately.
+        for (let i = 0; i < DEFAULT_CHECKLIST_TEMPLATE.length; i++) {
+          await q(`INSERT INTO ops_checklist_templates (label, sort) VALUES ($1,$2)`, [DEFAULT_CHECKLIST_TEMPLATE[i], i]);
+        }
+        const rows = await q(`SELECT * FROM ops_checklist_templates ORDER BY sort, id`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'dashboard': {
+        // One aggregate call powering the admin landing tab.
+        const invoices = await q<any>(`
+          SELECT d.id, d.lines, d.status, d.due_date,
+            COALESCE((SELECT SUM(p.amount) FROM ops_payments p WHERE p.invoice_id=d.id),0) AS paid
+          FROM ops_documents d WHERE d.doc_type='invoice' AND d.status <> 'draft'`);
+        const today = new Date().toISOString().slice(0, 10);
+        let outstanding = 0; let overdue = 0;
+        for (const inv of invoices) {
+          const lines: DocLine[] = typeof inv.lines === 'string' ? JSON.parse(inv.lines) : inv.lines || [];
+          const balance = docTotals(lines).total - Number(inv.paid || 0);
+          if (balance > 0) {
+            outstanding += balance;
+            const due = inv.due_date ? String(inv.due_date instanceof Date ? inv.due_date.toISOString() : inv.due_date).slice(0, 10) : null;
+            if (due && due < today) overdue += 1;
+          }
+        }
+        const nextEv = await q<any>(`
+          SELECT e.*,
+            (SELECT COUNT(*) FROM ops_checklist_items c WHERE c.event_id=e.id) AS checklist_total,
+            (SELECT COUNT(*) FROM ops_checklist_items c WHERE c.event_id=e.id AND c.done_at IS NOT NULL) AS checklist_done
+          FROM ops_events e WHERE e.event_date >= CURRENT_DATE AND e.status <> 'cancelled'
+          ORDER BY e.event_date ASC LIMIT 1`);
+        const followups = await q(`SELECT id, name, org, phone, next_followup FROM ops_contacts WHERE next_followup IS NOT NULL AND next_followup <= CURRENT_DATE ORDER BY next_followup LIMIT 20`);
+        const promo = await q(`
+          SELECT * FROM ops_promos WHERE active
+            AND (starts_on IS NULL OR starts_on <= CURRENT_DATE)
+            AND (ends_on IS NULL OR ends_on >= CURRENT_DATE)
+          ORDER BY id DESC LIMIT 1`);
+        let pendingReviews = 0;
+        try {
+          const pr = await q<{ n: string }>(`SELECT COUNT(*) AS n FROM product_reviews WHERE NOT approved`);
+          pendingReviews = Number(pr[0]?.n || 0);
+        } catch { /* reviews table may not exist yet */ }
+        const audit = await q(`SELECT actor, action, detail, created_at FROM audit_log ORDER BY created_at DESC LIMIT 8`);
+        return NextResponse.json({
+          ok: true,
+          outstanding, overdueCount: overdue,
+          nextEvent: nextEv[0] || null,
+          followups, activePromo: promo[0] || null,
+          pendingReviews, audit,
+        });
+      }
+      default:
+        return bad('unknown_view');
+    }
+  } catch (e: any) {
+    if (String(e?.message) === 'db_not_configured') return bad('db_not_configured', 503);
+    return bad(String(e?.message || e).slice(0, 200), 500);
+  }
+}
+
+export async function POST(req: Request) {
+  if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!db()) return bad('db_not_configured', 503);
+  let body: any;
+  try { body = await req.json(); } catch { return bad('invalid_json'); }
+  const kind = s(body?.kind, 60);
+  const d = body?.data ?? {};
+  try {
+    await ensureOpsSchema();
+    switch (kind) {
+      // ---- Events ----
+      case 'event.save': {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        if (!name) return bad('missing_name');
+        const fields = [name, s(d.school, 200), dateOrNull(d.eventDate), s(d.distanceBand || 'near', 10), intOrNull(d.agreedAmount), dateOrNull(d.nextDueDate), s(d.status || 'planned', 30)];
+        let row;
+        if (id) {
+          row = await q(`UPDATE ops_events SET name=$1, school=$2, event_date=$3, distance_band=$4, agreed_amount=$5, next_due_date=$6, status=$7, updated_at=now() WHERE id=$8 RETURNING *`, [...fields, id]);
+        } else {
+          row = await q(`INSERT INTO ops_events (name, school, event_date, distance_band, agreed_amount, next_due_date, status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`, fields);
+        }
+        await opsAudit('ops.event.save', { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'event.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_events WHERE id=$1`, [id]);
+        await opsAudit('ops.event.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Budgets (versioned: every save is a new immutable version) ----
+      case 'budget.save': {
+        let eventId = intOrNull(d.eventId);
+        const data = d.data;
+        if (!data || typeof data !== 'object') return bad('missing_data');
+        if (!eventId) {
+          // Create the event from the budget header so the Budgeter can start
+          // from a blank sheet.
+          const name = s(data.eventName, 200) || 'Untitled event';
+          const ev = await q(`INSERT INTO ops_events (name, school, event_date, distance_band) VALUES ($1,$2,$3,$4) RETURNING id`,
+            [name, s(data.school, 200), dateOrNull(data.eventDate), s(data.distanceBand || 'near', 10)]);
+          eventId = ev[0].id;
+        } else {
+          // Keep the event header in sync with the budget sheet.
+          await q(`UPDATE ops_events SET name=COALESCE(NULLIF($1,''),name), school=$2, event_date=COALESCE($3,event_date), distance_band=$4, updated_at=now() WHERE id=$5`,
+            [s(data.eventName, 200), s(data.school, 200), dateOrNull(data.eventDate), s(data.distanceBand || 'near', 10), eventId]);
+        }
+        const v = await q<{ next: number }>(`SELECT COALESCE(MAX(version),0)+1 AS next FROM ops_budgets WHERE event_id=$1`, [eventId]);
+        const version = Number(v[0].next);
+        const ins = await q(`INSERT INTO ops_budgets (event_id, version, data) VALUES ($1,$2,$3) RETURNING id, version, created_at`, [eventId, version, JSON.stringify(data)]);
+        await opsAudit('ops.budget.save', { eventId, version });
+        return NextResponse.json({ ok: true, eventId, row: ins[0] });
+      }
+
+      // ---- Documents (quote / invoice; receipts are auto-created) ----
+      case 'doc.create': {
+        const docType = s(d.docType, 20) as DocType;
+        if (!['quote', 'invoice'].includes(docType)) return bad('bad_doc_type');
+        const lines: DocLine[] = Array.isArray(d.lines) ? d.lines.slice(0, 60).map((l: any) => ({ label: s(l.label, 300), qty: Math.max(0, Number(l.qty) || 0), amount: Number(l.amount) || 0 })) : [];
+        const row = await createNumberedDocument(docType, {
+          eventId: intOrNull(d.eventId),
+          sourceBudgetId: intOrNull(d.sourceBudgetId),
+          invoiceId: null,
+          billTo: { name: s(d.billToName, 200), org: s(d.billToOrg, 200), phone: s(d.billToPhone, 40), email: s(d.billToEmail, 200), address: s(d.billToAddress, 300) },
+          lines,
+          paymentTerms: s(d.paymentTerms, 1000),
+          dueDate: dateOrNull(d.dueDate),
+          payDetails: s(d.payDetails, 1000),
+          notes: s(d.notes, 1000),
+          status: 'draft',
+        });
+        await opsAudit('ops.doc.create', { id: row.id, doc_number: row.doc_number, docType });
+        return NextResponse.json({ ok: true, row });
+      }
+      case 'doc.update': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        const lines: DocLine[] = Array.isArray(d.lines) ? d.lines.slice(0, 60).map((l: any) => ({ label: s(l.label, 300), qty: Math.max(0, Number(l.qty) || 0), amount: Number(l.amount) || 0 })) : [];
+        await q(`UPDATE ops_documents SET bill_to=$1, lines=$2, payment_terms=$3, due_date=$4, pay_details=$5, notes=$6, updated_at=now() WHERE id=$7`,
+          [JSON.stringify({ name: s(d.billToName, 200), org: s(d.billToOrg, 200), phone: s(d.billToPhone, 40), email: s(d.billToEmail, 200), address: s(d.billToAddress, 300) }),
+            JSON.stringify(lines), s(d.paymentTerms, 1000), dateOrNull(d.dueDate), s(d.payDetails, 1000), s(d.notes, 1000), id]);
+        await opsAudit('ops.doc.update', { id });
+        return NextResponse.json({ ok: true });
+      }
+      case 'doc.status': {
+        const id = intOrNull(d.id);
+        const status = s(d.status, 20);
+        if (!id) return bad('missing_id');
+        if (!['draft', 'sent', 'part-paid', 'paid', 'issued', 'accepted', 'declined'].includes(status)) return bad('bad_status');
+        await q(`UPDATE ops_documents SET status=$1, updated_at=now() WHERE id=$2`, [status, id]);
+        await opsAudit('ops.doc.status', { id, status });
+        return NextResponse.json({ ok: true });
+      }
+      case 'doc.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_documents WHERE id=$1`, [id]);
+        await opsAudit('ops.doc.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Payments ----
+      case 'payment.record': {
+        const amount = intOrNull(d.amount);
+        if (!amount || amount <= 0) return bad('bad_amount');
+        const invoiceId = intOrNull(d.invoiceId);
+        let eventId = intOrNull(d.eventId);
+        let receipt: { id: number; doc_number: string } | null = null;
+        let newStatus: string | null = null;
+        if (invoiceId) {
+          const inv = await q<any>(`SELECT * FROM ops_documents WHERE id=$1 AND doc_type='invoice'`, [invoiceId]);
+          if (!inv.length) return bad('invoice_not_found', 404);
+          if (!eventId) eventId = inv[0].event_id;
+        }
+        const pay = await q(`INSERT INTO ops_payments (event_id, invoice_id, amount, paid_on, method, reference) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+          [eventId, invoiceId, amount, dateOrNull(d.paidOn) || new Date().toISOString().slice(0, 10), s(d.method || 'mpesa', 30), s(d.reference, 100)]);
+        if (invoiceId) {
+          const inv = (await q<any>(`SELECT * FROM ops_documents WHERE id=$1`, [invoiceId]))[0];
+          const lines: DocLine[] = typeof inv.lines === 'string' ? JSON.parse(inv.lines) : inv.lines || [];
+          const total = docTotals(lines).total;
+          const paid = await paidForInvoice(invoiceId);
+          newStatus = paid >= total ? 'paid' : 'part-paid';
+          await q(`UPDATE ops_documents SET status=$1, updated_at=now() WHERE id=$2`, [newStatus, invoiceId]);
+          if (newStatus === 'paid') {
+            // Full balance settled: auto-issue a receipt referencing the invoice.
+            receipt = await createNumberedDocument('receipt', {
+              eventId, sourceBudgetId: null, invoiceId,
+              billTo: typeof inv.bill_to === 'string' ? JSON.parse(inv.bill_to) : inv.bill_to || {},
+              lines: [{ label: `Payment received - invoice ${inv.doc_number}`, qty: 1, amount: total }],
+              paymentTerms: '', dueDate: null,
+              payDetails: '', notes: `Settles invoice ${inv.doc_number} in full.`,
+              status: 'issued',
+            });
+          }
+        }
+        await opsAudit('ops.payment.record', { id: pay[0].id, amount, invoiceId, receipt: receipt?.doc_number || null });
+        return NextResponse.json({ ok: true, row: pay[0], invoiceStatus: newStatus, receipt });
+      }
+      case 'payment.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_payments WHERE id=$1`, [id]);
+        await opsAudit('ops.payment.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Contacts ----
+      case 'contact.save': {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        if (!name) return bad('missing_name');
+        const fields = [name, s(d.org, 200), s(d.role, 100), s(d.phone, 40), s(d.email, 200), s(d.notes, 2000), dateOrNull(d.nextFollowup), s(d.status || 'lead', 30)];
+        let row;
+        if (id) row = await q(`UPDATE ops_contacts SET name=$1, org=$2, role=$3, phone=$4, email=$5, notes=$6, next_followup=$7, status=$8 WHERE id=$9 RETURNING *`, [...fields, id]);
+        else row = await q(`INSERT INTO ops_contacts (name, org, role, phone, email, notes, next_followup, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`, fields);
+        await opsAudit('ops.contact.save', { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'contact.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_contacts WHERE id=$1`, [id]);
+        await opsAudit('ops.contact.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Crew payouts ----
+      case 'payout.save': {
+        const id = intOrNull(d.id);
+        const eventId = intOrNull(d.eventId);
+        const person = s(d.person, 200);
+        if (!person) return bad('missing_person');
+        if (!id && !eventId) return bad('missing_eventId');
+        const fields = [person, s(d.phone, 40), s(d.role, 100), Math.max(0, intOrNull(d.amount) ?? 0)];
+        let row;
+        if (id) row = await q(`UPDATE ops_crew_payouts SET person=$1, phone=$2, role=$3, amount=$4 WHERE id=$5 RETURNING *`, [...fields, id]);
+        else row = await q(`INSERT INTO ops_crew_payouts (event_id, person, phone, role, amount) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [eventId, ...fields]);
+        await opsAudit('ops.payout.save', { id: row[0]?.id, person });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'payout.togglePaid': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE ops_crew_payouts SET paid = NOT paid, paid_on = CASE WHEN paid THEN NULL ELSE CURRENT_DATE END WHERE id=$1 RETURNING *`, [id]);
+        await opsAudit('ops.payout.togglePaid', { id, paid: row[0]?.paid });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'payout.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_crew_payouts WHERE id=$1`, [id]);
+        await opsAudit('ops.payout.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Expenses ----
+      case 'expense.save': {
+        const id = intOrNull(d.id);
+        const eventId = intOrNull(d.eventId);
+        const label = s(d.label, 300);
+        if (!label) return bad('missing_label');
+        if (!id && !eventId) return bad('missing_eventId');
+        const fields = [label, s(d.category || 'general', 100), Math.max(0, intOrNull(d.amount) ?? 0), dateOrNull(d.spentOn) || new Date().toISOString().slice(0, 10), s(d.note, 500)];
+        let row;
+        if (id) row = await q(`UPDATE ops_expenses SET label=$1, category=$2, amount=$3, spent_on=$4, note=$5 WHERE id=$6 RETURNING *`, [...fields, id]);
+        else row = await q(`INSERT INTO ops_expenses (event_id, label, category, amount, spent_on, note) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`, [eventId, ...fields]);
+        await opsAudit('ops.expense.save', { id: row[0]?.id, label });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'expense.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_expenses WHERE id=$1`, [id]);
+        await opsAudit('ops.expense.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Checklists ----
+      case 'checklist.template.save': {
+        const id = intOrNull(d.id);
+        const label = s(d.label, 300);
+        if (!label) return bad('missing_label');
+        let row;
+        if (id) row = await q(`UPDATE ops_checklist_templates SET label=$1 WHERE id=$2 RETURNING *`, [label, id]);
+        else {
+          const m = await q<{ next: string }>(`SELECT COALESCE(MAX(sort),0)+1 AS next FROM ops_checklist_templates`);
+          row = await q(`INSERT INTO ops_checklist_templates (label, sort) VALUES ($1,$2) RETURNING *`, [label, Number(m[0].next)]);
+        }
+        await opsAudit('ops.checklist.template.save', { id: row[0]?.id });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'checklist.template.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_checklist_templates WHERE id=$1`, [id]);
+        await opsAudit('ops.checklist.template.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+      case 'checklist.init': {
+        // Copy the master template onto an event (only items it doesn't have yet).
+        const eventId = intOrNull(d.eventId);
+        if (!eventId) return bad('missing_eventId');
+        const tpl = await q<any>(`SELECT label, sort FROM ops_checklist_templates ORDER BY sort, id`);
+        const existing = await q<any>(`SELECT label FROM ops_checklist_items WHERE event_id=$1`, [eventId]);
+        const have = new Set(existing.map((r: any) => r.label));
+        let added = 0;
+        for (const t of tpl) {
+          if (have.has(t.label)) continue;
+          await q(`INSERT INTO ops_checklist_items (event_id, label, sort) VALUES ($1,$2,$3)`, [eventId, t.label, t.sort]);
+          added++;
+        }
+        await opsAudit('ops.checklist.init', { eventId, added });
+        return NextResponse.json({ ok: true, added });
+      }
+      case 'checklist.item.add': {
+        const eventId = intOrNull(d.eventId);
+        const label = s(d.label, 300);
+        if (!eventId || !label) return bad('missing_fields');
+        const m = await q<{ next: string }>(`SELECT COALESCE(MAX(sort),0)+1 AS next FROM ops_checklist_items WHERE event_id=$1`, [eventId]);
+        const row = await q(`INSERT INTO ops_checklist_items (event_id, label, sort) VALUES ($1,$2,$3) RETURNING *`, [eventId, label, Number(m[0].next)]);
+        await opsAudit('ops.checklist.item.add', { eventId, id: row[0]?.id });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'checklist.item.toggle': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE ops_checklist_items SET done_at = CASE WHEN done_at IS NULL THEN now() ELSE NULL END WHERE id=$1 RETURNING *`, [id]);
+        await opsAudit('ops.checklist.item.toggle', { id, done: !!row[0]?.done_at });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'checklist.item.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_checklist_items WHERE id=$1`, [id]);
+        await opsAudit('ops.checklist.item.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Leads (booking pipeline) ----
+      case 'lead.save': {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        if (!name) return bad('missing_name');
+        const stage = (LEAD_STAGES as readonly string[]).includes(d.stage) ? d.stage : 'new';
+        const fields = [name, s(d.org, 200), s(d.phone, 40), s(d.email, 200), s(d.note, 2000), stage, s(d.lostReason, 300)];
+        let row;
+        if (id) row = await q(`UPDATE ops_leads SET name=$1, org=$2, phone=$3, email=$4, note=$5, stage=$6, lost_reason=$7, updated_at=now() WHERE id=$8 RETURNING *`, [...fields, id]);
+        else row = await q(`INSERT INTO ops_leads (name, org, phone, email, note, stage, lost_reason) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`, fields);
+        await opsAudit('ops.lead.save', { id: row[0]?.id, name, stage });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'lead.move': {
+        const id = intOrNull(d.id);
+        const stage = s(d.stage, 20);
+        if (!id) return bad('missing_id');
+        if (!(LEAD_STAGES as readonly string[]).includes(stage)) return bad('bad_stage');
+        const lostReason = stage === 'lost' ? s(d.lostReason, 300) : '';
+        const row = await q(`UPDATE ops_leads SET stage=$1, lost_reason=$2, updated_at=now() WHERE id=$3 RETURNING *`, [stage, lostReason, id]);
+        await opsAudit('ops.lead.move', { id, stage });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'lead.convert': {
+        // Confirmed lead becomes a real ops event, linked back to the lead.
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        const lead = await q<any>(`SELECT * FROM ops_leads WHERE id=$1`, [id]);
+        if (!lead.length) return bad('not_found', 404);
+        if (lead[0].event_id) return NextResponse.json({ ok: true, eventId: lead[0].event_id, already: true });
+        const ev = await q(`INSERT INTO ops_events (name, school, status) VALUES ($1,$2,'planned') RETURNING id`,
+          [lead[0].org ? `${lead[0].org} event` : `${lead[0].name} event`, lead[0].org || '']);
+        await q(`UPDATE ops_leads SET event_id=$1, stage=CASE WHEN stage IN ('new','contacted','negotiating') THEN 'confirmed' ELSE stage END, updated_at=now() WHERE id=$2`, [ev[0].id, id]);
+        await opsAudit('ops.lead.convert', { id, eventId: ev[0].id });
+        return NextResponse.json({ ok: true, eventId: ev[0].id });
+      }
+      case 'lead.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_leads WHERE id=$1`, [id]);
+        await opsAudit('ops.lead.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Promos ----
+      case 'promo.save': {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        if (!name) return bad('missing_name');
+        const promoType = d.promoType === 'fixed' ? 'fixed' : 'percent';
+        const discount = Math.max(0, Number(d.discount) || 0);
+        const productIds = Array.isArray(d.productIds) ? d.productIds.slice(0, 100).map((x: any) => s(x, 100)) : [];
+        const fields = [name, promoType, discount, JSON.stringify(productIds), dateOrNull(d.startsOn), dateOrNull(d.endsOn), s(d.bannerText, 300), s(d.code, 60), intOrNull(d.maxUses), d.active !== false];
+        let row;
+        if (id) row = await q(`UPDATE ops_promos SET name=$1, promo_type=$2, discount=$3, product_ids=$4, starts_on=$5, ends_on=$6, banner_text=$7, code=$8, max_uses=$9, active=$10 WHERE id=$11 RETURNING *`, [...fields, id]);
+        else row = await q(`INSERT INTO ops_promos (name, promo_type, discount, product_ids, starts_on, ends_on, banner_text, code, max_uses, active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`, fields);
+        await opsAudit('ops.promo.save', { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'promo.delete': {
+        const id = intOrNull(d.id);
+        if (!id) return bad('missing_id');
+        await q(`DELETE FROM ops_promos WHERE id=$1`, [id]);
+        await opsAudit('ops.promo.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      default:
+        return bad('unknown_kind');
+    }
+  } catch (e: any) {
+    if (String(e?.message) === 'db_not_configured') return bad('db_not_configured', 503);
+    return bad(String(e?.message || e).slice(0, 200), 500);
+  }
+}

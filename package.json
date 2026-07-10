@@ -11,12 +11,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "next": "^15.5.20",
     "pg": "8.13.1",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@types/node": "22.10.2",
     "@types/pg": "8.11.10",
     "@types/react": "19.0.2",
