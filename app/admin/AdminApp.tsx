@@ -13,7 +13,7 @@ const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', border: 
 const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' };
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
-const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Site & SEO', 'People', 'Traffic'] as const;
+const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic'] as const;
 
 async function api(path: string, opts?: RequestInit) {
   const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
@@ -178,6 +178,7 @@ export default function AdminApp() {
         <SiteTab settings={settings} setSettings={setSettings} seoPath={seoPath} setSeoPath={setSeoPath}
           onSave={(key: string, value: any) => save('setting', { key, value })} />
       )}
+      {tab === 'Comms' && <CommsTab say={say} onSaveSetting={(key: string, value: any) => save('setting', { key, value })} />}
       {tab === 'People' && <PeopleTab load={load} />}
       {tab === 'Traffic' && <TrafficTab rows={rows} />}
     </Shell>
@@ -210,6 +211,75 @@ function Dashboard({ stats }: { stats: any }) {
   );
 }
 
+// Contact details are admin-only; render them as one-click actions:
+// email -> mail compose, phone -> WhatsApp chat with that person.
+function renderCell(col: string, v: any): React.ReactNode {
+  const s = String(v ?? '').slice(0, 140);
+  if (!s) return '';
+  if (col === 'email' && s.includes('@')) return <a href={`mailto:${s}`} style={{ color: C.pink, fontWeight: 700 }}>{s}</a>;
+  if (col === 'phone') {
+    const d = s.replace(/\D/g, '');
+    const wa = d.startsWith('254') ? d : d.startsWith('0') ? '254' + d.slice(1) : d;
+    return <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener" style={{ color: '#1F8A5B', fontWeight: 700 }}>{s} ↗wa</a>;
+  }
+  return s;
+}
+
+function CommsTab({ say, onSaveSetting }: { say: (m: string) => void; onSaveSetting: (key: string, value: any) => void }) {
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [social, setSocial] = useState('');
+  const [waNum, setWaNum] = useState('');
+  const [status, setStatus] = useState<any>(null);
+  useEffect(() => { api('/api/admin/social').then(({ data }) => { setStatus(data); if (data.whatsapp_number) setWaNum(data.whatsapp_number); }); }, []);
+  const chip = (ok: boolean, label: string) => (
+    <span style={{ background: ok ? '#1F8A5B' : '#eee', color: ok ? '#fff' : '#666', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>{label}: {ok ? 'ready' : 'needs env keys'}</span>
+  );
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+      <div style={{ ...card }}>
+        <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>NEWSLETTER BROADCAST</h3>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>Sends to every subscriber. New posts you publish in Content can be announced here.</div>
+        <input style={{ ...inp, marginBottom: 8 }} placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+        <textarea style={{ ...inp, minHeight: 110 }} placeholder="Write the update…" value={body} onChange={(e) => setBody(e.target.value)} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 10, alignItems: 'center' }}>
+          <button style={btn} onClick={async () => {
+            const { status: st, data } = await api('/api/admin/broadcast', { method: 'POST', body: JSON.stringify({ subject, body }) });
+            say(st === 200 ? `✓ Sent to ${data.sent} subscribers` : '⚠ ' + (data.error || data.hint || 'failed'));
+          }}>Send to subscribers</button>
+          <a style={{ ...btnDark, textDecoration: 'none' }} href="/api/admin/export?kind=subscribers">⬇ Subscriber list CSV</a>
+          {status && chip(!!status.email_ready, 'Email')}
+        </div>
+      </div>
+      <div style={{ ...card }}>
+        <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>POST TO SOCIALS</h3>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>With Meta keys set this posts directly to WhatsApp/Instagram. Without them, the buttons open each app with your text ready to send.</div>
+        <textarea style={{ ...inp, minHeight: 90 }} placeholder="What's happening on the tour…" value={social} onChange={(e) => setSocial(e.target.value)} />
+        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button style={btn} onClick={async () => {
+            const { status: st, data } = await api('/api/admin/social', { method: 'POST', body: JSON.stringify({ text: social }) });
+            say(st === 200 ? '✓ ' + (data.result || 'posted') : '⚠ ' + (data.error || data.hint || 'set META_* env vars'));
+          }}>Post via API</button>
+          <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href={`https://wa.me/?text=${encodeURIComponent(social)}`}>WhatsApp</a>
+          <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href={`https://www.facebook.com/sharer/sharer.php?u=https://urbangangtour.co.ke&quote=${encodeURIComponent(social)}`}>Facebook</a>
+          <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href={`https://x.com/intent/tweet?text=${encodeURIComponent(social)}`}>X</a>
+          <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href="https://www.instagram.com/urban_newsgang">Instagram ↗</a>
+          {status && chip(!!status.whatsapp_ready, 'WhatsApp API')}
+          {status && chip(!!status.instagram_ready, 'Instagram API')}
+        </div>
+      </div>
+      <div style={{ ...card }}>
+        <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>WHATSAPP CHAT BUTTON (public site)</h3>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>Visitors get a floating WhatsApp button that opens a chat straight to this number. Leave empty to hide it.</div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input style={{ ...inp, maxWidth: 260 }} placeholder="e.g. 254712345678" value={waNum} onChange={(e) => setWaNum(e.target.value)} />
+          <button style={btn} onClick={() => { onSaveSetting('whatsapp_number', waNum.replace(/\D/g, '')); say('✓ Saved — live within 5 min'); }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Table({ rows, cols, actions, exportKind }: { rows: any[]; cols: string[]; actions?: (r: any) => React.ReactNode; exportKind?: string }) {
   const [qy, setQy] = useState('');
   const shown = rows.filter((r) => !qy || JSON.stringify(r).toLowerCase().includes(qy.toLowerCase()));
@@ -226,7 +296,7 @@ function Table({ rows, cols, actions, exportKind }: { rows: any[]; cols: string[
           <tbody>
             {shown.map((r, i) => (
               <tr key={i}>
-                {cols.map((c) => <td key={c} style={td}>{String(r[c] ?? '').slice(0, 140)}</td>)}
+                {cols.map((c) => <td key={c} style={td}>{renderCell(c, r[c])}</td>)}
                 {actions && <td style={td}>{actions(r)}</td>}
               </tr>
             ))}

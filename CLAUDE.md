@@ -44,3 +44,21 @@ Any new endpoint must state which roles may call it and enforce it server-side.
 ## Scale & ops
 - Cache repeated reads (Redis). Move heavy work (email, AI, PDF) to async jobs, not the request path.
 - Document API contracts next to their routes. Load-test before launch.
+
+## Data privacy rules (non-negotiable)
+- Customer emails/phones are visible ONLY in the admin console (`isAdmin()` gate).
+  No public endpoint may ever return another user's contact info. `/api/site-info`
+  exposes only intentionally-public business config.
+- Guest checkout is supported: orders require phone (M-Pesa), email optional.
+- Newsletter list is opt-in single field; export/broadcast is admin-only.
+- See API.md for the full endpoint contract — keep it updated with every route change.
+
+| Surface | Public (anon) | Logged-in user | Admin |
+|---|---|---|---|
+| /api/auth | signup/login (rate-limited) | own profile only | — |
+| /api/orders | create w/ phone only | same + tied to account | full ledger, status, receipts |
+| /api/bookings | create | create | inbox, status, contact actions |
+| /api/subscribe | join | join | list, CSV, broadcast |
+| /api/submissions | — | pitch stories | approve/reject |
+| Contact info (email/phone) | never visible | own only | all, incl. mailto/wa.me actions |
+| /api/admin/* | 401 | 401 | full |
