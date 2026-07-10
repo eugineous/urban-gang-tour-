@@ -1,0 +1,11 @@
+import { webkit, devices } from 'playwright';
+const browser = await webkit.launch();
+const page = await (await browser.newContext({ ...devices['iPhone 13'] })).newPage();
+const msgs = [];
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') msgs.push(m.text().slice(0, 500)); });
+page.on('pageerror', (e) => msgs.push('PAGEERROR: ' + String(e).slice(0, 500)));
+await page.goto('http://localhost:3210/shop', { waitUntil: 'commit', timeout: 120000 });
+await page.waitForTimeout(15000);
+const hyd = msgs.filter((t) => /hydrat|did not match|418/i.test(t));
+console.log(hyd.length ? hyd.slice(0, 3).join('\n---\n') : 'no hydration messages captured');
+await browser.close();

@@ -49,11 +49,9 @@ export function V25App({ page }: { page: string }) {
     let attempts = 0;
 
     const dropVeil = () => {
+      // hide only - removing the node raced React hydration (error 418)
       const veil = document.getElementById('boot-veil');
-      if (veil && !veil.classList.contains('gone')) {
-        veil.classList.add('gone');
-        setTimeout(() => veil.remove(), 400);
-      }
+      if (veil) veil.classList.add('gone');
     };
 
     const reveal = () => {

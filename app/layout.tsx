@@ -90,7 +90,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Boot veil: hides the pre-boot shell flash; removed the instant the
             live app renders (or by fallback timer). Hidden entirely for no-JS
             visitors and crawlers via noscript. */}
-        <div id="boot-veil" aria-hidden="true">
+        {/* suppressHydrationWarning + hide-only (never .remove()): the veil
+            scripts race React hydration, and deleting the node made React
+            regenerate the whole tree (error 418) on slow loads. */}
+        <div id="boot-veil" aria-hidden="true" suppressHydrationWarning>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 84, width: 'auto' }} />
           <div className="boot-veil-bar"><span /></div>
@@ -102,7 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             data-booted on the host — drop the veil for them immediately */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `setTimeout(function(){var h=document.getElementById('v25-host');var v=document.getElementById('boot-veil');if(v&&(!h||!h.getAttribute('data-booted'))){v.classList.add('gone');setTimeout(function(){v.remove()},400);}},1200);`,
+            __html: `setTimeout(function(){var h=document.getElementById('v25-host');var v=document.getElementById('boot-veil');if(v&&(!h||!h.getAttribute('data-booted'))){v.classList.add('gone');}},1200);`,
           }}
         />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
