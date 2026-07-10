@@ -92,6 +92,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <noscript>
           <style>{`#boot-veil{display:none !important}`}</style>
         </noscript>
+        {/* pages without the v25 booter (admin, account, blog, legal) never set
+            data-booted on the host — drop the veil for them immediately */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `setTimeout(function(){var h=document.getElementById('v25-host');var v=document.getElementById('boot-veil');if(v&&(!h||!h.getAttribute('data-booted'))){v.classList.add('gone');setTimeout(function(){v.remove()},400);}},1200);`,
+          }}
+        />
         <CookieConsent />
       </body>
     </html>

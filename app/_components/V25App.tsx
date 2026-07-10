@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import SLUGS from '@/app/_lib/slugs.json';
 
 // Progressive enhancement: after the SSR shell paints (great for crawlers +
 // first paint), boot v25's real dc-runtime into #v25-host, booted to THIS
@@ -78,6 +79,14 @@ export function V25App({ page }: { page: string }) {
     // browser back/forward re-renders the route server-side for consistency
     const onPop = () => window.location.reload();
     window.addEventListener('popstate', onPop);
+    // news/blog cards: any rendered <article id="<slug>"> opens its full story
+    const onCardClick = (e: MouseEvent) => {
+      const el = (e.target as Element | null)?.closest?.('article[id]') as HTMLElement | null;
+      if (el && (SLUGS as string[]).includes(el.id)) {
+        window.location.href = '/blog/' + el.id;
+      }
+    };
+    document.addEventListener('click', onCardClick);
     // safety: if the runtime hasn't rendered in 6s, re-attempt the boot once
     const watchdog = setTimeout(() => {
       if (!done && attempts < 3) { host.innerHTML = ''; attempt(); }
@@ -90,6 +99,7 @@ export function V25App({ page }: { page: string }) {
       clearTimeout(hardStop);
       clearTimeout(veilCap);
       window.removeEventListener('popstate', onPop);
+      document.removeEventListener('click', onCardClick);
     };
   }, [page]);
 
