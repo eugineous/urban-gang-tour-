@@ -93,6 +93,13 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'monthly', priority: 0.7,
   },
   {
+    path: '/work-with-us', page: 'work',
+    title: 'Work With Us — Brands, Institutions, Campuses & Schools',
+    description:
+      'Put your brand, institution, campus or school inside the Urban Gang Tour. Sponsorships, activations, campus raves and school bookings across Kenya.',
+    changefreq: 'monthly', priority: 0.7,
+  },
+  {
     path: '/book', page: 'contact', nav: 'Book the Tour',
     title: 'Book the Tour — Bring Urban Gang to Your School or Campus',
     description:

@@ -1479,7 +1479,7 @@
 <div>© 2026 Urban Gang Tour · Nairobi, Kenya · From Potential to Purpose</div>
 <div style="display:flex;gap:14px;align-items:center">
 <button onClick="{{ install }}" style="display:flex;align-items:center;gap:7px;background:#FFD400;color:#111;font-weight:700;font-size:12px;padding:9px 15px;border:2px solid #111;border-radius:100px" style-hover="transform:translateY(-1px)"><svg width="15" height="15" viewBox="0 0 24 24" style="color:#111"><use href="#i-phone"></use></svg> Install App</button>
-<button onClick="{{ nav.admin }}" aria-label="Staff access" title="Staff" style="color:#242424;font-size:13px;padding:0 4px" style-hover="color:#555">•</button>
+
 </div>
 </div>
 </footer>
@@ -1784,8 +1784,8 @@ class Component extends DCLogic {
   }
 
   scrollTop(){ try{ window.scrollTo({top:0,left:0,behavior:'auto'}); }catch(e){} }
-  go = (page) => { this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
-  goWork = (tab) => { this.setState({page:'work', workTab:tab, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
+  go = (page) => { try{const __m={home:'/',about:'/about',gang:'/the-gang',exp:'/experience',stops:'/experience',work:'/work-with-us',shop:'/shop',news:'/urban-news',gallery:'/gallery',partners:'/partners',events:'/events',contact:'/book',admin:'/admin'};const __u=__m[page];if(__u&&location.pathname!==__u)history.pushState({ugt:page},'',__u);}catch(e){} this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
+  goWork = (tab) => { try{if(location.pathname!=='/work-with-us')history.pushState({ugt:'work'},'','/work-with-us');}catch(e){} this.setState({page:'work', workTab:tab, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
   toggleBook = () => this.setState(s=>({bookOpen:!s.bookOpen}));
   toggleMobile = () => this.setState(s=>({mobileOpen:!s.mobileOpen}));
   toggleCart = () => this.setState(s=>({cartOpen:!s.cartOpen}));
