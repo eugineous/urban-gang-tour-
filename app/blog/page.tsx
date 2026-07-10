@@ -7,8 +7,10 @@ import { getBlogPosts } from '@/app/_lib/blog';
 const PATH = '/blog';
 export const metadata: Metadata = metadataForPath(PATH);
 
-export default function BlogIndex() {
-  const posts = getBlogPosts();
+export const revalidate = 300;
+
+export default async function BlogIndex() {
+  const posts = await getBlogPosts();
   return (
     <>
       <JsonLd data={structuredDataForPath(PATH)} />

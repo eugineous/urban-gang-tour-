@@ -73,9 +73,9 @@ export const ROUTES: RouteDef[] = [
   },
   {
     path: '/urban-news', page: 'news', nav: 'News',
-    title: 'Urban News — Tour Recaps & Broadcast on PPP TV Kenya',
+    title: 'Urban News with Eugine Micah & Lucy Ogunde — PPP TV Kenya',
     description:
-      'Urban News: recaps, features and the national broadcast of every Urban Gang Tour stop on PPP TV Kenya. Watch the moments that travel past the room.',
+      'Urban News, hosted by Eugine Micah and Lucy Ogunde: recaps, features and the national broadcast of every Urban Gang Tour stop on PPP TV Kenya.',
     changefreq: 'daily', priority: 0.8,
   },
   {
@@ -112,6 +112,36 @@ export const ROUTES: RouteDef[] = [
     description:
       'Get in touch with the Urban Gang Tour team for bookings, sponsorship, media and crew enquiries. Based in Nairobi, touring across Kenya.',
     changefreq: 'monthly', priority: 0.6,
+  },
+  {
+    path: '/account', page: 'legal',
+    title: 'My Account — Urban Gang Tour',
+    description: 'Log in or create your Urban Gang account to pitch stories, track orders and stay close to the tour.',
+    changefreq: 'monthly', priority: 0.4,
+  },
+  {
+    path: '/privacy-policy', page: 'legal',
+    title: 'Privacy Policy — Urban Gang Tour',
+    description: 'How Urban Gang Tour collects, uses and protects your personal data under the Kenya Data Protection Act 2019.',
+    changefreq: 'monthly', priority: 0.3,
+  },
+  {
+    path: '/terms', page: 'legal',
+    title: 'Terms of Service — Urban Gang Tour',
+    description: 'The terms that govern use of urbangangtour.co.ke, bookings, accounts, tickets and merch orders.',
+    changefreq: 'monthly', priority: 0.3,
+  },
+  {
+    path: '/refund-policy', page: 'legal',
+    title: 'Refund & Delivery Policy — Urban Gang Tour',
+    description: 'Refunds, exchanges and delivery timelines for Urban Gang merch and tickets.',
+    changefreq: 'monthly', priority: 0.3,
+  },
+  {
+    path: '/ticket-terms', page: 'legal',
+    title: 'Ticket Terms — Urban Gang Tour',
+    description: 'Entry conditions, age guidance and refund rules for Urban Gang Tour events.',
+    changefreq: 'monthly', priority: 0.3,
   },
   {
     path: '/admin', page: 'admin',

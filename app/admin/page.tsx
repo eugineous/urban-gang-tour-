@@ -1,18 +1,13 @@
 import type { Metadata } from 'next';
-import { metadataForPath } from '@/app/_lib/seo';
-import { structuredDataForPath } from '@/app/_lib/jsonld';
-import { JsonLd } from '@/app/_components/JsonLd';
-import { RenderedPage } from '@/app/_components/RenderedPage';
+import AdminApp from './AdminApp';
 
-const PATH = '/admin';
+export const metadata: Metadata = {
+  title: 'Control Room — Urban Gang Tour',
+  robots: { index: false, follow: false },
+};
 
-export const metadata: Metadata = metadataForPath(PATH);
-
-export default function Page() {
-  return (
-    <>
-      <JsonLd data={structuredDataForPath(PATH)} />
-      <RenderedPage pathName={PATH} />
-    </>
-  );
+// Real database-backed Control Room (replaces the v25 demo admin).
+// Not linked anywhere publicly — direct URL access only.
+export default function AdminPage() {
+  return <AdminApp />;
 }

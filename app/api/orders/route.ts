@@ -41,6 +41,17 @@ export async function POST(req: Request) {
   if (typeof idempotencyKey === 'string' && idempotencyKey) seen.set(idempotencyKey, { id, ts: Date.now() });
   console.log('[order]', JSON.stringify({ id, items, total, name, email, msisdn }));
 
+  // persist order (ledger for admin reconciliation)
+  try {
+    const { q, db } = await import('@/lib/server/db');
+    if (db()) {
+      await q(
+        `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
+        [id, JSON.stringify(items), total, name, email, msisdn]
+      );
+    }
+  } catch (e) { console.error('[order-db]', e); }
+
   if (!mpesaConfigured()) {
     return NextResponse.json(
       { ok: false, id, total, payment: 'not_configured', hint: 'Set MPESA_* env vars in Vercel to activate live STK push.' },
@@ -49,6 +60,13 @@ export async function POST(req: Request) {
   }
   try {
     const stk = await stkPush(msisdn, total, id, 'UrbanGang');
+    // remember Daraja's CheckoutRequestID so the callback can mark this order paid
+    try {
+      const { q, db } = await import('@/lib/server/db');
+      if (db() && stk?.CheckoutRequestID) {
+        await q(`UPDATE orders SET mpesa_ref=$2 WHERE id=$1`, [id, stk.CheckoutRequestID]);
+      }
+    } catch { /* non-fatal */ }
     return NextResponse.json({ ok: true, id, total, stk });
   } catch (e: any) {
     return NextResponse.json({ ok: false, id, total, error: 'stk_failed', detail: String(e.message).slice(0, 200) }, { status: 502 });

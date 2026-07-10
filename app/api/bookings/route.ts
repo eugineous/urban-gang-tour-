@@ -25,6 +25,17 @@ export async function POST(req: Request) {
 
   const booking = { id: 'B-' + Date.now().toString(36).toUpperCase(), name, org, email, phone, type, message, date: new Date().toISOString(), status: 'new' };
 
+  // persist to DB when configured (admin Bookings Inbox reads from here)
+  try {
+    const { q, db } = await import('@/lib/server/db');
+    if (db()) {
+      await q(
+        `INSERT INTO bookings (id, name, org, email, phone, type, message) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [booking.id, name, org, email, phone, type, message]
+      );
+    }
+  } catch (e) { console.error('[booking-db]', e); }
+
   // Email notification via Resend when configured
   if (process.env.RESEND_API_KEY) {
     try {
