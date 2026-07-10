@@ -6,7 +6,7 @@ import { HEADER_HTML } from './_components/headerHtml';
 import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
-import { MobileNav } from './_components/MobileNav';
+import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
@@ -75,13 +75,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* SSR shell: full server-rendered page for crawlers + first paint.
             v25's live runtime boots into #v25-host and then hides this. */}
         <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
-          <MobileNav />
           <div dangerouslySetInnerHTML={{ __html: HEADER_HTML }} />
           {children}
           <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
         {/* mount point for the live interactive v25 app (client-only) */}
         <div id="v25-host" />
+        {/* Mobile bottom tab bar — outside #ssr-shell so it survives the
+            runtime boot (the old menu vanished with the shell). */}
+        <BottomTabBar />
         <WhatsAppWidget />
         {/* Boot veil: hides the pre-boot shell flash; removed the instant the
             live app renders (or by fallback timer). Hidden entirely for no-JS

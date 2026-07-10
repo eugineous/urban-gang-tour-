@@ -16,6 +16,7 @@ export function WhatsAppWidget() {
       target="_blank"
       rel="noopener"
       aria-label="Chat with us on WhatsApp"
+      className="wa-fab"
       style={{
         position: 'fixed', right: 16, bottom: 16, zIndex: 500,
         width: 56, height: 56, borderRadius: 16,
