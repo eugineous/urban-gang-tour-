@@ -28,6 +28,14 @@ export function V25App({ page }: { page: string }) {
     let done = false;
     let attempts = 0;
 
+    const dropVeil = () => {
+      const veil = document.getElementById('boot-veil');
+      if (veil && !veil.classList.contains('gone')) {
+        veil.classList.add('gone');
+        setTimeout(() => veil.remove(), 400);
+      }
+    };
+
     const reveal = () => {
       if (done) return;
       const root = document.getElementById('dc-root');
@@ -37,9 +45,13 @@ export function V25App({ page }: { page: string }) {
         host.style.height = 'auto';
         const shell = document.getElementById('ssr-shell');
         if (shell) shell.style.display = 'none';
+        dropVeil();
         if (poll) clearInterval(poll);
       }
     };
+    // slow-connection fallback: never hold the veil longer than 7s — the SSR
+    // shell underneath is real content and the app keeps booting behind it
+    const veilCap = setTimeout(dropVeil, 7000);
 
     const attempt = () => {
       attempts += 1;
@@ -57,6 +69,7 @@ export function V25App({ page }: { page: string }) {
         })
         .catch(() => {
           if (attempts < 3) setTimeout(attempt, 1500);
+          else dropVeil(); // enhancement failed — show the SSR shell
         });
     };
 
@@ -71,6 +84,7 @@ export function V25App({ page }: { page: string }) {
       if (poll) clearInterval(poll);
       clearTimeout(watchdog);
       clearTimeout(hardStop);
+      clearTimeout(veilCap);
     };
   }, [page]);
 
