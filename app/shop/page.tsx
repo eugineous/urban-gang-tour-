@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { metadataForPathDynamic } from '@/app/_lib/seo';
-import { structuredDataForPath } from '@/app/_lib/jsonld';
+import { breadcrumbFor, productsWithReviews } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { RenderedPage } from '@/app/_components/RenderedPage';
 
@@ -12,10 +12,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);
 }
 
-export default function Page() {
+export default async function Page() {
+  // products carry real moderated review aggregates when they exist
+  const products = await productsWithReviews();
   return (
     <>
-      <JsonLd data={structuredDataForPath(PATH)} />
+      <JsonLd data={[products, breadcrumbFor(PATH)]} />
       <RenderedPage pathName={PATH} />
     </>
   );

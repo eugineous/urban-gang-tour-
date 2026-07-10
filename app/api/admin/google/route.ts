@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { q, db } from '@/lib/server/db';
 import { signToken, sessionCookie } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 
@@ -15,12 +15,12 @@ import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 // the env allowlist alone.
 async function dbAllowed(email: string): Promise<boolean> {
   try {
-    const sql = db();
-    await sql`CREATE TABLE IF NOT EXISTS admin_google_emails (
+    if (!db()) return false;
+    await q(`CREATE TABLE IF NOT EXISTS admin_google_emails (
       email text PRIMARY KEY,
       added_at timestamptz DEFAULT now()
-    )`;
-    const rows = await sql`SELECT 1 FROM admin_google_emails WHERE lower(email) = ${email}`;
+    )`);
+    const rows = await q(`SELECT 1 FROM admin_google_emails WHERE lower(email) = $1`, [email]);
     return rows.length > 0;
   } catch {
     return false;

@@ -85,6 +85,10 @@
 },
 "performer": [
 {
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
 "@type": "Person",
 "name": "Eugine Micah"
 },
@@ -126,6 +130,10 @@
 },
 "performer": [
 {
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
 "@type": "Person",
 "name": "Eugine Micah"
 },
@@ -134,7 +142,14 @@
 "name": "Lucy Ogunde"
 }
 ],
-"description": "A full day of talent showcases, mentorship pods, a modelling runway, and a national Urban News broadcast."
+"description": "A full day of talent showcases, mentorship pods, a modelling runway, and a national Urban News broadcast.",
+"offers": {
+"@type": "Offer",
+"price": "0",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+}
 },
 {
 "@type": [
@@ -160,6 +175,10 @@
 },
 "performer": [
 {
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
 "@type": "Person",
 "name": "Eugine Micah"
 },
@@ -168,7 +187,14 @@
 "name": "Lucy Ogunde"
 }
 ],
-"description": "Cultural Day and Festival of Colours with talent showcases, a runway, mentorship pods, and a national Urban News feature."
+"description": "Cultural Day and Festival of Colours with talent showcases, a runway, mentorship pods, and a national Urban News feature.",
+"offers": {
+"@type": "Offer",
+"price": "0",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+}
 },
 {
 "@type": [
@@ -194,6 +220,10 @@
 },
 "performer": [
 {
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
 "@type": "Person",
 "name": "Eugine Micah"
 },
@@ -210,6 +240,189 @@
 "availability": "https://schema.org/InStock",
 "url": "https://urbangangtour.co.ke/#contact"
 }
+},
+{
+"@type": "Event",
+"name": "The Experience Hub Dance Event",
+"startDate": "2026-08-16T14:00:00+03:00",
+"eventStatus": "https://schema.org/EventScheduled",
+"eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+"location": {
+"@type": "Place",
+"name": "KICC Grounds",
+"address": {
+"@type": "PostalAddress",
+"addressLocality": "Nairobi",
+"addressCountry": "KE"
+}
+},
+"image": "https://urbangangtour.co.ke/assets/gal/xp-dance.jpg",
+"organizer": {
+"@id": "https://urbangangtour.co.ke/#org"
+},
+"performer": [
+{
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
+"@type": "Person",
+"name": "Eugine Micah"
+},
+{
+"@type": "Person",
+"name": "Lucy Ogunde"
+}
+],
+"description": "The dance takeover - crews, cyphers, hype sets and celebrity performances at KICC Grounds, Nairobi.",
+"offers": [
+{
+"@type": "Offer",
+"name": "Regular",
+"price": "500",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+},
+{
+"@type": "Offer",
+"name": "VIP",
+"price": "1500",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+},
+{
+"@type": "Offer",
+"name": "VVIP Table",
+"price": "5000",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+}
+]
+},
+{
+"@type": "Event",
+"name": "Urban Festival Of Colours",
+"startDate": "2026-09-20T11:00:00+03:00",
+"eventStatus": "https://schema.org/EventScheduled",
+"eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+"location": {
+"@type": "Place",
+"name": "Uhuru Gardens",
+"address": {
+"@type": "PostalAddress",
+"addressLocality": "Nairobi",
+"addressCountry": "KE"
+}
+},
+"image": "https://urbangangtour.co.ke/assets/gal/festival-colours.jpg",
+"organizer": {
+"@id": "https://urbangangtour.co.ke/#org"
+},
+"performer": [
+{
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
+"@type": "Person",
+"name": "Eugine Micah"
+},
+{
+"@type": "Person",
+"name": "Lucy Ogunde"
+}
+],
+"description": "One field, a thousand colours, dancers, DJs and non-stop hype at Uhuru Gardens, Nairobi.",
+"offers": [
+{
+"@type": "Offer",
+"name": "Early Bird",
+"price": "800",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+},
+{
+"@type": "Offer",
+"name": "Regular",
+"price": "1200",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+},
+{
+"@type": "Offer",
+"name": "VIP",
+"price": "3000",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+}
+]
+},
+{
+"@type": "Event",
+"name": "Campus Rave - Nairobi Edition",
+"startDate": "2026-10-03T16:00:00+03:00",
+"eventStatus": "https://schema.org/EventScheduled",
+"eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+"location": {
+"@type": "Place",
+"name": "Carnivore Grounds",
+"address": {
+"@type": "PostalAddress",
+"addressLocality": "Nairobi",
+"addressCountry": "KE"
+}
+},
+"image": "https://urbangangtour.co.ke/assets/gal/campus-rave.jpg",
+"organizer": {
+"@id": "https://urbangangtour.co.ke/#org"
+},
+"performer": [
+{
+"@type": "PerformingGroup",
+"name": "Urban Gang Tour"
+},
+{
+"@type": "Person",
+"name": "Eugine Micah"
+},
+{
+"@type": "Person",
+"name": "Lucy Ogunde"
+}
+],
+"description": "The tour, fully grown - bigger stage, bigger sound, broadcast-ready. A campus rave at Carnivore Grounds, Nairobi.",
+"offers": [
+{
+"@type": "Offer",
+"name": "Regular",
+"price": "1000",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+},
+{
+"@type": "Offer",
+"name": "VIP",
+"price": "2500",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+},
+{
+"@type": "Offer",
+"name": "VVIP",
+"price": "6000",
+"priceCurrency": "KES",
+"availability": "https://schema.org/InStock",
+"url": "https://urbangangtour.co.ke/events"
+}
+]
 }
 ]
 },

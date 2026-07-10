@@ -56,6 +56,11 @@ CREATE TABLE IF NOT EXISTS subscribers (
 CREATE TABLE IF NOT EXISTS traffic (
   day DATE NOT NULL, path TEXT NOT NULL, hits INT DEFAULT 0, PRIMARY KEY(day, path)
 );
+CREATE TABLE IF NOT EXISTS product_reviews (
+  id SERIAL PRIMARY KEY, product_id TEXT NOT NULL, author TEXT NOT NULL,
+  rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5), body TEXT NOT NULL,
+  approved BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT now()
+);
 CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY, actor TEXT, action TEXT, detail JSONB, created_at TIMESTAMPTZ DEFAULT now()
 );
