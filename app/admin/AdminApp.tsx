@@ -295,13 +295,43 @@ function renderCell(col: string, v: any): React.ReactNode {
   return s;
 }
 
+const IG_WALL_RE = /^https:\/\/www\.instagram\.com\/(p|reel)\/[A-Za-z0-9_-]+\/?$/;
+
 function CommsTab({ say, onSaveSetting }: { say: (m: string) => void; onSaveSetting: (key: string, value: any) => void }) {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [social, setSocial] = useState('');
+  const [socialImg, setSocialImg] = useState('');
   const [waNum, setWaNum] = useState('');
   const [status, setStatus] = useState<any>(null);
-  useEffect(() => { api('/api/admin/social').then(({ data }) => { setStatus(data); if (data.whatsapp_number) setWaNum(data.whatsapp_number); }); }, []);
+  const [wall, setWall] = useState<string[]>([]);
+  const [wallInput, setWallInput] = useState('');
+  useEffect(() => {
+    api('/api/admin/social').then(({ data }) => {
+      setStatus(data);
+      if (data.whatsapp_number) setWaNum(data.whatsapp_number);
+      if (Array.isArray(data.ig_wall)) setWall(data.ig_wall);
+    });
+  }, []);
+  const wallAdd = () => {
+    const u = wallInput.trim();
+    if (!IG_WALL_RE.test(u)) { say('⚠ Paste a full Instagram post URL (instagram.com/p/… or /reel/…)'); return; }
+    const norm = u.endsWith('/') ? u : u + '/';
+    if (wall.includes(norm)) { say('⚠ Already on the wall'); return; }
+    if (wall.length >= 12) { say('⚠ Wall is full (12 max) — remove one first'); return; }
+    setWall([...wall, norm]); setWallInput('');
+  };
+  const wallMove = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= wall.length) return;
+    const next = [...wall];
+    [next[i], next[j]] = [next[j], next[i]];
+    setWall(next);
+  };
+  const wallSave = async () => {
+    const { status: st, data } = await api('/api/admin/social', { method: 'POST', body: JSON.stringify({ kind: 'wall.save', urls: wall }) });
+    say(st === 200 ? '✓ Wall saved — live on /blog within 5 min' : '⚠ ' + (data.error || 'failed'));
+  };
   const chip = (ok: boolean, label: string) => (
     <span style={{ background: ok ? '#1F8A5B' : '#eee', color: ok ? '#fff' : '#666', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>{label}: {ok ? 'ready' : 'needs env keys'}</span>
   );
@@ -323,19 +353,54 @@ function CommsTab({ say, onSaveSetting }: { say: (m: string) => void; onSaveSett
       </div>
       <div style={{ ...card }}>
         <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>POST TO SOCIALS</h3>
-        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>With Meta keys set this posts directly to WhatsApp/Instagram. Without them, the buttons open each app with your text ready to send.</div>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>With Meta keys set this posts straight to the Facebook Page (and Instagram when you add an image URL). Without them, the buttons open each app with your text ready to send. New articles you publish in Content auto-post to connected channels.</div>
         <textarea style={{ ...inp, minHeight: 90 }} placeholder="What's happening on the tour…" value={social} onChange={(e) => setSocial(e.target.value)} />
+        <input style={{ ...inp, marginTop: 8 }} placeholder="Image URL for Instagram (optional, https://…)" value={socialImg} onChange={(e) => setSocialImg(e.target.value)} />
         <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <button style={btn} onClick={async () => {
-            const { status: st, data } = await api('/api/admin/social', { method: 'POST', body: JSON.stringify({ text: social }) });
+            const payload: any = { text: social };
+            if (socialImg.trim()) payload.imageUrl = socialImg.trim();
+            const { status: st, data } = await api('/api/admin/social', { method: 'POST', body: JSON.stringify(payload) });
             say(st === 200 ? '✓ ' + (data.result || 'posted') : '⚠ ' + (data.error || data.hint || 'set META_* env vars'));
           }}>Post via API</button>
           <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href={`https://wa.me/?text=${encodeURIComponent(social)}`}>WhatsApp</a>
           <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href={`https://www.facebook.com/sharer/sharer.php?u=https://urbangangtour.co.ke&quote=${encodeURIComponent(social)}`}>Facebook</a>
           <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href={`https://x.com/intent/tweet?text=${encodeURIComponent(social)}`}>X</a>
           <a style={{ ...btnDark, textDecoration: 'none' }} target="_blank" rel="noopener" href="https://www.instagram.com/urban_newsgang">Instagram ↗</a>
+          {status && chip(!!status.facebook_ready, 'Facebook API')}
           {status && chip(!!status.whatsapp_ready, 'WhatsApp API')}
           {status && chip(!!status.instagram_ready, 'Instagram API')}
+        </div>
+        <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
+          {status?.facebook_ready || status?.instagram_ready
+            ? '✓ Connected channels auto-post every new article the moment you publish it.'
+            : 'Auto-posts new articles when connected — set META_FB_PAGE_ID + META_FB_PAGE_TOKEN (Facebook) and META_IG_USER_ID + META_IG_TOKEN (Instagram) once Meta app review clears.'}
+        </div>
+      </div>
+      <div style={{ ...card }}>
+        <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>FROM THE GRAM (blog wall)</h3>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>Curate up to 12 Instagram posts to show at the bottom of the public /blog page. Paste a post or reel URL, order them, then Save.</div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input style={inp} placeholder="https://www.instagram.com/p/…  or  /reel/…" value={wallInput}
+            onChange={(e) => setWallInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && wallAdd()} />
+          <button style={btn} onClick={wallAdd}>Add</button>
+        </div>
+        {wall.length > 0 && (
+          <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+            {wall.map((u, i) => (
+              <div key={u} style={{ display: 'flex', alignItems: 'center', gap: 8, border: '2px solid #111', borderRadius: 10, padding: '6px 10px', fontSize: 13 }}>
+                <span style={{ fontWeight: 700, color: '#888' }}>{i + 1}</span>
+                <a href={u} target="_blank" rel="noopener" style={{ flex: 1, color: C.pink, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.replace('https://www.instagram.com/', '')}</a>
+                <button style={{ ...btn, padding: '4px 9px' }} aria-label="Move up" onClick={() => wallMove(i, -1)}>↑</button>
+                <button style={{ ...btn, padding: '4px 9px' }} aria-label="Move down" onClick={() => wallMove(i, 1)}>↓</button>
+                <button style={{ ...btnDark, padding: '4px 9px' }} aria-label="Remove" onClick={() => setWall(wall.filter((x) => x !== u))}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 10, alignItems: 'center' }}>
+          <button style={btn} onClick={wallSave}>Save wall</button>
+          <span style={{ fontSize: 12, color: '#666' }}>{wall.length}/12 posts{wall.length === 0 ? ' — empty wall hides the section on /blog' : ''}</span>
         </div>
       </div>
       <div style={{ ...card }}>

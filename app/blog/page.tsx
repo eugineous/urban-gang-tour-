@@ -3,6 +3,8 @@ import { metadataForPath } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { getBlogPosts } from '@/app/_lib/blog';
+import { getIgWall } from '@/lib/server/social-wall';
+import { InstagramWall } from '@/app/_components/InstagramWall';
 
 const PATH = '/blog';
 export const metadata: Metadata = metadataForPath(PATH);
@@ -11,6 +13,7 @@ export const revalidate = 300;
 
 export default async function BlogIndex() {
   const posts = await getBlogPosts();
+  const igWall = await getIgWall(); // [] when unset or db not configured
   return (
     <>
       <JsonLd data={structuredDataForPath(PATH)} />
@@ -42,6 +45,7 @@ export default async function BlogIndex() {
               </a>
             ))}
           </div>
+          {igWall.length > 0 && <InstagramWall urls={igWall} />}
         </div>
       </main>
     </>

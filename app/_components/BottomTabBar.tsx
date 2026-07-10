@@ -32,6 +32,15 @@ const MENU_LINKS: { href: string; label: string; big?: boolean }[] = [
   { href: '/account', label: 'My Account' },
 ];
 
+// Official profiles — shown as a compact icon row in the menu sheet footer.
+const SOCIALS: { href: string; label: string; icon: string }[] = [
+  { href: 'https://www.facebook.com/urban_newsgang', label: 'Urban Gang on Facebook', icon: 'facebook' },
+  { href: 'https://www.instagram.com/urban_newsgang', label: 'Urban Gang on Instagram', icon: 'instagram' },
+  { href: 'https://www.tiktok.com/@urban_newsgang', label: 'Urban Gang on TikTok', icon: 'tiktok' },
+  { href: 'https://www.youtube.com/@urban_newsgang', label: 'Urban Gang on YouTube', icon: 'youtube' },
+  { href: 'https://x.com/urban_newsgang', label: 'Urban Gang on X', icon: 'x' },
+];
+
 function Icon({ name }: { name: string }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   switch (name) {
@@ -43,6 +52,16 @@ function Icon({ name }: { name: string }) {
       return <svg viewBox="0 0 24 24" {...common}><rect x="3.5" y="5" width="17" height="16" rx="2.5" /><path d="M8 3v4M16 3v4M3.5 10.5h17" /><path d="M12 13v5M9.5 15.5h5" /></svg>;
     case 'bag':
       return <svg viewBox="0 0 24 24" {...common}><path d="M5 8h14l-1.2 12.2a1.8 1.8 0 0 1-1.8 1.6H8a1.8 1.8 0 0 1-1.8-1.6L5 8Z" /><path d="M8.5 10.5V6.8a3.5 3.5 0 0 1 7 0v3.7" /></svg>;
+    case 'facebook':
+      return <svg viewBox="0 0 24 24" {...common}><path d="M17 2.5h-2.5a4.5 4.5 0 0 0-4.5 4.5v3H7v4h3v7.5h4V14h3l1-4h-4V7a1 1 0 0 1 1-1h2.5Z" /></svg>;
+    case 'instagram':
+      return <svg viewBox="0 0 24 24" {...common}><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.2 6.8h.01" /></svg>;
+    case 'tiktok':
+      return <svg viewBox="0 0 24 24" {...common}><path d="M13.5 4v11.5a3.75 3.75 0 1 1-3.75-3.75" /><path d="M13.5 6.5c.8 2.2 2.7 3.7 5 3.9" /></svg>;
+    case 'youtube':
+      return <svg viewBox="0 0 24 24" {...common}><rect x="2.5" y="6" width="19" height="13" rx="3.5" /><path d="M10.3 9.7v5.6l5-2.8-5-2.8Z" /></svg>;
+    case 'x':
+      return <svg viewBox="0 0 24 24" {...common}><path d="M4 4l16 16" /><path d="M20 4 4 20" /></svg>;
     default:
       return <svg viewBox="0 0 24 24" {...common}><path d="M4 6.5h16M4 12h16M4 17.5h16" /></svg>;
   }
@@ -104,6 +123,13 @@ export function BottomTabBar() {
             ))}
           </nav>
           <div className="ugt-sheet-foot">
+            <div className="ugt-sheet-social" aria-label="Follow Urban Gang">
+              {SOCIALS.map((s) => (
+                <a key={s.icon} href={s.href} target="_blank" rel="noopener" aria-label={s.label}>
+                  <Icon name={s.icon} />
+                </a>
+              ))}
+            </div>
             <a href="mailto:admin@urbangangtour.co.ke">admin@urbangangtour.co.ke</a>
             <span>From Potential to Purpose · Kenya</span>
           </div>

@@ -64,4 +64,5 @@ CREATE TABLE IF NOT EXISTS product_reviews (
 CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY, actor TEXT, action TEXT, detail JSONB, created_at TIMESTAMPTZ DEFAULT now()
 );
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_posted_at TIMESTAMPTZ;
 `;

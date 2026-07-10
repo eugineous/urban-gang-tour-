@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getBlogPosts, getBlogPost, articleJsonLd } from '@/app/_lib/blog';
 import { breadcrumbFor } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
+import { ShareBar } from '@/app/_components/ShareBar';
 import { SITE } from '@/lib/site';
 
 export const revalidate = 300; // admin edits go live within 5 minutes
@@ -55,6 +56,7 @@ export default async function BlogPost(
             <div style={{ color: '#888', fontSize: 13, marginBottom: 6 }}>
               {new Date(post.datePublished).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · Urban News · by Eugine Micah &amp; Lucy Ogunde
             </div>
+            <ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline} />
             <p style={{ fontSize: 17.5, fontWeight: 600, lineHeight: 1.6, color: '#333', margin: '14px 0 18px' }}>{post.description}</p>
             {post.body.map((para, i) => {
               // longform conventions: "## " → section heading, "> " → pull quote

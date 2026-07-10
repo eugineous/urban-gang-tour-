@@ -48,6 +48,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-KE">
       <head>
+        {/* Meta app binding — enables FB share insights + Graph API attribution */}
+        <meta property="fb:app_id" content="1338478978482580" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

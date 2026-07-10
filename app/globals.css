@@ -96,6 +96,14 @@ input,textarea,select{font-family:inherit}
   .ugt-sheet-links a.on{background:#111;color:#FFD400}
   .ugt-sheet-foot{margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#fff;font-weight:600}
   .ugt-sheet-foot a{color:#FFD400;text-decoration:underline}
+  /* compact social icon row — same stroke language as the tab bar icons */
+  .ugt-sheet-social{display:flex;gap:10px;margin:0 0 6px}
+  .ugt-sheet-social a{
+    width:44px;height:44px;border-radius:12px;background:#fff;border:3px solid #111;
+    box-shadow:3px 3px 0 #111;display:flex;align-items:center;justify-content:center;
+    color:#111;text-decoration:none;
+  }
+  .ugt-sheet-social svg{width:22px;height:22px}
   /* floating WhatsApp button rides above the tab bar */
   .wa-fab{bottom:calc(92px + env(safe-area-inset-bottom,0px)) !important}
 }
