@@ -44,7 +44,7 @@
 "https://www.instagram.com/urban_newsgang",
 "https://www.tiktok.com/@urban_newsgang",
 "https://www.youtube.com/@urban_newsgang",
-"https://www.facebook.com/urban_newsgang",
+"https://www.facebook.com/profile.php?id=61572771956199",
 "https://x.com/urban_newsgang"
 ]
 },
@@ -67,7 +67,7 @@
 "Event",
 "EducationEvent"
 ],
-"name": "Urban Gang Tour — Senior Chief Koinange Girls",
+"name": "Urban Gang Tour â€” Senior Chief Koinange Girls",
 "startDate": "2026-05-30",
 "eventStatus": "https://schema.org/EventScheduled",
 "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -111,7 +111,7 @@
 "Event",
 "EducationEvent"
 ],
-"name": "Urban Gang Tour — Loreto Kiambu Girls High",
+"name": "Urban Gang Tour â€” Loreto Kiambu Girls High",
 "startDate": "2026-06-01",
 "eventStatus": "https://schema.org/EventScheduled",
 "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -156,7 +156,7 @@
 "Event",
 "EducationEvent"
 ],
-"name": "Urban Gang Tour — Gituamba Girls High School",
+"name": "Urban Gang Tour â€” Gituamba Girls High School",
 "startDate": "2026-06-07",
 "eventStatus": "https://schema.org/EventScheduled",
 "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -201,7 +201,7 @@
 "Event",
 "EducationEvent"
 ],
-"name": "Urban Gang Tour — Lari Boys High School",
+"name": "Urban Gang Tour â€” Lari Boys High School",
 "startDate": "2026-07-19",
 "eventStatus": "https://schema.org/EventScheduled",
 "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -843,7 +843,7 @@
 "@type": "NewsMediaOrganization",
 "@id": "https://urbangangtour.co.ke/news#pub",
 "name": "Urban News",
-"alternateName": "Urban News — Urban Gang Tour",
+"alternateName": "Urban News â€” Urban Gang Tour",
 "url": "https://urbangangtour.co.ke/news",
 "parentOrganization": {
 "@id": "https://urbangangtour.co.ke/#org"

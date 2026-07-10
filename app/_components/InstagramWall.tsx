@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-// "From the Gram" — official Instagram embeds for the admin-curated wall.
+// "From the Gram" â€” official Instagram embeds for the admin-curated wall.
 // The embed script is heavy, so it loads lazily: only once the section
 // scrolls near the viewport (IntersectionObserver, 600px early margin).
 
@@ -10,7 +10,7 @@ const EMBED_SRC = 'https://www.instagram.com/embed.js';
 
 const PROFILES = [
   { label: 'Follow @urban_newsgang on Instagram', href: 'https://www.instagram.com/urban_newsgang' },
-  { label: 'Urban Gang on Facebook', href: 'https://www.facebook.com/urban_newsgang' },
+  { label: 'Urban Gang on Facebook', href: 'https://www.facebook.com/profile.php?id=61572771956199' },
 ];
 
 function loadEmbedScript() {
