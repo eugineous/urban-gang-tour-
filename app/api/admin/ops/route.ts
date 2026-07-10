@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { requireOrigin } from '@/lib/server/origin';
 import {
   ensureOpsSchema, opsAudit, createNumberedDocument, DocType,
   LEAD_STAGES, DEFAULT_CHECKLIST_TEMPLATE,
@@ -173,6 +174,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!db()) return bad('db_not_configured', 503);
   let body: any;
   try { body = await req.json(); } catch { return bad('invalid_json'); }

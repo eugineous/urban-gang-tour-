@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { requireOrigin } from '@/lib/server/origin';
 
 // POST /api/admin/broadcast  {subject, body}
 // Admin-only. Emails every newsletter subscriber via Resend (RESEND_API_KEY).
-// Contract: 200 {ok,sent} | 400 invalid | 401 not admin | 503 email/db not configured
+// Contract: 200 {ok,sent} | 400 invalid | 401 not admin | 403 bad origin | 503 email/db not configured
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const { subject, body } = await req.json().catch(() => ({}));
   if (typeof subject !== 'string' || subject.length < 2 || subject.length > 200) return NextResponse.json({ error: 'invalid_subject' }, { status: 400 });
   if (typeof body !== 'string' || body.length < 2 || body.length > 20000) return NextResponse.json({ error: 'invalid_body' }, { status: 400 });

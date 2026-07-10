@@ -135,6 +135,23 @@ CREATE TABLE IF NOT EXISTS ops_promos (
 CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY, actor TEXT, action TEXT, detail JSONB, created_at TIMESTAMPTZ DEFAULT now()
 );
+-- Indexes for the ops suite's real query patterns (event drill-downs, invoice
+-- payment sums, lead pipeline, follow-up dashboard, audit trail). Applied
+-- automatically by ensureOpsSchema(). ops_budgets(event_id) is covered by the
+-- UNIQUE(event_id, version) constraint index.
+CREATE INDEX IF NOT EXISTS idx_ops_documents_event_id ON ops_documents (event_id);
+CREATE INDEX IF NOT EXISTS idx_ops_documents_doc_type ON ops_documents (doc_type);
+CREATE INDEX IF NOT EXISTS idx_ops_payments_event_id ON ops_payments (event_id);
+CREATE INDEX IF NOT EXISTS idx_ops_payments_invoice_id ON ops_payments (invoice_id);
+CREATE INDEX IF NOT EXISTS idx_ops_leads_stage ON ops_leads (stage);
+CREATE INDEX IF NOT EXISTS idx_ops_leads_updated_at ON ops_leads (updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ops_contacts_org_name ON ops_contacts (org, name);
+CREATE INDEX IF NOT EXISTS idx_ops_contacts_next_followup ON ops_contacts (next_followup);
+CREATE INDEX IF NOT EXISTS idx_ops_events_event_date ON ops_events (event_date);
+CREATE INDEX IF NOT EXISTS idx_ops_checklist_items_event_id ON ops_checklist_items (event_id);
+CREATE INDEX IF NOT EXISTS idx_ops_crew_payouts_event_id ON ops_crew_payouts (event_id);
+CREATE INDEX IF NOT EXISTS idx_ops_expenses_event_id ON ops_expenses (event_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DESC);
 `;
 
 export const LEAD_STAGES = ['new', 'contacted', 'negotiating', 'confirmed', 'contracted', 'completed', 'lost'] as const;

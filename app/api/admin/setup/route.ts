@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { q, db, SCHEMA } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { requireOrigin } from '@/lib/server/origin';
 import seed from '@/app/_lib/articles.seed.json';
 
 // One-time (idempotent) setup: create tables + seed the 17 v25 articles + defaults.
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   await q(SCHEMA);
   let seeded = 0;

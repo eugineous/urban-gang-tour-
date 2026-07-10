@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { sameOrigin } from '@/lib/server/origin';
 import { PRICES } from '@/lib/server/catalog';
 
 // Public product reviews.
@@ -10,6 +11,9 @@ import { PRICES } from '@/lib/server/catalog';
 // aggregateRating Google sees is always real, moderated data.
 
 export async function GET(req: Request) {
+  if (!rateLimit('revg:' + clientIp(req), 30, 60_000)) {
+    return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
+  }
   const product = new URL(req.url).searchParams.get('product') || '';
   if (!PRICES[product]) return NextResponse.json({ error: 'unknown_product' }, { status: 400 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
@@ -32,6 +36,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('rev:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }

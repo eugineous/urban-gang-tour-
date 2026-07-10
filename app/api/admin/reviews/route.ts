@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { requireOrigin } from '@/lib/server/origin';
 
 // Review moderation. Only approved reviews are served publicly or embedded in
 // the shop JSON-LD, so everything Google sees has passed through here.
@@ -22,6 +23,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }

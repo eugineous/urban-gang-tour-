@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { requireOrigin } from '@/lib/server/origin';
 import { SITE } from '@/lib/site';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
 
@@ -60,6 +61,7 @@ async function announceArticle(post: { slug: string; headline: string; dek: stri
 // Multiplexed admin mutations. kind: post|deletePost|setting|bookingStatus|orderStatus|deleteSubmission
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const { kind, data } = await req.json().catch(() => ({}));
   try {

@@ -4,6 +4,20 @@ All endpoints: JSON in/out. Public POSTs are IP rate-limited (never user-ID for
 anonymous traffic). Strict schemas — unknown fields are rejected with
 `unexpected_field:<name>`. Secrets live in Vercel env vars only.
 
+Cross-site protection (`lib/server/origin.ts`): public POSTs answer 403
+`bad_origin` when the browser sends an Origin header that is not
+urbangangtour.co.ke, the current Vercel deployment host, or localhost (a
+missing Origin is tolerated for beacons/native apps). Admin mutations
+(`/api/admin/*` POST) REQUIRE a matching Origin outright. Exempt:
+`/api/mpesa/callback` and `/api/whatsapp/webhook` (server-to-server; the
+WhatsApp webhook is HMAC signature-verified) and `/api/client-error`
+(sendBeacon may omit headers; it keeps its own flood guard).
+
+Critical alerts (`lib/server/alert.ts`): M-Pesa reconciliation failures, order
+ledger write failures and WhatsApp signature-failure bursts email the owner via
+Resend (settings key `alert_email`, fallback owner address) and always log with
+an `[ALERT]` prefix.
+
 ## Public
 
 ### POST /api/auth
@@ -44,9 +58,10 @@ wall (settings key `ig_wall`, max 12, validated post/reel URLs only). No PII.
 
 ### GET /api/health
 Service status: mpesa/email/database configured or awaiting env vars.
+429 (30/min/IP).
 
 ### POST /api/track
-Page-view counter (path only, no PII, no third-party trackers).
+Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
 
 ## Admin (require `ugt_admin` signed cookie; 401 otherwise)
 

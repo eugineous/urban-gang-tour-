@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { signToken, sessionCookie, clearCookie } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { requireOrigin } from '@/lib/server/origin';
 
 export async function POST(req: Request) {
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('adm:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
@@ -17,7 +19,8 @@ export async function POST(req: Request) {
   return res;
 }
 
-export async function DELETE() {
+export async function DELETE(req: Request) {
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const res = NextResponse.json({ ok: true });
   res.headers.set('Set-Cookie', clearCookie('ugt_admin'));
   return res;

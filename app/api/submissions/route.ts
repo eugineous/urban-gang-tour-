@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { currentUser } from '@/lib/server/session';
+import { sameOrigin } from '@/lib/server/origin';
 
 // Student blog / news pitch submissions → admin Newsroom queue.
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('subm:' + clientIp(req), 5, 60_000)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   const b = await req.json().catch(() => ({}));
   const { name = '', school = '', title = '', pitch = '' } = b;

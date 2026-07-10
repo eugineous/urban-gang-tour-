@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { sameOrigin } from '@/lib/server/origin';
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('sub:' + clientIp(req), 5, 60_000)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   const { email } = await req.json().catch(() => ({}));
   if (typeof email !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {

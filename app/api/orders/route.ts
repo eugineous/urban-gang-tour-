@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { serverTotal } from '@/lib/server/catalog';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { mpesaConfigured, stkPush, normalizePhone } from '@/lib/server/mpesa';
+import { sameOrigin } from '@/lib/server/origin';
+import { alertCritical } from '@/lib/server/alert';
 
 const seen = new Map<string, { id: string; ts: number }>(); // idempotency
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit(clientIp(req), 8, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
@@ -51,7 +54,11 @@ export async function POST(req: Request) {
         [id, JSON.stringify(items), total, name, emailStr, msisdn]
       );
     }
-  } catch (e) { console.error('[order-db]', e); }
+  } catch (e: any) {
+    // ledger write failed while the payment flow continues - reconcile manually
+    console.error('[order-db]', e);
+    await alertCritical('Order creation DB write failed', `order ${id} total ${total} phone ${msisdn}: ${String(e?.message || e)}`);
+  }
 
   if (!mpesaConfigured()) {
     return NextResponse.json(

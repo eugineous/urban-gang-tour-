@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { requireOrigin } from '@/lib/server/origin';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
 import { IG_POST_RE, IG_WALL_MAX, normalizeIgUrl, getIgWall } from '@/lib/server/social-wall';
 
@@ -35,6 +36,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const body = await req.json().catch(() => ({}));
 
   // ---- Curated Instagram wall ------------------------------------------------

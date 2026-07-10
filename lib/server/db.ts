@@ -65,4 +65,18 @@ CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY, actor TEXT, action TEXT, detail JSONB, created_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_posted_at TIMESTAMPTZ;
+-- Indexes for the real query patterns (blog listing, admin ledgers, M-Pesa
+-- callback reconciliation, review lookups, audit trail). Applied with the
+-- schema via POST /api/admin/setup.
+CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts (published, date DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_mpesa_ref ON orders (mpesa_ref);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status);
+CREATE INDEX IF NOT EXISTS idx_bookings_created_at ON bookings (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_product_reviews_product_approved ON product_reviews (product_id, approved);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users (phone);
+CREATE INDEX IF NOT EXISTS idx_submissions_created_at ON submissions (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_subscribers_created_at ON subscribers (created_at DESC);
 `;

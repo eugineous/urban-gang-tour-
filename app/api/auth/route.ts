@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { hashPassword, checkPassword, signToken, sessionCookie, clearCookie, currentUser } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { sameOrigin } from '@/lib/server/origin';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const PHONE_RE = /^(\+?254|0)(7|1)\d{8}$/;
 
 // action: signup | login | logout | me  (email OR Kenyan phone + password)
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const { action, email = '', phone = '', name = '', password = '' } = await req.json().catch(() => ({}));
 
   if (action === 'me') {

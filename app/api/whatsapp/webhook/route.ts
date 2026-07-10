@@ -1,5 +1,22 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { alertCritical } from '@/lib/server/alert';
+
+// Signature-failure burst detector: a spike of bad signatures means either a
+// misconfigured app secret or someone probing the webhook. Alert once per
+// window, never per request. Per-instance state, same as the rate limiter.
+let sigFails = 0;
+let sigWindow = Date.now();
+let sigAlerted = false;
+function noteSignatureFailure() {
+  const now = Date.now();
+  if (now - sigWindow > 60_000) { sigWindow = now; sigFails = 0; sigAlerted = false; }
+  sigFails += 1;
+  if (sigFails > 10 && !sigAlerted) {
+    sigAlerted = true;
+    void alertCritical('WhatsApp webhook signature-failure burst', `${sigFails} bad signatures in the last minute`);
+  }
+}
 
 // WhatsApp Business Platform webhook (Meta).
 // GET  = one-time verification handshake from the Meta console.
@@ -28,6 +45,7 @@ export async function POST(req: Request) {
     const a = Buffer.from(sig);
     const b = Buffer.from(expected);
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      noteSignatureFailure();
       return new NextResponse('bad signature', { status: 401 });
     }
   } else {

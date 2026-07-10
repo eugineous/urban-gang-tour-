@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { signToken, sessionCookie } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { requireOrigin } from '@/lib/server/origin';
 
 // Google Sign-In for the Control Room. The client posts the Google Identity
 // Services ID token; we verify it with Google's tokeninfo endpoint (signature,
@@ -27,6 +28,7 @@ async function dbAllowed(email: string): Promise<boolean> {
   }
 }
 export async function POST(req: Request) {
+  if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('admg:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }

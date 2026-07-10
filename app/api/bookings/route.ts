@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { sameOrigin } from '@/lib/server/origin';
 
 const TYPES = ['School Booking', 'Campus Rave', 'Sponsorship', 'Mega Event', 'Media', 'Join the Crew', 'Student Blog'];
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit(clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }

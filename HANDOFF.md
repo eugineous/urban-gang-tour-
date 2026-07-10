@@ -114,3 +114,9 @@ Meta app: Urban Gang Tour (app id 1338478978482580), business id 701875228088222
   2. App secret: Settings > Basic > App secret > Show (password wall) -> set as Vercel env WHATSAPP_APP_SECRET (required before inbound webhooks process).
   3. Generate a permanent access token (Business settings > System users) -> Vercel env WHATSAPP_ACCESS_TOKEN.
   4. Add payment method (needed for business-initiated messages) and complete Business verification, then publish the app.
+
+## Rollback
+
+Vercel keeps every previous deployment immutable, so rolling back is instant and needs no rebuild. In the Vercel dashboard open the project, go to Deployments, pick the last known-good deployment marked READY, open its overflow menu and choose Promote to Production (or use Instant Rollback from the current production deployment's menu). Production traffic switches to the old build immediately; the bad deployment stays available for debugging.
+
+To make the rollback stick in git, revert the offending commit on main: `git revert <sha>` (or `git revert <oldest-sha>..<newest-sha>` for a range), push the revert through the normal branch-and-preview flow, and let Vercel deploy it. Never force-push main; the revert commit keeps history intact and the next deploy matches what production is already serving.
