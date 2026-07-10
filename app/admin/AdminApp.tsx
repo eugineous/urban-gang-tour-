@@ -95,7 +95,7 @@ export default function AdminApp() {
             setErr('');
             const { status, data } = await api('/api/admin/google', { method: 'POST', body: JSON.stringify({ credential: resp.credential }) });
             if (status === 200) { setAuthed(true); const s = await load('stats'); setStats(s[0] || null); }
-            else setErr(data.error === 'not_authorised' ? 'This Google account is not authorised for the Control Room.' : 'Google sign-in failed: ' + (data.error || status));
+            else setErr(data.error === 'not_authorised' ? `${data.email || 'This Google account'} is not authorised for the Control Room. Use your access code, or ask the owner to add this Google account.` : 'Google sign-in failed: ' + (data.error || status));
           },
         });
         g.renderButton(holder, { theme: 'filled_black', size: 'large', width: 320, text: 'signin_with' });
