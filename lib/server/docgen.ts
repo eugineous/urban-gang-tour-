@@ -74,8 +74,10 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   receipt: { code: 'RCT', label: 'Receipt', template: '27-receipt-a5-slip.html' },
   certw: { code: 'CERTW', label: 'Winner Certificate', template: '07-certificate-winner.html' },
   certp: { code: 'CERTP', label: 'Participation Certificate', template: '08-certificate-participation.html' },
+  call: { code: 'CALL', label: 'Call Sheet', template: '44-call-sheet-run-of-show-lari-boys.html' },
+  budget: { code: 'BUD', label: 'Event Budget Sheet', template: '45-event-budget-sheet.html' },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp'] as const;
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
 
 export function isDocType(v: unknown): v is DocType {
@@ -195,6 +197,42 @@ export function computeInvoiceTotals(lineItems: LineItem[], discount: number): I
   let disc = Math.max(0, Math.round(Number(discount) || 0));
   if (disc > subtotal) disc = subtotal;
   return { subtotal, discount: disc, total: subtotal - disc };
+}
+
+// ---------------------------------------------------------------------------
+// Server-authoritative event-budget totals. Same guarantee as the invoice:
+// client-sent totals are never trusted. Each money-in amount is recomputed from
+// count*rate; totals, profit (in - out) and the savings transfer
+// (profit * savingsPercent/100) are all derived here. Profit may be negative
+// (a loss) and is returned as-is.
+// ---------------------------------------------------------------------------
+export interface BudgetMoneyIn { source: string; count: number; rate: number; amount: number; }
+export interface BudgetMoneyOut { item: string; supplier: string; amount: number; }
+export interface BudgetTotals {
+  moneyIn: BudgetMoneyIn[];
+  moneyOut: BudgetMoneyOut[];
+  totalIn: number; totalOut: number; profit: number; savings: number; savingsPercent: number;
+}
+
+export function computeBudgetTotals(moneyIn: any[], moneyOut: any[], savingsPercent: number): BudgetTotals {
+  const ins: BudgetMoneyIn[] = (Array.isArray(moneyIn) ? moneyIn : []).map((r) => {
+    const count = Math.max(0, Math.round(Number(r?.count) || 0));
+    const rate = Math.max(0, Math.round(Number(r?.rate) || 0));
+    return { source: str(r?.source, 120), count, rate, amount: count * rate };
+  });
+  const outs: BudgetMoneyOut[] = (Array.isArray(moneyOut) ? moneyOut : []).map((r) => ({
+    item: str(r?.item, 120),
+    supplier: str(r?.supplier, 120),
+    amount: Math.max(0, Math.round(Number(r?.amount) || 0)),
+  }));
+  const totalIn = ins.reduce((s, r) => s + r.amount, 0);
+  const totalOut = outs.reduce((s, r) => s + r.amount, 0);
+  const profit = totalIn - totalOut;
+  let pct = Math.round(Number(savingsPercent) || 0);
+  if (pct < 0) pct = 0;
+  if (pct > 100) pct = 100;
+  const savings = Math.round((profit * pct) / 100);
+  return { moneyIn: ins, moneyOut: outs, totalIn, totalOut, profit, savings, savingsPercent: pct };
 }
 
 // ---------------------------------------------------------------------------
@@ -393,6 +431,72 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
     const event = [podName, stopName].filter(Boolean).join(' - ');
     return { type, payload, issued_to: participantName, event, slug: slugify(participantName), computed: {} };
   }
+  if (type === 'call') {
+    // Call sheet + run of show. eventName is the identity used for the record /
+    // verify page. crew, run-of-show and dont-forget are variable-length
+    // repeaters mapped onto the template's positional slots by buildValues; any
+    // fully-empty row is dropped here so blank rows never persist.
+    const eventName = str(p.eventName, 160).trim();
+    const venue = str(p.venue, 120);
+    const date = str(p.date, 60);
+    const crewCall = str(p.crewCall, 40);
+    const dayRate = str(p.dayRate, 60);
+    const director = str(p.director, 120);
+    const stageManager = str(p.stageManager, 120);
+    const crew = (Array.isArray(p.crew) ? p.crew.slice(0, 24) : [])
+      .map((r: any) => ({ name: str(r?.name, 80), role: str(r?.role, 80) }))
+      .filter((r: any) => r.name || r.role);
+    const runOfShow = (Array.isArray(p.runOfShow) ? p.runOfShow.slice(0, 20) : [])
+      .map((r: any) => ({ time: str(r?.time, 20), segment: str(r?.segment, 120), notes: str(r?.notes, 160) }))
+      .filter((r: any) => r.time || r.segment || r.notes);
+    const dontForget = (Array.isArray(p.dontForget) ? p.dontForget.slice(0, 8) : [])
+      .map((v: any) => str(v, 160)).filter(Boolean);
+    const payload = { eventName, venue, date, crewCall, dayRate, crew, runOfShow, director, stageManager, dontForget };
+    return { type, payload, issued_to: eventName, event: venue, slug: slugify(eventName || 'call-sheet'), computed: {} };
+  }
+  if (type === 'budget') {
+    // Event budget sheet. All money math is SERVER-owned (computeBudgetTotals):
+    // each money-in amount = count*rate, totals + profit + savings are derived
+    // here. Any client-sent totalIn/totalOut/profit/savings are ignored.
+    const eventName = str(p.eventName, 160).trim();
+    const date = str(p.date, 40);
+    const preparedBy = str(p.preparedBy, 120);
+    const rawIn = Array.isArray(p.moneyIn) ? p.moneyIn.slice(0, 5) : [];
+    const rawOut = Array.isArray(p.moneyOut) ? p.moneyOut.slice(0, 11) : [];
+    const t0 = computeBudgetTotals(rawIn, rawOut, num(p.savingsPercent));
+    const moneyIn = t0.moneyIn.filter((r) => r.source || r.count || r.rate);
+    const moneyOut = t0.moneyOut.filter((r) => r.item || r.supplier || r.amount);
+    const totals = computeBudgetTotals(moneyIn, moneyOut, num(p.savingsPercent));
+
+    // Soft crew-rule validation (non-blocking): if the caller carries a crew
+    // headcount + rate and a money-out line reads as a crew payout, warn when
+    // the payout amount does not equal headcount*rate. Surfaced to the admin
+    // via computed.crewWarning; never persisted, never blocks generation.
+    const crewCount = p.crewCount === '' || p.crewCount === null || p.crewCount === undefined ? null : Math.max(0, Math.round(num(p.crewCount)));
+    const crewRate = p.crewRate === '' || p.crewRate === null || p.crewRate === undefined ? null : Math.max(0, Math.round(num(p.crewRate)));
+    const crewLine = moneyOut.find((r) => /crew/i.test(r.item));
+    let crewWarning = '';
+    if (crewCount !== null && crewRate !== null && crewLine) {
+      const expected = crewCount * crewRate;
+      if (expected !== crewLine.amount) {
+        crewWarning = `Crew payout line is KSH ${fmtNum(crewLine.amount)} but headcount x rate = ${crewCount} x ${fmtNum(crewRate)} = KSH ${fmtNum(expected)}. Confirm the flat-rate crew rule.`;
+      }
+    }
+
+    const payload = {
+      eventName, date, preparedBy,
+      moneyIn, moneyOut,
+      savingsPercent: totals.savingsPercent,
+      totalIn: totals.totalIn, totalOut: totals.totalOut, profit: totals.profit, savings: totals.savings,
+      crewCount: crewCount === null ? '' : crewCount,
+      crewRate: crewRate === null ? '' : crewRate,
+    };
+    const computed = {
+      totalIn: totals.totalIn, totalOut: totals.totalOut, profit: totals.profit,
+      savings: totals.savings, savingsPercent: totals.savingsPercent, crewWarning,
+    };
+    return { type, payload, issued_to: eventName, event: '', slug: slugify(eventName || 'budget'), computed };
+  }
   // receipt
   const amount = Math.max(0, Math.round(num(p.amountFigures)));
   const methodRaw = str(p.method, 20);
@@ -460,6 +564,67 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
         certNo: serial,
       },
     };
+  }
+  if (type === 'call') {
+    const values: Record<string, string> = {
+      callNo: serial,
+      eventName: payload.eventName || '',
+      venue: payload.venue || '',
+      date: payload.date || '',
+      crewCall: payload.crewCall || '',
+      dayRate: payload.dayRate || '',
+      director: payload.director || '',
+      stageManager: payload.stageManager || '',
+    };
+    const crew: any[] = Array.isArray(payload.crew) ? payload.crew : [];
+    for (let i = 0; i < 24; i++) {
+      const r = crew[i];
+      const n = i + 1;
+      values[`crew${n}_name`] = r?.name || '';
+      values[`crew${n}_role`] = r?.role || '';
+    }
+    const ros: any[] = Array.isArray(payload.runOfShow) ? payload.runOfShow : [];
+    for (let i = 0; i < 20; i++) {
+      const r = ros[i];
+      const n = i + 1;
+      values[`ros${n}_time`] = r?.time || '';
+      values[`ros${n}_segment`] = r?.segment || '';
+      values[`ros${n}_notes`] = r?.notes || '';
+    }
+    const df: any[] = Array.isArray(payload.dontForget) ? payload.dontForget : [];
+    for (let i = 0; i < 8; i++) values[`dontforget${i + 1}`] = df[i] || '';
+    return { values };
+  }
+  if (type === 'budget') {
+    const values: Record<string, string> = {
+      budgetNo: serial,
+      eventName: payload.eventName || '',
+      date: payload.date || '',
+      preparedBy: payload.preparedBy || '',
+      totalIn: fmtNum(payload.totalIn || 0),
+      totalOut: fmtNum(payload.totalOut || 0),
+      profit: fmtNum(payload.profit || 0),
+      savings: fmtNum(payload.savings || 0),
+      savingsPercent: String(payload.savingsPercent ?? 0),
+    };
+    const ins: any[] = Array.isArray(payload.moneyIn) ? payload.moneyIn : [];
+    for (let i = 0; i < 5; i++) {
+      const r = ins[i];
+      const n = i + 1;
+      values[`in${n}_source`] = r?.source || '';
+      values[`in${n}_count`] = r && r.count ? String(r.count) : '';
+      values[`in${n}_rate`] = r && r.rate ? fmtNum(r.rate) : '';
+      values[`in${n}_amount`] = r && r.amount ? fmtNum(r.amount) : '';
+    }
+    const outs: any[] = Array.isArray(payload.moneyOut) ? payload.moneyOut : [];
+    for (let i = 0; i < 11; i++) {
+      const r = outs[i];
+      const n = i + 1;
+      values[`out${n}_item`] = r?.item || '';
+      values[`out${n}_supplier`] = r?.supplier || '';
+      values[`out${n}_amount`] = r && r.amount ? fmtNum(r.amount) : '';
+    }
+    return { values };
   }
   // receipt
   const bal = payload.balanceDue === '' || payload.balanceDue === undefined || payload.balanceDue === null ? '' : fmtNum(payload.balanceDue);

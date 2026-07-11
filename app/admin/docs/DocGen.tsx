@@ -24,12 +24,14 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp';
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget';
 const TYPES: { key: DocType; label: string }[] = [
   { key: 'invoice', label: 'Invoice' },
   { key: 'receipt', label: 'Receipt' },
   { key: 'certw', label: 'Winner Certificate' },
   { key: 'certp', label: 'Participation Certificate' },
+  { key: 'call', label: 'Call Sheet' },
+  { key: 'budget', label: 'Event Budget Sheet' },
 ];
 const isCertType = (t: DocType) => t === 'certw' || t === 'certp';
 
@@ -40,6 +42,8 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   receipt: { w: 794, h: 430 },
   certw: { w: 1123, h: 794 },
   certp: { w: 1123, h: 794 },
+  call: { w: 794, h: 1123 },
+  budget: { w: 794, h: 1123 },
 };
 
 // CSV column schema per certificate type (also the accepted header names).
@@ -50,6 +54,98 @@ const CSV_FIELDS: Record<'certw' | 'certp', string[]> = {
 
 interface LineRow { description: string; qty: string; rate: string }
 const emptyRow = (): LineRow => ({ description: '', qty: '', rate: '' });
+
+// Call sheet repeater rows.
+interface CrewRow { name: string; role: string }
+interface RosRow { time: string; segment: string; notes: string }
+const emptyCrew = (): CrewRow => ({ name: '', role: '' });
+const emptyRos = (): RosRow => ({ time: '', segment: '', notes: '' });
+
+// Budget repeater rows.
+interface InRow { source: string; count: string; rate: string }
+interface OutRow { item: string; supplier: string; amount: string }
+const emptyIn = (): InRow => ({ source: '', count: '', rate: '' });
+const emptyOut = (): OutRow => ({ item: '', supplier: '', amount: '' });
+
+// Seeded default for the Call Sheet form: the real "Lari Boys" event content
+// extracted from template 44 so the admin starts from a real example and edits
+// it, rather than an empty form (per spec).
+const LARI_CALL = {
+  eventName: 'Lari Boys High School', venue: 'Kimende', date: 'Sun 19 Jul',
+  crewCall: '5:00 AM', dayRate: 'KSH 1,000', director: 'Mark Musumba', stageManager: 'Fred',
+};
+const LARI_CREW: CrewRow[] = [
+  { name: 'Eugine Micah', role: 'Host & MC' },
+  { name: 'Lucy Ogunde', role: 'Host & MC' },
+  { name: 'Mark Musumba', role: 'Event Director' },
+  { name: 'Fred', role: 'Stage Manager' },
+  { name: 'Pauline Masika', role: 'Sound (hosts)' },
+  { name: 'Hype Ola', role: 'Hype' },
+  { name: 'Larry Raj', role: 'Hype / MC' },
+  { name: 'MC Paps', role: 'MC support (role TBC)' },
+  { name: 'King Tae', role: 'DJ' },
+  { name: 'Kalamu Nyeusi', role: 'DJ' },
+  { name: 'DJ 1', role: 'Full event' },
+  { name: 'DJ 2', role: 'Talents & modelling' },
+  { name: 'George Morgan', role: 'Video (full event)' },
+  { name: 'Dinjo', role: 'Photo & YouTube raw' },
+  { name: 'Rania Martin', role: 'Social lead & reels' },
+  { name: 'Chiwaculture', role: 'Reels' },
+  { name: 'Ferooz Mkenya', role: 'Driver, PPP TV' },
+  { name: 'Esther Gakunju', role: 'Head, Synapse Models' },
+  { name: 'Models x2', role: '1M / 1F' },
+  { name: 'XP Hub Dancers x2', role: 'Dancers' },
+  { name: 'Karembo', role: 'Dancer' },
+];
+const LARI_ROS: RosRow[] = [
+  { time: '5:00', segment: 'Crew call', notes: 'Stage, sound, lights, branding build' },
+  { time: '9:00', segment: 'Podcasts & talks', notes: '' },
+  { time: '9:40', segment: 'Tree planting', notes: 'Scouts + Green Movement' },
+  { time: '10:00', segment: 'Opening', notes: 'Prayers, anthems, principal speech, scouts' },
+  { time: '10:30', segment: 'Eugine & Lucy intro', notes: 'Dancers, DJs & crew introduced' },
+  { time: '10:50', segment: "Hosts' hype + Hype Ola set", notes: '' },
+  { time: '11:10', segment: 'Rap battle', notes: '' },
+  { time: '11:40', segment: 'Modelling walk I', notes: 'Synapse leads' },
+  { time: '12:00', segment: 'Dance battle', notes: '' },
+  { time: '12:35', segment: 'Spoken word', notes: 'Poetry, narratives' },
+  { time: '13:00', segment: 'Modelling walk II', notes: 'Hype set by Larry Raj' },
+  { time: '13:30', segment: 'Lunch', notes: 'Crew eats in shifts, stage never empty' },
+  { time: '14:00', segment: 'Hype set, Eugine & Lucy', notes: 'Music battle' },
+  { time: '14:45', segment: 'Public speaking', notes: 'News reporting, comedy' },
+  { time: '15:30', segment: 'Awards & crowning', notes: 'Certificates ready side-stage' },
+  { time: '16:10', segment: "Teachers' dance battle", notes: 'Crowd favourite' },
+  { time: '16:25', segment: 'Colour festival I', notes: 'Safety pins checked, wind called by Fred' },
+  { time: '16:35', segment: 'Musicians', notes: 'Musician 1, 2, main musician' },
+  { time: '17:25', segment: 'Colour festival II', notes: 'Event ends, strike & load-out' },
+];
+const LARI_DONTFORGET = [
+  'Cylinder safety pins',
+  'Powder cans x12',
+  'Certificates',
+  'Gifts (Mr Flex)',
+  'Posters up by 8 AM',
+  'Nganya parked by 9 AM',
+  'Deposit receipt copy for the office',
+];
+
+// Seeded default for the Budget form: the template's own line-item labels with
+// empty figures, so the admin fills real numbers and the server computes totals.
+const BUDGET_IN_SEED: InRow[] = [
+  { source: 'Host school students', count: '', rate: '' },
+  { source: 'Attending schools / gate', count: '', rate: '' },
+  { source: 'Sponsors / partners', count: '', rate: '' },
+];
+const BUDGET_OUT_SEED: OutRow[] = [
+  { item: 'Stage', supplier: '', amount: '' },
+  { item: 'Sound & PA', supplier: '', amount: '' },
+  { item: 'Guest musician(s)', supplier: '', amount: '' },
+  { item: 'Colour festival (cylinders, powder, pins)', supplier: '', amount: '' },
+  { item: 'Transport / nganya', supplier: '', amount: '' },
+  { item: 'Crew day rates', supplier: '', amount: '' },
+  { item: 'Certificates, posters, gifts', supplier: '', amount: '' },
+  { item: 'Meals & water, crew', supplier: '', amount: '' },
+  { item: 'Contingency', supplier: '', amount: '' },
+];
 
 interface RecentDoc {
   id: string; serial: string; type: string; issued_to: string; event: string;
@@ -81,6 +177,17 @@ export default function DocGen() {
   const [cw, setCw] = useState({ recipientName: '', category: '', stopName: '', eventDate: today() });
   // Participation certificate form
   const [cp, setCp] = useState({ participantName: '', podName: '', stopName: '' });
+
+  // Call sheet form (pre-seeded with the real Lari Boys example).
+  const [call, setCall] = useState({ ...LARI_CALL });
+  const [crew, setCrew] = useState<CrewRow[]>(LARI_CREW.map((r) => ({ ...r })));
+  const [ros, setRos] = useState<RosRow[]>(LARI_ROS.map((r) => ({ ...r })));
+  const [dontForget, setDontForget] = useState<string[]>([...LARI_DONTFORGET]);
+
+  // Budget form. Figures start empty; totals + profit are computed server-side.
+  const [bud, setBud] = useState({ eventName: '', date: today(), preparedBy: '', savingsPercent: '', crewCount: '', crewRate: '' });
+  const [moneyIn, setMoneyIn] = useState<InRow[]>(BUDGET_IN_SEED.map((r) => ({ ...r })));
+  const [moneyOut, setMoneyOut] = useState<OutRow[]>(BUDGET_OUT_SEED.map((r) => ({ ...r })));
 
   // CSV batch state
   const [csvName, setCsvName] = useState('');
@@ -124,8 +231,28 @@ export default function DocGen() {
     if (type === 'certw') {
       return { recipientName: cw.recipientName, category: cw.category, stopName: cw.stopName, eventDate: cw.eventDate };
     }
-    return { participantName: cp.participantName, podName: cp.podName, stopName: cp.stopName };
-  }, [type, inv, rows, rct, cw, cp]);
+    if (type === 'certp') {
+      return { participantName: cp.participantName, podName: cp.podName, stopName: cp.stopName };
+    }
+    if (type === 'call') {
+      return {
+        eventName: call.eventName, venue: call.venue, date: call.date, crewCall: call.crewCall,
+        dayRate: call.dayRate, director: call.director, stageManager: call.stageManager,
+        crew: crew.filter((c) => c.name || c.role),
+        runOfShow: ros.filter((r) => r.time || r.segment || r.notes),
+        dontForget: dontForget.filter((d) => d.trim()),
+      } as Record<string, unknown>;
+    }
+    // budget
+    return {
+      eventName: bud.eventName, date: bud.date, preparedBy: bud.preparedBy,
+      savingsPercent: num(bud.savingsPercent),
+      crewCount: bud.crewCount === '' ? '' : num(bud.crewCount),
+      crewRate: bud.crewRate === '' ? '' : num(bud.crewRate),
+      moneyIn: moneyIn.filter((r) => r.source || r.count || r.rate).map((r) => ({ source: r.source, count: num(r.count), rate: num(r.rate) })),
+      moneyOut: moneyOut.filter((r) => r.item || r.supplier || r.amount).map((r) => ({ item: r.item, supplier: r.supplier, amount: num(r.amount) })),
+    } as Record<string, unknown>;
+  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut]);
 
   // What the live preview renders: in batch mode, the first parsed row; else
   // the single-form payload.
@@ -276,7 +403,9 @@ export default function DocGen() {
 
   const formTitle = type === 'invoice' ? 'Invoice details'
     : type === 'receipt' ? 'Receipt details'
-    : type === 'certw' ? 'Winner certificate' : 'Participation certificate';
+    : type === 'certw' ? 'Winner certificate'
+    : type === 'certp' ? 'Participation certificate'
+    : type === 'call' ? 'Call sheet & run of show' : 'Event budget sheet';
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
@@ -329,6 +458,8 @@ export default function DocGen() {
                 {type === 'receipt' && <ReceiptForm rct={rct} setRct={setRct} computed={computed} />}
                 {type === 'certw' && <CertWForm cw={cw} setCw={setCw} />}
                 {type === 'certp' && <CertPForm cp={cp} setCp={setCp} />}
+                {type === 'call' && <CallSheetForm call={call} setCall={setCall} crew={crew} setCrew={setCrew} ros={ros} setRos={setRos} dontForget={dontForget} setDontForget={setDontForget} />}
+                {type === 'budget' && <BudgetForm bud={bud} setBud={setBud} moneyIn={moneyIn} setMoneyIn={setMoneyIn} moneyOut={moneyOut} setMoneyOut={setMoneyOut} computed={computed} />}
               </div>
 
               <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -750,6 +881,158 @@ function CertPForm({ cp, setCp }: any) {
       <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
         Certificate number is issued automatically (CERTP serial). To make many at once, switch to Batch from CSV.
       </div>
+    </div>
+  );
+}
+
+function CallSheetForm({ call, setCall, crew, setCrew, ros, setRos, dontForget, setDontForget }: any) {
+  const set = (k: string) => (e: any) => setCall({ ...call, [k]: e.target.value });
+
+  const setCrewRow = (i: number, k: keyof CrewRow) => (e: any) => {
+    const next = crew.slice(); next[i] = { ...next[i], [k]: e.target.value }; setCrew(next);
+  };
+  const addCrew = () => { if (crew.length < 24) setCrew([...crew, emptyCrew()]); };
+  const delCrew = (i: number) => setCrew(crew.length > 1 ? crew.filter((_: any, j: number) => j !== i) : crew);
+
+  const setRosRow = (i: number, k: keyof RosRow) => (e: any) => {
+    const next = ros.slice(); next[i] = { ...next[i], [k]: e.target.value }; setRos(next);
+  };
+  const addRos = () => { if (ros.length < 20) setRos([...ros, emptyRos()]); };
+  const delRos = (i: number) => setRos(ros.length > 1 ? ros.filter((_: any, j: number) => j !== i) : ros);
+
+  const setDf = (i: number) => (e: any) => {
+    const next = dontForget.slice(); next[i] = e.target.value; setDontForget(next);
+  };
+  const addDf = () => { if (dontForget.length < 8) setDontForget([...dontForget, '']); };
+  const delDf = (i: number) => setDontForget(dontForget.length > 1 ? dontForget.filter((_: any, j: number) => j !== i) : dontForget);
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>
+        Pre-filled with the real Lari Boys example. Edit it, or clear the fields and enter your own event.
+      </div>
+      <Field lbl="Event / school (issued to)"><input style={inp} value={call.eventName} onChange={set('eventName')} placeholder="e.g. Lari Boys High School" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <Field lbl="Date"><input style={inp} value={call.date} onChange={set('date')} placeholder="e.g. Sun 19 Jul" /></Field>
+        <Field lbl="Venue"><input style={inp} value={call.venue} onChange={set('venue')} placeholder="e.g. Kimende" /></Field>
+        <Field lbl="Crew call"><input style={inp} value={call.crewCall} onChange={set('crewCall')} placeholder="e.g. 5:00 AM" /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <Field lbl="Flat day rate"><input style={inp} value={call.dayRate} onChange={set('dayRate')} placeholder="e.g. KSH 1,000" /></Field>
+        <Field lbl="Director"><input style={inp} value={call.director} onChange={set('director')} placeholder="Chain of command" /></Field>
+        <Field lbl="Stage manager"><input style={inp} value={call.stageManager} onChange={set('stageManager')} /></Field>
+      </div>
+
+      <label style={label}>Crew ({crew.length} / 24)</label>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+        {crew.map((r: CrewRow, i: number) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 28px', gap: 6, alignItems: 'center' }}>
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Name" value={r.name} onChange={setCrewRow(i, 'name')} />
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Role" value={r.role} onChange={setCrewRow(i, 'role')} />
+            <button onClick={() => delCrew(i)} title="Remove" style={{ ...btnSmall, background: '#eee', padding: '5px 7px' }}>x</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={addCrew} disabled={crew.length >= 24} style={{ ...btnSmall, opacity: crew.length >= 24 ? 0.5 : 1 }}>+ Add crew</button>
+
+      <label style={{ ...label, marginTop: 14 }}>Run of show ({ros.length} / 20)</label>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+        {ros.map((r: RosRow, i: number) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '58px 1fr 1fr 28px', gap: 6, alignItems: 'center' }}>
+            <input style={{ ...inp, padding: '7px 6px' }} placeholder="Time" value={r.time} onChange={setRosRow(i, 'time')} />
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Segment" value={r.segment} onChange={setRosRow(i, 'segment')} />
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Notes" value={r.notes} onChange={setRosRow(i, 'notes')} />
+            <button onClick={() => delRos(i)} title="Remove" style={{ ...btnSmall, background: '#eee', padding: '5px 7px' }}>x</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={addRos} disabled={ros.length >= 20} style={{ ...btnSmall, opacity: ros.length >= 20 ? 0.5 : 1 }}>+ Add run-of-show row</button>
+
+      <label style={{ ...label, marginTop: 14 }}>Don't forget ({dontForget.length} / 8)</label>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+        {dontForget.map((v: string, i: number) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 28px', gap: 6, alignItems: 'center' }}>
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Reminder" value={v} onChange={setDf(i)} />
+            <button onClick={() => delDf(i)} title="Remove" style={{ ...btnSmall, background: '#eee', padding: '5px 7px' }}>x</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={addDf} disabled={dontForget.length >= 8} style={{ ...btnSmall, opacity: dontForget.length >= 8 ? 0.5 : 1 }}>+ Add reminder</button>
+    </div>
+  );
+}
+
+function BudgetForm({ bud, setBud, moneyIn, setMoneyIn, moneyOut, setMoneyOut, computed }: any) {
+  const set = (k: string) => (e: any) => setBud({ ...bud, [k]: e.target.value });
+
+  const setIn = (i: number, k: keyof InRow) => (e: any) => {
+    const next = moneyIn.slice(); next[i] = { ...next[i], [k]: e.target.value }; setMoneyIn(next);
+  };
+  const addIn = () => { if (moneyIn.length < 5) setMoneyIn([...moneyIn, emptyIn()]); };
+  const delIn = (i: number) => setMoneyIn(moneyIn.length > 1 ? moneyIn.filter((_: any, j: number) => j !== i) : moneyIn);
+
+  const setOut = (i: number, k: keyof OutRow) => (e: any) => {
+    const next = moneyOut.slice(); next[i] = { ...next[i], [k]: e.target.value }; setMoneyOut(next);
+  };
+  const addOut = () => { if (moneyOut.length < 11) setMoneyOut([...moneyOut, emptyOut()]); };
+  const delOut = (i: number) => setMoneyOut(moneyOut.length > 1 ? moneyOut.filter((_: any, j: number) => j !== i) : moneyOut);
+
+  return (
+    <div>
+      <Field lbl="Event / school (issued to)"><input style={inp} value={bud.eventName} onChange={set('eventName')} placeholder="Event or school name" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Date"><input type="date" style={inp} value={bud.date} onChange={set('date')} /></Field>
+        <Field lbl="Prepared by"><input style={inp} value={bud.preparedBy} onChange={set('preparedBy')} /></Field>
+      </div>
+
+      <label style={label}>Money in ({moneyIn.length} / 5) - amount = count x rate (server-computed)</label>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+        {moneyIn.map((r: InRow, i: number) => {
+          const amt = num(r.count) * num(r.rate);
+          return (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 64px 84px 84px 28px', gap: 6, alignItems: 'center' }}>
+              <input style={{ ...inp, padding: '7px 9px' }} placeholder="Source" value={r.source} onChange={setIn(i, 'source')} />
+              <input style={{ ...inp, padding: '7px 6px' }} type="number" min={0} placeholder="Count" value={r.count} onChange={setIn(i, 'count')} />
+              <input style={{ ...inp, padding: '7px 9px' }} type="number" min={0} placeholder="Rate" value={r.rate} onChange={setIn(i, 'rate')} />
+              <div style={{ fontSize: 12, textAlign: 'right', fontWeight: 700, color: '#555' }}>{amt ? fmtKsh(amt) : '-'}</div>
+              <button onClick={() => delIn(i)} title="Remove" style={{ ...btnSmall, background: '#eee', padding: '5px 7px' }}>x</button>
+            </div>
+          );
+        })}
+      </div>
+      <button onClick={addIn} disabled={moneyIn.length >= 5} style={{ ...btnSmall, opacity: moneyIn.length >= 5 ? 0.5 : 1 }}>+ Add income line</button>
+
+      <label style={{ ...label, marginTop: 14 }}>Money out ({moneyOut.length} / 11)</label>
+      <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+        {moneyOut.map((r: OutRow, i: number) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 84px 28px', gap: 6, alignItems: 'center' }}>
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Line item" value={r.item} onChange={setOut(i, 'item')} />
+            <input style={{ ...inp, padding: '7px 9px' }} placeholder="Supplier" value={r.supplier} onChange={setOut(i, 'supplier')} />
+            <input style={{ ...inp, padding: '7px 9px' }} type="number" min={0} placeholder="Amount" value={r.amount} onChange={setOut(i, 'amount')} />
+            <button onClick={() => delOut(i)} title="Remove" style={{ ...btnSmall, background: '#eee', padding: '5px 7px' }}>x</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={addOut} disabled={moneyOut.length >= 11} style={{ ...btnSmall, opacity: moneyOut.length >= 11 ? 0.5 : 1 }}>+ Add expense line</button>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 14 }}>
+        <Field lbl="Savings transfer (%)"><input style={inp} type="number" min={0} max={100} value={bud.savingsPercent} onChange={set('savingsPercent')} placeholder="e.g. 30" /></Field>
+        <Field lbl="Crew headcount (check)"><input style={inp} type="number" min={0} value={bud.crewCount} onChange={set('crewCount')} placeholder="optional" /></Field>
+        <Field lbl="Crew rate (check)"><input style={inp} type="number" min={0} value={bud.crewRate} onChange={set('crewRate')} placeholder="optional" /></Field>
+      </div>
+
+      <div style={{ background: '#faf7f0', border: '2px solid #111', borderRadius: 10, padding: 10, margin: '4px 0 4px', fontSize: 13 }}>
+        <Line k="Total in" v={'KSH ' + fmtKsh(computed?.totalIn || 0)} />
+        <Line k="Total out" v={'KSH ' + fmtKsh(computed?.totalOut || 0)} />
+        <Line k="Profit (in less out)" v={'KSH ' + fmtKsh(computed?.profit || 0)} bold />
+        <Line k={'Savings (' + (computed?.savingsPercent ?? 0) + '%)'} v={'KSH ' + fmtKsh(computed?.savings || 0)} />
+        <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>Computed by the server - authoritative. Typed totals are ignored.</div>
+      </div>
+      {computed?.crewWarning && (
+        <div style={{ background: '#fff8e6', border: '2px solid #E0A800', borderRadius: 10, padding: 10, fontSize: 12.5, color: '#7a5c00', fontWeight: 600 }}>
+          Heads up: {computed.crewWarning}
+        </div>
+      )}
     </div>
   );
 }
