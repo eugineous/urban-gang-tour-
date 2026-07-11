@@ -76,9 +76,33 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   certp: { code: 'CERTP', label: 'Participation Certificate', template: '08-certificate-participation.html' },
   call: { code: 'CALL', label: 'Call Sheet', template: '44-call-sheet-run-of-show-lari-boys.html' },
   budget: { code: 'BUD', label: 'Event Budget Sheet', template: '45-event-budget-sheet.html' },
+  // Batch-by-quantity types (a run of N serialised items, each with its own QR).
+  tix: { code: 'TIX', label: 'Event Ticket', template: '22-ticket-event-vip.html' },
+  spass: { code: 'SPASS', label: 'Student Pass', template: '23-ticket-student-pass-front-back-game.html' },
+  // band's template is resolved per bandType (see BAND_TEMPLATES / resolveTemplate).
+  band: { code: 'BAND', label: 'Wristband', template: '10-wristband-ga-the-fan.html' },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget'] as const;
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
+
+// Wristband is one doc type (code BAND) but four artworks. The bandType picks
+// the template; the serial counter, record and verify page stay type-agnostic.
+export const BAND_TEMPLATES: Record<string, string> = {
+  GA: '10-wristband-ga-the-fan.html',
+  VIP: '11-wristband-vip-the-plug.html',
+  Crew: '12-wristband-crew-the-engine.html',
+  Student: '24-wristband-student-pass.html',
+};
+
+// Resolve the artwork file for a (type, payload). Only band is payload-dependent
+// (its bandType selects one of BAND_TEMPLATES); every other type is a fixed file.
+export function resolveTemplate(type: DocType, payload: any): string {
+  if (type === 'band') {
+    const bt = String(payload?.bandType || 'GA');
+    return BAND_TEMPLATES[bt] || BAND_TEMPLATES.GA;
+  }
+  return DOC_TYPES[type].template;
+}
 
 export function isDocType(v: unknown): v is DocType {
   return typeof v === 'string' && (ACTIVE_DOC_TYPES as readonly string[]).includes(v);
@@ -263,7 +287,7 @@ function injectField(html: string, field: string, value: string): string {
   return html.replace(re, (_m, open, _tag, close) => open + escapeHtml(value) + close);
 }
 
-export interface FillOpts { serial: string; qrDataUrl?: string; method?: string; }
+export interface FillOpts { serial: string; qrDataUrl?: string; method?: string; tierScheme?: 'ga' | 'vip'; }
 
 export async function fillTemplate(
   templateFile: string,
@@ -290,16 +314,42 @@ export async function fillTemplate(
   // swapping). A future template that DOES carry a repeating-linear-gradient
   // placeholder is handled by the swap branch below.
   if (opts.qrDataUrl) {
-    // generic swap path for templates that have a striped placeholder box
-    html = html.replace(
-      /<div([^>]*background:repeating-linear-gradient[^>]*)><\/div>/,
-      `<img src="${opts.qrDataUrl}" alt="Verify" style="width:96px;height:96px;display:block;background:#fff;" />`
-    );
-    // money-doc badge path (invoice + receipt)
+    // marked QR slot (tickets, passes, wristbands): replace the placeholder
+    // box's inner markup with the real QR, keeping the box's own frame. The
+    // slot's own dimensions size the QR, so a thin band gets a small QR and a
+    // ticket stub a large one. When a slot exists the generic striped-swap is
+    // skipped so the decorative barcode strips stay intact.
+    const hasSlot = /data-qr-slot="1"/.test(html);
+    if (hasSlot) {
+      html = html.replace(
+        /(<div\b[^>]*\bdata-qr-slot="1"[^>]*>)[\s\S]*?(<\/div>)/,
+        (_m, open, close) => open + `<img src="${opts.qrDataUrl}" alt="Verify" style="width:100%;height:100%;object-fit:contain;display:block;background:#fff;" />` + close
+      );
+    } else {
+      // generic swap path for templates that have a striped placeholder box
+      html = html.replace(
+        /<div([^>]*background:repeating-linear-gradient[^>]*)><\/div>/,
+        `<img src="${opts.qrDataUrl}" alt="Verify" style="width:96px;height:96px;display:block;background:#fff;" />`
+      );
+    }
+    // money-doc badge path (invoice + receipt); returns '' for other templates.
     const badge = qrBadgeHtml(templateFile, opts.serial, opts.qrDataUrl);
     if (badge) {
       html = html.replace(/(<div\b[^>]*\bdata-doc-page="[^"]*"[^>]*>)/, (_m, open) => open + badge);
     }
+  }
+
+  // 3b) Ticket tier recolour (spec: GA = magenta scheme, VIP = gold-on-black as
+  // designed). The template ships VIP; for GA we swap the gold accents to
+  // magenta ONLY on elements the template marks data-tier-gold / data-tier-goldbg
+  // (so the brand tri-colour chips and 18+ chip keep their own colours). Applied
+  // as inline-style rewrites because the rasteriser captures only the
+  // [data-doc-page] node, so a <head> CSS rule would never reach the output.
+  if (opts.tierScheme === 'ga') {
+    html = html.replace(/<[^>]*\bdata-tier-gold="1"[^>]*>/g, (tag) =>
+      tag.replace(/#FFD400/g, '#E6218C').replace(/#f0a500/g, '#ff3d9e').replace(/color:#111/g, 'color:#fff'));
+    html = html.replace(/<[^>]*\bdata-tier-goldbg="1"[^>]*>/g, (tag) =>
+      tag.replace(/rgba\(255,212,0,\.06\)/g, 'rgba(230,33,140,.12)'));
   }
 
   // 4) make asset refs portable (iframe srcdoc / hidden capture node both need
@@ -497,6 +547,53 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
     };
     return { type, payload, issued_to: eventName, event: '', slug: slugify(eventName || 'budget'), computed };
   }
+  if (type === 'tix') {
+    // Event ticket. eventName is the identity; venue/date/gateTime are the
+    // printed chips. tier is GA or VIP.
+    //
+    // HARD RULE (spec): a SCHOOL stop is single-tier only. A VIP ticket must
+    // NEVER be generatable for a school stop. We fail CLOSED: any request with
+    // schoolStop=true AND tier=VIP is rejected here (this runs on preview,
+    // single generate AND every batch row, so it cannot be bypassed), and a
+    // school stop is otherwise forced to GA.
+    const eventName = str(p.eventName, 120).trim();
+    const venue = str(p.venue, 80).trim();
+    const date = str(p.date, 60).trim();
+    const gateTime = str(p.gateTime, 40).trim();
+    const schoolStop = p.schoolStop === true || p.schoolStop === 'true' || p.schoolStop === 1 || p.schoolStop === '1';
+    let tier = str(p.tier, 10).toUpperCase();
+    if (tier !== 'VIP' && tier !== 'GA') tier = 'GA';
+    if (!eventName) throw new Error('eventName_required');
+    if (schoolStop && tier === 'VIP') throw new Error('school_stop_is_single_tier_no_vip');
+    if (schoolStop) tier = 'GA';
+    const payload = { eventName, venue, date, gateTime, tier, schoolStop };
+    const event = [venue, date].filter(Boolean).join(' - ');
+    return { type, payload, issued_to: eventName, event, slug: slugify(eventName), computed: { tier, schoolStop } };
+  }
+  if (type === 'spass') {
+    // Student pass (inherently a school / single-tier pass). eventName required;
+    // schoolName + date are the printed blanks.
+    const eventName = str(p.eventName, 120).trim();
+    const schoolName = str(p.schoolName, 120).trim();
+    const date = str(p.date, 60).trim();
+    if (!eventName) throw new Error('eventName_required');
+    const payload = { eventName, schoolName, date };
+    const event = eventName;
+    return { type, payload, issued_to: schoolName || eventName, event, slug: slugify(schoolName || eventName), computed: {} };
+  }
+  if (type === 'band') {
+    // Wristband. bandType picks the artwork (GA/VIP/Crew = event bands, tier
+    // only; Student = school band with schoolName + date). eventName is optional
+    // and only used for the record / manifest.
+    const bandType = ['GA', 'VIP', 'Crew', 'Student'].includes(str(p.bandType, 10)) ? str(p.bandType, 10) : 'GA';
+    const eventName = str(p.eventName, 120).trim();
+    const schoolName = str(p.schoolName, 120).trim();
+    const date = str(p.date, 60).trim();
+    const payload = { bandType, eventName, schoolName, date };
+    const issued_to = bandType === 'Student' ? (schoolName || eventName || 'Student band') : (eventName || `${bandType} band`);
+    const event = bandType === 'Student' ? [schoolName, date].filter(Boolean).join(' - ') : eventName;
+    return { type, payload, issued_to, event, slug: slugify(eventName || schoolName || `${bandType}-band`), computed: { bandType } };
+  }
   // receipt
   const amount = Math.max(0, Math.round(num(p.amountFigures)));
   const methodRaw = str(p.method, 20);
@@ -626,6 +723,39 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
     }
     return { values };
   }
+  if (type === 'tix') {
+    return {
+      values: {
+        eventName: payload.eventName || '',
+        venue: payload.venue || '',
+        date: payload.date || '',
+        gateTime: payload.gateTime || '',
+        tier: payload.tier === 'VIP' ? 'VIP' : 'GA',
+        serialTag: serial,
+      },
+    };
+  }
+  if (type === 'spass') {
+    return {
+      values: {
+        eventName: payload.eventName || '',
+        schoolName: payload.schoolName || '',
+        date: payload.date || '',
+        serialTag: serial,
+      },
+    };
+  }
+  if (type === 'band') {
+    // Event bands ignore schoolName/date (no such field in their artwork);
+    // the Student band consumes them. serialTag + QR apply to every band.
+    return {
+      values: {
+        schoolName: payload.schoolName || '',
+        date: payload.date || '',
+        serialTag: serial,
+      },
+    };
+  }
   // receipt
   const bal = payload.balanceDue === '' || payload.balanceDue === undefined || payload.balanceDue === null ? '' : fmtNum(payload.balanceDue);
   const values: Record<string, string> = {
@@ -649,7 +779,9 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
 export async function renderDoc(type: DocType, payload: any, serial: string): Promise<string> {
   const { values, method } = buildValues(type, payload, serial);
   const qrDataUrl = await makeQrDataUrl(serial);
-  return fillTemplate(DOC_TYPES[type].template, values, { serial, qrDataUrl, method });
+  const templateFile = resolveTemplate(type, payload);
+  const tierScheme = type === 'tix' ? (payload?.tier === 'VIP' ? 'vip' : 'ga') : undefined;
+  return fillTemplate(templateFile, values, { serial, qrDataUrl, method, tierScheme });
 }
 
 // ---------------------------------------------------------------------------

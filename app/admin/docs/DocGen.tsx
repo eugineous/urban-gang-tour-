@@ -24,7 +24,7 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget';
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band';
 const TYPES: { key: DocType; label: string }[] = [
   { key: 'invoice', label: 'Invoice' },
   { key: 'receipt', label: 'Receipt' },
@@ -32,8 +32,16 @@ const TYPES: { key: DocType; label: string }[] = [
   { key: 'certp', label: 'Participation Certificate' },
   { key: 'call', label: 'Call Sheet' },
   { key: 'budget', label: 'Event Budget Sheet' },
+  { key: 'tix', label: 'Event Ticket' },
+  { key: 'spass', label: 'Student Pass' },
+  { key: 'band', label: 'Wristband' },
 ];
 const isCertType = (t: DocType) => t === 'certw' || t === 'certp';
+// Batch-by-quantity types: the admin enters a quantity N and a set of shared
+// event fields; the system reserves N sequential serials, each item getting its
+// own serial + its own verify QR. Output is a ZIP of N PDFs plus a serial CSV.
+const isQtyType = (t: DocType) => t === 'tix' || t === 'spass' || t === 'band';
+const QTY_NOUN: Record<string, string> = { tix: 'tickets', spass: 'passes', band: 'bands' };
 
 // Doc page dimensions (px) - drives the live-preview iframe sizing. Body
 // padding is 34px each side (see the templates' <body>), so the frame adds 68.
@@ -44,6 +52,9 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   certp: { w: 1123, h: 794 },
   call: { w: 794, h: 1123 },
   budget: { w: 794, h: 1123 },
+  tix: { w: 980, h: 356 },
+  spass: { w: 980, h: 706 },
+  band: { w: 960, h: 96 },
 };
 
 // CSV column schema per certificate type (also the accepted header names).
@@ -189,6 +200,21 @@ export default function DocGen() {
   const [moneyIn, setMoneyIn] = useState<InRow[]>(BUDGET_IN_SEED.map((r) => ({ ...r })));
   const [moneyOut, setMoneyOut] = useState<OutRow[]>(BUDGET_OUT_SEED.map((r) => ({ ...r })));
 
+  // Event ticket form. schoolStop locks the tier to GA (single-tier rule); the
+  // server also rejects any VIP + schoolStop request.
+  const [tix, setTix] = useState({ eventName: '', venue: '', date: '', gateTime: '', tier: 'GA', schoolStop: false });
+  // Student pass form (inherently single-tier).
+  const [spass, setSpass] = useState({ eventName: '', schoolName: '', date: '' });
+  // Wristband form. bandType picks the artwork (GA/VIP/Crew event bands; Student
+  // school band with school + date).
+  const [band, setBand] = useState({ bandType: 'GA', eventName: '', schoolName: '', date: '' });
+
+  // Quantity-batch state (tickets / passes / bands).
+  const [qty, setQty] = useState('3');
+  const [qtyBusy, setQtyBusy] = useState(false);
+  const [qtyProgress, setQtyProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [qtyResult, setQtyResult] = useState<{ serials?: string[]; zipUrl?: string; zipName?: string; csvUrl?: string; csvName?: string; error?: string } | null>(null);
+
   // CSV batch state
   const [csvName, setCsvName] = useState('');
   const [csvRows, setCsvRows] = useState<Record<string, string>[]>([]);
@@ -243,6 +269,18 @@ export default function DocGen() {
         dontForget: dontForget.filter((d) => d.trim()),
       } as Record<string, unknown>;
     }
+    if (type === 'tix') {
+      return {
+        eventName: tix.eventName, venue: tix.venue, date: tix.date, gateTime: tix.gateTime,
+        tier: tix.schoolStop ? 'GA' : tix.tier, schoolStop: tix.schoolStop,
+      } as Record<string, unknown>;
+    }
+    if (type === 'spass') {
+      return { eventName: spass.eventName, schoolName: spass.schoolName, date: spass.date } as Record<string, unknown>;
+    }
+    if (type === 'band') {
+      return { bandType: band.bandType, eventName: band.eventName, schoolName: band.schoolName, date: band.date } as Record<string, unknown>;
+    }
     // budget
     return {
       eventName: bud.eventName, date: bud.date, preparedBy: bud.preparedBy,
@@ -252,7 +290,7 @@ export default function DocGen() {
       moneyIn: moneyIn.filter((r) => r.source || r.count || r.rate).map((r) => ({ source: r.source, count: num(r.count), rate: num(r.rate) })),
       moneyOut: moneyOut.filter((r) => r.item || r.supplier || r.amount).map((r) => ({ item: r.item, supplier: r.supplier, amount: num(r.amount) })),
     } as Record<string, unknown>;
-  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut]);
+  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band]);
 
   // What the live preview renders: in batch mode, the first parsed row; else
   // the single-form payload.
@@ -267,6 +305,7 @@ export default function DocGen() {
     const p: any = previewPayload;
     if (type === 'certw') return !!String(p?.recipientName || '').trim();
     if (type === 'certp') return !!String(p?.participantName || '').trim();
+    if (type === 'tix' || type === 'spass') return !!String(p?.eventName || '').trim();
     return true;
   }, [type, previewPayload]);
 
@@ -305,6 +344,7 @@ export default function DocGen() {
   function switchType(t: DocType) {
     setType(t); setResult(null); setMode('single');
     setCsvRows([]); setCsvName(''); setCsvError(''); setBatchResult(null);
+    setQtyResult(null); setQtyProgress({ done: 0, total: 0 });
   }
 
   async function doGenerate() {
@@ -393,6 +433,64 @@ export default function DocGen() {
     }
   }
 
+  // Quantity batch (tickets / passes / bands): reserve N sequential serials from
+  // one set of shared event fields, each item getting its own serial + QR.
+  // Reuses the same /batch endpoint the certificates use (build N identical rows
+  // from the shared fields), then rasterises each, zips the PDFs and emits a
+  // serial-list CSV manifest for the gate / box office / print vendor.
+  async function doQtyBatch() {
+    if (qtyBusy) return;
+    const n = Math.max(1, Math.min(300, Math.round(num(qty)) || 1));
+    setQtyBusy(true); setQtyResult(null); setQtyProgress({ done: 0, total: n });
+    try {
+      const shared = singlePayload as Record<string, any>;
+      const rows = Array.from({ length: n }, () => ({ ...shared }));
+      // Phase 1: reserve all serials at once (server validates every row first,
+      // so an invalid config - e.g. VIP on a school stop - reserves nothing).
+      const r = await api('/api/admin/docs/batch', { method: 'POST', body: JSON.stringify({ type, rows }) });
+      if (r.status !== 200 || !r.data?.docs) {
+        const d = r.data || {};
+        const msg = d.error === 'row_invalid'
+          ? `Rejected: ${d.detail || 'invalid'}. Nothing was issued.`
+          : 'Batch failed: ' + (d.error || r.status);
+        setQtyResult({ error: msg }); say(msg); setQtyBusy(false); return;
+      }
+      const docs: Array<{ id: string; serial: string; html: string; filename: string }> = r.data.docs;
+
+      // Bands print at exactly 254 x 25 mm (spec) at ~300+ dpi; tickets/passes
+      // capture at 3x for crisp print.
+      const rOpts = type === 'band'
+        ? { pixelRatio: 4, pageFormatMm: [254, 25] as [number, number] }
+        : { pixelRatio: 3 };
+
+      const entries: { name: string; data: Uint8Array }[] = [];
+      const serials: string[] = [];
+      for (let i = 0; i < docs.length; i++) {
+        const d = docs[i];
+        const { pngDataUrl, pdfDataUrl } = await rasterise(d.html, rOpts);
+        await api('/api/admin/docs/generate', { method: 'POST', body: JSON.stringify({ id: d.id, pdfBase64: pdfDataUrl, pngBase64: pngDataUrl }) });
+        entries.push({ name: d.filename, data: dataUrlToBytes(pdfDataUrl) });
+        serials.push(d.serial);
+        setQtyProgress({ done: i + 1, total: docs.length });
+      }
+
+      const zipBlob = buildZipStore(entries);
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const zipName = `${type}-${today()}.zip`;
+      const csvBlob = new Blob([buildSerialCsv(type, serials, shared)], { type: 'text/csv;charset=utf-8' });
+      const csvUrl = URL.createObjectURL(csvBlob);
+      const csvName = `${type}-serials-${today()}.csv`;
+      setQtyResult({ serials, zipUrl, zipName, csvUrl, csvName });
+      say('Generated ' + serials.length + ' ' + (QTY_NOUN[type] || 'items'));
+      loadRecent();
+    } catch (e: any) {
+      const msg = 'Batch error: ' + (e?.message || 'unknown');
+      setQtyResult({ error: msg }); say(msg);
+    } finally {
+      setQtyBusy(false);
+    }
+  }
+
   async function voidDoc(serial: string) {
     const reason = window.prompt('Reason for voiding ' + serial + '? (a correction is a new document, never an edit)');
     if (reason === null) return;
@@ -405,7 +503,13 @@ export default function DocGen() {
     : type === 'receipt' ? 'Receipt details'
     : type === 'certw' ? 'Winner certificate'
     : type === 'certp' ? 'Participation certificate'
-    : type === 'call' ? 'Call sheet & run of show' : 'Event budget sheet';
+    : type === 'call' ? 'Call sheet & run of show'
+    : type === 'tix' ? 'Event ticket (batch by quantity)'
+    : type === 'spass' ? 'Student pass (batch by quantity)'
+    : type === 'band' ? 'Wristband (batch by quantity)' : 'Event budget sheet';
+
+  const qtyN = Math.max(1, Math.min(300, Math.round(num(qty)) || 1));
+  const qtyReady = type === 'band' ? true : !!String((singlePayload as any)?.eventName || '').trim();
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
@@ -460,26 +564,38 @@ export default function DocGen() {
                 {type === 'certp' && <CertPForm cp={cp} setCp={setCp} />}
                 {type === 'call' && <CallSheetForm call={call} setCall={setCall} crew={crew} setCrew={setCrew} ros={ros} setRos={setRos} dontForget={dontForget} setDontForget={setDontForget} />}
                 {type === 'budget' && <BudgetForm bud={bud} setBud={setBud} moneyIn={moneyIn} setMoneyIn={setMoneyIn} moneyOut={moneyOut} setMoneyOut={setMoneyOut} computed={computed} />}
+                {type === 'tix' && <TicketForm tix={tix} setTix={setTix} />}
+                {type === 'spass' && <StudentPassForm spass={spass} setSpass={setSpass} />}
+                {type === 'band' && <BandForm band={band} setBand={setBand} />}
               </div>
 
-              <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                <button onClick={doGenerate} disabled={gen} style={{ ...btnMagenta, opacity: gen ? 0.6 : 1 }}>
-                  {gen ? 'Generating...' : 'Generate document'}
-                </button>
-                {busy && <span style={{ fontSize: 12, color: '#999' }}>updating preview...</span>}
-              </div>
+              {isQtyType(type) ? (
+                <QtyControls
+                  noun={QTY_NOUN[type]} qty={qty} setQty={setQty} n={qtyN} ready={qtyReady} previewBusy={busy}
+                  busy={qtyBusy} progress={qtyProgress} result={qtyResult} onGenerate={doQtyBatch}
+                />
+              ) : (
+                <>
+                  <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button onClick={doGenerate} disabled={gen} style={{ ...btnMagenta, opacity: gen ? 0.6 : 1 }}>
+                      {gen ? 'Generating...' : 'Generate document'}
+                    </button>
+                    {busy && <span style={{ fontSize: 12, color: '#999' }}>updating preview...</span>}
+                  </div>
 
-              {result && (
-                <div style={{ marginTop: 14, border: '2px solid #1F8A5B', borderRadius: 12, padding: 14, background: '#f2fbf6' }}>
-                  <div style={{ fontFamily: 'Anton', fontSize: 16, color: '#1F8A5B' }}>Generated: {result.serial}</div>
-                  <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-                    <a href={result.pdf_url} download={result.filename} style={{ ...btn, textDecoration: 'none' }}>Download PDF</a>
-                    <a href={VERIFY_BASE + result.serial} target="_blank" rel="noreferrer" style={{ ...btnDark, textDecoration: 'none' }}>Open verify page</a>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#555', marginTop: 8, wordBreak: 'break-all' }}>
-                    Verify URL: {VERIFY_BASE + result.serial}
-                  </div>
-                </div>
+                  {result && (
+                    <div style={{ marginTop: 14, border: '2px solid #1F8A5B', borderRadius: 12, padding: 14, background: '#f2fbf6' }}>
+                      <div style={{ fontFamily: 'Anton', fontSize: 16, color: '#1F8A5B' }}>Generated: {result.serial}</div>
+                      <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+                        <a href={result.pdf_url} download={result.filename} style={{ ...btn, textDecoration: 'none' }}>Download PDF</a>
+                        <a href={VERIFY_BASE + result.serial} target="_blank" rel="noreferrer" style={{ ...btnDark, textDecoration: 'none' }}>Open verify page</a>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#555', marginTop: 8, wordBreak: 'break-all' }}>
+                        Verify URL: {VERIFY_BASE + result.serial}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
@@ -492,7 +608,9 @@ export default function DocGen() {
           <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>
             {batchMode
               ? 'Preview shows the first CSV row. Real serials are issued only when you Generate All.'
-              : 'Preview uses a provisional serial. The real serial is issued only when you click Generate.'}
+              : isQtyType(type)
+                ? 'Preview shows one item with a provisional serial. The run of N real serials + QRs is issued only when you Generate.'
+                : 'Preview uses a provisional serial. The real serial is issued only when you click Generate.'}
           </div>
         </div>
       </div>
@@ -539,7 +657,10 @@ export default function DocGen() {
 // Mounts the [data-doc-page] node off-screen in THIS document, waits for its
 // images + brand fonts, snapshots at 2x, wraps into a page-sized PDF.
 // ---------------------------------------------------------------------------
-async function rasterise(html: string): Promise<{ pngDataUrl: string; pdfDataUrl: string }> {
+async function rasterise(
+  html: string,
+  opts: { pixelRatio?: number; pageFormatMm?: [number, number] } = {}
+): Promise<{ pngDataUrl: string; pdfDataUrl: string }> {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const page = parsed.querySelector('[data-doc-page]') as HTMLElement | null;
   if (!page) throw new Error('no_doc_page');
@@ -564,11 +685,13 @@ async function rasterise(html: string): Promise<{ pngDataUrl: string; pdfDataUrl
     const h = node.offsetHeight || 1123;
 
     const htmlToImage = await import('html-to-image');
-    const pngDataUrl = await htmlToImage.toPng(node, { pixelRatio: 2, width: w, height: h, backgroundColor: '#ffffff', cacheBust: true });
+    const pngDataUrl = await htmlToImage.toPng(node, { pixelRatio: opts.pixelRatio || 2, width: w, height: h, backgroundColor: '#ffffff', cacheBust: true });
 
     const { jsPDF } = await import('jspdf');
-    const mmW = (w * 25.4) / 96;
-    const mmH = (h * 25.4) / 96;
+    // Page size: the node's own pixel dims in mm (96px = 1 inch), unless the
+    // caller forces one (bands are pinned to the print vendor's 254 x 25 mm).
+    const mmW = opts.pageFormatMm ? opts.pageFormatMm[0] : (w * 25.4) / 96;
+    const mmH = opts.pageFormatMm ? opts.pageFormatMm[1] : (h * 25.4) / 96;
     const pdf = new jsPDF({ orientation: mmW > mmH ? 'landscape' : 'portrait', unit: 'mm', format: [mmW, mmH], compress: true });
     pdf.addImage(pngDataUrl, 'PNG', 0, 0, mmW, mmH);
     const pdfDataUrl = pdf.output('datauristring');
@@ -644,6 +767,28 @@ function dataUrlToBytes(dataUrl: string): Uint8Array {
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
+}
+
+// Serial-list CSV manifest for a quantity batch - the gate / box office / print
+// vendor's copy of every serial issued in this run and where each one verifies.
+function buildSerialCsv(type: DocType, serials: string[], shared: Record<string, any>): string {
+  const esc = (v: unknown) => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  let cols: string[];
+  let rowFor: (s: string) => (string | number)[];
+  if (type === 'tix') {
+    cols = ['serial', 'tier', 'event', 'venue', 'date', 'verify'];
+    rowFor = (s) => [s, shared.tier || 'GA', shared.eventName || '', shared.venue || '', shared.date || '', VERIFY_BASE + s];
+  } else if (type === 'spass') {
+    cols = ['serial', 'school', 'event', 'date', 'verify'];
+    rowFor = (s) => [s, shared.schoolName || '', shared.eventName || '', shared.date || '', VERIFY_BASE + s];
+  } else {
+    cols = ['serial', 'bandType', 'event', 'school', 'date', 'verify'];
+    rowFor = (s) => [s, shared.bandType || 'GA', shared.eventName || '', shared.schoolName || '', shared.date || '', VERIFY_BASE + s];
+  }
+  return [cols.join(','), ...serials.map((s) => rowFor(s).map(esc).join(','))].join('\n');
 }
 
 let crcTable: Uint32Array | null = null;
@@ -1031,6 +1176,150 @@ function BudgetForm({ bud, setBud, moneyIn, setMoneyIn, moneyOut, setMoneyOut, c
       {computed?.crewWarning && (
         <div style={{ background: '#fff8e6', border: '2px solid #E0A800', borderRadius: 10, padding: 10, fontSize: 12.5, color: '#7a5c00', fontWeight: 600 }}>
           Heads up: {computed.crewWarning}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Event ticket form. Batch by quantity. schoolStop locks the tier to GA (the
+// single-tier school rule); VIP is disabled and the server also rejects any
+// VIP + schoolStop request, so a school ticket can never be VIP.
+// ---------------------------------------------------------------------------
+function TicketForm({ tix, setTix }: any) {
+  const set = (k: string) => (e: any) => setTix({ ...tix, [k]: e.target.value });
+  const toggleSchool = (e: any) => {
+    const on = e.target.checked;
+    setTix({ ...tix, schoolStop: on, tier: on ? 'GA' : tix.tier });
+  };
+  const effTier = tix.schoolStop ? 'GA' : tix.tier;
+  return (
+    <div>
+      <Field lbl="Event name (required)"><input style={inp} value={tix.eventName} onChange={set('eventName')} placeholder="e.g. Campus Rave Nairobi" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <Field lbl="Date"><input style={inp} value={tix.date} onChange={set('date')} placeholder="e.g. FRI 3 OCT" /></Field>
+        <Field lbl="Venue"><input style={inp} value={tix.venue} onChange={set('venue')} placeholder="e.g. Carnivore Grounds" /></Field>
+        <Field lbl="Gate time"><input style={inp} value={tix.gateTime} onChange={set('gateTime')} placeholder="e.g. GATES 4 PM" /></Field>
+      </div>
+      <label style={label}>Tier</label>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+        {['GA', 'VIP'].map((t) => {
+          const locked = tix.schoolStop && t === 'VIP';
+          const active = effTier === t;
+          return (
+            <button key={t} disabled={locked} onClick={() => !locked && setTix({ ...tix, tier: t })}
+              style={{ ...btnSmall, background: active ? '#E6218C' : '#fff', color: active ? '#fff' : '#111', opacity: locked ? 0.4 : 1, cursor: locked ? 'not-allowed' : 'pointer' }}>
+              {t}{locked ? ' (locked)' : ''}
+            </button>
+          );
+        })}
+      </div>
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+        <input type="checkbox" checked={tix.schoolStop} onChange={toggleSchool} />
+        School stop (single-tier only)
+      </label>
+      <div style={{ fontSize: 11, color: '#999' }}>
+        School stops are GA-only by rule. VIP is locked here, and the server rejects any VIP request for a school stop.
+        GA prints in the magenta scheme; VIP is the gold-on-black design.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Student pass form (inherently a school / single-tier pass). Batch by quantity.
+// ---------------------------------------------------------------------------
+function StudentPassForm({ spass, setSpass }: any) {
+  const set = (k: string) => (e: any) => setSpass({ ...spass, [k]: e.target.value });
+  return (
+    <div>
+      <Field lbl="Event name (required)"><input style={inp} value={spass.eventName} onChange={set('eventName')} placeholder="e.g. Urban Gang Tour school stop" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="School name"><input style={inp} value={spass.schoolName} onChange={set('schoolName')} placeholder="e.g. Lari Boys High School" /></Field>
+        <Field lbl="Date"><input style={inp} value={spass.date} onChange={set('date')} placeholder="e.g. Sun 19 Jul" /></Field>
+      </div>
+      <div style={{ fontSize: 11, color: '#999' }}>Single-tier by design. No VIP, no VVIP. Front is the pass, back is the Gang Hunt card.</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Wristband form. bandType picks the artwork: GA / VIP / Crew are event bands
+// (tier only); Student is the school band (school + date). Batch by quantity;
+// prints at 254 x 25 mm.
+// ---------------------------------------------------------------------------
+function BandForm({ band, setBand }: any) {
+  const set = (k: string) => (e: any) => setBand({ ...band, [k]: e.target.value });
+  const isStudent = band.bandType === 'Student';
+  return (
+    <div>
+      <label style={label}>Band type</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        {['GA', 'VIP', 'Crew', 'Student'].map((t) => (
+          <button key={t} onClick={() => setBand({ ...band, bandType: t })}
+            style={{ ...btnSmall, background: band.bandType === t ? '#E6218C' : '#fff', color: band.bandType === t ? '#fff' : '#111' }}>{t}</button>
+        ))}
+      </div>
+      <Field lbl="Event name (optional, for your records)"><input style={inp} value={band.eventName} onChange={set('eventName')} placeholder="e.g. Campus Rave Nairobi" /></Field>
+      {isStudent && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <Field lbl="School name"><input style={inp} value={band.schoolName} onChange={set('schoolName')} placeholder="School printed on the band" /></Field>
+          <Field lbl="Date"><input style={inp} value={band.date} onChange={set('date')} placeholder="e.g. Sun 19 Jul" /></Field>
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: '#999' }}>
+        {isStudent
+          ? 'Student band is the school / single-tier band (school name + date printed).'
+          : 'Event bands carry the tier only. Output is print-vendor artwork at 254 x 25 mm plus a serial CSV.'}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Quantity-batch controls (tickets / passes / bands): a quantity + Generate,
+// then a ZIP of every PDF and a serial-list CSV manifest.
+// ---------------------------------------------------------------------------
+function QtyControls({ noun, qty, setQty, n, ready, previewBusy, busy, progress, result, onGenerate }: {
+  noun: string; qty: string; setQty: (v: string) => void; n: number; ready: boolean;
+  previewBusy: boolean; busy: boolean; progress: { done: number; total: number };
+  result: { serials?: string[]; zipUrl?: string; zipName?: string; csvUrl?: string; csvName?: string; error?: string } | null;
+  onGenerate: () => void;
+}) {
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div style={{ width: 120 }}>
+          <label style={label}>Quantity (max 300)</label>
+          <input style={inp} type="number" min={1} max={300} value={qty} onChange={(e) => setQty(e.target.value)} />
+        </div>
+        <button onClick={onGenerate} disabled={busy || !ready} style={{ ...btnMagenta, opacity: busy || !ready ? 0.6 : 1 }}>
+          {busy ? `Generating ${progress.done}/${progress.total}...` : `Generate ${n} ${noun}`}
+        </button>
+        {previewBusy && <span style={{ fontSize: 12, color: '#999' }}>updating preview...</span>}
+      </div>
+      {!ready && <div style={{ fontSize: 12, color: '#C62828', marginTop: 6, fontWeight: 600 }}>Enter an event name first.</div>}
+      {busy && (
+        <div style={{ marginTop: 10, height: 8, background: '#eee', borderRadius: 6, overflow: 'hidden' }}>
+          <div style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%`, height: '100%', background: '#1F8A5B', transition: 'width .2s' }} />
+        </div>
+      )}
+      {result?.error && (
+        <div style={{ marginTop: 14, border: '2px solid #C62828', borderRadius: 12, padding: 14, background: '#fdf2f2', color: '#8a1f1f', fontSize: 13 }}>
+          {result.error}
+        </div>
+      )}
+      {result?.zipUrl && (
+        <div style={{ marginTop: 14, border: '2px solid #1F8A5B', borderRadius: 12, padding: 14, background: '#f2fbf6' }}>
+          <div style={{ fontFamily: 'Anton', fontSize: 16, color: '#1F8A5B' }}>Issued {result.serials?.length} {noun}</div>
+          <div style={{ fontSize: 12, color: '#555', margin: '6px 0 10px', wordBreak: 'break-word' }}>
+            {result.serials?.[0]} ... {result.serials?.[result.serials.length - 1]}
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <a href={result.zipUrl} download={result.zipName} style={{ ...btnMagenta, textDecoration: 'none' }}>Download ZIP ({result.serials?.length} PDFs)</a>
+            {result.csvUrl && <a href={result.csvUrl} download={result.csvName} style={{ ...btnDark, textDecoration: 'none' }}>Download serial CSV</a>}
+          </div>
         </div>
       )}
     </div>
