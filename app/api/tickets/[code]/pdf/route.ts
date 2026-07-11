@@ -42,6 +42,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
       createdAt: t.created_at,
       orderId: t.order_id,
       payMethod: t.pay_method,
+      marketplaceEventId: t.marketplace_event_id,
       logo,
     });
 

@@ -18,6 +18,13 @@ ledger write failures and WhatsApp signature-failure bursts email the owner via
 Resend (settings key `alert_email`, fallback owner address) and always log with
 an `[ALERT]` prefix.
 
+Routine notifications (`lib/server/notify.ts`): a separate, opt-in "new order" /
+"new booking" owner email so routine traffic never floods the critical-alerts
+inbox above. Settings keys `notify_email` (falls back to the same owner
+address), `notify_on_new_order`, `notify_on_new_booking` (booleans, default
+OFF — enabled from the admin Comms tab). Fire-and-forget via `after()`, never
+throws, always logs a `[notify]` line.
+
 ## Public
 
 ### POST /api/auth
@@ -29,7 +36,8 @@ GET → `{user}` for the current session (own data only — no other users').
 
 ### POST /api/bookings
 Body: `{name, email, type, org?, phone?, message?}` (`type` from fixed list).
-Persists to `bookings`; notifies via Resend if `RESEND_API_KEY`.
+Persists to `bookings`; fires the opt-in `notifyNewBooking` owner email (see
+Routine notifications above) fire-and-forget on a successful insert.
 200 `{ok,id}` · 400 · 429 (5/min/IP).
 
 ### POST /api/orders
@@ -41,7 +49,11 @@ M-Pesa needs phone only). Prices computed server-side from
 `lib/server/catalog.ts` (`PRICES` / `TICKET_TIERS`) - client prices are never
 trusted.
 Idempotent within 10 min per key. Ledger row inserted; STK push if `MPESA_*`
-env set. 200 `{ok,id,total,stk}` · 503 payment not configured · 429 (8/min/IP).
+env set. Fires the opt-in `notifyNewOrder` owner email (see Routine
+notifications above) fire-and-forget on a successful insert - on creation
+(checkout start), not on payment confirmation, so the owner also hears about
+STK pushes that never complete. 200 `{ok,id,total,stk}` · 503 payment not
+configured · 429 (8/min/IP).
 
 ### GET /api/orders/status?id=ORD-...
 Public poll for the checkout STK-waiting panel. Id format-validated
@@ -167,7 +179,11 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   `GET /api/admin/data?view=eventTiers` returns the event/tier list for the
   Control Room's "Issue Free Ticket" form (Orders tab); the comp route
   re-validates independently and is the actual source of truth.
-- `GET /api/admin/export?kind=…` — CSV.
+- `GET /api/admin/export?kind=…` — unified CSV export. `kind` one of
+  `orders|bookings|subscribers|tickets|invoices|payments|contacts|expenses|payouts`.
+  Every kind stays within what its equivalent admin list already shows (no
+  extra fields). Control Room Dashboard tab has one "Export" panel linking
+  every kind so nothing requires hunting through individual ops tabs.
 - `POST /api/admin/setup` — idempotent schema create/repair.
 - `POST /api/admin/broadcast` `{subject, body}` — email all subscribers (Resend).
 - `GET/POST /api/admin/social` — channel status + curated `ig_wall` list.

@@ -5,6 +5,7 @@
 // reconciliation.
 import { orderLines } from './catalog';
 import { ticketsForOrder, type TicketRow } from './tickets';
+import { getMarketplaceEventById } from './marketplace';
 import { renderReceiptPdf, renderTicketPdf } from '@/lib/tickets/pdf';
 import { getLogoDataUri } from '@/lib/ops/pdf';
 
@@ -54,6 +55,7 @@ export type OrderRow = {
   stripe_payment_intent?: string | null;
   pay_method?: string | null;
   created_at?: string | Date | null;
+  marketplace_event_id?: string | null;
 };
 
 export async function sendReceiptEmail(order: OrderRow): Promise<void> {
@@ -77,6 +79,20 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
     if (order.status === 'paid' || order.status === 'fulfilled') {
       try { tickets = await ticketsForOrder(order.id); } catch { /* receipt still goes out */ }
     }
+
+    // Marketplace order: still on UGT letterhead (UGT processed the payment)
+    // but clearly labelled as sold on behalf of the third-party organizer —
+    // never let a buyer think UGT itself is running the show.
+    let presentedBy: string | null = null;
+    if (order.marketplace_event_id) {
+      try {
+        const ev = await getMarketplaceEventById(order.marketplace_event_id);
+        presentedBy = ev?.organizer_business_name || null;
+      } catch { /* receipt still goes out */ }
+    }
+    const presentedByHtml = presentedBy
+      ? `<tr><td style="padding:3px 0">Presented by</td><td align="right" style="padding:3px 0;color:#111">${esc(presentedBy)} (via UGT Marketplace)</td></tr>`
+      : '';
     const ticketsHtml = tickets.length
       ? `
       <div style="margin-top:20px;background:#111111;border:2px solid #111111;border-radius:14px;overflow:hidden">
@@ -126,6 +142,7 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
         <tr><td style="padding:3px 0">Date</td><td align="right" style="padding:3px 0;color:#111">${esc(when)}</td></tr>
         <tr><td style="padding:3px 0">Payment method</td><td align="right" style="padding:3px 0;color:#111">${esc(method)}</td></tr>
         ${phone ? `<tr><td style="padding:3px 0">Phone</td><td align="right" style="padding:3px 0;color:#111">${esc(phone)}</td></tr>` : ''}
+        ${presentedByHtml}
       </table>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px">${rows}</table>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;background:#FFD400;border:2px solid #111111;border-radius:10px">
@@ -169,7 +186,7 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
         const tBuf = await renderTicketPdf({
           code: t.code, eventId: t.event_id, tierName: t.tier_name, holder: t.holder,
           position: t.position, ofCount: t.of_count, createdAt: t.created_at, orderId: t.order_id,
-          payMethod: order.pay_method || '', logo,
+          payMethod: order.pay_method || '', marketplaceEventId: t.marketplace_event_id, logo,
         });
         attachments.push({ filename: `UGT-Ticket-${t.code}.pdf`, content: tBuf.toString('base64') });
       }

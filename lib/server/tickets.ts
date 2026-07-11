@@ -11,6 +11,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { db } from './db';
 import { getTicketedEvents, getTicketTiers, FALLBACK_EVENT_META } from './catalog';
+import { getMarketplaceEventById } from './marketplace';
 
 // 32 chars, no 0/O/1/I. 32 divides 256, so byte % 32 is bias-free.
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -23,16 +24,39 @@ const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
 // lib/server/catalog.ts getTicketedEvents()) — so ticket pages/PDFs always
 // show the current admin-edited event name/date/venue, not a frozen copy.
 // FALLBACK_EVENT_META (catalog.ts) is used only if the DB is unreachable.
+//
+// marketplaceEventId (present on a ticket row's marketplace_event_id column)
+// redirects resolution to the third-party marketplace_events table instead —
+// the same ticket page/PDF/gate scanner works for both without duplicating
+// any of that rendering code (see lib/server/marketplace.ts).
 export async function getEventMeta(
-  eventId: string
+  eventId: string,
+  marketplaceEventId?: string | null
 ): Promise<{ date: string; time: string; venue: string; city: string; accent: string } | undefined> {
+  if (marketplaceEventId) {
+    try {
+      const ev = await getMarketplaceEventById(marketplaceEventId);
+      if (ev) {
+        const dateStr = ev.event_date ? new Date(ev.event_date + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : 'TBA';
+        return { date: dateStr, time: '', venue: ev.venue || '', city: ev.city || '', accent: '#E6218C' };
+      }
+    } catch { /* fall through */ }
+    return undefined;
+  }
   const events = await getTicketedEvents();
   const ev = events.find((e) => e.id === eventId);
   if (ev) return { date: ev.date, time: ev.time, venue: ev.venue, city: ev.city, accent: ev.accent };
   return FALLBACK_EVENT_META[eventId];
 }
 
-export async function getEventName(eventId: string): Promise<string> {
+export async function getEventName(eventId: string, marketplaceEventId?: string | null): Promise<string> {
+  if (marketplaceEventId) {
+    try {
+      const ev = await getMarketplaceEventById(marketplaceEventId);
+      if (ev) return ev.name;
+    } catch { /* fall through */ }
+    return 'Marketplace Event';
+  }
   const tiers = await getTicketTiers();
   return tiers[eventId]?.name || 'Urban Gang Tour Event';
 }
@@ -71,6 +95,7 @@ export type TicketRow = {
   used_at: string | Date | null;
   used_by: string;
   created_at: string | Date;
+  marketplace_event_id: string | null;
 };
 
 // The table ships in SCHEMA (applied via /api/admin/setup), but every runtime
@@ -92,6 +117,16 @@ async function ensureTable(): Promise<void> {
   // here as well so getTicket's join below can never fail on a fresh DB that
   // has only ever seen M-Pesa orders.
   await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_method TEXT DEFAULT 'mpesa'`);
+  // Marketplace threading: nullable so every pre-existing UGT ticket row is
+  // untouched. When set, this ticket belongs to a third-party
+  // marketplace_events row rather than a tour_events one - see getEventMeta/
+  // getEventName above and lib/server/marketplace.ts.
+  await pool.query(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS marketplace_event_id TEXT`);
+  await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'internal'`);
+  await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS organizer_id TEXT`);
+  await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace_event_id TEXT`);
+  await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS commission_amount INT`);
+  await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS organizer_amount INT`);
   tableReady = true;
 }
 
@@ -120,7 +155,18 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   const lines = ticketLinesOf(order);
   if (!lines.length) return [];
   await ensureTable();
-  const tierMap = await getTicketTiers();
+  const marketplaceEventId: string | null = order.marketplace_event_id || null;
+  // Marketplace orders resolve tier names from marketplace_events.tiers
+  // instead of the tour_events-backed catalog — the eventId embedded in the
+  // 'ticket:<eventId>:<tierIdx>' line id is the marketplace event's own id
+  // (prefixed 'mkt-', see lib/server/marketplace.ts freeMarketplaceEventId)
+  // in that case, so no collision with a real tour_events id is possible.
+  const tierMap = marketplaceEventId ? null : await getTicketTiers();
+  let marketplaceTiers: { name: string; price: number }[] = [];
+  if (marketplaceEventId) {
+    const ev = await getMarketplaceEventById(marketplaceEventId);
+    marketplaceTiers = ev?.tiers || [];
+  }
 
   const client = await pool.connect();
   try {
@@ -137,16 +183,15 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
     let pos = 0;
     for (const line of lines) {
       const [, eventId, tierIdx] = String(line.id).split(':');
-      const tierName =
-        tierMap[eventId]?.tiers[Number(tierIdx)]?.name ||
-        String(line.name || '').split(' - ').pop() ||
-        'General';
+      const tierName = marketplaceEventId
+        ? marketplaceTiers[Number(tierIdx)]?.name || String(line.name || '').split(' - ').pop() || 'General'
+        : tierMap![eventId]?.tiers[Number(tierIdx)]?.name || String(line.name || '').split(' - ').pop() || 'General';
       for (let i = 0; i < Number(line.qty); i++) {
         pos += 1;
         const r = await client.query(
-          `INSERT INTO tickets (code, order_id, event_id, tier_name, holder, position, of_count)
-           VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-          [mintCode(), order.id, eventId, tierName, holder, pos, ofCount]
+          `INSERT INTO tickets (code, order_id, event_id, tier_name, holder, position, of_count, marketplace_event_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+          [mintCode(), order.id, eventId, tierName, holder, pos, ofCount, marketplaceEventId]
         );
         minted.push(r.rows[0] as TicketRow);
       }

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
   ensureOpsSchema, opsAudit, createNumberedDocument, DocType,
@@ -8,6 +8,9 @@ import {
 } from '@/lib/server/ops';
 import { docTotals, DocLine } from '@/lib/ops/budget-calc';
 import { ensureCatalogSeeded } from '@/lib/server/catalog';
+import { getCommissionPercent, setCommissionPercent, sendOrganizerNotification, ensureMarketplaceColumns } from '@/lib/server/marketplace';
+import { paystackCreateSubaccount } from '@/lib/server/paystack';
+import { alertCritical } from '@/lib/server/alert';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -135,6 +138,45 @@ export async function GET(req: Request) {
         await ensureCatalogSeeded();
         const rows = await q(`SELECT * FROM products ORDER BY active DESC, id`);
         return NextResponse.json({ ok: true, rows });
+      }
+
+      // ---- Third-party ticketing marketplace ----
+      case 'marketplaceOrganizers': {
+        await ensureMarketplaceColumns();
+        const rows = await q(`
+          SELECT id, business_name, contact_name, email, phone, paystack_subaccount_code, settlement_bank, settlement_account,
+                 status, rejection_reason, applied_at, approved_at, created_at,
+                 (SELECT COUNT(*) FROM marketplace_events e WHERE e.organizer_id = marketplace_organizers.id) AS event_count
+          FROM marketplace_organizers
+          ORDER BY (status='pending') DESC, applied_at DESC`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'marketplaceEvents': {
+        await ensureMarketplaceColumns();
+        const rows = await q(`
+          SELECT e.*, e.event_date::text AS event_date, o.business_name AS organizer_business_name, o.status AS organizer_status,
+                 (SELECT COUNT(*) FROM tickets t WHERE t.marketplace_event_id = e.id) AS tickets_sold
+          FROM marketplace_events e JOIN marketplace_organizers o ON o.id = e.organizer_id
+          ORDER BY (e.status='pending_review') DESC, e.created_at DESC LIMIT 500`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'marketplaceOrders': {
+        await ensureMarketplaceColumns();
+        const rows = await q(`
+          SELECT o.id, o.total, o.status, o.name, o.phone, o.commission_amount, o.organizer_amount, o.created_at,
+                 org.business_name AS organizer_business_name, me.name AS event_name
+          FROM orders o
+          LEFT JOIN marketplace_organizers org ON org.id = o.organizer_id
+          LEFT JOIN marketplace_events me ON me.id = o.marketplace_event_id
+          WHERE o.source='marketplace'
+          ORDER BY o.created_at DESC LIMIT 500`);
+        const totals = await q<{ commission: string; organizer_share: string; count: string }>(`
+          SELECT COALESCE(SUM(commission_amount),0) AS commission, COALESCE(SUM(organizer_amount),0) AS organizer_share, COUNT(*) AS count
+          FROM orders WHERE source='marketplace' AND status IN ('paid','fulfilled')`);
+        return NextResponse.json({ ok: true, rows, totals: totals[0] });
+      }
+      case 'marketplaceCommission': {
+        return NextResponse.json({ ok: true, percent: await getCommissionPercent() });
       }
       case 'checklist_templates': {
         const existing = await q(`SELECT * FROM ops_checklist_templates ORDER BY sort, id`);
@@ -657,6 +699,130 @@ export async function POST(req: Request) {
         if (!row.length) return bad('not_found', 404);
         await opsAudit('ops.product.delete', { id });
         return NextResponse.json({ ok: true });
+      }
+
+      // ---- Third-party ticketing marketplace ----
+      case 'marketplaceOrganizer.approve': {
+        // This moves real payout configuration: approving an organizer
+        // creates a live Paystack subaccount and stores the code. A failure
+        // here MUST NOT flip status to 'approved' — an organizer with no
+        // working subaccount could otherwise sell tickets UGT can never
+        // actually pay out. See lib/server/paystack.ts for the exact
+        // verified subaccount/percentage_charge field semantics.
+        await ensureMarketplaceColumns();
+        const id = s(d.id, 60);
+        if (!id) return bad('missing_id');
+        const rows = await q<any>(`SELECT * FROM marketplace_organizers WHERE id=$1`, [id]);
+        if (!rows.length) return bad('not_found', 404);
+        const org = rows[0];
+        if (org.status === 'approved' && org.paystack_subaccount_code) {
+          return NextResponse.json({ ok: true, row: org, already: true });
+        }
+        const commissionPercent = await getCommissionPercent();
+        const sub = await paystackCreateSubaccount({
+          businessName: org.business_name,
+          settlementBank: org.settlement_bank,
+          accountNumber: org.settlement_account,
+          percentageChargeMainAccount: commissionPercent,
+          contactEmail: org.email,
+          contactName: org.contact_name,
+          contactPhone: org.phone,
+        });
+        if (!sub.ok || !sub.subaccountCode) {
+          await opsAudit('ops.marketplaceOrganizer.approve.failed', { id, error: sub.error });
+          await alertCritical('Marketplace organizer subaccount creation failed', `organizer ${id} (${org.business_name}): ${sub.error}`);
+          return bad(`subaccount_failed: ${sub.error || 'unknown Paystack error'}`, 502);
+        }
+        const row = await q(
+          `UPDATE marketplace_organizers SET status='approved', paystack_subaccount_code=$1, approved_at=now() WHERE id=$2 RETURNING *`,
+          [sub.subaccountCode, id]
+        );
+        await opsAudit('ops.marketplaceOrganizer.approve', { id, subaccountCode: sub.subaccountCode, actor: adminActor(req) });
+        after(() => sendOrganizerNotification(
+          org.email,
+          'Your Urban Gang Tour Marketplace application is approved',
+          `Hi ${org.contact_name},\n\nGood news — "${org.business_name}" is approved to sell tickets through the Urban Gang Tour Marketplace.\n\nLog in at https://urbangangtour.co.ke/organizer/login and submit your first event.\n\nUrban Gang Tour`
+        ));
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceOrganizer.reject': {
+        await ensureMarketplaceColumns();
+        const id = s(d.id, 60);
+        const reason = s(d.reason, 500);
+        if (!id) return bad('missing_id');
+        const rows = await q<any>(`SELECT * FROM marketplace_organizers WHERE id=$1`, [id]);
+        if (!rows.length) return bad('not_found', 404);
+        const row = await q(`UPDATE marketplace_organizers SET status='rejected', rejection_reason=$1 WHERE id=$2 RETURNING *`, [reason, id]);
+        await opsAudit('ops.marketplaceOrganizer.reject', { id, reason, actor: adminActor(req) });
+        after(() => sendOrganizerNotification(
+          rows[0].email,
+          'Your Urban Gang Tour Marketplace application',
+          `Hi ${rows[0].contact_name},\n\nWe're not able to approve "${rows[0].business_name}" for the Urban Gang Tour Marketplace at this time.${reason ? `\n\nReason: ${reason}` : ''}\n\nIf you believe this is a mistake, reply to this email.\n\nUrban Gang Tour`
+        ));
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceOrganizer.suspend': {
+        const id = s(d.id, 60);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE marketplace_organizers SET status='suspended' WHERE id=$1 RETURNING *`, [id]);
+        if (!row.length) return bad('not_found', 404);
+        await opsAudit('ops.marketplaceOrganizer.suspend', { id, actor: adminActor(req) });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceOrganizer.reinstate': {
+        const id = s(d.id, 60);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE marketplace_organizers SET status='approved' WHERE id=$1 AND paystack_subaccount_code <> '' RETURNING *`, [id]);
+        if (!row.length) return bad('not_found_or_no_subaccount', 404);
+        await opsAudit('ops.marketplaceOrganizer.reinstate', { id, actor: adminActor(req) });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceEvent.approve': {
+        await ensureMarketplaceColumns();
+        const id = s(d.id, 80);
+        if (!id) return bad('missing_id');
+        const rows = await q<any>(`SELECT e.*, o.email AS organizer_email, o.contact_name, o.status AS organizer_status FROM marketplace_events e JOIN marketplace_organizers o ON o.id=e.organizer_id WHERE e.id=$1`, [id]);
+        if (!rows.length) return bad('not_found', 404);
+        if (rows[0].organizer_status !== 'approved') return bad('organizer_not_approved');
+        const row = await q(`UPDATE marketplace_events SET status='published', rejection_reason='', updated_at=now() WHERE id=$1 RETURNING *`, [id]);
+        await opsAudit('ops.marketplaceEvent.approve', { id, actor: adminActor(req) });
+        after(() => sendOrganizerNotification(
+          rows[0].organizer_email,
+          `Your event "${rows[0].name}" is live`,
+          `Hi ${rows[0].contact_name},\n\n"${rows[0].name}" is approved and now live at https://urbangangtour.co.ke/marketplace/${id}\n\nUrban Gang Tour`
+        ));
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceEvent.reject': {
+        await ensureMarketplaceColumns();
+        const id = s(d.id, 80);
+        const reason = s(d.reason, 500);
+        if (!id) return bad('missing_id');
+        const rows = await q<any>(`SELECT e.*, o.email AS organizer_email, o.contact_name FROM marketplace_events e JOIN marketplace_organizers o ON o.id=e.organizer_id WHERE e.id=$1`, [id]);
+        if (!rows.length) return bad('not_found', 404);
+        const row = await q(`UPDATE marketplace_events SET status='rejected', rejection_reason=$1, updated_at=now() WHERE id=$2 RETURNING *`, [reason, id]);
+        await opsAudit('ops.marketplaceEvent.reject', { id, reason, actor: adminActor(req) });
+        after(() => sendOrganizerNotification(
+          rows[0].organizer_email,
+          `Your event "${rows[0].name}" was not approved`,
+          `Hi ${rows[0].contact_name},\n\n"${rows[0].name}" was not approved.${reason ? `\n\nReason: ${reason}` : ''}\n\nYou can edit and resubmit it from your dashboard: https://urbangangtour.co.ke/organizer/dashboard\n\nUrban Gang Tour`
+        ));
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceEvent.cancel': {
+        const id = s(d.id, 80);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE marketplace_events SET status='cancelled', updated_at=now() WHERE id=$1 RETURNING *`, [id]);
+        if (!row.length) return bad('not_found', 404);
+        await opsAudit('ops.marketplaceEvent.cancel', { id, actor: adminActor(req) });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'marketplaceCommission.save': {
+        const pct = Number(d.percent);
+        if (!Number.isFinite(pct) || pct < 0 || pct > 100) return bad('invalid_percent');
+        await setCommissionPercent(pct);
+        await opsAudit('ops.marketplaceCommission.save', { percent: pct, actor: adminActor(req) });
+        return NextResponse.json({ ok: true, percent: pct });
       }
 
       default:

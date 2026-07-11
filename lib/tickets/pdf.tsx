@@ -184,12 +184,13 @@ export function TicketPdf({ t }: { t: TicketPdfInput }) {
 export async function renderTicketPdf(input: {
   code: string; eventId: string; tierName: string; holder: string; position: number; ofCount: number;
   createdAt: string | Date; orderId: string; payMethod: string; logo: string | null;
+  marketplaceEventId?: string | null;
 }): Promise<Buffer> {
   const [qrMain, qrSig, evName, meta] = await Promise.all([
     qrPng(`${SITE}/t/${input.code}`),
     qrPng(signedTicketBlob({ code: input.code, order_id: input.orderId, event_id: input.eventId, tier_name: input.tierName, created_at: input.createdAt })),
-    getEventName(input.eventId),
-    getEventMeta(input.eventId),
+    getEventName(input.eventId, input.marketplaceEventId),
+    getEventMeta(input.eventId, input.marketplaceEventId),
   ]);
   return render(React.createElement(TicketPdf, { t: { ...input, qrMain, qrSig, evName, meta } }));
 }

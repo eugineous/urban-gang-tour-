@@ -80,11 +80,18 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
     console.error('[tickets-page]', e);
   }
 
-  const meta = tickets.length ? await getEventMeta(tickets[0].event_id) : undefined;
+  const meta = tickets.length ? await getEventMeta(tickets[0].event_id, tickets[0].marketplace_event_id) : undefined;
   // Resolve names for every distinct event on this order up front — the grid
   // below renders synchronously, so nothing in the .map() can itself await.
   const eventIds = Array.from(new Set(tickets.map((t) => t.event_id)));
-  const eventNames = Object.fromEntries(await Promise.all(eventIds.map(async (id) => [id, await getEventName(id)] as const)));
+  const eventNames = Object.fromEntries(
+    await Promise.all(
+      eventIds.map(async (id) => {
+        const mkt = tickets.find((t) => t.event_id === id)?.marketplace_event_id || null;
+        return [id, await getEventName(id, mkt)] as const;
+      })
+    )
+  );
 
   return (
     <div className="tks-stage">

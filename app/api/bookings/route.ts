@@ -1,8 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
+import { notifyNewBooking } from '@/lib/server/notify';
 
 const TYPES = ['School Booking', 'Campus Rave', 'Sponsorship', 'Mega Event', 'Media', 'Join the Crew', 'Student Blog'];
+
+// Self-heal: some live tables still carry the pre-rename column name
+// "intent" instead of "type" (schema drift from before the code moved on),
+// which silently failed every booking insert. Rename once per instance.
+let columnHealed = false;
+async function ensureTypeColumn(q: (sql: string) => Promise<any>) {
+  if (columnHealed) return;
+  await q(`DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='type')
+       AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='intent') THEN
+      ALTER TABLE bookings RENAME COLUMN intent TO type;
+    END IF;
+  END $$;`);
+  columnHealed = true;
+}
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
@@ -31,6 +47,7 @@ export async function POST(req: Request) {
   try {
     const { q, db } = await import('@/lib/server/db');
     if (db()) {
+      await ensureTypeColumn(q);
       await q(
         `INSERT INTO bookings (id, name, org, email, phone, type, message) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
         [booking.id, name, org, email, phone, type, message]
@@ -38,21 +55,13 @@ export async function POST(req: Request) {
     }
   } catch (e) { console.error('[booking-db]', e); }
 
-  // Email notification via Resend when configured
-  if (process.env.RESEND_API_KEY) {
-    try {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: process.env.BOOKINGS_FROM || 'bookings@urbangangtour.co.ke',
-          to: process.env.BOOKINGS_TO || 'admin@urbangangtour.co.ke',
-          subject: `New ${type}: ${name}${org ? ' — ' + org : ''}`,
-          text: `Booking ${booking.id}\nName: ${name}\nOrg: ${org}\nEmail: ${email}\nPhone: ${phone}\nType: ${type}\n\n${message}`,
-        }),
-      });
-    } catch { /* delivery best-effort; booking still accepted */ }
-  }
+  // Routine "new booking" owner notification (opt-in, OFF by default) - fires
+  // regardless of the ledger write above (a booking still happened even if
+  // the DB write hiccups; the owner should still hear about it), gated on
+  // the notify_on_new_booking toggle inside notifyNewBooking itself.
+  // Fire-and-forget: never blocks or fails the booking response.
+  after(() => notifyNewBooking({ id: booking.id, name, org, email, phone, type, message }));
+
   console.log('[booking]', JSON.stringify(booking));
   return NextResponse.json({ ok: true, id: booking.id });
 }

@@ -174,6 +174,44 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+-- Third-party ticketing marketplace: any outside event organizer can sign up,
+-- submit an event, and — once approved — sell tickets through
+-- urbangangtour.co.ke with UGT taking an automatic commission per ticket via
+-- a Paystack subaccount split. Distinct from tour_events (UGT's own shows).
+-- See lib/server/organizer-session.ts (separate light auth), lib/server/
+-- paystack.ts (subaccount + split helpers) and app/api/marketplace/checkout
+-- (server-priced, split-configured Paystack initialize).
+CREATE TABLE IF NOT EXISTS marketplace_organizers (
+  id TEXT PRIMARY KEY,
+  business_name TEXT NOT NULL,
+  contact_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT DEFAULT '',
+  password_hash TEXT NOT NULL,
+  paystack_subaccount_code TEXT DEFAULT '',
+  settlement_bank TEXT DEFAULT '',
+  settlement_account TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','suspended')),
+  rejection_reason TEXT DEFAULT '',
+  applied_at TIMESTAMPTZ DEFAULT now(),
+  approved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS marketplace_events (
+  id TEXT PRIMARY KEY,
+  organizer_id TEXT NOT NULL REFERENCES marketplace_organizers(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  event_date DATE,
+  venue TEXT DEFAULT '',
+  city TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  image TEXT DEFAULT '',
+  tiers JSONB DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','pending_review','published','rejected','cancelled','completed')),
+  rejection_reason TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 -- Indexes for the ops suite's real query patterns (event drill-downs, invoice
 -- payment sums, lead pipeline, follow-up dashboard, audit trail). Applied
 -- automatically by ensureOpsSchema(). ops_budgets(event_id) is covered by the
@@ -193,6 +231,9 @@ CREATE INDEX IF NOT EXISTS idx_ops_expenses_event_id ON ops_expenses (event_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tour_events_kind_status_priority ON tour_events (kind, status, priority DESC, event_date);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
+CREATE INDEX IF NOT EXISTS idx_marketplace_organizers_status ON marketplace_organizers (status);
+CREATE INDEX IF NOT EXISTS idx_marketplace_events_status_date ON marketplace_events (status, event_date);
+CREATE INDEX IF NOT EXISTS idx_marketplace_events_organizer_id ON marketplace_events (organizer_id);
 `;
 
 export const LEAD_STAGES = ['new', 'contacted', 'negotiating', 'confirmed', 'contracted', 'completed', 'lost'] as const;

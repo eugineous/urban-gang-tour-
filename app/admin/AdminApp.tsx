@@ -21,6 +21,7 @@ const Checklists = dynamic(() => import('./ops/Checklists'), { ssr: false, loadi
 const Reviews = dynamic(() => import('./ops/Reviews'), { ssr: false, loading: opsLoading });
 const Events = dynamic(() => import('./ops/Events'), { ssr: false, loading: opsLoading });
 const Products = dynamic(() => import('./ops/Products'), { ssr: false, loading: opsLoading });
+const Marketplace = dynamic(() => import('./ops/Marketplace'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
 const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
@@ -31,7 +32,7 @@ const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSi
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
 const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic'] as const;
-const OPS_TABS = ['Events', 'Products', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
+const OPS_TABS = ['Events', 'Products', 'Marketplace', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 
 async function api(path: string, opts?: RequestInit) {
@@ -82,7 +83,7 @@ export default function AdminApp() {
   useEffect(() => {
     if (!authed) return;
     if (tab === 'Dashboard') load('stats').then((r) => setStats(r[0] || null));
-    else if (tab === 'Site & SEO') load('settings').then((r) => {
+    else if (tab === 'Site & SEO' || tab === 'Comms') load('settings').then((r) => {
       const map: Record<string, any> = {};
       r.forEach((s: any) => (map[s.key] = s.value));
       setSettings(map);
@@ -202,6 +203,7 @@ export default function AdminApp() {
       )}
       {tab === 'Events' && <Events />}
       {tab === 'Products' && <Products />}
+      {tab === 'Marketplace' && <Marketplace />}
       {tab === 'Budgeter' && <Budgeter />}
       {tab === 'Invoices' && <Invoices />}
       {tab === 'Payments' && <Payments />}
@@ -281,7 +283,7 @@ export default function AdminApp() {
         <SiteTab settings={settings} setSettings={setSettings} seoPath={seoPath} setSeoPath={setSeoPath}
           onSave={(key: string, value: any) => save('setting', { key, value })} />
       )}
-      {tab === 'Comms' && <CommsTab say={say} onSaveSetting={(key: string, value: any) => save('setting', { key, value })} />}
+      {tab === 'Comms' && <CommsTab say={say} settings={settings} onSaveSetting={(key: string, value: any) => save('setting', { key, value })} />}
       {tab === 'People' && <PeopleTab load={load} />}
       {tab === 'Traffic' && <TrafficTab rows={rows} />}
     </Shell>
@@ -419,7 +421,7 @@ function renderCell(col: string, v: any): React.ReactNode {
 
 const IG_WALL_RE = /^https:\/\/www\.instagram\.com\/(p|reel)\/[A-Za-z0-9_-]+\/?$/;
 
-function CommsTab({ say, onSaveSetting }: { say: (m: string) => void; onSaveSetting: (key: string, value: any) => void }) {
+function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; settings: Record<string, any>; onSaveSetting: (key: string, value: any) => void }) {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [social, setSocial] = useState('');
@@ -427,6 +429,20 @@ function CommsTab({ say, onSaveSetting }: { say: (m: string) => void; onSaveSett
   const [waNum, setWaNum] = useState('');
   const [status, setStatus] = useState<any>(null);
   const [wall, setWall] = useState<string[]>([]);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifyOnOrder, setNotifyOnOrder] = useState(false);
+  const [notifyOnBooking, setNotifyOnBooking] = useState(false);
+  const [notifyLoaded, setNotifyLoaded] = useState(false);
+  // settings loads async (Comms tab fetch) - seed the notification fields
+  // once from whatever's saved, without stomping the admin's in-progress edits.
+  useEffect(() => {
+    if (notifyLoaded && Object.keys(settings).length === 0) return;
+    if (notifyLoaded) return;
+    if (typeof settings.notify_email === 'string') setNotifyEmail(settings.notify_email);
+    setNotifyOnOrder(settings.notify_on_new_order === true);
+    setNotifyOnBooking(settings.notify_on_new_booking === true);
+    if (Object.keys(settings).length) setNotifyLoaded(true);
+  }, [settings, notifyLoaded]);
   const [wallInput, setWallInput] = useState('');
   useEffect(() => {
     api('/api/admin/social').then(({ data }) => {
@@ -531,6 +547,28 @@ function CommsTab({ say, onSaveSetting }: { say: (m: string) => void; onSaveSett
         <div style={{ display: 'flex', gap: 10 }}>
           <input style={{ ...inp, maxWidth: 260 }} placeholder="e.g. 254712345678" value={waNum} onChange={(e) => setWaNum(e.target.value)} />
           <button style={btn} onClick={() => { onSaveSetting('whatsapp_number', waNum.replace(/\D/g, '')); say('✓ Saved — live within 5 min'); }}>Save</button>
+        </div>
+      </div>
+      <div style={{ ...card }}>
+        <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>OWNER NOTIFICATIONS</h3>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+          Optional email pings for routine new orders/bookings — separate from critical system alerts, which always go out.
+          Both are OFF by default; turn on only what you want to be pinged about.
+        </div>
+        <div style={{ display: 'grid', gap: 8, maxWidth: 420 }}>
+          <input style={inp} placeholder="Notify email (defaults to the owner address if left blank)" value={notifyEmail} onChange={(e) => setNotifyEmail(e.target.value)} />
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnOrder} onChange={(e) => setNotifyOnOrder(e.target.checked)} /> Email me on every new order (fires at checkout, before payment confirms)
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnBooking} onChange={(e) => setNotifyOnBooking(e.target.checked)} /> Email me on every new booking
+          </label>
+          <button style={{ ...btn, width: 160 }} onClick={() => {
+            onSaveSetting('notify_email', notifyEmail.trim());
+            onSaveSetting('notify_on_new_order', notifyOnOrder);
+            onSaveSetting('notify_on_new_booking', notifyOnBooking);
+            say('✓ Saved');
+          }}>💾 Save notifications</button>
         </div>
       </div>
     </div>

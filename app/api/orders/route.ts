@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { serverTotalWithPromos, getTicketTiers } from '@/lib/server/catalog';
 import { recordPromoCodeUse } from '@/lib/server/promos';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { mpesaConfigured, stkPush, normalizePhone } from '@/lib/server/mpesa';
 import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
+import { notifyNewOrder } from '@/lib/server/notify';
 
 const seen = new Map<string, { id: string; ts: number }>(); // idempotency
 
@@ -106,6 +107,11 @@ export async function POST(req: Request) {
       // Order is now durably created — safe to count the code redemption.
       // Never on a failed/aborted attempt, only here.
       if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
+      // Routine "new order" owner notification (opt-in, OFF by default) -
+      // fires on checkout creation, not payment confirmation, so the owner
+      // hears about a checkout starting even before M-Pesa confirms it.
+      // Fire-and-forget: never blocks or fails the checkout response.
+      after(() => notifyNewOrder({ id, total, name, email: emailStr, phone: msisdn, status: 'pending' }));
     }
   } catch (e: any) {
     // ledger write failed while the payment flow continues - reconcile manually

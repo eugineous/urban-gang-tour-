@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
 import { codeAuthentic, getTicket, getEventMeta, getEventName } from '@/lib/server/tickets';
+import { getMarketplaceEventById } from '@/lib/server/marketplace';
 
 // The digital ticket - a phone-screen artifact people screenshot and flex.
 // Roles: public (anon); the self-authenticating TKT- code is the bearer, same
@@ -114,8 +115,14 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
 
   const paid = t.order_status === 'paid' || t.order_status === 'fulfilled';
   const used = !!t.used_at;
-  const meta = await getEventMeta(t.event_id);
-  const evName = await getEventName(t.event_id);
+  const meta = await getEventMeta(t.event_id, t.marketplace_event_id);
+  const evName = await getEventName(t.event_id, t.marketplace_event_id);
+  // Third-party marketplace tickets carry the organizer's name so a buyer is
+  // never confused about who is actually running the show — UGT only
+  // processed the payment (see CLAUDE.md marketplace trust/liability note).
+  const presentedBy = t.marketplace_event_id
+    ? (await getMarketplaceEventById(t.marketplace_event_id))?.organizer_business_name || null
+    : null;
   const vip = /vip/i.test(t.tier_name);
   const qrSvg = await QRCode.toString(`${SITE}/t/${code}`, {
     type: 'svg',
@@ -149,6 +156,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
                   ? <>{meta.date} &middot; {meta.time} &middot; {meta.venue} &middot; {meta.city}</>
                   : <>Date &amp; venue announced on urbangangtour.co.ke</>}
               </div>
+              {presentedBy ? <div className="tk-meta">Presented by {presentedBy} &middot; ticketed via UGT Marketplace</div> : null}
               <div className="tk-issued">
                 <div>
                   <div className="tk-lbl">Issued to</div>

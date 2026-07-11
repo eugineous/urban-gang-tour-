@@ -9,6 +9,36 @@ import {
   OC, card, h3, Chip, fmtKES, fmtDate, opsGet, waLink,
 } from './ui';
 
+// One place to get any CSV instead of hunting through 11 ops tabs — every
+// kind hits the same admin-gated unified endpoint (app/api/admin/export).
+const EXPORT_KINDS: { kind: string; label: string }[] = [
+  { kind: 'orders', label: 'Orders' },
+  { kind: 'bookings', label: 'Bookings' },
+  { kind: 'subscribers', label: 'Subscribers' },
+  { kind: 'tickets', label: 'Tickets' },
+  { kind: 'invoices', label: 'Invoices' },
+  { kind: 'payments', label: 'Payments' },
+  { kind: 'contacts', label: 'Contacts' },
+  { kind: 'expenses', label: 'Expenses' },
+  { kind: 'payouts', label: 'Crew payouts' },
+];
+
+function ExportPanel() {
+  return (
+    <div style={card}>
+      <h3 style={h3}>EXPORT</h3>
+      <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>Every CSV in one place — each button downloads that data straight from the admin-only export endpoint.</div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {EXPORT_KINDS.map(({ kind, label }) => (
+          <a key={kind} href={`/api/admin/export?kind=${kind}`} style={{ background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer', textDecoration: 'none' }}>
+            ⬇ {label}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function OpsDashboard() {
   const [d, setD] = useState<any>(null);
   const [err, setErr] = useState('');
@@ -19,8 +49,8 @@ export default function OpsDashboard() {
     });
   }, []);
 
-  if (err) return <div style={{ ...card, fontSize: 13 }}>Ops dashboard unavailable: {err}</div>;
-  if (!d) return <div style={{ ...card, fontSize: 13 }}>Loading ops overview...</div>;
+  if (err) return <div style={{ display: 'grid', gap: 14 }}><ExportPanel /><div style={{ ...card, fontSize: 13 }}>Ops dashboard unavailable: {err}</div></div>;
+  if (!d) return <div style={{ display: 'grid', gap: 14 }}><ExportPanel /><div style={{ ...card, fontSize: 13 }}>Loading ops overview...</div></div>;
 
   const ne = d.nextEvent;
   const daysOut = ne?.event_date ? Math.max(0, Math.ceil((new Date(fmtDate(ne.event_date)).getTime() - Date.now()) / 86400000)) : null;
@@ -29,6 +59,7 @@ export default function OpsDashboard() {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      <ExportPanel />
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' }}>
         <div style={{ ...card, textAlign: 'center' }}>
           <div style={{ fontFamily: 'Anton', fontSize: 26, color: d.outstanding > 0 ? OC.orange : OC.green }}>{fmtKES(d.outstanding)}</div>

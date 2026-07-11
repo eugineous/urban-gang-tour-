@@ -13,8 +13,8 @@ import { q, db } from '@/lib/server/db';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function ticketPayload(t: { event_id: string; tier_name: string; holder: string; position: number; of_count: number }) {
-  const [event, meta] = await Promise.all([getEventName(t.event_id), getEventMeta(t.event_id)]);
+async function ticketPayload(t: { event_id: string; tier_name: string; holder: string; position: number; of_count: number; marketplace_event_id?: string | null }) {
+  const [event, meta] = await Promise.all([getEventName(t.event_id, t.marketplace_event_id), getEventMeta(t.event_id, t.marketplace_event_id)]);
   return {
     event,
     eventDate: meta ? `${meta.date} ${meta.time}` : '',
