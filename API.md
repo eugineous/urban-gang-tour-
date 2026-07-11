@@ -184,6 +184,18 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   Every kind stays within what its equivalent admin list already shows (no
   extra fields). Control Room Dashboard tab has one "Export" panel linking
   every kind so nothing requires hunting through individual ops tabs.
+- `GET /api/admin/backup` — full-database disaster-recovery backup, distinct
+  from the per-kind export above. Introspects `information_schema.tables`
+  (never a hardcoded table list, so new tables are covered automatically),
+  dumps every table with `SELECT *` into one CSV per table, and returns a
+  single ZIP (`ugt-backup-<date>.zip`, hand-rolled ZIP writer, no new
+  dependency). Password-hash columns (`pass_hash`, `password_hash`, any
+  `*_hash`/`*_salt` match) are replaced with `[REDACTED]` before the CSV is
+  written. Rate limited to 2/min/IP (heavy query, meant for a deliberate
+  manual click, not routine use). Every download is written to `audit_log`
+  (actor, table count, approximate row count). Exposed as "Download Full
+  Backup" in the Control Room Dashboard's Export panel, visually distinct
+  from the per-kind buttons.
 - `POST /api/admin/setup` — idempotent schema create/repair.
 - `POST /api/admin/broadcast` `{subject, body}` — email all subscribers (Resend).
 - `GET/POST /api/admin/social` — channel status + curated `ig_wall` list.

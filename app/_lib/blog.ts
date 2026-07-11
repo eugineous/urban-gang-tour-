@@ -30,7 +30,10 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
     const { q, db } = await import('@/lib/server/db');
     if (db()) {
-      const rows = await q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published ORDER BY date DESC`);
+      // AND date <= CURRENT_DATE: a future-dated post is "scheduled", not yet
+      // live. Without this, setting published=true made a post public the
+      // instant it was saved regardless of its date field.
+      const rows = await q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published AND date <= CURRENT_DATE ORDER BY date DESC`);
       if (rows.length) {
         // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
         // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.

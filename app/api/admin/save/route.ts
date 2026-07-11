@@ -74,19 +74,33 @@ export async function POST(req: Request) {
           : String(data.body || '').split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
         await ensureSocialColumn();
         const prev = await q(`SELECT published, social_posted_at FROM posts WHERE slug=$1`, [slug]);
-        await q(
+        const saved = await q(
           `INSERT INTO posts (slug, headline, section, image, dek, body, published, date)
            VALUES ($1,$2,$3,$4,$5,$6,$7,COALESCE($8::date, CURRENT_DATE))
            ON CONFLICT (slug) DO UPDATE SET headline=$2, section=$3, image=$4, dek=$5, body=$6, published=$7,
-             date=COALESCE($8::date, posts.date), updated_at=now()`,
+             date=COALESCE($8::date, posts.date), updated_at=now()
+           RETURNING date`,
           [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), data.published !== false, data.date || null]
         );
         await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','save_post',$1)`, [JSON.stringify({ slug })]);
         // Auto-post to socials on FIRST publish only: the article is published
-        // now, was not published before, and has never been announced.
+        // now, was not published before, has never been announced, and its
+        // date is today or earlier. A future-dated (scheduled) post must not
+        // trigger the social announcement early — it isn't publicly visible
+        // yet (see app/_lib/blog.ts's `date <= CURRENT_DATE` filter). There is
+        // no cron job that re-fires the announcement when the date arrives;
+        // that would need Vercel Cron and is left out of scope for now.
+        const isoDate = (d: any) => (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10);
+        const savedDate = saved[0]?.date ? isoDate(saved[0].date) : null;
+        const todayIso = new Date().toISOString().slice(0, 10);
+        const isFutureDated = !!savedDate && savedDate > todayIso;
         const firstPublish = data.published !== false
           && !prev[0]?.social_posted_at
-          && (!prev.length || prev[0].published === false);
+          && (!prev.length || prev[0].published === false)
+          && !isFutureDated;
+        if (isFutureDated && data.published !== false) {
+          console.log(`[social] ${slug}: scheduled for ${savedDate}, skipping announce until then`);
+        }
         if (firstPublish && (facebookConfigured() || instagramConfigured())) {
           const payload = { slug, headline: String(data.headline), dek: String(data.dek || ''), image: String(data.image || '') };
           after(() => announceArticle(payload).catch((e) => console.log('[social] announce failed:', e?.message)));

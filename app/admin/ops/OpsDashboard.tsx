@@ -35,6 +35,12 @@ function ExportPanel() {
           </a>
         ))}
       </div>
+      <div style={{ marginTop: 14, paddingTop: 14, borderTop: '2px dashed #ccc' }}>
+        <a href="/api/admin/backup" style={{ display: 'inline-block', background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 13, padding: '11px 16px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #FFD400', cursor: 'pointer', textDecoration: 'none' }}>
+          ⬇ Download Full Backup
+        </a>
+        <div style={{ fontSize: 11, color: '#666', marginTop: 6 }}>Full backup, everything, one file. For disaster recovery, not routine reporting, so it is rate limited and every download is logged.</div>
+      </div>
     </div>
   );
 }

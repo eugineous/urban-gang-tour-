@@ -84,6 +84,23 @@ export function V25App({ page }: { page: string }) {
         w.__UGT_PRODUCTS = rows.map((p) => ({ id: p.id, name: p.name, price: p.price, img: p.image, cat: p.category, desc: p.description }));
       })
       .catch(() => { w.__UGT_PRODUCTS = w.__UGT_PRODUCTS || []; });
+    // Gallery bridge: the photo wall's this.GALLERY used to be a hardcoded
+    // array of image paths duplicated only in this template. It now lives in
+    // the DB (gallery_photos table, admin-editable — see
+    // app/admin/ops/Gallery.tsx) — fetch the current admin-ordered photo
+    // list once, before boot, and normalize it down to the same plain array
+    // of URL strings the template's this.GALLERY always was, so the
+    // template's existing render code needs zero changes. DISPLAY ONLY —
+    // same fire-and-forget/safe-empty-fallback pattern as the events/products
+    // bridges above: a stale or failed fetch here only means the page shows
+    // its frozen fallback photos, never a broken page.
+    fetch('/api/site-data/gallery')
+      .then((r) => r.json())
+      .then((d) => {
+        const rows: any[] = Array.isArray(d?.photos) ? d.photos : [];
+        w.__UGT_GALLERY = rows.map((p) => p.url).filter(Boolean);
+      })
+      .catch(() => { w.__UGT_GALLERY = w.__UGT_GALLERY || []; });
     // Card checkout bridge: the v25 template's "Pay with Card" button calls
     // this with the same {id, qty} cart lines the M-Pesa order flow sends.
     // The server re-prices everything from lib/server/catalog.ts and answers

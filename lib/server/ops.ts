@@ -212,6 +212,38 @@ CREATE TABLE IF NOT EXISTS marketplace_events (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+-- Gallery / photo wall admin uploads: collapses the hardcoded this.GALLERY
+-- literal in public/v25-template.html into an admin-editable table, same
+-- pattern as tour_events/products above. url points either at a real Vercel
+-- Blob file (new admin uploads, see @vercel/blob in app/api/admin/gallery)
+-- or at a public/assets/ path (photos seeded from the original literal never
+-- need to be re-uploaded). See lib/server/gallery.ts for the seed + read
+-- layer and app/api/site-data/gallery/route.ts for the public read side.
+--
+-- NOTE: this table already existed in production (id SERIAL, url, caption,
+-- category, width, height, created_at, all NOT NULL — an orphaned column set
+-- from an earlier attempt at this feature that never shipped app code, 0
+-- rows, zero other references anywhere in this repo). CREATE TABLE IF NOT
+-- EXISTS below matches that live shape (so a fresh DB and prod agree); the
+-- ALTER TABLE statements just below reconcile the rest — sort_order is new,
+-- and width/height are relaxed to nullable since this app never captures
+-- pixel dimensions on upload — same additive-only convention as
+-- lib/server/db.ts's posts.social_posted_at column add, never a destructive
+-- change against a table that might carry real rows.
+CREATE TABLE IF NOT EXISTS gallery_photos (
+  id SERIAL PRIMARY KEY,
+  url TEXT NOT NULL,
+  caption TEXT DEFAULT '',
+  category TEXT DEFAULT '',
+  width INT,
+  height INT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+ALTER TABLE gallery_photos ALTER COLUMN width DROP NOT NULL;
+ALTER TABLE gallery_photos ALTER COLUMN height DROP NOT NULL;
+ALTER TABLE gallery_photos ALTER COLUMN category SET DEFAULT '';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_gallery_photos_url ON gallery_photos (url);
 -- Indexes for the ops suite's real query patterns (event drill-downs, invoice
 -- payment sums, lead pipeline, follow-up dashboard, audit trail). Applied
 -- automatically by ensureOpsSchema(). ops_budgets(event_id) is covered by the
@@ -234,6 +266,7 @@ CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
 CREATE INDEX IF NOT EXISTS idx_marketplace_organizers_status ON marketplace_organizers (status);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_status_date ON marketplace_events (status, event_date);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_organizer_id ON marketplace_events (organizer_id);
+CREATE INDEX IF NOT EXISTS idx_gallery_photos_sort_order ON gallery_photos (sort_order);
 `;
 
 export const LEAD_STAGES = ['new', 'contacted', 'negotiating', 'confirmed', 'contracted', 'completed', 'lost'] as const;

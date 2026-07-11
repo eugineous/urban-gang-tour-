@@ -21,6 +21,7 @@ const Checklists = dynamic(() => import('./ops/Checklists'), { ssr: false, loadi
 const Reviews = dynamic(() => import('./ops/Reviews'), { ssr: false, loading: opsLoading });
 const Events = dynamic(() => import('./ops/Events'), { ssr: false, loading: opsLoading });
 const Products = dynamic(() => import('./ops/Products'), { ssr: false, loading: opsLoading });
+const Gallery = dynamic(() => import('./ops/Gallery'), { ssr: false, loading: opsLoading });
 const Marketplace = dynamic(() => import('./ops/Marketplace'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
@@ -32,7 +33,7 @@ const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSi
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
 const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic'] as const;
-const OPS_TABS = ['Events', 'Products', 'Marketplace', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
+const OPS_TABS = ['Events', 'Products', 'Gallery', 'Marketplace', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 
 async function api(path: string, opts?: RequestInit) {
@@ -203,6 +204,7 @@ export default function AdminApp() {
       )}
       {tab === 'Events' && <Events />}
       {tab === 'Products' && <Products />}
+      {tab === 'Gallery' && <Gallery />}
       {tab === 'Marketplace' && <Marketplace />}
       {tab === 'Budgeter' && <Budgeter />}
       {tab === 'Invoices' && <Invoices />}
@@ -617,6 +619,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
             <input style={inp} placeholder="Image path e.g. /assets/gal/lari.jpg" value={p.image || ''} onChange={(e) => set('image', e.target.value)} />
             <input style={inp} placeholder="Date YYYY-MM-DD" value={p.date ? String(p.date).slice(0, 10) : ''} onChange={(e) => set('date', e.target.value)} />
           </div>
+          <div style={{ fontSize: 11, color: '#888', marginTop: -4 }}>Future date schedules this post to go live automatically — it stays hidden from the site, sitemap and socials until that date arrives.</div>
           <input style={inp} placeholder="Dek — one-line summary shown on cards" value={p.dek || ''} onChange={(e) => set('dek', e.target.value)} />
           <textarea style={{ ...inp, minHeight: 220 }} placeholder="Full article. Separate paragraphs with a blank line."
             value={Array.isArray(p.body) ? p.body.join('\n\n') : (p.body || '')} onChange={(e) => set('body', e.target.value)} />
@@ -638,21 +641,34 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-          <thead><tr>{['date', 'slug', 'headline', 'section', 'published', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
+          <thead><tr>{['date', 'slug', 'headline', 'section', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
           <tbody>
-            {rows.map((r: any) => (
+            {rows.map((r: any) => {
+              const rDate = String(r.date).slice(0, 10);
+              const todayIso = new Date().toISOString().slice(0, 10);
+              const scheduled = r.published && rDate > todayIso;
+              const status = !r.published ? 'Draft' : scheduled ? 'Scheduled' : 'Published';
+              const statusStyle = scheduled
+                ? { background: '#FFF3C4', color: '#7a5b00', border: '1px solid #E6B800' }
+                : r.published
+                ? { background: '#DCFCE7', color: '#166534', border: '1px solid #86EFAC' }
+                : { background: '#EEE', color: '#666', border: '1px solid #CCC' };
+              return (
               <tr key={r.slug}>
-                <td style={td}>{String(r.date).slice(0, 10)}</td>
+                <td style={td}>{rDate}</td>
                 <td style={td}><a href={`/blog/${r.slug}`} target="_blank" style={{ color: C.pink, fontWeight: 700 }}>{r.slug}</a></td>
                 <td style={td}>{r.headline}</td>
                 <td style={td}>{r.section}</td>
-                <td style={td}>{r.published ? '✅' : '—'}</td>
+                <td style={td}>
+                  <span style={{ ...statusStyle, borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>{status}</span>
+                </td>
                 <td style={td}>
                   <button style={{ ...btn, padding: '5px 9px', marginRight: 6 }} onClick={() => setEditPost(r)}>Edit</button>
                   <button style={{ ...btnDark, padding: '5px 9px' }} onClick={() => onDelete(r.slug)}>Delete</button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
