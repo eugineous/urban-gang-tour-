@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
   Chip, fmtDate, opsGet, opsPost, Toast, useToast, NumInput,
+  SearchBox, useSearch,
 } from './ui';
 
 interface Promo {
@@ -25,6 +26,7 @@ const EMPTY = {
 export default function Promos() {
   const [rows, setRows] = useState<Promo[]>([]);
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -53,6 +55,7 @@ export default function Promos() {
 
   const today = new Date().toISOString().slice(0, 10);
   const isLive = (p: Promo) => p.active && (!p.starts_on || fmtDate(p.starts_on) <= today) && (!p.ends_on || fmtDate(p.ends_on) >= today);
+  const shown = useSearch(rows, qy);
 
   if (edit) {
     return (
@@ -101,6 +104,7 @@ export default function Promos() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
           <h3 style={{ ...h3, marginBottom: 0 }}>SHOP PROMOS</h3>
           <div style={{ flex: 1 }} />
+          <SearchBox value={qy} onChange={setQy} placeholder="Search promos..." />
           <button style={btn} onClick={() => setEdit({ ...EMPTY })}>+ New promo</button>
         </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
@@ -110,7 +114,7 @@ export default function Promos() {
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
             <thead><tr>{['name', 'discount', 'code', 'products', 'window', 'uses', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
             <tbody>
-              {rows.map((p) => (
+              {shown.map((p) => (
                 <tr key={p.id}>
                   <td style={td}><b>{p.name}</b>{p.banner_text ? <div style={{ fontSize: 11, color: '#888' }}>{p.banner_text}</div> : null}</td>
                   <td style={td}><b>{p.promo_type === 'percent' ? `${Number(p.discount)}%` : `KES ${Number(p.discount).toLocaleString()}`}</b></td>
@@ -135,7 +139,7 @@ export default function Promos() {
                   </td>
                 </tr>
               ))}
-              {!rows.length && <tr><td style={td} colSpan={8}>No promos yet.</td></tr>}
+              {!shown.length && <tr><td style={td} colSpan={8}>{rows.length ? 'No promos match your search.' : 'No promos yet.'}</td></tr>}
             </tbody>
           </table>
         </div>

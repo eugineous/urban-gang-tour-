@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
   Chip, opsGet, opsPost, Toast, useToast,
+  SearchBox, useSearch,
 } from './ui';
 
 interface Product {
@@ -23,6 +24,7 @@ export default function Products() {
   const [rows, setRows] = useState<Product[]>([]);
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -59,7 +61,8 @@ export default function Products() {
     if (data.error) say('Failed: ' + data.error); else { say('Restored'); reload(); }
   };
 
-  const visible = rows.filter((p) => showInactive || p.active);
+  const byActive = rows.filter((p) => showInactive || p.active);
+  const visible = useSearch(byActive, qy);
 
   if (edit) {
     return (
@@ -98,6 +101,7 @@ export default function Products() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
           <h3 style={{ ...h3, marginBottom: 0 }}>SHOP PRODUCTS</h3>
           <div style={{ flex: 1 }} />
+          <SearchBox value={qy} onChange={setQy} placeholder="Search products..." />
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
             <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} /> Show retired
           </label>
@@ -127,7 +131,7 @@ export default function Products() {
                   </td>
                 </tr>
               ))}
-              {!visible.length && <tr><td style={td} colSpan={6}>No products in this filter.</td></tr>}
+              {!visible.length && <tr><td style={td} colSpan={6}>{byActive.length ? 'No products match your search.' : 'No products in this filter.'}</td></tr>}
             </tbody>
           </table>
         </div>

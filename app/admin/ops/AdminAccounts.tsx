@@ -8,7 +8,7 @@
 // server-side with the acting super_admin's email.
 
 import { useCallback, useEffect, useState } from 'react';
-import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th, Chip, Toast, useToast, OC } from './ui';
+import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th, Chip, Toast, useToast, OC, SearchBox, useSearch } from './ui';
 
 interface Account {
   email: string;
@@ -28,6 +28,7 @@ export default function AdminAccounts() {
   const [rows, setRows] = useState<Account[]>([]);
   const [moduleKeys, setModuleKeys] = useState<string[]>([]);
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [loadErr, setLoadErr] = useState('');
   const [toast, say] = useToast();
@@ -70,6 +71,8 @@ export default function AdminAccounts() {
     const { data } = await api('/api/admin/accounts', { method: 'POST', body: JSON.stringify({ kind: 'remove', data: { email } }) });
     if (data.error) say('Failed: ' + data.error); else { say('Removed'); reload(); }
   };
+
+  const shown = useSearch(rows, qy);
 
   if (loadErr) return <div style={{ ...card, fontSize: 13 }}>{loadErr}</div>;
 
@@ -125,13 +128,14 @@ export default function AdminAccounts() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           <h3 style={{ ...h3, marginBottom: 0 }}>ADMIN ACCOUNTS ({rows.length})</h3>
           <div style={{ flex: 1 }} />
+          <SearchBox value={qy} onChange={setQy} placeholder="Search admins..." />
           <button style={btn} onClick={() => setEdit({ ...EMPTY })}>+ Add admin</button>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
             <thead><tr>{['email', 'role', 'modules', 'added', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
             <tbody>
-              {rows.map((r) => (
+              {shown.map((r) => (
                 <tr key={r.email}>
                   <td style={td}>{r.email}</td>
                   <td style={td}><Chip text={r.role} bg={r.role === 'super_admin' ? '#111' : '#eee'} color={r.role === 'super_admin' ? '#fff' : '#333'} /></td>
@@ -147,7 +151,7 @@ export default function AdminAccounts() {
                   </td>
                 </tr>
               ))}
-              {!rows.length && <tr><td style={td} colSpan={5}>No accounts yet - only the access code and any ADMIN_GOOGLE_EMAILS env-listed addresses can sign in.</td></tr>}
+              {!shown.length && <tr><td style={td} colSpan={5}>{rows.length ? 'No admins match your search.' : 'No accounts yet - only the access code and any ADMIN_GOOGLE_EMAILS env-listed addresses can sign in.'}</td></tr>}
             </tbody>
           </table>
         </div>

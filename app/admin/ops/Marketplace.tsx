@@ -7,7 +7,7 @@
 // earned to date. Follows Events.tsx's exact conventions.
 
 import { useCallback, useEffect, useState } from 'react';
-import { OC, card, btnMagenta, btnSmall, inp, h3, td, th, Chip, fmtDate, fmtKES, opsGet, opsPost, Toast, useToast } from './ui';
+import { OC, card, btnMagenta, btnSmall, inp, h3, td, th, Chip, fmtDate, fmtKES, opsGet, opsPost, Toast, useToast, SearchBox, useSearch } from './ui';
 
 interface Organizer {
   id: string; business_name: string; contact_name: string; email: string; phone: string;
@@ -31,6 +31,7 @@ export default function Marketplace() {
   const [totals, setTotals] = useState<{ commission: string; organizer_share: string; count: string } | null>(null);
   const [commission, setCommission] = useState<number>(8);
   const [commissionInput, setCommissionInput] = useState('8');
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -108,6 +109,9 @@ export default function Marketplace() {
 
   const pendingOrganizers = organizers.filter((o) => o.status === 'pending');
   const pendingEvents = events.filter((e) => e.status === 'pending_review');
+  const shownOrganizers = useSearch(organizers, qy);
+  const shownEvents = useSearch(events, qy);
+  const shownOrders = useSearch(orders, qy);
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
@@ -123,12 +127,13 @@ export default function Marketplace() {
           Third-party organizers sell tickets through urbangangtour.co.ke. UGT takes {commission}% commission per ticket,
           split automatically by Paystack at the moment of sale — UGT never holds or manually pays out organizer funds.
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           {(['organizers', 'events', 'orders', 'commission'] as const).map((t) => (
             <button key={t} style={{ ...btnSmall, background: tab === t ? OC.magenta : '#fff', color: tab === t ? '#fff' : '#111', textTransform: 'capitalize' }} onClick={() => setTab(t)}>
               {t}
             </button>
           ))}
+          {tab !== 'commission' && <SearchBox value={qy} onChange={setQy} placeholder={`Search ${tab}...`} style={{ marginLeft: 'auto' }} />}
         </div>
       </div>
 
@@ -139,7 +144,7 @@ export default function Marketplace() {
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
               <thead><tr>{['business', 'contact', 'bank / account', 'subaccount', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
               <tbody>
-                {organizers.map((o) => (
+                {shownOrganizers.map((o) => (
                   <tr key={o.id}>
                     <td style={td}><b>{o.business_name}</b><div style={{ fontSize: 11, color: '#888' }}>{o.event_count} event{o.event_count === 1 ? '' : 's'}</div></td>
                     <td style={td}>{o.contact_name}<div style={{ fontSize: 11, color: '#888' }}>{o.email} · {o.phone}</div></td>
@@ -162,7 +167,7 @@ export default function Marketplace() {
                     </td>
                   </tr>
                 ))}
-                {!organizers.length && <tr><td style={td} colSpan={6}>No organizer applications yet.</td></tr>}
+                {!shownOrganizers.length && <tr><td style={td} colSpan={6}>{organizers.length ? 'No organizers match your search.' : 'No organizer applications yet.'}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -176,7 +181,7 @@ export default function Marketplace() {
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
               <thead><tr>{['event', 'organizer', 'date / venue', 'sold', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
               <tbody>
-                {events.map((e) => (
+                {shownEvents.map((e) => (
                   <tr key={e.id}>
                     <td style={td}><b>{e.name}</b></td>
                     <td style={td}>{e.organizer_business_name}{e.organizer_status !== 'approved' ? <div style={{ fontSize: 11, color: OC.red }}>organizer not approved</div> : null}</td>
@@ -199,7 +204,7 @@ export default function Marketplace() {
                     </td>
                   </tr>
                 ))}
-                {!events.length && <tr><td style={td} colSpan={6}>No marketplace events yet.</td></tr>}
+                {!shownEvents.length && <tr><td style={td} colSpan={6}>{events.length ? 'No events match your search.' : 'No marketplace events yet.'}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -220,7 +225,7 @@ export default function Marketplace() {
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
               <thead><tr>{['order', 'event', 'organizer', 'total', 'commission', 'organizer share', 'status', 'date'].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
               <tbody>
-                {orders.map((o) => (
+                {shownOrders.map((o) => (
                   <tr key={o.id}>
                     <td style={td}>{o.id}</td>
                     <td style={td}>{o.event_name}</td>
@@ -232,7 +237,7 @@ export default function Marketplace() {
                     <td style={td}>{fmtDate(o.created_at)}</td>
                   </tr>
                 ))}
-                {!orders.length && <tr><td style={td} colSpan={8}>No marketplace orders yet.</td></tr>}
+                {!shownOrders.length && <tr><td style={td} colSpan={8}>{orders.length ? 'No orders match your search.' : 'No marketplace orders yet.'}</td></tr>}
               </tbody>
             </table>
           </div>

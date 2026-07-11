@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
   Chip, fmtDate, opsGet, opsPost, Toast, useToast,
+  SearchBox, useSearch,
 } from './ui';
 
 type Kind = 'ticketed' | 'school' | 'past';
@@ -45,6 +46,7 @@ export default function Events() {
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
   const [kindTab, setKindTab] = useState<Kind | 'all'>('all');
   const [showCancelled, setShowCancelled] = useState(false);
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -113,7 +115,8 @@ export default function Events() {
     setEdit({ ...edit, tiers });
   };
 
-  const visible = rows.filter((r) => (kindTab === 'all' || r.kind === kindTab) && (showCancelled || r.status !== 'cancelled'));
+  const byKind = rows.filter((r) => (kindTab === 'all' || r.kind === kindTab) && (showCancelled || r.status !== 'cancelled'));
+  const visible = useSearch(byKind, qy);
 
   if (edit) {
     return (
@@ -199,6 +202,7 @@ export default function Events() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
           <h3 style={{ ...h3, marginBottom: 0 }}>TOUR EVENTS</h3>
           <div style={{ flex: 1 }} />
+          <SearchBox value={qy} onChange={setQy} placeholder="Search events..." />
           <button style={btn} onClick={() => openEdit()}>+ New event</button>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -243,7 +247,7 @@ export default function Events() {
                   </td>
                 </tr>
               ))}
-              {!visible.length && <tr><td style={td} colSpan={7}>No events in this filter.</td></tr>}
+              {!visible.length && <tr><td style={td} colSpan={7}>{byKind.length ? 'No events match your search.' : 'No events in this filter.'}</td></tr>}
             </tbody>
           </table>
         </div>

@@ -5,7 +5,7 @@
 // ops magenta #C7238E as the suite accent. Mobile-first: everything stacks
 // and tables scroll inside their card at 375px.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export const OC = {
   magenta: '#C7238E',
@@ -137,6 +137,56 @@ export function EventSelect({ events, value, onChange, allowNone, noneLabel }: {
         </option>
       ))}
     </select>
+  );
+}
+
+// Same as EventSelect but with a text filter above it once the list is long
+// enough to need one - the event picker is the primary "table" in several
+// per-event ops tools (Payments, Budgeter, Checklists, Expenses, Payouts),
+// so this is where those modules' search/filter requirement lands.
+export function FilterableEventSelect({ events, value, onChange, allowNone, noneLabel }: {
+  events: OpsEvent[];
+  value: number | null;
+  onChange: (id: number | null) => void;
+  allowNone?: boolean;
+  noneLabel?: string;
+}) {
+  const [q, setQ] = useState('');
+  const filtered = useMemo(() => {
+    if (!q.trim()) return events;
+    const needle = q.toLowerCase();
+    return events.filter((e) => (e.name + ' ' + e.school).toLowerCase().includes(needle));
+  }, [events, q]);
+  return (
+    <div style={{ display: 'grid', gap: 6 }}>
+      {events.length > 6 && (
+        <input style={inp} placeholder="Search events by name or school..." value={q} onChange={(e) => setQ(e.target.value)} />
+      )}
+      <EventSelect events={filtered} value={value} onChange={onChange} allowNone={allowNone} noneLabel={noneLabel} />
+    </div>
+  );
+}
+
+// Generic client-side text filter for an ops table's row data - same
+// substring-of-JSON approach AdminApp.tsx's Table component already used for
+// Bookings/Orders/Content/Newsroom/People, lifted here so every ops module
+// can reuse the identical behaviour instead of a new bespoke filter each time.
+export function useSearch<T>(rows: T[], query: string): T[] {
+  return useMemo(() => {
+    if (!query.trim()) return rows;
+    const q = query.toLowerCase();
+    return rows.filter((r) => JSON.stringify(r).toLowerCase().includes(q));
+  }, [rows, query]);
+}
+
+export function SearchBox({ value, onChange, placeholder, style }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <input style={{ ...inp, maxWidth: 240, ...style }} placeholder={placeholder || 'Search...'} value={value} onChange={(e) => onChange(e.target.value)} />
   );
 }
 

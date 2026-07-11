@@ -12,6 +12,7 @@ import { DocLine, docTotals, effectiveDocStatus, computeBudget, BudgetData } fro
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
   Chip, fmtKES, fmtDate, opsGet, opsPost, useEvents, EventSelect, Toast, useToast, waLink,
+  SearchBox, useSearch,
 } from './ui';
 
 interface DocRow {
@@ -69,6 +70,7 @@ export default function Invoices() {
   const { events } = useEvents();
   const [rows, setRows] = useState<DocRow[]>([]);
   const [filter, setFilter] = useState<'all' | 'quote' | 'invoice' | 'receipt'>('all');
+  const [qy, setQy] = useState('');
   const [edit, setEdit] = useState<EditState | null>(null);
   const [payFor, setPayFor] = useState<DocRow | null>(null);
   const [payAmount, setPayAmount] = useState(0);
@@ -93,7 +95,8 @@ export default function Invoices() {
   const invoices = withStatus.filter((r) => r.doc_type === 'invoice');
   const outstanding = invoices.filter((r) => r.liveStatus !== 'draft').reduce((s, r) => s + Math.max(0, r.total - r.paid), 0);
   const overdueCount = invoices.filter((r) => r.liveStatus === 'overdue').length;
-  const shown = withStatus.filter((r) => filter === 'all' || r.doc_type === filter);
+  const byType = withStatus.filter((r) => filter === 'all' || r.doc_type === filter);
+  const shown = useSearch(byType, qy);
 
   const startFromBudget = async (eventId: number | null) => {
     if (!eventId) { say('Pick an event first'); return; }
@@ -233,6 +236,7 @@ export default function Invoices() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
           <h3 style={{ ...h3, marginBottom: 0 }}>DOCUMENTS</h3>
           <div style={{ flex: 1 }} />
+          <SearchBox value={qy} onChange={setQy} placeholder="Search documents..." />
           <select style={{ ...inp, width: 130 }} value={filter} onChange={(e) => setFilter(e.target.value as any)}>
             <option value="all">All types</option><option value="quote">Quotes</option><option value="invoice">Invoices</option><option value="receipt">Receipts</option>
           </select>

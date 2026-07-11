@@ -230,12 +230,33 @@ export default function AdminApp() {
           <button key={t} style={{ ...btn, background: tab === t ? C.pink : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18, alignItems: 'center' }}>
+      {/* Ops row: 14+ buttons wraps into an unwieldy multi-line block on a
+          narrow phone. Below 480px (tighter than the site's public 900px
+          nav breakpoint - see app/globals.css/BottomTabBar - because the
+          button row itself still reads fine on a tablet or a phone in
+          landscape; only a genuinely narrow portrait viewport needs the
+          swap) it collapses into a single <select> instead. Both markups
+          render always; app/globals.css's [data-ops-tabs-*] media query
+          toggles which one is visible so there is no JS width check or
+          hydration flash. The select reuses the exact same canSee() filter
+          as the button row, so a crew_admin's dropdown never lists a module
+          they don't have perms for. */}
+      <div data-ops-tabs-btns style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18, alignItems: 'center' }}>
         <span style={{ fontFamily: 'Anton', fontSize: 13, color: '#fff', WebkitTextStroke: '0.5px #111', letterSpacing: '.06em' }}>OPS</span>
         {OPS_TABS.filter(canSee).map((t) => (
           <button key={t} style={{ ...btn, background: tab === t ? '#C7238E' : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
+      <select
+        data-ops-tabs-select
+        aria-label="Ops tools"
+        style={{ ...inp, marginBottom: 18 }}
+        value={(OPS_TABS as readonly string[]).includes(tab) ? tab : ''}
+        onChange={(e) => { if (e.target.value) setTab(e.target.value as Tab); }}
+      >
+        <option value="" disabled>OPS: pick a tool…</option>
+        {OPS_TABS.filter(canSee).map((t) => <option key={t} value={t}>{t}</option>)}
+      </select>
       {toast && <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50, ...card, padding: '10px 16px', background: C.yellow }}>{toast}</div>}
 
       {tab === 'Dashboard' && (

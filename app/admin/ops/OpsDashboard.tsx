@@ -9,6 +9,51 @@ import {
   OC, card, h3, Chip, fmtKES, fmtDate, opsGet, waLink,
 } from './ui';
 
+interface ClientErrorRow {
+  id: number; msg: string; src: string; line: number; page: string; ua: string; created_at: string;
+}
+
+// Diagnostic-only, isSuperAdmin-gated: /api/admin/ops?view=clientErrors 403s
+// for a crew_admin, so this simply renders nothing for them rather than
+// surfacing an error card - the panel's existence isn't worth flagging to a
+// scoped account, and the rest of the dashboard already works for them.
+function RecentErrorsPanel() {
+  const [rows, setRows] = useState<ClientErrorRow[] | null>(null);
+
+  useEffect(() => {
+    opsGet('clientErrors').then(({ data }) => {
+      if (!data.error && Array.isArray(data.rows)) setRows(data.rows);
+    });
+  }, []);
+
+  if (rows === null) return null;
+
+  return (
+    <div style={card}>
+      <h3 style={h3}>RECENT CLIENT ERRORS ({rows.length})</h3>
+      <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+        Runtime errors visitors' browsers reported (last 30 days, most recent 30 shown). Super-admin only — see app/api/client-error for the beacon that collects these.
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+          <thead><tr>{['when', 'page', 'message', 'source'].map((c) => <th key={c} style={{ textAlign: 'left', padding: '8px 10px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' }}>{c}</th>)}</tr></thead>
+          <tbody>
+            {rows.map((e) => (
+              <tr key={e.id}>
+                <td style={{ padding: '8px 10px', fontSize: 12, borderBottom: '1px solid #eee', whiteSpace: 'nowrap' }}>{new Date(e.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                <td style={{ padding: '8px 10px', fontSize: 12, borderBottom: '1px solid #eee' }}>{e.page || '—'}</td>
+                <td style={{ padding: '8px 10px', fontSize: 12, borderBottom: '1px solid #eee', maxWidth: 340 }}>{e.msg || '—'}</td>
+                <td style={{ padding: '8px 10px', fontSize: 11, color: '#888', borderBottom: '1px solid #eee', whiteSpace: 'nowrap' }}>{e.src}{e.line ? `:${e.line}` : ''}</td>
+              </tr>
+            ))}
+            {!rows.length && <tr><td style={{ padding: '8px 10px', fontSize: 13 }} colSpan={4}>No client errors reported in the last 30 days.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // One place to get any CSV instead of hunting through 11 ops tabs — every
 // kind hits the same admin-gated unified endpoint (app/api/admin/export).
 const EXPORT_KINDS: { kind: string; label: string }[] = [
@@ -142,6 +187,7 @@ export default function OpsDashboard() {
         ))}
         {!(d.audit || []).length && <div style={{ fontSize: 13, color: '#666' }}>No ops activity logged yet.</div>}
       </div>
+      <RecentErrorsPanel />
     </div>
   );
 }

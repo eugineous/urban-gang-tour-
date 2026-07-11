@@ -13,7 +13,7 @@ import {
 } from '@/lib/ops/budget-calc';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
-  Chip, TbdBadge, NumInput, fmtKES, fmtDate, opsGet, opsPost, useEvents, EventSelect, Toast, useToast,
+  Chip, TbdBadge, NumInput, fmtKES, fmtDate, opsGet, opsPost, useEvents, FilterableEventSelect, Toast, useToast,
 } from './ui';
 
 export default function Budgeter() {
@@ -96,7 +96,7 @@ export default function Budgeter() {
         <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
           <div>
             <span style={label}>Event</span>
-            <EventSelect events={events} value={eventId} onChange={loadEvent} allowNone noneLabel="+ New event (start blank)" />
+            <FilterableEventSelect events={events} value={eventId} onChange={loadEvent} allowNone noneLabel="+ New event (start blank)" />
           </div>
           <div>
             <span style={label}>Event name</span>

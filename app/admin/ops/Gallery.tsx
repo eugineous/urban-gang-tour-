@@ -13,6 +13,7 @@ import { upload } from '@vercel/blob/client';
 import {
   OC, card, btn, btnSmall, inp, label, h3,
   api, Toast, useToast,
+  SearchBox, useSearch,
 } from './ui';
 
 interface Photo {
@@ -46,6 +47,8 @@ export default function Gallery() {
   const [toast, say] = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [qy, setQy] = useState('');
+  const shown = useSearch(rows, qy);
 
   const reload = useCallback(async () => {
     const { data } = await galleryGet();
@@ -130,9 +133,13 @@ export default function Gallery() {
     <div style={{ display: 'grid', gap: 14 }}>
       <Toast msg={toast} />
       <div style={card}>
-        <h3 style={h3}>GALLERY / PHOTO WALL</h3>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
+          <h3 style={{ ...h3, marginBottom: 0 }}>GALLERY / PHOTO WALL</h3>
+          <div style={{ flex: 1 }} />
+          <SearchBox value={qy} onChange={setQy} placeholder="Search by caption or category..." />
+        </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Live: these photos feed the public site's photo wall. A new upload goes straight to storage from your browser (no code deploy) and is live within about a minute. Use the arrows to reorder — first photo shows first.
+          Live: these photos feed the public site's photo wall. A new upload goes straight to storage from your browser (no code deploy) and is live within about a minute. Use the arrows to reorder — first photo shows first. Reordering is disabled while searching.
         </div>
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -157,8 +164,10 @@ export default function Gallery() {
       </div>
 
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
-        {rows.map((p, i) => {
+        {shown.map((p) => {
           const d = drafts[p.id] || { caption: '', category: '' };
+          const i = rows.findIndex((r) => r.id === p.id);
+          const reorderDisabled = qy.trim().length > 0;
           return (
             <div key={p.id} style={{ ...card, padding: 10, display: 'grid', gap: 8 }}>
               <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '2px solid #111', aspectRatio: '4/3', background: '#eee' }}>
@@ -175,14 +184,14 @@ export default function Gallery() {
               </div>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 <button style={btnSmall} onClick={() => saveMeta(p)}>Save</button>
-                <button style={btnSmall} disabled={i === 0} onClick={() => move(i, -1)}>↑ Move up</button>
-                <button style={btnSmall} disabled={i === rows.length - 1} onClick={() => move(i, 1)}>↓ Move down</button>
+                <button style={btnSmall} disabled={reorderDisabled || i <= 0} onClick={() => move(i, -1)}>↑ Move up</button>
+                <button style={btnSmall} disabled={reorderDisabled || i === rows.length - 1} onClick={() => move(i, 1)}>↓ Move down</button>
                 <button style={{ ...btnSmall, background: '#111', color: '#fff' }} onClick={() => remove(p)}>Delete</button>
               </div>
             </div>
           );
         })}
-        {!rows.length && <div style={{ ...card, gridColumn: '1 / -1' }}>No photos yet — upload the first one above.</div>}
+        {!shown.length && <div style={{ ...card, gridColumn: '1 / -1' }}>{rows.length ? 'No photos match your search.' : 'No photos yet — upload the first one above.'}</div>}
       </div>
     </div>
   );

@@ -9,7 +9,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { computeBudget, BudgetData } from '@/lib/ops/budget-calc';
 import {
   OC, card, btnMagenta, btnSmall, inp, label, h3, td, th,
-  fmtKES, fmtDate, opsGet, opsPost, useEvents, EventSelect, Toast, useToast, NumInput,
+  fmtKES, fmtDate, opsGet, opsPost, useEvents, FilterableEventSelect, Toast, useToast, NumInput,
+  SearchBox, useSearch,
 } from './ui';
 
 export default function Payments() {
@@ -22,6 +23,7 @@ export default function Payments() {
   const [method, setMethod] = useState('mpesa');
   const [reference, setReference] = useState('');
   const [paidOn, setPaidOn] = useState('');
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -72,13 +74,14 @@ export default function Payments() {
   };
 
   const balance = agreed !== null && money ? agreed - money.received : null;
+  const shownPayments = useSearch((detail?.payments || []) as any[], qy);
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       <Toast msg={toast} />
       <div style={card}>
         <h3 style={h3}>PAYMENTS AND EVENT MONEY</h3>
-        <EventSelect events={events} value={eventId} onChange={load} allowNone />
+        <FilterableEventSelect events={events} value={eventId} onChange={load} allowNone />
       </div>
 
       {detail && money && (
@@ -133,12 +136,16 @@ export default function Payments() {
           </div>
 
           <div style={card}>
-            <h3 style={h3}>DEPOSITS ({(detail.payments || []).length})</h3>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+              <h3 style={{ ...h3, marginBottom: 0 }}>DEPOSITS ({(detail.payments || []).length})</h3>
+              <div style={{ flex: 1 }} />
+              <SearchBox value={qy} onChange={setQy} placeholder="Search deposits..." />
+            </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                 <thead><tr>{['date', 'amount', 'method', 'reference', 'invoice', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
                 <tbody>
-                  {(detail.payments || []).map((p: any) => (
+                  {shownPayments.map((p: any) => (
                     <tr key={p.id}>
                       <td style={td}>{fmtDate(p.paid_on)}</td>
                       <td style={td}><b>{fmtKES(p.amount)}</b></td>
@@ -154,7 +161,7 @@ export default function Payments() {
                       </td>
                     </tr>
                   ))}
-                  {!(detail.payments || []).length && <tr><td style={td} colSpan={6}>No deposits recorded yet.</td></tr>}
+                  {!shownPayments.length && <tr><td style={td} colSpan={6}>{(detail.payments || []).length ? 'No deposits match your search.' : 'No deposits recorded yet.'}</td></tr>}
                 </tbody>
               </table>
             </div>

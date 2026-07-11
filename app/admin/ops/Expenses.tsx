@@ -8,7 +8,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { computeBudget, BudgetData } from '@/lib/ops/budget-calc';
 import {
   OC, card, btnMagenta, btnSmall, inp, label, h3, td, th,
-  fmtKES, fmtDate, opsGet, opsPost, useEvents, EventSelect, Toast, useToast, TbdBadge,
+  fmtKES, fmtDate, opsGet, opsPost, useEvents, FilterableEventSelect, Toast, useToast, TbdBadge,
+  SearchBox, useSearch,
 } from './ui';
 
 const GENERIC_CATEGORIES = ['Sound', 'Stage', 'Crew transport', 'Food and water', 'General'];
@@ -21,6 +22,7 @@ export default function Expenses() {
   const [category, setCategory] = useState('General');
   const [amount, setAmount] = useState(0);
   const [spentOn, setSpentOn] = useState('');
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -64,6 +66,7 @@ export default function Expenses() {
   }, [expenses, budget]);
 
   const totalActual = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const shownExpenses = useSearch(expenses, qy);
 
   const add = async () => {
     if (!eventId || !labelTxt.trim()) { say('What was the money spent on?'); return; }
@@ -80,7 +83,7 @@ export default function Expenses() {
       <Toast msg={toast} />
       <div style={card}>
         <h3 style={h3}>EVENT EXPENSES</h3>
-        <EventSelect events={events} value={eventId} onChange={load} allowNone />
+        <FilterableEventSelect events={events} value={eventId} onChange={load} allowNone />
       </div>
 
       {detail && (
@@ -145,12 +148,16 @@ export default function Expenses() {
             </div>
 
             <div style={card}>
-              <h3 style={h3}>EXPENSE LOG ({expenses.length})</h3>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+                <h3 style={{ ...h3, marginBottom: 0 }}>EXPENSE LOG ({expenses.length})</h3>
+                <div style={{ flex: 1 }} />
+                <SearchBox value={qy} onChange={setQy} placeholder="Search expenses..." />
+              </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                   <thead><tr>{['date', 'item', 'category', 'amount', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
                   <tbody>
-                    {expenses.map((e) => (
+                    {shownExpenses.map((e) => (
                       <tr key={e.id}>
                         <td style={td}>{fmtDate(e.spent_on)}</td>
                         <td style={td}>{e.label}</td>
@@ -165,7 +172,7 @@ export default function Expenses() {
                         </td>
                       </tr>
                     ))}
-                    {!expenses.length && <tr><td style={td} colSpan={5}>No expenses recorded yet.</td></tr>}
+                    {!shownExpenses.length && <tr><td style={td} colSpan={5}>{expenses.length ? 'No expenses match your search.' : 'No expenses recorded yet.'}</td></tr>}
                   </tbody>
                 </table>
               </div>

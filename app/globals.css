@@ -145,3 +145,17 @@ input,textarea,select{font-family:inherit}
 .boot-veil-bar{width:180px;height:10px;border:3px solid #111;border-radius:100px;background:#fff;overflow:hidden}
 .boot-veil-bar span{display:block;height:100%;width:40%;background:#FFD400;border-right:3px solid #111;animation:veilslide 1s ease-in-out infinite alternate}
 @keyframes veilslide{from{transform:translateX(-10%)}to{transform:translateX(160%)}}
+
+/* ============================================================
+   ADMIN CONTROL ROOM — Ops tab row collapses into a <select> on a
+   narrow phone (app/admin/AdminApp.tsx). 480px on purpose, tighter
+   than the site's public 900px nav breakpoint above: the Ops row's
+   14+ buttons still wrap acceptably on a tablet or a landscape
+   phone, it only turns genuinely unwieldy below ~480px portrait.
+   !important beats the row's inline display:flex.
+   ============================================================ */
+[data-ops-tabs-select]{display:none}
+@media (max-width:480px){
+  [data-ops-tabs-btns]{display:none !important}
+  [data-ops-tabs-select]{display:block !important}
+}

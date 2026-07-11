@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   OC, card, btnMagenta, btnSmall, inp, label, h3,
-  fmtDate, opsGet, opsPost, useEvents, EventSelect, Toast, useToast,
+  fmtDate, opsGet, opsPost, useEvents, FilterableEventSelect, Toast, useToast,
 } from './ui';
 
 export default function Checklists() {
@@ -47,7 +47,7 @@ export default function Checklists() {
             {showTpl ? 'Hide master template' : 'Edit master template'}
           </button>
         </div>
-        <EventSelect events={events} value={eventId} onChange={load} allowNone />
+        <FilterableEventSelect events={events} value={eventId} onChange={load} allowNone />
       </div>
 
       {showTpl && (

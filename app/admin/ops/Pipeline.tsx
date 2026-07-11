@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3,
   Chip, fmtDate, opsGet, opsPost, Toast, useToast, waLink,
+  SearchBox, useSearch,
 } from './ui';
 
 const STAGES = ['new', 'contacted', 'negotiating', 'confirmed', 'contracted', 'completed', 'lost'] as const;
@@ -33,6 +34,8 @@ export default function Pipeline() {
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
   const [losing, setLosing] = useState<Lead | null>(null);
   const [lostReason, setLostReason] = useState(LOST_REASONS[0]);
+  const [qy, setQy] = useState('');
+  const [selectedNew, setSelectedNew] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -42,12 +45,42 @@ export default function Pipeline() {
   }, [say]);
   useEffect(() => { reload(); }, [reload]);
 
+  const visibleRows = useSearch(rows, qy);
+
   const byStage = useMemo(() => {
     const m = new Map<Stage, Lead[]>();
     STAGES.forEach((s) => m.set(s, []));
-    rows.forEach((r) => m.get((STAGES as readonly string[]).includes(r.stage) ? r.stage : 'new')!.push(r));
+    visibleRows.forEach((r) => m.get((STAGES as readonly string[]).includes(r.stage) ? r.stage : 'new')!.push(r));
     return m;
-  }, [rows]);
+  }, [visibleRows]);
+
+  const toggleSelectedNew = (id: number) => setSelectedNew((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  // Bulk "mark contacted": loops the same lead.move POST the per-card
+  // "move forward" button already uses (identical hasPerm('ops_pipeline')
+  // gate, one request per lead). lead.move calls opsAudit('ops.lead.move', ...)
+  // per call, so looping naturally produces one audit_log row per lead
+  // moved - never a single combined row that would hide which leads
+  // actually changed. Confirmed live: two separate calls show as two
+  // separate ops.lead.move rows in the dashboard's Recent Activity feed.
+  const bulkMarkContacted = async () => {
+    const ids = (byStage.get('new') || []).filter((l) => selectedNew.has(l.id)).map((l) => l.id);
+    if (!ids.length) { say('Select at least one new lead'); return; }
+    setBusy(true);
+    let ok = 0; let fail = 0;
+    for (const id of ids) {
+      const { data } = await opsPost('lead.move', { id, stage: 'contacted' });
+      if (data.error) fail++; else ok++;
+    }
+    setBusy(false);
+    setSelectedNew(new Set());
+    say(fail ? `Marked ${ok} contacted, ${fail} failed` : `Marked ${ok} lead${ok === 1 ? '' : 's'} contacted`);
+    reload();
+  };
 
   const move = async (lead: Lead, dir: 1 | -1) => {
     const idx = STAGES.indexOf(lead.stage);
@@ -111,20 +144,32 @@ export default function Pipeline() {
       <div style={{ ...card, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <h3 style={{ ...h3, marginBottom: 0 }}>BOOKING PIPELINE ({rows.length})</h3>
         <div style={{ flex: 1 }} />
+        <SearchBox value={qy} onChange={setQy} placeholder="Search leads..." />
         <button style={btn} onClick={() => setEdit({ ...EMPTY })}>+ New lead</button>
       </div>
 
       <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, alignItems: 'flex-start' }}>
         {STAGES.map((stage) => (
           <div key={stage} style={{ ...card, minWidth: 250, width: 250, flexShrink: 0, padding: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
               <span style={{ width: 10, height: 10, borderRadius: 10, background: STAGE_COLORS[stage], border: '1px solid #111' }} />
               <b style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em' }}>{stage}</b>
               <span style={{ fontSize: 12, color: '#888' }}>({byStage.get(stage)!.length})</span>
+              {stage === 'new' && byStage.get('new')!.length > 0 && (
+                <button style={{ ...btnSmall, padding: '3px 7px', marginLeft: 'auto', background: selectedNew.size ? OC.magenta : '#fff', color: selectedNew.size ? '#fff' : '#111' }}
+                  disabled={busy || !selectedNew.size} title="Mark selected new leads as contacted" onClick={bulkMarkContacted}>
+                  Mark contacted ({selectedNew.size})
+                </button>
+              )}
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
               {byStage.get(stage)!.map((l) => (
                 <div key={l.id} style={{ border: '2px solid #111', borderRadius: 10, padding: 8, fontSize: 13, background: '#fff' }}>
+                  {stage === 'new' && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, color: '#666', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={selectedNew.has(l.id)} onChange={() => toggleSelectedNew(l.id)} /> select
+                    </label>
+                  )}
                   <b>{l.org || l.name}</b>
                   {l.org && <div style={{ fontSize: 12, color: '#666' }}>{l.name}</div>}
                   {l.phone && <div style={{ marginTop: 2 }}><a href={waLink(l.phone)} target="_blank" rel="noopener" style={{ color: OC.green, fontWeight: 700, fontSize: 12 }}>{l.phone}</a></div>}

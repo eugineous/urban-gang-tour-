@@ -8,7 +8,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { computeBudget, BudgetData } from '@/lib/ops/budget-calc';
 import {
   OC, card, btnMagenta, btnSmall, inp, label, h3, td, th,
-  Chip, fmtKES, fmtDate, opsGet, opsPost, useEvents, EventSelect, Toast, useToast, waLink, downloadCSV,
+  Chip, fmtKES, fmtDate, opsGet, opsPost, useEvents, FilterableEventSelect, Toast, useToast, waLink, downloadCSV,
+  SearchBox, useSearch,
 } from './ui';
 
 export default function Payouts() {
@@ -19,6 +20,7 @@ export default function Payouts() {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('');
   const [amount, setAmount] = useState(0);
+  const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -37,6 +39,7 @@ export default function Payouts() {
     const budget = detail?.latestBudget?.data ? computeBudget(detail.latestBudget.data as BudgetData) : null;
     return { planned, paid, budgetCrew: budget ? budget.crewPay : null };
   }, [payouts, detail]);
+  const shownPayouts = useSearch(payouts, qy);
 
   const add = async () => {
     if (!eventId || !person.trim()) { say('Name is required'); return; }
@@ -53,7 +56,7 @@ export default function Payouts() {
       <Toast msg={toast} />
       <div style={card}>
         <h3 style={h3}>CREW PAYOUTS</h3>
-        <EventSelect events={events} value={eventId} onChange={load} allowNone />
+        <FilterableEventSelect events={events} value={eventId} onChange={load} allowNone />
       </div>
 
       {detail && (
@@ -93,6 +96,7 @@ export default function Payouts() {
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
               <h3 style={{ ...h3, marginBottom: 0 }}>PAYOUT LIST ({payouts.length})</h3>
               <div style={{ flex: 1 }} />
+              <SearchBox value={qy} onChange={setQy} placeholder="Search crew..." />
               <button style={btnSmall} onClick={() => downloadCSV(
                 `crew-payouts-event-${eventId}.csv`,
                 payouts.map((p) => ({ person: p.person, phone: p.phone, role: p.role, amount: p.amount, status: p.paid ? 'paid' : 'pending', paid_on: fmtDate(p.paid_on) })),
@@ -103,7 +107,7 @@ export default function Payouts() {
               <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                 <thead><tr>{['name', 'phone', 'role', 'rate', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
                 <tbody>
-                  {payouts.map((p) => (
+                  {shownPayouts.map((p) => (
                     <tr key={p.id}>
                       <td style={td}><b>{p.person}</b></td>
                       <td style={td}>{p.phone ? <a href={waLink(p.phone)} target="_blank" rel="noopener" style={{ color: OC.green, fontWeight: 700 }}>{p.phone}</a> : ''}</td>
@@ -127,7 +131,7 @@ export default function Payouts() {
                       </td>
                     </tr>
                   ))}
-                  {!payouts.length && <tr><td style={td} colSpan={6}>No crew rows yet for this event.</td></tr>}
+                  {!shownPayouts.length && <tr><td style={td} colSpan={6}>{payouts.length ? 'No crew match your search.' : 'No crew rows yet for this event.'}</td></tr>}
                 </tbody>
               </table>
             </div>

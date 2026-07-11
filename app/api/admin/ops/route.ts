@@ -11,6 +11,7 @@ import { ensureCatalogSeeded } from '@/lib/server/catalog';
 import { getCommissionPercent, setCommissionPercent, sendOrganizerNotification, ensureMarketplaceColumns } from '@/lib/server/marketplace';
 import { paystackCreateSubaccount } from '@/lib/server/paystack';
 import { alertCritical } from '@/lib/server/alert';
+import { listClientErrors } from '@/lib/server/client-errors';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -276,6 +277,15 @@ export async function GET(req: Request) {
           followups, activePromo: promo[0] || null,
           pendingReviews, audit,
         });
+      }
+      case 'clientErrors': {
+        // Diagnostic/security-adjacent (site health, not a crew module) -
+        // isSuperAdmin only, same as the dashboard's audit-log slice above.
+        // Not in VIEW_PERM/MODULE_KEYS on purpose: no crew_admin perm should
+        // ever unlock this, regardless of what they're scoped to.
+        if (!isSuperAdmin(req)) return bad('forbidden', 403);
+        const rows = await listClientErrors(30);
+        return NextResponse.json({ ok: true, rows });
       }
       default:
         return bad('unknown_view');
