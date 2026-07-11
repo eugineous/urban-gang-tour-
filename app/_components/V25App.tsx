@@ -32,6 +32,42 @@ export function V25App({ page }: { page: string }) {
         alert('Card payments are not available right now');
       }
     };
+    // M-Pesa bridge: the template posts the order payload (merch items OR a
+    // ticket line, plus buyer details) and the server re-prices everything
+    // from lib/server/catalog.ts before firing the real STK push. All UI
+    // (waiting panel, receipt, errors) lives in the template.
+    const MPESA_ERRORS: Record<string, string> = {
+      invalid_phone_use_254: 'Enter a valid Kenyan M-Pesa number (07XX, 01XX or 2547XX).',
+      too_many_requests: 'Too many attempts. Wait a minute and try again.',
+      stk_failed: 'M-Pesa did not accept the request. Try again in a moment.',
+      not_configured: 'M-Pesa payments are not available right now.',
+      db_not_configured: 'Payments are temporarily unavailable. Try again later.',
+    };
+    w.__UGT_MPESA_PAY = async (payload: any) => {
+      try {
+        const r = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const d = await r.json().catch(() => ({} as any));
+        if (r.ok && d && d.ok && d.id) return { ok: true, id: d.id };
+        const key = String((d && (d.error || d.payment)) || '');
+        return { ok: false, id: (d && d.id) || '', error: MPESA_ERRORS[key] || 'Could not start the payment. Try again.' };
+      } catch {
+        return { ok: false, id: '', error: 'Network error. Check your connection and try again.' };
+      }
+    };
+    // Status poll for the STK-waiting panel. Returns the status JSON or null.
+    w.__UGT_ORDER_STATUS = async (id: string) => {
+      try {
+        const r = await fetch('/api/orders/status?id=' + encodeURIComponent(id), { cache: 'no-store' });
+        if (!r.ok) return null;
+        return await r.json();
+      } catch {
+        return null;
+      }
+    };
     // Serve React from our own origin (fast, deterministic — no unpkg latency).
     // support.js reads window.__resources[cdnUrl] and uses the local path instead.
     w.__resources = {

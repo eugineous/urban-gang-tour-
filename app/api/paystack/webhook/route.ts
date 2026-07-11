@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { alertCritical } from '@/lib/server/alert';
+import { sendReceiptEmail } from '@/lib/server/receipt-email';
 
 // Paystack webhook. Signature: x-paystack-signature = HMAC-SHA512(raw body)
 // keyed with the secret key. charge.success flips the ledger row (order id
@@ -32,13 +33,16 @@ export async function POST(req: Request) {
         const { q, db } = await import('@/lib/server/db');
         if (db()) {
           const rows = await q(
-            `UPDATE orders SET status='paid' WHERE id=$1 AND status IN ('pending','failed') RETURNING id`,
+            `UPDATE orders SET status='paid' WHERE id=$1 AND status IN ('pending','failed') RETURNING *`,
             [ref]
           );
           if (rows.length) {
             await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('paystack','order_paid',$1)`,
               [JSON.stringify({ id: ref, channel: event.data?.channel, amount: (event.data?.amount || 0) / 100 })]);
             console.log('[paystack] order paid', ref);
+            // branded receipt email - fire-and-forget after the ack
+            const paidRow = rows[0];
+            if (paidRow?.email) after(() => sendReceiptEmail(paidRow));
           } else {
             console.log('[paystack] charge.success for unknown/settled ref', ref);
           }

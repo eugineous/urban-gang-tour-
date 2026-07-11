@@ -263,14 +263,44 @@
 <input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email — ticket & invoice sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ ticketPhone }}" onChange="{{ onTPhone }}" placeholder="Phone (M-Pesa)" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
+<sc-if value="{{ ticketErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ ticketErr }}</div></sc-if>
 <div style="display:flex;gap:10px">
 <button type="button" onClick="{{ backTicketSelect }}" style="flex:none;padding:14px 18px;border:3px solid #111;border-radius:13px;background:#fff;font-family:'Anton';font-size:16px">Back</button>
-<button type="submit" style="flex:1;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay &amp; Get Ticket</button>
+<button type="submit" style="flex:1;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ ticketPayLabel }}</button>
 </div>
 </form>
 </sc-if>
+<sc-if value="{{ ticketStageStk }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:10px 0 4px">
+<div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px">
+<span style="width:13px;height:13px;border-radius:50%;background:#E6218C;opacity:{{ ticDot1 }}"></span>
+<span style="width:13px;height:13px;border-radius:50%;background:#FFD400;opacity:{{ ticDot2 }}"></span>
+<span style="width:13px;height:13px;border-radius:50%;background:#21C7E6;opacity:{{ ticDot3 }}"></span>
+</div>
+<div style="font-family:'Anton';font-size:26px;text-transform:uppercase;line-height:1.1">Check your phone</div>
+<div style="color:#555;font-size:14px;margin-top:10px;line-height:1.65">We sent an M-Pesa prompt to <b>{{ ticketStkPhone }}</b>.<br>Enter your PIN to complete payment.</div>
+<div style="display:inline-block;margin-top:16px;border:2px solid #111;border-radius:10px;padding:8px 16px;background:#faf7f0;font-family:'Space Grotesk';font-weight:700;letter-spacing:.06em;font-size:13px">Order {{ ticketOrderId }}</div>
+<div style="margin-top:14px;font-family:'Anton';font-size:20px;color:#E6218C">{{ ticketSecsFmt }}</div>
+<div style="color:#999;font-size:11.5px;margin-top:4px">Waiting for M-Pesa confirmation...</div>
+</div>
+</sc-if>
+<sc-if value="{{ ticketStageFailed }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:10px 0 4px">
+<div style="display:inline-flex;align-items:center;gap:8px;background:#C62828;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px">Payment was cancelled or failed</div>
+<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">The M-Pesa payment did not go through and nothing was charged.<br>Order {{ ticketOrderId }}</div>
+<button onClick="{{ ticketTryAgain }}" style="margin-top:16px;width:100%;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Try again</button>
+</div>
+</sc-if>
+<sc-if value="{{ ticketStageSlow }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:10px 0 4px">
+<div style="display:inline-flex;align-items:center;gap:8px;background:#B7860B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px">Still waiting for M-Pesa</div>
+<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">We have not received confirmation yet. If you completed payment,<br>your receipt below will show it shortly.</div>
+<a href="{{ ticketReceiptHref }}" target="_blank" style="display:block;margin-top:16px;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px;text-decoration:none;color:#111;text-align:center">View receipt {{ ticketOrderId }}</a>
+<button onClick="{{ ticketTryAgain }}" style="margin-top:10px;width:100%;padding:13px;border:3px solid #111;border-radius:12px;background:#fff;font-family:'Anton';font-size:15px">Try again</button>
+</div>
+</sc-if>
 <sc-if value="{{ ticketStageDone }}" hint-placeholder-val="{{ false }}">
-<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Ticket &amp; invoice sent to {{ ticketOrder.email }}</div></div>
+<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Receipt &amp; e-ticket emailed to {{ ticketOrder.email }}</div></div>
 <div style="border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111">
 <div style="background:{{ ticketOrder.accent }};padding:14px 18px;border-bottom:3px dashed #111"><div style="font-family:'Bungee';font-size:11px;color:#111">URBAN GANG TOUR · E-TICKET</div><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;line-height:1;margin-top:3px">{{ ticketOrder.eventName }}</div></div>
 <div style="display:flex;gap:14px;padding:16px 18px;align-items:center">
@@ -286,13 +316,24 @@
 </div>
 </div>
 </div>
-<div style="border:3px solid #111;border-radius:16px;margin-top:14px;padding:16px 18px;background:#faf7f0">
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div style="font-family:'Anton';font-size:18px;text-transform:uppercase">Receipt / Invoice</div><div style="text-align:right;font-size:11.5px;color:#666"><div>{{ ticketOrder.invoice }}</div><div>{{ ticketOrder.date }}</div></div></div>
-<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ ticketOrder.tierName }} × {{ ticketOrder.qty }} @ {{ ticketUnitFmt }}</span><span style="font-weight:700">{{ ticketTotalFmt }}</span></div>
-<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:#666"><span>VAT</span><span>Included</span></div>
-<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px"><span style="font-weight:700">Total paid</span><span style="font-family:'Anton';font-size:22px;color:#1F8A5B">{{ ticketTotalFmt }}</span></div>
-<div style="font-size:11px;color:#888;margin-top:6px">Billed to {{ ticketOrder.name }} · {{ ticketOrder.email }}</div>
+<div style="border:3px solid #111;border-radius:16px;margin-top:14px;overflow:hidden;box-shadow:6px 6px 0 #111;background:#fff">
+<div style="background:#111;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+<div style="display:flex;align-items:center;gap:10px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>
+<div style="text-align:right;font-size:10.5px;color:#bbb;line-height:1.5"><div>{{ ticketOrder.ref }}</div><div>{{ ticketOrder.date }}</div><div>{{ ticketOrder.time }}</div></div>
 </div>
+<div style="height:4px;background:#E6218C"></div>
+<div style="padding:14px 18px">
+<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ ticketOrder.tierName }} &#215; {{ ticketOrder.qty }} @ {{ ticketUnitFmt }}</span><span style="font-weight:700">{{ ticketTotalFmt }}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;background:#FFD400;border:2px solid #111;border-radius:10px;padding:10px 12px;margin-top:10px"><span style="font-family:'Anton';font-size:14px;text-transform:uppercase">Total</span><span style="font-family:'Anton';font-size:20px">{{ ticketTotalFmt }}</span></div>
+<div style="display:grid;grid-template-columns:1fr auto;row-gap:4px;font-size:12px;color:#666;margin-top:12px">
+<span>Payment method</span><span style="color:#111;font-weight:700;text-align:right">{{ ticketOrder.method }}</span>
+<sc-if value="{{ ticketOrder.receipt }}" hint-placeholder-val="{{ false }}"><span>M-Pesa code</span><span style="color:#111;font-weight:700;text-align:right">{{ ticketOrder.receipt }}</span></sc-if>
+<span>Phone</span><span style="color:#111;text-align:right">{{ ticketPhoneMasked }}</span>
+<span>Billed to</span><span style="color:#111;text-align:right">{{ ticketOrder.name }}</span>
+</div>
+</div>
+<div style="border-top:2px dashed #ccc;padding:12px 18px;font-size:10.5px;color:#666;line-height:1.7"><b style="color:#111">Urban Gang Tour</b> &#183; Chelezo Apartments, Kindaruma Road, Floor 15 Door 2, Kilimani, Nairobi<br>P.O. Box 6431 - 00622, Juja &#183; +254 799 886247 &#183; admin@urbangangtour.co.ke &#183; urbangangtour.co.ke</div></div>
+<a href="{{ ticketReceiptHref }}" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:12px;border:3px solid #111;border-radius:12px;background:#E6218C;color:#fff;font-family:'Anton';font-size:15px;text-decoration:none" style-hover="transform:translateY(-1px)">View / Print Full Receipt</a>
 <div style="display:flex;gap:10px;margin-top:16px">
 <button onClick="{{ printTicket }}" style="flex:1;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px" style-hover="transform:translateY(-1px)">Download / Print</button>
 <a href="{{ ticketMailtoHref }}" style="flex:1;text-align:center;padding:13px;border:3px solid #111;border-radius:12px;background:#21C7E6;font-family:'Anton';font-size:15px;text-decoration:none;color:#111">Email My Ticket</a>
@@ -323,24 +364,62 @@
 <input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="Full name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email — receipt sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="Phone (M-Pesa) &amp; delivery contact" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
-<button type="submit" style="width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay &amp; Get Receipt</button>
+<sc-if value="{{ coErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ coErr }}</div></sc-if>
+<button type="submit" style="width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ coPayLabel }}</button>
 <button type="button" onClick="{{ payCard }}" style="width:100%;margin-top:10px;padding:15px;border:3px solid #111;border-radius:13px;background:#21C7E6;color:#111;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay with Card</button>
 </form>
 </sc-if>
+<sc-if value="{{ coStageStk }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:10px 0 4px">
+<div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px">
+<span style="width:13px;height:13px;border-radius:50%;background:#E6218C;opacity:{{ coDot1 }}"></span>
+<span style="width:13px;height:13px;border-radius:50%;background:#FFD400;opacity:{{ coDot2 }}"></span>
+<span style="width:13px;height:13px;border-radius:50%;background:#21C7E6;opacity:{{ coDot3 }}"></span>
+</div>
+<div style="font-family:'Anton';font-size:26px;text-transform:uppercase;line-height:1.1">Check your phone</div>
+<div style="color:#555;font-size:14px;margin-top:10px;line-height:1.65">We sent an M-Pesa prompt to <b>{{ coStkPhone }}</b>.<br>Enter your PIN to complete payment.</div>
+<div style="display:inline-block;margin-top:16px;border:2px solid #111;border-radius:10px;padding:8px 16px;background:#faf7f0;font-family:'Space Grotesk';font-weight:700;letter-spacing:.06em;font-size:13px">Order {{ coOrderId }}</div>
+<div style="margin-top:14px;font-family:'Anton';font-size:20px;color:#E6218C">{{ coSecsFmt }}</div>
+<div style="color:#999;font-size:11.5px;margin-top:4px">Waiting for M-Pesa confirmation...</div>
+</div>
+</sc-if>
+<sc-if value="{{ coStageFailed }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:10px 0 4px">
+<div style="display:inline-flex;align-items:center;gap:8px;background:#C62828;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px">Payment was cancelled or failed</div>
+<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">The M-Pesa payment did not go through and nothing was charged.<br>Order {{ coOrderId }}</div>
+<button onClick="{{ coTryAgain }}" style="margin-top:16px;width:100%;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Try again</button>
+</div>
+</sc-if>
+<sc-if value="{{ coStageSlow }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:10px 0 4px">
+<div style="display:inline-flex;align-items:center;gap:8px;background:#B7860B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px">Still waiting for M-Pesa</div>
+<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">We have not received confirmation yet. If you completed payment,<br>your receipt below will show it shortly.</div>
+<a href="{{ coReceiptHref }}" target="_blank" style="display:block;margin-top:16px;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px;text-decoration:none;color:#111;text-align:center">View receipt {{ coOrderId }}</a>
+<button onClick="{{ coTryAgain }}" style="margin-top:10px;width:100%;padding:13px;border:3px solid #111;border-radius:12px;background:#fff;font-family:'Anton';font-size:15px">Try again</button>
+</div>
+</sc-if>
 <sc-if value="{{ coStageDone }}" hint-placeholder-val="{{ false }}">
-<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Order confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Receipt sent to {{ coOrder.email }}</div></div>
-<div style="border:3px solid #111;border-radius:16px;padding:16px 18px;background:#faf7f0">
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div style="font-family:'Anton';font-size:18px;text-transform:uppercase">Receipt / Invoice</div><div style="text-align:right;font-size:11.5px;color:#666"><div>{{ coOrder.invoice }}</div><div>{{ coOrder.date }}</div></div></div>
+<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Receipt emailed to {{ coOrder.email }}</div></div>
+<div style="border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111;background:#fff">
+<div style="background:#111;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+<div style="display:flex;align-items:center;gap:10px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>
+<div style="text-align:right;font-size:10.5px;color:#bbb;line-height:1.5"><div>{{ coOrder.ref }}</div><div>{{ coOrder.date }}</div><div>{{ coOrder.time }}</div></div>
+</div>
+<div style="height:4px;background:#E6218C"></div>
+<div style="padding:14px 18px">
 <sc-for list="{{ coOrderLines }}" as="l" hint-placeholder-count="2">
-<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ l.name }} × {{ l.qty }} @ {{ l.unitFmt }}</span><span style="font-weight:700">{{ l.totalFmt }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ l.name }} &#215; {{ l.qty }} @ {{ l.unitFmt }}</span><span style="font-weight:700">{{ l.totalFmt }}</span></div>
 </sc-for>
-<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px"><span style="font-weight:700">Total paid</span><span style="font-family:'Anton';font-size:22px;color:#1F8A5B">{{ coOrderTotalFmt }}</span></div>
-<div style="font-size:11px;color:#888;margin-top:6px">Billed to {{ coOrder.name }} · {{ coOrder.email }} · Ref {{ coOrder.ref }}</div>
+<div style="display:flex;justify-content:space-between;align-items:center;background:#FFD400;border:2px solid #111;border-radius:10px;padding:10px 12px;margin-top:10px"><span style="font-family:'Anton';font-size:14px;text-transform:uppercase">Total</span><span style="font-family:'Anton';font-size:20px">{{ coOrderTotalFmt }}</span></div>
+<div style="display:grid;grid-template-columns:1fr auto;row-gap:4px;font-size:12px;color:#666;margin-top:12px">
+<span>Payment method</span><span style="color:#111;font-weight:700;text-align:right">{{ coOrder.method }}</span>
+<sc-if value="{{ coOrder.receipt }}" hint-placeholder-val="{{ false }}"><span>M-Pesa code</span><span style="color:#111;font-weight:700;text-align:right">{{ coOrder.receipt }}</span></sc-if>
+<span>Phone</span><span style="color:#111;text-align:right">{{ coPhoneMasked }}</span>
+<span>Billed to</span><span style="color:#111;text-align:right">{{ coOrder.name }}</span>
 </div>
-<div style="display:flex;gap:10px;margin-top:16px">
-<button onClick="{{ printOrder }}" style="flex:1;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px" style-hover="transform:translateY(-1px)">Download / Print</button>
-<a href="{{ orderMailtoHref }}" style="flex:1;text-align:center;padding:13px;border:3px solid #111;border-radius:12px;background:#21C7E6;font-family:'Anton';font-size:15px;text-decoration:none;color:#111">Email My Receipt</a>
 </div>
+<div style="border-top:2px dashed #ccc;padding:12px 18px;font-size:10.5px;color:#666;line-height:1.7"><b style="color:#111">Urban Gang Tour</b> &#183; Chelezo Apartments, Kindaruma Road, Floor 15 Door 2, Kilimani, Nairobi<br>P.O. Box 6431 - 00622, Juja &#183; +254 799 886247 &#183; admin@urbangangtour.co.ke &#183; urbangangtour.co.ke</div></div>
+<a href="{{ coReceiptHref }}" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px;text-decoration:none;color:#111" style-hover="transform:translateY(-1px)">View / Print Full Receipt</a>
 <button onClick="{{ closeCheckout }}" style="width:100%;margin-top:10px;padding:11px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:700">Done</button>
 </sc-if>
 </div>
@@ -1498,9 +1577,9 @@ class Component extends DCLogic {
       page:((typeof window!=='undefined'&&window.__UGT_PAGE)||'home'), mobileOpen:false, bookOpen:false,
       workTab:'brands', cart:[], cartOpen:false, quickId:null, memberId:null, canInstall:false,
       form:{name:'',org:'',email:'',phone:'',type:'School Booking',message:''},
-      ticket:{eventId:null,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null},
+      ticket:{eventId:null,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false},
       swipe:{i:0,size:'M'}, quickSize:'M', quickQty:1,
-      checkout:{stage:null,name:'',email:'',phone:'',order:null}, blog:{name:'',school:'',title:'',pitch:'',sent:false}, orders:[], extraStops:[], newStop:{name:'',loc:'',day:'',mon:''},
+      checkout:{stage:null,name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[]}, blog:{name:'',school:'',title:'',pitch:'',sent:false}, orders:[], extraStops:[], newStop:{name:'',loc:'',day:'',mon:''},
       formSent:false, toast:'',
       admin:{authed:false,user:'',pass:'',email:'',tab:'bookings',filter:'all',err:'',role:'',name:'',perms:[]},
       railMeta:{}, admins:[], publishedBlogs:[], galleryPics:{}, galSchool:'', galBusy:false, galPublicSchool:'',
@@ -1792,8 +1871,8 @@ class Component extends DCLogic {
   toggleCart = () => this.setState(s=>({cartOpen:!s.cartOpen}));
   fmt = (n) => 'KES ' + Number(n).toLocaleString('en-US');
   qr(seed){ let h=0; for(let i=0;i<seed.length;i++){ h=(h*31+seed.charCodeAt(i))>>>0; } const n=13,cells=[]; let x=h||1; for(let i=0;i<n*n;i++){ x=(x*1103515245+12345)>>>0; const r=Math.floor(i/n),c=i%n; const corner=(r<3&&c<3)||(r<3&&c>=n-3)||(r>=n-3&&c<3); if(corner){ const cr=r<3?r:n-1-r; const cc=c<3?c:n-1-c; cells.push(cr===0||cc===0||cr===2||cc===2||(cr===1&&cc===1)); } else { cells.push(((x>>7)&1)===1); } } return cells; }
-  buyTicket=(id)=>this.setState({ticket:{eventId:id,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null}});
-  closeTicket=()=>this.setState(s=>({ticket:{...s.ticket,eventId:null}}));
+  buyTicket=(id)=>this.setState({ticket:{eventId:id,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false}});
+  closeTicket=()=>{ this.stopPay(); this.setState(s=>({ticket:{...s.ticket,eventId:null}})); };
   closeTicketBg=(e)=>{ if(e.target===e.currentTarget) this.closeTicket(); };
   setTier=(i)=>this.setState(s=>({ticket:{...s.ticket,tier:i}}));
   ticQty=(d)=>this.setState(s=>({ticket:{...s.ticket,qty:Math.max(1,Math.min(20,s.ticket.qty+d))}}));
@@ -1801,7 +1880,20 @@ class Component extends DCLogic {
   onTEmail=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,email:v}}));};
   onTPhone=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,phone:v}}));};
   ticStage=(st)=>this.setState(s=>({ticket:{...s.ticket,stage:st}}));
-  confirmTicket=(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState(s=>{ const t=s.ticket; if(!t.name.trim()||!t.email.trim()) return {ticket:{...t}}; const ev=this.MAIN_EVENTS.find(x=>x.id===t.eventId); const tier=ev.tiers[t.tier]; const total=tier.price*t.qty; const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:t.name.trim(),email:t.email.trim(),phone:(t.phone||'').trim(),eventName:ev.name,eventDate:ev.date,eventTime:ev.time,venue:ev.venue,city:ev.city,accent:ev.accent,tierName:tier.name,qty:t.qty,unit:tier.price,total}; const rec={kind:'Ticket',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:ev.name+' · '+tier.name+' ×'+t.qty}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); return {ticket:{...t,stage:'done',order},orders}; }); };
+  confirmTicket = async (e) => {
+    if(e&&e.preventDefault)e.preventDefault();
+    const t=this.state.ticket;
+    if(t.busy) return;
+    if(!t.name.trim()||!t.email.trim()){ this.setPay('tic',{err:'Fill in your name and email so we can send your ticket.'}); return; }
+    const ph=this.msisdn(t.phone);
+    if(!ph){ this.setPay('tic',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
+    if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('tic',{err:'M-Pesa payments are not available right now.'}); return; }
+    this.setPay('tic',{busy:true,err:''});
+    const idem='tic-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    const r=await window.__UGT_MPESA_PAY({ticket:{eventId:t.eventId,tier:t.tier,qty:t.qty},name:t.name.trim(),email:t.email.trim(),phone:ph,idempotencyKey:idem});
+    if(r&&r.ok&&r.id){ this.setPay('tic',{busy:false,stage:'stk',orderId:r.id,secs:120}); this.beginPoll('tic',r.id); }
+    else { this.setPay('tic',{busy:false,err:(r&&r.error)||'Could not start the payment. Try again.'}); }
+  };
   ticketMailto=()=>{ const o=this.state.ticket.order; if(!o) return '#'; const body='Ticket '+o.ref+'%0AEvent: '+o.eventName+'%0ADate: '+o.eventDate+' '+o.eventTime+'%0AVenue: '+o.venue+', '+o.city+'%0AName: '+o.name+'%0AType: '+o.tierName+' x'+o.qty+'%0ATotal: KES '+o.total+'%0AInvoice: '+o.invoice; return 'mailto:'+o.email+'?subject=Your%20Urban%20Gang%20Tour%20Ticket%20'+o.ref+'&body='+body; };
   printTicket=()=>{ const o=this.state.ticket.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; w.document.write('<html><head><title>'+o.ref+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG TOUR \u2014 E-TICKET</div><h2 style="margin:8px 0">'+o.eventName+'</h2><p>'+o.eventDate+' · '+o.eventTime+'<br>'+o.venue+', '+o.city+'</p><hr><p><b>Attendee:</b> '+o.name+'<br><b>Type:</b> '+o.tierName+' × '+o.qty+'<br><b>Ref:</b> '+o.ref+'<br><b>Invoice:</b> '+o.invoice+'<br><b>Total paid:</b> KES '+o.total.toLocaleString()+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
   addSwipe=(id,size)=>this.setState(s=>{ const c=s.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===id&&x.size===size); if(i>=0)c[i].qty++; else c.push({id,qty:1,size}); return {cart:c}; });
@@ -1820,14 +1912,84 @@ class Component extends DCLogic {
   removeAt = (i) => this.setState(s=>({cart:s.cart.filter((x,j)=>j!==i)}));
   openQuick = (id) => this.setState({quickId:id});
   quickClose = () => this.setState({quickId:null});
-  checkout = () => this.setState({cartOpen:false, checkout:{stage:'details',name:'',email:'',phone:'',order:null}});
-  closeCheckout = () => this.setState(s=>({checkout:{...s.checkout,stage:null}}));
+  checkout = () => this.setState({cartOpen:false, checkout:{stage:'details',name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[]}});
+  closeCheckout = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:null}})); };
   closeCheckoutBg = (e) => { if(e.target===e.currentTarget) this.closeCheckout(); };
   setCo = (k,v) => this.setState(s=>({checkout:{...s.checkout,[k]:v}}));
   payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
+  msisdn = (raw) => { const d=String(raw||'').replace(/\D/g,''); if(/^254(7|1)\d{8}$/.test(d)) return d; if(/^0(7|1)\d{8}$/.test(d)) return '254'+d.slice(1); if(/^(7|1)\d{8}$/.test(d)) return '254'+d; return null; };
+  maskPhone = (p) => { const d=String(p||'').replace(/\D/g,''); return d.length>=8 ? d.slice(0,6)+'***'+d.slice(-2) : ''; };
+  fmtSecs = (v) => { const n=Math.max(0,Number(v)||0); return Math.floor(n/60)+':'+String(n%60).padStart(2,'0'); };
+  payStateKey = (kind) => kind==='tic' ? 'ticket' : 'checkout';
+  setPay = (kind,patch) => this.setState(s=>{ const k=this.payStateKey(kind); return {[k]:{...s[k],...patch}}; });
+  stopPay = () => { if(this._payT){ clearInterval(this._payT); this._payT=null; } };
+  beginPoll = (kind,orderId) => {
+    this.stopPay();
+    const started=Date.now(); let n=0;
+    this._payT=setInterval(async()=>{
+      n++;
+      const k=this.payStateKey(kind); const st=this.state[k];
+      if(!st||st.stage!=='stk'||st.orderId!==orderId){ this.stopPay(); return; }
+      const left=120-Math.round((Date.now()-started)/1000);
+      if(left<=0){ this.stopPay(); this.setPay(kind,{stage:'slow'}); return; }
+      this.setPay(kind,{secs:left});
+      if(n%6!==1) return;
+      try{
+        if(typeof window.__UGT_ORDER_STATUS!=='function') return;
+        const r=await window.__UGT_ORDER_STATUS(orderId);
+        if(!r||!r.status) return;
+        if(r.status==='paid'){ this.stopPay(); this.finishPaid(kind,orderId,r); }
+        else if(r.status==='failed'){ this.stopPay(); this.setPay(kind,{stage:'failed'}); }
+      }catch(e){}
+    },500);
+  };
+  finishPaid = (kind,orderId,r) => {
+    const now=new Date();
+    const date=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'Africa/Nairobi'});
+    const time=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Nairobi'})+' EAT';
+    const method=(r&&r.method==='card')?'Card':'M-Pesa';
+    const receipt=(r&&r.receipt)||'';
+    if(kind==='co'){
+      this.setState(s=>{
+        const co=s.checkout;
+        const lines=(co.lines&&co.lines.length)?co.lines:[];
+        const total=(r&&r.total)||lines.reduce((a,b)=>a+b.total,0);
+        const order={ref:orderId,invoice:orderId,receipt,method,date,time,name:co.name.trim(),email:co.email.trim(),phone:this.msisdn(co.phone)||'',lines,total};
+        const rec={kind:'Merch',ref:orderId,invoice:orderId,date,name:order.name,email:order.email,total,detail:lines.map(l=>l.name+' x'+l.qty).join(', ')};
+        const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders);
+        return {checkout:{...co,stage:'done',order},cart:[],orders};
+      });
+    } else {
+      this.setState(s=>{
+        const t=s.ticket; const ev=this.MAIN_EVENTS.find(x=>x.id===t.eventId); const tier=(ev&&ev.tiers[t.tier])||{name:'',price:0};
+        const total=(r&&r.total)||tier.price*t.qty;
+        const order={ref:orderId,invoice:orderId,receipt,method,date,time,name:t.name.trim(),email:t.email.trim(),phone:this.msisdn(t.phone)||'',eventName:ev?ev.name:'',eventDate:ev?ev.date:'',eventTime:ev?ev.time:'',venue:ev?ev.venue:'',city:ev?ev.city:'',accent:ev?ev.accent:'#E6218C',tierName:tier.name,qty:t.qty,unit:tier.price,total};
+        const rec={kind:'Ticket',ref:orderId,invoice:orderId,date,name:order.name,email:order.email,total,detail:order.eventName+' - '+tier.name+' x'+t.qty};
+        const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders);
+        return {ticket:{...t,stage:'done',order},orders};
+      });
+    }
+  };
+  coTryAgain = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:'details',err:'',orderId:'',secs:0,busy:false}})); };
+  ticTryAgain = () => { this.stopPay(); this.setState(s=>({ticket:{...s.ticket,stage:'details',err:'',orderId:'',secs:0,busy:false}})); };
   saveLS = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
   loadLS = (k,d) => { try{ const v=JSON.parse(localStorage.getItem(k)||'null'); return Array.isArray(v)?v:d; }catch(e){ return d; } };
-  confirmOrder = (e) => { if(e&&e.preventDefault)e.preventDefault(); const s=this.state, co=s.checkout; if(!co.name.trim()||!co.email.trim()||!s.cart.length) return; const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:p.price,total:p.price*l.qty}; }); const total=lines.reduce((a,b)=>a+b.total,0); const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-M'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:co.name.trim(),email:co.email.trim(),phone:(co.phone||'').trim(),lines,total}; const rec={kind:'Merch',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:lines.map(l=>l.name+' ×'+l.qty).join(', ')}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); this.setState({checkout:{...co,stage:'done',order},cart:[],orders}); };
+  confirmOrder = async (e) => {
+    if(e&&e.preventDefault)e.preventDefault();
+    const s=this.state, co=s.checkout;
+    if(co.busy) return;
+    if(!co.name.trim()||!co.email.trim()||!s.cart.length){ this.setPay('co',{err:'Fill in your name and email so we can send your receipt.'}); return; }
+    const ph=this.msisdn(co.phone);
+    if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
+    if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('co',{err:'M-Pesa payments are not available right now.'}); return; }
+    const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:p.price,total:p.price*l.qty}; });
+    const items=s.cart.map(l=>({id:l.id,qty:l.qty}));
+    this.setPay('co',{busy:true,err:''});
+    const idem='co-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    const r=await window.__UGT_MPESA_PAY({items,name:co.name.trim(),email:co.email.trim(),phone:ph,idempotencyKey:idem});
+    if(r&&r.ok&&r.id){ this.setPay('co',{busy:false,stage:'stk',orderId:r.id,lines,secs:120}); this.beginPoll('co',r.id); }
+    else { this.setPay('co',{busy:false,err:(r&&r.error)||'Could not start the payment. Try again.'}); }
+  };
   orderMailto = () => { const o=this.state.checkout.order; if(!o) return '#'; const items=o.lines.map(l=>l.name+' x'+l.qty+' - KES '+l.total).join('%0A'); return 'mailto:'+o.email+'?subject=Your%20Urban%20Gang%20Merch%20Receipt%20'+o.invoice+'&body=Receipt%20'+o.invoice+'%0ARef:%20'+o.ref+'%0A'+items+'%0ATotal:%20KES%20'+o.total; };
   printOrder = () => { const o=this.state.checkout.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; const rows=o.lines.map(l=>'<tr><td style="padding:4px 12px 4px 0">'+l.name+' × '+l.qty+'</td><td style="text-align:right">KES '+l.total.toLocaleString()+'</td></tr>').join(''); w.document.write('<html><head><title>'+o.invoice+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG MERCH — RECEIPT</div><p><b>'+o.invoice+'</b> · '+o.date+'<br>Billed to '+o.name+' · '+o.email+'</p><table style="width:100%;border-collapse:collapse">'+rows+'</table><hr><p><b>Total paid: KES '+o.total.toLocaleString()+'</b><br>Ref: '+o.ref+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
   setNs = (k,v) => this.setState(s=>({newStop:{...s.newStop,[k]:v}}));
@@ -1891,7 +2053,7 @@ class Component extends DCLogic {
     this._gTimer=setInterval(()=>{ if(window.google&&window.google.accounts&&window.google.accounts.id){ this.initGoogle(); if(this.state.page!=='admin'){ clearInterval(this._gTimer); this._gTimer=null; } } }, 400);
   }
   componentDidUpdate(){ if(this.state.page==='admin' && !this.state.admin.authed){ this.initGoogle(); } try{ localStorage.setItem('ugt_cart',JSON.stringify(this.state.cart)); }catch(e){} requestAnimationFrame(()=>this.scanReveal()); }
-  componentWillUnmount(){ if(this._gTimer) clearInterval(this._gTimer); if(this._twT) clearTimeout(this._twT); if(this._onScroll) window.removeEventListener('scroll',this._onScroll); }
+  componentWillUnmount(){ if(this._payT) clearInterval(this._payT); if(this._gTimer) clearInterval(this._gTimer); if(this._twT) clearTimeout(this._twT); if(this._onScroll) window.removeEventListener('scroll',this._onScroll); }
   install = async () => { const e=this._installEvt; if(!e){ this.flash('Open this page in Chrome on Android, then tap \u22ee \u2192 Install app.'); return; } e.prompt(); try{ await e.userChoice; }catch(_){} this._installEvt=null; this.setState({canInstall:false}); };
   openPartner = (name) => this.setState({partnerId:name});
   closePartner = () => this.setState({partnerId:null});
@@ -1940,7 +2102,9 @@ class Component extends DCLogic {
       onTName:this.onTName, onTEmail:this.onTEmail, onTPhone:this.onTPhone, ticketName:tk.name, ticketEmail:tk.email, ticketPhone:tk.phone,
       toTicketDetails:()=>this.ticStage('details'), backTicketSelect:()=>this.ticStage('select'), confirmTicket:this.confirmTicket,
       ticketStageSelect:tk.stage==='select', ticketStageDetails:tk.stage==='details', ticketStageDone:tk.stage==='done',
-      ticketSubFmt:this.fmt(tSub), ticketOrder:(tk.order||{email:'',accent:'#E6218C',eventName:'',name:'',tierName:'',qty:0,eventDate:'',eventTime:'',venue:'',city:'',ref:'',invoice:'',date:''}), ticketQrCells:(tk.order?this.qr(tk.order.ref).map(b=>({c:b?'#111':'#fff'})):[]), ticketTotalFmt:tk.order?this.fmt(tk.order.total):'', ticketUnitFmt:tk.order?this.fmt(tk.order.unit):'', ticketMailtoHref:this.ticketMailto(), printTicket:this.printTicket,
+      ticketStageStk:tk.stage==='stk', ticketStageFailed:tk.stage==='failed', ticketStageSlow:tk.stage==='slow',
+      ticketErr:(tk.err||''), ticketPayLabel:(tk.busy?'Sending prompt...':'Pay & Get Ticket'), ticketOrderId:(tk.orderId||''), ticketStkPhone:(this.msisdn(tk.phone)||tk.phone||''), ticketSecsFmt:this.fmtSecs(tk.secs), ticDot1:(tk.secs%3===2?'1':'0.25'), ticDot2:(tk.secs%3===1?'1':'0.25'), ticDot3:(tk.secs%3===0?'1':'0.25'), ticketTryAgain:this.ticTryAgain, ticketReceiptHref:('/receipt/'+(tk.orderId||'')), ticketPhoneMasked:this.maskPhone(tk.order?tk.order.phone:(this.msisdn(tk.phone)||'')),
+      ticketSubFmt:this.fmt(tSub), ticketOrder:(tk.order||{email:'',accent:'#E6218C',eventName:'',name:'',tierName:'',qty:0,eventDate:'',eventTime:'',venue:'',city:'',ref:'',invoice:'',date:'',time:'',method:'',receipt:'',phone:''}), ticketQrCells:(tk.order?this.qr(tk.order.ref).map(b=>({c:b?'#111':'#fff'})):[]), ticketTotalFmt:tk.order?this.fmt(tk.order.total):'', ticketUnitFmt:tk.order?this.fmt(tk.order.unit):'', ticketMailtoHref:this.ticketMailto(), printTicket:this.printTicket,
       swipeActive:sw.i<this.PRODUCTS.length, swipeDone:sw.i>=this.PRODUCTS.length, swipeNextShow:(sw.i+1)<this.PRODUCTS.length,
       swipeCard:(swProd?{name:swProd.name,img:swProd.img,priceFmt:this.fmt(swProd.price)}:{name:'',img:'',priceFmt:''}),
       swipeSizes:swSizes.map(z=>({z,bg:(z===sw.size?'#FFD400':'#fff'),pick:()=>this.setSwipeSize(z)})),
@@ -1948,11 +2112,13 @@ class Component extends DCLogic {
       swipeLike:()=>this.swipeDecide(true), swipeSkip:()=>this.swipeDecide(false), resetSwipe:this.resetSwipe,
       swipeIndex:Math.min(sw.i+1,this.PRODUCTS.length), swipeTotal:this.PRODUCTS.length,
       coOpen:!!s.checkout.stage, coStageDetails:s.checkout.stage==='details', coStageDone:s.checkout.stage==='done',
+      coStageStk:s.checkout.stage==='stk', coStageFailed:s.checkout.stage==='failed', coStageSlow:s.checkout.stage==='slow',
+      coErr:(s.checkout.err||''), coPayLabel:(s.checkout.busy?'Sending prompt...':'Pay & Get Receipt'), coOrderId:(s.checkout.orderId||''), coStkPhone:(this.msisdn(s.checkout.phone)||s.checkout.phone||''), coSecsFmt:this.fmtSecs(s.checkout.secs), coDot1:(s.checkout.secs%3===2?'1':'0.25'), coDot2:(s.checkout.secs%3===1?'1':'0.25'), coDot3:(s.checkout.secs%3===0?'1':'0.25'), coTryAgain:this.coTryAgain, coReceiptHref:('/receipt/'+(s.checkout.orderId||'')), coPhoneMasked:this.maskPhone(s.checkout.order?s.checkout.order.phone:(this.msisdn(s.checkout.phone)||'')),
       coLines:s.cart.map(l=>{ const p=prodById(l.id); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt(p.price*l.qty)}; }),
       coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone,
       onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value),
       confirmOrder:this.confirmOrder, payCard:this.payCard, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,
-      coOrder:(s.checkout.order||{invoice:'',ref:'',date:'',name:'',email:'',total:0}),
+      coOrder:(s.checkout.order||{invoice:'',ref:'',date:'',time:'',method:'',receipt:'',phone:'',name:'',email:'',total:0,lines:[]}),
       coOrderLines:(s.checkout.order?s.checkout.order.lines.map(l=>({name:l.name,qty:l.qty,unitFmt:this.fmt(l.unit),totalFmt:this.fmt(l.total)})):[]),
       coOrderTotalFmt:(s.checkout.order?this.fmt(s.checkout.order.total):''),
       orderMailtoHref:this.orderMailto(), printOrder:this.printOrder,

@@ -17,10 +17,62 @@ export const PRICES: Record<string, { name: string; price: number }> = {
   p14: { name: 'Sticker Sheet', price: 300 },
 };
 
+// Ticket tiers per event - mirrors the template's MAIN_EVENTS data exactly.
+// The server never trusts tier prices from the browser.
+export const TICKET_TIERS: Record<string, { name: string; tiers: { name: string; price: number }[] }> = {
+  'xp-dance': {
+    name: 'The Experience Hub Dance Event',
+    tiers: [
+      { name: 'Regular', price: 500 },
+      { name: 'VIP', price: 1500 },
+      { name: 'VVIP Table', price: 5000 },
+    ],
+  },
+  'festival-colours': {
+    name: 'Urban Festival Of Colours',
+    tiers: [
+      { name: 'Early Bird', price: 800 },
+      { name: 'Regular', price: 1200 },
+      { name: 'VIP', price: 3000 },
+    ],
+  },
+  'campus-rave': {
+    name: 'Campus Rave \u2014 Nairobi Edition',
+    tiers: [
+      { name: 'Regular', price: 1000 },
+      { name: 'VIP', price: 2500 },
+      { name: 'VVIP', price: 6000 },
+    ],
+  },
+};
+
 export function serverTotal(items: { id: string; qty: number }[]): number {
   return items.reduce((sum, it) => {
     const p = PRICES[it.id];
     if (!p) throw new Error(`unknown product: ${it.id}`);
     return sum + p.price * it.qty;
   }, 0);
+}
+
+// Resolve a stored order row's items JSONB into displayable receipt lines.
+// Merch ids resolve against PRICES; ticket ids ('ticket:<eventId>:<tier>')
+// resolve against TICKET_TIERS, preferring the name stored on the item.
+export function orderLines(
+  items: { id: string; qty: number; name?: string }[]
+): { name: string; qty: number; unit: number; total: number }[] {
+  return (Array.isArray(items) ? items : []).map((it) => {
+    const qty = Number(it?.qty) || 0;
+    const id = typeof it?.id === 'string' ? it.id : '';
+    if (id.startsWith('ticket:')) {
+      const [, eventId, tierIdx] = id.split(':');
+      const ev = TICKET_TIERS[eventId];
+      const tier = ev ? ev.tiers[Number(tierIdx)] : undefined;
+      const unit = tier ? tier.price : 0;
+      const name = it.name || (ev && tier ? ev.name + ' - ' + tier.name : 'Event ticket');
+      return { name, qty, unit, total: unit * qty };
+    }
+    const p = PRICES[id];
+    const unit = p ? p.price : 0;
+    return { name: it?.name || (p ? p.name : id || 'Item'), qty, unit, total: unit * qty };
+  });
 }

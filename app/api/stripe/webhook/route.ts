@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import type Stripe from 'stripe';
 import { alertCritical } from '@/lib/server/alert';
 import { stripe } from '@/lib/server/stripe';
+import { sendReceiptEmail } from '@/lib/server/receipt-email';
 
 // Stripe webhook (server-to-server; signature-verified, so no Origin check —
 // same exemption class as /api/mpesa/callback). Registered in the Stripe
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
             const rows = await q(
               `UPDATE orders SET status='paid', stripe_payment_intent=$2,
                  stripe_session=COALESCE(NULLIF(stripe_session,''), $3)
-               WHERE id=$1 RETURNING id`,
+               WHERE id=$1 RETURNING *`,
               [orderId, pi, session.id]
             );
             if (rows.length === 0) {
@@ -65,6 +66,9 @@ export async function POST(req: Request) {
                 `INSERT INTO audit_log (actor, action, detail) VALUES ($1,$2,$3)`,
                 ['stripe', 'order_paid', JSON.stringify({ order_id: orderId, session: session.id, payment_intent: pi, amount_total: session.amount_total })]
               );
+              // branded receipt email - fire-and-forget after the ack
+              const paidRow = rows[0];
+              if (paidRow?.email) after(() => sendReceiptEmail(paidRow));
             }
           }
         } catch (e: any) {

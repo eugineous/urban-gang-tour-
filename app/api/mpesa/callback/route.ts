@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { alertCritical } from '@/lib/server/alert';
+import { sendReceiptEmail } from '@/lib/server/receipt-email';
 
 // Daraja payment result callback: reconcile the order ledger.
 export async function POST(req: Request) {
@@ -17,7 +18,13 @@ export async function POST(req: Request) {
         if (cb.ResultCode === 0) {
           const items = cb?.CallbackMetadata?.Item || [];
           const receipt = items.find((i: any) => i.Name === 'MpesaReceiptNumber')?.Value || '';
-          await q(`UPDATE orders SET status='paid', mpesa_receipt=$2 WHERE mpesa_ref=$1`, [cb.CheckoutRequestID, String(receipt)]);
+          const rows = await q(
+            `UPDATE orders SET status='paid', mpesa_receipt=$2 WHERE mpesa_ref=$1 RETURNING *`,
+            [cb.CheckoutRequestID, String(receipt)]
+          );
+          // branded receipt email - fire-and-forget after the ack, never blocking
+          const paidRow = rows[0];
+          if (paidRow?.email) after(() => sendReceiptEmail(paidRow));
         } else {
           await q(`UPDATE orders SET status='failed' WHERE mpesa_ref=$1 AND status='pending'`, [cb.CheckoutRequestID]);
         }

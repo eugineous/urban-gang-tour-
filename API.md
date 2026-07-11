@@ -33,14 +33,33 @@ Persists to `bookings`; notifies via Resend if `RESEND_API_KEY`.
 200 `{ok,id}` · 400 · 429 (5/min/IP).
 
 ### POST /api/orders
-Body: `{items:[{id,qty}], name, phone, email?, idempotencyKey?}` — **email
-optional** (guest checkout; M-Pesa needs phone only). Prices computed
-server-side from `lib/server/catalog.ts` — client prices are never trusted.
+Body: `{items:[{id,qty}], name, phone, email?, idempotencyKey?}` (merch) OR
+`{ticket:{eventId,tier,qty}, name, phone, email?, idempotencyKey?}` (event
+tickets; tier index into `TICKET_TIERS`, qty 1-20, stored as one
+`ticket:<eventId>:<tier>` item line) - **email optional** (guest checkout;
+M-Pesa needs phone only). Prices computed server-side from
+`lib/server/catalog.ts` (`PRICES` / `TICKET_TIERS`) - client prices are never
+trusted.
 Idempotent within 10 min per key. Ledger row inserted; STK push if `MPESA_*`
 env set. 200 `{ok,id,total,stk}` · 503 payment not configured · 429 (8/min/IP).
 
+### GET /api/orders/status?id=ORD-...
+Public poll for the checkout STK-waiting panel. Id format-validated
+(`^ORD-[A-Z0-9-]{4,40}$`); the unguessable id is the bearer. Returns
+`{status, total, receipt, method, created_at}` - `receipt` (M-Pesa receipt /
+Paystack ref / Stripe payment intent) only once paid. NEVER returns
+name/email/phone. 200 - 400 - 404 unknown - 429 (30/min/IP) - 503 no DB.
+
+### GET /receipt/[id]
+Server-rendered printable receipt page (force-dynamic, robots noindex).
+PAID / PENDING / NOT COMPLETED banner, itemized lines, business identity
+block. No PII beyond buyer name + masked phone. 404 for unknown ids.
+
 ### POST /api/mpesa/callback
 Daraja result hook: marks order `paid` (+receipt) or `failed`. Always 200-acks.
+On paid, fires the branded Resend receipt email (fire-and-forget via
+`after()`) when the order row has an email - same on the Paystack and Stripe
+webhooks (`lib/server/receipt-email.ts`).
 
 ### POST /api/stripe/checkout
 Body: `{items:[{id,qty}], email?}` — strict: item objects may carry ONLY

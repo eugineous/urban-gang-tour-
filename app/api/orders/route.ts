@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { serverTotal } from '@/lib/server/catalog';
+import { serverTotal, TICKET_TIERS } from '@/lib/server/catalog';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { mpesaConfigured, stkPush, normalizePhone } from '@/lib/server/mpesa';
 import { sameOrigin } from '@/lib/server/origin';
@@ -15,16 +15,49 @@ export async function POST(req: Request) {
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
 
-  const allowed = new Set(['items', 'name', 'email', 'phone', 'idempotencyKey']);
+  const allowed = new Set(['items', 'ticket', 'name', 'email', 'phone', 'idempotencyKey']);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
-  const { items, name, email, phone, idempotencyKey } = body;
-  if (!Array.isArray(items) || items.length === 0 || items.length > 30) return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
-  for (const it of items) {
-    if (typeof it?.id !== 'string' || !Number.isInteger(it?.qty) || it.qty < 1 || it.qty > 20) {
-      return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
+  const { items, ticket, name, email, phone, idempotencyKey } = body;
+  if ((items === undefined) === (ticket === undefined)) {
+    // exactly one of items (merch) or ticket (event) must be present
+    return NextResponse.json({ error: 'items_or_ticket' }, { status: 400 });
+  }
+
+  // orderItems is what gets persisted; total comes ONLY from the server catalog
+  let orderItems: { id: string; qty: number; name?: string }[];
+  let total: number;
+
+  if (ticket !== undefined) {
+    if (!ticket || typeof ticket !== 'object' || Array.isArray(ticket)) {
+      return NextResponse.json({ error: 'invalid_ticket' }, { status: 400 });
     }
+    for (const k of Object.keys(ticket)) {
+      if (k !== 'eventId' && k !== 'tier' && k !== 'qty') {
+        return NextResponse.json({ error: `unexpected_field:ticket.${k}` }, { status: 400 });
+      }
+    }
+    const ev = typeof ticket.eventId === 'string' ? TICKET_TIERS[ticket.eventId] : undefined;
+    if (!ev) return NextResponse.json({ error: 'unknown_event' }, { status: 400 });
+    if (!Number.isInteger(ticket.tier) || ticket.tier < 0 || ticket.tier >= ev.tiers.length) {
+      return NextResponse.json({ error: 'invalid_tier' }, { status: 400 });
+    }
+    if (!Number.isInteger(ticket.qty) || ticket.qty < 1 || ticket.qty > 20) {
+      return NextResponse.json({ error: 'invalid_qty' }, { status: 400 });
+    }
+    const tier = ev.tiers[ticket.tier];
+    total = tier.price * ticket.qty;
+    orderItems = [{ id: 'ticket:' + ticket.eventId + ':' + ticket.tier, qty: ticket.qty, name: ev.name + ' - ' + tier.name }];
+  } else {
+    if (!Array.isArray(items) || items.length === 0 || items.length > 30) return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
+    for (const it of items) {
+      if (typeof it?.id !== 'string' || !Number.isInteger(it?.qty) || it.qty < 1 || it.qty > 20) {
+        return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
+      }
+    }
+    try { total = serverTotal(items); } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+    orderItems = items;
   }
   if (typeof name !== 'string' || name.length < 2 || name.length > 100) return NextResponse.json({ error: 'invalid_name' }, { status: 400 });
   const emailStr = typeof email === 'string' && email ? email : '';
@@ -38,12 +71,9 @@ export async function POST(req: Request) {
     if (prev && Date.now() - prev.ts < 600_000) return NextResponse.json({ ok: true, id: prev.id, deduped: true });
   }
 
-  let total: number;
-  try { total = serverTotal(items); } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
-
   const id = 'ORD-' + Date.now().toString(36).toUpperCase();
   if (typeof idempotencyKey === 'string' && idempotencyKey) seen.set(idempotencyKey, { id, ts: Date.now() });
-  console.log('[order]', JSON.stringify({ id, items, total, name, email: emailStr, msisdn }));
+  console.log('[order]', JSON.stringify({ id, items: orderItems, total, name, email: emailStr, msisdn }));
 
   // persist order (ledger for admin reconciliation)
   try {
@@ -51,7 +81,7 @@ export async function POST(req: Request) {
     if (db()) {
       await q(
         `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [id, JSON.stringify(items), total, name, emailStr, msisdn]
+        [id, JSON.stringify(orderItems), total, name, emailStr, msisdn]
       );
     }
   } catch (e: any) {
