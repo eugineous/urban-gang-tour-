@@ -55,11 +55,28 @@ Server-rendered printable receipt page (force-dynamic, robots noindex).
 PAID / PENDING / NOT COMPLETED banner, itemized lines, business identity
 block. No PII beyond buyer name + masked phone. 404 for unknown ids.
 
+### GET /tickets/[orderId]
+Server-rendered list of an order's e-tickets (force-dynamic, robots noindex).
+The unguessable ORD- id is the bearer, same model as /receipt/[id]. Lazy-mints
+tickets for a paid ticket order that missed webhook minting
+(`lib/server/tickets.ts ensureTickets`, advisory-locked + idempotent).
+404 unknown ids. Shows pending notice while unpaid.
+
+### GET /t/[code]
+The digital ticket page - one QR ticket per admission (force-dynamic, robots
+noindex). Code format `TKT-<10 chars>-<4-char HMAC tag>` (unambiguous
+alphabet, tag keyed with SESSION_SECRET) is verified BEFORE any DB read, so
+forged codes 404 offline-cheap. Card states: valid, ADMITTED stamp
+(`used_at`), pending-payment blur while the order is unpaid. QR encodes
+`https://urbangangtour.co.ke/t/<code>`. Shows holder name + event data only -
+no contact info.
+
 ### POST /api/mpesa/callback
 Daraja result hook: marks order `paid` (+receipt) or `failed`. Always 200-acks.
-On paid, fires the branded Resend receipt email (fire-and-forget via
-`after()`) when the order row has an email - same on the Paystack and Stripe
-webhooks (`lib/server/receipt-email.ts`).
+On paid, mints e-tickets (`ensureTickets`) then fires the branded Resend
+receipt email (fire-and-forget via `after()`) when the order row has an email
+- same on the Paystack and Stripe webhooks (`lib/server/receipt-email.ts`
+includes per-ticket links for paid ticket orders).
 
 ### POST /api/stripe/checkout
 Body: `{items:[{id,qty}], email?}` — strict: item objects may carry ONLY
@@ -107,7 +124,13 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
 ## Admin (require `ugt_admin` signed cookie; 401 otherwise)
 
 - `POST /api/admin/login` `{code}` → session. `DELETE` → logout. Rate-limited.
-- `GET /api/admin/data?view=bookings|orders|posts|users|submissions|subscribers|traffic|settings|audit|stats`
+- `GET /api/admin/data?view=bookings|orders|posts|users|submissions|subscribers|traffic|settings|audit|stats|tickets`
+- `POST /api/tickets/verify` `{code}` — gate check-in (admin session +
+  strict Origin, 120/min/IP). Validates the code's HMAC tag, then atomically
+  flips `used_at` once (`WHERE used_at IS NULL AND order paid`). Returns
+  `{result: valid|used|invalid, ticket?, usedAt?, reason?}`; every scan is
+  audit-logged. UI: `/admin/gate` (on-device jsQR camera scanner + manual
+  entry; same `ugt_admin` session as the Control Room).
 - `POST /api/admin/save` `{kind, ...}` — post/status/setting mutations (audited).
 - `GET /api/admin/export?kind=…` — CSV.
 - `POST /api/admin/setup` — idempotent schema create/repair.

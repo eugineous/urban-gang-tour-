@@ -62,6 +62,18 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi' }) +
     ' EAT';
 
+  // e-tickets strip: paid ticket orders link every /t/<code>. ensureTickets is
+  // the lazy-mint safety net - a paid order viewed here can never lack tickets.
+  let tickets: import('@/lib/server/tickets').TicketRow[] = [];
+  if (paid || o.status === 'fulfilled') {
+    try {
+      const { ensureTickets } = await import('@/lib/server/tickets');
+      tickets = await ensureTickets(o);
+    } catch (e) {
+      console.error('[receipt-tickets]', e);
+    }
+  }
+
   const banner = paid
     ? { bg: '#1F8A5B', label: 'PAID' }
     : failed
@@ -128,6 +140,30 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             <span style={{ fontFamily: anton, fontSize: 15, textTransform: 'uppercase' }}>Total</span>
             <span style={{ fontFamily: anton, fontSize: 22 }}>{fmtKes(Number(o.total) || 0)}</span>
           </div>
+          {tickets.length > 0 ? (
+            <div style={{ marginTop: 16, background: '#111', border: '2px solid #111', borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{ padding: '13px 16px 3px', fontFamily: anton, fontSize: 15, color: '#FFD400', textTransform: 'uppercase', letterSpacing: '.04em' }}>Your E-Tickets</div>
+              <div style={{ padding: '2px 16px 8px', fontSize: 12, color: '#bbb', lineHeight: 1.6 }}>One QR ticket per person - open it, screenshot it, show it at the gate.</div>
+              {tickets.map((t) => (
+                <div key={t.code} style={{ padding: '10px 16px', borderTop: '1px dashed #444', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <span>
+                    <a href={`/t/${encodeURIComponent(t.code)}`} style={{ color: '#21C7E6', textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>
+                      Ticket {t.position} of {t.of_count} &middot; {t.tier_name} &rarr;
+                    </a>
+                    <span style={{ display: 'block', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: 11, letterSpacing: '.08em', color: '#999', marginTop: 2 }}>{t.code}</span>
+                  </span>
+                  {t.used_at ? (
+                    <span style={{ flex: 'none', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', color: '#ff6b6b', border: '1px solid rgba(255,80,80,.6)', borderRadius: 100, padding: '4px 9px' }}>USED</span>
+                  ) : null}
+                </div>
+              ))}
+              <div style={{ padding: '13px 16px', borderTop: '1px dashed #444', textAlign: 'center' }}>
+                <a href={`/tickets/${encodeURIComponent(o.id)}`} style={{ display: 'inline-block', background: '#FFD400', color: '#111', textDecoration: 'none', fontFamily: anton, fontSize: 14, padding: '11px 22px', borderRadius: 10, textTransform: 'uppercase' }}>
+                  View your tickets
+                </a>
+              </div>
+            </div>
+          ) : null}
           {!paid && !failed ? (
             <div style={{ marginTop: 14, fontSize: 12.5, color: '#8a6d1a', background: '#fff8dd', border: '2px solid #B7860B', borderRadius: 10, padding: '10px 14px' }}>
               This order has not been confirmed yet. If you completed payment, this page updates automatically once M-Pesa confirms - refresh in a moment.

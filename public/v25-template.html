@@ -301,21 +301,13 @@
 </sc-if>
 <sc-if value="{{ ticketStageDone }}" hint-placeholder-val="{{ false }}">
 <div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Receipt &amp; e-ticket emailed to {{ ticketOrder.email }}</div></div>
-<div style="border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111">
-<div style="background:{{ ticketOrder.accent }};padding:14px 18px;border-bottom:3px dashed #111"><div style="font-family:'Bungee';font-size:11px;color:#111">URBAN GANG TOUR · E-TICKET</div><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;line-height:1;margin-top:3px">{{ ticketOrder.eventName }}</div></div>
-<div style="display:flex;gap:14px;padding:16px 18px;align-items:center">
-<div style="display:grid;grid-template-columns:repeat(13,1fr);width:104px;height:104px;flex:none;border:2px solid #111;padding:3px;background:#fff">
-<sc-for list="{{ ticketQrCells }}" as="cell" hint-placeholder-count="169"><div style="background:{{ cell.c }}"></div></sc-for>
+<a href="/tickets/{{ ticketOrderId }}" target="_blank" style="display:block;text-decoration:none;color:#111;border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111" style-hover="transform:translateY(-1px)">
+<div style="background:{{ ticketOrder.accent }};padding:14px 18px;border-bottom:3px dashed #111"><div style="font-family:'Bungee';font-size:11px;color:#111">URBAN GANG TOUR · E-TICKETS</div><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;line-height:1;margin-top:3px">{{ ticketOrder.eventName }}</div></div>
+<div style="background:#FFD400;padding:16px 18px;text-align:center">
+<div style="font-family:'Anton';font-size:19px;text-transform:uppercase">View Your Tickets &rarr;</div>
+<div style="font-family:'Space Grotesk';font-size:12px;color:#333;margin-top:5px">{{ ticketOrder.tierName }} × {{ ticketOrder.qty }} · one QR ticket per person · scan at the gate</div>
 </div>
-<div style="flex:1;font-size:12.5px;line-height:1.55">
-<div style="font-family:'Anton';font-size:15px;text-transform:uppercase">{{ ticketOrder.name }}</div>
-<div>{{ ticketOrder.tierName }} × {{ ticketOrder.qty }}</div>
-<div>{{ ticketOrder.eventDate }} · {{ ticketOrder.eventTime }}</div>
-<div>{{ ticketOrder.venue }}, {{ ticketOrder.city }}</div>
-<div style="margin-top:6px;font-family:'Space Grotesk';font-weight:700;letter-spacing:.06em">{{ ticketOrder.ref }}</div>
-</div>
-</div>
-</div>
+</a>
 <div style="border:3px solid #111;border-radius:16px;margin-top:14px;overflow:hidden;box-shadow:6px 6px 0 #111;background:#fff">
 <div style="background:#111;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px">
 <div style="display:flex;align-items:center;gap:10px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>

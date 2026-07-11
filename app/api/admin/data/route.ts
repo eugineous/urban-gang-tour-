@@ -12,6 +12,8 @@ const VIEWS: Record<string, string> = {
   traffic: `SELECT day, path, hits FROM traffic WHERE day > CURRENT_DATE - 30 ORDER BY day DESC, hits DESC LIMIT 1000`,
   settings: `SELECT key, value FROM settings`,
   audit: `SELECT * FROM audit_log ORDER BY created_at DESC LIMIT 200`,
+  tickets: `SELECT code, order_id, event_id, tier_name, holder, position, of_count, used_at, created_at
+    FROM tickets ORDER BY created_at DESC, position LIMIT 2000`,
   stats: `SELECT
     (SELECT COUNT(*) FROM bookings WHERE status='new') AS new_bookings,
     (SELECT COUNT(*) FROM orders) AS orders,

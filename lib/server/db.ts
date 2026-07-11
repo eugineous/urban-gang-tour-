@@ -66,6 +66,12 @@ CREATE TABLE IF NOT EXISTS product_reviews (
 CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY, actor TEXT, action TEXT, detail JSONB, created_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS tickets (
+  code TEXT PRIMARY KEY, order_id TEXT NOT NULL, event_id TEXT NOT NULL,
+  tier_name TEXT NOT NULL, holder TEXT DEFAULT '', position INT NOT NULL,
+  of_count INT NOT NULL, used_at TIMESTAMPTZ, used_by TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_posted_at TIMESTAMPTZ;
 -- Indexes for the real query patterns (blog listing, admin ledgers, M-Pesa
 -- callback reconciliation, review lookups, audit trail). Applied with the
@@ -81,4 +87,5 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DES
 CREATE INDEX IF NOT EXISTS idx_users_phone ON users (phone);
 CREATE INDEX IF NOT EXISTS idx_submissions_created_at ON submissions (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_subscribers_created_at ON subscribers (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tickets_order_id ON tickets (order_id);
 `;

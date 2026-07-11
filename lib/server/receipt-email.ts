@@ -4,6 +4,7 @@
 // an email. Never throws - a failed receipt email must never break payment
 // reconciliation.
 import { orderLines } from './catalog';
+import { ticketsForOrder, type TicketRow } from './tickets';
 
 const BIZ = {
   name: 'Urban Gang Tour',
@@ -67,6 +68,32 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
     const link = `${SITE}/receipt/${encodeURIComponent(order.id)}`;
     const phone = maskPhone(String(order.phone || ''));
 
+    // e-tickets: minted before this email fires on every paid path, so a paid
+    // ticket order lists its per-ticket links here. Never blocks the receipt.
+    let tickets: TicketRow[] = [];
+    if (order.status === 'paid' || order.status === 'fulfilled') {
+      try { tickets = await ticketsForOrder(order.id); } catch { /* receipt still goes out */ }
+    }
+    const ticketsHtml = tickets.length
+      ? `
+      <div style="margin-top:20px;background:#111111;border:2px solid #111111;border-radius:14px;overflow:hidden">
+        <div style="padding:14px 16px 4px;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;color:#FFD400;text-transform:uppercase;letter-spacing:.04em">Your E-Tickets</div>
+        <div style="padding:2px 16px 6px;font-size:12px;color:#bbbbbb;line-height:1.6">One QR ticket per person - open each link, screenshot it, or forward it to whoever is coming with you. It gets scanned once at the gate.</div>
+        ${tickets
+          .map(
+            (t) => `
+        <div style="padding:10px 16px;border-top:1px dashed #444444">
+          <a href="${SITE}/t/${encodeURIComponent(t.code)}" style="color:#21C7E6;text-decoration:none;font-weight:700;font-size:13px">Ticket ${t.position} of ${t.of_count} &middot; ${esc(t.tier_name)} &rarr;</a>
+          <div style="font-family:Courier New,monospace;font-size:11px;letter-spacing:.08em;color:#999999;margin-top:2px">${esc(t.code)}</div>
+        </div>`
+          )
+          .join('')}
+        <div style="padding:14px 16px;border-top:1px dashed #444444;text-align:center">
+          <a href="${SITE}/tickets/${encodeURIComponent(order.id)}" style="display:inline-block;background:#FFD400;color:#111111;text-decoration:none;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:13px;padding:11px 20px;border-radius:10px;text-transform:uppercase">View your tickets</a>
+        </div>
+      </div>`
+      : '';
+
     const rows = lines
       .map(
         (l) => `
@@ -100,6 +127,7 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
           <td align="right" style="padding:12px 14px;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:19px;color:#111">${esc(fmtKes(order.total))}</td>
         </tr>
       </table>
+      ${ticketsHtml}
       <div style="text-align:center;margin-top:20px">
         <a href="${link}" style="display:inline-block;background:#E6218C;color:#ffffff;text-decoration:none;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;padding:13px 24px;border:2px solid #111111;border-radius:10px;text-transform:uppercase">View / print full receipt</a>
       </div>

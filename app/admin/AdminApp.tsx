@@ -50,6 +50,7 @@ export default function AdminApp() {
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [seoPath, setSeoPath] = useState('/');
   const [setupInfo, setSetupInfo] = useState('');
+  const [tix, setTix] = useState<Record<string, any[]>>({});
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
 
@@ -84,6 +85,14 @@ export default function AdminApp() {
       setSettings(map);
     });
     else if (viewFor[tab]) load(viewFor[tab]).then(setRows);
+    // e-tickets ride along with the Orders ledger (grouped per order below);
+    // silent on error - the table appears after the first ticket sale / setup
+    if (tab === 'Orders') api('/api/admin/data?view=tickets').then(({ data }) => {
+      const m: Record<string, any[]> = {};
+      (data.rows || []).forEach((t: any) => { (m[t.order_id] = m[t.order_id] || []).push(t); });
+      Object.values(m).forEach((list) => list.sort((a, b) => a.position - b.position));
+      setTix(m);
+    });
   }, [tab, authed, load]);
 
   const login = async () => {
@@ -208,7 +217,7 @@ export default function AdminApp() {
       {tab === 'Orders' && (
         <>
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>
-            💡 Orders are the money ledger. <b>paid</b> = confirmed by M-Pesa callback (receipt shown). Use the CSV export to reconcile against your M-Pesa statement. Opening an order&apos;s <b>Receipt</b> gives a printable invoice.
+            💡 Orders are the money ledger. <b>paid</b> = confirmed by M-Pesa callback (receipt shown). Use the CSV export to reconcile against your M-Pesa statement. Opening an order&apos;s <b>Receipt</b> gives a printable invoice. Ticket orders list their e-tickets inline — scan them at the door with the <a href="/admin/gate" style={{ color: C.pink, fontWeight: 700 }}>Gate Scanner</a>.
           </div>
           <Table rows={rows} cols={['id', 'total', 'status', 'name', 'phone', 'mpesa_receipt']}
             exportKind="orders"
@@ -223,6 +232,21 @@ export default function AdminApp() {
                   const w = window.open('', '_blank'); if (!w) return;
                   w.document.write(`<html><head><title>Receipt ${r.id}</title></head><body style="font-family:sans-serif;max-width:560px;margin:40px auto"><h2>Urban Gang Tour — Receipt</h2><p><b>Order:</b> ${r.id}<br/><b>Date:</b> ${new Date(r.created_at).toLocaleString()}<br/><b>Customer:</b> ${r.name || ''} · ${r.email || ''} · ${r.phone || ''}<br/><b>Status:</b> ${r.status}${r.mpesa_receipt ? '<br/><b>M-Pesa receipt:</b> ' + r.mpesa_receipt : ''}</p><table border="1" cellpadding="8" cellspacing="0" width="100%"><tr><th align="left">Item</th><th>Qty</th></tr>${items.map((i: any) => `<tr><td>${i.id}</td><td align="center">${i.qty}</td></tr>`).join('')}</table><h3>Total: KES ${Number(r.total).toLocaleString()}</h3><p style="color:#888">admin@urbangangtour.co.ke · Nairobi, Kenya</p><script>print()</script></body></html>`);
                 }}>Receipt</button>
+                {tix[r.id]?.length ? (
+                  <details style={{ fontSize: 12 }}>
+                    <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#C7238E', whiteSpace: 'nowrap', padding: '6px 0' }}>
+                      🎟 {tix[r.id].length} ticket{tix[r.id].length > 1 ? 's' : ''} ({tix[r.id].filter((t: any) => t.used_at).length} used)
+                    </summary>
+                    <div style={{ display: 'grid', gap: 3, paddingTop: 4 }}>
+                      {tix[r.id].map((t: any) => (
+                        <div key={t.code} style={{ whiteSpace: 'nowrap' }}>
+                          <a href={`/t/${t.code}`} target="_blank" rel="noopener" style={{ color: C.pink, fontWeight: 700, fontFamily: 'monospace' }}>{t.code}</a>
+                          {' '}{t.tier_name} · {t.used_at ? `✅ used ${new Date(t.used_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'unused'}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
               </span>
             )} />
         </>
