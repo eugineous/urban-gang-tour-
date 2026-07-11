@@ -21,8 +21,17 @@ export const metadata: Metadata = {
   applicationName: SITE.name,
   manifest: '/manifest.json',
   icons: {
-    icon: '/assets/favicon.png',
-    apple: '/assets/pwa-192.png',
+    // Real multi-size .ico first (the PNG served at this path before was
+    // mislabeled, which is why the site's icon never appeared in Google
+    // search results the way Instagram/YouTube's do). Google's own guidance
+    // wants a square icon sized a multiple of 48px - 48/96/144 cover that.
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icon-96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/icon-144.png', sizes: '144x144', type: 'image/png' },
+    ],
+    apple: '/icon-192.png',
   },
   appleWebApp: {
     capable: true,
