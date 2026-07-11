@@ -48,7 +48,7 @@
 <button onClick="{{ nav.about }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">About &amp; The Gang</button>
 <button onClick="{{ nav.exp }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">The Tour</button>
 <div style="position:relative">
-<button onClick="{{ toggleBook }}" style="color:#111;padding:6px 0;display:flex;align-items:center;gap:5px" style-hover="color:#E6218C">Work With Us <span style="font-size:10px">â–¼</span></button>
+<button onClick="{{ toggleBook }}" style="color:#111;padding:6px 0;display:flex;align-items:center;gap:5px" style-hover="color:#E6218C">Work With Us <span style="font-size:10px">▼</span></button>
 <sc-if value="{{ bookOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:absolute;top:40px;left:-14px;width:250px;background:#fff;border:3px solid #111;border-radius:16px;padding:8px;box-shadow:7px 7px 0 #111;z-index:5">
 <button onClick="{{ work.brands }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Brands</button>
@@ -69,13 +69,13 @@
 <sc-if value="{{ cartCount }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#111;color:#FFD400;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff">{{ cartCount }}</span></sc-if>
 </button>
 <button onClick="{{ nav.contact }}" data-book-btn style="background:#FFD400;color:#111;font-family:'Space Grotesk';font-weight:700;font-size:13px;letter-spacing:.02em;text-transform:uppercase;padding:13px 20px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #111;transform:rotate(-2deg)" style-hover="transform:rotate(-2deg) translate(2px,2px);box-shadow:2px 2px 0 #111">Book the Tour</button>
-<button onClick="{{ toggleMobile }}" data-burger style="display:none;width:46px;height:46px;border-radius:12px;background:#111;color:#fff;font-size:22px;align-items:center;justify-content:center">â˜°</button>
+<button onClick="{{ toggleMobile }}" data-burger style="display:none;width:46px;height:46px;border-radius:12px;background:#111;color:#fff;font-size:22px;align-items:center;justify-content:center">☰</button>
 </nav>
 </header>
 
 <sc-if value="{{ mobileOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;inset:0;z-index:130;background:#E6218C;padding:26px 24px 40px;overflow-y:auto">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:48px"><button onClick="{{ toggleMobile }}" style="width:46px;height:46px;border:3px solid #111;border-radius:12px;background:#fff;font-size:24px;box-shadow:3px 3px 0 #111">Ã—</button></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:48px"><button onClick="{{ toggleMobile }}" style="width:46px;height:46px;border:3px solid #111;border-radius:12px;background:#fff;font-size:24px;box-shadow:3px 3px 0 #111">×</button></div>
 <div style="display:flex;flex-direction:column;gap:12px;font-family:'Anton';font-size:30px">
 <button onClick="{{ nav.home }}" style="text-align:left;background:#fff;border:3px solid #111;border-radius:14px;padding:10px 18px;box-shadow:4px 4px 0 #111">HOME</button>
 <button onClick="{{ nav.about }}" style="text-align:left;background:#fff;border:3px solid #111;border-radius:14px;padding:10px 18px;box-shadow:4px 4px 0 #111">ABOUT &amp; THE GANG</button>
@@ -96,7 +96,7 @@
 <aside style="position:fixed;top:0;right:0;bottom:0;z-index:150;width:400px;max-width:92vw;background:#fff;border-left:4px solid #111;display:flex;flex-direction:column">
 <div style="padding:20px;border-bottom:4px solid #111;display:flex;align-items:center;justify-content:space-between;background:#FFD400">
 <div style="font-family:'Anton';font-size:26px">YOUR BAG</div>
-<button onClick="{{ toggleCart }}" style="width:38px;height:38px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">Ã—</button>
+<button onClick="{{ toggleCart }}" style="width:38px;height:38px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
 </div>
 <div style="flex:1;overflow-y:auto;padding:16px 18px">
 <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ true }}">
@@ -108,7 +108,7 @@
 <div style="color:#888;font-size:11px;font-weight:700;text-transform:uppercase">{{ line.sub }}</div>
 <div style="color:#E6218C;font-family:'Anton';font-size:16px">{{ line.priceFmt }}</div>
 <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-<button onClick="{{ line.dec }}" style="width:26px;height:26px;border:2px solid #111;border-radius:7px;background:#fff;font-weight:800">âˆ’</button>
+<button onClick="{{ line.dec }}" style="width:26px;height:26px;border:2px solid #111;border-radius:7px;background:#fff;font-weight:800">−</button>
 <span style="font-weight:700;min-width:16px;text-align:center">{{ line.qty }}</span>
 <button onClick="{{ line.inc }}" style="width:26px;height:26px;border:2px solid #111;border-radius:7px;background:#fff;font-weight:800">+</button>
 <button onClick="{{ line.remove }}" style="margin-left:auto;color:#888;font-size:12px;text-decoration:underline">Remove</button>
@@ -118,13 +118,13 @@
 </sc-for>
 </sc-if>
 <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
-<div style="text-align:center;padding:70px 20px;color:#888"><svg width="60" height="60" viewBox="0 0 24 24" style="color:#ccc"><use href="#i-bag"></use></svg><div style="font-weight:700;color:#111;margin-top:8px">Your bag is empty</div><button onClick="{{ nav.shop }}" style="margin-top:16px;color:#E6218C;font-weight:700;text-decoration:underline">Shop the merch â†’</button></div>
+<div style="text-align:center;padding:70px 20px;color:#888"><svg width="60" height="60" viewBox="0 0 24 24" style="color:#ccc"><use href="#i-bag"></use></svg><div style="font-weight:700;color:#111;margin-top:8px">Your bag is empty</div><button onClick="{{ nav.shop }}" style="margin-top:16px;color:#E6218C;font-weight:700;text-decoration:underline">Shop the merch →</button></div>
 </sc-if>
 </div>
 <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ true }}">
 <div style="padding:18px;border-top:4px solid #111">
 <div style="display:flex;justify-content:space-between;font-weight:700;margin-bottom:12px"><span>Subtotal</span><span style="font-family:'Anton';font-size:22px">{{ cartTotalFmt }}</span></div>
-<button onClick="{{ checkout }}" style="width:100%;padding:15px;border:3px solid #111;border-radius:14px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;letter-spacing:.02em;box-shadow:4px 4px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">CHECKOUT Â· M-PESA / CARD</button>
+<button onClick="{{ checkout }}" style="width:100%;padding:15px;border:3px solid #111;border-radius:14px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;letter-spacing:.02em;box-shadow:4px 4px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">CHECKOUT · M-PESA / CARD</button>
 </div>
 </sc-if>
 </aside>
@@ -135,7 +135,7 @@
 <div style="width:820px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;box-shadow:10px 10px 0 #111" data-quick>
 <div style="background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;border-right:4px solid #111"><img src="{{ quick.img }}" alt="{{ quick.name }}" style="max-height:340px;width:auto"></div>
 <div style="padding:30px 28px;position:relative">
-<button onClick="{{ quickClose }}" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">Ã—</button>
+<button onClick="{{ quickClose }}" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
 <div style="display:inline-block;background:#FFD400;border:2px solid #111;border-radius:6px;padding:2px 8px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.08em">{{ quick.cat }}</div>
 <h3 style="font-family:'Anton';font-size:32px;margin:10px 0 6px;line-height:1">{{ quick.name }}</h3>
 <div style="color:#E6218C;font-family:'Anton';font-size:26px">{{ quick.priceFmt }}</div>
@@ -151,11 +151,11 @@
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
 <div style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888">Qty</div>
 <div style="display:flex;align-items:center;gap:0;border:2px solid #111;border-radius:10px;overflow:hidden">
-<button onClick="{{ quick.qtyDown }}" style="width:38px;height:38px;background:#fff;font-size:18px;font-weight:800" style-hover="background:#FFD400">âˆ’</button>
+<button onClick="{{ quick.qtyDown }}" style="width:38px;height:38px;background:#fff;font-size:18px;font-weight:800" style-hover="background:#FFD400">−</button>
 <div style="width:44px;text-align:center;font-family:'Anton';font-size:17px">{{ quick.qty }}</div>
 <button onClick="{{ quick.qtyUp }}" style="width:38px;height:38px;background:#fff;font-size:18px;font-weight:800" style-hover="background:#FFD400">+</button>
 </div>
-<div style="margin-left:auto;color:#888;font-size:11.5px;font-weight:700;text-align:right">M-Pesa or card Â·<br>Nairobi pickup / countrywide delivery</div>
+<div style="margin-left:auto;color:#888;font-size:11.5px;font-weight:700;text-align:right">M-Pesa or card ·<br>Nairobi pickup / countrywide delivery</div>
 </div>
 <button onClick="{{ quick.add }}" style="width:100%;padding:15px;border:3px solid #111;border-radius:14px;background:#E6218C;color:#fff;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">ADD TO BAG</button>
 </div>
@@ -175,7 +175,7 @@
 <div><div style="font-family:'Anton';font-size:clamp(20px,3vw,30px);text-transform:uppercase;color:#fff;line-height:.95">{{ selectedPartner.name }}</div>
 <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="background:#FFD400;border-radius:100px;padding:3px 11px;font-size:10.5px;font-weight:800;text-transform:uppercase">{{ selectedPartner.role }}</span><span style="background:transparent;border:1px dashed #FFD400;color:#FFD400;border-radius:100px;padding:3px 11px;font-size:10.5px;font-weight:700;text-transform:uppercase">On the road since {{ selectedPartner.since }}</span></div></div>
 </div>
-<button onClick="{{ closePartner }}" aria-label="Close" style="flex:none;width:38px;height:38px;border:2px solid #fff;border-radius:11px;background:transparent;color:#fff;font-size:20px;line-height:1">Ã—</button>
+<button onClick="{{ closePartner }}" aria-label="Close" style="flex:none;width:38px;height:38px;border:2px solid #fff;border-radius:11px;background:transparent;color:#fff;font-size:20px;line-height:1">×</button>
 </div>
 <div style="padding:26px 28px">
 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
@@ -199,7 +199,7 @@
 <div style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #111;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#1F8A5B;flex:none"><use href="#i-check"></use></svg> {{ cr }}</div>
 </sc-for>
 </div>
-<button onClick="{{ selectedPartner.partner }}" style="margin-top:22px;background:#E6218C;color:#fff;font-family:'Anton';font-size:16px;padding:14px 26px;border:3px solid #111;border-radius:13px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Join Them â€” Partner With The Tour</button>
+<button onClick="{{ selectedPartner.partner }}" style="margin-top:22px;background:#E6218C;color:#fff;font-family:'Anton';font-size:16px;padding:14px 26px;border:3px solid #111;border-radius:13px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Join Them — Partner With The Tour</button>
 </div>
 </div>
 </div>
@@ -209,11 +209,11 @@
 <div onClick="{{ closeMemberBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.74);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto">
 <div data-col2 style="width:800px;max-width:100%;background:#fff;border:4px solid #111;border-radius:24px;overflow:hidden;box-shadow:12px 12px 0 #FFD400;margin:16px 0;display:grid;grid-template-columns:.85fr 1.15fr">
 <div style="background:#E6218C;border-right:4px solid #111;position:relative;min-height:280px">
-<img src="{{ selectedMember.img }}" alt="{{ selectedMember.name }} â€” {{ selectedMember.role }}, Urban Gang Tour" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<img src="{{ selectedMember.img }}" alt="{{ selectedMember.name }} — {{ selectedMember.role }}, Urban Gang Tour" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
 <span style="position:absolute;top:14px;left:14px;background:#FFD400;border:2px solid #111;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em">{{ selectedMember.tag }}</span>
 </div>
 <div style="padding:30px 28px;position:relative">
-<button onClick="{{ closeMember }}" aria-label="Close" style="position:absolute;top:16px;right:16px;width:38px;height:38px;border:3px solid #111;border-radius:11px;background:#fff;font-size:20px;line-height:1">Ã—</button>
+<button onClick="{{ closeMember }}" aria-label="Close" style="position:absolute;top:16px;right:16px;width:38px;height:38px;border:3px solid #111;border-radius:11px;background:#fff;font-size:20px;line-height:1">×</button>
 <div style="font-family:'Anton';font-size:clamp(28px,4vw,40px);text-transform:uppercase;line-height:.92;padding-right:44px">{{ selectedMember.name }}</div>
 <div style="display:inline-block;background:#21C7E6;border:2px solid #111;border-radius:7px;padding:3px 10px;font-size:12px;font-weight:700;margin-top:10px">{{ selectedMember.role }}</div>
 <div style="display:flex;flex-direction:column;gap:12px;margin:18px 0 0">
@@ -221,7 +221,7 @@
 <p style="color:#333;font-size:14.5px;line-height:1.65;margin:0;font-weight:500">{{ para }}</p>
 </sc-for>
 </div>
-<button onClick="{{ selectedMember.book }}" style="margin-top:22px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;padding:14px 24px;border:3px solid #111;border-radius:13px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Book This Talent â†’</button>
+<button onClick="{{ selectedMember.book }}" style="margin-top:22px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;padding:14px 24px;border:3px solid #111;border-radius:13px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Book This Talent →</button>
 </div>
 </div>
 </div>
@@ -232,7 +232,7 @@
 <div style="width:560px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;box-shadow:12px 12px 0 #FFD400;margin:16px 0">
 <div style="background:#111;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px">
 <div style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400;line-height:1">{{ ticketEvent.name }}</div>
-<button onClick="{{ closeTicket }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">Ã—</button>
+<button onClick="{{ closeTicket }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
 </div>
 <div style="padding:24px">
 <sc-if value="{{ ticketStageSelect }}" hint-placeholder-val="{{ true }}">
@@ -248,19 +248,19 @@
 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:2px dashed #ccc">
 <div style="font-weight:700;font-size:14px">Quantity</div>
 <div style="display:flex;align-items:center;gap:12px">
-<button onClick="{{ ticQtyDown }}" style="width:40px;height:40px;border:2px solid #111;border-radius:10px;background:#fff;font-size:22px;font-weight:800;line-height:1">âˆ’</button>
+<button onClick="{{ ticQtyDown }}" style="width:40px;height:40px;border:2px solid #111;border-radius:10px;background:#fff;font-size:22px;font-weight:800;line-height:1">−</button>
 <span style="font-family:'Anton';font-size:22px;min-width:26px;text-align:center">{{ ticketQty }}</span>
 <button onClick="{{ ticQtyUp }}" style="width:40px;height:40px;border:2px solid #111;border-radius:10px;background:#fff;font-size:22px;font-weight:800;line-height:1">+</button>
 </div>
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px"><span style="font-weight:700;color:#888">Subtotal</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
-<button onClick="{{ toTicketDetails }}" style="margin-top:16px;width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#111;color:#FFD400;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">Continue â†’</button>
+<button onClick="{{ toTicketDetails }}" style="margin-top:16px;width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#111;color:#FFD400;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">Continue →</button>
 </sc-if>
 <sc-if value="{{ ticketStageDetails }}" hint-placeholder-val="{{ false }}">
 <div style="font-family:'Space Grotesk';font-weight:700;font-size:12px;text-transform:uppercase;color:#888;margin-bottom:10px;letter-spacing:.05em">Your details</div>
 <form onSubmit="{{ confirmTicket }}">
 <input value="{{ ticketName }}" onChange="{{ onTName }}" placeholder="Full name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
-<input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email â€” ticket & invoice sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
+<input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email — ticket & invoice sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ ticketPhone }}" onChange="{{ onTPhone }}" placeholder="Phone (M-Pesa)" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
 <div style="display:flex;gap:10px">
@@ -272,15 +272,15 @@
 <sc-if value="{{ ticketStageDone }}" hint-placeholder-val="{{ false }}">
 <div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Ticket &amp; invoice sent to {{ ticketOrder.email }}</div></div>
 <div style="border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111">
-<div style="background:{{ ticketOrder.accent }};padding:14px 18px;border-bottom:3px dashed #111"><div style="font-family:'Bungee';font-size:11px;color:#111">URBAN GANG TOUR Â· E-TICKET</div><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;line-height:1;margin-top:3px">{{ ticketOrder.eventName }}</div></div>
+<div style="background:{{ ticketOrder.accent }};padding:14px 18px;border-bottom:3px dashed #111"><div style="font-family:'Bungee';font-size:11px;color:#111">URBAN GANG TOUR · E-TICKET</div><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;line-height:1;margin-top:3px">{{ ticketOrder.eventName }}</div></div>
 <div style="display:flex;gap:14px;padding:16px 18px;align-items:center">
 <div style="display:grid;grid-template-columns:repeat(13,1fr);width:104px;height:104px;flex:none;border:2px solid #111;padding:3px;background:#fff">
 <sc-for list="{{ ticketQrCells }}" as="cell" hint-placeholder-count="169"><div style="background:{{ cell.c }}"></div></sc-for>
 </div>
 <div style="flex:1;font-size:12.5px;line-height:1.55">
 <div style="font-family:'Anton';font-size:15px;text-transform:uppercase">{{ ticketOrder.name }}</div>
-<div>{{ ticketOrder.tierName }} Ã— {{ ticketOrder.qty }}</div>
-<div>{{ ticketOrder.eventDate }} Â· {{ ticketOrder.eventTime }}</div>
+<div>{{ ticketOrder.tierName }} × {{ ticketOrder.qty }}</div>
+<div>{{ ticketOrder.eventDate }} · {{ ticketOrder.eventTime }}</div>
 <div>{{ ticketOrder.venue }}, {{ ticketOrder.city }}</div>
 <div style="margin-top:6px;font-family:'Space Grotesk';font-weight:700;letter-spacing:.06em">{{ ticketOrder.ref }}</div>
 </div>
@@ -288,10 +288,10 @@
 </div>
 <div style="border:3px solid #111;border-radius:16px;margin-top:14px;padding:16px 18px;background:#faf7f0">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div style="font-family:'Anton';font-size:18px;text-transform:uppercase">Receipt / Invoice</div><div style="text-align:right;font-size:11.5px;color:#666"><div>{{ ticketOrder.invoice }}</div><div>{{ ticketOrder.date }}</div></div></div>
-<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ ticketOrder.tierName }} Ã— {{ ticketOrder.qty }} @ {{ ticketUnitFmt }}</span><span style="font-weight:700">{{ ticketTotalFmt }}</span></div>
+<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ ticketOrder.tierName }} × {{ ticketOrder.qty }} @ {{ ticketUnitFmt }}</span><span style="font-weight:700">{{ ticketTotalFmt }}</span></div>
 <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:#666"><span>VAT</span><span>Included</span></div>
 <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px"><span style="font-weight:700">Total paid</span><span style="font-family:'Anton';font-size:22px;color:#1F8A5B">{{ ticketTotalFmt }}</span></div>
-<div style="font-size:11px;color:#888;margin-top:6px">Billed to {{ ticketOrder.name }} Â· {{ ticketOrder.email }}</div>
+<div style="font-size:11px;color:#888;margin-top:6px">Billed to {{ ticketOrder.name }} · {{ ticketOrder.email }}</div>
 </div>
 <div style="display:flex;gap:10px;margin-top:16px">
 <button onClick="{{ printTicket }}" style="flex:1;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px" style-hover="transform:translateY(-1px)">Download / Print</button>
@@ -309,19 +309,19 @@
 <div style="width:560px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;box-shadow:12px 12px 0 #21C7E6;margin:16px 0">
 <div style="background:#111;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px">
 <div style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400;line-height:1">Merch Checkout</div>
-<button onClick="{{ closeCheckout }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">Ã—</button>
+<button onClick="{{ closeCheckout }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
 </div>
 <div style="padding:24px">
 <sc-if value="{{ coStageDetails }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;margin-bottom:14px">
 <sc-for list="{{ coLines }}" as="l" hint-placeholder-count="2">
-<div style="display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px dashed #ddd"><span style="font-weight:600">{{ l.name }} Ã— {{ l.qty }}</span><span style="font-weight:700">{{ l.totalFmt }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px dashed #ddd"><span style="font-weight:600">{{ l.name }} × {{ l.qty }}</span><span style="font-weight:700">{{ l.totalFmt }}</span></div>
 </sc-for>
 <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ coTotalFmt }}</span></div>
 </div>
 <form onSubmit="{{ confirmOrder }}">
 <input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="Full name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
-<input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email â€” receipt sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
+<input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email — receipt sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="Phone (M-Pesa) &amp; delivery contact" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
 <button type="submit" style="width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay &amp; Get Receipt</button>
 <button type="button" onClick="{{ payCard }}" style="width:100%;margin-top:10px;padding:15px;border:3px solid #111;border-radius:13px;background:#21C7E6;color:#111;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay with Card</button>
@@ -332,10 +332,10 @@
 <div style="border:3px solid #111;border-radius:16px;padding:16px 18px;background:#faf7f0">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div style="font-family:'Anton';font-size:18px;text-transform:uppercase">Receipt / Invoice</div><div style="text-align:right;font-size:11.5px;color:#666"><div>{{ coOrder.invoice }}</div><div>{{ coOrder.date }}</div></div></div>
 <sc-for list="{{ coOrderLines }}" as="l" hint-placeholder-count="2">
-<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ l.name }} Ã— {{ l.qty }} @ {{ l.unitFmt }}</span><span style="font-weight:700">{{ l.totalFmt }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed #ccc"><span>{{ l.name }} × {{ l.qty }} @ {{ l.unitFmt }}</span><span style="font-weight:700">{{ l.totalFmt }}</span></div>
 </sc-for>
 <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px"><span style="font-weight:700">Total paid</span><span style="font-family:'Anton';font-size:22px;color:#1F8A5B">{{ coOrderTotalFmt }}</span></div>
-<div style="font-size:11px;color:#888;margin-top:6px">Billed to {{ coOrder.name }} Â· {{ coOrder.email }} Â· Ref {{ coOrder.ref }}</div>
+<div style="font-size:11px;color:#888;margin-top:6px">Billed to {{ coOrder.name }} · {{ coOrder.email }} · Ref {{ coOrder.ref }}</div>
 </div>
 <div style="display:flex;gap:10px;margin-top:16px">
 <button onClick="{{ printOrder }}" style="flex:1;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px" style-hover="transform:translateY(-1px)">Download / Print</button>
@@ -352,7 +352,7 @@
 <sc-if value="{{ hasSubnav }}" hint-placeholder-val="{{ false }}">
 <div style="position:sticky;top:70px;z-index:110;background:#FFD400;border-bottom:4px solid #111;padding:12px 18px;box-shadow:0 6px 0 rgba(17,17,17,.12)">
 <div style="max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-<div style="font-family:'Permanent Marker';color:#111;font-size:16px;transform:rotate(-2deg);flex:none">{{ subnav.title }} â†’</div>
+<div style="font-family:'Permanent Marker';color:#111;font-size:16px;transform:rotate(-2deg);flex:none">{{ subnav.title }} →</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
 <sc-for list="{{ subnav.items }}" as="it" hint-placeholder-count="3">
 <button onClick="{{ it.go }}" style="background:{{ it.bg }};color:{{ it.fg }};border:3px solid #111;border-radius:12px;padding:11px 20px;font-family:'Anton';font-size:15px;text-transform:uppercase;letter-spacing:.02em;box-shadow:3px 3px 0 #111;transition:transform .15s" style-hover="transform:translate(-1px,-1px);box-shadow:4px 4px 0 #111">{{ it.label }}</button>
@@ -370,7 +370,7 @@
 <div style="max-width:1100px;margin:0 auto;position:relative">
 <div style="display:inline-block;background:#FFD400;color:#111;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">MAIN EVENTS</div>
 <h1 style="font-family:'Anton';font-size:clamp(40px,7vw,92px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#fff;text-shadow:4px 4px 0 #E6218C">Get Your<br><span style="background:#E6218C;color:#fff;padding:0 10px;border:3px solid #fff;display:inline-block;transform:rotate(-1deg)">Tickets</span></h1>
-<p style="color:#ccc;font-size:18px;line-height:1.6;max-width:640px;margin:20px 0 0;font-weight:500">Beyond the school tour, we throw the festivals. Grab a ticket and get an instant e-ticket and invoice â€” generated on the spot and sent straight to your inbox.</p>
+<p style="color:#ccc;font-size:18px;line-height:1.6;max-width:640px;margin:20px 0 0;font-weight:500">Beyond the school tour, we throw the festivals. Grab a ticket and get an instant e-ticket and invoice — generated on the spot and sent straight to your inbox.</p>
 </div>
 </div>
 <div style="background:#E6218C;padding:44px 24px 60px">
@@ -384,7 +384,7 @@
 <p style="color:#444;font-size:13.5px;line-height:1.5;margin:8px 0 12px;font-weight:500;flex:1">{{ ev.tagline }}</p>
 <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px;font-size:12.5px;font-weight:600;color:#111">
 <div style="display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" style="color:#E6218C"><use href="#i-pin"></use></svg> {{ ev.venue }}, {{ ev.city }}</div>
-<div style="display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" style="color:#E6218C"><use href="#i-calendar"></use></svg> {{ ev.date }} Â· {{ ev.time }}</div>
+<div style="display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" style="color:#E6218C"><use href="#i-calendar"></use></svg> {{ ev.date }} · {{ ev.time }}</div>
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
 <div><div style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase">From</div><div style="font-family:'Anton';font-size:22px">{{ ev.fromFmt }}</div></div>
@@ -411,10 +411,10 @@
 <div style="position:absolute;top:66%;right:8%;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:28px solid #21C7E6;transform:rotate(20deg)"></div>
 <div style="position:relative;max-width:1320px;margin:0 auto;padding:40px 6px 20px;display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center" data-hero>
 <div style="animation:pop .6s both">
-<div style="display:inline-flex;align-items:center;gap:8px;background:#111;color:#fff;padding:8px 16px;border-radius:100px;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;transform:rotate(-2deg)"><svg width="14" height="14" viewBox="0 0 24 24" style="color:#FF3B30"><use href="#i-live"></use></svg> Live &amp; On Air Â· PPP TV Kenya</div>
+<div style="display:inline-flex;align-items:center;gap:8px;background:#111;color:#fff;padding:8px 16px;border-radius:100px;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;transform:rotate(-2deg)"><svg width="14" height="14" viewBox="0 0 24 24" style="color:#FF3B30"><use href="#i-live"></use></svg> Live &amp; On Air · PPP TV Kenya</div>
 <h1 style="font-family:'Anton';font-size:clamp(52px,8vw,116px);line-height:.86;margin:18px 0 0;text-transform:uppercase;color:#111;text-shadow:4px 4px 0 #fff">You Already<br>Know Us.</h1>
 <div style="font-family:'Bungee';font-size:clamp(20px,3vw,38px);line-height:1;margin-top:14px;color:#fff">WHERE THE <span style="background:#FFD400;color:#111;padding:0 10px;border:2px solid #111;display:inline-block;transform:rotate(-1deg);min-width:11.5ch;text-align:left">{{ typedWord }}<span style="display:inline-block;width:3px;height:.85em;background:#111;margin-left:3px;vertical-align:-1px;animation:blink 1s steps(1) infinite"></span></span> GETS MADE</div>
-<p style="color:#fff;font-size:17px;line-height:1.6;max-width:520px;margin:20px 0 0;font-weight:500">We are in the business of showcasing and awarding talent while curating unforgettable experiences and festivals for young people â€” from school tours to full-blown festivals.</p>
+<p style="color:#fff;font-size:17px;line-height:1.6;max-width:520px;margin:20px 0 0;font-weight:500">We are in the business of showcasing and awarding talent while curating unforgettable experiences and festivals for young people — from school tours to full-blown festivals.</p>
 <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:28px">
 <button onClick="{{ nav.contact }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:19px;padding:16px 30px;border:3px solid #111;border-radius:14px;box-shadow:6px 6px 0 #111;transform:rotate(-1deg)" style-hover="transform:rotate(-1deg) translate(2px,2px);box-shadow:3px 3px 0 #111">BOOK THE TOUR</button>
 <button onClick="{{ nav.shop }}" style="background:#111;color:#fff;font-family:'Anton';font-size:19px;padding:16px 28px;border:3px solid #111;border-radius:14px;box-shadow:6px 6px 0 #21C7E6;transform:rotate(1deg)" style-hover="transform:rotate(1deg) translate(2px,2px);box-shadow:3px 3px 0 #21C7E6"><svg width="17" height="17" viewBox="0 0 24 24" style="color:#fff;vertical-align:-2px"><use href="#i-bag"></use></svg> SHOP THE DROP</button>
@@ -429,8 +429,8 @@
 </div>
 <div style="background:#111;border-top:4px solid #111;border-bottom:4px solid #111;overflow:hidden">
 <div style="display:flex;white-space:nowrap;animation:marquee 20s linear infinite;font-family:'Bungee';font-size:22px;padding:12px 0;color:#FFD400;text-transform:uppercase">
-<span style="padding:0 22px">FROM POTENTIAL TO PURPOSE âœ¦ WHERE THE CULTURE GETS MADE âœ¦ YOU ALREADY KNOW US âœ¦ FROM POTENTIAL TO PURPOSE âœ¦ WHERE THE CULTURE GETS MADE âœ¦&nbsp;</span>
-<span style="padding:0 22px">FROM POTENTIAL TO PURPOSE âœ¦ WHERE THE CULTURE GETS MADE âœ¦ YOU ALREADY KNOW US âœ¦ FROM POTENTIAL TO PURPOSE âœ¦ WHERE THE CULTURE GETS MADE âœ¦&nbsp;</span>
+<span style="padding:0 22px">FROM POTENTIAL TO PURPOSE ✦ WHERE THE CULTURE GETS MADE ✦ YOU ALREADY KNOW US ✦ FROM POTENTIAL TO PURPOSE ✦ WHERE THE CULTURE GETS MADE ✦&nbsp;</span>
+<span style="padding:0 22px">FROM POTENTIAL TO PURPOSE ✦ WHERE THE CULTURE GETS MADE ✦ YOU ALREADY KNOW US ✦ FROM POTENTIAL TO PURPOSE ✦ WHERE THE CULTURE GETS MADE ✦&nbsp;</span>
 </div>
 </div>
 
@@ -438,7 +438,7 @@
 <div style="max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <span style="background:#111;color:#FFD400;font-family:'Bungee';font-size:12px;padding:7px 14px;border-radius:100px;transform:rotate(-2deg);flex:none">NEXT STOP</span>
-<div style="font-family:'Anton';font-size:clamp(18px,2.6vw,28px);text-transform:uppercase;line-height:1">Lari Boys High School Â· Kimende <span style="color:#E6218C">Â· Sun 19 July</span></div>
+<div style="font-family:'Anton';font-size:clamp(18px,2.6vw,28px);text-transform:uppercase;line-height:1">Lari Boys High School · Kimende <span style="color:#E6218C">· Sun 19 July</span></div>
 </div>
 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <div style="display:flex;gap:6px">
@@ -447,7 +447,7 @@
 <div style="background:#111;color:#fff;border-radius:10px;padding:8px 10px;text-align:center;min-width:52px"><div style="font-family:'Anton';font-size:22px;line-height:1">{{ cd.m }}</div><div style="font-size:9px;font-weight:700;color:#FFD400;letter-spacing:.1em">MIN</div></div>
 <div style="background:#E6218C;color:#fff;border-radius:10px;padding:8px 10px;text-align:center;min-width:52px;border:2px solid #111"><div style="font-family:'Anton';font-size:22px;line-height:1">{{ cd.sec }}</div><div style="font-size:9px;font-weight:700;letter-spacing:.1em">SEC</div></div>
 </div>
-<button onClick="{{ nav.stops }}" style="background:#fff;color:#111;font-family:'Space Grotesk';font-weight:700;font-size:13px;text-transform:uppercase;padding:12px 18px;border:3px solid #111;border-radius:12px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">Full Calendar â†’</button>
+<button onClick="{{ nav.stops }}" style="background:#fff;color:#111;font-family:'Space Grotesk';font-weight:700;font-size:13px;text-transform:uppercase;padding:12px 18px;border:3px solid #111;border-radius:12px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">Full Calendar →</button>
 </div>
 </div>
 </div>
@@ -460,8 +460,8 @@
 <h2 style="font-family:'Anton';font-size:clamp(34px,5vw,64px);margin:0;text-transform:uppercase;line-height:.9">Urban News <span style="background:#FFD400;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">On Tap</span></h2>
 </div>
 <div style="display:flex;gap:10px">
-<button onClick="{{ railPrev }}" aria-label="Previous video" style="width:52px;height:52px;border-radius:14px;background:#111;color:#FFD400;border:3px solid #111;font-size:22px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">â€¹</button>
-<button onClick="{{ railNext }}" aria-label="Next video" style="width:52px;height:52px;border-radius:14px;background:#111;color:#FFD400;border:3px solid #111;font-size:22px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">â€º</button>
+<button onClick="{{ railPrev }}" aria-label="Previous video" style="width:52px;height:52px;border-radius:14px;background:#111;color:#FFD400;border:3px solid #111;font-size:22px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">‹</button>
+<button onClick="{{ railNext }}" aria-label="Next video" style="width:52px;height:52px;border-radius:14px;background:#111;color:#FFD400;border:3px solid #111;font-size:22px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">›</button>
 </div>
 </div>
 <div id="vid-rail" style="display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 4px 22px;-webkit-overflow-scrolling:touch">
@@ -483,18 +483,18 @@
 <div style="display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px">
 <div><div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg)">skip the queue</div>
 <h2 style="font-family:'Anton';font-size:clamp(30px,4.5vw,56px);margin:2px 0 0;text-transform:uppercase;color:#fff;line-height:.9">The Ticket <span style="color:#21C7E6">Booth</span></h2></div>
-<button onClick="{{ nav.events }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:15px;padding:13px 22px;border:3px solid #FFD400;border-radius:12px;box-shadow:5px 5px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">All Events â†’</button>
+<button onClick="{{ nav.events }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:15px;padding:13px 22px;border:3px solid #FFD400;border-radius:12px;box-shadow:5px 5px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">All Events →</button>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
 <sc-for list="{{ mainEvents }}" as="ev" hint-placeholder-count="3">
 <button onClick="{{ nav.events }}" style="text-align:left;position:relative;background:#FFD400;border:3px solid #111;border-radius:14px;padding:18px 20px 16px;box-shadow:5px 5px 0 rgba(255,212,0,.3);display:flex;flex-direction:column;gap:6px;transition:transform .18s" style-hover="transform:translateY(-5px) rotate(-.5deg)">
 <div style="position:absolute;top:50%;left:-9px;width:18px;height:18px;border-radius:50%;background:#111;transform:translateY(-50%)"></div>
 <div style="position:absolute;top:50%;right:-9px;width:18px;height:18px;border-radius:50%;background:#111;transform:translateY(-50%)"></div>
-<div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7a6a00">ADMIT ONE Â· {{ ev.date }}</div>
+<div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7a6a00">ADMIT ONE · {{ ev.date }}</div>
 <div style="font-family:'Anton';font-size:21px;text-transform:uppercase;line-height:.98">{{ ev.name }}</div>
 <div style="border-top:2px dashed rgba(17,17,17,.35);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px">
 <span style="font-size:12px;font-weight:700;color:#333">{{ ev.venue }}</span>
-<span style="font-family:'Bungee';font-size:12px;color:#E6218C">BUY â†’</span>
+<span style="font-family:'Bungee';font-size:12px;color:#E6218C">BUY →</span>
 </div>
 </button>
 </sc-for>
@@ -523,7 +523,7 @@
 <div style="background:#21C7E6;border-bottom:4px solid #111;padding:60px 24px">
 <div style="max-width:1320px;margin:0 auto">
 <div style="display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:8px">
-<div style="font-family:'Permanent Marker';font-size:20px;color:#111;transform:rotate(-2deg)">nganya rules â€” board the right route</div>
+<div style="font-family:'Permanent Marker';font-size:20px;color:#111;transform:rotate(-2deg)">nganya rules — board the right route</div>
 </div>
 <h2 style="font-family:'Anton';font-size:clamp(34px,5vw,64px);margin:0 0 26px;text-transform:uppercase;line-height:.9">Who We Build For</h2>
 <div style="display:flex;flex-direction:column;gap:14px">
@@ -534,7 +534,7 @@
 <div style="font-family:'Anton';font-size:clamp(24px,3.4vw,36px);text-transform:uppercase;line-height:.95;color:#fff">{{ a.title }}</div>
 <div style="color:#bbb;font-size:13.5px;font-weight:600;margin-top:5px"><span style="color:#FFD400;font-weight:800;letter-spacing:.06em">VIA:</span> {{ a.desc }}</div>
 </div>
-<div style="flex:none;font-family:'Bungee';color:#FFD400;font-size:14px;background:rgba(255,212,0,.12);border:2px dashed #FFD400;border-radius:100px;padding:10px 18px">BOARD â†’</div>
+<div style="flex:none;font-family:'Bungee';color:#FFD400;font-size:14px;background:rgba(255,212,0,.12);border:2px dashed #FFD400;border-radius:100px;padding:10px 18px">BOARD →</div>
 </button>
 </sc-for>
 </div>
@@ -545,7 +545,7 @@
 <div style="max-width:1320px;margin:0 auto">
 <div style="display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:26px">
 <h2 style="font-family:'Anton';font-size:clamp(34px,5vw,64px);margin:0;text-transform:uppercase;color:#fff;line-height:.9;text-shadow:3px 3px 0 #111">Fresh Off <span style="color:#FFD400">The Road</span></h2>
-<button onClick="{{ nav.stops }}" style="background:#111;color:#fff;font-family:'Space Grotesk';font-weight:700;text-transform:uppercase;font-size:13px;padding:12px 20px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">All tour stops â†’</button>
+<button onClick="{{ nav.stops }}" style="background:#111;color:#fff;font-family:'Space Grotesk';font-weight:700;text-transform:uppercase;font-size:13px;padding:12px 20px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">All tour stops →</button>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:30px">
 <sc-for list="{{ latestStops }}" as="s" hint-placeholder-count="3">
@@ -571,7 +571,7 @@
 <div><div style="font-family:'Permanent Marker';font-size:18px;transform:rotate(-2deg);color:#E6218C">window shopping? just come in</div>
 <h2 style="font-family:'Anton';font-size:clamp(30px,4.5vw,56px);margin:2px 0 0;text-transform:uppercase;line-height:.9">The Merch <span style="background:#FFD400;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">Window</span></h2></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap">
-<button onClick="{{ nav.shop }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:15px;padding:13px 22px;border:3px solid #111;border-radius:12px;box-shadow:5px 5px 0 #21C7E6" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #21C7E6">Enter The Shop â†’</button>
+<button onClick="{{ nav.shop }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:15px;padding:13px 22px;border:3px solid #111;border-radius:12px;box-shadow:5px 5px 0 #21C7E6" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #21C7E6">Enter The Shop →</button>
 </div>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px">
@@ -587,22 +587,22 @@
 </div>
 <div style="background:#111;border-bottom:4px solid #111;padding:56px 24px">
 <div style="max-width:1320px;margin:0 auto">
-<div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg);margin-bottom:4px">tonight's line-up â€” every single stop</div>
+<div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg);margin-bottom:4px">tonight's line-up — every single stop</div>
 <h2 style="font-family:'Anton';font-size:clamp(34px,5vw,64px);margin:0 0 26px;text-transform:uppercase;color:#fff;line-height:.9">The <span style="color:#E6218C">Headliners</span></h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:20px;align-items:end">
 <sc-for list="{{ hypeTeam }}" as="m" hint-placeholder-count="4">
 <button onClick="{{ m.open }}" style="text-align:left;padding:0;display:block;width:100%;background:transparent;border:none;transform:rotate({{ m.tilt }});transition:transform .2s" style-hover="transform:rotate(0deg) translateY(-8px)">
-<div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:#222;border:4px solid {{ m.ring }};border-radius:999px 999px 18px 18px;box-shadow:6px 6px 0 rgba(0,0,0,.5)"><img src="{{ m.img }}" alt="{{ m.name }} â€” {{ m.role }}, Urban Gang Tour" style="width:100%;height:100%;object-fit:cover"></div>
+<div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:#222;border:4px solid {{ m.ring }};border-radius:999px 999px 18px 18px;box-shadow:6px 6px 0 rgba(0,0,0,.5)"><img src="{{ m.img }}" alt="{{ m.name }} — {{ m.role }}, Urban Gang Tour" style="width:100%;height:100%;object-fit:cover"></div>
 <span style="display:block;margin:12px 4px 0"><span style="display:block;font-family:'Anton';color:#fff;font-size:19px;text-transform:uppercase;line-height:1">{{ m.name }}</span><span style="display:inline-block;background:{{ m.ring }};color:#111;font-size:10px;font-weight:800;margin-top:6px;text-transform:uppercase;letter-spacing:.05em;border-radius:100px;padding:3px 10px;border:2px solid #111">{{ m.tag }}</span></span>
 </button>
 </sc-for>
 </div>
-<div style="text-align:center;margin-top:24px"><button onClick="{{ nav.gang }}" style="background:transparent;color:#FFD400;font-family:'Bungee';font-size:14px;border:2px dashed #FFD400;border-radius:100px;padding:12px 26px" style-hover="background:#FFD400;color:#111">+ THE WHOLE 30-PERSON CREW â†’</button></div>
+<div style="text-align:center;margin-top:24px"><button onClick="{{ nav.gang }}" style="background:transparent;color:#FFD400;font-family:'Bungee';font-size:14px;border:2px dashed #FFD400;border-radius:100px;padding:12px 26px" style-hover="background:#FFD400;color:#111">+ THE WHOLE 30-PERSON CREW →</button></div>
 </div>
 </div>
 <div style="background:#fff;border-bottom:4px solid #111;padding:50px 24px">
 <div style="max-width:1320px;margin:0 auto">
-<div style="font-family:'Permanent Marker';font-size:18px;text-align:center;transform:rotate(-1deg);margin-bottom:20px">the squad on our lanyard â€” trusted at every stop</div>
+<div style="font-family:'Permanent Marker';font-size:18px;text-align:center;transform:rotate(-1deg);margin-bottom:20px">the squad on our lanyard — trusted at every stop</div>
 <div style="overflow:hidden">
 <div style="display:flex;gap:16px;width:max-content;animation:marquee 26s linear infinite">
 <sc-for list="{{ partnersLoop }}" as="p" hint-placeholder-count="8">
@@ -646,20 +646,20 @@
 <div style="display:flex;flex:none">
 <div style="background:#fff;border:2px solid #ddd;border-radius:6px;padding:10px 10px 34px;box-shadow:0 12px 24px rgba(17,17,17,.3);transform:rotate(-5deg);position:relative;width:190px">
 <div style="position:absolute;top:-12px;left:50%;width:80px;height:24px;background:rgba(255,212,0,.75);border:1px solid rgba(17,17,17,.12);transform:translateX(-50%) rotate(-3deg)"></div>
-<img src="/assets/crew/eugine-micah.png" alt="Eugine Micah â€” Co-Founder, Urban Gang Tour" style="width:100%;aspect-ratio:1;object-fit:cover;display:block">
-<div style="font-family:'Permanent Marker';font-size:15px;margin-top:8px;text-align:center">eugine â€” the face</div>
+<img src="/assets/crew/eugine-micah.png" alt="Eugine Micah — Co-Founder, Urban Gang Tour" style="width:100%;aspect-ratio:1;object-fit:cover;display:block">
+<div style="font-family:'Permanent Marker';font-size:15px;margin-top:8px;text-align:center">eugine — the face</div>
 </div>
 <div style="background:#fff;border:2px solid #ddd;border-radius:6px;padding:10px 10px 34px;box-shadow:0 12px 24px rgba(17,17,17,.3);transform:rotate(4deg);position:relative;width:190px;margin-left:-26px;margin-top:22px">
 <div style="position:absolute;top:-12px;left:50%;width:80px;height:24px;background:rgba(33,199,230,.7);border:1px solid rgba(17,17,17,.12);transform:translateX(-50%) rotate(3deg)"></div>
-<img src="/assets/crew/lucy-ogunde.jpg" alt="Lucy Ogunde â€” Co-Founder, Urban Gang Tour" style="width:100%;aspect-ratio:1;object-fit:cover;display:block">
-<div style="font-family:'Permanent Marker';font-size:15px;margin-top:8px;text-align:center">lucy â€” the voice</div>
+<img src="/assets/crew/lucy-ogunde.jpg" alt="Lucy Ogunde — Co-Founder, Urban Gang Tour" style="width:100%;aspect-ratio:1;object-fit:cover;display:block">
+<div style="font-family:'Permanent Marker';font-size:15px;margin-top:8px;text-align:center">lucy — the voice</div>
 </div>
 </div>
 <div style="flex:1;min-width:260px">
 <div style="font-family:'Permanent Marker';font-size:18px;color:#E6218C;transform:rotate(-1deg)">it started with these two</div>
 <h2 style="font-family:'Anton';font-size:clamp(28px,4vw,48px);text-transform:uppercase;line-height:.92;margin:6px 0 12px">Founded On A Mic<br>And A Promise</h2>
-<p style="color:#333;font-size:15px;line-height:1.7;margin:0;font-weight:500">Eugine Micah and Lucy Ogunde built the Urban Gang Tour from one school hall into a national movement â€” him on the mic, her holding the room, both carrying every stop to the country on Urban News. The whole thing still runs on their promise: every young person deserves one loud day where the country learns their name.</p>
-<button onClick="{{ nav.gang }}" style="margin-top:16px;background:#111;color:#FFD400;font-family:'Anton';font-size:15px;padding:12px 22px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Meet The Whole Gang â†’</button>
+<p style="color:#333;font-size:15px;line-height:1.7;margin:0;font-weight:500">Eugine Micah and Lucy Ogunde built the Urban Gang Tour from one school hall into a national movement — him on the mic, her holding the room, both carrying every stop to the country on Urban News. The whole thing still runs on their promise: every young person deserves one loud day where the country learns their name.</p>
+<button onClick="{{ nav.gang }}" style="margin-top:16px;background:#111;color:#FFD400;font-family:'Anton';font-size:15px;padding:12px 22px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Meet The Whole Gang →</button>
 </div>
 </div>
 </div>
@@ -695,7 +695,7 @@
 <div style="max-width:900px;margin:0 auto">
 <div style="background:#E6218C;border:4px solid #FFD400;border-radius:20px;padding:34px;box-shadow:10px 10px 0 rgba(255,212,0,.3)">
 <div style="font-family:'Anton';font-size:clamp(22px,3.2vw,36px);line-height:1.2;color:#fff">"Every school we walk into, there is a star nobody has noticed yet. Our job is to make sure the whole country notices."</div>
-<div style="font-family:'Permanent Marker';color:#FFD400;font-size:20px;margin-top:16px">Eugine Micah Â· Co-Founder &amp; Creative Director</div>
+<div style="font-family:'Permanent Marker';color:#FFD400;font-size:20px;margin-top:16px">Eugine Micah · Co-Founder &amp; Creative Director</div>
 </div>
 <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:30px">
 <button onClick="{{ nav.gang }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:18px;padding:15px 26px;border:3px solid #FFD400;border-radius:14px;box-shadow:5px 5px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Meet the Full Gang</button>
@@ -721,7 +721,7 @@
 <div style="position:absolute;top:0;bottom:0;left:50%;width:4px;transform:translateX(-50%);background:repeating-linear-gradient(#FFD400 0 26px,transparent 26px 54px)" data-road></div>
 <div style="max-width:1060px;margin:0 auto;position:relative">
 <div style="text-align:center;margin-bottom:34px">
-<div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg)">the official call sheet â€” first light to final pack-down</div>
+<div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg)">the official call sheet — first light to final pack-down</div>
 <h2 style="font-family:'Anton';font-size:clamp(32px,5vw,60px);text-transform:uppercase;margin:6px 0 0;color:#fff;line-height:.92">How The Day <span style="color:#E6218C">Runs</span></h2>
 </div>
 <div style="display:flex;flex-direction:column;gap:26px">
@@ -746,14 +746,14 @@
 </div>
 </sc-for>
 </div>
-<div style="text-align:center;margin-top:34px"><span style="display:inline-block;background:#FFD400;color:#111;border:3px solid #fff;border-radius:100px;padding:10px 24px;font-family:'Anton';font-size:16px;transform:rotate(-1deg)">6:00 PM â€” PACK-DOWN. THE SCHOOL IS NEVER THE SAME.</span></div>
+<div style="text-align:center;margin-top:34px"><span style="display:inline-block;background:#FFD400;color:#111;border:3px solid #fff;border-radius:100px;padding:10px 24px;font-family:'Anton';font-size:16px;transform:rotate(-1deg)">6:00 PM — PACK-DOWN. THE SCHOOL IS NEVER THE SAME.</span></div>
 </div>
 </div>
 <div style="background:#E6218C;border-bottom:4px solid #111;padding:52px 24px">
 <div style="max-width:1100px;margin:0 auto">
 <div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-1deg)">it was never just a competition</div>
 <h2 style="font-family:'Anton';font-size:clamp(32px,5vw,60px);text-transform:uppercase;margin:2px 0 8px;color:#fff;line-height:.92;text-shadow:3px 3px 0 #111">More Than A Show</h2>
-<p style="color:#fff;font-weight:600;font-size:16px;max-width:640px;margin:0 0 24px">We are in the business of showcasing and awarding talent while curating full-blown experiences â€” the kind of day a whole school talks about for years.</p>
+<p style="color:#fff;font-weight:600;font-size:16px;max-width:640px;margin:0 0 24px">We are in the business of showcasing and awarding talent while curating full-blown experiences — the kind of day a whole school talks about for years.</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
 <sc-for list="{{ extras }}" as="x" hint-placeholder-count="6">
 <div style="background:#fff;border:3px solid #111;border-radius:16px;padding:22px;box-shadow:6px 6px 0 #111;transition:transform .18s" style-hover="transform:translate(-2px,-2px);box-shadow:9px 9px 0 #111">
@@ -768,7 +768,7 @@
 <div style="background:#fff;border-bottom:4px solid #111;padding:50px 24px">
 <div style="max-width:1100px;margin:0 auto">
 <h2 style="font-family:'Anton';font-size:36px;text-transform:uppercase;margin:0 0 4px">The Talents We Showcase</h2>
-<div style="font-family:'Permanent Marker';font-size:17px;color:#E6218C;margin-bottom:22px">music to modelling â€” every talent gets a stage</div>
+<div style="font-family:'Permanent Marker';font-size:17px;color:#E6218C;margin-bottom:22px">music to modelling — every talent gets a stage</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
 <sc-for list="{{ categories }}" as="c" hint-placeholder-count="8">
 <div style="background:{{ c.card }};border:3px solid #111;border-radius:14px;padding:20px;box-shadow:5px 5px 0 #111;transition:transform .18s" style-hover="transform:translate(-2px,-2px);box-shadow:7px 7px 0 #111">
@@ -806,7 +806,7 @@
 <div style="background:#FFD400;border-bottom:4px solid #111;padding:50px 24px">
 <div style="max-width:1100px;margin:0 auto">
 <h2 style="font-family:'Anton';font-size:36px;text-transform:uppercase;margin:0 0 4px">The Mentorship Pods</h2>
-<div style="font-family:'Permanent Marker';font-size:17px;margin-bottom:22px">real talk, real skills â€” mentorship built in</div>
+<div style="font-family:'Permanent Marker';font-size:17px;margin-bottom:22px">real talk, real skills — mentorship built in</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">
 <sc-for list="{{ pods }}" as="p" hint-placeholder-count="6">
 <div style="background:#fff;border:3px solid #111;border-radius:14px;padding:20px;display:flex;gap:14px;box-shadow:5px 5px 0 #111">
@@ -846,12 +846,12 @@
 <div style="display:flex;flex-direction:column;gap:12px">
 <sc-for list="{{ workBullets }}" as="b" hint-placeholder-count="6">
 <div style="display:flex;gap:14px;align-items:flex-start;background:#F7F7F7;border:3px solid #111;border-radius:13px;padding:16px 18px;box-shadow:4px 4px 0 #111">
-<span style="width:28px;height:28px;flex:none;border-radius:8px;background:#FFD400;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px">âœ“</span>
+<span style="width:28px;height:28px;flex:none;border-radius:8px;background:#FFD400;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px">✓</span>
 <span style="color:#222;font-size:15px;line-height:1.45;font-weight:600">{{ b }}</span>
 </div>
 </sc-for>
 </div>
-<button onClick="{{ bookForType }}" style="margin-top:24px;background:#E6218C;color:#fff;font-family:'Anton';font-size:18px;padding:16px 30px;border:3px solid #111;border-radius:14px;box-shadow:6px 6px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:3px 3px 0 #111">{{ workCta }} â†’</button>
+<button onClick="{{ bookForType }}" style="margin-top:24px;background:#E6218C;color:#fff;font-family:'Anton';font-size:18px;padding:16px 30px;border:3px solid #111;border-radius:14px;box-shadow:6px 6px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:3px 3px 0 #111">{{ workCta }} →</button>
 </div>
 <div style="position:sticky;top:90px">
 <div style="border:3px solid #111;border-radius:18px;overflow:hidden;box-shadow:7px 7px 0 #111;transform:rotate(-1.5deg)"><img src="/assets/gal/crew.jpg" alt="Urban Gang Tour crowd" style="width:100%;height:220px;object-fit:cover"></div>
@@ -880,13 +880,13 @@
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px">
 <sc-for list="{{ team }}" as="m" hint-placeholder-count="12">
 <button onClick="{{ m.open }}" style="text-align:left;padding:0;background:#fff;border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:5px 5px 0 #111;transform:rotate({{ m.tilt }});transition:transform .18s;display:block;width:100%" style-hover="transform:rotate(0deg) translateY(-4px);box-shadow:7px 7px 0 #E6218C">
-<div style="position:relative;aspect-ratio:1;overflow:hidden;border-bottom:3px solid #111;background:#eee"><img src="{{ m.img }}" alt="{{ m.name }} â€” {{ m.role }}, Urban Gang Tour" style="width:100%;height:100%;object-fit:cover">
+<div style="position:relative;aspect-ratio:1;overflow:hidden;border-bottom:3px solid #111;background:#eee"><img src="{{ m.img }}" alt="{{ m.name }} — {{ m.role }}, Urban Gang Tour" style="width:100%;height:100%;object-fit:cover">
 <span style="position:absolute;top:8px;left:8px;background:#FFD400;border:2px solid #111;border-radius:6px;padding:2px 7px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em">{{ m.tag }}</span>
 </div>
 <div style="padding:14px 15px">
 <div style="font-family:'Anton';font-size:18px;text-transform:uppercase;line-height:1">{{ m.name }}</div>
 <div style="color:#E6218C;font-size:12px;font-weight:700;margin-top:6px;line-height:1.3">{{ m.role }}</div>
-<div style="color:#111;font-size:11px;font-weight:700;margin-top:8px;text-transform:uppercase;letter-spacing:.04em">Read story â†’</div>
+<div style="color:#111;font-size:11px;font-weight:700;margin-top:8px;text-transform:uppercase;letter-spacing:.04em">Read story →</div>
 </div>
 </button>
 </sc-for>
@@ -904,14 +904,14 @@
 <section data-screen-label="Tour Stops" id="sec-stops" style="animation:pop .4s both">
 <div style="background:#E6218C;border-bottom:4px solid #111;padding:52px 24px 46px;position:relative;overflow:hidden">
 <div style="max-width:1060px;margin:0 auto;position:relative">
-<div style="display:inline-block;background:#111;color:#FFD400;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">2026 TOUR Â· THE ROUTE</div>
+<div style="display:inline-block;background:#111;color:#FFD400;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">2026 TOUR · THE ROUTE</div>
 <h1 style="font-family:'Anton';font-size:clamp(38px,6vw,80px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#111;text-shadow:4px 4px 0 #fff">Where The Tour Has Been.<br><span style="background:#21C7E6;color:#111;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">Where It's Going.</span></h1>
 </div>
 </div>
 <div style="background:#111;border-bottom:4px solid #FFD400;padding:40px 24px">
 <div data-col2 style="max-width:1060px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:0;border:4px solid #FFD400;border-radius:22px;overflow:hidden;box-shadow:10px 10px 0 rgba(255,212,0,.25);background:#1b1b1b">
 <div style="position:relative;min-height:260px"><img src="{{ nextStop.img }}" alt="{{ nextStop.name }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
-<span style="position:absolute;top:14px;left:14px;background:#E6218C;color:#fff;border:2px solid #fff;border-radius:100px;padding:6px 14px;font-family:'Bungee';font-size:12px;animation:blink 2s steps(1) infinite">â— NEXT STOP</span></div>
+<span style="position:absolute;top:14px;left:14px;background:#E6218C;color:#fff;border:2px solid #fff;border-radius:100px;padding:6px 14px;font-family:'Bungee';font-size:12px;animation:blink 2s steps(1) infinite">● NEXT STOP</span></div>
 <div style="padding:28px 28px 26px;display:flex;flex-direction:column;gap:10px">
 <div style="display:flex;align-items:center;gap:12px"><div style="background:#FFD400;border:3px solid #fff;border-radius:12px;padding:8px 13px;text-align:center"><div style="font-family:'Anton';font-size:28px;line-height:.85;color:#111">{{ nextStop.day }}</div><div style="font-family:'Anton';font-size:12px;color:#111">{{ nextStop.mon }}</div></div>
 <div><div style="font-family:'Anton';font-size:clamp(22px,3vw,32px);text-transform:uppercase;color:#fff;line-height:.95">{{ nextStop.name }}</div><div style="color:#FFD400;font-size:12.5px;font-weight:700;margin-top:4px"><svg width="12" height="12" viewBox="0 0 24 24" style="color:#FFD400"><use href="#i-pin"></use></svg> {{ nextStop.loc }}</div></div></div>
@@ -921,14 +921,14 @@
 <div style="background:#000;color:#fff;border:2px solid #333;border-radius:10px;padding:7px 10px;text-align:center;min-width:50px"><div style="font-family:'Anton';font-size:20px;line-height:1">{{ cd.m }}</div><div style="font-size:8.5px;font-weight:700;color:#FFD400;letter-spacing:.1em">MIN</div></div>
 <div style="background:#E6218C;color:#fff;border:2px solid #fff;border-radius:10px;padding:7px 10px;text-align:center;min-width:50px"><div style="font-family:'Anton';font-size:20px;line-height:1">{{ cd.sec }}</div><div style="font-size:8.5px;font-weight:700;letter-spacing:.1em">SEC</div></div>
 </div>
-<button onClick="{{ nav.contact }}" style="margin-top:auto;align-self:flex-start;background:#FFD400;color:#111;font-family:'Anton';font-size:15px;padding:12px 22px;border:3px solid #fff;border-radius:12px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Get Your School On The Route â†’</button>
+<button onClick="{{ nav.contact }}" style="margin-top:auto;align-self:flex-start;background:#FFD400;color:#111;font-family:'Anton';font-size:15px;padding:12px 22px;border:3px solid #fff;border-radius:12px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Get Your School On The Route →</button>
 </div>
 </div>
 </div>
 <div style="background:#F7F1E4;border-bottom:4px solid #111;padding:50px 24px">
 <div style="max-width:860px;margin:0 auto">
 <div style="text-align:center;margin-bottom:30px">
-<div style="font-family:'Permanent Marker';font-size:18px;color:#E6218C;transform:rotate(-2deg)">follow the matatu â€” top to bottom</div>
+<div style="font-family:'Permanent Marker';font-size:18px;color:#E6218C;transform:rotate(-2deg)">follow the matatu — top to bottom</div>
 <h2 style="font-family:'Anton';font-size:clamp(30px,4.5vw,54px);text-transform:uppercase;margin:4px 0 0;line-height:.92">The 2026 <span style="background:#FFD400;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">Route Map</span></h2>
 </div>
 <div style="position:relative">
@@ -947,7 +947,7 @@
 <div style="display:flex;align-items:center;gap:5px;color:#888;font-size:12px;font-weight:700;margin-top:4px"><svg width="12" height="12" viewBox="0 0 24 24" style="color:#888"><use href="#i-pin"></use></svg> {{ s.loc }}</div>
 </div>
 <span style="background:{{ s.stampBg }};color:{{ s.stampFg }};border:3px solid #111;border-radius:8px;padding:7px 13px;font-family:'Anton';font-size:14px;letter-spacing:.04em;transform:rotate(-4deg);box-shadow:2px 2px 0 #111;white-space:nowrap">{{ s.stamp }}</span>
-<sc-if value="{{ s.isDone }}" hint-placeholder-val="{{ false }}"><button onClick="{{ nav.news }}" style="background:#fff;border:2px dashed #E6218C;color:#E6218C;border-radius:100px;padding:6px 13px;font-size:11px;font-weight:800;text-transform:uppercase" style-hover="background:#E6218C;color:#fff">Read the recap â†’</button></sc-if>
+<sc-if value="{{ s.isDone }}" hint-placeholder-val="{{ false }}"><button onClick="{{ nav.news }}" style="background:#fff;border:2px dashed #E6218C;color:#E6218C;border-radius:100px;padding:6px 13px;font-size:11px;font-weight:800;text-transform:uppercase" style-hover="background:#E6218C;color:#fff">Read the recap →</button></sc-if>
 </div>
 </div>
 </sc-for>
@@ -958,7 +958,7 @@
 <div style="background:#111;padding:44px 24px">
 <div style="max-width:860px;margin:0 auto">
 <h2 style="font-family:'Anton';font-size:28px;text-transform:uppercase;color:#FFD400;margin:0 0 6px">On The Radar</h2>
-<div style="font-family:'Permanent Marker';font-size:15px;color:#888;margin-bottom:16px">in talks â€” could be your school next</div>
+<div style="font-family:'Permanent Marker';font-size:15px;color:#888;margin-bottom:16px">in talks — could be your school next</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
 <sc-for list="{{ works }}" as="w" hint-placeholder-count="3">
 <div style="background:#1c1c1c;border:2px dashed #666;border-radius:14px;padding:20px" style-hover="border-color:#FFD400"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;color:#fff">{{ w.name }}</div><div style="color:#aaa;font-size:13px;margin-top:4px;font-weight:500;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" style="color:#aaa"><use href="#i-pin"></use></svg> {{ w.loc }}</div></div>
@@ -987,7 +987,7 @@
 </div>
 <div style="background:#E6218C;padding:40px 24px 60px">
 <div style="max-width:1200px;margin:0 auto">
-<div style="font-family:'Permanent Marker';color:#111;font-size:18px;transform:rotate(-1deg);margin-bottom:16px;text-align:center">tap a tag â†’ pick your size â†’ straight in the bag</div>
+<div style="font-family:'Permanent Marker';color:#111;font-size:18px;transform:rotate(-1deg);margin-bottom:16px;text-align:center">tap a tag → pick your size → straight in the bag</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px">
 <sc-for list="{{ products }}" as="p" hint-placeholder-count="8">
 <div style="position:relative;padding-top:16px;transform:rotate({{ p.tilt }});transform-origin:top center;transition:transform .25s cubic-bezier(.3,1.4,.5,1)" style-hover="transform:rotate(0deg)">
@@ -1025,7 +1025,7 @@
 <div style="max-width:1160px;margin:0 auto">
 <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:26px">
 <sc-for list="{{ galCatalog }}" as="c" hint-placeholder-count="6">
-<button onClick="{{ c.pick }}" style="background:{{ c.chipBg }};color:{{ c.chipFg }};border:3px solid #111;border-radius:100px;padding:9px 16px;font-family:'Space Grotesk';font-weight:700;font-size:12.5px;text-transform:uppercase;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">{{ c.name }} Â· {{ c.count }}</button>
+<button onClick="{{ c.pick }}" style="background:{{ c.chipBg }};color:{{ c.chipFg }};border:3px solid #111;border-radius:100px;padding:9px 16px;font-family:'Space Grotesk';font-weight:700;font-size:12.5px;text-transform:uppercase;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">{{ c.name }} · {{ c.count }}</button>
 </sc-for>
 </div>
 <sc-if value="{{ hasGalSelected }}" hint-placeholder-val="{{ false }}">
@@ -1035,12 +1035,12 @@
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
 <sc-for list="{{ galSelected.pics }}" as="p" hint-placeholder-count="6">
-<div style="border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff;box-shadow:4px 4px 0 #111;transition:transform .18s" style-hover="transform:rotate(-1deg) scale(1.02)"><img src="{{ p.url }}" alt="{{ galSelected.name }} â€” Urban Gang Tour photo" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"></div>
+<div style="border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff;box-shadow:4px 4px 0 #111;transition:transform .18s" style-hover="transform:rotate(-1deg) scale(1.02)"><img src="{{ p.url }}" alt="{{ galSelected.name }} — Urban Gang Tour photo" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"></div>
 </sc-for>
 </div>
 </sc-if>
 <sc-if value="{{ galNoSelection }}" hint-placeholder-val="{{ false }}">
-<div style="border:3px dashed #999;border-radius:16px;padding:40px;text-align:center;color:#777;font-weight:600;font-family:'Permanent Marker';font-size:19px">â†‘ tap a school to open its catalogue</div>
+<div style="border:3px dashed #999;border-radius:16px;padding:40px;text-align:center;color:#777;font-weight:600;font-family:'Permanent Marker';font-size:19px">↑ tap a school to open its catalogue</div>
 </sc-if>
 </div>
 </div>
@@ -1052,18 +1052,18 @@
 <section data-screen-label="Urban News" style="animation:pop .4s both">
 <div style="background:#F7F1E4;border-bottom:4px solid #111">
 <div style="max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid #111;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#555">
-<span>The culture's paper of record Â· Est. 2025</span>
-<span>Nairobi Â· Free forever Â· <span style="color:#E6218C">On PPP TV CH 430</span></span>
+<span>The culture's paper of record · Est. 2025</span>
+<span>Nairobi · Free forever · <span style="color:#E6218C">On PPP TV CH 430</span></span>
 </div>
 <div style="max-width:1160px;margin:0 auto;padding:34px 24px 26px;text-align:center">
 <h1 style="font-family:'Anton';font-size:clamp(52px,10vw,130px);line-height:.85;margin:0;text-transform:uppercase;letter-spacing:-.01em">Urban<span style="color:#E6218C">*</span>News</h1>
-<div style="font-family:'Permanent Marker';font-size:clamp(15px,2vw,20px);margin-top:10px;transform:rotate(-1deg)">everything the tour did, is doing, and is about to do â€” reported by the gang itself</div>
+<div style="font-family:'Permanent Marker';font-size:clamp(15px,2vw,20px);margin-top:10px;transform:rotate(-1deg)">everything the tour did, is doing, and is about to do — reported by the gang itself</div>
 </div>
 </div>
 <div style="background:#111;border-bottom:4px solid #FFD400;overflow:hidden">
 <div style="display:flex;white-space:nowrap;animation:marquee 40s linear infinite;font-family:'Space Grotesk';font-weight:700;font-size:13px;padding:9px 0;color:#FFD400;text-transform:uppercase">
-<span style="padding:0 26px"><span style="color:#FF3B30">â— BREAKING</span> {{ newsTicker }} âœ¦&nbsp;</span>
-<span style="padding:0 26px"><span style="color:#FF3B30">â— BREAKING</span> {{ newsTicker }} âœ¦&nbsp;</span>
+<span style="padding:0 26px"><span style="color:#FF3B30">● BREAKING</span> {{ newsTicker }} ✦&nbsp;</span>
+<span style="padding:0 26px"><span style="color:#FF3B30">● BREAKING</span> {{ newsTicker }} ✦&nbsp;</span>
 </div>
 </div>
 <div style="background:#F7F1E4;border-bottom:4px solid #111;padding:40px 24px">
@@ -1072,11 +1072,11 @@
 <div style="position:relative;min-height:320px"><img src="{{ newsLead.img }}" alt="{{ newsLead.headline }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
 <span style="position:absolute;top:14px;left:14px;background:#FF3B30;color:#fff;border:2px solid #111;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Lead Story</span></div>
 <div style="padding:30px 30px 26px;display:flex;flex-direction:column">
-<div style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#E6218C">{{ newsLead.section }} Â· {{ newsLead.dateFmt }}</div>
+<div style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#E6218C">{{ newsLead.section }} · {{ newsLead.dateFmt }}</div>
 <h2 style="font-family:'Anton';font-size:clamp(26px,3.4vw,40px);text-transform:uppercase;line-height:.95;margin:10px 0 12px">{{ newsLead.headline }}</h2>
 <p style="color:#333;font-size:15px;line-height:1.65;margin:0 0 10px;font-weight:600">{{ newsLead.dek }}</p>
 <p style="color:#555;font-size:14px;line-height:1.65;margin:0">{{ newsLead.firstPara }}</p>
-<div style="margin-top:auto;padding-top:16px;font-size:12px;color:#888;font-weight:700">By Eugine Micah &amp; Lucy Ogunde Â· Urban News Desk</div>
+<div style="margin-top:auto;padding-top:16px;font-size:12px;color:#888;font-weight:700">By Eugine Micah &amp; Lucy Ogunde · Urban News Desk</div>
 </div>
 </article>
 </div>
@@ -1110,22 +1110,22 @@
 <div style="background:#111;border:4px solid #111;border-radius:20px;padding:26px;box-shadow:8px 8px 0 #FFD400">
 <div style="display:inline-block;background:#FFD400;color:#111;font-family:'Bungee';font-size:11px;padding:6px 13px;border-radius:100px;transform:rotate(-2deg)">STUDENT PRESS PASS</div>
 <h3 style="font-family:'Anton';font-size:clamp(24px,3vw,34px);text-transform:uppercase;color:#fff;line-height:.95;margin:14px 0 8px">Write For<br>Urban News</h3>
-<p style="color:#bbb;font-size:13.5px;line-height:1.6;margin:0 0 16px;font-weight:500">Students â€” submit your blog, review, or story from your school. The editors pick the best for publishing right here.</p>
+<p style="color:#bbb;font-size:13.5px;line-height:1.6;margin:0 0 16px;font-weight:500">Students — submit your blog, review, or story from your school. The editors pick the best for publishing right here.</p>
 <sc-if value="{{ blogSent }}" hint-placeholder-val="{{ false }}">
-<div style="background:#1F8A5B;color:#fff;border-radius:12px;padding:16px;font-weight:700;font-size:14px">Submitted! The editors have your story â€” watch this page.</div>
+<div style="background:#1F8A5B;color:#fff;border-radius:12px;padding:16px;font-weight:700;font-size:14px">Submitted! The editors have your story — watch this page.</div>
 </sc-if>
 <form onSubmit="{{ submitBlog }}">
 <input value="{{ blog.name }}" onChange="{{ onBlogName }}" placeholder="Your name" style="width:100%;border:2px solid #444;background:#1c1c1c;color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:9px;font-size:13.5px">
 <input value="{{ blog.school }}" onChange="{{ onBlogSchool }}" placeholder="Your school" style="width:100%;border:2px solid #444;background:#1c1c1c;color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:9px;font-size:13.5px">
 <input value="{{ blog.title }}" onChange="{{ onBlogTitle }}" placeholder="Story title" style="width:100%;border:2px solid #444;background:#1c1c1c;color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:9px;font-size:13.5px">
-<textarea value="{{ blog.pitch }}" onChange="{{ onBlogPitch }}" rows="3" placeholder="Your story or pitchâ€¦" style="width:100%;border:2px solid #444;background:#1c1c1c;color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:11px;font-size:13.5px;resize:vertical"></textarea>
+<textarea value="{{ blog.pitch }}" onChange="{{ onBlogPitch }}" rows="3" placeholder="Your story or pitch…" style="width:100%;border:2px solid #444;background:#1c1c1c;color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:11px;font-size:13.5px;resize:vertical"></textarea>
 <button type="submit" style="width:100%;padding:13px;border:3px solid #FFD400;border-radius:12px;background:#FFD400;color:#111;font-family:'Anton';font-size:16px" style-hover="background:#E6218C;border-color:#E6218C;color:#fff">Submit To The Editors</button>
 </form>
 </div>
 <div style="border:4px solid #111;border-radius:20px;overflow:hidden;background:#000;box-shadow:8px 8px 0 #21C7E6">
-<div style="background:#E6218C;border-bottom:3px solid #111;padding:12px 18px;display:flex;align-items:center;gap:9px"><svg width="17" height="17" viewBox="0 0 24 24" style="color:#fff"><use href="#i-youtube"></use></svg><span style="font-family:'Anton';font-size:15px;color:#fff;text-transform:uppercase">The show itself â€” Urban News on PPP TV</span></div>
-<div style="aspect-ratio:16/9"><iframe src="https://www.youtube.com/embed/videoseries?list=PLWRdLORbKcqU" title="Urban News â€” full playlist" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;display:block"></iframe></div>
-<div style="padding:12px 18px;background:#111;text-align:center"><a href="https://www.youtube.com/playlist?list=PLWRdLORbKcqU" target="_blank" rel="noopener" style="color:#FFD400;font-family:'Bungee';font-size:12px;text-decoration:none">OPEN FULL PLAYLIST ON YOUTUBE â†’</a></div>
+<div style="background:#E6218C;border-bottom:3px solid #111;padding:12px 18px;display:flex;align-items:center;gap:9px"><svg width="17" height="17" viewBox="0 0 24 24" style="color:#fff"><use href="#i-youtube"></use></svg><span style="font-family:'Anton';font-size:15px;color:#fff;text-transform:uppercase">The show itself — Urban News on PPP TV</span></div>
+<div style="aspect-ratio:16/9"><iframe src="https://www.youtube.com/embed/videoseries?list=PLWRdLORbKcqU" title="Urban News — full playlist" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;display:block"></iframe></div>
+<div style="padding:12px 18px;background:#111;text-align:center"><a href="https://www.youtube.com/playlist?list=PLWRdLORbKcqU" target="_blank" rel="noopener" style="color:#FFD400;font-family:'Bungee';font-size:12px;text-decoration:none">OPEN FULL PLAYLIST ON YOUTUBE →</a></div>
 </div>
 </div>
 </div>
@@ -1157,7 +1157,7 @@
 <sc-if value="{{ p.textOnly }}" hint-placeholder-val="{{ false }}"><span style="color:#111;font-family:'Anton';font-size:13px;text-align:center;line-height:1;text-transform:uppercase">{{ p.name }}</span></sc-if>
 </div>
 <div style="margin-top:10px"><div style="font-family:'Anton';font-size:18px;text-transform:uppercase">{{ p.name }}</div><div style="display:inline-block;background:#FFD400;border:2px solid #111;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;text-transform:uppercase;margin:4px 0 8px">{{ p.role }}</div><p style="color:#333;font-size:13.5px;line-height:1.5;margin:0;font-weight:500">{{ p.blurb }}</p>
-<div style="font-family:'Bungee';color:#E6218C;font-size:12px;margin-top:10px">OPEN THE FILE â†’</div></div>
+<div style="font-family:'Bungee';color:#E6218C;font-size:12px;margin-top:10px">OPEN THE FILE →</div></div>
 </button>
 </sc-for>
 </div>
@@ -1186,10 +1186,10 @@
 <div style="background:#fff;border:3px solid #111;border-radius:20px;padding:28px;box-shadow:8px 8px 0 #111">
 <sc-if value="{{ formSent }}" hint-placeholder-val="{{ false }}">
 <div style="text-align:center;padding:40px 10px">
-<div style="width:80px;height:80px;border-radius:50%;background:#E6218C;border:3px solid #111;display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto;color:#fff">âœ“</div>
+<div style="width:80px;height:80px;border-radius:50%;background:#E6218C;border:3px solid #111;display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto;color:#fff">✓</div>
 <div style="font-family:'Anton';font-size:32px;text-transform:uppercase;margin:18px 0 6px">Welcome to the gang.</div>
 <p style="color:#444;max-width:360px;margin:0 auto;font-weight:500">Your request is in. We reply within 48 hours. In a hurry? Reach us on WhatsApp.</p>
-<button onClick="{{ resetForm }}" style="margin-top:20px;color:#E6218C;font-weight:700;text-decoration:underline">Send another â†’</button>
+<button onClick="{{ resetForm }}" style="margin-top:20px;color:#E6218C;font-weight:700;text-decoration:underline">Send another →</button>
 </div>
 </sc-if>
 <sc-if value="{{ formNotSent }}" hint-placeholder-val="{{ true }}">
@@ -1234,7 +1234,7 @@
 <sc-if value="{{ adminAuthed }}" hint-placeholder-val="{{ false }}">
 <div style="background:#111;border-bottom:4px solid #FFD400;padding:22px 24px">
 <div style="max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-<div style="display:flex;align-items:center;gap:14px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:44px"><div><div style="font-family:'Bungee';font-size:12px;color:#FFD400">CONTROL ROOM Â· {{ adminRoleLabel }}</div><div style="font-family:'Anton';font-size:26px;text-transform:uppercase;color:#fff;line-height:.9">Dashboard</div></div></div>
+<div style="display:flex;align-items:center;gap:14px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:44px"><div><div style="font-family:'Bungee';font-size:12px;color:#FFD400">CONTROL ROOM · {{ adminRoleLabel }}</div><div style="font-family:'Anton';font-size:26px;text-transform:uppercase;color:#fff;line-height:.9">Dashboard</div></div></div>
 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.06);border:1px dashed #444;border-radius:100px;padding:8px 16px">
 <span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#fff"><span style="width:9px;height:9px;border-radius:50%;background:#FF3B30;animation:blink 1.4s steps(1) infinite"></span>ON AIR</span>
@@ -1271,7 +1271,7 @@
 <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
 <div style="display:flex;align-items:center;gap:12px">
 <span style="font-family:'Anton';font-size:14px;color:#999">{{ b.id }}</span>
-<div><div style="font-family:'Anton';font-size:17px;text-transform:uppercase;line-height:1">{{ b.org }}</div><div style="color:#666;font-size:13px">{{ b.name }} Â· {{ b.email }}</div></div>
+<div><div style="font-family:'Anton';font-size:17px;text-transform:uppercase;line-height:1">{{ b.org }}</div><div style="color:#666;font-size:13px">{{ b.name }} · {{ b.email }}</div></div>
 </div>
 <div style="display:flex;align-items:center;gap:8px">
 <span style="background:#f0f0f0;border:2px solid #111;border-radius:100px;padding:5px 12px;font-size:11.5px;font-weight:700">{{ b.type }}</span>
@@ -1296,9 +1296,9 @@
 <div style="background:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #111;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
 <div style="display:flex;align-items:center;gap:12px;min-width:0">
 <span style="background:{{ o.kindBg }};border:2px solid #111;border-radius:100px;padding:5px 12px;font-size:11px;font-weight:700;text-transform:uppercase;flex:none">{{ o.kind }}</span>
-<div style="min-width:0"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ o.name }}</div><div style="color:#666;font-size:12.5px;margin-top:4px">{{ o.email }} Â· {{ o.detail }}</div></div>
+<div style="min-width:0"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ o.name }}</div><div style="color:#666;font-size:12.5px;margin-top:4px">{{ o.email }} · {{ o.detail }}</div></div>
 </div>
-<div style="text-align:right"><div style="font-family:'Anton';font-size:18px;color:#1B8A3A">{{ o.totalFmt }}</div><div style="color:#999;font-size:11.5px">{{ o.ref }} Â· {{ o.invoice }} Â· {{ o.date }}</div></div>
+<div style="text-align:right"><div style="font-family:'Anton';font-size:18px;color:#1B8A3A">{{ o.totalFmt }}</div><div style="color:#999;font-size:11.5px">{{ o.ref }} · {{ o.invoice }} · {{ o.date }}</div></div>
 </div>
 </sc-for>
 </div>
@@ -1327,15 +1327,15 @@
 </sc-if>
 <sc-if value="{{ tabNewsroom }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:12px">
-<div style="background:#111;color:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #FFD400"><span style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400">Student submissions</span><span style="color:#bbb;font-size:12.5px;margin-left:10px">Approve to publish instantly on the Urban News Culture Desk. No AI, no waiting â€” your call.</span></div>
+<div style="background:#111;color:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #FFD400"><span style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400">Student submissions</span><span style="color:#bbb;font-size:12.5px;margin-left:10px">Approve to publish instantly on the Urban News Culture Desk. No AI, no waiting — your call.</span></div>
 <sc-if value="{{ noBlogQueue }}" hint-placeholder-val="{{ false }}">
 <div style="background:#fff;border:3px dashed #999;border-radius:14px;padding:34px;text-align:center;color:#888;font-weight:600">No student submissions yet. They arrive here from the "Write For Urban News" form.</div>
 </sc-if>
 <sc-for list="{{ blogQueue }}" as="b" hint-placeholder-count="2">
 <div style="background:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #111;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-<div style="min-width:0;flex:1"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ b.name }} <span style="color:#888;font-family:'Space Grotesk';font-size:12px;text-transform:none">Â· {{ b.org }}</span></div><div style="color:#444;font-size:13px;margin-top:6px;line-height:1.5">{{ b.msg }}</div></div>
+<div style="min-width:0;flex:1"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ b.name }} <span style="color:#888;font-family:'Space Grotesk';font-size:12px;text-transform:none">· {{ b.org }}</span></div><div style="color:#444;font-size:13px;margin-top:6px;line-height:1.5">{{ b.msg }}</div></div>
 <div style="display:flex;gap:8px;flex:none">
-<sc-if value="{{ b.isNew }}" hint-placeholder-val="{{ true }}"><button onClick="{{ b.approve }}" style="background:#1F8A5B;color:#fff;border:3px solid #111;border-radius:10px;padding:10px 16px;font-family:'Anton';font-size:14px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">Publish âœ“</button></sc-if>
+<sc-if value="{{ b.isNew }}" hint-placeholder-val="{{ true }}"><button onClick="{{ b.approve }}" style="background:#1F8A5B;color:#fff;border:3px solid #111;border-radius:10px;padding:10px 16px;font-family:'Anton';font-size:14px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">Publish ✓</button></sc-if>
 <sc-if value="{{ b.isNew }}" hint-placeholder-val="{{ false }}"></sc-if>
 <button onClick="{{ b.reject }}" style="background:#fff;color:#E6218C;border:2px dashed #E6218C;border-radius:10px;padding:10px 14px;font-weight:700;font-size:12.5px" style-hover="background:#E6218C;color:#fff">Remove</button>
 </div>
@@ -1349,20 +1349,20 @@
 <div style="font-family:'Anton';font-size:16px;text-transform:uppercase;margin-bottom:10px">Post photos to a school catalogue</div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
 <select value="{{ galSchool }}" onChange="{{ onGalSchool }}" style="flex:2;min-width:220px;background:#fff;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13.5px">
-<option value="">â€” pick a school catalogue â€”</option>
+<option value="">— pick a school catalogue —</option>
 <sc-for list="{{ galSchoolNames }}" as="n" hint-placeholder-count="6"><option value="{{ n }}">{{ n }}</option></sc-for>
 </select>
 <label style="flex:none;background:#E6218C;color:#fff;font-family:'Anton';font-size:14px;padding:11px 20px;border:3px solid #111;border-radius:10px;box-shadow:3px 3px 0 #111;cursor:pointer" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">+ Upload Photos<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ uploadGalleryPics }}" style="display:none"></label>
-<sc-if value="{{ galBusy }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Permanent Marker';color:#E6218C;font-size:14px">compressing at max qualityâ€¦</span></sc-if>
+<sc-if value="{{ galBusy }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Permanent Marker';color:#E6218C;font-size:14px">compressing at max quality…</span></sc-if>
 </div>
-<div style="color:#888;font-size:11.5px;margin-top:10px;font-weight:600">Images only (no videos) Â· auto-compressed with zero visible quality loss Â· up to 100 photos per school Â· live on the public Gallery page instantly.</div>
+<div style="color:#888;font-size:11.5px;margin-top:10px;font-weight:600">Images only (no videos) · auto-compressed with zero visible quality loss · up to 100 photos per school · live on the public Gallery page instantly.</div>
 </div>
 <sc-if value="{{ galManagerHas }}" hint-placeholder-val="{{ false }}">
 <div style="background:#fff;border:3px solid #111;border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 #111">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-family:'Anton';font-size:15px;text-transform:uppercase">{{ galSchool }}</span><span style="background:#FFD400;border:2px solid #111;border-radius:100px;padding:3px 11px;font-size:11.5px;font-weight:800">{{ galManagerCount }} / 100</span></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
 <sc-for list="{{ galManagerPics }}" as="p" hint-placeholder-count="4">
-<div style="position:relative;border:2px solid #111;border-radius:10px;overflow:hidden"><img src="{{ p.url }}" alt="catalogue photo" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><button onClick="{{ p.del }}" aria-label="Delete" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:8px;background:#fff;border:2px solid #111;font-size:13px;line-height:1" style-hover="background:#E6218C;color:#fff">Ã—</button></div>
+<div style="position:relative;border:2px solid #111;border-radius:10px;overflow:hidden"><img src="{{ p.url }}" alt="catalogue photo" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><button onClick="{{ p.del }}" aria-label="Delete" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:8px;background:#fff;border:2px solid #111;font-size:13px;line-height:1" style-hover="background:#E6218C;color:#fff">×</button></div>
 </sc-for>
 </div>
 </div>
@@ -1376,7 +1376,7 @@
 <div style="color:#888;font-size:12px;font-weight:600;margin-bottom:12px">They get a generated password that opens ONLY the tools you tick. Revoke any time.</div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
 <input value="{{ naName }}" onChange="{{ onNaName }}" placeholder="Admin name (e.g. Rania)" style="flex:1;min-width:200px;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13.5px">
-<button onClick="{{ createAdmin }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:14px;padding:11px 20px;border:3px solid #111;border-radius:10px;box-shadow:3px 3px 0 #E6218C" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #E6218C">Generate Password â†’</button>
+<button onClick="{{ createAdmin }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:14px;padding:11px 20px;border:3px solid #111;border-radius:10px;box-shadow:3px 3px 0 #E6218C" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #E6218C">Generate Password →</button>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
 <sc-for list="{{ naPerms }}" as="pm" hint-placeholder-count="5">
@@ -1387,7 +1387,7 @@
 <div style="margin-top:14px;background:#1F8A5B;color:#fff;border:3px solid #111;border-radius:12px;padding:14px 18px">
 <div style="font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">Access created for {{ naMade.name }}</div>
 <div style="font-family:'Anton';font-size:26px;letter-spacing:.08em;margin-top:4px">{{ naMade.pass }}</div>
-<div style="font-size:11.5px;opacity:.85;margin-top:4px">Send them this password â€” it only opens their permitted tools at /admin.</div>
+<div style="font-size:11.5px;opacity:.85;margin-top:4px">Send them this password — it only opens their permitted tools at /admin.</div>
 </div>
 </sc-if>
 </div>
@@ -1414,7 +1414,7 @@
 <sc-if value="{{ adminNotAuthed }}" hint-placeholder-val="{{ true }}">
 <div style="background:#E6218C;min-height:82vh;display:flex;align-items:center;justify-content:center;padding:40px 24px">
 <div style="width:420px;max-width:100%">
-<div style="text-align:center;margin-bottom:22px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:64px;margin:0 auto"><div style="font-family:'Anton';font-size:28px;text-transform:uppercase;color:#111;margin-top:12px;text-shadow:2px 2px 0 #fff">Control Room</div><div style="color:#fff;font-size:13px;font-weight:600">urbangangtour.co.ke/admin Â· authorised staff only</div></div>
+<div style="text-align:center;margin-bottom:22px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:64px;margin:0 auto"><div style="font-family:'Anton';font-size:28px;text-transform:uppercase;color:#111;margin-top:12px;text-shadow:2px 2px 0 #fff">Control Room</div><div style="color:#fff;font-size:13px;font-weight:600">urbangangtour.co.ke/admin · authorised staff only</div></div>
 <form onSubmit="{{ adminLogin }}" style="background:#fff;border:3px solid #111;border-radius:18px;padding:26px;box-shadow:8px 8px 0 #111">
 <div id="ugt-gsi-btn" style="display:flex;justify-content:center;min-height:44px"></div>
 <div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:#999;font-size:12px;font-weight:700"><span style="flex:1;height:2px;background:#eee"></span>OR<span style="flex:1;height:2px;background:#eee"></span></div>
@@ -1477,7 +1477,7 @@
 </div>
 </div>
 <div style="max-width:1320px;margin:32px auto 0;padding-top:20px;border-top:2px dashed #555;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;color:#888;font-size:12.5px">
-<div>Â© 2026 Urban Gang Tour Â· Nairobi, Kenya Â· From Potential to Purpose</div><div style="display:flex;gap:12px;flex-wrap:wrap"><a href="/privacy-policy" style="color:#888">Privacy Policy</a><a href="/terms" style="color:#888">Terms</a><a href="/refund-policy" style="color:#888">Refunds &amp; Delivery</a><a href="/ticket-terms" style="color:#888">Ticket Terms</a><a href="/account" style="color:#888">My Account</a></div>
+<div>© 2026 Urban Gang Tour · Nairobi, Kenya · From Potential to Purpose</div><div style="display:flex;gap:12px;flex-wrap:wrap"><a href="/privacy-policy" style="color:#888">Privacy Policy</a><a href="/terms" style="color:#888">Terms</a><a href="/refund-policy" style="color:#888">Refunds &amp; Delivery</a><a href="/ticket-terms" style="color:#888">Ticket Terms</a><a href="/account" style="color:#888">My Account</a></div>
 <div style="display:flex;gap:14px;align-items:center">
 <button onClick="{{ install }}" style="display:flex;align-items:center;gap:7px;background:#FFD400;color:#111;font-weight:700;font-size:12px;padding:9px 15px;border:2px solid #111;border-radius:100px" style-hover="transform:translateY(-1px)"><svg width="15" height="15" viewBox="0 0 24 24" style="color:#111"><use href="#i-phone"></use></svg> Install App</button>
 
@@ -1565,7 +1565,7 @@ class Component extends DCLogic {
     ];
     this.DIFF = [
       {n:'01',title:'We come to you',desc:'The full production travels: stage, sound, crew, cameras, hosts.'},
-      {n:'02',title:'Talent, showcased & awarded',desc:'Every talent gets a stage â€” music, dance, spoken word, comedy, modelling and more â€” judged and crowned.'},
+      {n:'02',title:'Talent, showcased & awarded',desc:'Every talent gets a stage — music, dance, spoken word, comedy, modelling and more — judged and crowned.'},
       {n:'03',title:'Mentorship built in',desc:'Pods on sexual education, substance abuse, career, digital literacy and life run alongside the stage.'},
       {n:'04',title:'National broadcast',desc:'Every stop feeds Urban News on PPP TV Kenya, plus short-form everywhere.'},
       {n:'05',title:'A real crew',desc:'Hosts, DJs, stage managers, videographers, models, medics, and facilitators.'}
@@ -1696,32 +1696,32 @@ class Component extends DCLogic {
     ];
     this.PARTNER_FILES = {
       'PPP TV Kenya':{since:'Day one',stat1:'2.5M+',stat1l:'daily viewers',stat2:'CH 430',stat2l:'on StarTimes',about:[
-        'Powerful, Precise and Pristine â€” PPP TV is a 24-hour entertainment powerhouse on the StarTimes platform, broadcasting a 70% Kenyan music mix to screens across the country, from living rooms to banking halls and supermarkets nationwide.',
+        'Powerful, Precise and Pristine — PPP TV is a 24-hour entertainment powerhouse on the StarTimes platform, broadcasting a 70% Kenyan music mix to screens across the country, from living rooms to banking halls and supermarkets nationwide.',
         'With 300,000+ StarTimes subscribers translating to over 2.5 million daily viewers, PPP TV is one of the loudest speakers Kenyan youth culture owns. It is the home of Urban News, the flagship youth news programme fronted by Eugine Micah and Lucy Ogunde.',
         'For the Urban Gang Tour, PPP TV is the multiplier: every stop is filmed, cut, and broadcast to a national audience, turning a single school day into a story the whole country watches.'],
-        services:['National broadcast','Urban News production','Advertising & sponsorship','Event coverage'],credits:['Urban News â€” every tour stop since launch','National coverage of the 2026 second-term run','Broadcast partner for all main events']},
+        services:['National broadcast','Urban News production','Advertising & sponsorship','Event coverage'],credits:['Urban News — every tour stop since launch','National coverage of the 2026 second-term run','Broadcast partner for all main events']},
       'The Experience Hub':{since:'2025',stat1:'Every',stat1l:'stop hyped',stat2:'XP',stat2l:'dance event',about:[
         'The Experience Hub is a Nairobi youth experience collective: hype masters, dancers, and engagement designers who turn any venue into a festival ground. If the crowd is up, XP Hub put them there.',
-        'On the tour they run the hype sets alongside Hype Larry Raj, field the dance crews that perform and battle with students, and design the crowd moments â€” the drops, the chants, the colour runs â€” that make the day feel enormous.',
+        'On the tour they run the hype sets alongside Hype Larry Raj, field the dance crews that perform and battle with students, and design the crowd moments — the drops, the chants, the colour runs — that make the day feel enormous.',
         'They are also co-producers of The Experience Hub Dance Event, the tour\u2019s flagship dance takeover: crews, cyphers, and celebrity performances on one main stage.'],
-        services:['Hype sets & MC energy','Dance crews & choreography','Crowd engagement design','Event co-production'],credits:['Hype sets at every 2026 stop','The Experience Hub Dance Event â€” KICC, Aug 2026','Dancers for Urban News features']},
+        services:['Hype sets & MC energy','Dance crews & choreography','Crowd engagement design','Event co-production'],credits:['Hype sets at every 2026 stop','The Experience Hub Dance Event — KICC, Aug 2026','Dancers for Urban News features']},
       'Synapse Models':{since:'2025',stat1:'100%',stat1l:'of runways directed',stat2:'Mr & Miss',stat2l:'every crowning',about:[
         'Synapse Models \u2014 founded and led by our own Head of Modelling, CEO Esther Wambui Gakunju \u2014 is the modelling and pageantry engine of the tour, directing every runway on the calendar.',
-        'They coach first-time student models through cultural, creative, and professional wear categories, direct the full T-shaped runway, and stage the crowning of the Mr & Miss of the Institution â€” the moment every school remembers.',
+        'They coach first-time student models through cultural, creative, and professional wear categories, direct the full T-shaped runway, and stage the crowning of the Mr & Miss of the Institution — the moment every school remembers.',
         'Their work turns students who had never walked a stage into the stars of the highlight reel, and gives fashion and lifestyle partners a premium, camera-ready moment at every stop.'],
         services:['Runway direction','Model coaching & grooming','Pageant staging','Casting for campaigns'],credits:['Every tour runway since 2025','Mr & Miss crowning at all stops','Runway lead: Rania (tour lead model)']},
       'Moyo Response':{since:'2025',stat1:'0',stat1l:'incidents unattended',stat2:'On-site',stat2l:'at every event',about:[
-        'Moyo â€” the Swahili word for heart â€” is exactly what Moyo Response, led by CEO Esther Wambui Gakunju, brings: on-site emergency medical response and first aid coverage for every Urban Gang Tour event.',
+        'Moyo — the Swahili word for heart — is exactly what Moyo Response, led by CEO Esther Wambui Gakunju, brings: on-site emergency medical response and first aid coverage for every Urban Gang Tour event.',
         'Their trained responders set up first aid stations, sweep the crowd, and stand ready from gate-open to pack-down, so that thousands of students can lose themselves in the day while someone is watching over them.',
         'For schools and county partners, Moyo Response is the reason the tour can promise a duty of care in writing: professional safety cover is built into every single stop, not bolted on.'],
         services:['Emergency medical response','First aid stations','Crowd safety planning','Event medical cover'],credits:['Medical cover at every stop since 2025','Safety plans for all 2026 main events','Zero unattended incidents on tour']},
       'Ashton Sounds':{since:'2025',stat1:'T-stage',stat1l:'builds & rigs',stat2:'B-cast',stat2l:'ready audio',about:[
         'Ashton Sounds builds the stage the day happens on: professional staging, PA systems, and lighting rigs engineered for school fields, campus grounds, and festival venues alike.',
         'Their crews raise the tour\u2019s signature T-shaped stage, tune the sound to the space, and deliver broadcast-ready audio clean enough to go straight into Urban News edits.',
-        'When the tour promises a school "a real concert, not an assembly", Ashton Sounds is the promise-keeper â€” the same production standard whether the crowd is three hundred or three thousand.'],
+        'When the tour promises a school "a real concert, not an assembly", Ashton Sounds is the promise-keeper — the same production standard whether the crowd is three hundred or three thousand.'],
         services:['Stage builds & rigging','PA & sound systems','Lighting design','Broadcast audio feeds'],credits:['Staging for the full 2026 calendar','T-stage + runway builds at every stop','Production for Campus Rave editions']},
       'Sauti Moto':{since:'2026',stat1:'Live',stat1l:'audio on the road',stat2:'Fire',stat2l:'guaranteed',about:[
-        'Sauti Moto â€” "the sound of fire" â€” is the live audio production unit riding with the tour: the engineers behind the desks who make every mic, every set, and every drop hit clean.',
+        'Sauti Moto — "the sound of fire" — is the live audio production unit riding with the tour: the engineers behind the desks who make every mic, every set, and every drop hit clean.',
         'They run front-of-house and monitor mixing, DJ backline for Carian and Xavi, and the live audio capture that feeds the tour\u2019s broadcast and social edits.',
         'Feel the fire, hear the sound: it\u2019s their promise, and the reason a school field at 2 PM sounds like a headline show.'],
         services:['Front-of-house mixing','Monitor engineering','DJ backline','Live audio capture'],credits:['Live audio across the 2026 run','Backline for both resident DJs','Audio capture for Urban News']},
@@ -1732,7 +1732,7 @@ class Component extends DCLogic {
         services:['Event photography','Editorial & press stills','Poster & campaign shoots','Same-day photo drops'],credits:['Official stills across the 2026 run','Poster photography for main events','The photo wall on this very website']},
       'Delo Greens Management':{since:'2025',stat1:'Trees',stat1l:'at every stop',stat2:'Green',stat2l:'legacy program',about:[
         'Delo Green Movement, led by CEO King Tae (Justus Abuko), is the tour\u2019s environmental conscience: the partner that makes sure every stop leaves something living behind.',
-        'Straight after the morning pods, Delo Greens leads students in planting trees on their own compound â€” hands in the soil, names on the saplings â€” turning a one-day event into a legacy that grows for decades.',
+        'Straight after the morning pods, Delo Greens leads students in planting trees on their own compound — hands in the soil, names on the saplings — turning a one-day event into a legacy that grows for decades.',
         'Their green messaging runs through the day\u2019s programme, connecting Kenyan youth culture to environmental stewardship in a way that feels like part of the show, not a lecture.'],
         services:['Tree planting programs','Environmental education','Green event consulting','Legacy projects for schools'],credits:['Tree planting at every 2026 stop','Student green ambassador pods','Post-event grove check-ins with schools']}
     };
@@ -1755,7 +1755,7 @@ class Component extends DCLogic {
     this.GALLERY = ['/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg','/assets/gal/g-runway.jpg','/assets/gal/g-street.jpg','/assets/gal/g-winning.jpg'];
     this.NEWS = ['Show intro with the hosts on location','School and institution feature','Student interviews and stories','Club visits and campus culture','Competition highlights and winner moments','Principal and leadership interviews','Behind the scenes with the crew','Outro with the next-stop tease'];
     this.ARTICLES = [
-      {id:'gitchez',headline:'Gituamba Girls Erupts as Urban Gang Tour Brings the Festival of Colours',date:'2026-06-07',section:'Tour Recap',img:'/assets/gal/gituamba.jpg',dek:'A full day of showcases, a runway, and a national broadcast turned GITCHEZ into the loudest school day of the term.',body:['Gituamba Girls High School hosted the Urban Gang Tour for a Cultural Day and Festival of Colours that ran from morning assembly to a packed evening finale. Students competed across every kind of talent â€” music, dance, spoken word, comedy and modelling â€” while the mentorship pods ran sessions alongside the main stage.','Hosts Eugine Micah and Lucy Ogunde anchored the day for Urban News on PPP TV Kenya, interviewing performers, teachers, and the eventual category winners. The modelling runway, directed with Synapse Models, closed with the crowning of Miss of the Institution by the school administration.','The feature aired nationally on Urban News, carrying the school\u2019s name and its students far beyond Kiambu County.']},
+      {id:'gitchez',headline:'Gituamba Girls Erupts as Urban Gang Tour Brings the Festival of Colours',date:'2026-06-07',section:'Tour Recap',img:'/assets/gal/gituamba.jpg',dek:'A full day of showcases, a runway, and a national broadcast turned GITCHEZ into the loudest school day of the term.',body:['Gituamba Girls High School hosted the Urban Gang Tour for a Cultural Day and Festival of Colours that ran from morning assembly to a packed evening finale. Students competed across every kind of talent — music, dance, spoken word, comedy and modelling — while the mentorship pods ran sessions alongside the main stage.','Hosts Eugine Micah and Lucy Ogunde anchored the day for Urban News on PPP TV Kenya, interviewing performers, teachers, and the eventual category winners. The modelling runway, directed with Synapse Models, closed with the crowning of Miss of the Institution by the school administration.','The feature aired nationally on Urban News, carrying the school\u2019s name and its students far beyond Kiambu County.']},
       {id:'loreto',headline:'Loreto Kiambu Girls Turns Out in Full Colour for the Urban Gang Tour',date:'2026-06-01',section:'Tour Recap',img:'/assets/gal/loreto.jpg',dek:'The tour\u2019s June run opened at Loreto Kiambu with showcases, pods, and a runway finale.',body:['Loreto Kiambu Girls High School welcomed the Urban Gang Tour for a full production day, complete with stage, sound, and a thirty-person crew. Music, dance, spoken word, and comedy showcases filled the programme as students competed for their categories.','The mentorship pods drew large groups between performances, delivering the mentorship half of the tour\u2019s promise. Eugine and Lucy hosted throughout, with the day captured for a national Urban News feature.']},
       {id:'koinange',headline:'Senior Chief Koinange Girls Kicks Off the 2026 Tour',date:'2026-05-30',section:'Tour Recap',img:'/assets/gal/koinange.jpg',dek:'The 2026 second-term tour launched at Senior Chief Koinange Girls to a roaring crowd.',body:['The Urban Gang Tour opened its 2026 second-term calendar at Senior Chief Koinange Girls, setting the tone for the stops that followed. MC Paps warmed up the hall before the first performances, and the crowd stayed loud through to the final crowning.','Every moment was filmed for Urban News, giving the school a national platform and the tour a strong start to the season.']},
       {id:'lari',headline:'Next Stop: Lari Boys High School as Bookings Stay Open',date:'2026-07-08',section:'Upcoming',img:'/assets/gal/lari.jpg',dek:'The tour heads to Lari Boys High School in Kimende next, with more institutions still able to book this term.',body:['Lari Boys High School in Kimende is the next confirmed stop on the Urban Gang Tour calendar, set for 19 July. Preparations are already underway with the school administration to plan the day to the minute.','Bookings for the remainder of the term remain open to schools, campuses, and event organisers who want the full production and a national Urban News feature. Institutions can request a date through the tour\u2019s booking page.']}
@@ -1779,7 +1779,7 @@ class Component extends DCLogic {
       brands:{label:'For Brands',head:'Your Brand, In Front Of Kenya\u2019s Youth. Live And On Air.',sub:'We put partners on stage, on camera, on certificates, and in the hands of thousands of students, then carry it to the national screen.',bullets:['Captive live audiences, fully engaged for a full day','National broadcast through Urban News on PPP TV Kenya','Always-on social from every event','Deep activation: booths, sampling, sponsored pods, named categories','Countrywide footprint across schools, campuses and mega events','Purpose alignment: talent, mentorship, wellness, environment'],cta:'Request the Sponsor Catalogue',type:'Sponsorship'},
       institutions:{label:'For Institutions',head:'Reach That Comes From Inside The Culture.',sub:'Universities, corporates, and government reach people best when the message comes from inside the culture, not above it. We already own the stage, the crew, the broadcast, and the trust.',bullets:['A full production unit and a national media tail','Owned segments and named award categories','Message integration built for young audiences','On-camera credit across the broadcast','Planned to the minute with your team','We make you look good doing it'],cta:'Start a Conversation',type:'Partnership'},
       campuses:{label:'Campus Rave',head:'Campus Rave. The Tour, Fully Grown.',sub:'The Urban Gang Tour experience scaled for universities and colleges. Bigger stage, bigger sound, broadcast-ready, career-connected.',bullets:['Festival-grade production: T-shaped runway, pro sound and lighting','Talents of every kind, showcased and awarded','Miss/Mrs of the Institution crowning with university leadership','Mentorship pods upgraded for career, entrepreneurship and wellness','Media lab: your creators join our field team and build portfolios','Full broadcast package plus brand activation zones'],cta:'Book a Campus Rave Consultation',type:'Campus Rave'},
-      schools:{label:'For Schools',head:'Your School. Their Stage.',sub:'A full day of talent, mentorship, and awards for your students, ending with a national TV feature. It is where the Urban Gang was forged, and still some of the loudest work we do.',bullets:['A full production day: stage, sound, hosts, DJs and crew','Talents of every kind â€” music, dance, spoken word, comedy, modelling and more','Mentorship pods: sexual education, substance abuse, career, digital literacy and life','The Miss/Mrs of the Institution crowning by your Principal','Full videography and a feature on Urban News','Certificates for participants and winners'],cta:'Request a Quotation',type:'School Booking'},
+      schools:{label:'For Schools',head:'Your School. Their Stage.',sub:'A full day of talent, mentorship, and awards for your students, ending with a national TV feature. It is where the Urban Gang was forged, and still some of the loudest work we do.',bullets:['A full production day: stage, sound, hosts, DJs and crew','Talents of every kind — music, dance, spoken word, comedy, modelling and more','Mentorship pods: sexual education, substance abuse, career, digital literacy and life','The Miss/Mrs of the Institution crowning by your Principal','Full videography and a feature on Urban News','Certificates for participants and winners'],cta:'Request a Quotation',type:'School Booking'},
       mega:{label:'For Mega Events',head:'We Do Not Just Attend Big Events. We Power Them.',sub:'A full production unit for festivals, expos, county celebrations, corporate fun days, and national youth activations.',bullets:['A trained production crew: hosts, MCs, DJs, stage managers, medics','Stage and runway production with full branding','Talent showcase segments that turn any crowd into participants','Crowd activation and hype, opened by MC Paps','Broadcast feed to Urban News plus content everywhere','First aid coordination through Moyo Response'],cta:'Talk To Us About Your Event',type:'Mega Event'}
     };
   }
@@ -1801,11 +1801,11 @@ class Component extends DCLogic {
   onTEmail=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,email:v}}));};
   onTPhone=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,phone:v}}));};
   ticStage=(st)=>this.setState(s=>({ticket:{...s.ticket,stage:st}}));
-  confirmTicket=(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState(s=>{ const t=s.ticket; if(!t.name.trim()||!t.email.trim()) return {ticket:{...t}}; const ev=this.MAIN_EVENTS.find(x=>x.id===t.eventId); const tier=ev.tiers[t.tier]; const total=tier.price*t.qty; const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:t.name.trim(),email:t.email.trim(),phone:(t.phone||'').trim(),eventName:ev.name,eventDate:ev.date,eventTime:ev.time,venue:ev.venue,city:ev.city,accent:ev.accent,tierName:tier.name,qty:t.qty,unit:tier.price,total}; const rec={kind:'Ticket',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:ev.name+' Â· '+tier.name+' Ã—'+t.qty}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); return {ticket:{...t,stage:'done',order},orders}; }); };
+  confirmTicket=(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState(s=>{ const t=s.ticket; if(!t.name.trim()||!t.email.trim()) return {ticket:{...t}}; const ev=this.MAIN_EVENTS.find(x=>x.id===t.eventId); const tier=ev.tiers[t.tier]; const total=tier.price*t.qty; const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:t.name.trim(),email:t.email.trim(),phone:(t.phone||'').trim(),eventName:ev.name,eventDate:ev.date,eventTime:ev.time,venue:ev.venue,city:ev.city,accent:ev.accent,tierName:tier.name,qty:t.qty,unit:tier.price,total}; const rec={kind:'Ticket',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:ev.name+' · '+tier.name+' ×'+t.qty}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); return {ticket:{...t,stage:'done',order},orders}; }); };
   ticketMailto=()=>{ const o=this.state.ticket.order; if(!o) return '#'; const body='Ticket '+o.ref+'%0AEvent: '+o.eventName+'%0ADate: '+o.eventDate+' '+o.eventTime+'%0AVenue: '+o.venue+', '+o.city+'%0AName: '+o.name+'%0AType: '+o.tierName+' x'+o.qty+'%0ATotal: KES '+o.total+'%0AInvoice: '+o.invoice; return 'mailto:'+o.email+'?subject=Your%20Urban%20Gang%20Tour%20Ticket%20'+o.ref+'&body='+body; };
-  printTicket=()=>{ const o=this.state.ticket.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; w.document.write('<html><head><title>'+o.ref+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG TOUR \u2014 E-TICKET</div><h2 style="margin:8px 0">'+o.eventName+'</h2><p>'+o.eventDate+' Â· '+o.eventTime+'<br>'+o.venue+', '+o.city+'</p><hr><p><b>Attendee:</b> '+o.name+'<br><b>Type:</b> '+o.tierName+' Ã— '+o.qty+'<br><b>Ref:</b> '+o.ref+'<br><b>Invoice:</b> '+o.invoice+'<br><b>Total paid:</b> KES '+o.total.toLocaleString()+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
+  printTicket=()=>{ const o=this.state.ticket.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; w.document.write('<html><head><title>'+o.ref+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG TOUR \u2014 E-TICKET</div><h2 style="margin:8px 0">'+o.eventName+'</h2><p>'+o.eventDate+' · '+o.eventTime+'<br>'+o.venue+', '+o.city+'</p><hr><p><b>Attendee:</b> '+o.name+'<br><b>Type:</b> '+o.tierName+' × '+o.qty+'<br><b>Ref:</b> '+o.ref+'<br><b>Invoice:</b> '+o.invoice+'<br><b>Total paid:</b> KES '+o.total.toLocaleString()+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
   addSwipe=(id,size)=>this.setState(s=>{ const c=s.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===id&&x.size===size); if(i>=0)c[i].qty++; else c.push({id,qty:1,size}); return {cart:c}; });
-  swipeDecide=(like)=>{ const s=this.state; const prod=this.PRODUCTS[s.swipe.i]; const size=(prod&&prod.cat==='Apparel')?s.swipe.size:null; if(like&&prod){ this.addSwipe(prod.id,size); this.flash('Added '+(size?size+' Â· ':'')+prod.name); } this.setState(st=>({swipe:{...st.swipe,i:st.swipe.i+1}})); };
+  swipeDecide=(like)=>{ const s=this.state; const prod=this.PRODUCTS[s.swipe.i]; const size=(prod&&prod.cat==='Apparel')?s.swipe.size:null; if(like&&prod){ this.addSwipe(prod.id,size); this.flash('Added '+(size?size+' · ':'')+prod.name); } this.setState(st=>({swipe:{...st.swipe,i:st.swipe.i+1}})); };
   setSwipeSize=(z)=>this.setState(s=>({swipe:{...s.swipe,size:z}}));
   resetSwipe=()=>this.setState(s=>({swipe:{...s.swipe,i:0}}));
   onCardDown=(e)=>{ this._card=e.currentTarget; this._sx=e.clientX; this._dx=0; this._drag=true; this._card.style.transition='none'; try{this._card.setPointerCapture(e.pointerId);}catch(_){} };
@@ -1827,16 +1827,16 @@ class Component extends DCLogic {
   payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
   saveLS = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
   loadLS = (k,d) => { try{ const v=JSON.parse(localStorage.getItem(k)||'null'); return Array.isArray(v)?v:d; }catch(e){ return d; } };
-  confirmOrder = (e) => { if(e&&e.preventDefault)e.preventDefault(); const s=this.state, co=s.checkout; if(!co.name.trim()||!co.email.trim()||!s.cart.length) return; const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:p.price,total:p.price*l.qty}; }); const total=lines.reduce((a,b)=>a+b.total,0); const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-M'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:co.name.trim(),email:co.email.trim(),phone:(co.phone||'').trim(),lines,total}; const rec={kind:'Merch',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:lines.map(l=>l.name+' Ã—'+l.qty).join(', ')}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); this.setState({checkout:{...co,stage:'done',order},cart:[],orders}); };
+  confirmOrder = (e) => { if(e&&e.preventDefault)e.preventDefault(); const s=this.state, co=s.checkout; if(!co.name.trim()||!co.email.trim()||!s.cart.length) return; const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:p.price,total:p.price*l.qty}; }); const total=lines.reduce((a,b)=>a+b.total,0); const rnd=Math.random().toString(36).slice(2,8).toUpperCase(); const seq=Math.floor(1000+Math.random()*9000); const order={ref:'UGT-M'+rnd,invoice:'INV-2026-'+seq,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),name:co.name.trim(),email:co.email.trim(),phone:(co.phone||'').trim(),lines,total}; const rec={kind:'Merch',ref:order.ref,invoice:order.invoice,date:order.date,name:order.name,email:order.email,total,detail:lines.map(l=>l.name+' ×'+l.qty).join(', ')}; const orders=[rec,...s.orders]; this.saveLS('ugt_orders',orders); this.setState({checkout:{...co,stage:'done',order},cart:[],orders}); };
   orderMailto = () => { const o=this.state.checkout.order; if(!o) return '#'; const items=o.lines.map(l=>l.name+' x'+l.qty+' - KES '+l.total).join('%0A'); return 'mailto:'+o.email+'?subject=Your%20Urban%20Gang%20Merch%20Receipt%20'+o.invoice+'&body=Receipt%20'+o.invoice+'%0ARef:%20'+o.ref+'%0A'+items+'%0ATotal:%20KES%20'+o.total; };
-  printOrder = () => { const o=this.state.checkout.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; const rows=o.lines.map(l=>'<tr><td style="padding:4px 12px 4px 0">'+l.name+' Ã— '+l.qty+'</td><td style="text-align:right">KES '+l.total.toLocaleString()+'</td></tr>').join(''); w.document.write('<html><head><title>'+o.invoice+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG MERCH â€” RECEIPT</div><p><b>'+o.invoice+'</b> Â· '+o.date+'<br>Billed to '+o.name+' Â· '+o.email+'</p><table style="width:100%;border-collapse:collapse">'+rows+'</table><hr><p><b>Total paid: KES '+o.total.toLocaleString()+'</b><br>Ref: '+o.ref+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
+  printOrder = () => { const o=this.state.checkout.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; const rows=o.lines.map(l=>'<tr><td style="padding:4px 12px 4px 0">'+l.name+' × '+l.qty+'</td><td style="text-align:right">KES '+l.total.toLocaleString()+'</td></tr>').join(''); w.document.write('<html><head><title>'+o.invoice+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG MERCH — RECEIPT</div><p><b>'+o.invoice+'</b> · '+o.date+'<br>Billed to '+o.name+' · '+o.email+'</p><table style="width:100%;border-collapse:collapse">'+rows+'</table><hr><p><b>Total paid: KES '+o.total.toLocaleString()+'</b><br>Ref: '+o.ref+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
   setNs = (k,v) => this.setState(s=>({newStop:{...s.newStop,[k]:v}}));
-  addStop = () => { const s=this.state, n=s.newStop; if(!n.name.trim()){ this.flash('Give the stop a name first.'); return; } const stop={day:(n.day.trim()||'TBA').toUpperCase(),mon:(n.mon.trim()||'TBA').toUpperCase(),year:'2026',name:n.name.trim(),loc:(n.loc.trim()||'Kenya'),status:'upcoming',img:'/assets/gal/g-street.jpg'}; const extraStops=[...s.extraStops,stop]; this.saveLS('ugt_stops',extraStops); this.setState({extraStops,newStop:{name:'',loc:'',day:'',mon:''}}); this.flash('Tour stop added â€” live on the public Tour Stops page.'); };
+  addStop = () => { const s=this.state, n=s.newStop; if(!n.name.trim()){ this.flash('Give the stop a name first.'); return; } const stop={day:(n.day.trim()||'TBA').toUpperCase(),mon:(n.mon.trim()||'TBA').toUpperCase(),year:'2026',name:n.name.trim(),loc:(n.loc.trim()||'Kenya'),status:'upcoming',img:'/assets/gal/g-street.jpg'}; const extraStops=[...s.extraStops,stop]; this.saveLS('ugt_stops',extraStops); this.setState({extraStops,newStop:{name:'',loc:'',day:'',mon:''}}); this.flash('Tour stop added — live on the public Tour Stops page.'); };
 
   setField = (k,v) => this.setState(s=>({form:{...s.form,[k]:v}}));
   setBlog = (k,v) => this.setState(s=>({blog:{...s.blog,[k]:v}}));
   submitBlog = (e) => { if(e&&e.preventDefault)e.preventDefault(); const b=this.state.blog; if(!b.name.trim()||!b.title.trim()) return; const rec={id:'BLOG-'+Math.floor(100+Math.random()*900),name:b.name.trim(),org:(b.school.trim()||'Student'),type:'Student Blog',date:new Date().toISOString().slice(0,10),status:'new',email:'',msg:b.title.trim()+' \u2014 '+b.pitch.trim()}; const inbox=[rec,...this.loadLS('ugt_inbox',[])]; this.saveLS('ugt_inbox',inbox); this.setState(s=>({blog:{...s.blog,sent:true}, bookings:[rec,...s.bookings]})); };
-  submitForm = (e) => { if(e&&e.preventDefault) e.preventDefault(); const s=this.state, f=s.form; const rec={id:'B-'+(2100+(s.bookings.length%800)),name:(f.name||'Website visitor'),org:(f.org||'â€”'),type:f.type,date:new Date().toISOString().slice(0,10),status:'new',email:(f.email||''),msg:(f.message||'')}; const inbox=[rec,...this.loadLS('ugt_inbox',[])]; this.saveLS('ugt_inbox',inbox); this.setState({formSent:true, bookings:[rec,...s.bookings]}); this.scrollTop(); };
+  submitForm = (e) => { if(e&&e.preventDefault) e.preventDefault(); const s=this.state, f=s.form; const rec={id:'B-'+(2100+(s.bookings.length%800)),name:(f.name||'Website visitor'),org:(f.org||'—'),type:f.type,date:new Date().toISOString().slice(0,10),status:'new',email:(f.email||''),msg:(f.message||'')}; const inbox=[rec,...this.loadLS('ugt_inbox',[])]; this.saveLS('ugt_inbox',inbox); this.setState({formSent:true, bookings:[rec,...s.bookings]}); this.scrollTop(); };
   resetForm = () => this.setState({formSent:false, form:{name:'',org:'',email:'',phone:'',type:'School Booking',message:''}});
 
   flash = (msg) => { this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:''}),3600); };
@@ -1846,7 +1846,7 @@ class Component extends DCLogic {
   compressImage = (file) => new Promise((res)=>{ const img=new Image(); img.onload=()=>{ const MAX=1600; let w=img.width,h=img.height; if(Math.max(w,h)>MAX){ const k=MAX/Math.max(w,h); w=Math.round(w*k); h=Math.round(h*k); } const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; x.drawImage(img,0,0,w,h); c.toBlob(b=>res(b),'image/jpeg',0.92); URL.revokeObjectURL(img.src); }; img.onerror=()=>res(null); img.src=URL.createObjectURL(file); });
   setGalSchool = (e) => this.setState({galSchool:e.target.value});
   setGalPublic = (name) => this.setState({galPublicSchool:name});
-  uploadGalleryPics = async (e) => { const files=[...(e.target.files||[])].filter(f=>f.type.startsWith('image/')); const school=this.state.galSchool; e.target.value=''; if(!school){ this.flash('Pick a school catalogue first.'); return; } if(!files.length){ this.flash('Images only â€” no videos.'); return; } const existing=(this.state.galleryPics[school]||[]).length; if(existing>=100){ this.flash('Catalogue full â€” 100 pics max per school.'); return; } const take=files.slice(0,100-existing); this.setState({galBusy:true}); try{ const db=await this.idb(); for(const f of take){ const blob=await this.compressImage(f); if(!blob) continue; await new Promise((res,rej)=>{ const tx=db.transaction('pics','readwrite'); tx.objectStore('pics').add({school, blob, ts:Date.now()}); tx.oncomplete=res; tx.onerror=rej; }); } }catch(err){} this.setState({galBusy:false}); await this.loadGallery(); this.flash(take.length+' photo(s) compressed (max quality) & filed under '+school+'.'); };
+  uploadGalleryPics = async (e) => { const files=[...(e.target.files||[])].filter(f=>f.type.startsWith('image/')); const school=this.state.galSchool; e.target.value=''; if(!school){ this.flash('Pick a school catalogue first.'); return; } if(!files.length){ this.flash('Images only — no videos.'); return; } const existing=(this.state.galleryPics[school]||[]).length; if(existing>=100){ this.flash('Catalogue full — 100 pics max per school.'); return; } const take=files.slice(0,100-existing); this.setState({galBusy:true}); try{ const db=await this.idb(); for(const f of take){ const blob=await this.compressImage(f); if(!blob) continue; await new Promise((res,rej)=>{ const tx=db.transaction('pics','readwrite'); tx.objectStore('pics').add({school, blob, ts:Date.now()}); tx.oncomplete=res; tx.onerror=rej; }); } }catch(err){} this.setState({galBusy:false}); await this.loadGallery(); this.flash(take.length+' photo(s) compressed (max quality) & filed under '+school+'.'); };
   deleteGalleryPic = async (id) => { try{ const db=await this.idb(); await new Promise((res,rej)=>{ const tx=db.transaction('pics','readwrite'); tx.objectStore('pics').delete(id); tx.oncomplete=res; tx.onerror=rej; }); }catch(e){} this.loadGallery(); };
   setNa = (e) => this.setState(s=>({newAdmin:{...s.newAdmin,name:e.target.value}}));
   toggleNaPerm = (p) => this.setState(s=>({newAdmin:{...s.newAdmin,perms:{...s.newAdmin.perms,[p]:!s.newAdmin.perms[p]}}}));
@@ -1910,14 +1910,14 @@ class Component extends DCLogic {
     const cartLines = s.cart.map((l,idx)=>{ const p=prodById(l.id); return {id:l.id+'-'+(l.size||'std'),name:p.name,sub:(l.size?'Size '+l.size:p.cat),img:p.img,qty:l.qty,priceFmt:this.fmt(p.price),inc:()=>this.incAt(idx),dec:()=>this.decAt(idx),remove:()=>this.removeAt(idx)}; });
     const cartCount = s.cart.reduce((a,b)=>a+b.qty,0);
     const cartTotal = s.cart.reduce((a,b)=>a+b.qty*prodById(b.id).price,0);
-    const products = this.PRODUCTS.map((p,i)=>{ const ap=p.cat==='Apparel'; return {...p,priceFmt:this.fmt(p.price),tilt:this.TILTS[i%this.TILTS.length],add:()=>this.addToCart(p.id),quick:()=>this.openQuick(p.id),btn:(ap?()=>this.openQuick(p.id):()=>this.addToCart(p.id)),btnLabel:(ap?'Choose Size â†’':'Add to Bag')}; });
+    const products = this.PRODUCTS.map((p,i)=>{ const ap=p.cat==='Apparel'; return {...p,priceFmt:this.fmt(p.price),tilt:this.TILTS[i%this.TILTS.length],add:()=>this.addToCart(p.id),quick:()=>this.openQuick(p.id),btn:(ap?()=>this.openQuick(p.id):()=>this.addToCart(p.id)),btnLabel:(ap?'Choose Size →':'Add to Bag')}; });
     const quickP = s.quickId?prodById(s.quickId):null;
     const quick = quickP?{...quickP,priceFmt:this.fmt(quickP.price),isApparel:quickP.cat==='Apparel',totalFmt:this.fmt(quickP.price*s.quickQty),qty:s.quickQty,qtyUp:()=>this.setState(st=>({quickQty:Math.min(20,st.quickQty+1)})),qtyDown:()=>this.setState(st=>({quickQty:Math.max(1,st.quickQty-1)})),sizes:['S','M','L','XL','XXL'].map(z=>({z,bg:(z===s.quickSize?'#FFD400':'#fff'),pick:()=>this.setState({quickSize:z})})),add:this.addQuick}:null;
     const audiences = this.AUDIENCES.map((a,i)=>({...a,go:()=>this.goWork(a.tab),n:'0'+(i+1),plate:['#FFD400','#21C7E6','#E6218C','#FFD400'][i%4]}));
     const wt = this.WORKTABS[s.workTab];
     const pill = (on)=>on?{border:'#111',bg:'#FFD400',color:'#111'}:{border:'#111',bg:'#fff',color:'#111'};
     const workTabs = Object.keys(this.WORKTABS).map(k=>{const on=k===s.workTab;const p=pill(on);return {key:k,label:this.WORKTABS[k].label,active:on,go:()=>this.goWork(k),border:p.border,bg:p.bg,color:p.color};});
-    const stops = [...this.STOPS,...s.extraStops].map((x,i)=>{const done=x.status==='done';const next=x.status==='next';return {...x,tilt:this.TILTS[i%this.TILTS.length],accent:done?'#E6218C':'#0E9BD6',badge:done?'Completed':(next?'Next Stop':'Upcoming'),badgeBg:done?'#FFD400':'#21C7E6',isDone:done,isNext:next,isUp:(!done&&!next),stamp:done?'TOURED âœ“':(next?'NEXT UP':'BOOKED'),stampBg:done?'#1F8A5B':(next?'#E6218C':'#21C7E6'),stampFg:done?'#fff':(next?'#fff':'#111'),nodeBorder:next?'#E6218C':(done?'#111':'#999')};});
+    const stops = [...this.STOPS,...s.extraStops].map((x,i)=>{const done=x.status==='done';const next=x.status==='next';return {...x,tilt:this.TILTS[i%this.TILTS.length],accent:done?'#E6218C':'#0E9BD6',badge:done?'Completed':(next?'Next Stop':'Upcoming'),badgeBg:done?'#FFD400':'#21C7E6',isDone:done,isNext:next,isUp:(!done&&!next),stamp:done?'TOURED ✓':(next?'NEXT UP':'BOOKED'),stampBg:done?'#1F8A5B':(next?'#E6218C':'#21C7E6'),stampFg:done?'#fff':(next?'#fff':'#111'),nodeBorder:next?'#E6218C':(done?'#111':'#999')};});
     const nextStop = stops.find(x=>x.status==='next')||stops[0];
     const workBullets = wt.bullets;
     const bookForType = ()=>{ this.setState(st=>({page:'contact', form:{...st.form,type:wt.type}})); this.scrollTop(); };
@@ -1948,7 +1948,7 @@ class Component extends DCLogic {
       swipeLike:()=>this.swipeDecide(true), swipeSkip:()=>this.swipeDecide(false), resetSwipe:this.resetSwipe,
       swipeIndex:Math.min(sw.i+1,this.PRODUCTS.length), swipeTotal:this.PRODUCTS.length,
       coOpen:!!s.checkout.stage, coStageDetails:s.checkout.stage==='details', coStageDone:s.checkout.stage==='done',
-      coLines:s.cart.map(l=>{ const p=prodById(l.id); return {name:p.name+(l.size?' Â· '+l.size:''),qty:l.qty,totalFmt:this.fmt(p.price*l.qty)}; }),
+      coLines:s.cart.map(l=>{ const p=prodById(l.id); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt(p.price*l.qty)}; }),
       coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone,
       onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value),
       confirmOrder:this.confirmOrder, payCard:this.payCard, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,
@@ -2010,7 +2010,7 @@ class Component extends DCLogic {
       tabGalleryman:s.admin.tab==='galleryman', tabGallerymanColor:at('galleryman').color, tabGallerymanBg:at('galleryman').bg, setGalleryman:()=>this.setAdminTab('galleryman'),
       tabTeam:s.admin.tab==='team', tabTeamColor:at('team').color, tabTeamBg:at('team').bg, setTeam:()=>this.setAdminTab('team'),
       canBookings:(s.admin.perms||[]).includes('bookings'), canOrders:(s.admin.perms||[]).includes('orders'), canStops:(s.admin.perms||[]).includes('stops'), canBlog:(s.admin.perms||[]).includes('blog'), canGallery:(s.admin.perms||[]).includes('gallery'), canTeam:(s.admin.perms||[]).includes('team'),
-      adminName:s.admin.name||'Admin', adminRoleLabel:(s.admin.role==='super'?'SUPER ADMIN Â· FULL ACCESS':'CREW ADMIN Â· '+(s.admin.perms||[]).join(' + ').toUpperCase()),
+      adminName:s.admin.name||'Admin', adminRoleLabel:(s.admin.role==='super'?'SUPER ADMIN · FULL ACCESS':'CREW ADMIN · '+(s.admin.perms||[]).join(' + ').toUpperCase()),
       blogQueue:bookings.filter(b=>b.type==='Student Blog').map(b=>({...b,approve:()=>this.approveBlog(b.id),reject:()=>this.rejectBlog(b.id),isNew:b.status==='new'})),
       noBlogQueue:bookings.filter(b=>b.type==='Student Blog').length===0,
       naName:s.newAdmin.name, onNaName:this.setNa, createAdmin:this.createAdmin, naMade:s.newAdmin.made, hasNaMade:!!s.newAdmin.made,
