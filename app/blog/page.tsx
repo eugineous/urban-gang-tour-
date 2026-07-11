@@ -5,6 +5,7 @@ import { JsonLd } from '@/app/_components/JsonLd';
 import { getBlogPosts } from '@/app/_lib/blog';
 import { getIgWall } from '@/lib/server/social-wall';
 import { InstagramWall } from '@/app/_components/InstagramWall';
+import { FeedAd } from '@/app/_components/Ads';
 
 const PATH = '/blog';
 export const metadata: Metadata = metadataForPath(PATH);
@@ -45,6 +46,8 @@ export default async function BlogIndex() {
               </a>
             ))}
           </div>
+          {/* feed ad below the grid (dormant until AdSense is live) */}
+          <FeedAd />
           {igWall.length > 0 && <InstagramWall urls={igWall} />}
         </div>
       </main>

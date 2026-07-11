@@ -4,6 +4,7 @@ import { getBlogPosts, getBlogPost, articleJsonLd } from '@/app/_lib/blog';
 import { breadcrumbFor } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { ShareBar } from '@/app/_components/ShareBar';
+import { ArticleAd } from '@/app/_components/Ads';
 import { SITE } from '@/lib/site';
 
 export const revalidate = 300; // admin edits go live within 5 minutes
@@ -59,23 +60,32 @@ export default async function BlogPost(
             <ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline} />
             <p style={{ fontSize: 17.5, fontWeight: 600, lineHeight: 1.6, color: '#333', margin: '14px 0 18px' }}>{post.description}</p>
             {post.body.map((para, i) => {
+              // one in-content ad slot partway down long stories (dormant
+              // until AdSense is live) - shown just before roughly the fourth
+              // block, only on stories long enough for it not to intrude.
+              const adHere = i === Math.min(3, post.body.length - 1) && post.body.length > 4;
               // longform conventions: "## " → section heading, "> " → pull quote
+              let el: React.ReactNode;
               if (para.startsWith('## ')) {
-                return (
-                  <h2 key={i} style={{ fontFamily: "'Anton'", fontSize: 'clamp(21px,3.4vw,28px)', textTransform: 'uppercase', color: '#111', margin: '30px 0 12px', lineHeight: 1.15 }}>
+                el = (
+                  <h2 style={{ fontFamily: "'Anton'", fontSize: 'clamp(21px,3.4vw,28px)', textTransform: 'uppercase', color: '#111', margin: '30px 0 12px', lineHeight: 1.15 }}>
                     {para.slice(3)}
                   </h2>
                 );
-              }
-              if (para.startsWith('> ')) {
-                return (
-                  <blockquote key={i} style={{ margin: '22px 0', padding: '14px 18px', background: '#FFF7D6', borderLeft: '6px solid #FFD400', border: '2px solid #111', borderLeftWidth: 8, borderRadius: 12, fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: '#111' }}>
+              } else if (para.startsWith('> ')) {
+                el = (
+                  <blockquote style={{ margin: '22px 0', padding: '14px 18px', background: '#FFF7D6', borderLeft: '6px solid #FFD400', border: '2px solid #111', borderLeftWidth: 8, borderRadius: 12, fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: '#111' }}>
                     {para.slice(2)}
                   </blockquote>
                 );
+              } else {
+                el = <p style={{ fontSize: 16, lineHeight: 1.8, color: '#222', margin: '0 0 16px' }}>{para}</p>;
               }
               return (
-                <p key={i} style={{ fontSize: 16, lineHeight: 1.8, color: '#222', margin: '0 0 16px' }}>{para}</p>
+                <div key={i}>
+                  {adHere && <ArticleAd />}
+                  {el}
+                </div>
               );
             })}
             <div style={{ marginTop: 26, display: 'flex', gap: 18, flexWrap: 'wrap' }}>

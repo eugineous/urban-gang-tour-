@@ -6,6 +6,7 @@ import { HEADER_HTML } from './_components/headerHtml';
 import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
+import { AdSenseLoader } from './_components/Ads';
 import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
@@ -133,6 +134,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <CookieConsent />
+        {/* AdSense: dormant until NEXT_PUBLIC_ADSENSE_CLIENT is set, and even
+            then loads only after a visitor accepts cookies. Drives Auto Ads
+            site-wide (covers the v25 SPA pages too). */}
+        <AdSenseLoader />
       </body>
     </html>
   );
