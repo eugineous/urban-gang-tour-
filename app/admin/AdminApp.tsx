@@ -24,6 +24,7 @@ const Products = dynamic(() => import('./ops/Products'), { ssr: false, loading: 
 const Gallery = dynamic(() => import('./ops/Gallery'), { ssr: false, loading: opsLoading });
 const Marketplace = dynamic(() => import('./ops/Marketplace'), { ssr: false, loading: opsLoading });
 const AdminAccounts = dynamic(() => import('./ops/AdminAccounts'), { ssr: false, loading: opsLoading });
+const DocGen = dynamic(() => import('./docs/DocGen'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
 const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
@@ -34,7 +35,7 @@ const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSi
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
 const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic', 'Admins'] as const;
-const OPS_TABS = ['Events', 'Products', 'Gallery', 'Marketplace', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
+const OPS_TABS = ['Events', 'Products', 'Gallery', 'Marketplace', 'Budgeter', 'Invoices', 'Documents', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 
 // Client-side ONLY - this decides which tab buttons render, nothing more.
@@ -48,7 +49,7 @@ const TAB_PERM: Partial<Record<Tab, string>> = {
   Bookings: 'bookings', Orders: 'orders', Content: 'content', Newsroom: 'newsroom',
   Comms: 'comms', 'Site & SEO': 'site_seo', People: 'people', Traffic: 'traffic',
   Events: 'events', Products: 'products', Gallery: 'gallery', Marketplace: 'marketplace',
-  Budgeter: 'ops_budgeter', Invoices: 'ops_invoices', Payments: 'ops_payments',
+  Budgeter: 'ops_budgeter', Invoices: 'ops_invoices', Documents: 'documents', Payments: 'ops_payments',
   Contacts: 'ops_contacts', Payouts: 'ops_payouts', Expenses: 'ops_expenses',
   Pipeline: 'ops_pipeline', Promos: 'ops_promos', Checklists: 'ops_checklists', Reviews: 'reviews',
 };
@@ -271,6 +272,7 @@ export default function AdminApp() {
       {tab === 'Marketplace' && <Marketplace />}
       {tab === 'Budgeter' && <Budgeter />}
       {tab === 'Invoices' && <Invoices />}
+      {tab === 'Documents' && <DocGen />}
       {tab === 'Payments' && <Payments />}
       {tab === 'Contacts' && <Contacts />}
       {tab === 'Payouts' && <Payouts />}

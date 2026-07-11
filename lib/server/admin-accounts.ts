@@ -41,6 +41,7 @@ export const MODULE_KEYS = [
   'ops_checklists',
   'reviews',
   'gate_scanner',
+  'documents',
 ] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
