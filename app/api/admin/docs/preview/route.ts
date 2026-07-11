@@ -28,7 +28,10 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   try {
     const prepared = await preparePayloadFull(type, payload);
-    const html = await renderDoc(type, prepared.payload, 'PREVIEW');
+    // renderDoc returns one string (single-page) or an array of page HTMLs
+    // (multi-page). The live preview shows page 1 either way.
+    const rendered = await renderDoc(type, prepared.payload, 'PREVIEW');
+    const html = Array.isArray(rendered) ? rendered[0] : rendered;
     return NextResponse.json({ html, computed: prepared.computed });
   } catch (e) {
     return NextResponse.json({ error: (e as Error)?.message || 'preview_failed' }, { status: 400 });

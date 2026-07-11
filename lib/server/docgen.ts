@@ -68,7 +68,12 @@ export function ensureDocgenSchema(): Promise<void> {
 // are the reserved codes from the spec so future phases slot in without
 // renumbering anything already issued.
 // ---------------------------------------------------------------------------
-export interface DocTypeDef { code: string; label: string; template: string; }
+// A doc type maps either to ONE template (single-page: the 14 shipped types +
+// the sponsorship agreement) or to an ordered list of page templates (a
+// multi-page document rendered as several pages under ONE serial + record -
+// the partnership + school proposals). `pages` takes precedence when present;
+// `template` stays the single-page path and is untouched for every shipped type.
+export interface DocTypeDef { code: string; label: string; template?: string; pages?: string[]; }
 export const DOC_TYPES: Record<string, DocTypeDef> = {
   invoice: { code: 'INV', label: 'Invoice', template: '26-invoice-a4.html' },
   receipt: { code: 'RCT', label: 'Receipt', template: '27-receipt-a5-slip.html' },
@@ -87,8 +92,23 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   pass: { code: 'PASS', label: 'Gate / Vehicle Pass', template: '48-gate-vehicle-pass.html' },
   rel: { code: 'REL', label: 'Talent Media Release', template: '50-talent-media-release-form.html' },
   cons: { code: 'CONS', label: 'Parental Consent Letter', template: '52-parental-consent-letter.html' },
+  // Multi-page documents: ONE serial + ONE record, rendered as several page
+  // templates (cover + pitch + packages). The SAME serial + values fill every
+  // page; the verify QR lands on page 1 (the cover) - see qrPageIndex().
+  prop: { code: 'PROP', label: 'Partnership Proposal', pages: [
+    '04-partnership-proposal-page1-cover.html',
+    '05-partnership-proposal-page2-pitch.html',
+    '06-partnership-proposal-page3-packages.html',
+  ] },
+  sprop: { code: 'SPROP', label: 'School Proposal', pages: [
+    '41-school-proposal-page1-cover.html',
+    '42-school-proposal-page2-format-day.html',
+    '43-school-proposal-page3-investment.html',
+  ] },
+  // Single-page contract that carries a verify QR (a UGT-issued agreement).
+  agr: { code: 'AGR', label: 'Sponsorship Agreement', template: '47-sponsorship-agreement.html' },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'acc', 'pass', 'rel', 'cons'] as const;
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
 
 // Wristband is one doc type (code BAND) but four artworks. The bandType picks
@@ -101,14 +121,37 @@ export const BAND_TEMPLATES: Record<string, string> = {
 };
 
 // Resolve the artwork file for a (type, payload). Only band is payload-dependent
-// (its bandType selects one of BAND_TEMPLATES); every other type is a fixed file.
+// (its bandType selects one of BAND_TEMPLATES); every other single-page type is a
+// fixed file. Multi-page types fall back to their first page here (callers that
+// need every page use resolveTemplates()).
 export function resolveTemplate(type: DocType, payload: any): string {
   if (type === 'band') {
     const bt = String(payload?.bandType || 'GA');
     return BAND_TEMPLATES[bt] || BAND_TEMPLATES.GA;
   }
-  return DOC_TYPES[type].template;
+  const def = DOC_TYPES[type];
+  return def.template || def.pages?.[0] || '';
 }
+
+// A multi-page type declares an ordered `pages` array (>1 page). Single-page
+// types (the 14 shipped ones + the agreement) have no `pages`.
+export function isMultiPage(type: DocType): boolean {
+  const pages = DOC_TYPES[type]?.pages;
+  return Array.isArray(pages) && pages.length > 0;
+}
+
+// Every page template for a (type, payload), in render order. Single-page types
+// return a one-element array so callers never special-case the count.
+export function resolveTemplates(type: DocType, payload: any): string[] {
+  const def = DOC_TYPES[type];
+  if (def.pages && def.pages.length) return def.pages.slice();
+  return [resolveTemplate(type, payload)];
+}
+
+// Which 0-based page carries the verify QR for a multi-page document. The
+// proposals put it on the cover (page 1) - the branded face and the page the
+// admin screenshots. Single-page types are index 0 by definition.
+function qrPageIndex(_type: DocType): number { return 0; }
 
 export function isDocType(v: unknown): v is DocType {
   return typeof v === 'string' && (ACTIVE_DOC_TYPES as readonly string[]).includes(v);
@@ -331,14 +374,22 @@ export async function fillTemplate(
   if (opts.chipsOn && opts.chipsOn.length) {
     const on = new Set(opts.chipsOn);
     const dim = opts.chipDimGroup ? opts.chipDimGroup + ':' : '';
+    // NOTE: each style-append re-adds the CLOSING quote it consumed. The regex
+    // `(style="[^"]*)"` captures the style value WITHOUT its closing quote and
+    // matches that quote; the replacement must therefore end with a `"` or the
+    // attribute is left unterminated. A lenient HTML parser tolerates that, but
+    // html-to-image later re-serialises the node to XHTML for its foreignObject
+    // snapshot, where an unterminated attribute swallows the next attribute into
+    // a bogus name (e.g. `lane:title`) and produces invalid XML - which makes
+    // the snapshot SVG fail to load. Keeping the quote keeps the markup valid.
     html = html.replace(/<span\b[^>]*\bdata-chip="([^"]*)"[^>]*>/g, (tag, token) => {
-      if (on.has(token)) return tag.replace(/(style="[^"]*)"/, '$1;box-shadow:0 0 0 3px #111;position:relative;z-index:2;');
-      if (dim && String(token).startsWith(dim)) return tag.replace(/(style="[^"]*)"/, '$1;opacity:.28;');
+      if (on.has(token)) return tag.replace(/(style="[^"]*)"/, '$1;box-shadow:0 0 0 3px #111;position:relative;z-index:2;"');
+      if (dim && String(token).startsWith(dim)) return tag.replace(/(style="[^"]*)"/, '$1;opacity:.28;"');
       return tag;
     });
     html = html.replace(/(<span\b[^>]*\bdata-chip-box="([^"]*)"[^>]*>)[\s\S]*?(<\/span>)/g, (m, open, token, close) => {
       if (!on.has(token)) return m;
-      const filled = open.replace(/(style="[^"]*)"/, '$1;background:#111;display:flex;align-items:center;justify-content:center;');
+      const filled = open.replace(/(style="[^"]*)"/, '$1;background:#111;display:flex;align-items:center;justify-content:center;"');
       return filled + `<span style="color:#fff;font-size:11px;line-height:1;font-weight:700;">&#10003;</span>` + close;
     });
   }
@@ -446,6 +497,26 @@ function qrBadgeHtml(templateFile: string, serial: string, qr: string): string {
       + `<img src="${qr}" alt="Verify" style="width:66px;height:66px;display:block;border:2px solid #111;border-radius:8px;background:#fff;" />`
       + `<div style="font-size:8.5px;font-weight:700;color:#111;line-height:1.5;">`
       + `<div style="font-family:'Bungee';font-size:7.5px;color:#E6218C;letter-spacing:.08em;">SCAN TO VERIFY</div>`
+      + `<div style="font-weight:800;">${escapeHtml(serial)}</div>`
+      + `<div style="color:#555;">urbangangtour.co.ke/verify</div></div></div>`;
+  }
+  // Proposal covers (partnership + school): a compact cream verify card pinned
+  // to the clear top-right corner of the magenta cover (the vertical brand text
+  // and centred logo sit elsewhere). This is the page the admin screenshots, so
+  // the verify mark rides the deliverable itself.
+  if (templateFile.startsWith('04-partnership') || templateFile.startsWith('41-school')) {
+    return `<div style="position:absolute;right:32px;top:38px;display:flex;flex-direction:column;align-items:center;gap:5px;z-index:7;background:#FFFDF7;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #111;padding:9px 9px 8px;">`
+      + `<img src="${qr}" alt="Verify" style="width:82px;height:82px;display:block;background:#fff;" />`
+      + `<div style="font-family:'Bungee';font-size:6.5px;letter-spacing:.08em;color:#E6218C;">SCAN TO VERIFY</div>`
+      + `<div style="font-size:8px;font-weight:800;color:#111;">${escapeHtml(serial)}</div></div>`;
+  }
+  // Sponsorship agreement: verify badge centred in the open band between the
+  // key-terms block and the signature block (margin-top:auto leaves it clear).
+  if (templateFile.startsWith('47-sponsorship')) {
+    return `<div style="position:absolute;left:50%;transform:translateX(-50%);top:700px;display:flex;align-items:center;gap:12px;z-index:6;background:#FFFDF7;border:2.5px solid #111;border-radius:12px;box-shadow:4px 4px 0 #111;padding:10px 16px;">`
+      + `<img src="${qr}" alt="Verify" style="width:74px;height:74px;display:block;border:2px solid #111;border-radius:8px;background:#fff;" />`
+      + `<div style="font-size:9px;font-weight:700;color:#111;line-height:1.55;">`
+      + `<div style="font-family:'Bungee';font-size:8px;color:#E6218C;letter-spacing:.08em;">SCAN TO VERIFY</div>`
       + `<div style="font-weight:800;">${escapeHtml(serial)}</div>`
       + `<div style="color:#555;">urbangangtour.co.ke/verify</div></div></div>`;
   }
@@ -763,6 +834,62 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
     const payload = { schoolName, schoolAddress, eventDate, returnByDate };
     return { type, payload, issued_to: schoolName, event: '', slug: slugify(schoolName || 'consent'), computed: {} };
   }
+  if (type === 'prop') {
+    // Partnership proposal (3 pages, ONE PROP serial). Only the cover carries
+    // blanks; pages 2/3 are fixed pitch/package content. preparedFor is the
+    // identity (the partner) and is required; preparedBy/date are simple fills.
+    const preparedFor = str(p.preparedFor, 160).trim();
+    const preparedBy = str(p.preparedBy, 160).trim();
+    const date = formatCertDate(str(p.date, 60));
+    if (!preparedFor) throw new Error('preparedFor_required');
+    const payload = { preparedFor, preparedBy, date };
+    return { type, payload, issued_to: preparedFor, event: '', slug: slugify(preparedFor), computed: {} };
+  }
+  if (type === 'sprop') {
+    // School proposal (3 pages, ONE SPROP serial). schoolName is the identity
+    // (required); attention + date fill the cover. HARD RULE (spec): page 3
+    // stays negotiation-framed - there is NO price field of any kind, so no
+    // figure can ever be keyed in or printed. eventDate is optional and only
+    // recorded (there is no date-of-event blank on the fixed pages).
+    const schoolName = str(p.schoolName, 160).trim();
+    const attention = str(p.attention, 120).trim();
+    const date = formatCertDate(str(p.date, 60));
+    const eventDate = formatCertDate(str(p.eventDate, 60));
+    if (!schoolName) throw new Error('schoolName_required');
+    const payload = { schoolName, attention, date, eventDate };
+    return { type, payload, issued_to: schoolName, event: eventDate, slug: slugify(schoolName), computed: {} };
+  }
+  if (type === 'agr') {
+    // Sponsorship agreement (single page, AGR serial, verify QR). sponsorName is
+    // the identity (required). lane is a single-select enum (ticks + highlights
+    // the matching chip, dims the others). rightsGranted is a multi-select that
+    // mirrors the template's own six checkboxes. feeKsh / inKindValue are AGREED
+    // figures (not derived) - validated + formatted as KSH, never trusted as
+    // words; an empty figure stays blank (not "KSH 0").
+    const sponsorName = str(p.sponsorName, 160).trim();
+    const sponsorAddress = str(p.sponsorAddress, 200).trim();
+    const contactPerson = str(p.contactPerson, 160).trim();
+    const coverage = str(p.coverage, 200).trim();
+    const LANES = ['Title', 'Headline', 'Official', 'Community'];
+    const laneRaw = str(p.lane, 20).trim();
+    const lane = LANES.find((l) => l.toLowerCase() === laneRaw.toLowerCase()) || 'Title';
+    const RIGHTS = ['LOGO', 'HOSTREAD', 'ACTIVATION', 'FEATURE', 'SOCIAL', 'EXCLUSIVITY'];
+    const rightsGranted = Array.from(new Set(
+      (Array.isArray(p.rightsGranted) ? p.rightsGranted : []).map((x: unknown) => str(x, 20).toUpperCase()).filter((x: string) => RIGHTS.includes(x))
+    ));
+    const exclusivityCategory = str(p.exclusivityCategory, 120).trim();
+    const feeKsh = p.feeKsh === '' || p.feeKsh === null || p.feeKsh === undefined ? '' : Math.max(0, Math.round(num(p.feeKsh)));
+    const inKindValue = p.inKindValue === '' || p.inKindValue === null || p.inKindValue === undefined ? '' : Math.max(0, Math.round(num(p.inKindValue)));
+    const paymentTerms = str(p.paymentTerms, 120).trim();
+    const balanceDueDate = formatCertDate(str(p.balanceDueDate, 60));
+    if (!sponsorName) throw new Error('sponsorName_required');
+    const payload = {
+      sponsorName, sponsorAddress, contactPerson, coverage, lane, rightsGranted,
+      exclusivityCategory, feeKsh, inKindValue, paymentTerms, balanceDueDate,
+    };
+    const event = coverage || `${lane} Partner`;
+    return { type, payload, issued_to: sponsorName, event, slug: slugify(sponsorName), computed: {} };
+  }
   // receipt
   const amount = Math.max(0, Math.round(num(p.amountFigures)));
   const methodRaw = str(p.method, 20);
@@ -1031,6 +1158,49 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
       },
     };
   }
+  if (type === 'prop') {
+    // The same values fill all three pages; only the cover has these blanks.
+    return {
+      values: {
+        preparedFor: payload.preparedFor || '',
+        preparedBy: payload.preparedBy || '',
+        date: payload.date || '',
+      },
+    };
+  }
+  if (type === 'sprop') {
+    // eventDate is recorded only (no slot on the fixed pages), so it is not a
+    // stamped value here - page 3 investment stays untouched (no price ever).
+    return {
+      values: {
+        schoolName: payload.schoolName || '',
+        attention: payload.attention || '',
+        date: payload.date || '',
+      },
+    };
+  }
+  if (type === 'agr') {
+    const rights: string[] = Array.isArray(payload.rightsGranted) ? payload.rightsGranted : [];
+    const feeKsh = payload.feeKsh === '' || payload.feeKsh === null || payload.feeKsh === undefined ? '' : 'KSH ' + fmtNum(payload.feeKsh);
+    const inKindValue = payload.inKindValue === '' || payload.inKindValue === null || payload.inKindValue === undefined ? '' : 'KSH ' + fmtNum(payload.inKindValue);
+    return {
+      values: {
+        sponsorName: payload.sponsorName || '',
+        sponsorAddress: payload.sponsorAddress || '',
+        contactPerson: payload.contactPerson || '',
+        coverage: payload.coverage || '',
+        exclusivityCategory: payload.exclusivityCategory || '',
+        feeKsh,
+        inKindValue,
+        paymentTerms: payload.paymentTerms || '',
+        balanceDueDate: payload.balanceDueDate || '',
+      },
+      // lane -> single-select chip (dim the other lanes); rights -> multi-select
+      // ticks. Same mechanism the accreditation / gate-pass chips use.
+      chipsOn: ['lane:' + (payload.lane || 'Title'), ...rights.map((r) => 'right:' + r)],
+      chipDimGroup: 'lane',
+    };
+  }
   // receipt
   const bal = payload.balanceDue === '' || payload.balanceDue === undefined || payload.balanceDue === null ? '' : fmtNum(payload.balanceDue);
   const values: Record<string, string> = {
@@ -1051,14 +1221,26 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
 
 // Full render pipeline: prepared payload -> filled HTML. serial 'PREVIEW' for
 // the live preview (no serial consumed).
-export async function renderDoc(type: DocType, payload: any, serial: string): Promise<string> {
+//
+// Return shape: a single-page type returns ONE filled HTML string (the shipped
+// contract, unchanged); a multi-page type returns an ARRAY of filled page HTMLs
+// (one per page, same serial + values). Every caller checks Array.isArray.
+//
+// The QR is issued once: only the page at qrPageIndex() (the cover) gets a
+// qrDataUrl, so a multi-page doc carries exactly one verify code. Parental
+// consent is signed BY THE SCHOOL, not UGT-issued, so it carries no QR at all.
+export async function renderDoc(type: DocType, payload: any, serial: string): Promise<string | string[]> {
   const { values, method, chipsOn, chipDimGroup } = buildValues(type, payload, serial);
-  // Parental consent is signed BY THE SCHOOL and is not a UGT-issued verifiable
-  // credential, so it carries no QR-verify (spec) - skip the QR entirely.
-  const qrDataUrl = type === 'cons' ? undefined : await makeQrDataUrl(serial);
-  const templateFile = resolveTemplate(type, payload);
+  const templates = resolveTemplates(type, payload);
   const tierScheme = type === 'tix' ? (payload?.tier === 'VIP' ? 'vip' : 'ga') : undefined;
-  return fillTemplate(templateFile, values, { serial, qrDataUrl, method, tierScheme, chipsOn, chipDimGroup });
+  const noQr = type === 'cons';
+  const qrIdx = qrPageIndex(type);
+  const pages: string[] = [];
+  for (let i = 0; i < templates.length; i++) {
+    const qrDataUrl = !noQr && i === qrIdx ? await makeQrDataUrl(serial) : undefined;
+    pages.push(await fillTemplate(templates[i], values, { serial, qrDataUrl, method, tierScheme, chipsOn, chipDimGroup }));
+  }
+  return isMultiPage(type) ? pages : pages[0];
 }
 
 // ---------------------------------------------------------------------------

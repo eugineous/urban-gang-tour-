@@ -24,7 +24,7 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'acc' | 'pass' | 'rel' | 'cons';
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr';
 const TYPES: { key: DocType; label: string }[] = [
   { key: 'invoice', label: 'Invoice' },
   { key: 'receipt', label: 'Receipt' },
@@ -40,7 +40,12 @@ const TYPES: { key: DocType; label: string }[] = [
   { key: 'pass', label: 'Gate / Vehicle Pass' },
   { key: 'rel', label: 'Talent Release' },
   { key: 'cons', label: 'Parental Consent' },
+  { key: 'prop', label: 'Partnership Proposal' },
+  { key: 'sprop', label: 'School Proposal' },
+  { key: 'agr', label: 'Sponsorship Agreement' },
 ];
+// Multi-page documents: ONE serial, several pages rasterised into ONE PDF.
+const isMultiPageType = (t: DocType) => t === 'prop' || t === 'sprop';
 const isCertType = (t: DocType) => t === 'certw' || t === 'certp';
 // Batch-by-quantity types: the admin enters a quantity N and a set of shared
 // event fields; the system reserves N sequential serials, each item getting its
@@ -65,6 +70,11 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   pass: { w: 640, h: 440 },
   rel: { w: 794, h: 1123 },
   cons: { w: 794, h: 1123 },
+  // Proposals + agreement are A4 portrait. The proposals are 3 pages each; the
+  // preview shows page 1 (the cover), the full run rasterises into one PDF.
+  prop: { w: 794, h: 1123 },
+  sprop: { w: 794, h: 1123 },
+  agr: { w: 794, h: 1123 },
 };
 
 // CSV column schema per certificate type (also the accepted header names).
@@ -233,6 +243,18 @@ export default function DocGen() {
   });
   const [cons, setCons] = useState({ schoolName: '', schoolAddress: '', eventDate: today(), returnByDate: '' });
 
+  // Multi-page proposals (3 pages each, one serial). Only the cover carries
+  // blanks; the pitch/package pages are fixed content.
+  const [prop, setProp] = useState({ preparedFor: '', preparedBy: '', date: today() });
+  const [sprop, setSprop] = useState({ schoolName: '', attention: '', date: today(), eventDate: '' });
+  // Sponsorship agreement (single page, real contract). lane single-select,
+  // rightsGranted multi-select, fee/in-kind are agreed KSH figures.
+  const [agr, setAgr] = useState({
+    sponsorName: '', sponsorAddress: '', contactPerson: '', coverage: '',
+    lane: 'Title', rightsGranted: [] as string[], exclusivityCategory: '',
+    feeKsh: '', inKindValue: '', paymentTerms: '', balanceDueDate: '',
+  });
+
   // Quantity-batch state (tickets / passes / bands).
   const [qty, setQty] = useState('3');
   const [qtyBusy, setQtyBusy] = useState(false);
@@ -332,6 +354,22 @@ export default function DocGen() {
     if (type === 'cons') {
       return { schoolName: cons.schoolName, schoolAddress: cons.schoolAddress, eventDate: cons.eventDate, returnByDate: cons.returnByDate } as Record<string, unknown>;
     }
+    if (type === 'prop') {
+      return { preparedFor: prop.preparedFor, preparedBy: prop.preparedBy, date: prop.date } as Record<string, unknown>;
+    }
+    if (type === 'sprop') {
+      return { schoolName: sprop.schoolName, attention: sprop.attention, date: sprop.date, eventDate: sprop.eventDate } as Record<string, unknown>;
+    }
+    if (type === 'agr') {
+      return {
+        sponsorName: agr.sponsorName, sponsorAddress: agr.sponsorAddress, contactPerson: agr.contactPerson,
+        coverage: agr.coverage, lane: agr.lane, rightsGranted: agr.rightsGranted,
+        exclusivityCategory: agr.exclusivityCategory,
+        feeKsh: agr.feeKsh === '' ? '' : num(agr.feeKsh),
+        inKindValue: agr.inKindValue === '' ? '' : num(agr.inKindValue),
+        paymentTerms: agr.paymentTerms, balanceDueDate: agr.balanceDueDate,
+      } as Record<string, unknown>;
+    }
     // budget
     return {
       eventName: bud.eventName, date: bud.date, preparedBy: bud.preparedBy,
@@ -341,7 +379,7 @@ export default function DocGen() {
       moneyIn: moneyIn.filter((r) => r.source || r.count || r.rate).map((r) => ({ source: r.source, count: num(r.count), rate: num(r.rate) })),
       moneyOut: moneyOut.filter((r) => r.item || r.supplier || r.amount).map((r) => ({ item: r.item, supplier: r.supplier, amount: num(r.amount) })),
     } as Record<string, unknown>;
-  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, acc, pass, rel, cons]);
+  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, acc, pass, rel, cons, prop, sprop, agr]);
 
   // What the live preview renders: in batch mode, the first parsed row; else
   // the single-form payload.
@@ -357,8 +395,10 @@ export default function DocGen() {
     if (type === 'certw') return !!String(p?.recipientName || '').trim();
     if (type === 'certp') return !!String(p?.participantName || '').trim();
     if (type === 'tix' || type === 'spass') return !!String(p?.eventName || '').trim();
-    if (type === 'ltr' || type === 'cons') return !!String(p?.schoolName || '').trim();
+    if (type === 'ltr' || type === 'cons' || type === 'sprop') return !!String(p?.schoolName || '').trim();
     if (type === 'acc') return !!String(p?.fullName || '').trim();
+    if (type === 'prop') return !!String(p?.preparedFor || '').trim();
+    if (type === 'agr') return !!String(p?.sponsorName || '').trim();
     if (type === 'pass') return !!String(p?.vehicleReg || '').trim();
     if (type === 'rel') {
       // Need talentName + age; and, for a minor, the full guardian block - so the
@@ -419,11 +459,15 @@ export default function DocGen() {
     try {
       // Phase 1: reserve the real serial + get the filled HTML.
       const r1 = await api('/api/admin/docs/generate', { method: 'POST', body: JSON.stringify({ type, payload: singlePayload }) });
-      if (r1.status !== 200 || !r1.data?.html) { say('Generate failed: ' + (r1.data?.error || r1.status)); setGen(false); return; }
-      const { id, serial, html, filename } = r1.data;
+      if (r1.status !== 200 || (!r1.data?.html && !r1.data?.pages)) { say('Generate failed: ' + (r1.data?.error || r1.status)); setGen(false); return; }
+      const { id, serial, html, pages, filename } = r1.data;
 
-      // Rasterise the returned HTML's document node.
-      const { pngDataUrl, pdfDataUrl } = await rasterise(html);
+      // Single-page types return one filled HTML (html); multi-page types
+      // (proposals) return an array of page HTMLs (pages) that rasterise into
+      // ONE multi-page PDF stored under this one serial + record.
+      const { pngDataUrl, pdfDataUrl } = Array.isArray(pages)
+        ? await rasteriseMultiPage(pages)
+        : await rasterise(html);
 
       // Phase 2: attach the rendered pdf/png to the reserved record.
       const r2 = await api('/api/admin/docs/generate', { method: 'POST', body: JSON.stringify({ id, pdfBase64: pdfDataUrl, pngBase64: pngDataUrl }) });
@@ -577,7 +621,10 @@ export default function DocGen() {
     : type === 'acc' ? 'Media accreditation'
     : type === 'pass' ? 'Gate / vehicle pass'
     : type === 'rel' ? 'Talent media release'
-    : type === 'cons' ? 'Parental consent letter' : 'Event budget sheet';
+    : type === 'cons' ? 'Parental consent letter'
+    : type === 'prop' ? 'Partnership proposal (3 pages)'
+    : type === 'sprop' ? 'School proposal (3 pages)'
+    : type === 'agr' ? 'Sponsorship agreement' : 'Event budget sheet';
 
   const qtyN = Math.max(1, Math.min(300, Math.round(num(qty)) || 1));
   const qtyReady = type === 'band' ? true : !!String((singlePayload as any)?.eventName || '').trim();
@@ -643,6 +690,9 @@ export default function DocGen() {
                 {type === 'pass' && <GatePassForm pass={pass} setPass={setPass} />}
                 {type === 'rel' && <ReleaseForm rel={rel} setRel={setRel} computed={computed} />}
                 {type === 'cons' && <ConsentForm cons={cons} setCons={setCons} />}
+                {type === 'prop' && <ProposalForm prop={prop} setProp={setProp} />}
+                {type === 'sprop' && <SchoolProposalForm sprop={sprop} setSprop={setSprop} />}
+                {type === 'agr' && <AgreementForm agr={agr} setAgr={setAgr} />}
               </div>
 
               {isQtyType(type) ? (
@@ -761,7 +811,11 @@ async function rasterise(
     const h = node.offsetHeight || 1123;
 
     const htmlToImage = await import('html-to-image');
-    const pngDataUrl = await htmlToImage.toPng(node, { pixelRatio: opts.pixelRatio || 2, width: w, height: h, backgroundColor: '#ffffff', cacheBust: true });
+    // imagePlaceholder: a referenced asset that fails to load (a partner logo
+    // the owner hasn't supplied yet) renders blank instead of rejecting the
+    // whole capture. Only affects failed images, so docs whose assets all load
+    // are byte-identical to before.
+    const pngDataUrl = await htmlToImage.toPng(node, { pixelRatio: opts.pixelRatio || 2, width: w, height: h, backgroundColor: '#ffffff', cacheBust: true, imagePlaceholder: TRANSPARENT_PX });
 
     const { jsPDF } = await import('jspdf');
     // Page size: the node's own pixel dims in mm (96px = 1 inch), unless the
@@ -775,6 +829,64 @@ async function rasterise(
   } finally {
     document.body.removeChild(holder);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Multi-page rasterisation: an array of filled page HTMLs -> ONE PDF (one page
+// per input, each at its own size) + the page-1 PNG (the record's thumbnail).
+// Mirrors rasterise()'s mount/wait/snap, then jsPDF.addPage() between pages so
+// a 3-page proposal is a single PDF under one serial. Left untouched: the
+// single-page rasterise() path the 14 shipped types use.
+// ---------------------------------------------------------------------------
+// A 1x1 transparent PNG. Used as html-to-image's placeholder so a referenced
+// asset that is missing (e.g. the owner-supplied "PPP TV" partner logo on the
+// proposal covers) renders BLANK instead of rejecting the whole snapshot -
+// exactly the "renders blank until supplied" behaviour the covers expect.
+const TRANSPARENT_PX = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+async function rasteriseMultiPage(pages: string[]): Promise<{ pngDataUrl: string; pdfDataUrl: string }> {
+  if (!pages.length) throw new Error('no_pages');
+  const htmlToImage = await import('html-to-image');
+  const { jsPDF } = await import('jspdf');
+  let pdf: any = null;
+  let firstPng = '';
+
+  for (let i = 0; i < pages.length; i++) {
+    const parsed = new DOMParser().parseFromString(pages[i], 'text/html');
+    const page = parsed.querySelector('[data-doc-page]') as HTMLElement | null;
+    if (!page) throw new Error('no_doc_page');
+
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1;background:#fff;';
+    const node = document.importNode(page, true) as HTMLElement;
+    holder.appendChild(node);
+    document.body.appendChild(holder);
+
+    try {
+      const imgs = Array.from(node.querySelectorAll('img'));
+      await Promise.all(imgs.map((img) => (img.complete && img.naturalWidth > 0)
+        ? Promise.resolve()
+        : new Promise<void>((res) => { img.onload = () => res(); img.onerror = () => res(); })));
+      try { await (document as any).fonts?.ready; } catch { /* fonts optional */ }
+      await new Promise((r) => setTimeout(r, 120));
+
+      const w = node.offsetWidth || 794;
+      const h = node.offsetHeight || 1123;
+      const png = await htmlToImage.toPng(node, { pixelRatio: 2, width: w, height: h, backgroundColor: '#ffffff', cacheBust: true, imagePlaceholder: TRANSPARENT_PX });
+      if (i === 0) firstPng = png;
+
+      const mmW = (w * 25.4) / 96;
+      const mmH = (h * 25.4) / 96;
+      const orientation = mmW > mmH ? 'landscape' : 'portrait';
+      if (!pdf) pdf = new jsPDF({ orientation, unit: 'mm', format: [mmW, mmH], compress: true });
+      else pdf.addPage([mmW, mmH], orientation);
+      pdf.addImage(png, 'PNG', 0, 0, mmW, mmH);
+    } finally {
+      document.body.removeChild(holder);
+    }
+  }
+
+  return { pngDataUrl: firstPng, pdfDataUrl: pdf.output('datauristring') };
 }
 
 // ---------------------------------------------------------------------------
@@ -1531,6 +1643,115 @@ function ConsentForm({ cons, setCons }: any) {
       </div>
       <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
         This letter is signed and stamped BY THE SCHOOL. The generator only pre-fills these blanks; the principal's signature and school stamp stay physical, and there is no verify QR. A CONS serial is still recorded.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Partnership proposal (3 pages, ONE PROP serial). Only the cover carries these
+// blanks; the pitch + package pages are fixed content. The verify QR prints on
+// the cover, and all three pages rasterise into one PDF.
+// ---------------------------------------------------------------------------
+function ProposalForm({ prop, setProp }: any) {
+  const set = (k: string) => (e: any) => setProp({ ...prop, [k]: e.target.value });
+  return (
+    <div>
+      <Field lbl="Prepared for (required)"><input style={inp} value={prop.preparedFor} onChange={set('preparedFor')} placeholder="Partner / company name" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Prepared by"><input style={inp} value={prop.preparedBy} onChange={set('preparedBy')} placeholder="e.g. The Gang / your name" /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={prop.date} onChange={set('date')} /></Field>
+      </div>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+        Three pages: cover (these details), the pitch, and the packages. One PROP serial; the verify QR prints on the cover. Preview shows page 1; Generate makes a single 3-page PDF.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// School proposal (3 pages, ONE SPROP serial). Page 3 stays negotiation-framed
+// by design: there is NO price field here and none is ever printed.
+// ---------------------------------------------------------------------------
+function SchoolProposalForm({ sprop, setSprop }: any) {
+  const set = (k: string) => (e: any) => setSprop({ ...sprop, [k]: e.target.value });
+  return (
+    <div>
+      <Field lbl="School name (required)"><input style={inp} value={sprop.schoolName} onChange={set('schoolName')} placeholder="Host school name" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Attention (Dear...)"><input style={inp} value={sprop.attention} onChange={set('attention')} placeholder="e.g. The Principal" /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={sprop.date} onChange={set('date')} /></Field>
+      </div>
+      <Field lbl="Proposed event date (optional, for your records)"><input style={inp} value={sprop.eventDate} onChange={set('eventDate')} placeholder="e.g. Term 2, or Sun 19 Jul" /></Field>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+        Three pages. By design there is NO price to enter and none is printed: page 3 stays negotiation-framed (agreed with the school after the recon visit). One SPROP serial; verify QR on the cover.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sponsorship agreement (single page, real contract, AGR serial + verify QR).
+// lane is single-select (ticks + highlights the matching chip, dims the rest);
+// rights are multi-select ticks mirroring the contract's own checkboxes; fee
+// and in-kind value are agreed KSH figures formatted server-side.
+// ---------------------------------------------------------------------------
+const AGR_LANES = ['Title', 'Headline', 'Official', 'Community'];
+const AGR_RIGHTS: { key: string; label: string }[] = [
+  { key: 'LOGO', label: 'Logo on backdrop & banners' },
+  { key: 'HOSTREAD', label: 'Host-read mentions' },
+  { key: 'ACTIVATION', label: 'Activation / sampling' },
+  { key: 'FEATURE', label: 'Feature in episode edit' },
+  { key: 'SOCIAL', label: 'Social content & tags' },
+  { key: 'EXCLUSIVITY', label: 'Category exclusivity' },
+];
+function AgreementForm({ agr, setAgr }: any) {
+  const set = (k: string) => (e: any) => setAgr({ ...agr, [k]: e.target.value });
+  const toggleRight = (k: string) => {
+    const cur: string[] = agr.rightsGranted || [];
+    setAgr({ ...agr, rightsGranted: cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k] });
+  };
+  const exclusivityOn = (agr.rightsGranted || []).includes('EXCLUSIVITY');
+  return (
+    <div>
+      <Field lbl="Sponsor name (required)"><input style={inp} value={agr.sponsorName} onChange={set('sponsorName')} placeholder="Sponsor / brand legal name" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Sponsor address"><input style={inp} value={agr.sponsorAddress} onChange={set('sponsorAddress')} placeholder="P.O. Box / physical address" /></Field>
+        <Field lbl="Contact person"><input style={inp} value={agr.contactPerson} onChange={set('contactPerson')} placeholder="Name & title" /></Field>
+      </div>
+      <Field lbl="Covering (event / stops / season)"><input style={inp} value={agr.coverage} onChange={set('coverage')} placeholder="e.g. Nairobi stop, Oct 2026" /></Field>
+      <label style={label}>Partnership lane (single-select)</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        {AGR_LANES.map((l) => (
+          <button key={l} onClick={() => setAgr({ ...agr, lane: l })}
+            style={{ ...btnSmall, background: agr.lane === l ? '#E6218C' : '#fff', color: agr.lane === l ? '#fff' : '#111' }}>{l}</button>
+        ))}
+      </div>
+      <label style={label}>Rights granted (tick all that apply)</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        {AGR_RIGHTS.map((r) => {
+          const on = (agr.rightsGranted || []).includes(r.key);
+          return (
+            <button key={r.key} onClick={() => toggleRight(r.key)}
+              style={{ ...btnSmall, background: on ? '#111' : '#fff', color: on ? '#fff' : '#111' }}>
+              {on ? '✓ ' : ''}{r.label}
+            </button>
+          );
+        })}
+      </div>
+      {exclusivityOn && (
+        <Field lbl="Exclusivity category"><input style={inp} value={agr.exclusivityCategory} onChange={set('exclusivityCategory')} placeholder="e.g. Official soft drink" /></Field>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Sponsorship fee (KSH)"><input style={inp} type="number" min={0} value={agr.feeKsh} onChange={set('feeKsh')} placeholder="agreed figure" /></Field>
+        <Field lbl="In-kind value (KSH)"><input style={inp} type="number" min={0} value={agr.inKindValue} onChange={set('inKindValue')} placeholder="agreed figure" /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Payable (deposit)"><input style={inp} value={agr.paymentTerms} onChange={set('paymentTerms')} placeholder="e.g. 50%" /></Field>
+        <Field lbl="Balance due by"><input type="date" style={inp} value={agr.balanceDueDate} onChange={set('balanceDueDate')} /></Field>
+      </div>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+        The selected lane is ticked and highlighted on the contract; the others fade back. Ticked rights print as filled boxes. Fee and in-kind value are formatted as KSH. Carries a verify QR (AGR serial).
       </div>
     </div>
   );

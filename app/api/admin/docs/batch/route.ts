@@ -85,7 +85,10 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
     let html = '';
     try {
-      html = await renderDoc(type, pr.payload, rec.serial);
+      // Batch is only ever the certificate / quantity (single-page) types, so
+      // renderDoc returns a string here; coerce defensively to stay type-safe.
+      const rendered = await renderDoc(type, pr.payload, rec.serial);
+      html = Array.isArray(rendered) ? rendered[0] : rendered;
     } catch (e) {
       return NextResponse.json(
         { error: 'render_failed', row: i, serial: rec.serial, detail: (e as Error)?.message, reserved: docs },

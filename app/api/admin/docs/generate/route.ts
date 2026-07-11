@@ -85,16 +85,22 @@ async function phaseReserve(req: Request, body: any): Promise<NextResponse> {
     return NextResponse.json({ error: 'insert_failed', detail: (e as Error)?.message }, { status: 500 });
   }
 
-  let html = '';
+  let rendered: string | string[];
   try {
-    html = await renderDoc(type, prepared.payload, rec.serial);
+    rendered = await renderDoc(type, prepared.payload, rec.serial);
   } catch (e) {
     return NextResponse.json({ error: 'render_failed', detail: (e as Error)?.message }, { status: 500 });
   }
 
   await docgenAudit(adminActor(req), 'docs.generate', { serial: rec.serial, type, issued_to: prepared.issued_to });
   const filename = `${rec.serial}-${def.code}-${prepared.slug}.pdf`;
-  return NextResponse.json({ ok: true, phase: 'reserved', id: rec.id, serial: rec.serial, html, filename });
+  // Single-page types return { html } (the shipped shape); multi-page types
+  // return { pages } (an array of page HTMLs). The client rasterises each page
+  // and combines them into ONE PDF stored under this one serial + record.
+  if (Array.isArray(rendered)) {
+    return NextResponse.json({ ok: true, phase: 'reserved', id: rec.id, serial: rec.serial, pages: rendered, filename });
+  }
+  return NextResponse.json({ ok: true, phase: 'reserved', id: rec.id, serial: rec.serial, html: rendered, filename });
 }
 
 async function phaseAttach(req: Request, body: any): Promise<NextResponse> {
