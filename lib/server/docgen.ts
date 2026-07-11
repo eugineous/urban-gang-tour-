@@ -72,8 +72,10 @@ export interface DocTypeDef { code: string; label: string; template: string; }
 export const DOC_TYPES: Record<string, DocTypeDef> = {
   invoice: { code: 'INV', label: 'Invoice', template: '26-invoice-a4.html' },
   receipt: { code: 'RCT', label: 'Receipt', template: '27-receipt-a5-slip.html' },
+  certw: { code: 'CERTW', label: 'Winner Certificate', template: '07-certificate-winner.html' },
+  certp: { code: 'CERTP', label: 'Participation Certificate', template: '08-certificate-participation.html' },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt'] as const;
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
 
 export function isDocType(v: unknown): v is DocType {
@@ -327,6 +329,22 @@ export function slugify(v: string): string {
   return (String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)) || 'doc';
 }
 
+// Certificate event date: an ISO yyyy-mm-dd (from a date input) becomes a
+// human "11 July 2026"; any other free-text date (e.g. "Grand Finale, Dec
+// 2026") passes through untouched. No locale dependency, no dashes in output.
+const CERT_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+export function formatCertDate(v: string): string {
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (m) {
+    const y = m[1], mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return `${d} ${CERT_MONTHS[mo - 1]} ${y}`;
+  }
+  return s;
+}
+
 export function preparePayload(type: DocType, raw: any): PreparedDoc {
   const p = raw && typeof raw === 'object' ? raw : {};
   if (type === 'invoice') {
@@ -350,6 +368,30 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
       bankDetails: str(p.bankDetails, 120),
     };
     return { type, payload, issued_to: payload.billTo, event: payload.eventProject, slug: slugify(payload.billTo || payload.eventProject), computed: { ...totals } };
+  }
+  if (type === 'certw') {
+    // Winner certificate. recipientName is the identity of the award and is
+    // required; the descriptive blanks (category / stop / date) may be left
+    // empty, exactly as a hand-filled certificate can be. eventDate is
+    // formatted to a readable form; a blank stays blank.
+    const recipientName = str(p.recipientName, 120).trim();
+    const category = str(p.category, 80).trim();
+    const stopName = str(p.stopName, 80).trim();
+    const eventDate = formatCertDate(str(p.eventDate, 60));
+    if (!recipientName) throw new Error('recipientName_required');
+    const payload = { recipientName, category, stopName, eventDate };
+    const event = [category, stopName].filter(Boolean).join(' - ');
+    return { type, payload, issued_to: recipientName, event, slug: slugify(recipientName), computed: { eventDate } };
+  }
+  if (type === 'certp') {
+    // Participation certificate. participantName required; pod / stop optional.
+    const participantName = str(p.participantName, 120).trim();
+    const podName = str(p.podName, 80).trim();
+    const stopName = str(p.stopName, 80).trim();
+    if (!participantName) throw new Error('participantName_required');
+    const payload = { participantName, podName, stopName };
+    const event = [podName, stopName].filter(Boolean).join(' - ');
+    return { type, payload, issued_to: participantName, event, slug: slugify(participantName), computed: {} };
   }
   // receipt
   const amount = Math.max(0, Math.round(num(p.amountFigures)));
@@ -397,6 +439,27 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
       values[`item${n}_amount`] = it.qty && it.rate ? fmtNum(it.qty * it.rate) : '';
     });
     return { values };
+  }
+  if (type === 'certw') {
+    return {
+      values: {
+        recipientName: payload.recipientName || '',
+        category: payload.category || '',
+        stopName: payload.stopName || '',
+        eventDate: payload.eventDate || '',
+        certNo: serial,
+      },
+    };
+  }
+  if (type === 'certp') {
+    return {
+      values: {
+        participantName: payload.participantName || '',
+        podName: payload.podName || '',
+        stopName: payload.stopName || '',
+        certNo: serial,
+      },
+    };
   }
   // receipt
   const bal = payload.balanceDue === '' || payload.balanceDue === undefined || payload.balanceDue === null ? '' : fmtNum(payload.balanceDue);
