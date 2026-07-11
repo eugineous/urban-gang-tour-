@@ -11,11 +11,13 @@ export default function BuyBox({ eventId, tiers }: { eventId: string; tiers: Tie
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [accepted, setAccepted] = useState(false);
 
   const total = (tiers[tier]?.price || 0) * qty;
 
   const buy = async () => {
     setErr('');
+    if (!accepted) { setErr('Please accept the terms before paying'); return; }
     if (name.trim().length < 2) { setErr('Enter the ticket holder name'); return; }
     setBusy(true);
     try {
@@ -59,6 +61,22 @@ export default function BuyBox({ eventId, tiers }: { eventId: string; tiers: Tie
           <input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div style={{ fontFamily: 'Anton', fontSize: 22, marginTop: 4 }}>Total: KES {total.toLocaleString('en-KE')}</div>
+        <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 12, lineHeight: 1.55, color: '#444' }}>
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+            aria-label="Accept the terms before paying"
+            style={{ flex: 'none', width: 17, height: 17, marginTop: 1, accentColor: '#E6218C', cursor: 'pointer' }}
+          />
+          <span>
+            By paying, I confirm my details are correct and I agree to the{' '}
+            <a href="/terms" target="_blank" rel="noopener" style={{ color: '#E6218C', fontWeight: 700 }}>Terms</a>{' '}
+            and <a href="/refund-policy" target="_blank" rel="noopener" style={{ color: '#E6218C', fontWeight: 700 }}>Refund Policy</a>.
+            This event is run by its organizer and Urban Gang Tour securely processes the payment on their behalf.
+            Tickets are valid for one entry. Refunds apply only as set out in the Refund Policy and are handled together with the organizer.
+          </span>
+        </div>
         {err ? <div style={{ color: '#C0392B', fontSize: 13 }}>{err}</div> : null}
         <button
           onClick={buy}

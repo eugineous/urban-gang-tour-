@@ -272,6 +272,10 @@
 <input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email — ticket & invoice sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ ticketPhone }}" onChange="{{ onTPhone }}" placeholder="Phone (M-Pesa)" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
+<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;font-size:12px;line-height:1.55;color:#444">
+<input type="checkbox" checked="{{ ticAck }}" onChange="{{ onTAck }}" aria-label="Accept the terms before paying" style="flex:none;width:17px;height:17px;margin-top:1px;accent-color:#E6218C;cursor:pointer">
+<span>By paying, I confirm my details are correct and I agree to the <a href="/terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Terms</a>, <a href="/refund-policy" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Refund Policy</a> and <a href="/ticket-terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Ticket Terms</a>. Tickets are valid for one entry and are verified at the gate. Payment is processed securely by M-Pesa or Paystack and Urban Gang Tour does not store card details. Refunds apply only as set out in the Refund Policy.</span>
+</div>
 <sc-if value="{{ ticketErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ ticketErr }}</div></sc-if>
 <div style="display:flex;gap:10px">
 <button type="button" onClick="{{ backTicketSelect }}" style="flex:none;padding:14px 18px;border:3px solid #111;border-radius:13px;background:#fff;font-family:'Anton';font-size:16px">Back</button>
@@ -365,6 +369,10 @@
 <input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="Full name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email — receipt sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
 <input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="Phone (M-Pesa) &amp; delivery contact" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
+<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;font-size:12px;line-height:1.55;color:#444">
+<input type="checkbox" checked="{{ coAck }}" onChange="{{ onCoAck }}" aria-label="Accept the terms before paying" style="flex:none;width:17px;height:17px;margin-top:1px;accent-color:#E6218C;cursor:pointer">
+<span>By paying, I confirm my details are correct and I agree to the <a href="/terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Terms</a>, <a href="/refund-policy" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Refund Policy</a> and <a href="/ticket-terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Ticket Terms</a>. Tickets are valid for one entry and are verified at the gate. Payment is processed securely by M-Pesa or Paystack and Urban Gang Tour does not store card details. Refunds apply only as set out in the Refund Policy.</span>
+</div>
 <sc-if value="{{ coErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ coErr }}</div></sc-if>
 <button type="submit" style="width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ coPayLabel }}</button>
 <button type="button" onClick="{{ payCard }}" style="width:100%;margin-top:10px;padding:15px;border:3px solid #111;border-radius:13px;background:#21C7E6;color:#111;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay with Card</button>
@@ -1585,9 +1593,9 @@ class Component extends DCLogic {
       page:((typeof window!=='undefined'&&window.__UGT_PAGE)||'home'), mobileOpen:false, bookOpen:false,
       workTab:'brands', cart:[], cartOpen:false, quickId:null, memberId:null, canInstall:false,
       form:{name:'',org:'',email:'',phone:'',type:'School Booking',message:''},
-      ticket:{eventId:null,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false},
+      ticket:{eventId:null,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false,ack:false},
       swipe:{i:0,size:'M'}, quickSize:'M', quickQty:1,
-      checkout:{stage:null,name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[]}, blog:{name:'',school:'',title:'',pitch:'',sent:false}, orders:[], extraStops:[], newStop:{name:'',loc:'',day:'',mon:''},
+      checkout:{stage:null,name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[],ack:false}, blog:{name:'',school:'',title:'',pitch:'',sent:false}, orders:[], extraStops:[], newStop:{name:'',loc:'',day:'',mon:''},
       formSent:false, toast:'',
       admin:{authed:false,user:'',pass:'',email:'',tab:'bookings',filter:'all',err:'',role:'',name:'',perms:[]},
       railMeta:{}, admins:[], publishedBlogs:[], galleryPics:{}, galSchool:'', galBusy:false, galPublicSchool:'',
@@ -1907,7 +1915,7 @@ class Component extends DCLogic {
     return { price, priceFmt: this.fmt(price), hasPromo: true, origFmt: this.fmt(p.price), badge };
   };
   qr(seed){ let h=0; for(let i=0;i<seed.length;i++){ h=(h*31+seed.charCodeAt(i))>>>0; } const n=13,cells=[]; let x=h||1; for(let i=0;i<n*n;i++){ x=(x*1103515245+12345)>>>0; const r=Math.floor(i/n),c=i%n; const corner=(r<3&&c<3)||(r<3&&c>=n-3)||(r>=n-3&&c<3); if(corner){ const cr=r<3?r:n-1-r; const cc=c<3?c:n-1-c; cells.push(cr===0||cc===0||cr===2||cc===2||(cr===1&&cc===1)); } else { cells.push(((x>>7)&1)===1); } } return cells; }
-  buyTicket=(id)=>this.setState({ticket:{eventId:id,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false}});
+  buyTicket=(id)=>this.setState({ticket:{eventId:id,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false,ack:false}});
   closeTicket=()=>{ this.stopPay(); this.setState(s=>({ticket:{...s.ticket,eventId:null}})); };
   closeTicketBg=(e)=>{ if(e.target===e.currentTarget) this.closeTicket(); };
   setTier=(i)=>this.setState(s=>({ticket:{...s.ticket,tier:i}}));
@@ -1915,11 +1923,13 @@ class Component extends DCLogic {
   onTName=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,name:v}}));};
   onTEmail=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,email:v}}));};
   onTPhone=(e)=>{const v=e.target.value;this.setState(s=>({ticket:{...s.ticket,phone:v}}));};
+  onTAck=(e)=>{const v=e.target.checked;this.setState(s=>({ticket:{...s.ticket,ack:v}}));};
   ticStage=(st)=>this.setState(s=>({ticket:{...s.ticket,stage:st}}));
   confirmTicket = async (e) => {
     if(e&&e.preventDefault)e.preventDefault();
     const t=this.state.ticket;
     if(t.busy) return;
+    if(!t.ack){ this.setPay('tic',{err:'Please accept the terms before paying'}); return; }
     if(!t.name.trim()||!t.email.trim()){ this.setPay('tic',{err:'Fill in your name and email so we can send your ticket.'}); return; }
     const ph=this.msisdn(t.phone);
     if(!ph){ this.setPay('tic',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
@@ -1948,11 +1958,11 @@ class Component extends DCLogic {
   removeAt = (i) => this.setState(s=>({cart:s.cart.filter((x,j)=>j!==i)}));
   openQuick = (id) => this.setState({quickId:id});
   quickClose = () => this.setState({quickId:null});
-  checkout = () => this.setState({cartOpen:false, checkout:{stage:'details',name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[]}});
+  checkout = () => this.setState({cartOpen:false, checkout:{stage:'details',name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[],ack:false}});
   closeCheckout = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:null}})); };
   closeCheckoutBg = (e) => { if(e.target===e.currentTarget) this.closeCheckout(); };
   setCo = (k,v) => this.setState(s=>({checkout:{...s.checkout,[k]:v}}));
-  payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
+  payCard = () => { const s=this.state; if(!s.cart.length) return; if(!s.checkout.ack){ this.setPay('co',{err:'Please accept the terms before paying'}); return; } const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
   msisdn = (raw) => { const d=String(raw||'').replace(/\D/g,''); if(/^254(7|1)\d{8}$/.test(d)) return d; if(/^0(7|1)\d{8}$/.test(d)) return '254'+d.slice(1); if(/^(7|1)\d{8}$/.test(d)) return '254'+d; return null; };
   maskPhone = (p) => { const d=String(p||'').replace(/\D/g,''); return d.length>=8 ? d.slice(0,6)+'***'+d.slice(-2) : ''; };
   fmtSecs = (v) => { const n=Math.max(0,Number(v)||0); return Math.floor(n/60)+':'+String(n%60).padStart(2,'0'); };
@@ -2014,6 +2024,7 @@ class Component extends DCLogic {
     if(e&&e.preventDefault)e.preventDefault();
     const s=this.state, co=s.checkout;
     if(co.busy) return;
+    if(!co.ack){ this.setPay('co',{err:'Please accept the terms before paying'}); return; }
     if(!co.name.trim()||!co.email.trim()||!s.cart.length){ this.setPay('co',{err:'Fill in your name and email so we can send your receipt.'}); return; }
     const ph=this.msisdn(co.phone);
     if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
@@ -2137,6 +2148,7 @@ class Component extends DCLogic {
       ticketOpen:!!tk.eventId, ticketEvent:(tev||{name:''}), ticketTiers:(tev?tev.tiers.map((tr,i)=>({name:tr.name,priceFmt:this.fmt(tr.price),bg:(i===tk.tier?'#FFD400':'#fff'),pick:()=>this.setTier(i)})):[]),
       closeTicket:this.closeTicket, closeTicketBg:this.closeTicketBg, ticQtyUp:()=>this.ticQty(1), ticQtyDown:()=>this.ticQty(-1), ticketQty:tk.qty,
       onTName:this.onTName, onTEmail:this.onTEmail, onTPhone:this.onTPhone, ticketName:tk.name, ticketEmail:tk.email, ticketPhone:tk.phone,
+      ticAck:tk.ack, onTAck:this.onTAck,
       toTicketDetails:()=>this.ticStage('details'), backTicketSelect:()=>this.ticStage('select'), confirmTicket:this.confirmTicket,
       ticketStageSelect:tk.stage==='select', ticketStageDetails:tk.stage==='details', ticketStageDone:tk.stage==='done',
       ticketStageStk:tk.stage==='stk', ticketStageFailed:tk.stage==='failed', ticketStageSlow:tk.stage==='slow',
@@ -2152,8 +2164,8 @@ class Component extends DCLogic {
       coStageStk:s.checkout.stage==='stk', coStageFailed:s.checkout.stage==='failed', coStageSlow:s.checkout.stage==='slow',
       coErr:(s.checkout.err||''), coPayLabel:(s.checkout.busy?'Sending prompt...':'Pay & Get Receipt'), coOrderId:(s.checkout.orderId||''), coStkPhone:(this.msisdn(s.checkout.phone)||s.checkout.phone||''), coSecsFmt:this.fmtSecs(s.checkout.secs), coDot1:(s.checkout.secs%3===2?'1':'0.25'), coDot2:(s.checkout.secs%3===1?'1':'0.25'), coDot3:(s.checkout.secs%3===0?'1':'0.25'), coTryAgain:this.coTryAgain, coReceiptHref:('/receipt/'+(s.checkout.orderId||'')), coPhoneMasked:this.maskPhone(s.checkout.order?s.checkout.order.phone:(this.msisdn(s.checkout.phone)||'')),
       coLines:s.cart.map(l=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt(pi.price*l.qty)}; }),
-      coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone,
-      onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value),
+      coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone, coAck:s.checkout.ack,
+      onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value), onCoAck:(e)=>this.setCo('ack',e.target.checked),
       confirmOrder:this.confirmOrder, payCard:this.payCard, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,
       coOrder:(s.checkout.order||{invoice:'',ref:'',date:'',time:'',method:'',receipt:'',phone:'',name:'',email:'',total:0,lines:[]}),
       coOrderLines:(s.checkout.order?s.checkout.order.lines.map(l=>({name:l.name,qty:l.qty,unitFmt:this.fmt(l.unit),totalFmt:this.fmt(l.total)})):[]),
