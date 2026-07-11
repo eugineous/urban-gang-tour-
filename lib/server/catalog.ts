@@ -1,5 +1,13 @@
 // Server-side price catalog — the ONLY source of truth for amounts.
 // Never trust prices sent from the browser.
+import {
+  getActivePromos,
+  bestAutoDiscountForProduct,
+  applyDiscount,
+  validatePromoCode,
+  discountFromCodeRow,
+} from './promos';
+
 export const PRICES: Record<string, { name: string; price: number }> = {
   p1: { name: 'Magenta Oversized Tee', price: 2500 },
   p2: { name: 'Black Crewneck Sweatshirt', price: 3800 },
@@ -54,25 +62,98 @@ export function serverTotal(items: { id: string; qty: number }[]): number {
   }, 0);
 }
 
+export interface PricedLine {
+  id: string;
+  qty: number;
+  name: string;
+  unit: number; // final per-unit KES actually charged (after any promo)
+  basePrice: number; // catalog price before any promo, for reference/receipts
+  promoId: number | null;
+}
+
+export interface PromoTotalResult {
+  total: number;
+  lines: PricedLine[];
+  // Set only when a buyer-supplied promoCode actually won the discount on at
+  // least one line — the checkout route uses this to call
+  // recordPromoCodeUse() once the order is durably created.
+  appliedPromoCode: { promoId: number; promoName: string } | null;
+}
+
+// Promo-aware pricing — the ONE function every checkout route (M-Pesa/STK,
+// Paystack, Stripe) calls instead of serverTotal(), so active promos (and an
+// optional buyer-supplied promo code) are honoured automatically with zero
+// per-route pricing logic. Every line is repriced from PRICES here — the
+// browser's cart only ever supplies {id, qty}, never a price.
+//
+// Stacking rule: a promo code never stacks on top of an automatic (no-code)
+// promo. Per line item, whichever discount is better for the buyer wins —
+// the automatic storewide/product promo, or the supplied code — never both
+// applied together. This is a deliberate simplification to avoid compounding
+// discounts; revisit if the business wants codes to stack with flash sales.
+export async function serverTotalWithPromos(
+  items: { id: string; qty: number }[],
+  promoCode?: string | null
+): Promise<PromoTotalResult> {
+  const [promos, codeRow] = await Promise.all([
+    getActivePromos(),
+    promoCode ? validatePromoCode(promoCode) : Promise.resolve(null),
+  ]);
+
+  const lines: PricedLine[] = [];
+  let total = 0;
+  let appliedPromoCode: { promoId: number; promoName: string } | null = null;
+
+  for (const it of items) {
+    const p = PRICES[it.id];
+    if (!p) throw new Error(`unknown product: ${it.id}`);
+    const auto = bestAutoDiscountForProduct(promos, it.id);
+    const fromCode = codeRow ? discountFromCodeRow(codeRow, it.id) : null;
+
+    let winner: typeof auto = null;
+    let winnerIsCode = false;
+    if (auto && fromCode) {
+      const autoPrice = applyDiscount(p.price, auto);
+      const codePrice = applyDiscount(p.price, fromCode);
+      if (codePrice < autoPrice) { winner = fromCode; winnerIsCode = true; }
+      else { winner = auto; }
+    } else if (fromCode) { winner = fromCode; winnerIsCode = true; }
+    else if (auto) { winner = auto; }
+
+    const unit = applyDiscount(p.price, winner);
+    if (winnerIsCode && winner) appliedPromoCode = { promoId: winner.promoId, promoName: winner.promoName };
+    lines.push({ id: it.id, qty: it.qty, name: p.name, unit, basePrice: p.price, promoId: winner ? winner.promoId : null });
+    total += unit * it.qty;
+  }
+
+  return { total, lines, appliedPromoCode };
+}
+
 // Resolve a stored order row's items JSONB into displayable receipt lines.
 // Merch ids resolve against PRICES; ticket ids ('ticket:<eventId>:<tier>')
 // resolve against TICKET_TIERS, preferring the name stored on the item.
+// If the stored item carries its own `unit` (every order created after the
+// promo engine landed does — see serverTotalWithPromos), that price wins so
+// a discounted order's receipt matches what was actually charged, even after
+// the promo itself later expires or changes. Older orders without a stored
+// `unit` fall back to the live catalog/tier price as before.
 export function orderLines(
-  items: { id: string; qty: number; name?: string }[]
+  items: { id: string; qty: number; name?: string; unit?: number }[]
 ): { name: string; qty: number; unit: number; total: number }[] {
   return (Array.isArray(items) ? items : []).map((it) => {
     const qty = Number(it?.qty) || 0;
     const id = typeof it?.id === 'string' ? it.id : '';
+    const storedUnit = typeof it?.unit === 'number' && Number.isFinite(it.unit) ? it.unit : null;
     if (id.startsWith('ticket:')) {
       const [, eventId, tierIdx] = id.split(':');
       const ev = TICKET_TIERS[eventId];
       const tier = ev ? ev.tiers[Number(tierIdx)] : undefined;
-      const unit = tier ? tier.price : 0;
+      const unit = storedUnit ?? (tier ? tier.price : 0);
       const name = it.name || (ev && tier ? ev.name + ' - ' + tier.name : 'Event ticket');
       return { name, qty, unit, total: unit * qty };
     }
     const p = PRICES[id];
-    const unit = p ? p.price : 0;
+    const unit = storedUnit ?? (p ? p.price : 0);
     return { name: it?.name || (p ? p.name : id || 'Item'), qty, unit, total: unit * qty };
   });
 }

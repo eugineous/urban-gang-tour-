@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PRICES, serverTotal } from '@/lib/server/catalog';
+import { PRICES, serverTotalWithPromos } from '@/lib/server/catalog';
+import { recordPromoCodeUse } from '@/lib/server/promos';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
@@ -37,12 +38,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 
-  // Strict schema: {items:[{id,qty}], email?} — reject anything else.
-  const allowed = new Set(['items', 'email']);
+  // Strict schema: {items:[{id,qty}], email?, promoCode?} — reject anything else.
+  const allowed = new Set(['items', 'email', 'promoCode']);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
-  const { items, email } = body;
+  const { items, email, promoCode } = body;
+  if (promoCode !== undefined && (typeof promoCode !== 'string' || promoCode.length > 60)) {
+    return NextResponse.json({ error: 'invalid_promo_code' }, { status: 400 });
+  }
   if (!Array.isArray(items) || items.length === 0 || items.length > 30) {
     return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
   }
@@ -70,9 +74,18 @@ export async function POST(req: Request) {
 
   if (!stripeConfigured()) return NextResponse.json({ error: 'card_not_configured' }, { status: 503 });
 
-  const lines: { id: string; qty: number }[] = items.map((it: any) => ({ id: it.id, qty: it.qty }));
   let total: number;
-  try { total = serverTotal(lines); } catch (e: any) { return NextResponse.json({ error: String(e.message) }, { status: 400 }); }
+  let lines: { id: string; qty: number; name: string; unit: number }[];
+  let appliedPromoCode: { promoId: number; promoName: string } | null;
+  try {
+    const priced = await serverTotalWithPromos(
+      items.map((it: any) => ({ id: it.id, qty: it.qty })),
+      promoCode
+    );
+    total = priced.total;
+    lines = priced.lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name, unit: l.unit }));
+    appliedPromoCode = priced.appliedPromoCode;
+  } catch (e: any) { return NextResponse.json({ error: String(e.message) }, { status: 400 }); }
 
   // Same id shape as the M-Pesa ledger, plus entropy so parallel card
   // checkouts in the same millisecond can't collide on the primary key.
@@ -88,6 +101,8 @@ export async function POST(req: Request) {
        VALUES ($1,$2,$3,$4,$5,$6,'pending','card')`,
       [id, JSON.stringify(lines), total, '', emailStr, '']
     );
+    // Order is now durably created — safe to count the code redemption.
+    if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
   } catch (e: any) {
     console.error('[stripe-checkout-db]', e);
     await alertCritical('Card order ledger write failed', `order ${id} total ${total}: ${String(e?.message || e)}`);
@@ -103,8 +118,8 @@ export async function POST(req: Request) {
           quantity: l.qty,
           price_data: {
             currency: 'kes',
-            unit_amount: PRICES[l.id].price * 100, // KES -> cents
-            product_data: { name: PRICES[l.id].name },
+            unit_amount: l.unit * 100, // discounted KES -> cents (never the raw catalog price)
+            product_data: { name: l.name },
           },
         })),
         metadata: { order_id: id },

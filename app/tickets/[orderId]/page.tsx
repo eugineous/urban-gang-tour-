@@ -44,6 +44,8 @@ body{overflow:hidden}
 .tks-tier.gold{background:#FFD400}
 .tks-codeline{font-family:ui-monospace,'Courier New',monospace;font-size:10.5px;letter-spacing:.1em;color:#bdbdc6;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tks-open{flex:none;font-size:9px;font-weight:700;letter-spacing:.16em;color:#21C7E6;border:1px solid rgba(33,199,230,.6);border-radius:999px;padding:5px 9px;white-space:nowrap}
+.tks-pdfrow{display:block;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#FFD400;text-decoration:none;background:#111;border-radius:10px;padding:7px;margin-top:6px}
+.tks-pdfrow:hover{color:#fff}
 .tks-usedtag{flex:none;font-size:9px;font-weight:700;letter-spacing:.14em;color:#ff6b6b;border:1px solid rgba(255,80,80,.6);border-radius:999px;padding:5px 9px;white-space:nowrap}
 .tks-note{border:3px solid #FFD400;border-radius:14px;background:rgba(255,212,0,.06);padding:16px 18px;font-size:13px;line-height:1.65;color:#eee;margin-top:18px}
 .tks-note b{color:#FFD400}
@@ -117,6 +119,7 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
                     </span>
                     {used ? <span className="tks-usedtag">USED</span> : <span className="tks-open">OPEN &rarr;</span>}
                   </a>
+                  <a className="tks-pdfrow" href={`/api/tickets/${encodeURIComponent(t.code)}/pdf`}>Download PDF</a>
                 </div>
               );
             })}

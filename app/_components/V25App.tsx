@@ -13,6 +13,17 @@ export function V25App({ page }: { page: string }) {
   useEffect(() => {
     const w = window as any;
     w.__UGT_PAGE = page;
+    // Promo overlay bridge: fetch the public active-promos list once and
+    // expose it for the v25 template's client-side price display (shop grid,
+    // quick view, cart — see the template's priceInfo()/promoFor() helpers).
+    // DISPLAY ONLY — the real charge is always recomputed server-side in
+    // lib/server/catalog.ts + lib/server/promos.ts, so a stale or failed
+    // fetch here only skips the visual "was/now" hint, it never blocks or
+    // changes checkout.
+    fetch('/api/promos')
+      .then((r) => r.json())
+      .then((d) => { w.__UGT_ACTIVE_PROMOS = Array.isArray(d?.promos) ? d.promos : []; })
+      .catch(() => { w.__UGT_ACTIVE_PROMOS = w.__UGT_ACTIVE_PROMOS || []; });
     // Card checkout bridge: the v25 template's "Pay with Card" button calls
     // this with the same {id, qty} cart lines the M-Pesa order flow sends.
     // The server re-prices everything from lib/server/catalog.ts and answers

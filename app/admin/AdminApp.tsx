@@ -51,6 +51,7 @@ export default function AdminApp() {
   const [seoPath, setSeoPath] = useState('/');
   const [setupInfo, setSetupInfo] = useState('');
   const [tix, setTix] = useState<Record<string, any[]>>({});
+  const [eventTiers, setEventTiers] = useState<{ id: string; name: string; tiers: string[] }[]>([]);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
 
@@ -87,13 +88,16 @@ export default function AdminApp() {
     else if (viewFor[tab]) load(viewFor[tab]).then(setRows);
     // e-tickets ride along with the Orders ledger (grouped per order below);
     // silent on error - the table appears after the first ticket sale / setup
-    if (tab === 'Orders') api('/api/admin/data?view=tickets').then(({ data }) => {
-      const m: Record<string, any[]> = {};
-      (data.rows || []).forEach((t: any) => { (m[t.order_id] = m[t.order_id] || []).push(t); });
-      Object.values(m).forEach((list) => list.sort((a, b) => a.position - b.position));
-      setTix(m);
-    });
-  }, [tab, authed, load]);
+    if (tab === 'Orders') {
+      api('/api/admin/data?view=tickets').then(({ data }) => {
+        const m: Record<string, any[]> = {};
+        (data.rows || []).forEach((t: any) => { (m[t.order_id] = m[t.order_id] || []).push(t); });
+        Object.values(m).forEach((list) => list.sort((a, b) => a.position - b.position));
+        setTix(m);
+      });
+      if (!eventTiers.length) api('/api/admin/data?view=eventTiers').then(({ data }) => setEventTiers(data.rows || []));
+    }
+  }, [tab, authed, load, eventTiers.length]);
 
   const login = async () => {
     setErr('');
@@ -219,6 +223,7 @@ export default function AdminApp() {
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>
             💡 Orders are the money ledger. <b>paid</b> = confirmed by M-Pesa callback (receipt shown). Use the CSV export to reconcile against your M-Pesa statement. Opening an order&apos;s <b>Receipt</b> gives a printable invoice. Ticket orders list their e-tickets inline — scan them at the door with the <a href="/admin/gate" style={{ color: C.pink, fontWeight: 700 }}>Gate Scanner</a>.
           </div>
+          <CompTicketForm eventTiers={eventTiers} say={say} onIssued={() => load('orders').then(setRows)} />
           <Table rows={rows} cols={['id', 'total', 'status', 'name', 'phone', 'mpesa_receipt']}
             exportKind="orders"
             actions={(r) => (
@@ -301,6 +306,95 @@ function Dashboard({ stats }: { stats: any }) {
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>{label}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// Admin-only free tickets. Mints real, gate-valid tickets on a synthetic
+// paid/comp order - identical at the door to a paid ticket. Server
+// (/api/admin/tickets/comp) is the source of truth for event/tier validation;
+// eventTiers here only drives the dropdown options.
+function CompTicketForm({ eventTiers, say, onIssued }: {
+  eventTiers: { id: string; name: string; tiers: string[] }[];
+  say: (m: string) => void;
+  onIssued: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [eventId, setEventId] = useState('');
+  const [tier, setTier] = useState(0);
+  const [qty, setQty] = useState(1);
+  const [holderName, setHolderName] = useState('');
+  const [holderEmail, setHolderEmail] = useState('');
+  const [holderPhone, setHolderPhone] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const ev = eventTiers.find((e) => e.id === eventId);
+
+  const submit = async () => {
+    if (!eventId) { say('⚠ Pick an event'); return; }
+    if (holderName.trim().length < 2) { say('⚠ Holder name is required'); return; }
+    if (reason.trim().length < 4) { say('⚠ Reason must be at least 4 characters'); return; }
+    setBusy(true);
+    setResult(null);
+    const { data } = await api('/api/admin/tickets/comp', {
+      method: 'POST',
+      body: JSON.stringify({ eventId, tier, qty, holderName, holderEmail, holderPhone, reason }),
+    });
+    setBusy(false);
+    if (data.ok) {
+      say('✓ Free ticket issued');
+      setResult(data);
+      setHolderName(''); setHolderEmail(''); setHolderPhone(''); setReason('');
+      onIssued();
+    } else {
+      say('⚠ ' + (data.error || 'failed'));
+    }
+  };
+
+  return (
+    <div style={{ ...card, marginBottom: 12 }}>
+      <button style={{ ...btn, background: '#fff' }} onClick={() => setOpen((o) => !o)}>
+        🎁 Issue Free Ticket {open ? '▲' : '▼'}
+      </button>
+      {open && (
+        <div style={{ marginTop: 12, display: 'grid', gap: 8, maxWidth: 520 }}>
+          <div style={{ fontSize: 12, color: '#666' }}>
+            Mints a real, gate-valid ticket at KES 0 - identical to a paid ticket everywhere except the receipt, which reads COMPLIMENTARY. Every issuance is audit-logged with your reason.
+          </div>
+          <select style={inp} value={eventId} onChange={(e) => { setEventId(e.target.value); setTier(0); }}>
+            <option value="">Select event...</option>
+            {eventTiers.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+          </select>
+          {ev && (
+            <select style={inp} value={tier} onChange={(e) => setTier(Number(e.target.value))}>
+              {ev.tiers.map((t, i) => <option key={i} value={i}>{t}</option>)}
+            </select>
+          )}
+          <input style={inp} type="number" min={1} max={20} placeholder="Quantity" value={qty} onChange={(e) => setQty(Number(e.target.value) || 1)} />
+          <input style={inp} placeholder="Holder name" value={holderName} onChange={(e) => setHolderName(e.target.value)} />
+          <input style={inp} placeholder="Holder email (optional - sends receipt + tickets)" value={holderEmail} onChange={(e) => setHolderEmail(e.target.value)} />
+          <input style={inp} placeholder="Holder phone (optional)" value={holderPhone} onChange={(e) => setHolderPhone(e.target.value)} />
+          <input style={inp} placeholder="Reason (required, min 4 chars)" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <button style={btnDark} disabled={busy} onClick={submit}>{busy ? 'Issuing...' : 'Issue free ticket'}</button>
+          {result && (
+            <div style={{ fontSize: 12.5, background: '#f4f1ea', border: '2px solid #111', borderRadius: 10, padding: 10 }}>
+              Order <b>{result.id}</b> created.{' '}
+              <a href={result.receiptUrl} target="_blank" rel="noopener" style={{ color: C.pink, fontWeight: 700 }}>Receipt</a>
+              {' · '}
+              <a href={result.ticketsUrl} target="_blank" rel="noopener" style={{ color: C.pink, fontWeight: 700 }}>Tickets</a>
+              {result.tickets?.length ? (
+                <div style={{ marginTop: 6, display: 'grid', gap: 2 }}>
+                  {result.tickets.map((t: any) => (
+                    <a key={t.code} href={t.url} target="_blank" rel="noopener" style={{ color: '#1F8A5B', fontFamily: 'monospace', fontSize: 11.5 }}>{t.code}</a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

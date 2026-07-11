@@ -52,7 +52,8 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const lines = orderLines(items || []);
   const paid = o.status === 'paid';
   const failed = o.status === 'failed';
-  const method = o.pay_method === 'card' ? 'Card' : 'M-Pesa';
+  const isComp = o.pay_method === 'comp';
+  const method = isComp ? 'Complimentary (no charge)' : o.pay_method === 'card' ? 'Card' : 'M-Pesa';
   const reference = String(o.mpesa_receipt || o.paystack_ref || o.stripe_payment_intent || '');
   const phone = maskPhone(String(o.phone || ''));
   const when = o.created_at ? new Date(o.created_at) : new Date();
@@ -75,7 +76,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   }
 
   const banner = paid
-    ? { bg: '#1F8A5B', label: 'PAID' }
+    ? { bg: isComp ? '#B7860B' : '#1F8A5B', label: isComp ? 'PAID · COMPLIMENTARY' : 'PAID' }
     : failed
       ? { bg: '#C62828', label: 'NOT COMPLETED' }
       : { bg: '#B7860B', label: 'PENDING' };
@@ -130,16 +131,24 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: '1px dashed #ccc', fontSize: 14 }}>
                 <span>
                   {l.name} &times; {l.qty}
-                  {l.unit ? <span style={{ color: '#888' }}> @ {fmtKes(l.unit)}</span> : null}
+                  {l.unit && !isComp ? <span style={{ color: '#888' }}> @ {fmtKes(l.unit)}</span> : null}
                 </span>
-                <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{fmtKes(l.total)}</span>
+                {/* Comp orders carry the real tier price on the item line so the
+                    ticket matches a paid one at the gate, but the order total is
+                    0 - showing that real price here would read as a fake charge. */}
+                <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{isComp ? 'FREE' : fmtKes(l.total)}</span>
               </div>
             ))}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, background: '#FFD400', border: '2px solid #111', borderRadius: 10, padding: '12px 14px' }}>
-            <span style={{ fontFamily: anton, fontSize: 15, textTransform: 'uppercase' }}>Total</span>
-            <span style={{ fontFamily: anton, fontSize: 22 }}>{fmtKes(Number(o.total) || 0)}</span>
+            <span style={{ fontFamily: anton, fontSize: 15, textTransform: 'uppercase' }}>{isComp ? 'Complimentary' : 'Total'}</span>
+            <span style={{ fontFamily: anton, fontSize: 22 }}>{isComp ? 'KES 0' : fmtKes(Number(o.total) || 0)}</span>
           </div>
+          {isComp ? (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#8a6d1a' }}>
+              Issued free of charge by Urban Gang Tour admin. This is not a paid transaction - KES 0 due.
+            </div>
+          ) : null}
           {tickets.length > 0 ? (
             <div style={{ marginTop: 16, background: '#111', border: '2px solid #111', borderRadius: 14, overflow: 'hidden' }}>
               <div style={{ padding: '13px 16px 3px', fontFamily: anton, fontSize: 15, color: '#FFD400', textTransform: 'uppercase', letterSpacing: '.04em' }}>Your E-Tickets</div>
@@ -191,11 +200,17 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       <div className="no-print" style={{ maxWidth: 620, margin: '16px auto 0', textAlign: 'center' }}>
         <a
           href="#print"
-          style={{ display: 'inline-block', background: '#E6218C', color: '#fff', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase' }}
+          style={{ display: 'inline-block', background: '#E6218C', color: '#fff', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase', marginRight: 10 }}
         >
           Print this receipt
         </a>
-        <script dangerouslySetInnerHTML={{ __html: `document.currentScript.previousElementSibling.addEventListener('click',function(e){e.preventDefault();window.print();});` }} />
+        <a
+          href={`/api/receipts/${encodeURIComponent(id)}/pdf`}
+          style={{ display: 'inline-block', background: '#FFD400', color: '#111', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase' }}
+        >
+          Download PDF
+        </a>
+        <script dangerouslySetInnerHTML={{ __html: `document.currentScript.previousElementSibling.previousElementSibling.addEventListener('click',function(e){e.preventDefault();window.print();});` }} />
       </div>
     </div>
   );

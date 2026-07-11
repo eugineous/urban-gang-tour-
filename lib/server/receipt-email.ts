@@ -5,6 +5,8 @@
 // reconciliation.
 import { orderLines } from './catalog';
 import { ticketsForOrder, type TicketRow } from './tickets';
+import { renderReceiptPdf, renderTicketPdf } from '@/lib/tickets/pdf';
+import { getLogoDataUri } from '@/lib/ops/pdf';
 
 const BIZ = {
   name: 'Urban Gang Tour',
@@ -62,7 +64,8 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
 
     const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
     const lines = orderLines(items);
-    const method = order.pay_method === 'card' ? 'Card' : 'M-Pesa';
+    const isComp = order.pay_method === 'comp';
+    const method = isComp ? 'Complimentary (no charge)' : order.pay_method === 'card' ? 'Card' : 'M-Pesa';
     const receipt = String(order.mpesa_receipt || order.paystack_ref || order.stripe_payment_intent || '');
     const when = eatDateTime(new Date());
     const link = `${SITE}/receipt/${encodeURIComponent(order.id)}`;
@@ -94,12 +97,16 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
       </div>`
       : '';
 
+    // Comp orders carry the REAL tier price on the item line (so the ticket
+    // looks identical to a paid one at the gate) but the order total is 0 -
+    // showing the real per-line price here would read as a fake nonzero
+    // charge, so comp orders show FREE on every line instead.
     const rows = lines
       .map(
         (l) => `
         <tr>
           <td style="padding:9px 0;border-bottom:1px dashed #ccc;font-size:14px;color:#111">${esc(l.name)} &times; ${l.qty}</td>
-          <td align="right" style="padding:9px 0;border-bottom:1px dashed #ccc;font-size:14px;font-weight:700;color:#111">${esc(fmtKes(l.total))}</td>
+          <td align="right" style="padding:9px 0;border-bottom:1px dashed #ccc;font-size:14px;font-weight:700;color:#111">${isComp ? 'FREE' : esc(fmtKes(l.total))}</td>
         </tr>`
       )
       .join('');
@@ -109,7 +116,7 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border:3px solid #111111;border-radius:18px;overflow:hidden">
     <div style="background:#111111;padding:22px 26px">
       <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;letter-spacing:.04em;font-size:13px;color:#FFD400;text-transform:uppercase">Urban Gang Tour</div>
-      <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:24px;color:#ffffff;text-transform:uppercase;margin-top:4px">Official Receipt</div>
+      <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:24px;color:#ffffff;text-transform:uppercase;margin-top:4px">Official Receipt${isComp ? ' &middot; Complimentary' : ''}</div>
     </div>
     <div style="height:5px;background:#E6218C"></div>
     <div style="padding:24px 26px">
@@ -123,10 +130,11 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px">${rows}</table>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;background:#FFD400;border:2px solid #111111;border-radius:10px">
         <tr>
-          <td style="padding:12px 14px;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;color:#111;text-transform:uppercase">Total</td>
-          <td align="right" style="padding:12px 14px;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:19px;color:#111">${esc(fmtKes(order.total))}</td>
+          <td style="padding:12px 14px;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;color:#111;text-transform:uppercase">${isComp ? 'Complimentary' : 'Total'}</td>
+          <td align="right" style="padding:12px 14px;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:19px;color:#111">${isComp ? 'KES 0' : esc(fmtKes(order.total))}</td>
         </tr>
       </table>
+      ${isComp ? '<div style="margin-top:8px;font-size:11.5px;color:#8a6d1a">Issued free of charge by Urban Gang Tour admin. This is not a paid transaction - KES 0 due.</div>' : ''}
       ${ticketsHtml}
       <div style="text-align:center;margin-top:20px">
         <a href="${link}" style="display:inline-block;background:#E6218C;color:#ffffff;text-decoration:none;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;padding:13px 24px;border:2px solid #111111;border-radius:10px;text-transform:uppercase">View / print full receipt</a>
@@ -142,6 +150,33 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
   </div>
 </div>`;
 
+    // Attach real PDF copies (receipt always; a PDF per ticket when the
+    // order has ticket lines) rather than only linking to the web pages -
+    // additive to the HTML body above, which keeps working even if an email
+    // client strips attachments. A PDF build failure must never block the
+    // receipt email itself.
+    const attachments: { filename: string; content: string }[] = [];
+    try {
+      const logo = await getLogoDataUri();
+      const receiptBuf = await renderReceiptPdf(
+        order,
+        logo,
+        phone,
+        tickets.map((t) => ({ code: t.code, position: t.position, ofCount: t.of_count, tierName: t.tier_name }))
+      );
+      attachments.push({ filename: `UGT-Receipt-${order.id}.pdf`, content: receiptBuf.toString('base64') });
+      for (const t of tickets) {
+        const tBuf = await renderTicketPdf({
+          code: t.code, eventId: t.event_id, tierName: t.tier_name, holder: t.holder,
+          position: t.position, ofCount: t.of_count, createdAt: t.created_at, orderId: t.order_id,
+          payMethod: order.pay_method || '', logo,
+        });
+        attachments.push({ filename: `UGT-Ticket-${t.code}.pdf`, content: tBuf.toString('base64') });
+      }
+    } catch (e) {
+      console.error('[receipt-email-pdf]', e);
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -150,6 +185,7 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
         to,
         subject: `Your receipt ${order.id} - Urban Gang Tour`,
         html,
+        ...(attachments.length ? { attachments } : {}),
       }),
     });
     if (!res.ok) console.error('[receipt-email] resend', res.status, (await res.text()).slice(0, 300));

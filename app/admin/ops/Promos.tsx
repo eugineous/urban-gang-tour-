@@ -1,8 +1,9 @@
 'use client';
 
 // Shop promos: name, percent-or-fixed discount, product ids, run dates,
-// banner text, code, max uses. CRUD only for now: enforcement in the shop
-// checkout is a later phase (the note below says so in the UI).
+// banner text, code, max uses. Enforced server-side on every checkout route
+// (M-Pesa/STK, Paystack, Stripe) via lib/server/catalog.ts serverTotalWithPromos()
+// - see lib/server/promos.ts for the discount rules.
 
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -103,7 +104,7 @@ export default function Promos() {
           <button style={btn} onClick={() => setEdit({ ...EMPTY })}>+ New promo</button>
         </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Note: promos are stored and managed here now; they apply to the shop at the next phase (checkout enforcement is not wired yet).
+          Live: promos here are enforced on every shop checkout (M-Pesa, Paystack, card). A promo with no code applies automatically to its eligible products; a promo with a code only applies when the buyer enters that code at checkout, and never stacks with an automatic promo (best discount per item wins).
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>

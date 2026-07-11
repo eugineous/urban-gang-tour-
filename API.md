@@ -71,6 +71,28 @@ forged codes 404 offline-cheap. Card states: valid, ADMITTED stamp
 `https://urbangangtour.co.ke/t/<code>`. Shows holder name + event data only -
 no contact info.
 
+### GET /api/tickets/[code]/pdf
+Downloadable PDF twin of `/t/[code]`. Same bearer model: the TKT- code's
+HMAC tag is format-checked BEFORE any DB read, so a garbage/forged code never
+touches the database. 200 PDF attachment `UGT-Ticket-<code>.pdf` · 404
+invalid/unknown code · 429 (20/min/IP) · 503 no DB. Embeds the real signed QR
+plus a second small QR carrying an HMAC-SHA256-signed data blob (code, order
+id, event, tier, issued-at - same `SESSION_SECRET`, `lib/server/tickets.ts`
+`signedTicketBlob`/`verifyTicketBlob`) so an offline gate device could
+re-derive and check that the printed facts were not edited after issuance.
+This is a redundant hardening layer, not a replacement for the live gate scan
+(`/api/tickets/verify`), which is what actually catches reuse/refunds - it
+checks the code against the current database state, something no signature
+embedded in a PDF can ever do offline.
+
+### GET /api/receipts/[id]/pdf
+Downloadable PDF twin of `/receipt/[id]`. Same bearer model as the web page
+(unguessable ORD- id). Status banner (PAID green / PENDING amber / NOT
+COMPLETED red; PAID - COMPLIMENTARY for comp orders), itemized lines, payment
+reference, business identity block, per-ticket list when the order has
+tickets. 200 PDF attachment `UGT-Receipt-<id>.pdf` · 404 unknown id · 429
+(20/min/IP) · 503 no DB.
+
 ### POST /api/mpesa/callback
 Daraja result hook: marks order `paid` (+receipt) or `failed`. Always 200-acks.
 On paid, mints e-tickets (`ensureTickets`) then fires the branded Resend
@@ -132,6 +154,19 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   audit-logged. UI: `/admin/gate` (on-device jsQR camera scanner + manual
   entry; same `ugt_admin` session as the Control Room).
 - `POST /api/admin/save` `{kind, ...}` — post/status/setting mutations (audited).
+- `POST /api/admin/tickets/comp` `{eventId, tier, qty, holderName, holderEmail?,
+  holderPhone?, reason}` — admin-only complimentary tickets. Validates
+  eventId/tier/qty against `TICKET_TIERS` exactly like `/api/orders`; `reason`
+  required (min 4 chars, audit-logged with actor + qty). Creates a synthetic
+  order (`total=0`, `status='paid'`, `pay_method='comp'`) with the same item
+  shape as a real purchase, then mints real signed tickets via `ensureTickets`
+  - indistinguishable from a paid ticket at the gate. Sends the branded
+  receipt email (visibly "COMPLIMENTARY - KES 0", never a fake price) when
+  `holderEmail` is given. 200 `{ok,id,receiptUrl,ticketsUrl,tickets}` · 400 ·
+  401 · 403 bad origin · 429 (20/min/IP) · 503 no DB.
+  `GET /api/admin/data?view=eventTiers` returns the event/tier list for the
+  Control Room's "Issue Free Ticket" form (Orders tab); the comp route
+  re-validates independently and is the actual source of truth.
 - `GET /api/admin/export?kind=…` — CSV.
 - `POST /api/admin/setup` — idempotent schema create/repair.
 - `POST /api/admin/broadcast` `{subject, body}` — email all subscribers (Resend).

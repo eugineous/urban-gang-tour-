@@ -106,7 +106,10 @@
 <div style="flex:1">
 <div style="font-weight:700;font-size:14px">{{ line.name }}</div>
 <div style="color:#888;font-size:11px;font-weight:700;text-transform:uppercase">{{ line.sub }}</div>
-<div style="color:#E6218C;font-family:'Anton';font-size:16px">{{ line.priceFmt }}</div>
+<div style="display:flex;align-items:baseline;gap:6px">
+<sc-if value="{{ line.hasPromo }}" hint-placeholder-val="{{ false }}"><span style="color:#999;font-size:11px;text-decoration:line-through">{{ line.origFmt }}</span></sc-if>
+<span style="color:#E6218C;font-family:'Anton';font-size:16px">{{ line.priceFmt }}</span>
+</div>
 <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
 <button onClick="{{ line.dec }}" style="width:26px;height:26px;border:2px solid #111;border-radius:7px;background:#fff;font-weight:800">−</button>
 <span style="font-weight:700;min-width:16px;text-align:center">{{ line.qty }}</span>
@@ -138,6 +141,12 @@
 <button onClick="{{ quickClose }}" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
 <div style="display:inline-block;background:#FFD400;border:2px solid #111;border-radius:6px;padding:2px 8px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.08em">{{ quick.cat }}</div>
 <h3 style="font-family:'Anton';font-size:32px;margin:10px 0 6px;line-height:1">{{ quick.name }}</h3>
+<sc-if value="{{ quick.hasPromo }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+<span style="color:#999;font-size:14px;text-decoration:line-through">{{ quick.origFmt }}</span>
+<span style="background:#E6218C;color:#fff;border:2px solid #111;border-radius:6px;padding:2px 8px;font-family:'Anton';font-size:12px">{{ quick.badge }}</span>
+</div>
+</sc-if>
 <div style="color:#E6218C;font-family:'Anton';font-size:26px">{{ quick.priceFmt }}</div>
 <p style="color:#444;line-height:1.6;font-size:14px;margin:14px 0 16px">{{ quick.desc }}</p>
 <sc-if value="{{ quick.isApparel }}" hint-placeholder-val="{{ false }}">
@@ -649,6 +658,9 @@
 <sc-for list="{{ shopWindow }}" as="p" hint-placeholder-count="4">
 <button onClick="{{ nav.shop }}" style="text-align:left;background:#fff;border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:5px 5px 0 #111;transform:rotate({{ p.tilt }});transition:transform .2s;padding:0" style-hover="transform:rotate(0deg) translateY(-6px);box-shadow:5px 11px 0 #E6218C">
 <div style="aspect-ratio:1;background:#fff;border-bottom:3px solid #111;position:relative"><img src="{{ p.img }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:contain;padding:14px">
+<sc-if value="{{ p.hasPromo }}" hint-placeholder-val="{{ false }}">
+<span style="position:absolute;top:10px;left:10px;background:#E6218C;color:#fff;border:2px solid #111;border-radius:6px;padding:2px 8px;font-family:'Anton';font-size:10px">{{ p.badge }}</span>
+</sc-if>
 <span style="position:absolute;bottom:10px;right:10px;background:#FFD400;border:2px solid #111;border-radius:8px;padding:4px 10px;font-family:'Anton';font-size:15px;transform:rotate(3deg)">{{ p.priceFmt }}</span></div>
 <div style="padding:12px 14px;font-family:'Anton';font-size:15px;text-transform:uppercase;line-height:1">{{ p.name }}</div>
 </button>
@@ -1067,6 +1079,10 @@
 <button onClick="{{ p.quick }}" style="position:relative;background:#fff;aspect-ratio:1;display:block;padding:0;overflow:hidden;border-bottom:3px dashed #111">
 <img src="{{ p.img }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:contain;padding:14px;background:#fff">
 <span style="position:absolute;top:12px;left:-34px;background:#E6218C;color:#fff;border:2px solid #111;padding:3px 36px;font-size:10px;font-weight:800;text-transform:uppercase;transform:rotate(-40deg)">{{ p.cat }}</span>
+<sc-if value="{{ p.hasPromo }}" hint-placeholder-val="{{ false }}">
+<span style="position:absolute;top:12px;right:10px;background:#E6218C;color:#fff;border:2px solid #111;border-radius:6px;padding:3px 8px;font-family:'Anton';font-size:11px;transform:rotate(3deg)">{{ p.badge }}</span>
+<span style="position:absolute;bottom:38px;right:10px;background:#111;color:#fff;border:2px solid #111;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;text-decoration:line-through;opacity:.85">{{ p.origFmt }}</span>
+</sc-if>
 <span style="position:absolute;bottom:10px;right:10px;background:#FFD400;border:2px solid #111;border-radius:8px;padding:4px 11px;font-family:'Anton';font-size:16px;transform:rotate(3deg);box-shadow:2px 2px 0 #111">{{ p.priceFmt }}</span>
 </button>
 <div style="padding:13px 15px;display:flex;flex-direction:column;flex:1">
@@ -1862,6 +1878,34 @@ class Component extends DCLogic {
   toggleMobile = () => this.setState(s=>({mobileOpen:!s.mobileOpen}));
   toggleCart = () => this.setState(s=>({cartOpen:!s.cartOpen}));
   fmt = (n) => 'KES ' + Number(n).toLocaleString('en-US');
+  // Client-side promo overlay (DISPLAY ONLY): mirrors the "most specific
+  // wins" rule from lib/server/promos.ts for non-coded promos, reading the
+  // list V25App.tsx fetched into window.__UGT_ACTIVE_PROMOS. The real price
+  // is always recomputed server-side in lib/server/catalog.ts — a stale or
+  // missing global here only skips the "was/now" hint, it never changes what
+  // gets charged.
+  promoFor = (id) => {
+    const list = (typeof window !== 'undefined' && Array.isArray(window.__UGT_ACTIVE_PROMOS)) ? window.__UGT_ACTIVE_PROMOS : [];
+    const eligible = list.filter((p) => !p.hasCode && (!p.productIds || !p.productIds.length || p.productIds.includes(id)));
+    if (!eligible.length) return null;
+    const scoped = eligible.filter((p) => p.productIds && p.productIds.length);
+    const pool = scoped.length ? scoped : eligible;
+    let best = null, bestOff = -1;
+    for (const p of pool) {
+      const off = p.discountType === 'percent' ? Math.min(100, Math.max(0, p.discount)) * 10 : Math.max(0, p.discount);
+      if (off > bestOff) { bestOff = off; best = p; }
+    }
+    return best;
+  };
+  priceInfo = (p) => {
+    const promo = this.promoFor(p.id);
+    if (!promo) return { price: p.price, priceFmt: this.fmt(p.price), hasPromo: false, origFmt: '', badge: '' };
+    const price = promo.discountType === 'percent'
+      ? Math.max(0, Math.round(p.price * (1 - Math.min(100, Math.max(0, promo.discount)) / 100)))
+      : Math.max(0, Math.round(p.price - Math.max(0, promo.discount)));
+    const badge = promo.discountType === 'percent' ? ('-' + promo.discount + '%') : ('-' + this.fmt(promo.discount));
+    return { price, priceFmt: this.fmt(price), hasPromo: true, origFmt: this.fmt(p.price), badge };
+  };
   qr(seed){ let h=0; for(let i=0;i<seed.length;i++){ h=(h*31+seed.charCodeAt(i))>>>0; } const n=13,cells=[]; let x=h||1; for(let i=0;i<n*n;i++){ x=(x*1103515245+12345)>>>0; const r=Math.floor(i/n),c=i%n; const corner=(r<3&&c<3)||(r<3&&c>=n-3)||(r>=n-3&&c<3); if(corner){ const cr=r<3?r:n-1-r; const cc=c<3?c:n-1-c; cells.push(cr===0||cc===0||cr===2||cc===2||(cr===1&&cc===1)); } else { cells.push(((x>>7)&1)===1); } } return cells; }
   buyTicket=(id)=>this.setState({ticket:{eventId:id,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false}});
   closeTicket=()=>{ this.stopPay(); this.setState(s=>({ticket:{...s.ticket,eventId:null}})); };
@@ -1974,7 +2018,7 @@ class Component extends DCLogic {
     const ph=this.msisdn(co.phone);
     if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('co',{err:'M-Pesa payments are not available right now.'}); return; }
-    const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:p.price,total:p.price*l.qty}; });
+    const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:pi.price,total:pi.price*l.qty}; });
     const items=s.cart.map(l=>({id:l.id,qty:l.qty}));
     this.setPay('co',{busy:true,err:''});
     const idem='co-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -2061,12 +2105,13 @@ class Component extends DCLogic {
   renderVals(){
     const s = this.state;
     const prodById = (id)=> this.PRODUCTS.find(p=>p.id===id);
-    const cartLines = s.cart.map((l,idx)=>{ const p=prodById(l.id); return {id:l.id+'-'+(l.size||'std'),name:p.name,sub:(l.size?'Size '+l.size:p.cat),img:p.img,qty:l.qty,priceFmt:this.fmt(p.price),inc:()=>this.incAt(idx),dec:()=>this.decAt(idx),remove:()=>this.removeAt(idx)}; });
+    const cartLines = s.cart.map((l,idx)=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {id:l.id+'-'+(l.size||'std'),name:p.name,sub:(l.size?'Size '+l.size:p.cat),img:p.img,qty:l.qty,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,origFmt:pi.origFmt,inc:()=>this.incAt(idx),dec:()=>this.decAt(idx),remove:()=>this.removeAt(idx)}; });
     const cartCount = s.cart.reduce((a,b)=>a+b.qty,0);
-    const cartTotal = s.cart.reduce((a,b)=>a+b.qty*prodById(b.id).price,0);
-    const products = this.PRODUCTS.map((p,i)=>{ const ap=p.cat==='Apparel'; return {...p,priceFmt:this.fmt(p.price),tilt:this.TILTS[i%this.TILTS.length],add:()=>this.addToCart(p.id),quick:()=>this.openQuick(p.id),btn:(ap?()=>this.openQuick(p.id):()=>this.addToCart(p.id)),btnLabel:(ap?'Choose Size →':'Add to Bag')}; });
+    const cartTotal = s.cart.reduce((a,b)=>a+b.qty*this.priceInfo(prodById(b.id)).price,0);
+    const products = this.PRODUCTS.map((p,i)=>{ const ap=p.cat==='Apparel'; const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,origFmt:pi.origFmt,badge:pi.badge,tilt:this.TILTS[i%this.TILTS.length],add:()=>this.addToCart(p.id),quick:()=>this.openQuick(p.id),btn:(ap?()=>this.openQuick(p.id):()=>this.addToCart(p.id)),btnLabel:(ap?'Choose Size →':'Add to Bag')}; });
     const quickP = s.quickId?prodById(s.quickId):null;
-    const quick = quickP?{...quickP,priceFmt:this.fmt(quickP.price),isApparel:quickP.cat==='Apparel',totalFmt:this.fmt(quickP.price*s.quickQty),qty:s.quickQty,qtyUp:()=>this.setState(st=>({quickQty:Math.min(20,st.quickQty+1)})),qtyDown:()=>this.setState(st=>({quickQty:Math.max(1,st.quickQty-1)})),sizes:['S','M','L','XL','XXL'].map(z=>({z,bg:(z===s.quickSize?'#FFD400':'#fff'),pick:()=>this.setState({quickSize:z})})),add:this.addQuick}:null;
+    const quickPi = quickP?this.priceInfo(quickP):null;
+    const quick = quickP?{...quickP,priceFmt:quickPi.priceFmt,hasPromo:quickPi.hasPromo,origFmt:quickPi.origFmt,badge:quickPi.badge,isApparel:quickP.cat==='Apparel',totalFmt:this.fmt(quickPi.price*s.quickQty),qty:s.quickQty,qtyUp:()=>this.setState(st=>({quickQty:Math.min(20,st.quickQty+1)})),qtyDown:()=>this.setState(st=>({quickQty:Math.max(1,st.quickQty-1)})),sizes:['S','M','L','XL','XXL'].map(z=>({z,bg:(z===s.quickSize?'#FFD400':'#fff'),pick:()=>this.setState({quickSize:z})})),add:this.addQuick}:null;
     const audiences = this.AUDIENCES.map((a,i)=>({...a,go:()=>this.goWork(a.tab),n:'0'+(i+1),plate:['#FFD400','#21C7E6','#E6218C','#FFD400'][i%4]}));
     const wt = this.WORKTABS[s.workTab];
     const pill = (on)=>on?{border:'#111',bg:'#FFD400',color:'#111'}:{border:'#111',bg:'#fff',color:'#111'};
@@ -2106,7 +2151,7 @@ class Component extends DCLogic {
       coOpen:!!s.checkout.stage, coStageDetails:s.checkout.stage==='details', coStageDone:s.checkout.stage==='done',
       coStageStk:s.checkout.stage==='stk', coStageFailed:s.checkout.stage==='failed', coStageSlow:s.checkout.stage==='slow',
       coErr:(s.checkout.err||''), coPayLabel:(s.checkout.busy?'Sending prompt...':'Pay & Get Receipt'), coOrderId:(s.checkout.orderId||''), coStkPhone:(this.msisdn(s.checkout.phone)||s.checkout.phone||''), coSecsFmt:this.fmtSecs(s.checkout.secs), coDot1:(s.checkout.secs%3===2?'1':'0.25'), coDot2:(s.checkout.secs%3===1?'1':'0.25'), coDot3:(s.checkout.secs%3===0?'1':'0.25'), coTryAgain:this.coTryAgain, coReceiptHref:('/receipt/'+(s.checkout.orderId||'')), coPhoneMasked:this.maskPhone(s.checkout.order?s.checkout.order.phone:(this.msisdn(s.checkout.phone)||'')),
-      coLines:s.cart.map(l=>{ const p=prodById(l.id); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt(p.price*l.qty)}; }),
+      coLines:s.cart.map(l=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt(pi.price*l.qty)}; }),
       coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone,
       onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value),
       confirmOrder:this.confirmOrder, payCard:this.payCard, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,
@@ -2127,7 +2172,7 @@ class Component extends DCLogic {
       videoRail:[{key:'pl',src:'https://www.youtube.com/embed/videoseries?list=PLWRdLORbKcqU',tag:'THE PLAYLIST',fallback:'Urban News \u2014 every episode, in order',shadow:'#E6218C'},{key:'v1',src:'https://www.youtube.com/embed/P7a9iFNE33g',tag:'FEATURE',fallback:'Urban News on the road',shadow:'#21C7E6'},{key:'v2',src:'https://www.youtube.com/embed/JSMflLGKaAw',tag:'FEATURE',fallback:'Tour highlights on PPP TV',shadow:'#FFD400'}].map(v=>{ const m=s.railMeta[v.key]||{}; return {...v,label:m.title||v.fallback,sub:(m.author?m.author+' \u00b7 YouTube':'YouTube')}; }),
       railPrev:()=>{ const el=document.getElementById('vid-rail'); if(el) el.scrollBy({left:-el.clientWidth*0.86,behavior:'smooth'}); },
       railNext:()=>{ const el=document.getElementById('vid-rail'); if(el) el.scrollBy({left:el.clientWidth*0.86,behavior:'smooth'}); },
-      shopWindow:this.PRODUCTS.slice(0,4).map((p,i)=>({...p,priceFmt:this.fmt(p.price),tilt:['-2deg','1.5deg','-1deg','2deg'][i%4],add:()=>this.addToCart(p.id)})),
+      shopWindow:this.PRODUCTS.slice(0,4).map((p,i)=>{ const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,badge:pi.badge,tilt:['-2deg','1.5deg','-1deg','2deg'][i%4],add:()=>this.addToCart(p.id)}; }),
       cd:(()=>{ const t=new Date('2026-07-19T09:00:00+03:00').getTime()-(s.nowTs||Date.now()); if(t<=0) return {live:true,d:'00',h:'00',m:'00',sec:'00'}; const p=(n)=>String(n).padStart(2,'0'); return {live:false, d:p(Math.floor(t/86400000)), h:p(Math.floor(t/3600000)%24), m:p(Math.floor(t/60000)%60), sec:p(Math.floor(t/1000)%60)}; })(),
       subnav:(()=>{ const tab=(p,label)=>({label, go:()=>this.go(p), on:s.page===p, bg:(s.page===p?'#E6218C':'#fff'), fg:(s.page===p?'#fff':'#111'), bd:'#111'});
         if(['about','gang','partners'].includes(s.page)) return {title:'About & The Gang', items:[tab('about','Who We Are'),tab('gang','Meet The Gang'),tab('partners','Our Partners')]};

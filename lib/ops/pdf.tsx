@@ -14,7 +14,9 @@ import {
   BudgetData, computeBudget, docTotals, fmtKES, DocLine,
 } from './budget-calc';
 
-const BRAND = {
+// Exported so other PDF templates (e.g. lib/tickets/pdf.tsx) reuse the exact
+// same palette instead of redefining it.
+export const BRAND = {
   magenta: '#C7238E',
   charcoal: '#26262B',
   gold: '#E8A33D',

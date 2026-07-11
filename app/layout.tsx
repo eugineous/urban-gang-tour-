@@ -8,6 +8,7 @@ import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
 import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
+import { PromoBanner } from './_components/PromoBanner';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
 export const metadata: Metadata = {
@@ -83,6 +84,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
           dangerouslySetInnerHTML={{ __html: ICON_SPRITE }}
         />
+        {/* Sitewide promo bar — rendered OUTSIDE #ssr-shell (survives the v25
+            runtime boot swap, same reason as BottomTabBar/WhatsAppWidget) and
+            as a normal in-flow block, not position:fixed, so it sits above
+            the sticky header and pushes everything else down by its own
+            height with zero z-index fighting. Renders nothing when there is
+            no active promo. */}
+        <PromoBanner />
         {/* SSR shell: full server-rendered page for crawlers + first paint.
             v25's live runtime boots into #v25-host and then hides this. */}
         <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>

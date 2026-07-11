@@ -86,6 +86,7 @@ body{overflow:hidden}
 .tk-links{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
 .tk-links a{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;text-decoration:none;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:8px 14px}
 .tk-links a:hover{border-color:#FFD400;color:#FFD400}
+.tk-comp{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#111;background:#FFD400;border-radius:999px;padding:4px 10px;margin-top:6px}
 @media (prefers-reduced-motion:reduce){.tk-card::after{animation:none;display:none}.tk-live i{animation:none}}
 @media print{
   body{background:#fff !important;overflow:visible}
@@ -138,6 +139,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
             <div className="tk-rule" />
             <div className="tk-body">
               <span className="tk-live"><i /> UGT LIVE &middot; OFFICIAL E-TICKET</span>
+              {t.pay_method === 'comp' ? <div><span className="tk-comp">Complimentary ticket</span></div> : null}
               <h1 className="tk-event">{evName}</h1>
               <div>
                 <span className={'tk-tier' + (vip ? ' gold' : '')}>{t.tier_name}</span>
@@ -186,6 +188,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
         </article>
       </div>
       <div className="tk-links">
+        <a href={`/api/tickets/${encodeURIComponent(code)}/pdf`}>Download PDF</a>
         <a href={`/tickets/${encodeURIComponent(t.order_id)}`}>All tickets in this order</a>
         <a href={`/receipt/${encodeURIComponent(t.order_id)}`}>Receipt</a>
       </div>

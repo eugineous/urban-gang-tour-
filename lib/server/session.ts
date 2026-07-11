@@ -49,6 +49,15 @@ export function isAdmin(req: Request): boolean {
   return t?.role === 'admin';
 }
 
+// Best-effort identity for audit_log rows. Google-login sessions carry the
+// admin's email (see /api/admin/google); access-code sessions carry no
+// identity beyond the shared code, so they fall back to the literal string
+// 'admin' - same convention every other admin route already uses.
+export function adminActor(req: Request): string {
+  const t = verifyToken<{ role: string; email?: string }>(cookieVal(req, 'ugt_admin'));
+  return t?.role === 'admin' && t.email ? t.email : 'admin';
+}
+
 export function currentUser(req: Request): { id: number; email: string; name?: string } | null {
   return verifyToken(cookieVal(req, 'ugt_user'));
 }

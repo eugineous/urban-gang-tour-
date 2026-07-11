@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
+import { TICKET_TIERS } from '@/lib/server/catalog';
 
 const VIEWS: Record<string, string> = {
   bookings: `SELECT * FROM bookings ORDER BY created_at DESC LIMIT 500`,
@@ -28,6 +29,13 @@ export async function GET(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const view = new URL(req.url).searchParams.get('view') || 'stats';
+  // Not a DB view: the events/tiers catalog for the Issue Free Ticket form
+  // (server catalog.ts stays the single source of truth - this only mirrors
+  // it for the dropdown; the comp ticket route re-validates independently).
+  if (view === 'eventTiers') {
+    const events = Object.entries(TICKET_TIERS).map(([id, ev]) => ({ id, name: ev.name, tiers: ev.tiers.map((t) => t.name) }));
+    return NextResponse.json({ ok: true, rows: events });
+  }
   const sql = VIEWS[view];
   if (!sql) return NextResponse.json({ error: 'unknown_view' }, { status: 400 });
   try {

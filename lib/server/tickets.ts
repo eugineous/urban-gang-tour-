@@ -84,6 +84,10 @@ async function ensureTable(): Promise<void> {
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_tickets_order_id ON tickets (order_id)`);
+  // pay_method is added lazily by the card checkout routes too - self-heal
+  // here as well so getTicket's join below can never fail on a fresh DB that
+  // has only ever seen M-Pesa orders.
+  await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_method TEXT DEFAULT 'mpesa'`);
   tableReady = true;
 }
 
@@ -162,18 +166,63 @@ export async function ticketsForOrder(orderId: string): Promise<TicketRow[]> {
 }
 
 // One ticket joined with its order's live payment status (the /t/[code] page
-// must reflect refunds/pending states, not the state at mint time).
+// must reflect refunds/pending states, not the state at mint time). Also
+// carries pay_method so pages/PDFs can show a COMPLIMENTARY marker for
+// admin-issued free tickets without a second query.
 export async function getTicket(
   code: string
-): Promise<(TicketRow & { order_status: string }) | null> {
+): Promise<(TicketRow & { order_status: string; pay_method: string }) | null> {
   const pool = db();
   if (!pool) return null;
   await ensureTable();
   const r = await pool.query(
-    `SELECT t.*, COALESCE(o.status,'') AS order_status
+    `SELECT t.*, COALESCE(o.status,'') AS order_status, COALESCE(o.pay_method,'') AS pay_method
        FROM tickets t LEFT JOIN orders o ON o.id = t.order_id
       WHERE t.code=$1`,
     [code]
   );
-  return (r.rows[0] as TicketRow & { order_status: string }) || null;
+  return (r.rows[0] as TicketRow & { order_status: string; pay_method: string }) || null;
+}
+
+// ---------------------------------------------------------------------------
+// Offline-verifiable signature blob for the downloadable PDF ticket.
+//
+// The TKT- code itself is already tamper-evident (HMAC tag above) and the
+// live gate scan (/api/tickets/verify) is what actually stops fraud - it
+// checks the code against the database, so reuse/revocation/refunds are
+// always caught. This blob is an ADDITIONAL, genuinely redundant layer: it
+// signs a snapshot of the ticket's core facts (code, order, event, tier,
+// mint time) with the same server secret, so a gate device that has
+// SESSION_SECRET baked in (but no live internet link that moment) can
+// recompute the HMAC and confirm the PDF's printed facts were not edited
+// after issuance. It does NOT know about later state (used_at, refunds) -
+// only a live scan against the DB catches those. Same pattern as
+// signToken/verifyToken in session.ts, but with no expiry (a ticket's
+// authenticity should not expire) and its own HMAC context string so it can
+// never be replayed as a session cookie or vice versa.
+export type TicketBlobPayload = { c: string; o: string; e: string; t: string; i: string };
+
+export function signedTicketBlob(t: { code: string; order_id: string; event_id: string; tier_name: string; created_at: string | Date }): string {
+  const payload: TicketBlobPayload = {
+    c: t.code,
+    o: t.order_id,
+    e: t.event_id,
+    t: t.tier_name,
+    i: new Date(t.created_at).toISOString(),
+  };
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = createHmac('sha256', SECRET()).update('tktsig:' + body).digest('base64url');
+  return `${body}.${sig}`;
+}
+
+export function verifyTicketBlob(blob: string): TicketBlobPayload | null {
+  const [body, sig] = String(blob || '').split('.');
+  if (!body || !sig) return null;
+  const expect = createHmac('sha256', SECRET()).update('tktsig:' + body).digest('base64url');
+  if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
+  try {
+    return JSON.parse(Buffer.from(body, 'base64url').toString()) as TicketBlobPayload;
+  } catch {
+    return null;
+  }
 }

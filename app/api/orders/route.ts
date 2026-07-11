@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { serverTotal, TICKET_TIERS } from '@/lib/server/catalog';
+import { serverTotalWithPromos, TICKET_TIERS } from '@/lib/server/catalog';
+import { recordPromoCodeUse } from '@/lib/server/promos';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { mpesaConfigured, stkPush, normalizePhone } from '@/lib/server/mpesa';
 import { sameOrigin } from '@/lib/server/origin';
@@ -15,19 +16,27 @@ export async function POST(req: Request) {
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
 
-  const allowed = new Set(['items', 'ticket', 'name', 'email', 'phone', 'idempotencyKey']);
+  const allowed = new Set(['items', 'ticket', 'name', 'email', 'phone', 'idempotencyKey', 'promoCode']);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
-  const { items, ticket, name, email, phone, idempotencyKey } = body;
+  const { items, ticket, name, email, phone, idempotencyKey, promoCode } = body;
+  if (promoCode !== undefined && (typeof promoCode !== 'string' || promoCode.length > 60)) {
+    return NextResponse.json({ error: 'invalid_promo_code' }, { status: 400 });
+  }
   if ((items === undefined) === (ticket === undefined)) {
     // exactly one of items (merch) or ticket (event) must be present
     return NextResponse.json({ error: 'items_or_ticket' }, { status: 400 });
   }
 
-  // orderItems is what gets persisted; total comes ONLY from the server catalog
-  let orderItems: { id: string; qty: number; name?: string }[];
+  // orderItems is what gets persisted; total (and every unit price) comes
+  // ONLY from the server — never trust a client-sent price. appliedPromoCode
+  // is set when a buyer-supplied promoCode actually won a line's discount,
+  // so its usage counter is recorded once (after the order is durably
+  // created), not on every checkout attempt.
+  let orderItems: { id: string; qty: number; name?: string; unit?: number }[];
   let total: number;
+  let appliedPromoCode: { promoId: number; promoName: string } | null = null;
 
   if (ticket !== undefined) {
     if (!ticket || typeof ticket !== 'object' || Array.isArray(ticket)) {
@@ -52,12 +61,22 @@ export async function POST(req: Request) {
   } else {
     if (!Array.isArray(items) || items.length === 0 || items.length > 30) return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
     for (const it of items) {
-      if (typeof it?.id !== 'string' || !Number.isInteger(it?.qty) || it.qty < 1 || it.qty > 20) {
+      if (!it || typeof it !== 'object' || Array.isArray(it)) {
+        return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
+      }
+      for (const k of Object.keys(it)) {
+        if (k !== 'id' && k !== 'qty') return NextResponse.json({ error: `unexpected_field:items.${k}` }, { status: 400 });
+      }
+      if (typeof it.id !== 'string' || !Number.isInteger(it.qty) || it.qty < 1 || it.qty > 20) {
         return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
       }
     }
-    try { total = serverTotal(items); } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
-    orderItems = items;
+    try {
+      const priced = await serverTotalWithPromos(items, promoCode);
+      total = priced.total;
+      orderItems = priced.lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name, unit: l.unit }));
+      appliedPromoCode = priced.appliedPromoCode;
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
   }
   if (typeof name !== 'string' || name.length < 2 || name.length > 100) return NextResponse.json({ error: 'invalid_name' }, { status: 400 });
   const emailStr = typeof email === 'string' && email ? email : '';
@@ -83,6 +102,9 @@ export async function POST(req: Request) {
         `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
         [id, JSON.stringify(orderItems), total, name, emailStr, msisdn]
       );
+      // Order is now durably created — safe to count the code redemption.
+      // Never on a failed/aborted attempt, only here.
+      if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
     }
   } catch (e: any) {
     // ledger write failed while the payment flow continues - reconcile manually
