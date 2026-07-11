@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { del } from '@vercel/blob';
-import { isAdmin, adminActor } from '@/lib/server/session';
+import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
 import { ensureGallerySeeded } from '@/lib/server/gallery';
@@ -40,6 +40,7 @@ function intId(v: unknown): number | null {
 
 export async function GET(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!db()) return bad('db_not_configured', 503);
   try {
     await ensureOpsSchema();
@@ -53,6 +54,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!db()) return bad('db_not_configured', 503);
   let body: any;

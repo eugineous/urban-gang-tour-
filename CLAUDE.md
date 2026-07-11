@@ -32,8 +32,8 @@ context on expected behaviour, not bad code):
 |---|---|---|---|
 | Public (anon) | Public pages, catalog, events, blog | Create booking, create order (rate-limited) | No admin routes. No price trust. |
 | Buyer (optional) | Own orders/tickets | Own profile | Only own data (RLS). |
-| Crew admin | Assigned modules (per `perms`) | Assigned modules only | Scoped by `lib/ugt-admin-auth.ts` permissions. |
-| Super admin | All admin modules | All, incl. managing admins | Full access; actions logged to audit log. |
+| Crew admin | Assigned modules (per `perms`) | Assigned modules only | Scoped by `lib/server/session.ts`'s `hasPerm()` (signed cookie perms array; module keys defined in `lib/server/admin-accounts.ts`'s `MODULE_KEYS`). Managed at `/admin` &rarr; Admins (`app/admin/ops/AdminAccounts.tsx`, `app/api/admin/accounts/route.ts`), super-admin only. |
+| Super admin | All admin modules | All, incl. managing admins | Full access; gated by `isSuperAdmin()` in `lib/server/session.ts`. Actions logged to audit log. The access-code login (`/api/admin/login`) always mints super_admin - it is the owner's backup key and is never scope-limited. |
 
 Any new endpoint must state which roles may call it and enforce it server-side.
 
@@ -61,4 +61,4 @@ Any new endpoint must state which roles may call it and enforce it server-side.
 | /api/subscribe | join | join | list, CSV, broadcast |
 | /api/submissions | — | pitch stories | approve/reject |
 | Contact info (email/phone) | never visible | own only | all, incl. mailto/wa.me actions |
-| /api/admin/* | 401 | 401 | full |
+| /api/admin/* | 401 | 401 | full for super_admin; crew_admin scoped per-route to their assigned module perms (401/403 outside them) - see the access control matrix above |

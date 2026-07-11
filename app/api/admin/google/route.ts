@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { q, db } from '@/lib/server/db';
+import { db } from '@/lib/server/db';
 import { signToken, sessionCookie } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { requireOrigin } from '@/lib/server/origin';
+import { getAdminAccount, type AdminAccount } from '@/lib/server/admin-accounts';
 
 // Google Sign-In for the Control Room. The client posts the Google Identity
 // Services ID token; we verify it with Google's tokeninfo endpoint (signature,
@@ -11,20 +12,18 @@ import { requireOrigin } from '@/lib/server/origin';
 // admin_google_emails table, so accounts can be added without a redeploy.
 // Same admin session cookie as the access-code login.
 
-// True when the email is in the DB-backed allowlist. Creates the table lazily;
-// if the database isn't connected (no DATABASE_URL) we quietly fall back to
-// the env allowlist alone.
-async function dbAllowed(email: string): Promise<boolean> {
+// True when the email is in the DB-backed allowlist, and (if so) that row's
+// role/perms. Env-var emails have no row and are always treated as
+// super_admin (they predate the accounts system - see ADMIN_GOOGLE_EMAILS
+// below - and only the owner can edit Vercel env vars anyway, so this is not
+// a privilege-escalation path). If the database isn't connected we quietly
+// fall back to the env allowlist alone.
+async function dbAccount(email: string): Promise<AdminAccount | null> {
   try {
-    if (!db()) return false;
-    await q(`CREATE TABLE IF NOT EXISTS admin_google_emails (
-      email text PRIMARY KEY,
-      added_at timestamptz DEFAULT now()
-    )`);
-    const rows = await q(`SELECT 1 FROM admin_google_emails WHERE lower(email) = $1`, [email]);
-    return rows.length > 0;
+    if (!db()) return null;
+    return await getAdminAccount(email);
   } catch {
-    return false;
+    return null;
   }
 }
 export async function POST(req: Request) {
@@ -59,11 +58,18 @@ export async function POST(req: Request) {
   if (info.aud !== clientId || info.email_verified !== 'true') {
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
   }
-  if (!allow.includes(email) && !(await dbAllowed(email))) {
+  const account = await dbAccount(email);
+  if (!allow.includes(email) && !account) {
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
   }
 
-  const res = NextResponse.json({ ok: true, email });
-  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email }, 7), 7));
+  // Env-allowlist emails (no DB row) and DB rows with role='super_admin'
+  // (the default - see admin-accounts.ts) get full access, exactly as
+  // before this change. Only an explicit crew_admin row scopes the session.
+  const scope: 'super_admin' | 'crew_admin' = account?.role === 'crew_admin' ? 'crew_admin' : 'super_admin';
+  const perms = scope === 'crew_admin' ? account!.perms : [];
+
+  const res = NextResponse.json({ ok: true, email, scope, perms });
+  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email, scope, perms }, 7), 7));
   return res;
 }

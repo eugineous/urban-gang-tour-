@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
 // Review moderation. Only approved reviews are served publicly or embedded in
@@ -9,6 +9,7 @@ import { requireOrigin } from '@/lib/server/origin';
 
 export async function GET(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!hasPerm(req, 'reviews')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   try {
     const rows = await q(
@@ -23,6 +24,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!hasPerm(req, 'reviews')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   let body: any;

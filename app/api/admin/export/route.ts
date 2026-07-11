@@ -1,5 +1,5 @@
 import { q, db } from '@/lib/server/db';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, hasPerm } from '@/lib/server/session';
 import { ensureOpsSchema } from '@/lib/server/ops';
 
 const OPS_KINDS = new Set(['invoices', 'payments', 'contacts', 'expenses', 'payouts']);
@@ -41,10 +41,26 @@ const KINDS: Record<string, string> = {
     FROM ops_crew_payouts p LEFT JOIN ops_events ev ON ev.id = p.event_id ORDER BY p.created_at DESC`,
 };
 
+// Every export kind maps to the module it's exported from (see the
+// corresponding admin tab/ops tool) - a crew_admin can only export the
+// CSVs their perms already let them view on-screen.
+const KIND_PERM: Record<string, string> = {
+  orders: 'orders',
+  bookings: 'bookings',
+  subscribers: 'people',
+  tickets: 'orders',
+  invoices: 'ops_invoices',
+  payments: 'ops_payments',
+  contacts: 'ops_contacts',
+  expenses: 'ops_expenses',
+  payouts: 'ops_payouts',
+};
+
 export async function GET(req: Request) {
   if (!isAdmin(req)) return new Response('unauthorized', { status: 401 });
-  if (!db()) return new Response('db not configured', { status: 503 });
   const kind = new URL(req.url).searchParams.get('kind') || 'orders';
+  if (!hasPerm(req, KIND_PERM[kind] || '__none__')) return new Response('forbidden', { status: 403 });
+  if (!db()) return new Response('db not configured', { status: 503 });
   const sql = KINDS[kind];
   if (!sql) return new Response('unknown kind', { status: 400 });
   let rows: any[];

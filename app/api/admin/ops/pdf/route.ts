@@ -2,7 +2,7 @@ import React from 'react';
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { q, db } from '@/lib/server/db';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, hasPerm } from '@/lib/server/session';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
 import { getLogoDataUri, OutboundPdf, BudgetSheetPdf, EventReportPdf, OutboundDoc, EventReportInput } from '@/lib/ops/pdf';
 import { BudgetData } from '@/lib/ops/budget-calc';
@@ -40,6 +40,11 @@ function pdfResponse(buf: Buffer, filename: string) {
   });
 }
 
+// Same shared-workspace scoping as app/api/admin/ops/route.ts's 'event'
+// view - the event financial report pulls budget+payments+payouts+expenses
+// together, so any of those module perms may generate it.
+const REPORT_PERMS = ['ops_budgeter', 'ops_payments', 'ops_payouts', 'ops_expenses', 'ops_checklists', 'ops_invoices'];
+
 export async function GET(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
   if (!db()) return bad('db_not_configured', 503);
@@ -47,6 +52,9 @@ export async function GET(req: Request) {
   const type = url.searchParams.get('type') || '';
   const id = Number(url.searchParams.get('id') || 0);
   const eventId = Number(url.searchParams.get('eventId') || 0);
+  if (type === 'doc' && !hasPerm(req, 'ops_invoices')) return bad('forbidden', 403);
+  if (type === 'budget' && !hasPerm(req, 'ops_budgeter')) return bad('forbidden', 403);
+  if (type === 'report' && !REPORT_PERMS.some((p) => hasPerm(req, p))) return bad('forbidden', 403);
   try {
     await ensureOpsSchema();
     const logo = await getLogoDataUri();

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isAdmin, adminActor } from '@/lib/server/session';
+import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { q, db } from '@/lib/server/db';
@@ -22,6 +22,7 @@ function bad(error: string, status = 400) {
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!hasPerm(req, 'orders')) return bad('forbidden', 403);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!rateLimit('comp:' + clientIp(req), 20, 60_000)) return bad('too_many_requests', 429);
   if (!db()) return bad('db_not_configured', 503);

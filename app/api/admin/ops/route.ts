@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, adminActor } from '@/lib/server/session';
+import { isAdmin, isSuperAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
   ensureOpsSchema, opsAudit, createNumberedDocument, DocType,
@@ -50,6 +50,45 @@ async function paidForInvoice(invoiceId: number): Promise<number> {
   return Number(r[0]?.paid || 0);
 }
 
+function hasAnyPerm(req: Request, keys: string[]): boolean {
+  return keys.some((k) => hasPerm(req, k));
+}
+
+// 'event'/'events' are a shared workspace view: Budgeter, Payments, Payouts,
+// Expenses, Checklists and Invoices all load a single event's bundled
+// budget+payments+payouts+expenses+checklist data through this one endpoint
+// (see app/admin/ops/ui.tsx's useEvents() and every tool's opsGet('event',
+// {id})). Known scoping limitation: a crew_admin scoped to only one of
+// those modules (say ops_payments) can still see the other modules' data
+// for that event through this combined response, because the endpoint does
+// not return a per-module subset. Splitting it into per-module endpoints
+// would fix that but is a larger refactor than this pass covers - documented
+// here and in the handoff report rather than silently left unscoped.
+const EVENT_WORKSPACE_PERMS = ['ops_budgeter', 'ops_payments', 'ops_payouts', 'ops_expenses', 'ops_checklists', 'ops_invoices'];
+
+// Per-view module scoping for GET. 'dashboard' has no entry: every admin can
+// see the landing tab, but its audit-log slice is stripped for non-super
+// admins inside the handler (viewing the audit log is always super_admin
+// only, per CLAUDE.md's critical exceptions).
+const VIEW_PERM: Record<string, string[]> = {
+  events: EVENT_WORKSPACE_PERMS,
+  event: EVENT_WORKSPACE_PERMS,
+  budget: ['ops_budgeter'],
+  budgets: ['ops_budgeter'],
+  documents: ['ops_invoices'],
+  payments: ['ops_payments'],
+  contacts: ['ops_contacts'],
+  leads: ['ops_pipeline'],
+  promos: ['ops_promos'],
+  tourEvents: ['events'],
+  products: ['products'],
+  marketplaceOrganizers: ['marketplace'],
+  marketplaceEvents: ['marketplace'],
+  marketplaceOrders: ['marketplace'],
+  marketplaceCommission: ['marketplace'],
+  checklist_templates: ['ops_checklists'],
+};
+
 export async function GET(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
   if (!db()) return bad('db_not_configured', 503);
@@ -57,6 +96,8 @@ export async function GET(req: Request) {
   const view = url.searchParams.get('view') || '';
   const id = intOrNull(url.searchParams.get('id'));
   const eventId = intOrNull(url.searchParams.get('eventId'));
+  const requiredPerms = VIEW_PERM[view];
+  if (requiredPerms && !hasAnyPerm(req, requiredPerms)) return bad('forbidden', 403);
   try {
     await ensureOpsSchema();
     switch (view) {
@@ -222,7 +263,12 @@ export async function GET(req: Request) {
           const pr = await q<{ n: string }>(`SELECT COUNT(*) AS n FROM product_reviews WHERE NOT approved`);
           pendingReviews = Number(pr[0]?.n || 0);
         } catch { /* reviews table may not exist yet */ }
-        const audit = await q(`SELECT actor, action, detail, created_at FROM audit_log ORDER BY created_at DESC LIMIT 8`);
+        // Audit log is always super_admin-only (CLAUDE.md critical
+        // exception) - a crew_admin gets an empty activity feed here rather
+        // than a 403, since the rest of the dashboard is open to them.
+        const audit = isSuperAdmin(req)
+          ? await q(`SELECT actor, action, detail, created_at FROM audit_log ORDER BY created_at DESC LIMIT 8`)
+          : [];
         return NextResponse.json({
           ok: true,
           outstanding, overdueCount: overdue,
@@ -240,6 +286,55 @@ export async function GET(req: Request) {
   }
 }
 
+// Simple one-perm-required kinds. Kinds needing an OR of several perms, or
+// that are always super_admin-only regardless of perms, are handled as
+// special cases below (not in this map) - see the CRITICAL EXCEPTIONS note
+// in CLAUDE.md: approving/rejecting a marketplace organizer and changing
+// the commission percent are financial-trust decisions that stay
+// super_admin-only even for a crew_admin holding the 'marketplace' perm.
+const KIND_PERM: Record<string, string> = {
+  'event.delete': 'ops_budgeter',
+  'budget.save': 'ops_budgeter',
+  'doc.create': 'ops_invoices',
+  'doc.update': 'ops_invoices',
+  'doc.status': 'ops_invoices',
+  'doc.delete': 'ops_invoices',
+  'payment.delete': 'ops_payments',
+  'contact.save': 'ops_contacts',
+  'contact.delete': 'ops_contacts',
+  'payout.save': 'ops_payouts',
+  'payout.togglePaid': 'ops_payouts',
+  'payout.delete': 'ops_payouts',
+  'expense.save': 'ops_expenses',
+  'expense.delete': 'ops_expenses',
+  'checklist.template.save': 'ops_checklists',
+  'checklist.template.delete': 'ops_checklists',
+  'checklist.init': 'ops_checklists',
+  'checklist.item.add': 'ops_checklists',
+  'checklist.item.toggle': 'ops_checklists',
+  'checklist.item.delete': 'ops_checklists',
+  'lead.save': 'ops_pipeline',
+  'lead.move': 'ops_pipeline',
+  'lead.convert': 'ops_pipeline',
+  'lead.delete': 'ops_pipeline',
+  'promo.save': 'ops_promos',
+  'promo.delete': 'ops_promos',
+  'tourEvent.save': 'events',
+  'tourEvent.delete': 'events',
+  'product.save': 'products',
+  'product.delete': 'products',
+  'marketplaceOrganizer.suspend': 'marketplace',
+  'marketplaceOrganizer.reinstate': 'marketplace',
+  'marketplaceEvent.approve': 'marketplace',
+  'marketplaceEvent.reject': 'marketplace',
+  'marketplaceEvent.cancel': 'marketplace',
+};
+// CRITICAL EXCEPTIONS: always super_admin-only, whatever perms a
+// crew_admin holds. Approving/rejecting an organizer creates/relies on a
+// live Paystack payout subaccount (real money routing); the commission
+// percent changes UGT's cut of every future marketplace sale.
+const SUPER_ADMIN_ONLY_KINDS = new Set(['marketplaceOrganizer.approve', 'marketplaceOrganizer.reject', 'marketplaceCommission.save']);
+
 export async function POST(req: Request) {
   if (!isAdmin(req)) return bad('unauthorized', 401);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
@@ -248,6 +343,24 @@ export async function POST(req: Request) {
   try { body = await req.json(); } catch { return bad('invalid_json'); }
   const kind = s(body?.kind, 60);
   const d = body?.data ?? {};
+
+  if (SUPER_ADMIN_ONLY_KINDS.has(kind)) {
+    if (!isSuperAdmin(req)) return bad('forbidden', 403);
+  } else if (kind === 'event.save') {
+    // Shared by Budgeter (create/seed the event) and Payments (edit the
+    // event's agreed amount / next due date) - either perm may call it.
+    if (!hasAnyPerm(req, ['ops_budgeter', 'ops_payments'])) return bad('forbidden', 403);
+  } else if (kind === 'payment.record') {
+    // Recorded from both the Payments tab (event deposits) and the
+    // Invoices tab (paying down an invoice) - either perm may call it.
+    if (!hasAnyPerm(req, ['ops_payments', 'ops_invoices'])) return bad('forbidden', 403);
+  } else if (KIND_PERM[kind]) {
+    if (!hasPerm(req, KIND_PERM[kind])) return bad('forbidden', 403);
+  }
+  // Unknown kinds fall through unscoped and 400 in the switch below, same
+  // as before this change - there is nothing sensitive to gate for a kind
+  // that doesn't exist.
+
   try {
     await ensureOpsSchema();
     switch (kind) {

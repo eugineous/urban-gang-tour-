@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { SITE } from '@/lib/site';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
@@ -59,11 +59,42 @@ async function announceArticle(post: { slug: string; headline: string; dek: stri
 }
 
 // Multiplexed admin mutations. kind: post|deletePost|setting|bookingStatus|orderStatus|deleteSubmission
+// Each kind is scoped to the module it actually belongs to (see AdminApp.tsx
+// tabs) rather than a blanket isAdmin() check - a crew_admin only reaches
+// the kinds their perms cover.
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const { kind, data } = await req.json().catch(() => ({}));
+  const forbidden = () => NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  switch (kind) {
+    case 'post':
+    case 'deletePost':
+      if (!hasPerm(req, 'content')) return forbidden();
+      break;
+    case 'bookingStatus':
+      if (!hasPerm(req, 'bookings')) return forbidden();
+      break;
+    case 'orderStatus':
+      if (!hasPerm(req, 'orders')) return forbidden();
+      break;
+    case 'submissionStatus':
+      if (!hasPerm(req, 'newsroom')) return forbidden();
+      break;
+    case 'setting': {
+      // 'setting' is shared by the Site & SEO tab (keys 'site' and
+      // 'seo:<path>') and the Comms tab (whatsapp_number, notify_* keys) -
+      // scope by which key is being written, not the kind alone.
+      const key = String(data?.key ?? '');
+      const isSeo = key === 'site' || key.startsWith('seo:');
+      if (isSeo ? !hasPerm(req, 'site_seo') : !hasPerm(req, 'comms')) return forbidden();
+      break;
+    }
+    default:
+      // Unknown kinds 400 below, same as before - no perm to check yet.
+      break;
+  }
   try {
     switch (kind) {
       case 'post': {

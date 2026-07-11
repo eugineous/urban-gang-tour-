@@ -21,6 +21,11 @@ const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', green: '#1F8A5B
 
 export default function GateApp() {
   const [authed, setAuthed] = useState<boolean | null>(null);
+  // Distinguishes "not signed in at all" from "signed in but this account
+  // has no gate_scanner perm" - both render the same non-camera screen, but
+  // with a different message so crew staff know whether to sign in or ask
+  // the owner to grant them the perm (see app/api/admin/accounts).
+  const [permDenied, setPermDenied] = useState(false);
   const [camErr, setCamErr] = useState('');
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,10 +38,21 @@ export default function GateApp() {
   const streamRef = useRef<MediaStream | null>(null);
   const resumeT = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // auth probe - same gate as the Control Room shell
+  // Auth probe - same ugt_admin session as the Control Room, but gate
+  // scanning additionally requires the 'gate_scanner' perm (super_admin
+  // always has it; a crew_admin needs it explicitly granted). This is a UX
+  // check only - the real gate is POST /api/tickets/verify's own
+  // hasPerm(req,'gate_scanner') check, which fails closed regardless of
+  // what this probe says.
   useEffect(() => {
-    fetch('/api/admin/data?view=stats')
-      .then((r) => setAuthed(r.status !== 401))
+    fetch('/api/admin/me')
+      .then(async (r) => {
+        if (r.status === 401) { setAuthed(false); return; }
+        const data = await r.json().catch(() => ({}));
+        const ok = data.scope === 'super_admin' || (Array.isArray(data.perms) && data.perms.includes('gate_scanner'));
+        setPermDenied(!ok);
+        setAuthed(ok);
+      })
       .catch(() => setAuthed(false));
   }, []);
 
@@ -53,6 +69,7 @@ export default function GateApp() {
       });
       const d = await r.json().catch(() => ({}));
       if (r.status === 401) { setAuthed(false); return; }
+      if (r.status === 403) { setPermDenied(true); setAuthed(false); return; }
       if (d && d.result) v = d as Verdict;
     } catch { /* network verdict already set */ }
     setBusy(false);
@@ -138,10 +155,12 @@ export default function GateApp() {
         <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 60, marginBottom: 14 }} />
         <div style={{ fontFamily: anton, fontSize: 26, textTransform: 'uppercase' }}>Gate Scanner</div>
         <p style={{ color: '#9a9aa4', fontSize: 13.5, lineHeight: 1.6, maxWidth: 300 }}>
-          Staff only. Sign in to the Control Room first, then come back here.
+          {permDenied
+            ? "Signed in, but this account isn't authorised for gate scanning. Ask the owner to grant the gate_scanner module in Admins."
+            : 'Staff only. Sign in to the Control Room first, then come back here.'}
         </p>
         <a href="/admin" style={{ background: C.yellow, color: '#111', fontFamily: anton, fontSize: 16, textDecoration: 'none', padding: '13px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 rgba(230,33,140,.5)', textTransform: 'uppercase' }}>
-          Sign in at /admin
+          {permDenied ? 'Back to /admin' : 'Sign in at /admin'}
         </a>
       </div>
     );

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
 // Client-token handshake for direct-to-Vercel-Blob gallery uploads. The
@@ -22,6 +22,7 @@ const MAX_BYTES = 8 * 1024 * 1024; // 8MB cap
 
 export async function POST(request: Request): Promise<NextResponse> {
   if (!isAdmin(request)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!hasPerm(request, 'gallery')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(request)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
 
   let body: HandleUploadBody;

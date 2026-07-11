@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
-import { isAdmin } from '@/lib/server/session';
+import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket, getEventName, getEventMeta } from '@/lib/server/tickets';
 import { q, db } from '@/lib/server/db';
 
-// Gate check-in. Roles: admin ONLY (the /admin/gate scanner runs on the same
-// ugt_admin session as the Control Room). Atomically flips used_at exactly
-// once per code and audit-logs every scan (valid, used and invalid alike).
+// Gate check-in. Roles: any admin session (super_admin or crew_admin) that
+// carries the 'gate_scanner' perm - the /admin/gate scanner runs on the same
+// ugt_admin session as the Control Room, but a crew_admin must be explicitly
+// granted gate_scanner to use it (super_admin always has it, as with every
+// module). See app/admin/gate/GateApp.tsx and CLAUDE.md's gate-scanner
+// design note for why this stays on the admin session rather than a
+// separate lightweight credential. Atomically flips used_at exactly once
+// per code and audit-logs every scan (valid, used and invalid alike).
 // POST {code} -> { result: 'valid'|'used'|'invalid', ticket?, usedAt?, reason? }
 
 export const runtime = 'nodejs';
@@ -27,6 +32,7 @@ async function ticketPayload(t: { event_id: string; tier_name: string; holder: s
 
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!hasPerm(req, 'gate_scanner')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('gate:' + clientIp(req), 120, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });

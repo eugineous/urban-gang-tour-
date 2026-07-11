@@ -23,6 +23,7 @@ const Events = dynamic(() => import('./ops/Events'), { ssr: false, loading: opsL
 const Products = dynamic(() => import('./ops/Products'), { ssr: false, loading: opsLoading });
 const Gallery = dynamic(() => import('./ops/Gallery'), { ssr: false, loading: opsLoading });
 const Marketplace = dynamic(() => import('./ops/Marketplace'), { ssr: false, loading: opsLoading });
+const AdminAccounts = dynamic(() => import('./ops/AdminAccounts'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
 const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
@@ -32,9 +33,27 @@ const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', border: 
 const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' };
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
-const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic'] as const;
+const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic', 'Admins'] as const;
 const OPS_TABS = ['Events', 'Products', 'Gallery', 'Marketplace', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
+
+// Client-side ONLY - this decides which tab buttons render, nothing more.
+// The real security boundary is server-side: every route behind these tabs
+// re-checks hasPerm()/isSuperAdmin() itself (see lib/server/session.ts and
+// each app/api/admin/* route). A crew_admin who edits the DOM or replays a
+// request directly still gets 401/403 from the server. Keep this map in
+// sync with lib/server/admin-accounts.ts's MODULE_KEYS and the route-level
+// perm mapping - it is not itself a source of truth.
+const TAB_PERM: Partial<Record<Tab, string>> = {
+  Bookings: 'bookings', Orders: 'orders', Content: 'content', Newsroom: 'newsroom',
+  Comms: 'comms', 'Site & SEO': 'site_seo', People: 'people', Traffic: 'traffic',
+  Events: 'events', Products: 'products', Gallery: 'gallery', Marketplace: 'marketplace',
+  Budgeter: 'ops_budgeter', Invoices: 'ops_invoices', Payments: 'ops_payments',
+  Contacts: 'ops_contacts', Payouts: 'ops_payouts', Expenses: 'ops_expenses',
+  Pipeline: 'ops_pipeline', Promos: 'ops_promos', Checklists: 'ops_checklists', Reviews: 'reviews',
+};
+
+interface AdminSession { scope: 'super_admin' | 'crew_admin'; perms: string[] }
 
 async function api(path: string, opts?: RequestInit) {
   const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
@@ -56,8 +75,26 @@ export default function AdminApp() {
   const [setupInfo, setSetupInfo] = useState('');
   const [tix, setTix] = useState<Record<string, any[]>>({});
   const [eventTiers, setEventTiers] = useState<{ id: string; name: string; tiers: string[] }[]>([]);
+  const [session, setSession] = useState<AdminSession | null>(null);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
+
+  const refreshSession = useCallback(async () => {
+    const { status, data } = await api('/api/admin/me');
+    if (status === 200) setSession({ scope: data.scope, perms: data.perms || [] });
+  }, []);
+
+  // Client-side visibility only (see TAB_PERM's note above) - while the
+  // session hasn't loaded yet, hide every scoped tab rather than flash
+  // access the account may not actually have.
+  const canSee = useCallback((t: Tab): boolean => {
+    if (t === 'Dashboard') return true;
+    if (t === 'Admins') return session?.scope === 'super_admin';
+    const perm = TAB_PERM[t];
+    if (!perm) return true;
+    if (!session) return false;
+    return session.scope === 'super_admin' || session.perms.includes(perm);
+  }, [session]);
 
   const load = useCallback(async (view: string) => {
     setBusy(true);
@@ -68,13 +105,18 @@ export default function AdminApp() {
     return data.rows || [];
   }, []);
 
-  // initial auth probe
+  // initial auth probe - /api/admin/me is a lightweight role/perms check
+  // (no ledger data in the response), used here and by the gate scanner
+  // instead of pulling the full dashboard stats just to test "am I logged in".
   useEffect(() => {
-    api('/api/admin/data?view=stats').then(({ status, data }) => {
-      if (status === 401) setAuthed(false);
-      else { setAuthed(true); setStats(data.rows?.[0] || null); }
+    api('/api/admin/me').then(async ({ status, data }) => {
+      if (status === 401) { setAuthed(false); return; }
+      setSession({ scope: data.scope, perms: data.perms || [] });
+      setAuthed(true);
+      const s = await load('stats');
+      setStats(s[0] || null);
     });
-  }, []);
+  }, [load]);
 
   const viewFor: Record<string, string> = {
     Bookings: 'bookings', Orders: 'orders', Content: 'posts', Newsroom: 'submissions',
@@ -106,7 +148,7 @@ export default function AdminApp() {
   const login = async () => {
     setErr('');
     const { status, data } = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ code }) });
-    if (status === 200) { setAuthed(true); const s = await load('stats'); setStats(s[0] || null); }
+    if (status === 200) { setAuthed(true); await refreshSession(); const s = await load('stats'); setStats(s[0] || null); }
     else setErr(data.error === 'wrong_code' ? 'Wrong access code.' : data.error === 'admin_not_configured' ? 'ADMIN_ACCESS_CODE env var is not set in Vercel.' : 'Login failed: ' + (data.error || status));
   };
 
@@ -128,7 +170,7 @@ export default function AdminApp() {
           callback: async (resp: any) => {
             setErr('');
             const { status, data } = await api('/api/admin/google', { method: 'POST', body: JSON.stringify({ credential: resp.credential }) });
-            if (status === 200) { setAuthed(true); const s = await load('stats'); setStats(s[0] || null); }
+            if (status === 200) { setAuthed(true); await refreshSession(); const s = await load('stats'); setStats(s[0] || null); }
             else setErr(data.error === 'not_authorised' ? `${data.email || 'This Google account'} is not authorised for the Control Room. Use your access code, or ask the owner to add this Google account.` : 'Google sign-in failed: ' + (data.error || status));
           },
         });
@@ -180,17 +222,17 @@ export default function AdminApp() {
         <h1 style={{ fontFamily: 'Anton', fontSize: 26, margin: 0, color: '#fff', WebkitTextStroke: '1px #111' }}>CONTROL ROOM</h1>
         <div style={{ flex: 1 }} />
         <button style={btn} onClick={runSetup} disabled={busy}>⚙ Setup / Repair DB</button>
-        <button style={btnDark} onClick={async () => { await api('/api/admin/login', { method: 'DELETE' }); setAuthed(false); }}>Log out</button>
+        <button style={btnDark} onClick={async () => { await api('/api/admin/login', { method: 'DELETE' }); setAuthed(false); setSession(null); }}>Log out</button>
       </div>
       {setupInfo && <div style={{ ...card, marginBottom: 14, padding: 10, fontSize: 13 }}>{setupInfo}</div>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-        {TABS.map((t) => (
+        {TABS.filter(canSee).map((t) => (
           <button key={t} style={{ ...btn, background: tab === t ? C.pink : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18, alignItems: 'center' }}>
         <span style={{ fontFamily: 'Anton', fontSize: 13, color: '#fff', WebkitTextStroke: '0.5px #111', letterSpacing: '.06em' }}>OPS</span>
-        {OPS_TABS.map((t) => (
+        {OPS_TABS.filter(canSee).map((t) => (
           <button key={t} style={{ ...btn, background: tab === t ? '#C7238E' : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
@@ -288,6 +330,7 @@ export default function AdminApp() {
       {tab === 'Comms' && <CommsTab say={say} settings={settings} onSaveSetting={(key: string, value: any) => save('setting', { key, value })} />}
       {tab === 'People' && <PeopleTab load={load} />}
       {tab === 'Traffic' && <TrafficTab rows={rows} />}
+      {tab === 'Admins' && <AdminAccounts />}
     </Shell>
   );
 }
