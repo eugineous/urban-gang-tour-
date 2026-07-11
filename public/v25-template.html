@@ -1601,7 +1601,7 @@ class Component extends DCLogic {
         {id:'B-2036',name:'Kevin O.',org:'Freelance Videographer',type:'Join the Crew',date:'2026-06-18',status:'review',email:'kev.films@gmail.com',msg:'Camera op, Kiambu county, own gimbal.'}
       ]
     };
-    this.PRODUCTS = [
+    this.PRODUCTS = (typeof window!=='undefined' && window.__UGT_PRODUCTS && window.__UGT_PRODUCTS.length) ? window.__UGT_PRODUCTS : [
       {id:'p1',name:'Magenta Oversized Tee',price:2500,img:'/assets/merch/magenta-tee.png',cat:'Apparel',desc:'Heavyweight oversized tee in signature magenta. Boxy fit, drop shoulder, tour print. You wore this when it happened.'},
       {id:'p2',name:'Black Crewneck Sweatshirt',price:3800,img:'/assets/merch/crewneck.png',cat:'Apparel',desc:'Heavyweight brushed-fleece crewneck. Warm, boxy, built for late load-outs and cold campus mornings.'},
       {id:'p3',name:'Structured Snapback',price:1800,img:'/assets/merch/snapback.png',cat:'Headwear',desc:'Six-panel structured snapback, flat brim, embroidered mark. Adjustable, one size.'},
@@ -1616,7 +1616,7 @@ class Component extends DCLogic {
       {id:'p12',name:'Crossbody Waist Bag',price:2000,img:'/assets/merch/waist-bag.png',cat:'Accessories',desc:'Crossbody waist bag for phone, cards, and backstage passes.'},
       {id:'p13',name:'Woven Lanyard',price:400,img:'/assets/merch/lanyard.png',cat:'Accessories',desc:'Black woven lanyard for passes, keys and backstage energy.'},
       {id:'p14',name:'Sticker Sheet',price:300,img:'/assets/merch/stickers.png',cat:'Accessories',desc:'Die-cut vinyl sticker sheet. Laptops, bottles, matatu windows.'}
-    ];
+    ]);
     this.DIVISIONS = [
       {key:'mic',card:'#FFD400',title:'Live',desc:'Festivals, concerts, awards, competitions, campus takeovers. Built to broadcast standard, run first light to final pack-down.'},
       {key:'tv',card:'#21C7E6',title:'Broadcast',desc:'We make television and we host it. Every stage feeds the national screen through Urban News on PPP TV Kenya.'},
@@ -1676,11 +1676,11 @@ class Component extends DCLogic {
       {key:'star',title:'Celebrity Guests',bg:'#FFD400',desc:'Celebrity influencers and musicians drop in to perform and connect.'},
       {key:'check',title:'Tree Planting',bg:'#21C7E6',desc:'A greener compound at every stop, planted by the students themselves.'}
     ];
-    this.MAIN_EVENTS = [
+    this.MAIN_EVENTS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.ticketed && window.__UGT_EVENTS.ticketed.length) ? window.__UGT_EVENTS.ticketed : [
       {id:'xp-dance',name:'The Experience Hub Dance Event',tagline:'The dance takeover \u2014 crews, cyphers, hype sets and celebrity performances.',date:'Sat 16 Aug 2026',time:'2:00 PM',venue:'KICC Grounds',city:'Nairobi',img:'/assets/gal/xp-dance.jpg',accent:'#E6218C',tiers:[{name:'Regular',price:500},{name:'VIP',price:1500},{name:'VVIP Table',price:5000}]},
       {id:'festival-colours',name:'Urban Festival Of Colours',tagline:'One field, a thousand colours, dancers, DJs and non-stop hype.',date:'Sat 20 Sep 2026',time:'11:00 AM',venue:'Uhuru Gardens',city:'Nairobi',img:'/assets/gal/festival-colours.jpg',accent:'#21C7E6',tiers:[{name:'Early Bird',price:800},{name:'Regular',price:1200},{name:'VIP',price:3000}]},
       {id:'campus-rave',name:'Campus Rave \u2014 Nairobi Edition',tagline:'The tour, fully grown. Bigger stage, bigger sound, broadcast-ready.',date:'Fri 3 Oct 2026',time:'4:00 PM',venue:'Carnivore Grounds',city:'Nairobi',img:'/assets/gal/campus-rave.jpg',accent:'#FFD400',tiers:[{name:'Regular',price:1000},{name:'VIP',price:2500},{name:'VVIP',price:6000}]}
-    ];
+    ]);
     this.TEAM = [
       {id:'eugine',img:'/assets/crew/eugine-micah.png',name:'Eugine Micah',role:'Co-Founder, Creative Director & Lead Host',tag:'The Face of the Tour',hype:true,bio:[
         'Eugine Micah is the co-founder and creative director of the Urban Gang Tour, and the lead host audiences across Kenya now recognise on sight. He built the tour from a single school hall into a travelling production that sets up a full stage, a live broadcast, and a mentorship programme in one day.',
@@ -1823,7 +1823,7 @@ class Component extends DCLogic {
         'Their green messaging runs through the day\u2019s programme, connecting Kenyan youth culture to environmental stewardship in a way that feels like part of the show, not a lecture.'],
         services:['Tree planting programs','Environmental education','Green event consulting','Legacy projects for schools'],credits:['Tree planting at every 2026 stop','Student green ambassador pods','Post-event grove check-ins with schools']}
     };
-    this.STOPS = [
+    this.STOPS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.school && window.__UGT_EVENTS.school.length) ? window.__UGT_EVENTS.school : [
       {day:'30',mon:'MAY',year:'2026',name:'Senior Chief Koinange Girls',loc:'Kiambu County',status:'done',img:'/assets/gal/koinange.jpg'},
       {day:'01',mon:'JUN',year:'2026',name:'Loreto Kiambu Girls High',loc:'Kiambu County',status:'done',img:'/assets/gal/loreto.jpg'},
       {day:'07',mon:'JUN',year:'2026',name:'Gituamba Girls High School',loc:'Kiambu County',status:'done',img:'/assets/gal/gituamba.jpg'},
@@ -1833,12 +1833,12 @@ class Component extends DCLogic {
       {day:'TBA',mon:'JUL',year:'2026',name:'Maai Mahiu Boys High School',loc:'Maai Mahiu, Nakuru County',status:'upcoming',img:'/assets/gal/maimahiu-boys.jpg'},
       {day:'TBA',mon:'AUG',year:'2026',name:'Maai Mahiu Girls High School',loc:'Maai Mahiu, Nakuru County',status:'upcoming',img:'/assets/gal/maimahiu-girls.jpg'},
       {day:'TBA',mon:'AUG',year:'2026',name:'Dr. Kiano Boys High School',loc:'Githiga, Kangema, Murang\u2019a County',status:'upcoming',img:'/assets/gal/drkiano.jpg'}
-    ];
-    this.WORKS = [
+    ]);
+    this.WORKS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.past && window.__UGT_EVENTS.past.length) ? window.__UGT_EVENTS.past : [
       {name:'Goshen Group of Schools',loc:'Nakuru'},
       {name:'Achego Girls High School',loc:'Muhoroni, Kisumu County'},
       {name:'Campus Rave Editions',loc:'Nairobi Region'}
-    ];
+    ]);
     this.GALLERY = ['/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg','/assets/gal/g-runway.jpg','/assets/gal/g-street.jpg','/assets/gal/g-winning.jpg'];
     this.NEWS = ['Show intro with the hosts on location','School and institution feature','Student interviews and stories','Club visits and campus culture','Competition highlights and winner moments','Principal and leadership interviews','Behind the scenes with the crew','Outro with the next-stop tease'];
     this.ARTICLES = [

@@ -7,6 +7,7 @@ import {
   LEAD_STAGES, DEFAULT_CHECKLIST_TEMPLATE,
 } from '@/lib/server/ops';
 import { docTotals, DocLine } from '@/lib/ops/budget-calc';
+import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -18,6 +19,14 @@ export const dynamic = 'force-dynamic';
 
 function bad(error: string, status = 400) {
   return NextResponse.json({ error }, { status });
+}
+
+function slugify(v: string): string {
+  return String(v || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'item';
 }
 
 function s(v: unknown, max = 300): string {
@@ -108,6 +117,23 @@ export async function GET(req: Request) {
       }
       case 'promos': {
         const rows = await q(`SELECT * FROM ops_promos ORDER BY id DESC LIMIT 200`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'tourEvents': {
+        await ensureCatalogSeeded();
+        // event_date::text — plain 'YYYY-MM-DD' for the admin form's <input
+        // type="date">, never a local-midnight Date object that would print
+        // wrong (see lib/server/db.ts's note on pg's DATE parser).
+        const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, created_at, updated_at`;
+        const kindFilter = url.searchParams.get('kind');
+        const rows = kindFilter
+          ? await q(`SELECT ${cols} FROM tour_events WHERE kind=$1 ORDER BY priority DESC, event_date ASC NULLS LAST`, [s(kindFilter, 20)])
+          : await q(`SELECT ${cols} FROM tour_events ORDER BY kind, priority DESC, event_date ASC NULLS LAST`);
+        return NextResponse.json({ ok: true, rows });
+      }
+      case 'products': {
+        await ensureCatalogSeeded();
+        const rows = await q(`SELECT * FROM products ORDER BY active DESC, id`);
         return NextResponse.json({ ok: true, rows });
       }
       case 'checklist_templates': {
@@ -518,6 +544,118 @@ export async function POST(req: Request) {
         if (!id) return bad('missing_id');
         await q(`DELETE FROM ops_promos WHERE id=$1`, [id]);
         await opsAudit('ops.promo.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Tour events (ticketed concerts / school tour stops / past clients) ----
+      // The single DB source app/api/site-data/events/route.ts, the shop/ticket
+      // checkout pricing layer (lib/server/catalog.ts) and the /events JSON-LD
+      // (app/_lib/jsonld.ts eventsFromDb) all read from this same table.
+      case 'tourEvent.save': {
+        await ensureCatalogSeeded();
+        const kind = ['ticketed', 'school', 'past'].includes(d.kind) ? d.kind : null;
+        const name = s(d.name, 200);
+        if (!kind) return bad('bad_kind');
+        if (!name) return bad('missing_name');
+        const status = ['draft', 'published', 'cancelled', 'completed'].includes(d.status) ? d.status : 'published';
+        const tiersIn = Array.isArray(d.tiers) ? d.tiers : [];
+        const tiers = kind === 'ticketed'
+          ? tiersIn.slice(0, 12).map((t: any) => ({ name: s(t?.name, 60), price: Math.max(0, Math.round(Number(t?.price) || 0)) })).filter((t: any) => t.name)
+          : [];
+        const priority = intOrNull(d.priority) ?? 0;
+        let id = s(d.id, 60);
+        const isNew = !id;
+        if (isNew) {
+          const base = slugify(name);
+          id = base;
+          // Guarantee a free primary key without a race: retry with a numeric
+          // suffix until INSERT succeeds (collisions are rare — admin-entered
+          // names — so this loop runs once almost every time).
+          for (let n = 2; n < 50; n++) {
+            const exists = await q(`SELECT 1 FROM tour_events WHERE id=$1`, [id]);
+            if (!exists.length) break;
+            id = `${base}-${n}`;
+          }
+        }
+        const fields = [
+          kind, name, id, dateOrNull(d.eventDate), s(d.dateLabel, 60), s(d.eventTime, 30),
+          s(d.venue, 300), s(d.city, 100), s(d.accent, 20), status, priority,
+          s(d.image, 400), s(d.description, 2000), JSON.stringify(tiers), s(d.logo, 400), s(d.testimonial, 2000),
+        ];
+        let row;
+        if (isNew) {
+          row = await q(
+            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial)
+             VALUES ($3,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
+            fields
+          );
+        } else {
+          row = await q(
+            `UPDATE tour_events SET kind=$1, name=$2, event_date=$4, date_label=$5, event_time=$6, venue=$7, city=$8, accent=$9,
+               status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, updated_at=now()
+             WHERE id=$3 RETURNING *`,
+            fields
+          );
+          if (!row.length) return bad('not_found', 404);
+        }
+        await opsAudit('ops.tourEvent.save', { id: row[0]?.id, kind, name, status });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'tourEvent.delete': {
+        // Soft delete: past ticket sales and the admin ledger reference the
+        // event by name/id, so the row stays — only its public visibility
+        // changes. Use tourEvent.save with status:'published' to restore it.
+        const id = s(d.id, 60);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE tour_events SET status='cancelled', updated_at=now() WHERE id=$1 RETURNING id`, [id]);
+        if (!row.length) return bad('not_found', 404);
+        await opsAudit('ops.tourEvent.delete', { id });
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Shop products ----
+      case 'product.save': {
+        await ensureCatalogSeeded();
+        const name = s(d.name, 200);
+        if (!name) return bad('missing_name');
+        const price = Math.max(0, Math.round(Number(d.price) || 0));
+        let id = s(d.id, 60);
+        const isNew = !id;
+        if (isNew) {
+          const base = slugify(name);
+          id = base;
+          for (let n = 2; n < 50; n++) {
+            const exists = await q(`SELECT 1 FROM products WHERE id=$1`, [id]);
+            if (!exists.length) break;
+            id = `${base}-${n}`;
+          }
+        }
+        const fields = [name, price, s(d.image, 400), s(d.category, 100), s(d.description, 2000), d.active !== false, id];
+        let row;
+        if (isNew) {
+          row = await q(
+            `INSERT INTO products (name, price, image, category, description, active, id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+            fields
+          );
+        } else {
+          row = await q(
+            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, updated_at=now() WHERE id=$7 RETURNING *`,
+            fields
+          );
+          if (!row.length) return bad('not_found', 404);
+        }
+        await opsAudit('ops.product.save', { id: row[0]?.id, name, price });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'product.delete': {
+        // Soft delete: past orders/receipts resolve this id forever (see
+        // lib/server/catalog.ts orderLines) — active:false just hides it from
+        // the shop and the public site-data/checkout catalog.
+        const id = s(d.id, 60);
+        if (!id) return bad('missing_id');
+        const row = await q(`UPDATE products SET active=false, updated_at=now() WHERE id=$1 RETURNING id`, [id]);
+        if (!row.length) return bad('not_found', 404);
+        await opsAudit('ops.product.delete', { id });
         return NextResponse.json({ ok: true });
       }
 

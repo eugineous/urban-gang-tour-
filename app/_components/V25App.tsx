@@ -24,6 +24,66 @@ export function V25App({ page }: { page: string }) {
       .then((r) => r.json())
       .then((d) => { w.__UGT_ACTIVE_PROMOS = Array.isArray(d?.promos) ? d.promos : []; })
       .catch(() => { w.__UGT_ACTIVE_PROMOS = w.__UGT_ACTIVE_PROMOS || []; });
+    // Catalog bridge: tour events (ticketed concerts, school stops, past
+    // clients) and shop products used to be hardcoded literals duplicated
+    // across this template, lib/server/catalog.ts, lib/server/tickets.ts and
+    // the JSON-LD data file. They now live in the DB (tour_events / products
+    // tables) — fetch the current admin-edited content once, before boot, and
+    // normalize field names here so the template's existing MAIN_EVENTS /
+    // STOPS / WORKS / PRODUCTS render code needs zero changes. DISPLAY ONLY —
+    // exactly like the promo bridge above, the real charge is always
+    // recomputed server-side (lib/server/catalog.ts), so a stale or failed
+    // fetch here only means the page shows its frozen fallback content, it
+    // never blocks or changes checkout.
+    fetch('/api/site-data/events')
+      .then((r) => r.json())
+      .then((d) => {
+        const rows: any[] = Array.isArray(d?.events) ? d.events : [];
+        const today = new Date().toISOString().slice(0, 10);
+        const ticketed = rows.filter((e) => e.kind === 'ticketed').map((e) => {
+          let date = 'TBA';
+          if (e.eventDate) {
+            const dt = new Date(e.eventDate + 'T00:00:00Z');
+            const weekday = dt.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+            const month = dt.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+            date = `${weekday} ${dt.getUTCDate()} ${month} ${dt.getUTCFullYear()}`;
+          }
+          return {
+            id: e.id, name: e.name, tagline: e.description, date, time: e.eventTime,
+            venue: e.venue, city: e.city, img: e.image, accent: e.accent, tiers: e.tiers,
+          };
+        });
+        const schoolRows = rows.filter((e) => e.kind === 'school');
+        const withDate = schoolRows.filter((e) => e.eventDate).slice().sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+        const nextRow = withDate.find((e) => e.eventDate >= today);
+        const school = schoolRows.map((e) => {
+          let day = 'TBA', mon = '', year = '2026', status = 'upcoming';
+          if (e.eventDate) {
+            const dt = new Date(e.eventDate + 'T00:00:00Z');
+            day = String(dt.getUTCDate()).padStart(2, '0');
+            mon = dt.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+            year = String(dt.getUTCFullYear());
+            status = e.eventDate < today ? 'done' : (nextRow && e.id === nextRow.id ? 'next' : 'upcoming');
+          } else if (e.dateLabel) {
+            const parts = e.dateLabel.split(String.fromCharCode(183)).join('').split(' ').filter(Boolean);
+            // dateLabel is "TBA · JUL 2026" -> ['TBA','JUL','2026']
+            if (parts[0]) day = parts[0];
+            if (parts[1]) mon = parts[1];
+            if (parts[2]) year = parts[2];
+          }
+          return { day, mon, year, name: e.name, loc: e.venue, status, img: e.image };
+        });
+        const past = rows.filter((e) => e.kind === 'past').map((e) => ({ name: e.name, loc: e.venue, logo: e.logo, testimonial: e.testimonial }));
+        w.__UGT_EVENTS = { ticketed, school, past };
+      })
+      .catch(() => { w.__UGT_EVENTS = w.__UGT_EVENTS || { ticketed: [], school: [], past: [] }; });
+    fetch('/api/site-data/products')
+      .then((r) => r.json())
+      .then((d) => {
+        const rows: any[] = Array.isArray(d?.products) ? d.products : [];
+        w.__UGT_PRODUCTS = rows.map((p) => ({ id: p.id, name: p.name, price: p.price, img: p.image, cat: p.category, desc: p.description }));
+      })
+      .catch(() => { w.__UGT_PRODUCTS = w.__UGT_PRODUCTS || []; });
     // Card checkout bridge: the v25 template's "Pay with Card" button calls
     // this with the same {id, qty} cart lines the M-Pesa order flow sends.
     // The server re-prices everything from lib/server/catalog.ts and answers

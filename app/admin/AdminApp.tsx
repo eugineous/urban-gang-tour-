@@ -19,6 +19,8 @@ const Pipeline = dynamic(() => import('./ops/Pipeline'), { ssr: false, loading: 
 const Promos = dynamic(() => import('./ops/Promos'), { ssr: false, loading: opsLoading });
 const Checklists = dynamic(() => import('./ops/Checklists'), { ssr: false, loading: opsLoading });
 const Reviews = dynamic(() => import('./ops/Reviews'), { ssr: false, loading: opsLoading });
+const Events = dynamic(() => import('./ops/Events'), { ssr: false, loading: opsLoading });
+const Products = dynamic(() => import('./ops/Products'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
 const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
@@ -29,7 +31,7 @@ const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSi
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
 const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic'] as const;
-const OPS_TABS = ['Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
+const OPS_TABS = ['Events', 'Products', 'Budgeter', 'Invoices', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 
 async function api(path: string, opts?: RequestInit) {
@@ -198,6 +200,8 @@ export default function AdminApp() {
           <Dashboard stats={stats} />
         </div>
       )}
+      {tab === 'Events' && <Events />}
+      {tab === 'Products' && <Products />}
       {tab === 'Budgeter' && <Budgeter />}
       {tab === 'Invoices' && <Invoices />}
       {tab === 'Payments' && <Payments />}

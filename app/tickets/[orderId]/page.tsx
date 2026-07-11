@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ensureTickets, EVENT_META, eventName, type TicketRow } from '@/lib/server/tickets';
+import { ensureTickets, getEventMeta, getEventName, type TicketRow } from '@/lib/server/tickets';
 
 // All e-tickets of one order. Roles: public (anon) - the unguessable ORD- id
 // is the bearer, same model as /receipt/[id]. This page is also the lazy-mint
@@ -80,7 +80,11 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
     console.error('[tickets-page]', e);
   }
 
-  const meta = tickets.length ? EVENT_META[tickets[0].event_id] : undefined;
+  const meta = tickets.length ? await getEventMeta(tickets[0].event_id) : undefined;
+  // Resolve names for every distinct event on this order up front — the grid
+  // below renders synchronously, so nothing in the .map() can itself await.
+  const eventIds = Array.from(new Set(tickets.map((t) => t.event_id)));
+  const eventNames = Object.fromEntries(await Promise.all(eventIds.map(async (id) => [id, await getEventName(id)] as const)));
 
   return (
     <div className="tks-stage">
@@ -112,7 +116,7 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
                   <a className="tks-card" href={`/t/${encodeURIComponent(t.code)}`}>
                     <span className="tks-num"><b>{t.position}</b><span>OF {t.of_count}</span></span>
                     <span className="tks-info">
-                      <span className="tks-ev">{eventName(t.event_id)}</span>
+                      <span className="tks-ev">{eventNames[t.event_id]}</span>
                       <br />
                       <span className={'tks-tier' + (vip ? ' gold' : '')}>{t.tier_name}</span>
                       <div className="tks-codeline">{t.code}</div>

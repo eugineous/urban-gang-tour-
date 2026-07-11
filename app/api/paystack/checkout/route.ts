@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PRICES, serverTotalWithPromos } from '@/lib/server/catalog';
+import { getProducts, serverTotalWithPromos } from '@/lib/server/catalog';
 import { recordPromoCodeUse } from '@/lib/server/promos';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
@@ -45,6 +45,7 @@ export async function POST(req: Request) {
   if (!Array.isArray(items) || items.length === 0 || items.length > 30) {
     return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
   }
+  const catalogPrices = await getProducts();
   for (const it of items) {
     if (!it || typeof it !== 'object' || Array.isArray(it)) {
       return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     for (const k of Object.keys(it)) {
       if (k !== 'id' && k !== 'qty') return NextResponse.json({ error: `unexpected_field:items.${k}` }, { status: 400 });
     }
-    if (typeof it.id !== 'string' || !PRICES[it.id]) {
+    if (typeof it.id !== 'string' || !catalogPrices[it.id]) {
       return NextResponse.json({ error: 'unknown_product' }, { status: 400 });
     }
     if (!Number.isInteger(it.qty) || it.qty < 1 || it.qty > 20) {

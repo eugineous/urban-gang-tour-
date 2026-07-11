@@ -135,6 +135,45 @@ CREATE TABLE IF NOT EXISTS ops_promos (
 CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY, actor TEXT, action TEXT, detail JSONB, created_at TIMESTAMPTZ DEFAULT now()
 );
+-- Public catalog source of truth: tour events (ticketed concerts, school tour
+-- stops, past-client showcase) and shop products. Collapses what used to be
+-- four hardcoded copies (public/v25-template.html, lib/server/catalog.ts,
+-- lib/server/tickets.ts, app/_lib/jsonld.data.json) into one admin-editable
+-- table each. See lib/server/catalog.ts for the cached read layer every
+-- checkout route uses, and app/api/admin/ops/route.ts for the CRUD (kinds
+-- tourEvent.save/tourEvent.delete/product.save/product.delete).
+CREATE TABLE IF NOT EXISTS tour_events (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('ticketed','school','past')),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL DEFAULT '',
+  event_date DATE,
+  date_label TEXT DEFAULT '',
+  event_time TEXT DEFAULT '',
+  venue TEXT DEFAULT '',
+  city TEXT DEFAULT '',
+  accent TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published','cancelled','completed')),
+  priority INT NOT NULL DEFAULT 0,
+  image TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  tiers JSONB DEFAULT '[]',
+  logo TEXT DEFAULT '',
+  testimonial TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  price INT NOT NULL,
+  image TEXT DEFAULT '',
+  category TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 -- Indexes for the ops suite's real query patterns (event drill-downs, invoice
 -- payment sums, lead pipeline, follow-up dashboard, audit trail). Applied
 -- automatically by ensureOpsSchema(). ops_budgets(event_id) is covered by the
@@ -152,6 +191,8 @@ CREATE INDEX IF NOT EXISTS idx_ops_checklist_items_event_id ON ops_checklist_ite
 CREATE INDEX IF NOT EXISTS idx_ops_crew_payouts_event_id ON ops_crew_payouts (event_id);
 CREATE INDEX IF NOT EXISTS idx_ops_expenses_event_id ON ops_expenses (event_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tour_events_kind_status_priority ON tour_events (kind, status, priority DESC, event_date);
+CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
 `;
 
 export const LEAD_STAGES = ['new', 'contacted', 'negotiating', 'confirmed', 'contracted', 'completed', 'lost'] as const;

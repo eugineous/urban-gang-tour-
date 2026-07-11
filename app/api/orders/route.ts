@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { serverTotalWithPromos, TICKET_TIERS } from '@/lib/server/catalog';
+import { serverTotalWithPromos, getTicketTiers } from '@/lib/server/catalog';
 import { recordPromoCodeUse } from '@/lib/server/promos';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { mpesaConfigured, stkPush, normalizePhone } from '@/lib/server/mpesa';
@@ -47,7 +47,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: `unexpected_field:ticket.${k}` }, { status: 400 });
       }
     }
-    const ev = typeof ticket.eventId === 'string' ? TICKET_TIERS[ticket.eventId] : undefined;
+    const ticketTiers = await getTicketTiers();
+    const ev = typeof ticket.eventId === 'string' ? ticketTiers[ticket.eventId] : undefined;
     if (!ev) return NextResponse.json({ error: 'unknown_event' }, { status: 400 });
     if (!Number.isInteger(ticket.tier) || ticket.tier < 0 || ticket.tier >= ev.tiers.length) {
       return NextResponse.json({ error: 'invalid_tier' }, { status: 400 });

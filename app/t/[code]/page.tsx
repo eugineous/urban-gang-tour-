@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
-import { codeAuthentic, getTicket, EVENT_META, eventName } from '@/lib/server/tickets';
+import { codeAuthentic, getTicket, getEventMeta, getEventName } from '@/lib/server/tickets';
 
 // The digital ticket - a phone-screen artifact people screenshot and flex.
 // Roles: public (anon); the self-authenticating TKT- code is the bearer, same
@@ -114,8 +114,8 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
 
   const paid = t.order_status === 'paid' || t.order_status === 'fulfilled';
   const used = !!t.used_at;
-  const meta = EVENT_META[t.event_id];
-  const evName = eventName(t.event_id);
+  const meta = await getEventMeta(t.event_id);
+  const evName = await getEventName(t.event_id);
   const vip = /vip/i.test(t.tier_name);
   const qrSvg = await QRCode.toString(`${SITE}/t/${code}`, {
     type: 'svg',

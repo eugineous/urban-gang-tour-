@@ -19,16 +19,19 @@ export const ARTICLES = data.articles;  // @graph of NewsArticle             -> 
 export async function productsWithReviews(): Promise<unknown> {
   try {
     const { q, db } = await import('@/lib/server/db');
-    const { PRICES } = await import('@/lib/server/catalog');
+    const { getProducts } = await import('@/lib/server/catalog');
     if (!db()) return PRODUCTS;
-    const rows = await q<{ product_id: string; author: string; rating: number; body: string; created_at: string }>(
-      `SELECT product_id, author, rating, body, created_at FROM product_reviews
-       WHERE approved ORDER BY created_at DESC`
-    );
+    const [rows, catalogPrices] = await Promise.all([
+      q<{ product_id: string; author: string; rating: number; body: string; created_at: string }>(
+        `SELECT product_id, author, rating, body, created_at FROM product_reviews
+         WHERE approved ORDER BY created_at DESC`
+      ),
+      getProducts(),
+    ]);
     if (!rows.length) return PRODUCTS;
     const byName = new Map<string, typeof rows>();
     for (const r of rows) {
-      const name = PRICES[r.product_id]?.name;
+      const name = catalogPrices[r.product_id]?.name;
       if (!name) continue;
       if (!byName.has(name)) byName.set(name, []);
       byName.get(name)!.push(r);
@@ -55,6 +58,82 @@ export async function productsWithReviews(): Promise<unknown> {
     return block;
   } catch {
     return PRODUCTS;
+  }
+}
+
+const PERFORMER = [
+  { '@type': 'PerformingGroup', name: 'Urban Gang Tour' },
+  { '@type': 'Person', name: 'Eugine Micah' },
+  { '@type': 'Person', name: 'Lucy Ogunde' },
+];
+
+function timeTo24h(t: string): string {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(t || '').trim());
+  if (!m) return '00:00:00';
+  let h = Number(m[1]) % 12;
+  if (/pm/i.test(m[3])) h += 12;
+  return `${String(h).padStart(2, '0')}:${m[2]}:00`;
+}
+
+// Live rebuild of the /events JSON-LD @graph straight from tour_events
+// (kind='ticketed' | 'school', status='published') — the same admin-edited
+// rows the public site and checkout read, so Google always sees the current
+// name/date/venue/price, never a frozen copy. Rows with no confirmed
+// event_date (TBA school stops) are omitted rather than emitting an invalid
+// startDate. Any DB problem (including DATABASE_URL not configured) falls
+// back to the static app/_lib/jsonld.data.json snapshot — SEO must never
+// break because of a transient DB issue.
+export async function eventsFromDb(): Promise<unknown> {
+  try {
+    const { q, db } = await import('@/lib/server/db');
+    if (!db()) return EVENTS;
+    // event_date::text — plain 'YYYY-MM-DD' string, never a local-midnight
+    // Date object (see lib/server/db.ts's note on pg's DATE parser).
+    const rows = await q<any>(
+      `SELECT id, kind, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers
+       FROM tour_events WHERE kind IN ('ticketed','school') AND status='published' AND event_date IS NOT NULL
+       ORDER BY priority DESC, event_date ASC`
+    );
+    if (!rows.length) return EVENTS;
+    const graph = rows.map((r: any) => {
+      const dateStr = String(r.event_date).slice(0, 10);
+      const desc = String(r.description || '').replace(/—/g, '-');
+      if (r.kind === 'ticketed') {
+        const tiers: { name: string; price: number }[] = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
+        return {
+          '@type': 'Event',
+          name: r.name,
+          startDate: `${dateStr}T${timeTo24h(r.event_time)}+03:00`,
+          eventStatus: 'https://schema.org/EventScheduled',
+          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+          location: { '@type': 'Place', name: r.venue || '', address: { '@type': 'PostalAddress', addressLocality: r.city || '', addressCountry: 'KE' } },
+          image: r.image ? `${SITE.domain}${r.image}` : undefined,
+          organizer: { '@id': `${SITE.domain}/#org` },
+          performer: PERFORMER,
+          description: desc || `${r.name} at ${r.venue}, ${r.city}.`,
+          offers: tiers.map((t) => ({
+            '@type': 'Offer', name: t.name, price: String(Math.round(Number(t.price) || 0)),
+            priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}/events`,
+          })),
+        };
+      }
+      return {
+        '@type': ['Event', 'EducationEvent'],
+        name: `Urban Gang Tour — ${r.name}`,
+        startDate: dateStr,
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: { '@type': 'Place', name: r.name, address: { '@type': 'PostalAddress', addressLocality: r.venue || '', addressCountry: 'KE' } },
+        image: r.image ? `${SITE.domain}${r.image}` : undefined,
+        organizer: { '@id': `${SITE.domain}/#org` },
+        performer: PERFORMER,
+        description: desc || 'A full day of talent showcases, mentorship pods, a modelling runway, and a national Urban News broadcast.',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}/events` },
+      };
+    });
+    return { '@context': 'https://schema.org', '@graph': graph };
+  } catch {
+    return EVENTS;
   }
 }
 

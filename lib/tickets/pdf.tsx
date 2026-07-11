@@ -20,7 +20,7 @@ import React from 'react';
 import QRCode from 'qrcode';
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from '@react-pdf/renderer';
 import { orderLines } from '@/lib/server/catalog';
-import { EVENT_META, eventName, signedTicketBlob } from '@/lib/server/tickets';
+import { getEventMeta, getEventName, signedTicketBlob } from '@/lib/server/tickets';
 import { BRAND } from '@/lib/ops/pdf';
 
 const SITE = 'https://urbangangtour.co.ke';
@@ -108,11 +108,15 @@ export interface TicketPdfInput {
   logo: string | null;
   qrMain: string; // data URI
   qrSig: string; // data URI
+  // Resolved server-side (async, DB-backed) before this sync component
+  // renders — see renderTicketPdf() below.
+  evName: string;
+  meta: { date: string; time: string; venue: string; city: string; accent: string } | undefined;
 }
 
 export function TicketPdf({ t }: { t: TicketPdfInput }) {
-  const meta = EVENT_META[t.eventId];
-  const evName = eventName(t.eventId);
+  const meta = t.meta;
+  const evName = t.evName;
   const vip = /vip/i.test(t.tierName);
   const isComp = t.payMethod === 'comp';
   return (
@@ -181,11 +185,13 @@ export async function renderTicketPdf(input: {
   code: string; eventId: string; tierName: string; holder: string; position: number; ofCount: number;
   createdAt: string | Date; orderId: string; payMethod: string; logo: string | null;
 }): Promise<Buffer> {
-  const [qrMain, qrSig] = await Promise.all([
+  const [qrMain, qrSig, evName, meta] = await Promise.all([
     qrPng(`${SITE}/t/${input.code}`),
     qrPng(signedTicketBlob({ code: input.code, order_id: input.orderId, event_id: input.eventId, tier_name: input.tierName, created_at: input.createdAt })),
+    getEventName(input.eventId),
+    getEventMeta(input.eventId),
   ]);
-  return render(React.createElement(TicketPdf, { t: { ...input, qrMain, qrSig } }));
+  return render(React.createElement(TicketPdf, { t: { ...input, qrMain, qrSig, evName, meta } }));
 }
 
 // ---------------------------------------------------------------------- //

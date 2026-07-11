@@ -3,7 +3,7 @@ import { isAdmin, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { q, db } from '@/lib/server/db';
-import { TICKET_TIERS } from '@/lib/server/catalog';
+import { getTicketTiers } from '@/lib/server/catalog';
 import { ensureTickets } from '@/lib/server/tickets';
 import { sendReceiptEmail } from '@/lib/server/receipt-email';
 
@@ -39,7 +39,8 @@ export async function POST(req: Request) {
   const { eventId, tier, qty, holderName, holderEmail, holderPhone, reason } = body || {};
 
   // Validate exactly like the real ticket purchase flow (/api/orders).
-  const ev = typeof eventId === 'string' ? TICKET_TIERS[eventId] : undefined;
+  const ticketTiers = await getTicketTiers();
+  const ev = typeof eventId === 'string' ? ticketTiers[eventId] : undefined;
   if (!ev) return bad('unknown_event');
   if (!Number.isInteger(tier) || tier < 0 || tier >= ev.tiers.length) return bad('invalid_tier');
   if (!Number.isInteger(qty) || qty < 1 || qty > 20) return bad('invalid_qty');

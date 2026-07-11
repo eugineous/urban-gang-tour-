@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
-import { PRICES } from '@/lib/server/catalog';
+import { getProducts } from '@/lib/server/catalog';
 
 // Public product reviews.
 // GET ?product=<id> — approved reviews + aggregate for one catalog product.
@@ -15,7 +15,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const product = new URL(req.url).searchParams.get('product') || '';
-  if (!PRICES[product]) return NextResponse.json({ error: 'unknown_product' }, { status: 400 });
+  const catalogPrices = await getProducts();
+  if (!catalogPrices[product]) return NextResponse.json({ error: 'unknown_product' }, { status: 400 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   try {
     const rows = await q<{ author: string; rating: number; body: string; created_at: string }>(
@@ -49,7 +50,8 @@ export async function POST(req: Request) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
   const { product_id, author, rating, body: text } = body;
-  if (typeof product_id !== 'string' || !PRICES[product_id]) return NextResponse.json({ error: 'invalid_product' }, { status: 400 });
+  const catalogPrices = await getProducts();
+  if (typeof product_id !== 'string' || !catalogPrices[product_id]) return NextResponse.json({ error: 'invalid_product' }, { status: 400 });
   if (typeof author !== 'string' || author.trim().length < 2 || author.length > 60) return NextResponse.json({ error: 'invalid_author' }, { status: 400 });
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) return NextResponse.json({ error: 'invalid_rating' }, { status: 400 });
   if (typeof text !== 'string' || text.trim().length < 5 || text.length > 1000) return NextResponse.json({ error: 'invalid_body' }, { status: 400 });

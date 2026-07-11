@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
-import { codeAuthentic, getTicket, eventName, EVENT_META } from '@/lib/server/tickets';
+import { codeAuthentic, getTicket, getEventName, getEventMeta } from '@/lib/server/tickets';
 import { q, db } from '@/lib/server/db';
 
 // Gate check-in. Roles: admin ONLY (the /admin/gate scanner runs on the same
@@ -13,10 +13,10 @@ import { q, db } from '@/lib/server/db';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function ticketPayload(t: { event_id: string; tier_name: string; holder: string; position: number; of_count: number }) {
-  const meta = EVENT_META[t.event_id];
+async function ticketPayload(t: { event_id: string; tier_name: string; holder: string; position: number; of_count: number }) {
+  const [event, meta] = await Promise.all([getEventName(t.event_id), getEventMeta(t.event_id)]);
   return {
-    event: eventName(t.event_id),
+    event,
     eventDate: meta ? `${meta.date} ${meta.time}` : '',
     tier: t.tier_name,
     holder: t.holder || '',
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     if (rows.length) {
       const t = rows[0];
       await audit('valid', { order_id: t.order_id });
-      return NextResponse.json({ result: 'valid', ticket: ticketPayload(t), usedAt: t.used_at });
+      return NextResponse.json({ result: 'valid', ticket: await ticketPayload(t), usedAt: t.used_at });
     }
 
     // Distinguish already-used / unpaid / unknown.
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     }
     if (t.used_at) {
       await audit('used', { order_id: t.order_id, used_at: t.used_at });
-      return NextResponse.json({ result: 'used', ticket: ticketPayload(t), usedAt: t.used_at });
+      return NextResponse.json({ result: 'used', ticket: await ticketPayload(t), usedAt: t.used_at });
     }
     await audit('invalid', { reason: 'order_not_paid', order_id: t.order_id });
     return NextResponse.json({ result: 'invalid', reason: 'order_not_paid' });

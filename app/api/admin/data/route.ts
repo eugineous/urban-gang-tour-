@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin } from '@/lib/server/session';
-import { TICKET_TIERS } from '@/lib/server/catalog';
+import { getTicketTiers } from '@/lib/server/catalog';
 
 const VIEWS: Record<string, string> = {
   bookings: `SELECT * FROM bookings ORDER BY created_at DESC LIMIT 500`,
@@ -33,7 +33,8 @@ export async function GET(req: Request) {
   // (server catalog.ts stays the single source of truth - this only mirrors
   // it for the dropdown; the comp ticket route re-validates independently).
   if (view === 'eventTiers') {
-    const events = Object.entries(TICKET_TIERS).map(([id, ev]) => ({ id, name: ev.name, tiers: ev.tiers.map((t) => t.name) }));
+    const tierMap = await getTicketTiers();
+    const events = Object.entries(tierMap).map(([id, ev]) => ({ id, name: ev.name, tiers: ev.tiers.map((t) => t.name) }));
     return NextResponse.json({ ok: true, rows: events });
   }
   const sql = VIEWS[view];

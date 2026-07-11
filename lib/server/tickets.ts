@@ -10,7 +10,7 @@
 // (POST /api/tickets/verify).
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { db } from './db';
-import { TICKET_TIERS } from './catalog';
+import { getTicketedEvents, getTicketTiers, FALLBACK_EVENT_META } from './catalog';
 
 // 32 chars, no 0/O/1/I. 32 divides 256, so byte % 32 is bias-free.
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -18,19 +18,23 @@ export const CODE_RE = /^TKT-[A-HJ-NP-Z2-9]{10}-[A-HJ-NP-Z2-9]{4}$/;
 
 const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
 
-// Display metadata per event - mirrors the v25 template's MAIN_EVENTS exactly
-// (date/time/venue/city/accent). Prices/tiers stay in catalog.ts.
-export const EVENT_META: Record<
-  string,
-  { date: string; time: string; venue: string; city: string; accent: string }
-> = {
-  'xp-dance': { date: 'Sat 16 Aug 2026', time: '2:00 PM', venue: 'KICC Grounds', city: 'Nairobi', accent: '#E6218C' },
-  'festival-colours': { date: 'Sat 20 Sep 2026', time: '11:00 AM', venue: 'Uhuru Gardens', city: 'Nairobi', accent: '#21C7E6' },
-  'campus-rave': { date: 'Fri 3 Oct 2026', time: '4:00 PM', venue: 'Carnivore Grounds', city: 'Nairobi', accent: '#FFD400' },
-};
+// Display metadata per event (date/time/venue/city/accent), looked up
+// against the same DB-backed, cached tour_events read as pricing (see
+// lib/server/catalog.ts getTicketedEvents()) — so ticket pages/PDFs always
+// show the current admin-edited event name/date/venue, not a frozen copy.
+// FALLBACK_EVENT_META (catalog.ts) is used only if the DB is unreachable.
+export async function getEventMeta(
+  eventId: string
+): Promise<{ date: string; time: string; venue: string; city: string; accent: string } | undefined> {
+  const events = await getTicketedEvents();
+  const ev = events.find((e) => e.id === eventId);
+  if (ev) return { date: ev.date, time: ev.time, venue: ev.venue, city: ev.city, accent: ev.accent };
+  return FALLBACK_EVENT_META[eventId];
+}
 
-export function eventName(eventId: string): string {
-  return TICKET_TIERS[eventId]?.name || 'Urban Gang Tour Event';
+export async function getEventName(eventId: string): Promise<string> {
+  const tiers = await getTicketTiers();
+  return tiers[eventId]?.name || 'Urban Gang Tour Event';
 }
 
 function chars(buf: Buffer, len: number): string {
@@ -116,6 +120,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   const lines = ticketLinesOf(order);
   if (!lines.length) return [];
   await ensureTable();
+  const tierMap = await getTicketTiers();
 
   const client = await pool.connect();
   try {
@@ -133,7 +138,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
     for (const line of lines) {
       const [, eventId, tierIdx] = String(line.id).split(':');
       const tierName =
-        TICKET_TIERS[eventId]?.tiers[Number(tierIdx)]?.name ||
+        tierMap[eventId]?.tiers[Number(tierIdx)]?.name ||
         String(line.name || '').split(' - ').pop() ||
         'General';
       for (let i = 0; i < Number(line.qty); i++) {
