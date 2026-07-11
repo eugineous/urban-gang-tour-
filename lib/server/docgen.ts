@@ -81,8 +81,14 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   spass: { code: 'SPASS', label: 'Student Pass', template: '23-ticket-student-pass-front-back-game.html' },
   // band's template is resolved per bandType (see BAND_TEMPLATES / resolveTemplate).
   band: { code: 'BAND', label: 'Wristband', template: '10-wristband-ga-the-fan.html' },
+  // Single-page letters and forms (phase: one template each, no batch/quantity).
+  ltr: { code: 'LTR', label: 'Thank-You Letter', template: '49-thank-you-letter-schools.html' },
+  acc: { code: 'ACC', label: 'Media Accreditation', template: '46-media-accreditation-form.html' },
+  pass: { code: 'PASS', label: 'Gate / Vehicle Pass', template: '48-gate-vehicle-pass.html' },
+  rel: { code: 'REL', label: 'Talent Media Release', template: '50-talent-media-release-form.html' },
+  cons: { code: 'CONS', label: 'Parental Consent Letter', template: '52-parental-consent-letter.html' },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band'] as const;
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'acc', 'pass', 'rel', 'cons'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
 
 // Wristband is one doc type (code BAND) but four artworks. The bandType picks
@@ -287,7 +293,13 @@ function injectField(html: string, field: string, value: string): string {
   return html.replace(re, (_m, open, _tag, close) => open + escapeHtml(value) + close);
 }
 
-export interface FillOpts { serial: string; qrDataUrl?: string; method?: string; tierScheme?: 'ga' | 'vip'; }
+export interface FillOpts {
+  serial: string; qrDataUrl?: string; method?: string; tierScheme?: 'ga' | 'vip';
+  // Selectable chips (media accreditation "covering as", gate-pass "zone").
+  // chipsOn holds active "group:VALUE" tokens; chipDimGroup fades non-selected
+  // pills of that group (single-select emphasis, e.g. the gate-pass zone).
+  chipsOn?: string[]; chipDimGroup?: string;
+}
 
 export async function fillTemplate(
   templateFile: string,
@@ -308,34 +320,54 @@ export async function fillTemplate(
     html = html.replace(re, (_m, a, b) => a + 'background:#E6218C;color:#fff;' + b);
   }
 
-  // 3) QR + serial badge, injected as an absolutely-positioned child of the
-  // [data-doc-page] container (the money templates ship no striped QR
-  // placeholder, so the engine appends one in known whitespace rather than
-  // swapping). A future template that DOES carry a repeating-linear-gradient
-  // placeholder is handled by the swap branch below.
+  // 2b) tick + highlight selectable chips (media accreditation "covering as",
+  // gate-pass "zone"). data-chip="group:VALUE" marks the pill; data-chip-box the
+  // inner checkbox square. Active tokens get a black ring + a filled tick; when
+  // a dim group is set, the non-selected pills of that group fade back so the
+  // matching one stands out (the gate-pass single-select zone). Applied as
+  // inline-style rewrites for the same reason the tier recolour is: the
+  // rasteriser captures only the [data-doc-page] node, so a <head> rule would
+  // never reach the output.
+  if (opts.chipsOn && opts.chipsOn.length) {
+    const on = new Set(opts.chipsOn);
+    const dim = opts.chipDimGroup ? opts.chipDimGroup + ':' : '';
+    html = html.replace(/<span\b[^>]*\bdata-chip="([^"]*)"[^>]*>/g, (tag, token) => {
+      if (on.has(token)) return tag.replace(/(style="[^"]*)"/, '$1;box-shadow:0 0 0 3px #111;position:relative;z-index:2;');
+      if (dim && String(token).startsWith(dim)) return tag.replace(/(style="[^"]*)"/, '$1;opacity:.28;');
+      return tag;
+    });
+    html = html.replace(/(<span\b[^>]*\bdata-chip-box="([^"]*)"[^>]*>)[\s\S]*?(<\/span>)/g, (m, open, token, close) => {
+      if (!on.has(token)) return m;
+      const filled = open.replace(/(style="[^"]*)"/, '$1;background:#111;display:flex;align-items:center;justify-content:center;');
+      return filled + `<span style="color:#fff;font-size:11px;line-height:1;font-weight:700;">&#10003;</span>` + close;
+    });
+  }
+
+  // 3) QR + serial. Three mutually-exclusive paths so a template only ever gets
+  // one QR: (a) a marked [data-qr-slot] (tickets/passes/wristbands) has its
+  // inner markup swapped for the QR, keeping the box frame; (b) templates with
+  // a code-defined corner badge (invoice, receipt, and the new letters/forms
+  // ltr/acc/pass/rel) get an absolutely-positioned QR badge appended to the
+  // [data-doc-page] node; (c) everything else falls back to swapping a striped
+  // placeholder box (the certificates). Keeping these exclusive means the
+  // gate-pass badge path leaves its decorative barcode strip intact and the
+  // accreditation passport-photo box is never mistaken for a QR slot.
   if (opts.qrDataUrl) {
-    // marked QR slot (tickets, passes, wristbands): replace the placeholder
-    // box's inner markup with the real QR, keeping the box's own frame. The
-    // slot's own dimensions size the QR, so a thin band gets a small QR and a
-    // ticket stub a large one. When a slot exists the generic striped-swap is
-    // skipped so the decorative barcode strips stay intact.
     const hasSlot = /data-qr-slot="1"/.test(html);
+    const badge = qrBadgeHtml(templateFile, opts.serial, opts.qrDataUrl);
     if (hasSlot) {
       html = html.replace(
         /(<div\b[^>]*\bdata-qr-slot="1"[^>]*>)[\s\S]*?(<\/div>)/,
         (_m, open, close) => open + `<img src="${opts.qrDataUrl}" alt="Verify" style="width:100%;height:100%;object-fit:contain;display:block;background:#fff;" />` + close
       );
+    } else if (badge) {
+      html = html.replace(/(<div\b[^>]*\bdata-doc-page="[^"]*"[^>]*>)/, (_m, open) => open + badge);
     } else {
-      // generic swap path for templates that have a striped placeholder box
+      // generic swap path for templates that have an empty striped placeholder
       html = html.replace(
         /<div([^>]*background:repeating-linear-gradient[^>]*)><\/div>/,
         `<img src="${opts.qrDataUrl}" alt="Verify" style="width:96px;height:96px;display:block;background:#fff;" />`
       );
-    }
-    // money-doc badge path (invoice + receipt); returns '' for other templates.
-    const badge = qrBadgeHtml(templateFile, opts.serial, opts.qrDataUrl);
-    if (badge) {
-      html = html.replace(/(<div\b[^>]*\bdata-doc-page="[^"]*"[^>]*>)/, (_m, open) => open + badge);
     }
   }
 
@@ -350,6 +382,14 @@ export async function fillTemplate(
       tag.replace(/#FFD400/g, '#E6218C').replace(/#f0a500/g, '#ff3d9e').replace(/color:#111/g, 'color:#fff'));
     html = html.replace(/<[^>]*\bdata-tier-goldbg="1"[^>]*>/g, (tag) =>
       tag.replace(/rgba\(255,212,0,\.06\)/g, 'rgba(230,33,140,.12)'));
+  }
+
+  // 3c) Gate-pass card ships a slight decorative rotation (transform:rotate).
+  // The client rasteriser captures the [data-doc-page] node itself, and a
+  // self-rotated capture node clips its own corners, so neutralise the rotation
+  // at render time only (the source template keeps it for standalone viewing).
+  if (templateFile.startsWith('48-gate')) {
+    html = html.replace('transform:rotate(-.6deg)', 'transform:none');
   }
 
   // 4) make asset refs portable (iframe srcdoc / hidden capture node both need
@@ -372,6 +412,42 @@ function qrBadgeHtml(templateFile: string, serial: string, qr: string): string {
     return `<div style="position:absolute;left:18px;top:150px;width:64px;z-index:4;text-align:center;">`
       + `<img src="${qr}" alt="Verify" style="width:64px;height:64px;display:block;background:#fff;border:2px solid #fff;border-radius:6px;" />`
       + `<div style="font-family:'Bungee';font-size:6.5px;letter-spacing:.06em;color:#FFD400;margin-top:3px;">VERIFY</div></div>`;
+  }
+  // Thank-you letter: verify badge in the open lower-right whitespace, above the
+  // footer bar (signature block sits lower-left, so the right is clear).
+  if (templateFile.startsWith('49-thank-you')) {
+    return `<div style="position:absolute;right:52px;bottom:116px;display:flex;align-items:center;gap:11px;z-index:5;">`
+      + `<img src="${qr}" alt="Verify" style="width:76px;height:76px;display:block;border:2px solid #111;border-radius:8px;background:#fff;" />`
+      + `<div style="font-size:9px;font-weight:700;color:#111;line-height:1.55;">`
+      + `<div style="font-family:'Bungee';font-size:8px;color:#E6218C;letter-spacing:.08em;">SCAN TO VERIFY</div>`
+      + `<div style="font-weight:800;">${escapeHtml(serial)}</div>`
+      + `<div style="color:#555;">urbangangtour.co.ke/verify</div></div></div>`;
+  }
+  // Media accreditation: compact verify badge in the lower-left gap, above the
+  // footer (office-use approval box + passport photo sit on the right).
+  if (templateFile.startsWith('46-media')) {
+    return `<div style="position:absolute;left:40px;bottom:70px;display:flex;align-items:center;gap:10px;z-index:5;">`
+      + `<img src="${qr}" alt="Verify" style="width:66px;height:66px;display:block;border:2px solid #111;border-radius:8px;background:#fff;" />`
+      + `<div style="font-size:8.5px;font-weight:700;color:#111;line-height:1.5;">`
+      + `<div style="font-family:'Bungee';font-size:7.5px;color:#21C7E6;letter-spacing:.08em;">SCAN TO VERIFY</div>`
+      + `<div style="font-weight:800;">${escapeHtml(serial)}</div>`
+      + `<div style="color:#555;">urbangangtour.co.ke/verify</div></div></div>`;
+  }
+  // Gate / vehicle pass: QR sits in the card body's right gap, above the
+  // decorative barcode strip. Small square so the gate crew can scan on the day.
+  if (templateFile.startsWith('48-gate')) {
+    return `<div style="position:absolute;right:26px;bottom:60px;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:6;">`
+      + `<img src="${qr}" alt="Verify" style="width:70px;height:70px;display:block;border:2px solid #fff;border-radius:8px;background:#fff;" />`
+      + `<div style="font-family:'Bungee';font-size:6.5px;letter-spacing:.08em;color:#FFD400;">SCAN AT GATE</div></div>`;
+  }
+  // Talent media release: verify badge in the lower-right gap, above the footer.
+  if (templateFile.startsWith('50-talent')) {
+    return `<div style="position:absolute;right:40px;bottom:66px;display:flex;align-items:center;gap:10px;z-index:5;">`
+      + `<img src="${qr}" alt="Verify" style="width:66px;height:66px;display:block;border:2px solid #111;border-radius:8px;background:#fff;" />`
+      + `<div style="font-size:8.5px;font-weight:700;color:#111;line-height:1.5;">`
+      + `<div style="font-family:'Bungee';font-size:7.5px;color:#E6218C;letter-spacing:.08em;">SCAN TO VERIFY</div>`
+      + `<div style="font-weight:800;">${escapeHtml(serial)}</div>`
+      + `<div style="color:#555;">urbangangtour.co.ke/verify</div></div></div>`;
   }
   return '';
 }
@@ -594,6 +670,99 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
     const event = bandType === 'Student' ? [schoolName, date].filter(Boolean).join(' - ') : eventName;
     return { type, payload, issued_to, event, slug: slugify(eventName || schoolName || `${bandType}-band`), computed: { bandType } };
   }
+  if (type === 'ltr') {
+    // Thank-you letter to a host school. schoolName is the identity (addressee)
+    // and is required; the rest are simple text fills. date is formatted to a
+    // readable form when an ISO date is given; free text passes through.
+    const schoolName = str(p.schoolName, 160).trim();
+    const principalSalutation = str(p.principalSalutation, 120).trim();
+    const winnerNames = str(p.winnerNames, 200).trim();
+    const winnerCategory = str(p.winnerCategory, 120).trim();
+    const date = formatCertDate(str(p.date, 60));
+    if (!schoolName) throw new Error('schoolName_required');
+    const payload = { schoolName, principalSalutation, winnerNames, winnerCategory, date };
+    return { type, payload, issued_to: schoolName, event: winnerCategory, slug: slugify(schoolName), computed: {} };
+  }
+  if (type === 'acc') {
+    // Media accreditation. fullName is the identity (required). coveringAs is a
+    // multi-select rendered as ticked chips; only the known tokens survive.
+    // badgeNo is the auto serial (set in buildValues), approvedBy is office use.
+    const fullName = str(p.fullName, 120).trim();
+    const idNumber = str(p.idNumber, 40).trim();
+    const outlet = str(p.outlet, 120).trim();
+    const handle = str(p.handle, 80).trim();
+    const phone = str(p.phone, 40).trim();
+    const email = str(p.email, 120).trim();
+    const event = str(p.event, 120).trim();
+    const date = formatCertDate(str(p.date, 60));
+    const equipment = str(p.equipment, 200).trim();
+    const approvedBy = str(p.approvedBy, 120).trim();
+    const COVER = ['PHOTO', 'VIDEO', 'PRINT', 'RADIO', 'CREATOR'];
+    const coveringAs = Array.from(new Set(
+      (Array.isArray(p.coveringAs) ? p.coveringAs : []).map((x: unknown) => str(x, 20).toUpperCase()).filter((x: string) => COVER.includes(x))
+    ));
+    if (!fullName) throw new Error('fullName_required');
+    const payload = { fullName, idNumber, outlet, handle, phone, email, event, date, coveringAs, equipment, approvedBy };
+    return { type, payload, issued_to: fullName, event, slug: slugify(fullName), computed: {} };
+  }
+  if (type === 'pass') {
+    // Gate / vehicle pass. vehicleReg is the identity (required). zone is a
+    // single-select enum that ticks + highlights the matching chip; an unknown
+    // value falls back to Stage. Carries a QR (verify).
+    const vehicleReg = str(p.vehicleReg, 40).trim();
+    const driver = str(p.driver, 120).trim();
+    const event = str(p.event, 120).trim();
+    const date = formatCertDate(str(p.date, 60));
+    const ZONES = ['Stage', 'Media', 'VIP', 'Vendor'];
+    const zoneRaw = str(p.zone, 20).trim();
+    const zone = ZONES.find((z) => z.toLowerCase() === zoneRaw.toLowerCase()) || 'Stage';
+    if (!vehicleReg) throw new Error('vehicleReg_required');
+    const payload = { vehicleReg, driver, event, date, zone };
+    return { type, payload, issued_to: vehicleReg, event, slug: slugify(vehicleReg || 'gate-pass'), computed: { zone } };
+  }
+  if (type === 'rel') {
+    // Talent media release. talentName + age are required (age is needed to
+    // enforce the minor rule). HARD RULE (spec): a release for an under-18
+    // talent MUST carry a guardian block (name + relationship + phone); we fail
+    // CLOSED here, so an under-18 release with no guardian is rejected on
+    // preview, single generate and any batch row. linkedCertSerial is optional;
+    // its existence is checked softly in preparePayloadFull (warn, still allow).
+    const talentName = str(p.talentName, 120).trim();
+    const ageRaw = p.age;
+    const age = ageRaw === '' || ageRaw === null || ageRaw === undefined ? null : Math.max(0, Math.round(num(ageRaw)));
+    const school = str(p.school, 120).trim();
+    const category = str(p.category, 80).trim();
+    const event = str(p.event, 120).trim();
+    const date = formatCertDate(str(p.date, 60));
+    const guardianName = str(p.guardianName, 120).trim();
+    const relationship = str(p.relationship, 80).trim();
+    const guardianPhone = str(p.phone, 40).trim();
+    const linkedCertSerial = str(p.linkedCertSerial, 40).trim().toUpperCase();
+    if (!talentName) throw new Error('talentName_required');
+    if (age === null) throw new Error('age_required');
+    if (age < 18 && (!guardianName || !relationship || !guardianPhone)) {
+      throw new Error('guardian_block_required_for_minor');
+    }
+    const payload: Record<string, unknown> = {
+      talentName, age, school, category, event, date,
+      guardianName, relationship, phone: guardianPhone, linkedCertSerial,
+    };
+    return { type, payload, issued_to: talentName, event, slug: slugify(talentName), computed: {} };
+  }
+  if (type === 'cons') {
+    // Parental consent letter. Signed BY THE SCHOOL - the generator only
+    // pre-fills the school-specific blanks; the stamp/signatures stay physical
+    // and there is NO QR-verify (it is a school-issued reply slip, not a
+    // UGT-issued verifiable credential). It still gets a CONS serial for the
+    // record. schoolName is the identity (required).
+    const schoolName = str(p.schoolName, 160).trim();
+    const schoolAddress = str(p.schoolAddress, 160).trim();
+    const eventDate = formatCertDate(str(p.eventDate, 60));
+    const returnByDate = formatCertDate(str(p.returnByDate, 60));
+    if (!schoolName) throw new Error('schoolName_required');
+    const payload = { schoolName, schoolAddress, eventDate, returnByDate };
+    return { type, payload, issued_to: schoolName, event: '', slug: slugify(schoolName || 'consent'), computed: {} };
+  }
   // receipt
   const amount = Math.max(0, Math.round(num(p.amountFigures)));
   const methodRaw = str(p.method, 20);
@@ -614,8 +783,45 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
   return { type, payload, issued_to: payload.receivedFrom, event: payload.beingPaymentFor, slug: slugify(payload.receivedFrom), computed: { amountWords, amountFigures: amount } };
 }
 
-// Map a prepared payload to the template's data-field values + method chip.
-export function buildValues(type: DocType, payload: any, serial: string): { values: Record<string, string>; method?: string } {
+// Soft cross-reference: does this serial belong to an existing, non-void
+// winner/participation certificate? Used only by the talent release to warn
+// (never block) when its linkedCertSerial is not on file.
+export async function resolveLinkedCert(serial: string): Promise<{ exists: boolean; type: string | null }> {
+  const s = String(serial || '').trim().toUpperCase();
+  if (!s) return { exists: false, type: null };
+  try {
+    const rec = await getDocumentBySerial(s);
+    if (rec && (rec.type === 'certw' || rec.type === 'certp') && rec.status !== 'void') return { exists: true, type: rec.type };
+    return { exists: false, type: rec ? rec.type : null };
+  } catch {
+    return { exists: false, type: null };
+  }
+}
+
+// Async wrapper over preparePayload for the routes: identical output, plus the
+// talent release's soft linked-certificate check (existence is DB-bound, so it
+// cannot live in the sync validator). The link is ALWAYS stored; a missing or
+// wrong-type serial only adds computed.linkWarning and payload.linkedCertValid
+// so the admin sees it, per spec ("warn but still allow").
+export async function preparePayloadFull(type: DocType, raw: any): Promise<PreparedDoc> {
+  const prepared = preparePayload(type, raw);
+  if (type === 'rel') {
+    const serial = String((prepared.payload as any).linkedCertSerial || '');
+    if (serial) {
+      const lc = await resolveLinkedCert(serial);
+      (prepared.payload as any).linkedCertValid = lc.exists;
+      if (!lc.exists) {
+        (prepared.computed as any).linkWarning =
+          `Linked certificate ${serial} was not found on file (or is not a winner/participation certificate). The release was still issued and the link stored - confirm the certificate number.`;
+      }
+    }
+  }
+  return prepared;
+}
+
+// Map a prepared payload to the template's data-field values + method chip /
+// chip highlights.
+export function buildValues(type: DocType, payload: any, serial: string): { values: Record<string, string>; method?: string; chipsOn?: string[]; chipDimGroup?: string } {
   if (type === 'invoice') {
     const values: Record<string, string> = {
       invoiceNo: serial,
@@ -756,6 +962,75 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
       },
     };
   }
+  if (type === 'ltr') {
+    return {
+      values: {
+        schoolName: payload.schoolName || '',
+        principalSalutation: payload.principalSalutation || '',
+        winnerNames: payload.winnerNames || '',
+        winnerCategory: payload.winnerCategory || '',
+        date: payload.date || '',
+      },
+    };
+  }
+  if (type === 'acc') {
+    const cover: string[] = Array.isArray(payload.coveringAs) ? payload.coveringAs : [];
+    return {
+      values: {
+        fullName: payload.fullName || '',
+        idNumber: payload.idNumber || '',
+        outlet: payload.outlet || '',
+        handle: payload.handle || '',
+        phone: payload.phone || '',
+        email: payload.email || '',
+        event: payload.event || '',
+        date: payload.date || '',
+        equipment: payload.equipment || '',
+        approvedBy: payload.approvedBy || '',
+        badgeNo: serial,
+      },
+      chipsOn: cover.map((c) => 'cover:' + c),
+    };
+  }
+  if (type === 'pass') {
+    return {
+      values: {
+        passNo: serial,
+        vehicleReg: payload.vehicleReg || '',
+        driver: payload.driver || '',
+        event: payload.event || '',
+        date: payload.date || '',
+      },
+      chipsOn: ['zone:' + (payload.zone || 'Stage')],
+      chipDimGroup: 'zone',
+    };
+  }
+  if (type === 'rel') {
+    return {
+      values: {
+        talentName: payload.talentName || '',
+        age: payload.age === null || payload.age === undefined ? '' : String(payload.age),
+        school: payload.school || '',
+        category: payload.category || '',
+        event: payload.event || '',
+        date: payload.date || '',
+        guardianName: payload.guardianName || '',
+        relationship: payload.relationship || '',
+        guardianPhone: payload.phone || '',
+        linkedCertSerial: payload.linkedCertSerial || '',
+      },
+    };
+  }
+  if (type === 'cons') {
+    return {
+      values: {
+        schoolName: payload.schoolName || '',
+        schoolAddress: payload.schoolAddress || '',
+        eventDate: payload.eventDate || '',
+        returnByDate: payload.returnByDate || '',
+      },
+    };
+  }
   // receipt
   const bal = payload.balanceDue === '' || payload.balanceDue === undefined || payload.balanceDue === null ? '' : fmtNum(payload.balanceDue);
   const values: Record<string, string> = {
@@ -777,11 +1052,13 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
 // Full render pipeline: prepared payload -> filled HTML. serial 'PREVIEW' for
 // the live preview (no serial consumed).
 export async function renderDoc(type: DocType, payload: any, serial: string): Promise<string> {
-  const { values, method } = buildValues(type, payload, serial);
-  const qrDataUrl = await makeQrDataUrl(serial);
+  const { values, method, chipsOn, chipDimGroup } = buildValues(type, payload, serial);
+  // Parental consent is signed BY THE SCHOOL and is not a UGT-issued verifiable
+  // credential, so it carries no QR-verify (spec) - skip the QR entirely.
+  const qrDataUrl = type === 'cons' ? undefined : await makeQrDataUrl(serial);
   const templateFile = resolveTemplate(type, payload);
   const tierScheme = type === 'tix' ? (payload?.tier === 'VIP' ? 'vip' : 'ga') : undefined;
-  return fillTemplate(templateFile, values, { serial, qrDataUrl, method, tierScheme });
+  return fillTemplate(templateFile, values, { serial, qrDataUrl, method, tierScheme, chipsOn, chipDimGroup });
 }
 
 // ---------------------------------------------------------------------------

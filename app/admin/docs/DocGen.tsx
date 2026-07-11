@@ -24,7 +24,7 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band';
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'acc' | 'pass' | 'rel' | 'cons';
 const TYPES: { key: DocType; label: string }[] = [
   { key: 'invoice', label: 'Invoice' },
   { key: 'receipt', label: 'Receipt' },
@@ -35,6 +35,11 @@ const TYPES: { key: DocType; label: string }[] = [
   { key: 'tix', label: 'Event Ticket' },
   { key: 'spass', label: 'Student Pass' },
   { key: 'band', label: 'Wristband' },
+  { key: 'ltr', label: 'Thank-You Letter' },
+  { key: 'acc', label: 'Media Accreditation' },
+  { key: 'pass', label: 'Gate / Vehicle Pass' },
+  { key: 'rel', label: 'Talent Release' },
+  { key: 'cons', label: 'Parental Consent' },
 ];
 const isCertType = (t: DocType) => t === 'certw' || t === 'certp';
 // Batch-by-quantity types: the admin enters a quantity N and a set of shared
@@ -55,6 +60,11 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   tix: { w: 980, h: 356 },
   spass: { w: 980, h: 706 },
   band: { w: 960, h: 96 },
+  ltr: { w: 794, h: 1123 },
+  acc: { w: 794, h: 1123 },
+  pass: { w: 640, h: 440 },
+  rel: { w: 794, h: 1123 },
+  cons: { w: 794, h: 1123 },
 };
 
 // CSV column schema per certificate type (also the accepted header names).
@@ -209,6 +219,20 @@ export default function DocGen() {
   // school band with school + date).
   const [band, setBand] = useState({ bandType: 'GA', eventName: '', schoolName: '', date: '' });
 
+  // Single-page letters and forms.
+  const [ltr, setLtr] = useState({ schoolName: '', principalSalutation: '', winnerNames: '', winnerCategory: '', date: today() });
+  const [acc, setAcc] = useState({
+    fullName: '', idNumber: '', outlet: '', handle: '', phone: '', email: '',
+    event: '', date: today(), equipment: '', approvedBy: '',
+    coveringAs: [] as string[],
+  });
+  const [pass, setPass] = useState({ vehicleReg: '', driver: '', event: '', date: '', zone: 'Stage' });
+  const [rel, setRel] = useState({
+    talentName: '', age: '', school: '', category: '', event: '', date: today(),
+    guardianName: '', relationship: '', phone: '', linkedCertSerial: '',
+  });
+  const [cons, setCons] = useState({ schoolName: '', schoolAddress: '', eventDate: today(), returnByDate: '' });
+
   // Quantity-batch state (tickets / passes / bands).
   const [qty, setQty] = useState('3');
   const [qtyBusy, setQtyBusy] = useState(false);
@@ -281,6 +305,33 @@ export default function DocGen() {
     if (type === 'band') {
       return { bandType: band.bandType, eventName: band.eventName, schoolName: band.schoolName, date: band.date } as Record<string, unknown>;
     }
+    if (type === 'ltr') {
+      return {
+        schoolName: ltr.schoolName, principalSalutation: ltr.principalSalutation,
+        winnerNames: ltr.winnerNames, winnerCategory: ltr.winnerCategory, date: ltr.date,
+      } as Record<string, unknown>;
+    }
+    if (type === 'acc') {
+      return {
+        fullName: acc.fullName, idNumber: acc.idNumber, outlet: acc.outlet, handle: acc.handle,
+        phone: acc.phone, email: acc.email, event: acc.event, date: acc.date,
+        equipment: acc.equipment, approvedBy: acc.approvedBy, coveringAs: acc.coveringAs,
+      } as Record<string, unknown>;
+    }
+    if (type === 'pass') {
+      return { vehicleReg: pass.vehicleReg, driver: pass.driver, event: pass.event, date: pass.date, zone: pass.zone } as Record<string, unknown>;
+    }
+    if (type === 'rel') {
+      return {
+        talentName: rel.talentName, age: rel.age === '' ? '' : num(rel.age), school: rel.school,
+        category: rel.category, event: rel.event, date: rel.date,
+        guardianName: rel.guardianName, relationship: rel.relationship, phone: rel.phone,
+        linkedCertSerial: rel.linkedCertSerial,
+      } as Record<string, unknown>;
+    }
+    if (type === 'cons') {
+      return { schoolName: cons.schoolName, schoolAddress: cons.schoolAddress, eventDate: cons.eventDate, returnByDate: cons.returnByDate } as Record<string, unknown>;
+    }
     // budget
     return {
       eventName: bud.eventName, date: bud.date, preparedBy: bud.preparedBy,
@@ -290,7 +341,7 @@ export default function DocGen() {
       moneyIn: moneyIn.filter((r) => r.source || r.count || r.rate).map((r) => ({ source: r.source, count: num(r.count), rate: num(r.rate) })),
       moneyOut: moneyOut.filter((r) => r.item || r.supplier || r.amount).map((r) => ({ item: r.item, supplier: r.supplier, amount: num(r.amount) })),
     } as Record<string, unknown>;
-  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band]);
+  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, acc, pass, rel, cons]);
 
   // What the live preview renders: in batch mode, the first parsed row; else
   // the single-form payload.
@@ -306,6 +357,21 @@ export default function DocGen() {
     if (type === 'certw') return !!String(p?.recipientName || '').trim();
     if (type === 'certp') return !!String(p?.participantName || '').trim();
     if (type === 'tix' || type === 'spass') return !!String(p?.eventName || '').trim();
+    if (type === 'ltr' || type === 'cons') return !!String(p?.schoolName || '').trim();
+    if (type === 'acc') return !!String(p?.fullName || '').trim();
+    if (type === 'pass') return !!String(p?.vehicleReg || '').trim();
+    if (type === 'rel') {
+      // Need talentName + age; and, for a minor, the full guardian block - so the
+      // preview mirrors the server's fail-closed rule instead of 400-flashing.
+      const nameOk = !!String(p?.talentName || '').trim();
+      const ageStr = String(p?.age ?? '').trim();
+      if (!nameOk || ageStr === '') return false;
+      const age = Number(ageStr);
+      if (Number.isFinite(age) && age < 18) {
+        return !!String(p?.guardianName || '').trim() && !!String(p?.relationship || '').trim() && !!String(p?.phone || '').trim();
+      }
+      return true;
+    }
     return true;
   }, [type, previewPayload]);
 
@@ -506,7 +572,12 @@ export default function DocGen() {
     : type === 'call' ? 'Call sheet & run of show'
     : type === 'tix' ? 'Event ticket (batch by quantity)'
     : type === 'spass' ? 'Student pass (batch by quantity)'
-    : type === 'band' ? 'Wristband (batch by quantity)' : 'Event budget sheet';
+    : type === 'band' ? 'Wristband (batch by quantity)'
+    : type === 'ltr' ? 'Thank-you letter to a school'
+    : type === 'acc' ? 'Media accreditation'
+    : type === 'pass' ? 'Gate / vehicle pass'
+    : type === 'rel' ? 'Talent media release'
+    : type === 'cons' ? 'Parental consent letter' : 'Event budget sheet';
 
   const qtyN = Math.max(1, Math.min(300, Math.round(num(qty)) || 1));
   const qtyReady = type === 'band' ? true : !!String((singlePayload as any)?.eventName || '').trim();
@@ -567,6 +638,11 @@ export default function DocGen() {
                 {type === 'tix' && <TicketForm tix={tix} setTix={setTix} />}
                 {type === 'spass' && <StudentPassForm spass={spass} setSpass={setSpass} />}
                 {type === 'band' && <BandForm band={band} setBand={setBand} />}
+                {type === 'ltr' && <LetterForm ltr={ltr} setLtr={setLtr} />}
+                {type === 'acc' && <AccreditationForm acc={acc} setAcc={setAcc} />}
+                {type === 'pass' && <GatePassForm pass={pass} setPass={setPass} />}
+                {type === 'rel' && <ReleaseForm rel={rel} setRel={setRel} computed={computed} />}
+                {type === 'cons' && <ConsentForm cons={cons} setCons={setCons} />}
               </div>
 
               {isQtyType(type) ? (
@@ -1272,6 +1348,189 @@ function BandForm({ band, setBand }: any) {
         {isStudent
           ? 'Student band is the school / single-tier band (school name + date printed).'
           : 'Event bands carry the tier only. Output is print-vendor artwork at 254 x 25 mm plus a serial CSV.'}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Thank-you letter to a host school. Simple text fills.
+// ---------------------------------------------------------------------------
+function LetterForm({ ltr, setLtr }: any) {
+  const set = (k: string) => (e: any) => setLtr({ ...ltr, [k]: e.target.value });
+  return (
+    <div>
+      <Field lbl="School name (required)"><input style={inp} value={ltr.schoolName} onChange={set('schoolName')} placeholder="e.g. Lari Boys High School" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Dear... (salutation)"><input style={inp} value={ltr.principalSalutation} onChange={set('principalSalutation')} placeholder="e.g. Dr. Kamau / Madam Principal" /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={ltr.date} onChange={set('date')} /></Field>
+      </div>
+      <Field lbl="Winner name(s)"><input style={inp} value={ltr.winnerNames} onChange={set('winnerNames')} placeholder="e.g. Mary Wanjiku & the Dance Crew" /></Field>
+      <Field lbl="Winner category / award"><input style={inp} value={ltr.winnerCategory} onChange={set('winnerCategory')} placeholder="e.g. Best Dance Crew" /></Field>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+        Letter number is issued automatically (LTR serial) and printed as a verify QR in the corner.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Media accreditation. coveringAs is a multi-select rendered as ticked chips
+// on the form. badgeNo is the auto serial; approvedBy is office use.
+// ---------------------------------------------------------------------------
+const COVER_OPTS: { key: string; label: string }[] = [
+  { key: 'PHOTO', label: 'Photo' },
+  { key: 'VIDEO', label: 'Video' },
+  { key: 'PRINT', label: 'Print / Online' },
+  { key: 'RADIO', label: 'Radio / Podcast' },
+  { key: 'CREATOR', label: 'Content Creator' },
+];
+function AccreditationForm({ acc, setAcc }: any) {
+  const set = (k: string) => (e: any) => setAcc({ ...acc, [k]: e.target.value });
+  const toggle = (k: string) => {
+    const cur: string[] = acc.coveringAs || [];
+    setAcc({ ...acc, coveringAs: cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k] });
+  };
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Full name (required)"><input style={inp} value={acc.fullName} onChange={set('fullName')} placeholder="Applicant's full name" /></Field>
+        <Field lbl="National ID / Passport"><input style={inp} value={acc.idNumber} onChange={set('idNumber')} /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Outlet / Channel"><input style={inp} value={acc.outlet} onChange={set('outlet')} placeholder="e.g. PPP TV" /></Field>
+        <Field lbl="Handle"><input style={inp} value={acc.handle} onChange={set('handle')} placeholder="@handle" /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Phone"><input style={inp} value={acc.phone} onChange={set('phone')} /></Field>
+        <Field lbl="Email"><input style={inp} value={acc.email} onChange={set('email')} /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Event / Stop"><input style={inp} value={acc.event} onChange={set('event')} placeholder="e.g. Campus Rave Nairobi" /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={acc.date} onChange={set('date')} /></Field>
+      </div>
+      <label style={label}>Covering as (tick all that apply)</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        {COVER_OPTS.map((o) => {
+          const on = (acc.coveringAs || []).includes(o.key);
+          return (
+            <button key={o.key} onClick={() => toggle(o.key)}
+              style={{ ...btnSmall, background: on ? '#111' : '#fff', color: on ? '#fff' : '#111' }}>
+              {on ? '✓ ' : ''}{o.label}
+            </button>
+          );
+        })}
+      </div>
+      <Field lbl="Equipment carried"><input style={inp} value={acc.equipment} onChange={set('equipment')} placeholder="cameras, drones, rigs" /></Field>
+      <Field lbl="Approved by (office use)"><input style={inp} value={acc.approvedBy} onChange={set('approvedBy')} placeholder="Leave blank to sign by hand" /></Field>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+        Badge Nº is the auto serial (ACC). Ticked chips print as filled boxes on the form.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Gate / vehicle pass. zone is a single-select enum that ticks + highlights
+// the matching chip on the pass; carries a QR (verify).
+// ---------------------------------------------------------------------------
+const ZONE_OPTS = ['Stage', 'Media', 'VIP', 'Vendor'];
+function GatePassForm({ pass, setPass }: any) {
+  const set = (k: string) => (e: any) => setPass({ ...pass, [k]: e.target.value });
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Vehicle reg (required)"><input style={inp} value={pass.vehicleReg} onChange={set('vehicleReg')} placeholder="e.g. KDA 123A" /></Field>
+        <Field lbl="Driver"><input style={inp} value={pass.driver} onChange={set('driver')} placeholder="Driver name" /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Event / Stop"><input style={inp} value={pass.event} onChange={set('event')} placeholder="e.g. Campus Rave Nairobi" /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={pass.date} onChange={set('date')} /></Field>
+      </div>
+      <label style={label}>Zone</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        {ZONE_OPTS.map((z) => (
+          <button key={z} onClick={() => setPass({ ...pass, zone: z })}
+            style={{ ...btnSmall, background: pass.zone === z ? '#E6218C' : '#fff', color: pass.zone === z ? '#fff' : '#111' }}>{z}</button>
+        ))}
+      </div>
+      <div style={{ fontSize: 11, color: '#999' }}>
+        The selected zone chip is ticked and highlighted on the pass; the others fade back. Pass Nº is the auto serial (PASS).
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Talent media release. Under-18 talent MUST have the full guardian block or
+// the server rejects it (fail closed). linkedCertSerial is an optional soft
+// link to a winner/participation certificate.
+// ---------------------------------------------------------------------------
+function ReleaseForm({ rel, setRel, computed }: any) {
+  const set = (k: string) => (e: any) => setRel({ ...rel, [k]: e.target.value });
+  const ageNum = rel.age === '' ? null : Number(rel.age);
+  const isMinor = ageNum !== null && Number.isFinite(ageNum) && ageNum < 18;
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 10 }}>
+        <Field lbl="Talent name (required)"><input style={inp} value={rel.talentName} onChange={set('talentName')} placeholder="Talent's full name" /></Field>
+        <Field lbl="Age (required)"><input style={inp} type="number" min={0} value={rel.age} onChange={set('age')} placeholder="e.g. 16" /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="School / Institution"><input style={inp} value={rel.school} onChange={set('school')} /></Field>
+        <Field lbl="Category performed"><input style={inp} value={rel.category} onChange={set('category')} placeholder="e.g. Spoken Word" /></Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Event / Stop"><input style={inp} value={rel.event} onChange={set('event')} /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={rel.date} onChange={set('date')} /></Field>
+      </div>
+
+      <div style={{
+        border: `2px ${isMinor ? 'solid #C62828' : 'dashed #b9a08a'}`, borderRadius: 10, padding: 10,
+        margin: '4px 0 10px', background: isMinor ? '#fff5f5' : '#faf7f0',
+      }}>
+        <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, color: isMinor ? '#C62828' : '#555' }}>
+          Guardian / teacher consent {isMinor ? '(REQUIRED - talent is under 18)' : '(only if talent is under 18)'}
+        </div>
+        <Field lbl="Guardian name"><input style={inp} value={rel.guardianName} onChange={set('guardianName')} placeholder={isMinor ? 'Required' : 'optional'} /></Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <Field lbl="Relationship"><input style={inp} value={rel.relationship} onChange={set('relationship')} placeholder={isMinor ? 'Required' : 'optional'} /></Field>
+          <Field lbl="Guardian phone"><input style={inp} value={rel.phone} onChange={set('phone')} placeholder={isMinor ? 'Required' : 'optional'} /></Field>
+        </div>
+        {isMinor && (
+          <div style={{ fontSize: 11.5, color: '#C62828', fontWeight: 600 }}>
+            Under 18: the release cannot be issued without all three guardian fields. The server rejects it.
+          </div>
+        )}
+      </div>
+
+      <Field lbl="Link to certificate Nº (optional)"><input style={inp} value={rel.linkedCertSerial} onChange={set('linkedCertSerial')} placeholder="e.g. UGT-CERTW-26-0001" /></Field>
+      {computed?.linkWarning && (
+        <div style={{ background: '#fff8e6', border: '2px solid #E0A800', borderRadius: 10, padding: 10, fontSize: 12.5, color: '#7a5c00', fontWeight: 600 }}>
+          Heads up: {computed.linkWarning}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Parental consent letter. Signed BY THE SCHOOL - the generator only pre-fills
+// the school-specific blanks; the stamp/signatures stay physical and there is
+// NO verify QR. It still gets a CONS serial for the record.
+// ---------------------------------------------------------------------------
+function ConsentForm({ cons, setCons }: any) {
+  const set = (k: string) => (e: any) => setCons({ ...cons, [k]: e.target.value });
+  return (
+    <div>
+      <Field lbl="School name (required)"><input style={inp} value={cons.schoolName} onChange={set('schoolName')} placeholder="Host school name" /></Field>
+      <Field lbl="P.O. Box / Address"><input style={inp} value={cons.schoolAddress} onChange={set('schoolAddress')} placeholder="School postal address" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Event date"><input type="date" style={inp} value={cons.eventDate} onChange={set('eventDate')} /></Field>
+        <Field lbl="Return slip by"><input type="date" style={inp} value={cons.returnByDate} onChange={set('returnByDate')} /></Field>
+      </div>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+        This letter is signed and stamped BY THE SCHOOL. The generator only pre-fills these blanks; the principal's signature and school stamp stay physical, and there is no verify QR. A CONS serial is still recorded.
       </div>
     </div>
   );

@@ -17,31 +17,31 @@ a{color:#FFD400;text-decoration:none;}
 <div id="5e">
       
       <div style="display:flex;flex-direction:column;gap:26px;">
-        <div style="width:640px;height:440px;position:relative;transform:rotate(-.6deg);">
+        <div data-doc-page="pass" style="width:640px;height:440px;position:relative;transform:rotate(-.6deg);">
           <div style="position:absolute;inset:0;border-radius:16px;overflow:hidden;background:#111;box-shadow:0 16px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;">
             <div style="position:absolute;inset:0;background-image:url('../assets/pattern.png');background-size:280px;opacity:.5;"></div>
             <div style="position:relative;background:repeating-linear-gradient(45deg,#FFD400 0 16px,#111 16px 32px);padding:5px;">
               <div style="background:#111;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-radius:6px;">
                 <img src="../uploads/URBAN GANG TOUR OFFICIAL LOGO.png" alt="" style="height:44px;width:auto;">
                 <div style="font-family:'Anton';font-size:30px;color:#FFD400;text-transform:uppercase;letter-spacing:.04em;">Gate Pass</div>
-                <div style="font-family:monospace;font-size:9px;color:#999;letter-spacing:.14em;">Nº V-____</div>
+                <div data-field="passNo" style="font-family:monospace;font-size:9px;color:#999;letter-spacing:.14em;">Nº V-____</div>
               </div>
             </div>
             <div style="position:relative;flex:1;padding:18px 24px;display:flex;flex-direction:column;gap:13px;color:#fff;font-size:12.5px;font-weight:600;">
               <div style="display:flex;gap:24px;">
-                <div style="display:flex;align-items:baseline;gap:8px;flex:1.2;">Vehicle Reg:<span style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
-                <div style="display:flex;align-items:baseline;gap:8px;flex:1;">Driver:<span style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
+                <div style="display:flex;align-items:baseline;gap:8px;flex:1.2;">Vehicle Reg:<span data-field="vehicleReg" style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
+                <div style="display:flex;align-items:baseline;gap:8px;flex:1;">Driver:<span data-field="driver" style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
               </div>
               <div style="display:flex;gap:24px;">
-                <div style="display:flex;align-items:baseline;gap:8px;flex:1.2;">Event / Stop:<span style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
-                <div style="display:flex;align-items:baseline;gap:8px;flex:1;">Date:<span style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
+                <div style="display:flex;align-items:baseline;gap:8px;flex:1.2;">Event / Stop:<span data-field="event" style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
+                <div style="display:flex;align-items:baseline;gap:8px;flex:1;">Date:<span data-field="date" style="flex:1;border-bottom:2.5px dotted rgba(255,255,255,.5);height:15px;"></span></div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;">
                 <span style="font-family:'Bungee';font-size:8px;letter-spacing:.12em;color:#21C7E6;">ZONE →</span>
-                <span style="background:#E6218C;color:#fff;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #fff;display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border:2.5px solid #fff;border-radius:4px;"></span>STAGE / CREW</span>
-                <span style="background:#21C7E6;color:#111;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #111;display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border:2.5px solid #111;border-radius:4px;"></span>MEDIA</span>
-                <span style="background:#FFD400;color:#111;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #111;display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border:2.5px solid #111;border-radius:4px;"></span>VIP / GUESTS</span>
-                <span style="background:#fff;color:#111;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #111;display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border:2.5px solid #111;border-radius:4px;"></span>VENDOR</span>
+                <span data-chip="zone:Stage" style="background:#E6218C;color:#fff;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #fff;display:flex;align-items:center;gap:8px;"><span data-chip-box="zone:Stage" style="width:14px;height:14px;border:2.5px solid #fff;border-radius:4px;"></span>STAGE / CREW</span>
+                <span data-chip="zone:Media" style="background:#21C7E6;color:#111;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #111;display:flex;align-items:center;gap:8px;"><span data-chip-box="zone:Media" style="width:14px;height:14px;border:2.5px solid #111;border-radius:4px;"></span>MEDIA</span>
+                <span data-chip="zone:VIP" style="background:#FFD400;color:#111;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #111;display:flex;align-items:center;gap:8px;"><span data-chip-box="zone:VIP" style="width:14px;height:14px;border:2.5px solid #111;border-radius:4px;"></span>VIP / GUESTS</span>
+                <span data-chip="zone:Vendor" style="background:#fff;color:#111;font-family:'Bungee';font-size:8.5px;letter-spacing:.1em;padding:8px 15px;border-radius:8px;border:2px solid #111;display:flex;align-items:center;gap:8px;"><span data-chip-box="zone:Vendor" style="width:14px;height:14px;border:2.5px solid #111;border-radius:4px;"></span>VENDOR</span>
               </div>
               <div style="margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;">
                 <div style="font-size:10px;color:#bbb;line-height:1.6;max-width:340px;">Display face-up on the dashboard · valid only for the date shown · gate team may redirect parking on the day — smile and comply, it's for the show.</div>

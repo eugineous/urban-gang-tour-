@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
-import { ensureDocgenSchema, isDocType, preparePayload, renderDoc } from '@/lib/server/docgen';
+import { ensureDocgenSchema, isDocType, preparePayloadFull, renderDoc } from '@/lib/server/docgen';
 
 // POST /api/admin/docs/preview {type, payload} -> {html, computed}
 // Fills the brand template with server-computed values using a PROVISIONAL
@@ -27,7 +27,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   try {
-    const prepared = preparePayload(type, payload);
+    const prepared = await preparePayloadFull(type, payload);
     const html = await renderDoc(type, prepared.payload, 'PREVIEW');
     return NextResponse.json({ html, computed: prepared.computed });
   } catch (e) {

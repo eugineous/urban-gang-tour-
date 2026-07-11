@@ -3,7 +3,7 @@ import { put } from '@vercel/blob';
 import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
-  ensureDocgenSchema, isDocType, preparePayload, insertDocument, setDocumentAssets,
+  ensureDocgenSchema, isDocType, preparePayloadFull, insertDocument, setDocumentAssets,
   getDocumentById, renderDoc, docgenAudit, DOC_TYPES,
 } from '@/lib/server/docgen';
 
@@ -60,7 +60,15 @@ async function phaseReserve(req: Request, body: any): Promise<NextResponse> {
   const { type, payload } = body || {};
   if (!isDocType(type)) return NextResponse.json({ error: 'bad_doc_type' }, { status: 400 });
 
-  const prepared = preparePayload(type, payload);
+  let prepared;
+  try {
+    prepared = await preparePayloadFull(type, payload);
+  } catch (e) {
+    // Validation / business-rule failure (e.g. a required field, or the
+    // under-18 talent release with no guardian block). Fail CLOSED before any
+    // serial is reserved - a clean 400 so the UI shows the reason.
+    return NextResponse.json({ error: (e as Error)?.message || 'invalid_payload' }, { status: 400 });
+  }
   const def = DOC_TYPES[type];
   let rec: { id: string; serial: string };
   try {
