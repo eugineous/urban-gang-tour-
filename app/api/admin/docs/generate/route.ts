@@ -56,6 +56,13 @@ export async function POST(req: Request): Promise<NextResponse> {
   return attach ? phaseAttach(req, body) : phaseReserve(req, body);
 }
 
+// A promo IG post/story has no PDF (PNG only); posters carry both. The record
+// stores png_url as the primary asset and pdf_url only when a PDF was produced.
+function decodeOptionalPdf(v: unknown): Buffer | null {
+  if (v === undefined || v === null || v === '') return null;
+  return decodeBase64(v, 'pdf');
+}
+
 async function phaseReserve(req: Request, body: any): Promise<NextResponse> {
   const { type, payload } = body || {};
   if (!isDocType(type)) return NextResponse.json({ error: 'bad_doc_type' }, { status: 400 });
@@ -93,7 +100,10 @@ async function phaseReserve(req: Request, body: any): Promise<NextResponse> {
   }
 
   await docgenAudit(adminActor(req), 'docs.generate', { serial: rec.serial, type, issued_to: prepared.issued_to });
-  const filename = `${rec.serial}-${def.code}-${prepared.slug}.pdf`;
+  // Promo pieces download as PNG (posters also offer an A3 PDF, named client-side);
+  // every document type downloads as PDF.
+  const ext = def.promo ? 'png' : 'pdf';
+  const filename = `${rec.serial}-${def.code}-${prepared.slug}.${ext}`;
   // Single-page types return { html } (the shipped shape); multi-page types
   // return { pages } (an array of page HTMLs). The client rasterises each page
   // and combines them into ONE PDF stored under this one serial + record.
@@ -105,17 +115,19 @@ async function phaseReserve(req: Request, body: any): Promise<NextResponse> {
 
 async function phaseAttach(req: Request, body: any): Promise<NextResponse> {
   const id = String(body.id).slice(0, 60);
-  let pdfBuf: Buffer, pngBuf: Buffer;
+  // png is always required; pdf is optional (promo IG pieces are PNG-only).
+  let pdfBuf: Buffer | null, pngBuf: Buffer;
   try {
-    pdfBuf = decodeBase64(body.pdfBase64, 'pdf');
     pngBuf = decodeBase64(body.pngBase64, 'png');
+    pdfBuf = decodeOptionalPdf(body.pdfBase64);
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
 
   const existing = await getDocumentById(id);
   if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 });
-  if (existing.pdf_url) {
+  // Already attached (png_url is set once, whether or not a pdf accompanied it).
+  if (existing.png_url) {
     return NextResponse.json({ ok: true, phase: 'attached', id, serial: existing.serial, pdf_url: existing.pdf_url, png_url: existing.png_url });
   }
 
@@ -123,16 +135,16 @@ async function phaseAttach(req: Request, body: any): Promise<NextResponse> {
   try {
     const slug = (existing.issued_to || existing.type).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'doc';
     const base = `documents/${existing.type}/${existing.serial}-${slug}`;
-    const up = await Promise.all([
-      put(`${base}.pdf`, pdfBuf, { access: 'public', contentType: 'application/pdf', addRandomSuffix: true }),
-      put(`${base}.png`, pngBuf, { access: 'public', contentType: 'image/png', addRandomSuffix: true }),
-    ]);
-    pdf_url = up[0].url;
-    png_url = up[1].url;
+    const pngUp = await put(`${base}.png`, pngBuf, { access: 'public', contentType: 'image/png', addRandomSuffix: true });
+    png_url = pngUp.url;
+    if (pdfBuf) {
+      const pdfUp = await put(`${base}.pdf`, pdfBuf, { access: 'public', contentType: 'application/pdf', addRandomSuffix: true });
+      pdf_url = pdfUp.url;
+    }
   } catch (e) {
     return NextResponse.json({ error: 'blob_upload_failed', detail: (e as Error)?.message }, { status: 502 });
   }
 
   const rec = await setDocumentAssets(id, pdf_url, png_url);
-  return NextResponse.json({ ok: true, phase: 'attached', id, serial: rec?.serial, pdf_url: rec?.pdf_url || pdf_url, png_url: rec?.png_url || png_url });
+  return NextResponse.json({ ok: true, phase: 'attached', id, serial: rec?.serial, pdf_url: rec?.pdf_url ?? pdf_url, png_url: rec?.png_url || png_url });
 }

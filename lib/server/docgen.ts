@@ -73,7 +73,13 @@ export function ensureDocgenSchema(): Promise<void> {
 // multi-page document rendered as several pages under ONE serial + record -
 // the partnership + school proposals). `pages` takes precedence when present;
 // `template` stays the single-page path and is untouched for every shipped type.
-export interface DocTypeDef { code: string; label: string; template?: string; pages?: string[]; }
+// A promo / social piece is PNG-output (posters also carry an A3 PDF). It maps
+// to ONE template, declares its target PNG pixel size, and (unlike the 17
+// documents) carries NO verify QR on the artwork - a poster with a verify QR is
+// odd. It still gets a lightweight per-type serial + immutable record (audit
+// trail + re-download). `kind` drives the client export path.
+export interface PromoConfig { kind: 'post' | 'story' | 'poster'; png: [number, number]; pdf?: 'A3'; }
+export interface DocTypeDef { code: string; label: string; template?: string; pages?: string[]; promo?: PromoConfig; }
 export const DOC_TYPES: Record<string, DocTypeDef> = {
   invoice: { code: 'INV', label: 'Invoice', template: '26-invoice-a4.html' },
   receipt: { code: 'RCT', label: 'Receipt', template: '27-receipt-a5-slip.html' },
@@ -107,9 +113,88 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   ] },
   // Single-page contract that carries a verify QR (a UGT-issued agreement).
   agr: { code: 'AGR', label: 'Sponsorship Agreement', template: '47-sponsorship-agreement.html' },
+
+  // -------------------------------------------------------------------------
+  // PROMO / SOCIAL (final phase). PNG-output pieces (IG posts 1080x1080, IG
+  // story 1080x1920, posters a feed PNG + an A3 PDF). Each maps to one template
+  // and declares its target export size. They get a per-type PROMO serial +
+  // record (audit + re-download) but NO verify QR on the artwork. Text blanks
+  // are stamped with data-field; hero photos fill data-hero-slot img slots from
+  // uploads; picked partner logos fill a data-partner-strip on white chips.
+  // Several templates reference brand images the owner still has to supply
+  // (PPPtv Logo.png, tape-png-0.png, an-arrow-...webp, CAMPUS RAVE LOGO png.png)
+  // - those render BLANK (the capture is missing-image tolerant) until dropped
+  // into public/uploads. Nothing here fabricates a brand image.
+  igNext:       { code: 'PROMO-NEXT',  label: 'IG Post - Next Stop',          template: '18-ig-post-next-stop.html',               promo: { kind: 'post',   png: [1080, 1080] } },
+  igStory:      { code: 'PROMO-CAL',   label: 'IG Story - Term Calendar',     template: '19-ig-story-term-calendar.html',           promo: { kind: 'story',  png: [1080, 1920] } },
+  igWinner:     { code: 'PROMO-WIN',   label: 'IG Post - Winner Spotlight',   template: '31-ig-post-winner-spotlight.html',         promo: { kind: 'post',   png: [1080, 1080] } },
+  igEpisode:    { code: 'PROMO-EP',    label: 'IG Post - New Episode',        template: '32-ig-post-new-episode.html',              promo: { kind: 'post',   png: [1080, 1080] } },
+  igMerch:      { code: 'PROMO-MERCH', label: 'IG Post - Merch Drop',         template: '33-ig-post-merch-drop.html',               promo: { kind: 'post',   png: [1080, 1080] } },
+  igBookings:   { code: 'PROMO-BOOK',  label: 'IG Post - Bookings Open',      template: '34-ig-post-bookings-open.html',            promo: { kind: 'post',   png: [1080, 1080] } },
+  igQuote:      { code: 'PROMO-QUOTE', label: 'IG Post - Quote Card',         template: '35-ig-post-quote-card.html',               promo: { kind: 'post',   png: [1080, 1080] } },
+  posTakeover:  { code: 'PROMO-PSTKO', label: 'Poster - The Takeover',        template: '36-poster-the-takeover-multi-artist.html', promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
+  posHeadliner: { code: 'PROMO-PSHDL', label: 'Poster - Headliner',           template: '37-poster-headliner-kalamu-nyeusi.html',   promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
+  posFestival:  { code: 'PROMO-PSFST', label: 'Poster - Festival of Colours', template: '38-poster-festival-of-colours.html',       promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
+  posRave:      { code: 'PROMO-PSRAV', label: 'Poster - Campus Rave',         template: '39-poster-campus-rave.html',               promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
+  posFinale:    { code: 'PROMO-PSFIN', label: 'Poster - The Crowning Finale', template: '40-poster-the-crowning-finale.html',       promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr'] as const;
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr',
+  'igNext', 'igStory', 'igWinner', 'igEpisode', 'igMerch', 'igBookings', 'igQuote',
+  'posTakeover', 'posHeadliner', 'posFestival', 'posRave', 'posFinale'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
+
+// Promo helpers + the managed partner-logo library (seeded from
+// public/assets/partners/*). Partner logos always render on white chips.
+export function isPromo(type: DocType): boolean { return !!DOC_TYPES[type]?.promo; }
+export function promoConfig(type: DocType): PromoConfig | undefined { return DOC_TYPES[type]?.promo; }
+
+export interface PromoPartner { key: string; label: string; url: string; }
+export const PROMO_PARTNERS: PromoPartner[] = [
+  { key: 'ppp-tv',         label: 'PPP TV',         url: '/assets/partners/ppp-tv.png' },
+  { key: 'xp-hub',         label: 'XP Hub',         url: '/assets/partners/xp-hub.png' },
+  { key: 'synapse',        label: 'Synapse Models', url: '/assets/partners/synapse.png' },
+  { key: 'moyo',           label: 'Moyo',           url: '/assets/partners/moyo.png' },
+  { key: 'ashton',         label: 'Ashton',         url: '/assets/partners/ashton.png' },
+  { key: 'sauti-moto',     label: 'Sauti Moto',     url: '/assets/partners/sauti-moto.jpg' },
+  { key: 'experience-hub', label: 'Experience Hub', url: '/assets/partners/experience-hub.png' },
+  { key: 'vibe-studios',   label: 'Vibe Studios',   url: '/assets/partners/vibe-studios.webp' },
+];
+
+// The stamped text blanks per promo template (data-field names). Only these
+// keys survive from the client payload (unknown fields are dropped), and each
+// maps 1:1 to a [data-field] leaf element in the template. Fields inside nested
+// markup (a headline split by <br>, a two-tone highlighted word) are NOT listed
+// - they stay at their template default because injectField only replaces a
+// tag-free text node.
+export const PROMO_FIELDS: Record<string, string[]> = {
+  igNext:       ['dateDay', 'dateMonth', 'schoolName', 'tagline1', 'tagline2', 'lineup'],
+  igStory:      ['date1', 'school1', 'venue1', 'date2', 'school2', 'venue2', 'date3', 'school3', 'venue3'],
+  igWinner:     ['winnerLine'],
+  igEpisode:    ['episodeTag'],
+  igMerch:      ['headline', 'subhead'],
+  igBookings:   ['subhead'],
+  igQuote:      ['volLabel', 'quote', 'attribution'],
+  posTakeover:  ['dateDay', 'dateMonth', 'schoolName', 'tagline1', 'tagline2', 'lineup'],
+  posHeadliner: ['preheadline', 'dateChip', 'venueChip', 'timeChip'],
+  posFestival:  ['dateDay', 'dateMonth', 'titleTop', 'titleBottom', 'dateChip', 'venueChip', 'timeChip'],
+  posRave:      ['edition', 'dateChip', 'venueChip', 'timeChip', 'lineup'],
+  posFinale:    ['dateChip', 'venueChip', 'tvChip'],
+};
+
+// A hero-image / partner URL is only ever injected if it is one of ours: an
+// uploaded Vercel Blob URL or a same-origin /assets or /uploads path. This
+// blocks an arbitrary external URL from being baked into the artwork.
+function isSafeAssetUrl(u: string): boolean {
+  return /^https:\/\/[a-z0-9.-]+\.blob\.vercel-storage\.com\//i.test(u)
+    || /^\/(assets|uploads)\//.test(u);
+}
+export function resolvePartnerUrl(v: string): string {
+  const known = PROMO_PARTNERS.find((pp) => pp.key === v);
+  if (known) return known.url;
+  if (/^https:\/\/[a-z0-9.-]+\.blob\.vercel-storage\.com\//i.test(v)) return v;
+  if (/^\/assets\/partners\//.test(v)) return v;
+  return '';
+}
 
 // Wristband is one doc type (code BAND) but four artworks. The bandType picks
 // the template; the serial counter, record and verify page stay type-agnostic.
@@ -342,6 +427,10 @@ export interface FillOpts {
   // chipsOn holds active "group:VALUE" tokens; chipDimGroup fades non-selected
   // pills of that group (single-select emphasis, e.g. the gate-pass zone).
   chipsOn?: string[]; chipDimGroup?: string;
+  // Promo pieces: heroImages fill the template's data-hero-slot img slots
+  // positionally (uploaded Blob URLs), partnerLogos fill a data-partner-strip
+  // container with white chips. Both are already validated to be our own URLs.
+  heroImages?: string[]; partnerLogos?: string[];
 }
 
 export async function fillTemplate(
@@ -355,6 +444,37 @@ export async function fillTemplate(
   for (const [field, value] of Object.entries(values)) {
     if (value === undefined || value === null) continue;
     html = injectField(html, field, String(value));
+  }
+
+  // 1b) PROMO hero images -> swap the src of each data-hero-slot img (positional,
+  // so uploaded image N fills slot N). object-fit:cover already lives on the slot
+  // style, so the uploaded photo just crops to fit. A slot with no matching
+  // upload keeps its template default photo. src can appear before or after the
+  // data-hero-slot attribute, so we match the whole tag then rewrite its src.
+  if (opts.heroImages && opts.heroImages.length) {
+    opts.heroImages.forEach((url, i) => {
+      if (!url) return;
+      const safe = String(url).replace(/"/g, '&quot;');
+      html = html.replace(new RegExp(`<img\\b[^>]*\\bdata-hero-slot="${i}"[^>]*>`), (tag) =>
+        tag.replace(/\bsrc="[^"]*"/, `src="${safe}"`));
+    });
+  }
+
+  // 1c) PROMO partner logos -> fill the marked strip (div or span) with white
+  // chips (spec rule 5: partner logos always on white chips, min 24px). Only the
+  // strip's inner content is replaced; if none are picked the template's own
+  // default chips (where present) stay. The container holds only spans, so the
+  // lazy inner match stops at the container's own closing tag.
+  if (opts.partnerLogos && opts.partnerLogos.length) {
+    const chips = opts.partnerLogos.map((u) => {
+      const safe = String(u).replace(/"/g, '&quot;');
+      return `<span style="background:#fff;border-radius:6px;padding:5px 9px;display:inline-flex;align-items:center;box-shadow:2px 2px 0 rgba(17,17,17,.28);">`
+        + `<img src="${safe}" alt="" style="height:24px;width:auto;display:block;" /></span>`;
+    }).join('');
+    html = html.replace(
+      /(<(div|span)\b[^>]*\bdata-partner-strip="1"[^>]*>)[\s\S]*?(<\/\2>)/,
+      (_m, open, _tag, close) => open + chips + close
+    );
   }
 
   // 2) receipt method chip highlight (attribute-marked chips, no file edit)
@@ -582,6 +702,39 @@ export function formatCertDate(v: string): string {
 
 export function preparePayload(type: DocType, raw: any): PreparedDoc {
   const p = raw && typeof raw === 'object' ? raw : {};
+  if (isPromo(type)) {
+    // Promo / social piece. No required field (a promo is not a verifiable
+    // credential), so it never fails closed - any blank simply stays at the
+    // template default. Only the whitelisted text blanks for this template
+    // survive; heroImages (uploaded Blob URLs) and partnerLogos (library keys or
+    // uploaded URLs) are resolved + validated to our own URLs so nothing foreign
+    // can be baked into the artwork. eventName is recorded even when the chosen
+    // template does not print it (it is the record's identity).
+    const fields = PROMO_FIELDS[type] || [];
+    const payload: Record<string, unknown> = {};
+    for (const f of fields) {
+      if (p[f] !== undefined && p[f] !== null) payload[f] = str(p[f], 400);
+    }
+    const eventName = str(p.eventName, 160).trim();
+    if (eventName) payload.eventName = eventName;
+    // Hero images fill slots POSITIONALLY (upload i -> data-hero-slot i), so an
+    // unfilled or invalid slot stays '' (its template default) rather than being
+    // dropped, which would shift every later upload into the wrong slot.
+    const heroImages = (Array.isArray(p.heroImages) ? p.heroImages : [])
+      .slice(0, 8)
+      .map((u: unknown) => { const s = str(u, 600).trim(); return isSafeAssetUrl(s) ? s : ''; });
+    payload.heroImages = heroImages;
+    const partnerLogos = (Array.isArray(p.partnerLogos) ? p.partnerLogos : [])
+      .map((v: unknown) => resolvePartnerUrl(str(v, 600).trim()))
+      .filter((u: string) => !!u)
+      .slice(0, 8);
+    payload.partnerLogos = partnerLogos;
+    const issued_to = eventName
+      || str(payload.schoolName || payload.school1 || payload.headline || '', 160).trim()
+      || DOC_TYPES[type].label;
+    const event = str(payload.venueChip || payload.venue1 || payload.dateChip || '', 160).trim();
+    return { type, payload, issued_to, event, slug: slugify(issued_to), computed: {} };
+  }
   if (type === 'invoice') {
     const rawItems: any[] = Array.isArray(p.lineItems) ? p.lineItems.slice(0, 7) : [];
     const lineItems: LineItem[] = rawItems
@@ -948,7 +1101,21 @@ export async function preparePayloadFull(type: DocType, raw: any): Promise<Prepa
 
 // Map a prepared payload to the template's data-field values + method chip /
 // chip highlights.
-export function buildValues(type: DocType, payload: any, serial: string): { values: Record<string, string>; method?: string; chipsOn?: string[]; chipDimGroup?: string } {
+export function buildValues(type: DocType, payload: any, serial: string): { values: Record<string, string>; method?: string; chipsOn?: string[]; chipDimGroup?: string; heroImages?: string[]; partnerLogos?: string[] } {
+  if (isPromo(type)) {
+    // Promo pieces: the whitelisted text blanks map 1:1 to data-field names; the
+    // hero photos and partner logos are carried to fillTemplate as opts (not
+    // data-field text). No serial is stamped on the artwork (promo has no QR).
+    const values: Record<string, string> = {};
+    for (const f of PROMO_FIELDS[type] || []) {
+      if (typeof payload[f] === 'string') values[f] = payload[f];
+    }
+    return {
+      values,
+      heroImages: Array.isArray(payload.heroImages) ? payload.heroImages : [],
+      partnerLogos: Array.isArray(payload.partnerLogos) ? payload.partnerLogos : [],
+    };
+  }
   if (type === 'invoice') {
     const values: Record<string, string> = {
       invoiceNo: serial,
@@ -1230,15 +1397,17 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
 // qrDataUrl, so a multi-page doc carries exactly one verify code. Parental
 // consent is signed BY THE SCHOOL, not UGT-issued, so it carries no QR at all.
 export async function renderDoc(type: DocType, payload: any, serial: string): Promise<string | string[]> {
-  const { values, method, chipsOn, chipDimGroup } = buildValues(type, payload, serial);
+  const { values, method, chipsOn, chipDimGroup, heroImages, partnerLogos } = buildValues(type, payload, serial);
   const templates = resolveTemplates(type, payload);
   const tierScheme = type === 'tix' ? (payload?.tier === 'VIP' ? 'vip' : 'ga') : undefined;
-  const noQr = type === 'cons';
+  // Parental consent is school-signed (no QR); promo pieces carry no verify QR
+  // on the artwork (a poster with a verify QR is odd).
+  const noQr = type === 'cons' || isPromo(type);
   const qrIdx = qrPageIndex(type);
   const pages: string[] = [];
   for (let i = 0; i < templates.length; i++) {
     const qrDataUrl = !noQr && i === qrIdx ? await makeQrDataUrl(serial) : undefined;
-    pages.push(await fillTemplate(templates[i], values, { serial, qrDataUrl, method, tierScheme, chipsOn, chipDimGroup }));
+    pages.push(await fillTemplate(templates[i], values, { serial, qrDataUrl, method, tierScheme, chipsOn, chipDimGroup, heroImages, partnerLogos }));
   }
   return isMultiPage(type) ? pages : pages[0];
 }
@@ -1304,9 +1473,12 @@ export async function getDocumentById(id: string): Promise<DocRecord | null> {
 // them once (WHERE pdf_url=''), so a retried attach never overwrites; a record
 // whose assets are already set is returned unchanged.
 export async function setDocumentAssets(id: string, pdf_url: string, png_url: string): Promise<DocRecord | null> {
+  // Idempotent attach: only sets the assets once. Promo pieces are PNG-only
+  // (pdf_url stays empty for IG posts), so the guard checks png_url too - once
+  // the png is attached a retry is a no-op, whether or not a pdf was produced.
   const rows = await q<DocRecord>(
     `UPDATE ug_documents SET pdf_url=$2, png_url=$3
-     WHERE id=$1 AND (pdf_url IS NULL OR pdf_url='')
+     WHERE id=$1 AND (pdf_url IS NULL OR pdf_url='') AND (png_url IS NULL OR png_url='')
      RETURNING id, type, serial, payload, issued_to, event, status, pdf_url, png_url, created_by, created_at, voided_at, void_reason`,
     [id, pdf_url, png_url]
   );

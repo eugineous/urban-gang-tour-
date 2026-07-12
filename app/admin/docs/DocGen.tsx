@@ -19,12 +19,15 @@
 // preview/generate/list/void plumbing is type-agnostic.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { upload } from '@vercel/blob/client';
 import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip, api } from '../ops/ui';
 
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr';
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr'
+  | 'igNext' | 'igStory' | 'igWinner' | 'igEpisode' | 'igMerch' | 'igBookings' | 'igQuote'
+  | 'posTakeover' | 'posHeadliner' | 'posFestival' | 'posRave' | 'posFinale';
 const TYPES: { key: DocType; label: string }[] = [
   { key: 'invoice', label: 'Invoice' },
   { key: 'receipt', label: 'Receipt' },
@@ -44,6 +47,121 @@ const TYPES: { key: DocType; label: string }[] = [
   { key: 'sprop', label: 'School Proposal' },
   { key: 'agr', label: 'Sponsorship Agreement' },
 ];
+
+// ---------------------------------------------------------------------------
+// PROMO / SOCIAL pieces (PNG output; posters also an A3 PDF). Each declares its
+// card design px (drives preview + capture), its target PNG size, its stamped
+// text blanks (data-field keys), its hero-photo slots (data-hero-slot, filled by
+// upload), whether it carries a managed partner-logo strip, and the brand images
+// it still needs the owner to supply (rendered blank until then). Mirrors the
+// server registry in lib/server/docgen.ts (kept in sync by hand - a client file
+// cannot import the server module).
+// ---------------------------------------------------------------------------
+const PARTNERS: { key: string; label: string; url: string }[] = [
+  { key: 'ppp-tv', label: 'PPP TV', url: '/assets/partners/ppp-tv.png' },
+  { key: 'xp-hub', label: 'XP Hub', url: '/assets/partners/xp-hub.png' },
+  { key: 'synapse', label: 'Synapse', url: '/assets/partners/synapse.png' },
+  { key: 'moyo', label: 'Moyo', url: '/assets/partners/moyo.png' },
+  { key: 'ashton', label: 'Ashton', url: '/assets/partners/ashton.png' },
+  { key: 'sauti-moto', label: 'Sauti Moto', url: '/assets/partners/sauti-moto.jpg' },
+  { key: 'experience-hub', label: 'Experience Hub', url: '/assets/partners/experience-hub.png' },
+  { key: 'vibe-studios', label: 'Vibe Studios', url: '/assets/partners/vibe-studios.webp' },
+];
+
+interface PField { key: string; label: string; area?: boolean; ph?: string }
+interface PSpec {
+  label: string; kind: 'post' | 'story' | 'poster';
+  design: { w: number; h: number }; png: [number, number]; pdf?: boolean;
+  fields: PField[]; heroSlots: string[]; partners?: boolean; missing?: string[];
+}
+const PROMO_SPEC: Record<string, PSpec> = {
+  igNext: {
+    label: 'IG Post - Next Stop', kind: 'post', design: { w: 600, h: 600 }, png: [1080, 1080],
+    fields: [
+      { key: 'dateDay', label: 'Date - day', ph: '19' }, { key: 'dateMonth', label: 'Date - month', ph: 'JULY' },
+      { key: 'schoolName', label: 'School / event', ph: 'Lari Boys High Sch.' },
+      { key: 'tagline1', label: 'Tagline 1', ph: 'Talent Day' }, { key: 'tagline2', label: 'Tagline 2', ph: '& Festival of Colours' },
+      { key: 'lineup', label: 'Line-up', area: true, ph: 'HYPE OLA · DJ CARIAN · MC PAPS ...' },
+    ], heroSlots: ['Host left', 'Host right', 'Circle left', 'Circle right'], missing: ['PPPtv Logo.png', 'tape-png-0.png'],
+  },
+  igStory: {
+    label: 'IG Story - Term Calendar', kind: 'story', design: { w: 420, h: 747 }, png: [1080, 1920],
+    fields: [
+      { key: 'date1', label: 'Row 1 date', ph: '19th JUL' }, { key: 'school1', label: 'Row 1 event', ph: 'Lari Boys High School' }, { key: 'venue1', label: 'Row 1 venue', ph: 'KIMENDE' },
+      { key: 'date2', label: 'Row 2 date', ph: '16th AUG' }, { key: 'school2', label: 'Row 2 event', ph: 'XP Hub Dance Event' }, { key: 'venue2', label: 'Row 2 venue', ph: 'NAIROBI' },
+      { key: 'date3', label: 'Row 3 date', ph: '20th SEP' }, { key: 'school3', label: 'Row 3 event', ph: 'Festival of Colours' }, { key: 'venue3', label: 'Row 3 venue', ph: 'UHURU GARDENS' },
+    ], heroSlots: ['Host left', 'Host right'], missing: ['tape-png-0.png', 'an-arrow-...webp'],
+  },
+  igWinner: {
+    label: 'IG Post - Winner Spotlight', kind: 'post', design: { w: 560, h: 560 }, png: [1080, 1080],
+    fields: [{ key: 'winnerLine', label: 'Winner name and category', ph: "winner's name · category" }], heroSlots: ['Winner photo'], missing: ['tape-png-0.png'],
+  },
+  igEpisode: {
+    label: 'IG Post - New Episode', kind: 'post', design: { w: 560, h: 560 }, png: [1080, 1080],
+    fields: [{ key: 'episodeTag', label: 'Episode tag', ph: 'EP. 07 · FRESH OFF THE ROAD' }], heroSlots: ['Screen photo'], missing: ['PPPtv Logo.png'],
+  },
+  igMerch: {
+    label: 'IG Post - Merch Drop', kind: 'post', design: { w: 560, h: 560 }, png: [1080, 1080],
+    fields: [{ key: 'headline', label: 'Headline', ph: 'The drip is in.' }, { key: 'subhead', label: 'Sub-headline', ph: 'worn on tour first. shipped countrywide.' }],
+    heroSlots: ['Product left', 'Product right'], missing: ['tape-png-0.png'],
+  },
+  igBookings: {
+    label: 'IG Post - Bookings Open', kind: 'post', design: { w: 560, h: 560 }, png: [1080, 1080],
+    fields: [{ key: 'subhead', label: 'Sub-headline', ph: "principals, deans, student leaders - this one's for you." }], heroSlots: [], missing: ['an-arrow-...webp'],
+  },
+  igQuote: {
+    label: 'IG Post - Quote Card', kind: 'post', design: { w: 560, h: 560 }, png: [1080, 1080],
+    fields: [
+      { key: 'volLabel', label: 'Volume label', ph: 'MONDAY FUEL · VOL. 07' },
+      { key: 'quote', label: 'Quote', area: true, ph: '"potential is common. purpose is earned."' },
+      { key: 'attribution', label: 'Attribution', ph: '- HEARD AT THE TALENT PODS' },
+    ], heroSlots: [],
+  },
+  posTakeover: {
+    label: 'Poster - The Takeover', kind: 'poster', design: { w: 560, h: 784 }, png: [1080, 1512], pdf: true,
+    fields: [
+      { key: 'dateDay', label: 'Date - day', ph: '26' }, { key: 'dateMonth', label: 'Date - month', ph: 'JULY' },
+      { key: 'schoolName', label: 'School / event', ph: 'Ngeya Girls Senior Sch.' },
+      { key: 'tagline1', label: 'Tagline 1', ph: 'Talent Day' }, { key: 'tagline2', label: 'Tagline 2', ph: '& Battle of the Crews' },
+      { key: 'lineup', label: 'Line-up', area: true, ph: 'HYPE OLA · DJ CARIAN ...' },
+    ], heroSlots: ['Feature artist', 'Circle 1', 'Circle 2', 'Circle 3'], partners: true, missing: ['PPPtv Logo.png', 'tape-png-0.png', 'an-arrow-...webp'],
+  },
+  posHeadliner: {
+    label: 'Poster - Headliner', kind: 'poster', design: { w: 560, h: 784 }, png: [1080, 1512], pdf: true,
+    fields: [
+      { key: 'preheadline', label: 'Pre-headline', ph: 'the streets asked. we delivered.' },
+      { key: 'dateChip', label: 'Date chip', ph: 'SAT 16 AUG' }, { key: 'venueChip', label: 'Venue chip', ph: 'XP HUB DANCE EVENT · KICC GROUNDS' }, { key: 'timeChip', label: 'Time chip', ph: '2 PM' },
+    ], heroSlots: ['Background photo'],
+  },
+  posFestival: {
+    label: 'Poster - Festival of Colours', kind: 'poster', design: { w: 560, h: 784 }, png: [1080, 1512], pdf: true,
+    fields: [
+      { key: 'dateDay', label: 'Date - day', ph: '20' }, { key: 'dateMonth', label: 'Date - month', ph: 'SEPT' },
+      { key: 'titleTop', label: 'Title line 1', ph: 'Urban Festival' }, { key: 'titleBottom', label: 'Title line 2', ph: 'of Colours' },
+      { key: 'dateChip', label: 'Date chip', ph: 'SUN 20 SEP' }, { key: 'venueChip', label: 'Venue chip', ph: 'UHURU GARDENS' }, { key: 'timeChip', label: 'Time chip', ph: 'FROM 11 AM' },
+    ], heroSlots: ['Photo 1', 'Photo 2', 'Photo 3'], partners: true,
+  },
+  posRave: {
+    label: 'Poster - Campus Rave', kind: 'poster', design: { w: 560, h: 784 }, png: [1080, 1512], pdf: true,
+    fields: [
+      { key: 'edition', label: 'Edition', ph: 'Nairobi Edition' },
+      { key: 'dateChip', label: 'Date chip', ph: 'FRI 3 OCT' }, { key: 'venueChip', label: 'Venue chip', ph: 'CARNIVORE GROUNDS' }, { key: 'timeChip', label: 'Time chip', ph: '4 PM TILL LATE' },
+      { key: 'lineup', label: 'Line-up', area: true, ph: 'DJ CARIAN · DJ XAVI ...' },
+    ], heroSlots: [], missing: ['CAMPUS RAVE LOGO png.png'],
+  },
+  posFinale: {
+    label: 'Poster - The Crowning Finale', kind: 'poster', design: { w: 560, h: 784 }, png: [1080, 1512], pdf: true,
+    fields: [
+      { key: 'dateChip', label: 'Date chip', ph: 'DATE TBA' }, { key: 'venueChip', label: 'Venue chip', ph: 'VENUE TBA' }, { key: 'tvChip', label: 'TV chip', ph: 'LIVE ON PPP TV' },
+    ], heroSlots: ['Finalist 1', 'Finalist 2', 'Finalist 3'], partners: true,
+  },
+};
+const PROMO_KEYS = Object.keys(PROMO_SPEC) as DocType[];
+const PROMO_TYPES: { key: DocType; label: string }[] = PROMO_KEYS.map((k) => ({ key: k, label: PROMO_SPEC[k].label }));
+const isPromoType = (t: DocType) => (PROMO_KEYS as string[]).includes(t);
+function safeName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
+}
 // Multi-page documents: ONE serial, several pages rasterised into ONE PDF.
 const isMultiPageType = (t: DocType) => t === 'prop' || t === 'sprop';
 const isCertType = (t: DocType) => t === 'certw' || t === 'certp';
@@ -75,6 +193,20 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   prop: { w: 794, h: 1123 },
   sprop: { w: 794, h: 1123 },
   agr: { w: 794, h: 1123 },
+  // Promo cards are captured at their design px (see PROMO_SPEC.design) and
+  // exported at PROMO_SPEC.png. The preview iframe uses these design px.
+  igNext: { w: 600, h: 600 },
+  igStory: { w: 420, h: 747 },
+  igWinner: { w: 560, h: 560 },
+  igEpisode: { w: 560, h: 560 },
+  igMerch: { w: 560, h: 560 },
+  igBookings: { w: 560, h: 560 },
+  igQuote: { w: 560, h: 560 },
+  posTakeover: { w: 560, h: 784 },
+  posHeadliner: { w: 560, h: 784 },
+  posFestival: { w: 560, h: 784 },
+  posRave: { w: 560, h: 784 },
+  posFinale: { w: 560, h: 784 },
 };
 
 // CSV column schema per certificate type (also the accepted header names).
@@ -180,7 +312,7 @@ const BUDGET_OUT_SEED: OutRow[] = [
 
 interface RecentDoc {
   id: string; serial: string; type: string; issued_to: string; event: string;
-  status: string; created_at: string; pdf_url: string; void_reason: string;
+  status: string; created_at: string; pdf_url: string; png_url: string; void_reason: string;
 }
 
 function num(v: string): number { const n = Number(v); return Number.isFinite(n) ? n : 0; }
@@ -255,6 +387,13 @@ export default function DocGen() {
     feeKsh: '', inKindValue: '', paymentTerms: '', balanceDueDate: '',
   });
 
+  // Promo / social state. A single text map (only the active type's fields are
+  // used; a blank field keeps the template default), plus positional hero image
+  // Blob URLs and picked partner-logo keys/URLs. Reset on every type switch.
+  const [promo, setPromo] = useState<Record<string, string>>({});
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
+
   // Quantity-batch state (tickets / passes / bands).
   const [qty, setQty] = useState('3');
   const [qtyBusy, setQtyBusy] = useState(false);
@@ -273,7 +412,7 @@ export default function DocGen() {
   const [computed, setComputed] = useState<any>({});
   const [busy, setBusy] = useState(false);
   const [gen, setGen] = useState(false);
-  const [result, setResult] = useState<{ serial: string; pdf_url: string; filename: string } | null>(null);
+  const [result, setResult] = useState<{ serial: string; pdf_url: string; filename: string; png_url?: string; isPromo?: boolean } | null>(null);
   const [toast, setToast] = useState('');
   const [recent, setRecent] = useState<RecentDoc[]>([]);
 
@@ -283,6 +422,17 @@ export default function DocGen() {
 
   // The single-form payload for this type (preview + single Generate).
   const singlePayload = useMemo(() => {
+    if (isPromoType(type)) {
+      const spec = PROMO_SPEC[type];
+      const out: Record<string, unknown> = {};
+      // Only non-empty text fields are sent, so a blank keeps the template
+      // default. heroImages is a DENSE positional array ('' = keep default slot).
+      for (const f of spec.fields) { const v = promo[f.key]; if (v !== undefined && v !== '') out[f.key] = v; }
+      if (promo.eventName) out.eventName = promo.eventName;
+      out.heroImages = spec.heroSlots.map((_, i) => heroImages[i] || '');
+      out.partnerLogos = partnerLogos;
+      return out;
+    }
     if (type === 'invoice') {
       return {
         date: inv.date, dueDate: inv.dueDate, billTo: inv.billTo, poNumber: inv.poNumber,
@@ -379,7 +529,7 @@ export default function DocGen() {
       moneyIn: moneyIn.filter((r) => r.source || r.count || r.rate).map((r) => ({ source: r.source, count: num(r.count), rate: num(r.rate) })),
       moneyOut: moneyOut.filter((r) => r.item || r.supplier || r.amount).map((r) => ({ item: r.item, supplier: r.supplier, amount: num(r.amount) })),
     } as Record<string, unknown>;
-  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, acc, pass, rel, cons, prop, sprop, agr]);
+  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, acc, pass, rel, cons, prop, sprop, agr, promo, heroImages, partnerLogos]);
 
   // What the live preview renders: in batch mode, the first parsed row; else
   // the single-form payload.
@@ -392,6 +542,7 @@ export default function DocGen() {
   // required field would make /preview 400). Money docs have no required field.
   const previewReady = useMemo(() => {
     const p: any = previewPayload;
+    if (isPromoType(type)) return true; // promo has no required field
     if (type === 'certw') return !!String(p?.recipientName || '').trim();
     if (type === 'certp') return !!String(p?.participantName || '').trim();
     if (type === 'tix' || type === 'spass') return !!String(p?.eventName || '').trim();
@@ -451,6 +602,7 @@ export default function DocGen() {
     setType(t); setResult(null); setMode('single');
     setCsvRows([]); setCsvName(''); setCsvError(''); setBatchResult(null);
     setQtyResult(null); setQtyProgress({ done: 0, total: 0 });
+    setPromo({}); setHeroImages([]); setPartnerLogos([]);
   }
 
   async function doGenerate() {
@@ -461,6 +613,19 @@ export default function DocGen() {
       const r1 = await api('/api/admin/docs/generate', { method: 'POST', body: JSON.stringify({ type, payload: singlePayload }) });
       if (r1.status !== 200 || (!r1.data?.html && !r1.data?.pages)) { say('Generate failed: ' + (r1.data?.error || r1.status)); setGen(false); return; }
       const { id, serial, html, pages, filename } = r1.data;
+
+      // Promo pieces export PNG at their social size (posters also an A3 PDF);
+      // png is the primary stored asset, pdf only for posters.
+      if (isPromoType(type)) {
+        const spec = PROMO_SPEC[type];
+        const { pngDataUrl, pdfDataUrl } = await rasterisePromo(html, spec.png, !!spec.pdf);
+        const r2 = await api('/api/admin/docs/generate', { method: 'POST', body: JSON.stringify({ id, pngBase64: pngDataUrl, pdfBase64: pdfDataUrl }) });
+        if (r2.status !== 200 || !r2.data?.png_url) { say('Upload failed: ' + (r2.data?.error || r2.status)); setGen(false); return; }
+        setResult({ serial, png_url: r2.data.png_url, pdf_url: r2.data.pdf_url || '', filename, isPromo: true });
+        say('Generated ' + serial);
+        loadRecent();
+        return;
+      }
 
       // Single-page types return one filled HTML (html); multi-page types
       // (proposals) return an array of page HTMLs (pages) that rasterise into
@@ -609,7 +774,8 @@ export default function DocGen() {
     else say('Void failed: ' + (data?.error || status));
   }
 
-  const formTitle = type === 'invoice' ? 'Invoice details'
+  const formTitle = isPromoType(type) ? PROMO_SPEC[type].label
+    : type === 'invoice' ? 'Invoice details'
     : type === 'receipt' ? 'Receipt details'
     : type === 'certw' ? 'Winner certificate'
     : type === 'certp' ? 'Participation certificate'
@@ -638,10 +804,20 @@ export default function DocGen() {
         <div style={{ fontSize: 13, color: '#555', marginBottom: 12 }}>
           Brand-locked, serialised, QR-verifiable documents. Serials and totals are computed by the server, never typed. Finalised documents are immutable - to correct one, void it and generate a new one.
         </div>
+        <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: '#888', margin: '2px 0 6px' }}>Documents (PDF)</div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {TYPES.map((t) => (
             <button key={t.key} onClick={() => switchType(t.key)}
               style={{ ...btn, background: type === t.key ? '#C7238E' : '#fff', color: type === t.key ? '#fff' : '#111' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: '#888', margin: '14px 0 6px' }}>Promo / Social (PNG)</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {PROMO_TYPES.map((t) => (
+            <button key={t.key} onClick={() => switchType(t.key)}
+              style={{ ...btn, background: type === t.key ? '#111' : '#fff', color: type === t.key ? '#fff' : '#111' }}>
               {t.label}
             </button>
           ))}
@@ -693,6 +869,13 @@ export default function DocGen() {
                 {type === 'prop' && <ProposalForm prop={prop} setProp={setProp} />}
                 {type === 'sprop' && <SchoolProposalForm sprop={sprop} setSprop={setSprop} />}
                 {type === 'agr' && <AgreementForm agr={agr} setAgr={setAgr} />}
+                {isPromoType(type) && (
+                  <PromoForm
+                    type={type} promo={promo} setPromo={setPromo}
+                    heroImages={heroImages} setHeroImages={setHeroImages}
+                    partnerLogos={partnerLogos} setPartnerLogos={setPartnerLogos} say={say}
+                  />
+                )}
               </div>
 
               {isQtyType(type) ? (
@@ -712,13 +895,25 @@ export default function DocGen() {
                   {result && (
                     <div style={{ marginTop: 14, border: '2px solid #1F8A5B', borderRadius: 12, padding: 14, background: '#f2fbf6' }}>
                       <div style={{ fontFamily: 'Anton', fontSize: 16, color: '#1F8A5B' }}>Generated: {result.serial}</div>
-                      <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-                        <a href={result.pdf_url} download={result.filename} style={{ ...btn, textDecoration: 'none' }}>Download PDF</a>
-                        <a href={VERIFY_BASE + result.serial} target="_blank" rel="noreferrer" style={{ ...btnDark, textDecoration: 'none' }}>Open verify page</a>
-                      </div>
-                      <div style={{ fontSize: 12, color: '#555', marginTop: 8, wordBreak: 'break-all' }}>
-                        Verify URL: {VERIFY_BASE + result.serial}
-                      </div>
+                      {result.isPromo ? (
+                        <>
+                          <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+                            <a href={result.png_url} download={result.filename} style={{ ...btnMagenta, textDecoration: 'none' }}>Download PNG</a>
+                            {result.pdf_url && <a href={result.pdf_url} download={result.filename.replace(/\.png$/, '')+'-A3.pdf'} style={{ ...btnDark, textDecoration: 'none' }}>Download A3 PDF</a>}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#555', marginTop: 8 }}>Promo pieces carry no verify QR (a poster with a verify code is odd). Saved to the record for re-download.</div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+                            <a href={result.pdf_url} download={result.filename} style={{ ...btn, textDecoration: 'none' }}>Download PDF</a>
+                            <a href={VERIFY_BASE + result.serial} target="_blank" rel="noreferrer" style={{ ...btnDark, textDecoration: 'none' }}>Open verify page</a>
+                          </div>
+                          <div style={{ fontSize: 12, color: '#555', marginTop: 8, wordBreak: 'break-all' }}>
+                            Verify URL: {VERIFY_BASE + result.serial}
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </>
@@ -765,7 +960,8 @@ export default function DocGen() {
                   </td>
                   <td style={{ ...td, whiteSpace: 'nowrap' }}>
                     {d.pdf_url && <a href={d.pdf_url} target="_blank" rel="noreferrer" style={{ ...btnSmall, textDecoration: 'none', marginRight: 6 }}>PDF</a>}
-                    <a href={VERIFY_BASE + d.serial} target="_blank" rel="noreferrer" style={{ ...btnSmall, background: '#111', color: '#fff', textDecoration: 'none', marginRight: 6 }}>Verify</a>
+                    {isPromoType(d.type as DocType) && d.png_url && <a href={d.png_url} target="_blank" rel="noreferrer" style={{ ...btnSmall, textDecoration: 'none', marginRight: 6 }}>PNG</a>}
+                    {!isPromoType(d.type as DocType) && <a href={VERIFY_BASE + d.serial} target="_blank" rel="noreferrer" style={{ ...btnSmall, background: '#111', color: '#fff', textDecoration: 'none', marginRight: 6 }}>Verify</a>}
                     {d.status !== 'void' && <button onClick={() => voidDoc(d.serial)} style={{ ...btnSmall, background: '#C62828', color: '#fff' }}>Void</button>}
                   </td>
                 </tr>
@@ -887,6 +1083,62 @@ async function rasteriseMultiPage(pages: string[]): Promise<{ pngDataUrl: string
   }
 
   return { pngDataUrl: firstPng, pdfDataUrl: pdf.output('datauristring') };
+}
+
+// ---------------------------------------------------------------------------
+// PROMO rasterisation: filled promo HTML -> a PNG at the exact target social
+// size, and (posters only) an A3 PDF. The capture node is the [data-doc-page]
+// card (a fixed design px, e.g. 560x560); pixelRatio = targetWidth / cardWidth
+// hits the target pixel width exactly (a square card -> exactly 1080x1080). A
+// referenced brand image the owner has not supplied yet renders BLANK
+// (imagePlaceholder) instead of failing the whole capture - the "renders blank
+// until dropped into public/uploads" behaviour the promo pieces expect.
+// ---------------------------------------------------------------------------
+async function rasterisePromo(
+  html: string,
+  target: [number, number],
+  wantPdf: boolean
+): Promise<{ pngDataUrl: string; pdfDataUrl?: string }> {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  const page = parsed.querySelector('[data-doc-page]') as HTMLElement | null;
+  if (!page) throw new Error('no_doc_page');
+
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1;background:#fff;';
+  const node = document.importNode(page, true) as HTMLElement;
+  holder.appendChild(node);
+  document.body.appendChild(holder);
+
+  try {
+    const imgs = Array.from(node.querySelectorAll('img'));
+    await Promise.all(imgs.map((img) => (img.complete && img.naturalWidth > 0)
+      ? Promise.resolve()
+      : new Promise<void>((res) => { img.onload = () => res(); img.onerror = () => res(); })));
+    try { await (document as any).fonts?.ready; } catch { /* fonts optional */ }
+    await new Promise((r) => setTimeout(r, 150)); // settle layout/webfonts
+
+    const w = node.offsetWidth || target[0];
+    const h = node.offsetHeight || target[1];
+    const ratio = target[0] / w; // exact target width; height follows the card aspect
+
+    const htmlToImage = await import('html-to-image');
+    const pngDataUrl = await htmlToImage.toPng(node, {
+      pixelRatio: ratio, width: w, height: h, backgroundColor: '#ffffff',
+      cacheBust: true, imagePlaceholder: TRANSPARENT_PX,
+    });
+
+    let pdfDataUrl: string | undefined;
+    if (wantPdf) {
+      const { jsPDF } = await import('jspdf');
+      // A3 portrait (297 x 420 mm); the poster image fills the page.
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a3', compress: true });
+      pdf.addImage(pngDataUrl, 'PNG', 0, 0, 297, 420);
+      pdfDataUrl = pdf.output('datauristring');
+    }
+    return { pngDataUrl, pdfDataUrl };
+  } finally {
+    document.body.removeChild(holder);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1753,6 +2005,133 @@ function AgreementForm({ agr, setAgr }: any) {
       <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
         The selected lane is ticked and highlighted on the contract; the others fade back. Ticked rights print as filled boxes. Fee and in-kind value are formatted as KSH. Carries a verify QR (AGR serial).
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Promo / social form: the template's text blanks (a blank keeps the template
+// default), a hero-image uploader per photo slot (reuses the gallery Blob
+// client-upload pattern, straight to /api/admin/docs/hero-upload), and a
+// partner-logo multi-select from the managed library (plus optional custom
+// upload). Everything renders live; Generate exports the PNG (+ A3 PDF for
+// posters).
+// ---------------------------------------------------------------------------
+const HERO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+function PromoForm({ type, promo, setPromo, heroImages, setHeroImages, partnerLogos, setPartnerLogos, say }: any) {
+  const spec: PSpec = PROMO_SPEC[type];
+  const set = (k: string) => (e: any) => setPromo({ ...promo, [k]: e.target.value });
+  const [heroBusy, setHeroBusy] = useState<number | null>(null);
+  const [partnerBusy, setPartnerBusy] = useState(false);
+
+  const doHeroUpload = async (i: number, file: File, prefix: 'promo-hero' | 'promo-partner'): Promise<string | null> => {
+    if (!HERO_TYPES.includes(file.type)) { say('Only JPG, PNG or WEBP images'); return null; }
+    if (file.size > 8 * 1024 * 1024) { say('Image is too large - 8MB max'); return null; }
+    try {
+      const blob = await upload(`${prefix}/${Date.now()}-${safeName(file.name)}`, file, {
+        access: 'public', handleUploadUrl: '/api/admin/docs/hero-upload',
+      });
+      return blob.url;
+    } catch (e: any) { say('Upload failed: ' + (e?.message || 'network error')); return null; }
+  };
+
+  const onHero = async (i: number, file: File) => {
+    setHeroBusy(i);
+    const url = await doHeroUpload(i, file, 'promo-hero');
+    if (url) { const next = heroImages.slice(); next[i] = url; setHeroImages(next); say('Hero image set'); }
+    setHeroBusy(null);
+  };
+  const clearHero = (i: number) => { const next = heroImages.slice(); next[i] = ''; setHeroImages(next); };
+
+  const togglePartner = (k: string) => setPartnerLogos(
+    partnerLogos.includes(k) ? partnerLogos.filter((x: string) => x !== k) : [...partnerLogos, k]
+  );
+  const onCustomPartner = async (file: File) => {
+    setPartnerBusy(true);
+    const url = await doHeroUpload(0, file, 'promo-partner');
+    if (url) { setPartnerLogos([...partnerLogos, url]); say('Custom partner logo added'); }
+    setPartnerBusy(false);
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>
+        Leave a field blank to keep the template default. Output is PNG at {spec.png[0]} x {spec.png[1]}
+        {spec.pdf ? ' plus an A3 PDF.' : '.'}
+      </div>
+      {spec.missing && spec.missing.length > 0 && (
+        <div style={{ background: '#fff8e6', border: '2px solid #E0A800', borderRadius: 10, padding: 10, fontSize: 12, color: '#7a5c00', fontWeight: 600, marginBottom: 10 }}>
+          Needs owner-supplied brand image(s): {spec.missing.join(', ')}. These areas render blank until the file is dropped into public/uploads.
+        </div>
+      )}
+
+      <Field lbl="Event name (for your records)"><input style={inp} value={promo.eventName || ''} onChange={set('eventName')} placeholder="Names the record; not always printed" /></Field>
+
+      {spec.fields.map((f) => (
+        <Field key={f.key} lbl={f.label}>
+          {f.area
+            ? <textarea style={{ ...inp, minHeight: 60, resize: 'vertical' }} value={promo[f.key] || ''} onChange={set(f.key)} placeholder={f.ph || ''} />
+            : <input style={inp} value={promo[f.key] || ''} onChange={set(f.key)} placeholder={f.ph || ''} />}
+        </Field>
+      ))}
+
+      {spec.heroSlots.length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <label style={label}>Hero images (crop to fit the slot)</label>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {spec.heroSlots.map((slotLabel, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, border: '2px solid #111', overflow: 'hidden', background: '#eee', flex: 'none' }}>
+                  {heroImages[i]
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={heroImages[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    : null}
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, minWidth: 92 }}>{slotLabel}</span>
+                <label style={{ ...btnSmall, cursor: 'pointer', display: 'inline-block' }}>
+                  {heroBusy === i ? 'Uploading...' : (heroImages[i] ? 'Replace' : 'Upload')}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+                    onChange={(e) => { const fl = e.target.files?.[0]; if (fl) onHero(i, fl); e.currentTarget.value = ''; }} />
+                </label>
+                {heroImages[i] && <button onClick={() => clearHero(i)} style={{ ...btnSmall, background: '#eee' }}>Use default</button>}
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: '#999', marginTop: 6 }}>Uploaded images fill the slots in order and crop with object-fit: cover.</div>
+        </div>
+      )}
+
+      {spec.partners && (
+        <div style={{ marginTop: 14 }}>
+          <label style={label}>Partner logos (render on white chips)</label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {PARTNERS.map((pn) => {
+              const on = partnerLogos.includes(pn.key);
+              return (
+                <button key={pn.key} onClick={() => togglePartner(pn.key)}
+                  style={{ ...btnSmall, display: 'inline-flex', alignItems: 'center', gap: 6, background: on ? '#111' : '#fff', color: on ? '#fff' : '#111' }}>
+                  <span style={{ background: '#fff', borderRadius: 4, padding: '2px 4px', display: 'inline-flex' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={pn.url} alt="" style={{ height: 16, width: 'auto', display: 'block' }} />
+                  </span>
+                  {on ? '✓ ' : ''}{pn.label}
+                </button>
+              );
+            })}
+            <label style={{ ...btnSmall, cursor: 'pointer', background: '#FFD400' }}>
+              {partnerBusy ? 'Uploading...' : '+ Custom logo'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+                onChange={(e) => { const fl = e.target.files?.[0]; if (fl) onCustomPartner(fl); e.currentTarget.value = ''; }} />
+            </label>
+          </div>
+          {partnerLogos.filter((k: string) => !PARTNERS.some((pn) => pn.key === k)).length > 0 && (
+            <div style={{ fontSize: 11, color: '#555', marginTop: 6 }}>
+              {partnerLogos.filter((k: string) => !PARTNERS.some((pn) => pn.key === k)).length} custom logo(s) added. Click a chip above to toggle library logos.
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: '#999', marginTop: 6 }}>Pick none to keep the template's own partner strip (where it has one).</div>
+        </div>
+      )}
     </div>
   );
 }
