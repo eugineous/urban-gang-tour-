@@ -18,6 +18,18 @@ const nextConfig = {
       { source: '/tour', destination: '/experience', permanent: true },
       { source: '/gang', destination: '/the-gang', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },
+      // /v25-template.html is a raw client-side template fragment (unrendered
+      // {{ mustache }} placeholders), fetched internally by V25App.tsx via
+      // `fetch('/v25-template.html')` — that request never sets
+      // sec-fetch-dest: document, only a real browser navigation does. Google
+      // had indexed it directly as a broken-looking page; 301 real visitors
+      // away from it while leaving the internal fetch() untouched.
+      {
+        source: '/v25-template.html',
+        has: [{ type: 'header', key: 'sec-fetch-dest', value: 'document' }],
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
   // NOTE: the old preview-era rewrite that proxied missing /assets/* to the
