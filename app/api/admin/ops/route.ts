@@ -12,6 +12,7 @@ import { getCommissionPercent, setCommissionPercent, sendOrganizerNotification, 
 import { paystackCreateSubaccount } from '@/lib/server/paystack';
 import { alertCritical } from '@/lib/server/alert';
 import { listClientErrors } from '@/lib/server/client-errors';
+import { pingIndexNow } from '@/lib/server/indexnow';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -764,6 +765,7 @@ export async function POST(req: Request) {
           if (!row.length) return bad('not_found', 404);
         }
         await opsAudit('ops.tourEvent.save', { id: row[0]?.id, kind, name, status });
+        if (status === 'published') after(() => pingIndexNow(['/events', '/experience']));
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case 'tourEvent.delete': {
@@ -775,6 +777,7 @@ export async function POST(req: Request) {
         const row = await q(`UPDATE tour_events SET status='cancelled', updated_at=now() WHERE id=$1 RETURNING id`, [id]);
         if (!row.length) return bad('not_found', 404);
         await opsAudit('ops.tourEvent.delete', { id });
+        after(() => pingIndexNow(['/events', '/experience']));
         return NextResponse.json({ ok: true });
       }
 
@@ -810,6 +813,7 @@ export async function POST(req: Request) {
           if (!row.length) return bad('not_found', 404);
         }
         await opsAudit('ops.product.save', { id: row[0]?.id, name, price });
+        if (d.active !== false) after(() => pingIndexNow(['/shop']));
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case 'product.delete': {
@@ -821,6 +825,7 @@ export async function POST(req: Request) {
         const row = await q(`UPDATE products SET active=false, updated_at=now() WHERE id=$1 RETURNING id`, [id]);
         if (!row.length) return bad('not_found', 404);
         await opsAudit('ops.product.delete', { id });
+        after(() => pingIndexNow(['/shop']));
         return NextResponse.json({ ok: true });
       }
 
