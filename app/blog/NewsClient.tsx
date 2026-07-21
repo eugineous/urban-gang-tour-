@@ -35,15 +35,6 @@ const DESKS: { id: 'all' | Desk | 'route'; label: string }[] = [
   { id: 'institutions', label: 'For Institutions' },
 ];
 
-const SEED_SEARCHES: [string, number, string?][] = [
-  ['tickets', 187, 'https://urbangangtour.co.ke/events'],
-  ['book the tour', 149, 'https://urbangangtour.co.ke/book'],
-  ['Eugine Micah', 121],
-  ['Lucy Ogunde', 108],
-  ['color blast', 96],
-  ['Mr & Miss', 84],
-];
-
 const STATUS_STYLE: Record<RouteRow['status'], string> = {
   'NEXT STOP': 'background:#F7A81B;color:#1A0E14;',
   CONFIRMED: 'background:#2e9e5b;color:#fff;',
@@ -101,15 +92,12 @@ export function NewsClient({
   const [query, setQuery] = useState('');
   const [desk, setDesk] = useState<'all' | Desk | 'route'>('all');
   const [tick, setTick] = useState(0);
-  const [searchCounts, setSearchCounts] = useState<Record<string, number>>({});
   const searchRef = useRef<HTMLInputElement>(null);
-  const recordTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const h = new URLSearchParams(location.hash.slice(1));
     if (h.get('desk')) setDesk(h.get('desk') as any);
     if (h.get('q')) setQuery(h.get('q')!);
-    try { setSearchCounts(JSON.parse(localStorage.getItem('un-search-counts') || '{}')); } catch { /* ignore */ }
 
     const onKey = (e: KeyboardEvent) => {
       const typing = /input|textarea/i.test(document.activeElement?.tagName || '');
@@ -134,16 +122,6 @@ export function NewsClient({
 
   const onSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters({ query: e.target.value });
-    clearTimeout(recordTimer.current);
-    const q = e.target.value.trim().toLowerCase();
-    if (q.length < 3) return;
-    recordTimer.current = setTimeout(() => {
-      setSearchCounts((prev) => {
-        const next = { ...prev, [q]: (prev[q] || 0) + 1 };
-        try { localStorage.setItem('un-search-counts', JSON.stringify(next)); } catch { /* ignore */ }
-        return next;
-      });
-    }, 1500);
   };
 
   const clearFilters = () => setFilters({ query: '', desk: 'all' });
@@ -163,16 +141,6 @@ export function NewsClient({
   const isFiltering = !!q || desk !== 'all';
   const vis = (id: Desk | 'route', n: number) => (desk === 'all' || desk === id) && n > 0;
   const total = counts.all;
-
-  const searchChips = useMemo(() => {
-    const merged = new Map<string, { term: string; count: number; href?: string }>();
-    SEED_SEARCHES.forEach(([t, n, href]) => merged.set(t.toLowerCase(), { term: t, count: n, href }));
-    Object.entries(searchCounts).forEach(([k, n]) => {
-      const existing = merged.get(k);
-      if (existing) existing.count += n; else merged.set(k, { term: k, count: n });
-    });
-    return Array.from(merged.values()).sort((a, b) => b.count - a.count).slice(0, 8);
-  }, [searchCounts]);
 
   const breakingHeadlines = [
     ...(hero ? [hero.title] : []),
@@ -194,12 +162,6 @@ export function NewsClient({
         @media (max-width:900px) { .un-main { grid-template-columns: 1fr !important; } .un-aside { position:static !important; } }
       `}</style>
 
-      {/* utility strip */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '8px 24px', background: '#1A0E14', color: '#fff', fontFamily: "'Spline Sans Mono',monospace", fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
-        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}><span>The culture&apos;s paper of record</span><span style={{ color: '#F7A81B' }}>Est. 2025</span></div>
-        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}><span>Nairobi</span><span>Free forever</span><span style={{ color: '#F7A81B' }}>On PPP TV · CH 430</span></div>
-      </div>
-
       {/* masthead */}
       <header style={{ padding: '44px 24px 34px', textAlign: 'center', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 18, left: '6%', width: 70, height: 26, background: 'rgba(255,255,255,.35)', transform: 'rotate(-28deg)' }} />
@@ -218,12 +180,6 @@ export function NewsClient({
         <p style={{ position: 'relative', zIndex: 2, margin: '14px auto 0', maxWidth: 560, fontFamily: "'Permanent Marker',cursive", fontSize: 17, color: '#fff', textShadow: '2px 2px 0 rgba(26,14,20,.4)' }}>
           everything the tour did, is doing, and is about to do — reported by the gang itself
         </p>
-        <div style={{ position: 'relative', zIndex: 2, marginTop: 16, display: 'flex', justifyContent: 'center', gap: 14, fontFamily: "'Spline Sans Mono',monospace", fontSize: 11, textTransform: 'uppercase', letterSpacing: '.1em', flexWrap: 'wrap' }}>
-          <a href="/" style={{ color: '#fff' }}>← urbangangtour.co.ke</a><span style={{ color: 'rgba(255,255,255,.5)' }}>·</span>
-          <a href="/events" style={{ color: '#fff' }}>Tickets</a><span style={{ color: 'rgba(255,255,255,.5)' }}>·</span>
-          <a href="/book" style={{ color: '#fff' }}>Book the Tour</a><span style={{ color: 'rgba(255,255,255,.5)' }}>·</span>
-          <a href="/shop" style={{ color: '#fff' }}>Shop</a>
-        </div>
       </header>
 
       {/* sticky finder bar */}
@@ -430,24 +386,6 @@ export function NewsClient({
               <div style={{ padding: '9px 16px', fontFamily: "'Spline Sans Mono',monospace", fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: '#8a7a82' }}>real page views · last 7 days</div>
             </section>
           )}
-
-          <section style={{ border: '3px solid #1A0E14', borderRadius: 20, background: '#fff', overflow: 'hidden', boxShadow: '6px 6px 0 rgba(26,14,20,.5)' }}>
-            <div style={{ padding: '12px 16px', background: '#1A0E14' }}>
-              <h3 style={{ margin: 0, fontFamily: "'Titan One',cursive", fontSize: 15, fontWeight: 400 }}><span style={{ color: '#F7A81B' }}>MOST</span> <span style={{ color: '#fff' }}>SEARCHED</span></h3>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '14px 16px' }}>
-              {searchChips.map((c) => (
-                <button
-                  key={c.term}
-                  onClick={() => { if (c.href) window.open(c.href, '_blank'); else setFilters({ query: c.term, desk: 'all' }); }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '2px solid #1A0E14', borderRadius: 999, padding: '6px 13px', background: 'transparent', cursor: 'pointer', fontFamily: "'Archivo',sans-serif", fontWeight: 700, fontSize: 12, color: '#1A0E14' }}
-                >
-                  {c.term}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: 10, color: '#C2187C' }}>{c.count}</span>
-                </button>
-              ))}
-            </div>
-            <div style={{ padding: '0 16px 12px', fontFamily: "'Spline Sans Mono',monospace", fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: '#8a7a82' }}>site search · tap to search</div>
-          </section>
 
           {mostRead.length > 0 && (
             <section style={{ border: '3px solid #1A0E14', borderRadius: 20, background: '#fff', overflow: 'hidden', boxShadow: '6px 6px 0 rgba(26,14,20,.5)' }}>
