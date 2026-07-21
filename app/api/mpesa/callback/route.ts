@@ -3,6 +3,7 @@ import { q, db } from '@/lib/server/db';
 import { alertCritical } from '@/lib/server/alert';
 import { sendReceiptEmail } from '@/lib/server/receipt-email';
 import { ensureTickets } from '@/lib/server/tickets';
+import { notifyPaymentSuccess, notifyPaymentFailure } from '@/lib/server/notify';
 
 // Daraja payment result callback: reconcile the order ledger.
 export async function POST(req: Request) {
@@ -29,9 +30,11 @@ export async function POST(req: Request) {
           if (paidRow) after(async () => {
             try { await ensureTickets(paidRow); } catch (e) { console.error('[tickets-mint]', e); }
             if (paidRow.email) await sendReceiptEmail(paidRow);
+            await notifyPaymentSuccess({ gateway: 'mpesa', orderId: paidRow.id, amount: paidRow.total });
           });
         } else {
-          await q(`UPDATE orders SET status='failed' WHERE mpesa_ref=$1 AND status='pending'`, [cb.CheckoutRequestID]);
+          const failedRows = await q(`UPDATE orders SET status='failed' WHERE mpesa_ref=$1 AND status='pending' RETURNING id, total`, [cb.CheckoutRequestID]);
+          if (failedRows[0]) after(() => notifyPaymentFailure({ gateway: 'mpesa', orderId: failedRows[0].id, amount: failedRows[0].total, reason: cb.ResultDesc }));
         }
       } catch (e: any) {
         // a real Daraja result failed to reconcile - the ledger is now stale

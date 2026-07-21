@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { alertCritical } from '@/lib/server/alert';
 import { sendReceiptEmail } from '@/lib/server/receipt-email';
 import { ensureTickets } from '@/lib/server/tickets';
+import { notifyPaymentSuccess, notifyPaymentFailure } from '@/lib/server/notify';
 
 // Paystack webhook. Signature: x-paystack-signature = HMAC-SHA512(raw body)
 // keyed with the secret key. charge.success flips the ledger row (order id
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
             if (paidRow) after(async () => {
               try { await ensureTickets(paidRow); } catch (e) { console.error('[tickets-mint]', e); }
               if (paidRow.email) await sendReceiptEmail(paidRow);
+              await notifyPaymentSuccess({ gateway: 'paystack', orderId: paidRow.id, amount: paidRow.total });
             });
           } else {
             console.log('[paystack] charge.success for unknown/settled ref', ref);
@@ -62,7 +64,10 @@ export async function POST(req: Request) {
     if (/^ORD-[A-Z0-9-]{4,40}$/.test(ref)) {
       try {
         const { q, db } = await import('@/lib/server/db');
-        if (db()) await q(`UPDATE orders SET status='failed' WHERE id=$1 AND status='pending'`, [ref]);
+        if (db()) {
+          const rows = await q(`UPDATE orders SET status='failed' WHERE id=$1 AND status='pending' RETURNING id, total`, [ref]);
+          if (rows[0]) after(() => notifyPaymentFailure({ gateway: 'paystack', orderId: rows[0].id, amount: rows[0].total, reason: 'charge.failed' }));
+        }
       } catch { /* logged path only */ }
     }
   }

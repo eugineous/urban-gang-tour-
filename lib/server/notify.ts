@@ -71,6 +71,204 @@ async function sendNotify(subject: string, html: string, text: string): Promise<
   return true;
 }
 
+// Shared card renderer for every notification below - the two originals
+// above (new order/booking) predate this and keep their own inline markup;
+// no need to churn working code just to dedupe it.
+function card(title: string, rows: [string, string][], extra?: string): string {
+  return `
+<div style="font-family:'Space Grotesk',Arial,sans-serif;max-width:480px;margin:0 auto;border:2px solid #111;border-radius:12px;overflow:hidden">
+  <div style="background:#111;color:#FFD400;padding:14px 18px;font-weight:900;text-transform:uppercase;letter-spacing:.04em">Urban Gang Tour &middot; ${esc(title)}</div>
+  <div style="padding:18px">
+    <table cellpadding="0" cellspacing="0" style="font-size:13px;color:#333;width:100%">
+      ${rows.map(([k, v]) => `<tr><td style="padding:2px 10px 2px 0;color:#666;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="word-break:break-word">${esc(v)}</td></tr>`).join('')}
+    </table>
+    ${extra ? `<div style="margin-top:12px;font-size:13px;color:#333;white-space:pre-wrap">${extra}</div>` : ''}
+  </div>
+</div>`;
+}
+
+function textLines(title: string, rows: [string, string][], extra?: string): string {
+  return `${title}\n${rows.map(([k, v]) => `${k}: ${v}`).join('\n')}${extra ? `\n\n${extra}` : ''}\n\nTime: ${new Date().toISOString()}\nSource: urbangangtour.co.ke`;
+}
+
+export type NewSignupRow = { id: string | number; email?: string | null; phone?: string | null; name?: string | null };
+
+export async function notifyNewSignup(user: NewSignupRow): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_new_signup'))) {
+      console.log('[notify] new-signup skipped (toggle off):', user.id);
+      return;
+    }
+    const rows: [string, string][] = [['Name', user.name || ''], ['Email', user.email || ''], ['Phone', user.phone || '']];
+    const ok = await sendNotify(
+      `New account: ${user.name || user.email || user.phone || user.id}`,
+      card('New Account', rows),
+      textLines('New account created', rows)
+    );
+    console.log('[notify]', ok ? 'new-signup sent:' : 'new-signup failed:', user.id);
+  } catch (e) {
+    console.error('[notify] new-signup error', e);
+  }
+}
+
+export type AdminLoginEvent = { email: string; method: 'google' | 'access_code'; scope: string; ip?: string };
+
+export async function notifyAdminLogin(ev: AdminLoginEvent): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_admin_login'))) {
+      console.log('[notify] admin-login skipped (toggle off):', ev.email || ev.method);
+      return;
+    }
+    const rows: [string, string][] = [['Method', ev.method], ['Email', ev.email || '(access code)'], ['Scope', ev.scope], ['IP', ev.ip || '']];
+    const ok = await sendNotify(
+      `Control Room sign-in: ${ev.email || 'access code'}`,
+      card('Control Room Sign-In', rows),
+      textLines('Control Room sign-in', rows)
+    );
+    console.log('[notify]', ok ? 'admin-login sent:' : 'admin-login failed:', ev.email || ev.method);
+  } catch (e) {
+    console.error('[notify] admin-login error', e);
+  }
+}
+
+export type FailedAdminLoginEvent = { method: 'google' | 'access_code'; reason: string; ip?: string; email?: string };
+
+export async function notifyFailedAdminLogin(ev: FailedAdminLoginEvent): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_failed_admin_login'))) {
+      console.log('[notify] failed-admin-login skipped (toggle off):', ev.reason);
+      return;
+    }
+    const rows: [string, string][] = [['Method', ev.method], ['Reason', ev.reason], ['Email tried', ev.email || ''], ['IP', ev.ip || '']];
+    const ok = await sendNotify(
+      `Failed Control Room sign-in attempt (${ev.method})`,
+      card('Failed Sign-In Attempt', rows),
+      textLines('Failed Control Room sign-in attempt', rows)
+    );
+    console.log('[notify]', ok ? 'failed-admin-login sent:' : 'failed-admin-login failed:', ev.reason);
+  } catch (e) {
+    console.error('[notify] failed-admin-login error', e);
+  }
+}
+
+export type PostPublishedRow = { slug: string; headline: string; section?: string };
+
+export async function notifyPostPublished(post: PostPublishedRow): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_post_published'))) {
+      console.log('[notify] post-published skipped (toggle off):', post.slug);
+      return;
+    }
+    const rows: [string, string][] = [['Headline', post.headline], ['Section', post.section || ''], ['URL', `https://urbangangtour.co.ke/blog/${post.slug}`]];
+    const ok = await sendNotify(
+      `Post published: ${post.headline}`,
+      card('Blog Post Published', rows),
+      textLines('Blog post published', rows)
+    );
+    console.log('[notify]', ok ? 'post-published sent:' : 'post-published failed:', post.slug);
+  } catch (e) {
+    console.error('[notify] post-published error', e);
+  }
+}
+
+export type NewSubmissionRow = { name: string; school?: string | null; title: string; pitch?: string | null };
+
+export async function notifyNewSubmission(sub: NewSubmissionRow): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_new_submission'))) {
+      console.log('[notify] new-submission skipped (toggle off):', sub.title);
+      return;
+    }
+    const rows: [string, string][] = [['Name', sub.name], ['School', sub.school || ''], ['Title', sub.title]];
+    const ok = await sendNotify(
+      `New story pitch: ${sub.title}`,
+      card('New Story Pitch (Newsroom)', rows, sub.pitch ? esc(sub.pitch).slice(0, 1000) : undefined),
+      textLines('New story pitch', rows, sub.pitch || '')
+    );
+    console.log('[notify]', ok ? 'new-submission sent:' : 'new-submission failed:', sub.title);
+  } catch (e) {
+    console.error('[notify] new-submission error', e);
+  }
+}
+
+export type PaymentEvent = { gateway: 'mpesa' | 'paystack' | 'stripe'; orderId: string; amount?: number; reason?: string };
+
+export async function notifyPaymentSuccess(ev: PaymentEvent): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_payment_success'))) {
+      console.log('[notify] payment-success skipped (toggle off):', ev.orderId);
+      return;
+    }
+    const rows: [string, string][] = [['Gateway', ev.gateway], ['Order', ev.orderId], ['Amount', ev.amount ? fmtKes(ev.amount) : '']];
+    const ok = await sendNotify(
+      `Payment received: ${ev.orderId}`,
+      card('Payment Received', rows),
+      textLines('Payment received', rows)
+    );
+    console.log('[notify]', ok ? 'payment-success sent:' : 'payment-success failed:', ev.orderId);
+  } catch (e) {
+    console.error('[notify] payment-success error', e);
+  }
+}
+
+export async function notifyPaymentFailure(ev: PaymentEvent): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_payment_failure'))) {
+      console.log('[notify] payment-failure skipped (toggle off):', ev.orderId);
+      return;
+    }
+    const rows: [string, string][] = [['Gateway', ev.gateway], ['Order', ev.orderId], ['Reason', ev.reason || '']];
+    const ok = await sendNotify(
+      `Payment failed: ${ev.orderId}`,
+      card('Payment Failed', rows),
+      textLines('Payment failed', rows)
+    );
+    console.log('[notify]', ok ? 'payment-failure sent:' : 'payment-failure failed:', ev.orderId);
+  } catch (e) {
+    console.error('[notify] payment-failure error', e);
+  }
+}
+
+export type TicketScanRow = { code: string; event?: string; holder?: string };
+
+export async function notifyTicketScan(t: TicketScanRow): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_ticket_scan'))) {
+      console.log('[notify] ticket-scan skipped (toggle off):', t.code);
+      return;
+    }
+    const rows: [string, string][] = [['Ticket', t.code], ['Event', t.event || ''], ['Holder', t.holder || '']];
+    const ok = await sendNotify(
+      `Ticket scanned at gate: ${t.code}`,
+      card('Ticket Scanned At Gate', rows),
+      textLines('Ticket scanned at gate', rows)
+    );
+    console.log('[notify]', ok ? 'ticket-scan sent:' : 'ticket-scan failed:', t.code);
+  } catch (e) {
+    console.error('[notify] ticket-scan error', e);
+  }
+}
+
+export type WhatsAppMessageEvent = { from: string; text: string };
+
+export async function notifyWhatsAppMessage(ev: WhatsAppMessageEvent): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_whatsapp_message'))) {
+      console.log('[notify] whatsapp-message skipped (toggle off):', ev.from);
+      return;
+    }
+    const rows: [string, string][] = [['From', ev.from]];
+    const ok = await sendNotify(
+      `WhatsApp message from ${ev.from}`,
+      card('New WhatsApp Message', rows, esc(ev.text).slice(0, 1000)),
+      textLines('New WhatsApp message', rows, ev.text)
+    );
+    console.log('[notify]', ok ? 'whatsapp-message sent:' : 'whatsapp-message failed:', ev.from);
+  } catch (e) {
+    console.error('[notify] whatsapp-message error', e);
+  }
+}
+
 export type NewOrderRow = {
   id: string;
   total: number;

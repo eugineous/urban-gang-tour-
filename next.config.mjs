@@ -51,7 +51,10 @@ const nextConfig = {
       // where without this the entire interactive app (cart, checkout,
       // tickets, admin) fails to boot. Not a dev-mode artifact, don't remove.
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // accounts.google.com is here too: the GIS button loads its own
+      // stylesheet (https://accounts.google.com/gsi/style) separately from
+      // the script - found live while testing the connect-src fix above.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
       "img-src 'self' data: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
       // Google Identity Services makes its own credential/config fetches

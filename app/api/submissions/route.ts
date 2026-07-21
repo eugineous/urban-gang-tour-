@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { currentUser } from '@/lib/server/session';
 import { sameOrigin } from '@/lib/server/origin';
+import { notifyNewSubmission } from '@/lib/server/notify';
 
 // Student blog / news pitch submissions → admin Newsroom queue.
 export async function POST(req: Request) {
@@ -20,5 +21,6 @@ export async function POST(req: Request) {
     `INSERT INTO submissions (kind, name, school, title, pitch, email) VALUES ('blog',$1,$2,$3,$4,$5)`,
     [name, school, title, pitch, user?.email || b.email || null]
   );
+  after(() => notifyNewSubmission({ name, school, title, pitch }));
   return NextResponse.json({ ok: true });
 }

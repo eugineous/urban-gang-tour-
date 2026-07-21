@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { hashPassword, checkPassword, signToken, sessionCookie, clearCookie, currentUser } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
+import { notifyNewSignup } from '@/lib/server/notify';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const PHONE_RE = /^(\+?254|0)(7|1)\d{8}$/;
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
       [em, ph, name, hashPassword(password)]
     );
     const u = rows[0];
+    after(() => notifyNewSignup({ id: u.id, email: u.email, phone: u.phone, name: u.name }));
     const res = NextResponse.json({ ok: true, user: u });
     res.headers.set('Set-Cookie', sessionCookie('ugt_user', signToken({ id: u.id, email: u.email, phone: u.phone, name: u.name })));
     return res;

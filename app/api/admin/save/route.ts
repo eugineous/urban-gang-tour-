@@ -4,6 +4,7 @@ import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { SITE } from '@/lib/site';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
+import { notifyPostPublished } from '@/lib/server/notify';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
@@ -135,6 +136,9 @@ export async function POST(req: Request) {
         if (firstPublish && (facebookConfigured() || instagramConfigured())) {
           const payload = { slug, headline: String(data.headline), dek: String(data.dek || ''), image: String(data.image || '') };
           after(() => announceArticle(payload).catch((e) => console.log('[social] announce failed:', e?.message)));
+        }
+        if (firstPublish) {
+          after(() => notifyPostPublished({ slug, headline: String(data.headline), section: data.section || 'News' }));
         }
         return NextResponse.json({ ok: true, slug });
       }

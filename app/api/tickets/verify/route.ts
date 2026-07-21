@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { isAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket, getEventName, getEventMeta } from '@/lib/server/tickets';
 import { q, db } from '@/lib/server/db';
+import { notifyTicketScan } from '@/lib/server/notify';
 
 // Gate check-in. Roles: any admin session (super_admin or crew_admin) that
 // carries the 'gate_scanner' perm - the /admin/gate scanner runs on the same
@@ -72,7 +73,9 @@ export async function POST(req: Request) {
     if (rows.length) {
       const t = rows[0];
       await audit('valid', { order_id: t.order_id });
-      return NextResponse.json({ result: 'valid', ticket: await ticketPayload(t), usedAt: t.used_at });
+      const payload = await ticketPayload(t);
+      after(() => notifyTicketScan({ code, event: payload.event, holder: payload.holder }));
+      return NextResponse.json({ result: 'valid', ticket: payload, usedAt: t.used_at });
     }
 
     // Distinguish already-used / unpaid / unknown.

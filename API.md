@@ -18,12 +18,20 @@ ledger write failures and WhatsApp signature-failure bursts email the owner via
 Resend (settings key `alert_email`, fallback owner address) and always log with
 an `[ALERT]` prefix.
 
-Routine notifications (`lib/server/notify.ts`): a separate, opt-in "new order" /
-"new booking" owner email so routine traffic never floods the critical-alerts
-inbox above. Settings keys `notify_email` (falls back to the same owner
-address), `notify_on_new_order`, `notify_on_new_booking` (booleans, default
-OFF — enabled from the admin Comms tab). Fire-and-forget via `after()`, never
-throws, always logs a `[notify]` line.
+Routine notifications (`lib/server/notify.ts`): separate, opt-in owner emails so
+routine traffic never floods the critical-alerts inbox above. Settings key
+`notify_email` (falls back to the same owner address) plus one boolean toggle
+per event, all default OFF, all enabled from the admin Comms tab ("Owner
+Notifications" card): `notify_on_new_order`, `notify_on_new_booking`,
+`notify_on_new_signup`, `notify_on_admin_login`, `notify_on_failed_admin_login`,
+`notify_on_post_published` (fires when a post — including a scheduled one —
+actually goes live, not on save/schedule), `notify_on_new_submission`,
+`notify_on_payment_success` / `notify_on_payment_failure` (M-Pesa, Paystack and
+Stripe all route through these two), `notify_on_ticket_scan` (gate check-in
+only, not invalid/already-used scans), `notify_on_whatsapp_message`.
+Fire-and-forget via `after()`, never throws, always logs a `[notify]` line.
+No "comments" or "likes" notifications exist because neither feature exists on
+the site.
 
 ## Public
 

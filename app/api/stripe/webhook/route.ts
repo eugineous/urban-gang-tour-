@@ -4,6 +4,7 @@ import { alertCritical } from '@/lib/server/alert';
 import { stripe } from '@/lib/server/stripe';
 import { sendReceiptEmail } from '@/lib/server/receipt-email';
 import { ensureTickets } from '@/lib/server/tickets';
+import { notifyPaymentSuccess, notifyPaymentFailure } from '@/lib/server/notify';
 
 // Stripe webhook (server-to-server; signature-verified, so no Origin check —
 // same exemption class as /api/mpesa/callback). Registered in the Stripe
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
               if (paidRow) after(async () => {
                 try { await ensureTickets(paidRow); } catch (e) { console.error('[tickets-mint]', e); }
                 if (paidRow.email) await sendReceiptEmail(paidRow);
+                await notifyPaymentSuccess({ gateway: 'stripe', orderId: paidRow.id, amount: paidRow.total });
               });
             }
           }
@@ -93,7 +95,8 @@ export async function POST(req: Request) {
           const { q, db } = await import('@/lib/server/db');
           if (db()) {
             await ensureColumns(q);
-            await q(`UPDATE orders SET status='failed' WHERE id=$1 AND status='pending'`, [orderId]);
+            const rows = await q(`UPDATE orders SET status='failed' WHERE id=$1 AND status='pending' RETURNING id, total`, [orderId]);
+            if (rows[0]) after(() => notifyPaymentFailure({ gateway: 'stripe', orderId: rows[0].id, amount: rows[0].total, reason: intent.last_payment_error?.message || 'payment_failed' }));
           }
         } catch (e: any) {
           console.error('[stripe-webhook]', e); // failure record only - no money moved
