@@ -28,9 +28,10 @@ function hasConsent(): boolean {
 }
 
 // Reactively track cookie consent: reads it on mount, and re-checks when the
-// consent banner dispatches CONSENT_EVENT, so ads switch on the instant a
-// visitor clicks Accept without needing a page reload.
-function useConsent(): boolean {
+// consent banner dispatches CONSENT_EVENT, so ads (and any other consent-
+// gated script, e.g. GoogleAnalytics.tsx) switch on the instant a visitor
+// clicks Accept without needing a page reload.
+export function useConsent(): boolean {
   const [ok, setOk] = useState(false);
   useEffect(() => {
     const sync = () => setOk(hasConsent());
