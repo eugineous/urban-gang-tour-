@@ -25,6 +25,7 @@ export type Story = {
 
 export type TrendingItem = { title: string; slug: string; views: string; delta: string };
 export type MostReadItem = { title: string; slug: string; image: string; metric: string };
+export type SearchedItem = { term: string; count: number };
 
 const DESKS: { id: 'all' | Desk | 'route'; label: string }[] = [
   { id: 'all', label: 'All News' },
@@ -81,13 +82,14 @@ function SectionHeading({ a, b, tag }: { a: string; b: string; tag: string }) {
 }
 
 export function NewsClient({
-  hero, stories, routeRows, trending, mostRead,
+  hero, stories, routeRows, trending, mostRead, mostSearched,
 }: {
   hero: Story | null;
   stories: Story[];
   routeRows: RouteRow[];
   trending: TrendingItem[];
   mostRead: MostReadItem[];
+  mostSearched: SearchedItem[];
 }) {
   const [query, setQuery] = useState('');
   const [desk, setDesk] = useState<'all' | Desk | 'route'>('all');
@@ -384,6 +386,26 @@ export function NewsClient({
                 ))}
               </div>
               <div style={{ padding: '9px 16px', fontFamily: "'Spline Sans Mono',monospace", fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: '#8a7a82' }}>real page views · last 7 days</div>
+            </section>
+          )}
+
+          {mostSearched.length > 0 && (
+            <section style={{ border: '3px solid #1A0E14', borderRadius: 20, background: '#fff', overflow: 'hidden', boxShadow: '6px 6px 0 rgba(26,14,20,.5)' }}>
+              <div style={{ padding: '12px 16px', background: '#1A0E14' }}>
+                <h3 style={{ margin: 0, fontFamily: "'Titan One',cursive", fontSize: 15, fontWeight: 400 }}><span style={{ color: '#F7A81B' }}>MOST</span> <span style={{ color: '#fff' }}>SEARCHED</span></h3>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '14px 16px' }}>
+                {mostSearched.map((c) => (
+                  <button
+                    key={c.term}
+                    onClick={() => setFilters({ query: c.term, desk: 'all' })}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '2px solid #1A0E14', borderRadius: 999, padding: '6px 13px', background: 'transparent', cursor: 'pointer', fontFamily: "'Archivo',sans-serif", fontWeight: 700, fontSize: 12, color: '#1A0E14' }}
+                  >
+                    {c.term}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: 10, color: '#C2187C' }}>{c.count}</span>
+                  </button>
+                ))}
+              </div>
+              <div style={{ padding: '0 16px 12px', fontFamily: "'Spline Sans Mono',monospace", fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: '#8a7a82' }}>real Google Search queries · last 28 days</div>
             </section>
           )}
 

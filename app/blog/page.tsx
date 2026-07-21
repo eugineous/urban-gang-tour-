@@ -3,7 +3,7 @@ import { metadataForPath } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { getBlogPosts } from '@/app/_lib/blog';
-import { getUpcomingStops, getTrendingAndMostRead } from '@/app/_lib/news-data';
+import { getUpcomingStops, getTrendingAndMostRead, getMostSearched } from '@/app/_lib/news-data';
 import { getIgWall } from '@/lib/server/social-wall';
 import { InstagramWall } from '@/app/_components/InstagramWall';
 import { FeedAd } from '@/app/_components/Ads';
@@ -33,9 +33,10 @@ function formatDate(iso: string) {
 
 export default async function BlogIndex() {
   const posts = await getBlogPosts();
-  const [routeRows, { trending, mostRead }, igWall] = await Promise.all([
+  const [routeRows, { trending, mostRead }, mostSearched, igWall] = await Promise.all([
     getUpcomingStops(),
     getTrendingAndMostRead(posts),
+    getMostSearched(),
     getIgWall(),
   ]);
 
@@ -57,6 +58,7 @@ export default async function BlogIndex() {
         routeRows={routeRows}
         trending={trending}
         mostRead={mostRead}
+        mostSearched={mostSearched}
       />
       <div style={{ background: '#1A0E14', padding: '0 24px 40px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
