@@ -102,10 +102,30 @@ export function BottomTabBar() {
     };
   }, []);
 
-  // lock page scroll while the menu sheet is open
+  // Lock page scroll while the menu sheet is open. Plain `overflow:hidden` on
+  // html/body doesn't stop iOS Safari's touch-driven scroll — the background
+  // page still scrolls underneath the fixed sheet, which is what made
+  // scrolling feel "broken" on iPhone. Pinning body to position:fixed at the
+  // current scroll offset (and restoring it on close) is the standard iOS-safe
+  // lock.
   useEffect(() => {
-    document.documentElement.style.overflow = open ? 'hidden' : '';
-    return () => { document.documentElement.style.overflow = ''; };
+    if (!open) return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const prev = { position: body.style.position, top: body.style.top, left: body.style.left, right: body.style.right, width: body.style.width };
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
+    return () => {
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.left = prev.left;
+      body.style.right = prev.right;
+      body.style.width = prev.width;
+      window.scrollTo(0, scrollY);
+    };
   }, [open]);
 
   const active = (href: string) =>

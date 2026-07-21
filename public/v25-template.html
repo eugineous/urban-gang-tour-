@@ -74,7 +74,7 @@
 </header>
 
 <sc-if value="{{ mobileOpen }}" hint-placeholder-val="{{ false }}">
-<div style="position:fixed;inset:0;z-index:130;background:#E6218C;padding:26px 24px 40px;overflow-y:auto">
+<div style="position:fixed;inset:0;z-index:130;background:#E6218C;padding:26px 24px 40px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:48px"><button onClick="{{ toggleMobile }}" style="width:46px;height:46px;border:3px solid #111;border-radius:12px;background:#fff;font-size:24px;box-shadow:3px 3px 0 #111">×</button></div>
 <div style="display:flex;flex-direction:column;gap:12px;font-family:'Anton';font-size:30px">
 <button onClick="{{ nav.home }}" style="text-align:left;background:#fff;border:3px solid #111;border-radius:14px;padding:10px 18px;box-shadow:4px 4px 0 #111">HOME</button>
@@ -98,7 +98,7 @@
 <div style="font-family:'Anton';font-size:26px">YOUR BAG</div>
 <button onClick="{{ toggleCart }}" style="width:38px;height:38px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
 </div>
-<div style="flex:1;overflow-y:auto;padding:16px 18px">
+<div style="flex:1;overflow-y:auto;padding:16px 18px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ true }}">
 <sc-for list="{{ cartLines }}" as="line" hint-placeholder-count="2">
 <div style="display:flex;gap:12px;padding:12px;border:3px solid #111;border-radius:14px;margin-bottom:12px;box-shadow:3px 3px 0 #111">
@@ -173,7 +173,7 @@
 </sc-if>
 
 <sc-if value="{{ hasPartner }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closePartnerBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.78);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto">
+<div onClick="{{ closePartnerBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.78);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="width:760px;max-width:100%;background:#F7F1E4;border:4px solid #111;border-radius:8px 26px 22px 22px;overflow:hidden;box-shadow:12px 12px 0 #21C7E6;margin:16px 0;position:relative">
 <div style="background:#111;padding:18px 26px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:14px">
@@ -215,7 +215,7 @@
 </sc-if>
 
 <sc-if value="{{ hasMember }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeMemberBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.74);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto">
+<div onClick="{{ closeMemberBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.74);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div data-col2 style="width:800px;max-width:100%;background:#fff;border:4px solid #111;border-radius:24px;overflow:hidden;box-shadow:12px 12px 0 #FFD400;margin:16px 0;display:grid;grid-template-columns:.85fr 1.15fr">
 <div style="background:#E6218C;border-right:4px solid #111;position:relative;min-height:280px">
 <img src="{{ selectedMember.img }}" alt="{{ selectedMember.name }} — {{ selectedMember.role }}, Urban Gang Tour" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
@@ -237,7 +237,7 @@
 </sc-if>
 
 <sc-if value="{{ ticketOpen }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeTicketBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
+<div onClick="{{ closeTicketBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="width:560px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;box-shadow:12px 12px 0 #FFD400;margin:16px 0">
 <div style="background:#111;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px">
 <div style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400;line-height:1">{{ ticketEvent.name }}</div>
@@ -351,7 +351,7 @@
 </sc-if>
 
 <sc-if value="{{ coOpen }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeCheckoutBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
+<div onClick="{{ closeCheckoutBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="width:560px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;box-shadow:12px 12px 0 #21C7E6;margin:16px 0">
 <div style="background:#111;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px">
 <div style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400;line-height:1">Merch Checkout</div>

@@ -1,5 +1,5 @@
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden}
 body{margin:0;background:#E6218C;color:#111;font-family:'Space Grotesk',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 img{display:block;max-width:100%}
 a{color:#111;text-decoration:none}
@@ -77,7 +77,7 @@ input,textarea,select{font-family:inherit}
   /* full-screen menu sheet — every page, big labelled buttons */
   .ugt-sheet{
     display:flex;flex-direction:column;position:fixed;inset:0;z-index:126;
-    background:#E6218C;overflow-y:auto;
+    background:#E6218C;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
     padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px));
   }
   .ugt-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
