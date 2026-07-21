@@ -10,6 +10,7 @@ import { AdSenseLoader } from './_components/Ads';
 import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
+import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
 export const metadata: Metadata = {
@@ -138,6 +139,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             then loads only after a visitor accepts cookies. Drives Auto Ads
             site-wide (covers the v25 SPA pages too). */}
         <AdSenseLoader />
+        {/* Google Analytics: same dormant-until-configured, consent-gated
+            pattern as AdSense above. */}
+        <GoogleAnalytics />
       </body>
     </html>
   );

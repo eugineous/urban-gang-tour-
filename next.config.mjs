@@ -54,7 +54,7 @@ const nextConfig = {
       // (see evalDcLogic) — confirmed by testing a real production build,
       // where without this the entire interactive app (cart, checkout,
       // tickets, admin) fails to boot. Not a dev-mode artifact, don't remove.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://www.googletagmanager.com",
       // accounts.google.com is here too: the GIS button loads its own
       // stylesheet (https://accounts.google.com/gsi/style) separately from
       // the script - found live while testing the connect-src fix above.
@@ -68,7 +68,11 @@ const nextConfig = {
       // "malformed request" error on Google's side. Missed in the original
       // evidence-gathering pass since a page-load check doesn't exercise it —
       // only an actual login attempt does.
-      "connect-src 'self' https://accounts.google.com",
+      // GA4's gtag.js reports hits to google-analytics.com (and regional
+      // subdomains like region1.google-analytics.com) plus analytics.google.com
+      // - tested against a real config with NEXT_PUBLIC_GA_MEASUREMENT_ID set,
+      // not guessed, learning from the connect-src gap Google Sign-In hit today.
+      "connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com",
       "frame-src https://www.youtube.com https://accounts.google.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
