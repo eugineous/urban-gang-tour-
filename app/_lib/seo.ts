@@ -13,7 +13,12 @@ export function metadataForPath(path: string): Metadata {
   return {
     title: r.title,
     description: r.description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      // RSS autodiscovery on every page - feed readers and aggregators find
+      // /feed.xml from any entry point, not just /blog.
+      types: { 'application/rss+xml': `${SITE.domain}/feed.xml` },
+    },
     robots: noindex ? { index: false, follow: false } : undefined,
     openGraph: {
       type: 'website',

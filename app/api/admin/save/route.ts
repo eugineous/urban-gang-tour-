@@ -5,6 +5,7 @@ import { requireOrigin } from '@/lib/server/origin';
 import { SITE } from '@/lib/site';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
 import { notifyPostPublished } from '@/lib/server/notify';
+import { pingIndexNow } from '@/lib/server/indexnow';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
@@ -140,11 +141,21 @@ export async function POST(req: Request) {
         if (firstPublish) {
           after(() => notifyPostPublished({ slug, headline: String(data.headline), section: data.section || 'News' }));
         }
+        // Ping IndexNow on every save of a live (published, not future-dated)
+        // article, not just first publish - the spec covers updates too, and
+        // an edited headline/body is exactly what we want re-crawled. The
+        // events/shop admin mutations already do the same (see admin/ops).
+        if (data.published !== false && !isFutureDated) {
+          after(() => pingIndexNow([`/blog/${slug}`, '/blog', '/feed.xml', '/news-sitemap.xml']));
+        }
         return NextResponse.json({ ok: true, slug });
       }
       case 'deletePost':
         await q(`DELETE FROM posts WHERE slug=$1`, [data.slug]);
         await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','delete_post',$1)`, [JSON.stringify({ slug: data.slug })]);
+        // IndexNow handles removals the same as updates - engines re-crawl,
+        // see the 404 and drop the URL.
+        after(() => pingIndexNow([`/blog/${data.slug}`, '/blog']));
         return NextResponse.json({ ok: true });
       case 'setting':
         await q(
