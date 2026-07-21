@@ -68,7 +68,8 @@ export default async function BlogPost(
               {post.headline}
             </h1>
             <div style={{ color: '#888', fontSize: 13, marginBottom: 6 }}>
-              {new Date(post.datePublished).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · Urban News · by Eugine Micah &amp; Lucy Ogunde
+              {new Date(post.datePublished).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · Urban News · by{' '}
+              <a href="/author/eugine-micah" style={{ color: '#E6218C', fontWeight: 700, textDecoration: 'underline' }}>Eugine Micah</a> &amp; Lucy Ogunde
             </div>
             <ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline} />
             <p style={{ fontSize: 17.5, fontWeight: 600, lineHeight: 1.6, color: '#333', margin: '14px 0 18px' }}>{post.description}</p>

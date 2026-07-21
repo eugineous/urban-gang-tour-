@@ -20,5 +20,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...pages, ...posts];
+  // Plain RSC pages that live outside the dc-runtime ROUTES registry
+  // (like /blog/[slug], they define their own metadata in-file).
+  const authors = [{
+    url: `${SITE.domain}/author/eugine-micah`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }];
+
+  return [...pages, ...authors, ...posts];
 }

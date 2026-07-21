@@ -73,7 +73,7 @@ export function articleJsonLd(post: BlogPost) {
     mainEntityOfPage: url,
     url,
     author: [
-      { '@type': 'Person', name: 'Eugine Micah', url: `${SITE.domain}/the-gang` },
+      { '@type': 'Person', name: 'Eugine Micah', url: `${SITE.domain}/author/eugine-micah` },
       { '@type': 'Person', name: 'Lucy Ogunde', url: `${SITE.domain}/the-gang` },
     ],
     publisher: { '@id': `${SITE.domain}/news#pub` },
