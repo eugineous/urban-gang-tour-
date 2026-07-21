@@ -3,54 +3,67 @@ import { metadataForPath } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { getBlogPosts } from '@/app/_lib/blog';
+import { getUpcomingStops, getTrendingAndMostRead } from '@/app/_lib/news-data';
 import { getIgWall } from '@/lib/server/social-wall';
 import { InstagramWall } from '@/app/_components/InstagramWall';
 import { FeedAd } from '@/app/_components/Ads';
+import { NewsClient, type Desk, type Story } from './NewsClient';
 
 const PATH = '/blog';
 export const metadata: Metadata = metadataForPath(PATH);
 
 export const revalidate = 300;
 
+// Real posts use two section-naming generations (pre- and post- 2026-07-21
+// content push) - map both onto the redesign's desks so nothing silently
+// disappears from every filtered view. Unrecognised sections fall back to
+// 'culture' rather than vanishing.
+function deskFor(section: string): Desk {
+  const s = section.toLowerCase();
+  if (s === 'events' || s === 'tour recap' || s === 'upcoming') return 'fresh';
+  if (s === 'the gang' || s === 'partnerships') return 'gang';
+  if (s === 'for institutions') return 'institutions';
+  return 'culture';
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso + 'T00:00:00Z');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+}
+
 export default async function BlogIndex() {
   const posts = await getBlogPosts();
-  const igWall = await getIgWall(); // [] when unset or db not configured
+  const [routeRows, { trending, mostRead }, igWall] = await Promise.all([
+    getUpcomingStops(),
+    getTrendingAndMostRead(posts),
+    getIgWall(),
+  ]);
+
+  const stories: Story[] = posts.map((p) => ({
+    slug: p.slug,
+    title: p.headline,
+    dek: p.description,
+    image: p.image,
+    date: formatDate(p.datePublished),
+    desk: deskFor(p.section),
+  }));
+
   return (
     <>
       <JsonLd data={structuredDataForPath(PATH)} />
-      <main style={{ background: '#E6218C', minHeight: '60vh', padding: '56px 22px 90px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ fontFamily: "'Permanent Marker'", color: '#111', fontSize: 20, transform: 'rotate(-2deg)' }}>
-            Urban News
-          </div>
-          <h1 style={{ fontFamily: "'Anton'", color: '#fff', fontSize: 'clamp(40px,7vw,84px)', margin: '4px 0 26px', textTransform: 'uppercase', WebkitTextStroke: '2px #111' }}>
-            The Blog
-          </h1>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 22 }}>
-            {posts.map((p) => (
-              <a
-                key={p.slug}
-                href={`/blog/${p.slug}`}
-                style={{ background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', overflow: 'hidden', display: 'block', color: '#111' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.image} alt={p.headline} style={{ width: '100%', height: 190, objectFit: 'cover', borderBottom: '3px solid #111' }} />
-                <div style={{ padding: '16px 18px 20px' }}>
-                  <div style={{ display: 'inline-block', background: '#FFD400', border: '2px solid #111', borderRadius: 100, padding: '3px 11px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>
-                    {p.section}
-                  </div>
-                  <h2 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 19, lineHeight: 1.2, margin: '12px 0 8px' }}>{p.headline}</h2>
-                  <p style={{ fontSize: 13.5, color: '#333', lineHeight: 1.5, margin: 0 }}>{p.description}</p>
-                  <div style={{ marginTop: 12, color: '#888', fontSize: 12 }}>{p.datePublished}</div>
-                </div>
-              </a>
-            ))}
-          </div>
-          {/* feed ad below the grid (dormant until AdSense is live) */}
+      <NewsClient
+        hero={stories[0] ?? null}
+        stories={stories.slice(1)}
+        routeRows={routeRows}
+        trending={trending}
+        mostRead={mostRead}
+      />
+      <div style={{ background: '#1A0E14', padding: '0 24px 40px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <FeedAd />
           {igWall.length > 0 && <InstagramWall urls={igWall} />}
         </div>
-      </main>
+      </div>
     </>
   );
 }
