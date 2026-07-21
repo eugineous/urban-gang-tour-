@@ -72,18 +72,15 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'weekly', priority: 0.7,
   },
   {
-    path: '/urban-news', page: 'news', nav: 'News',
-    title: 'Urban News with Eugine Micah & Lucy Ogunde — PPP TV Kenya',
-    description:
-      'Urban News, hosted by Eugine Micah and Lucy Ogunde: recaps, features and the national broadcast of every Urban Gang Tour stop on PPP TV Kenya.',
-    changefreq: 'daily', priority: 0.8,
-  },
-  {
-    path: '/blog', page: 'news',
+    // /urban-news retired 2026-07-21: redirects to /blog (see next.config.mjs)
+    // now that /blog is the real, dynamic Urban News page. Kept out of ROUTES
+    // (and therefore the sitemap) since a redirecting URL shouldn't be listed
+    // as its own canonical.
+    path: '/blog', page: 'news', nav: 'News',
     title: 'Blog — Urban Gang Tour Stories & Recaps',
     description:
       'Longform recaps and student stories from the Urban Gang Tour — school by school, stage by stage. Read the loudest school days of the term.',
-    changefreq: 'daily', priority: 0.7,
+    changefreq: 'daily', priority: 0.8,
   },
   {
     path: '/partners', page: 'partners', nav: 'Partners',

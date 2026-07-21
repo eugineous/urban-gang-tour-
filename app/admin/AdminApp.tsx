@@ -758,7 +758,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
   return (
     <div style={card}>
       <div style={{ display: 'flex', marginBottom: 10 }}>
-        <div style={{ fontSize: 13 }}>These posts power <b>/urban-news</b> and <b>/blog</b> — save and they are live within 5 minutes (no code needed).</div>
+        <div style={{ fontSize: 13 }}>These posts power <b>/blog</b> (Urban News) — save and they are live within 5 minutes (no code needed).</div>
         <div style={{ flex: 1 }} />
         <button style={btn} onClick={() => setEditPost({ published: true })}>＋ New post</button>
       </div>
@@ -799,7 +799,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
   );
 }
 
-const SEO_PATHS = ['/', '/about', '/the-gang', '/experience', '/events', '/shop', '/gallery', '/urban-news', '/blog', '/partners', '/book', '/contact-us', '/work-with-us'];
+const SEO_PATHS = ['/', '/about', '/the-gang', '/experience', '/events', '/shop', '/gallery', '/blog', '/partners', '/book', '/contact-us', '/work-with-us'];
 
 function SiteTab({ settings, setSettings, seoPath, setSeoPath, onSave }: any) {
   const site = settings.site || {};

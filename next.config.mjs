@@ -12,7 +12,11 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/home', destination: '/', permanent: true },
-      { source: '/news', destination: '/urban-news', permanent: true },
+      { source: '/news', destination: '/blog', permanent: true },
+      // /urban-news retired 2026-07-21 in favor of /blog, which now carries
+      // the real redesigned Urban News page (real posts, real tour dates,
+      // real traffic-based trending) instead of the old static v25 capture.
+      { source: '/urban-news', destination: '/blog', permanent: true },
       { source: '/tickets', destination: '/events', permanent: true },
       { source: '/contact', destination: '/contact-us', permanent: true },
       { source: '/tour', destination: '/experience', permanent: true },

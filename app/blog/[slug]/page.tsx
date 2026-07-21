@@ -90,7 +90,6 @@ export default async function BlogPost(
             })}
             <div style={{ marginTop: 26, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
               <a href="/blog" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>← All stories</a>
-              <a href="/urban-news" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>Urban News</a>
               <a href="/book" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>Book the Tour</a>
             </div>
           </div>
