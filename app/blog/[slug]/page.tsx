@@ -69,7 +69,8 @@ export default async function BlogPost(
             </h1>
             <div style={{ color: '#888', fontSize: 13, marginBottom: 6 }}>
               {new Date(post.datePublished).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · Urban News · by{' '}
-              <a href="/author/eugine-micah" style={{ color: '#E6218C', fontWeight: 700, textDecoration: 'underline' }}>Eugine Micah</a> &amp; Lucy Ogunde
+              <a href="/author/eugine-micah" style={{ color: '#E6218C', fontWeight: 700, textDecoration: 'underline' }}>Eugine Micah</a> &amp;{' '}
+              <a href="/author/lucy-ogunde" style={{ color: '#E6218C', fontWeight: 700, textDecoration: 'underline' }}>Lucy Ogunde</a>
             </div>
             <ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline} />
             <p style={{ fontSize: 17.5, fontWeight: 600, lineHeight: 1.6, color: '#333', margin: '14px 0 18px' }}>{post.description}</p>
@@ -102,24 +103,29 @@ export default async function BlogPost(
                 </div>
               );
             })}
-            {/* Author box on every story - the byline made flesh. Links back to
-                /author/eugine-micah so each article both credits and feeds the
-                crawlable Person behind it (E-E-A-T + internal links). */}
-            <div style={{ marginTop: 30, display: 'flex', gap: 16, alignItems: 'center', background: '#FFF7D6', border: '2px solid #111', borderRadius: 14, padding: '14px 18px', flexWrap: 'wrap' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/crew/eugine-micah.png" alt="Eugine Micah" style={{ width: 64, height: 64, objectFit: 'cover', border: '2px solid #111', borderRadius: 12 }} />
-              <div style={{ flex: '1 1 220px' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#888' }}>Written by</div>
-                <a href="/author/eugine-micah" style={{ fontFamily: "'Anton'", fontSize: 19, textTransform: 'uppercase', color: '#111', textDecoration: 'none', lineHeight: 1.2 }}>
-                  Eugine Micah
-                </a>
-                <div style={{ fontSize: 13, color: '#555', fontWeight: 600 }}>
-                  Co-Founder &amp; Lead Host, Urban Gang Tour · Host of Urban News on PPP TV (CH 430)
+            {/* Author boxes on every story - the byline made flesh. Each links
+                back to its /author page so every article both credits and feeds
+                the crawlable Person behind it (E-E-A-T + internal links). */}
+            <div style={{ marginTop: 30, display: 'grid', gap: 12 }}>
+              {[
+                { slug: 'eugine-micah', name: 'Eugine Micah', img: '/assets/crew/eugine-micah.png', role: 'Co-Founder & Lead Host, Urban Gang Tour · Host of Urban News on PPP TV (CH 430)' },
+                { slug: 'lucy-ogunde', name: 'Lucy Ogunde', img: '/assets/crew/lucy-ogunde.jpg', role: 'Co-Founder & Co-Host, Urban Gang Tour · Co-Host of Urban News on PPP TV Kenya' },
+              ].map((a, i) => (
+                <div key={a.slug} style={{ display: 'flex', gap: 16, alignItems: 'center', background: '#FFF7D6', border: '2px solid #111', borderRadius: 14, padding: '14px 18px', flexWrap: 'wrap' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={a.img} alt={a.name} style={{ width: 64, height: 64, objectFit: 'cover', border: '2px solid #111', borderRadius: 12 }} />
+                  <div style={{ flex: '1 1 220px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#888' }}>{i === 0 ? 'Written by' : 'With'}</div>
+                    <a href={`/author/${a.slug}`} style={{ fontFamily: "'Anton'", fontSize: 19, textTransform: 'uppercase', color: '#111', textDecoration: 'none', lineHeight: 1.2 }}>
+                      {a.name}
+                    </a>
+                    <div style={{ fontSize: 13, color: '#555', fontWeight: 600 }}>{a.role}</div>
+                  </div>
+                  <a href={`/author/${a.slug}`} style={{ fontWeight: 700, fontSize: 13.5, color: '#E6218C', textDecoration: 'underline', whiteSpace: 'nowrap' }}>
+                    All stories →
+                  </a>
                 </div>
-              </div>
-              <a href="/author/eugine-micah" style={{ fontWeight: 700, fontSize: 13.5, color: '#E6218C', textDecoration: 'underline', whiteSpace: 'nowrap' }}>
-                All his stories →
-              </a>
+              ))}
             </div>
             <div style={{ marginTop: 26, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
               <a href="/blog" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>← All stories</a>
