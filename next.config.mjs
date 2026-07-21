@@ -54,7 +54,14 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self'",
+      // Google Identity Services makes its own credential/config fetches
+      // directly from the client library (not just the script-src/frame-src
+      // load) — Google's own CSP guidance requires connect-src to allow
+      // accounts.google.com or the Sign-In button fails with a generic
+      // "malformed request" error on Google's side. Missed in the original
+      // evidence-gathering pass since a page-load check doesn't exercise it —
+      // only an actual login attempt does.
+      "connect-src 'self' https://accounts.google.com",
       "frame-src https://www.youtube.com https://accounts.google.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
