@@ -102,6 +102,25 @@ export default async function BlogPost(
                 </div>
               );
             })}
+            {/* Author box on every story - the byline made flesh. Links back to
+                /author/eugine-micah so each article both credits and feeds the
+                crawlable Person behind it (E-E-A-T + internal links). */}
+            <div style={{ marginTop: 30, display: 'flex', gap: 16, alignItems: 'center', background: '#FFF7D6', border: '2px solid #111', borderRadius: 14, padding: '14px 18px', flexWrap: 'wrap' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/crew/eugine-micah.png" alt="Eugine Micah" style={{ width: 64, height: 64, objectFit: 'cover', border: '2px solid #111', borderRadius: 12 }} />
+              <div style={{ flex: '1 1 220px' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#888' }}>Written by</div>
+                <a href="/author/eugine-micah" style={{ fontFamily: "'Anton'", fontSize: 19, textTransform: 'uppercase', color: '#111', textDecoration: 'none', lineHeight: 1.2 }}>
+                  Eugine Micah
+                </a>
+                <div style={{ fontSize: 13, color: '#555', fontWeight: 600 }}>
+                  Co-Founder &amp; Lead Host, Urban Gang Tour · Host of Urban News on PPP TV (CH 430)
+                </div>
+              </div>
+              <a href="/author/eugine-micah" style={{ fontWeight: 700, fontSize: 13.5, color: '#E6218C', textDecoration: 'underline', whiteSpace: 'nowrap' }}>
+                All his stories →
+              </a>
+            </div>
             <div style={{ marginTop: 26, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
               <a href="/blog" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>← All stories</a>
               <a href="/book" style={{ fontWeight: 700, color: '#E6218C', textDecoration: 'underline' }}>Book the Tour</a>
