@@ -9,8 +9,8 @@ export const WEBSITE = data.website;
 export const EVENTS = data.events;      // @graph of Event / EducationEvent  -> /events
 export const PEOPLE = data.people;      // @graph of Person (crew)           -> /the-gang
 export const PRODUCTS = data.products;  // ItemList of Product               -> /shop
-export const NEWSORG = data.newsorg;    // NewsMediaOrganization             -> /urban-news
-export const ARTICLES = data.articles;  // @graph of NewsArticle             -> /urban-news, /blog
+export const NEWSORG = data.newsorg;    // NewsMediaOrganization             -> /blog
+export const ARTICLES = data.articles;  // @graph of NewsArticle             -> /blog
 
 // PRODUCTS enriched with real, moderated review data. Products with approved
 // reviews get aggregateRating + up to 3 recent review objects; products with
@@ -147,10 +147,8 @@ export function structuredDataForPath(path: string): unknown[] {
       out.push(PRODUCTS); break;
     case '/the-gang':
       out.push(PEOPLE); break;
-    case '/urban-news':
-      out.push(NEWSORG, ARTICLES); break;
     case '/blog':
-      out.push(ARTICLES); break;
+      out.push(NEWSORG, ARTICLES); break;
   }
   out.push(breadcrumbFor(path));
   return out.filter(Boolean);
