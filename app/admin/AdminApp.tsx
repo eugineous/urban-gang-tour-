@@ -500,6 +500,15 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifyOnOrder, setNotifyOnOrder] = useState(false);
   const [notifyOnBooking, setNotifyOnBooking] = useState(false);
+  const [notifyOnSignup, setNotifyOnSignup] = useState(false);
+  const [notifyOnAdminLogin, setNotifyOnAdminLogin] = useState(false);
+  const [notifyOnFailedAdminLogin, setNotifyOnFailedAdminLogin] = useState(false);
+  const [notifyOnPostPublished, setNotifyOnPostPublished] = useState(false);
+  const [notifyOnSubmission, setNotifyOnSubmission] = useState(false);
+  const [notifyOnPaymentSuccess, setNotifyOnPaymentSuccess] = useState(false);
+  const [notifyOnPaymentFailure, setNotifyOnPaymentFailure] = useState(false);
+  const [notifyOnTicketScan, setNotifyOnTicketScan] = useState(false);
+  const [notifyOnWhatsapp, setNotifyOnWhatsapp] = useState(false);
   const [notifyLoaded, setNotifyLoaded] = useState(false);
   // settings loads async (Comms tab fetch) - seed the notification fields
   // once from whatever's saved, without stomping the admin's in-progress edits.
@@ -509,6 +518,15 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
     if (typeof settings.notify_email === 'string') setNotifyEmail(settings.notify_email);
     setNotifyOnOrder(settings.notify_on_new_order === true);
     setNotifyOnBooking(settings.notify_on_new_booking === true);
+    setNotifyOnSignup(settings.notify_on_new_signup === true);
+    setNotifyOnAdminLogin(settings.notify_on_admin_login === true);
+    setNotifyOnFailedAdminLogin(settings.notify_on_failed_admin_login === true);
+    setNotifyOnPostPublished(settings.notify_on_post_published === true);
+    setNotifyOnSubmission(settings.notify_on_new_submission === true);
+    setNotifyOnPaymentSuccess(settings.notify_on_payment_success === true);
+    setNotifyOnPaymentFailure(settings.notify_on_payment_failure === true);
+    setNotifyOnTicketScan(settings.notify_on_ticket_scan === true);
+    setNotifyOnWhatsapp(settings.notify_on_whatsapp_message === true);
     if (Object.keys(settings).length) setNotifyLoaded(true);
   }, [settings, notifyLoaded]);
   const [wallInput, setWallInput] = useState('');
@@ -620,21 +638,60 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
       <div style={{ ...card }}>
         <h3 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>OWNER NOTIFICATIONS</h3>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Optional email pings for routine new orders/bookings — separate from critical system alerts, which always go out.
-          Both are OFF by default; turn on only what you want to be pinged about.
+          Optional email pings for site activity — separate from critical system alerts, which always go out regardless of these toggles.
+          Everything below is OFF by default; turn on only what you want to be pinged about.
         </div>
         <div style={{ display: 'grid', gap: 8, maxWidth: 420 }}>
           <input style={inp} placeholder="Notify email (defaults to the owner address if left blank)" value={notifyEmail} onChange={(e) => setNotifyEmail(e.target.value)} />
           <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input type="checkbox" checked={notifyOnOrder} onChange={(e) => setNotifyOnOrder(e.target.checked)} /> Email me on every new order (fires at checkout, before payment confirms)
+            <input type="checkbox" checked={notifyOnOrder} onChange={(e) => setNotifyOnOrder(e.target.checked)} /> New order (fires at checkout, before payment confirms)
           </label>
           <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input type="checkbox" checked={notifyOnBooking} onChange={(e) => setNotifyOnBooking(e.target.checked)} /> Email me on every new booking
+            <input type="checkbox" checked={notifyOnBooking} onChange={(e) => setNotifyOnBooking(e.target.checked)} /> New booking / contact request
           </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnSignup} onChange={(e) => setNotifyOnSignup(e.target.checked)} /> New customer account signup
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnAdminLogin} onChange={(e) => setNotifyOnAdminLogin(e.target.checked)} /> Someone signs into the Control Room (Google or access code)
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnFailedAdminLogin} onChange={(e) => setNotifyOnFailedAdminLogin(e.target.checked)} /> Failed Control Room sign-in attempt
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnPostPublished} onChange={(e) => setNotifyOnPostPublished(e.target.checked)} /> Blog post goes live (including scheduled posts, on their day)
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnSubmission} onChange={(e) => setNotifyOnSubmission(e.target.checked)} /> New Newsroom story pitch submitted
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnPaymentSuccess} onChange={(e) => setNotifyOnPaymentSuccess(e.target.checked)} /> Payment succeeds (M-Pesa, Paystack or Stripe)
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnPaymentFailure} onChange={(e) => setNotifyOnPaymentFailure(e.target.checked)} /> Payment fails (M-Pesa, Paystack or Stripe)
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnTicketScan} onChange={(e) => setNotifyOnTicketScan(e.target.checked)} /> Ticket scanned at the gate
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnWhatsapp} onChange={(e) => setNotifyOnWhatsapp(e.target.checked)} /> New WhatsApp message comes in
+          </label>
+          <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+            Comments and "likes" aren't features this site has today, so there's nothing to notify on for those yet.
+          </div>
           <button style={{ ...btn, width: 160 }} onClick={() => {
             onSaveSetting('notify_email', notifyEmail.trim());
             onSaveSetting('notify_on_new_order', notifyOnOrder);
             onSaveSetting('notify_on_new_booking', notifyOnBooking);
+            onSaveSetting('notify_on_new_signup', notifyOnSignup);
+            onSaveSetting('notify_on_admin_login', notifyOnAdminLogin);
+            onSaveSetting('notify_on_failed_admin_login', notifyOnFailedAdminLogin);
+            onSaveSetting('notify_on_post_published', notifyOnPostPublished);
+            onSaveSetting('notify_on_new_submission', notifyOnSubmission);
+            onSaveSetting('notify_on_payment_success', notifyOnPaymentSuccess);
+            onSaveSetting('notify_on_payment_failure', notifyOnPaymentFailure);
+            onSaveSetting('notify_on_ticket_scan', notifyOnTicketScan);
+            onSaveSetting('notify_on_whatsapp_message', notifyOnWhatsapp);
             say('✓ Saved');
           }}>💾 Save notifications</button>
         </div>

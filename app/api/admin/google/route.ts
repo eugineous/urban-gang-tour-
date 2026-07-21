@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { db } from '@/lib/server/db';
 import { signToken, sessionCookie } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { requireOrigin } from '@/lib/server/origin';
 import { getAdminAccount, type AdminAccount } from '@/lib/server/admin-accounts';
+import { notifyAdminLogin, notifyFailedAdminLogin } from '@/lib/server/notify';
 
 // Google Sign-In for the Control Room. The client posts the Google Identity
 // Services ID token; we verify it with Google's tokeninfo endpoint (signature,
@@ -56,10 +57,12 @@ export async function POST(req: Request) {
 
   const email = String(info.email || '').toLowerCase();
   if (info.aud !== clientId || info.email_verified !== 'true') {
+    after(() => notifyFailedAdminLogin({ method: 'google', reason: 'token_mismatch', ip: clientIp(req) }));
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
   }
   const account = await dbAccount(email);
   if (!allow.includes(email) && !account) {
+    after(() => notifyFailedAdminLogin({ method: 'google', reason: 'not_on_allowlist', ip: clientIp(req), email }));
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
   }
 
@@ -69,6 +72,7 @@ export async function POST(req: Request) {
   const scope: 'super_admin' | 'crew_admin' = account?.role === 'crew_admin' ? 'crew_admin' : 'super_admin';
   const perms = scope === 'crew_admin' ? account!.perms : [];
 
+  after(() => notifyAdminLogin({ email, method: 'google', scope, ip: clientIp(req) }));
   const res = NextResponse.json({ ok: true, email, scope, perms });
   res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email, scope, perms }, 7), 7));
   return res;

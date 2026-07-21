@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { alertCritical } from '@/lib/server/alert';
+import { notifyWhatsAppMessage } from '@/lib/server/notify';
 
 // Signature-failure burst detector: a spike of bad signatures means either a
 // misconfigured app secret or someone probing the webhook. Alert once per
@@ -63,6 +64,7 @@ export async function POST(req: Request) {
           console.log('[whatsapp] message', JSON.stringify({
             from: m.from, type: m.type, text: m.text?.body?.slice(0, 200),
           }));
+          if (m.from) after(() => notifyWhatsAppMessage({ from: m.from, text: m.text?.body || `[${m.type || 'message'}]` }));
         }
         for (const s of v.statuses || []) {
           console.log('[whatsapp] status', JSON.stringify({ id: s.id, status: s.status }));
