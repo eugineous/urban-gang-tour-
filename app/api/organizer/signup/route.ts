@@ -6,6 +6,7 @@ import { sameOrigin } from '@/lib/server/origin';
 import { normalizePhone } from '@/lib/server/mpesa';
 import { ensureOpsSchema } from '@/lib/server/ops';
 import { freeOrganizerId } from '@/lib/server/marketplace';
+import { notifyNewOrganizer } from '@/lib/server/notify';
 
 // Public marketplace organizer application. Creates a 'pending' row only —
 // no session is issued (organizers cannot log in or sell until a UGT admin
@@ -87,6 +88,9 @@ export async function POST(req: Request) {
     await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('organizer','apply',$1)`, [JSON.stringify({ id, businessName, email: em })]);
 
     after(() => sendApplicationEmail(em, businessName.trim()));
+    // Owner ping (separate from the applicant's confirmation above): a new
+    // organizer can't sell until approved in the Control Room, so surface it.
+    after(() => notifyNewOrganizer({ businessName: businessName.trim(), contactName: contactName.trim(), email: em, phone: msisdn }));
 
     return NextResponse.json({ ok: true, id, status: 'pending' });
   } catch (e: any) {
