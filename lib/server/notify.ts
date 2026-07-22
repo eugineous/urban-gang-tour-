@@ -171,6 +171,75 @@ export async function notifyPostPublished(post: PostPublishedRow): Promise<void>
   }
 }
 
+export async function notifyNewSubscriber(email: string): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_new_subscriber'))) {
+      console.log('[notify] new-subscriber skipped (toggle off):', email);
+      return;
+    }
+    const rows: [string, string][] = [['Email', email]];
+    const ok = await sendNotify(
+      `New newsletter subscriber: ${email}`,
+      card('New Newsletter Subscriber', rows),
+      textLines('New newsletter subscriber', rows)
+    );
+    console.log('[notify]', ok ? 'new-subscriber sent:' : 'new-subscriber failed:', email);
+  } catch (e) {
+    console.error('[notify] new-subscriber error', e);
+  }
+}
+
+export type NewReviewRow = { product: string; author: string; rating: number; body: string };
+
+export async function notifyNewReview(rev: NewReviewRow): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_new_review'))) {
+      console.log('[notify] new-review skipped (toggle off):', rev.product);
+      return;
+    }
+    const rows: [string, string][] = [
+      ['Product', rev.product],
+      ['Author', rev.author],
+      ['Rating', `${rev.rating}/5`],
+      ['Status', 'Pending — approve in Control Room to publish'],
+    ];
+    const ok = await sendNotify(
+      `New product review (${rev.rating}/5): ${rev.product}`,
+      card('New Product Review', rows, esc(rev.body).slice(0, 1000)),
+      textLines('New product review', rows, rev.body)
+    );
+    console.log('[notify]', ok ? 'new-review sent:' : 'new-review failed:', rev.product);
+  } catch (e) {
+    console.error('[notify] new-review error', e);
+  }
+}
+
+export type NewOrganizerRow = { businessName: string; contactName?: string | null; email: string; phone?: string | null };
+
+export async function notifyNewOrganizer(org: NewOrganizerRow): Promise<void> {
+  try {
+    if (!(await notifyEnabled('notify_on_new_organizer'))) {
+      console.log('[notify] new-organizer skipped (toggle off):', org.email);
+      return;
+    }
+    const rows: [string, string][] = [
+      ['Business', org.businessName],
+      ['Contact', org.contactName || ''],
+      ['Email', org.email],
+      ['Phone', org.phone || ''],
+      ['Status', 'Pending — approve in Control Room before they can sell'],
+    ];
+    const ok = await sendNotify(
+      `New marketplace organizer application: ${org.businessName}`,
+      card('New Marketplace Organizer', rows),
+      textLines('New marketplace organizer application', rows)
+    );
+    console.log('[notify]', ok ? 'new-organizer sent:' : 'new-organizer failed:', org.email);
+  } catch (e) {
+    console.error('[notify] new-organizer error', e);
+  }
+}
+
 export type NewSubmissionRow = { name: string; school?: string | null; title: string; pitch?: string | null };
 
 export async function notifyNewSubmission(sub: NewSubmissionRow): Promise<void> {

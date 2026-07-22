@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
 import { getProducts } from '@/lib/server/catalog';
+import { notifyNewReview } from '@/lib/server/notify';
 
 // Public product reviews.
 // GET ?product=<id> — approved reviews + aggregate for one catalog product.
@@ -66,5 +67,8 @@ export async function POST(req: Request) {
   } catch (e: any) {
     return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
   }
+  // Ping the owner so a queued review gets moderated promptly (it stays
+  // hidden until approved, so this is the only signal it arrived).
+  after(() => notifyNewReview({ product: product_id, author: author.trim(), rating, body: text.trim() }));
   return NextResponse.json({ ok: true, pending: true });
 }

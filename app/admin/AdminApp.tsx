@@ -509,6 +509,9 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
   const [notifyOnPaymentFailure, setNotifyOnPaymentFailure] = useState(false);
   const [notifyOnTicketScan, setNotifyOnTicketScan] = useState(false);
   const [notifyOnWhatsapp, setNotifyOnWhatsapp] = useState(false);
+  const [notifyOnSubscriber, setNotifyOnSubscriber] = useState(false);
+  const [notifyOnReview, setNotifyOnReview] = useState(false);
+  const [notifyOnOrganizer, setNotifyOnOrganizer] = useState(false);
   const [notifyLoaded, setNotifyLoaded] = useState(false);
   // settings loads async (Comms tab fetch) - seed the notification fields
   // once from whatever's saved, without stomping the admin's in-progress edits.
@@ -527,6 +530,9 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
     setNotifyOnPaymentFailure(settings.notify_on_payment_failure === true);
     setNotifyOnTicketScan(settings.notify_on_ticket_scan === true);
     setNotifyOnWhatsapp(settings.notify_on_whatsapp_message === true);
+    setNotifyOnSubscriber(settings.notify_on_new_subscriber === true);
+    setNotifyOnReview(settings.notify_on_new_review === true);
+    setNotifyOnOrganizer(settings.notify_on_new_organizer === true);
     if (Object.keys(settings).length) setNotifyLoaded(true);
   }, [settings, notifyLoaded]);
   const [wallInput, setWallInput] = useState('');
@@ -676,6 +682,15 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
           <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="checkbox" checked={notifyOnWhatsapp} onChange={(e) => setNotifyOnWhatsapp(e.target.checked)} /> New WhatsApp message comes in
           </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnSubscriber} onChange={(e) => setNotifyOnSubscriber(e.target.checked)} /> New newsletter subscriber joins
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnReview} onChange={(e) => setNotifyOnReview(e.target.checked)} /> New product review submitted (awaiting your approval)
+          </label>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={notifyOnOrganizer} onChange={(e) => setNotifyOnOrganizer(e.target.checked)} /> New marketplace organizer applies to sell
+          </label>
           <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
             Comments and "likes" aren't features this site has today, so there's nothing to notify on for those yet.
           </div>
@@ -692,6 +707,9 @@ function CommsTab({ say, settings, onSaveSetting }: { say: (m: string) => void; 
             onSaveSetting('notify_on_payment_failure', notifyOnPaymentFailure);
             onSaveSetting('notify_on_ticket_scan', notifyOnTicketScan);
             onSaveSetting('notify_on_whatsapp_message', notifyOnWhatsapp);
+            onSaveSetting('notify_on_new_subscriber', notifyOnSubscriber);
+            onSaveSetting('notify_on_new_review', notifyOnReview);
+            onSaveSetting('notify_on_new_organizer', notifyOnOrganizer);
             say('✓ Saved');
           }}>💾 Save notifications</button>
         </div>

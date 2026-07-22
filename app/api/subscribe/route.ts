@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
+import { notifyNewSubscriber } from '@/lib/server/notify';
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
@@ -11,6 +12,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_email' }, { status: 400 });
   }
   if (!db()) return NextResponse.json({ error: 'unavailable' }, { status: 503 });
-  await q(`INSERT INTO subscribers (email) VALUES ($1) ON CONFLICT DO NOTHING`, [email.toLowerCase()]);
+  const clean = email.toLowerCase();
+  // rowCount tells a genuinely-new subscriber apart from a duplicate that
+  // ON CONFLICT DO NOTHING silently swallowed - only notify on the former.
+  const res = await q(`INSERT INTO subscribers (email) VALUES ($1) ON CONFLICT DO NOTHING RETURNING email`, [clean]);
+  if (res.length) after(() => notifyNewSubscriber(clean));
   return NextResponse.json({ ok: true });
 }
