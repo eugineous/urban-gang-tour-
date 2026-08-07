@@ -51,7 +51,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${safeName('UGT-Receipt-' + id)}.pdf"`,
-        'Cache-Control': 'no-store',
+        // Was no-store: every repeat download re-ran the full PDF render.
+        // Shorter than the ticket PDF's cache on purpose - an order's
+        // status can change (pending -> paid -> fulfilled), so this can't
+        // be cached indefinitely without risking a stale pre-payment
+        // receipt being served after the order clears. 300s matches the
+        // revalidate window already used elsewhere in this codebase
+        // (app/blog, app/page.tsx, etc).
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
       },
     });
   } catch (e: any) {

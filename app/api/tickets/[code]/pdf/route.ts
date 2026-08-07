@@ -51,7 +51,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${safeName('UGT-Ticket-' + code)}.pdf"`,
-        'Cache-Control': 'no-store',
+        // Was no-store: every repeat download (or bot re-fetch) of the same
+        // ticket re-ran the full @react-pdf/renderer layout pass from
+        // scratch - real CPU, for bytes that never change once issued.
+        // Cached by the exact URL (the unguessable code), so this doesn't
+        // change who can reach it - same bearer-token trust model as the
+        // page itself, just skipping re-render on repeat hits to the same
+        // code.
+        'Cache-Control': 'public, s-maxage=604800, stale-while-revalidate=86400',
       },
     });
   } catch (e: any) {
