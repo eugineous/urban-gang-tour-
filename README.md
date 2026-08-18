@@ -1,136 +1,95 @@
-# PPP TV Auto Poster
+# Urban Gang Tour
 
-Automated news-to-social pipeline for PPP TV Kenya. Scrapes the PPP TV website directly, generates branded 1080×1350 (4:5) portrait images in the style of Rap TV / WorldStar, and posts to Instagram and Facebook — fully automated via a Cloudflare Worker cron every 10 minutes.
+Ticketing and events website for Urban Gang Tour ("From Potential to Purpose"), live at
+[urbangangtour.co.ke](https://urbangangtour.co.ke/). Public-facing pages (events, tickets,
+shop, gallery, blog, partners, about) plus an admin Control Room for managing orders,
+tickets, promos, products, invoices, payments, and content.
 
----
+## Tech stack
 
-## How it works
-
-1. **Cloudflare Worker** fires every 10 minutes
-2. Scrapes `ppptv-v2.vercel.app` directly (no RSS) — gets the ONE latest article
-3. Checks **Cloudflare KV** — if already posted, skips
-4. Calls Vercel `/api/automate` (authenticated with `AUTOMATE_SECRET`)
-5. Vercel generates a branded 4:5 image + formats captions
-6. Posts to **Instagram** and **Facebook** via Graph API
-
----
-
-## Image template design
-
-Inspired by Rap TV, WorldStar, and Polymarket's social graphics:
-
-- **4:5 ratio** — 1080×1350px (optimal for Instagram feed + Facebook)
-- **Full-bleed photo** — article thumbnail fills the entire frame, cropped to top (faces)
-- **Gradient overlay** — transparent at top, fades to solid black at ~85% down. Photo bleeds through the transition naturally
-- **Category pill** — white background, black bold text, rounded corners, sits at the gradient start
-- **Headline** — Bebas Neue (the exact font used by Rap TV). All caps, ultra-tight leading (0.92). Key nouns/names in PPP TV red-orange (`#E8401C`), connectors in white
-- **Subtitle** — small italic, 72% white opacity
-- **PPP TV logo** — top-left, crown + "PPP" white + "TV" gold + "KENYA" tagline, semi-transparent dark backing
-
-### Brand colors (from PPP TV logo)
-
-| Color      | Hex       | Usage                          |
-| ---------- | --------- | ------------------------------ |
-| Red-orange | `#E8401C` | Accent words in headline       |
-| Gold       | `#F5A623` | "TV" in logo, crown icon       |
-| White      | `#FFFFFF` | Connector words, logo text     |
-| Black      | `#000000` | Background, category pill text |
-
-### Font
-
-**Bebas Neue** — the industry-standard condensed display font for news graphics. All-caps, zero descenders, ultra-tight tracking. Same font used by Rap TV, WorldStarHipHop, and major news stations globally.
-
----
-
-## Stack
-
-| Layer            | Tech                                          |
-| ---------------- | --------------------------------------------- |
-| App / API        | Next.js 14 on Vercel                          |
-| Cron trigger     | Cloudflare Worker (every 10 min)              |
-| Deduplication    | Cloudflare KV (`SEEN_ARTICLES`)               |
-| Image generation | Satori + Sharp (1080×1350 JPEG)               |
-| Social posting   | Meta Graph API (Instagram + Facebook)         |
-| Scraping         | Direct HTML scrape (no RSS, no external deps) |
-
----
+- **Framework:** Next.js 15 (App Router), React 19, TypeScript
+- **Routing/SEO:** one folder per page, each route server-renders its own metadata
+  (title/description/canonical/OG) and JSON-LD. `app/sitemap.ts` + `app/robots.ts`.
+- **Runtime:** each route server-renders an SEO shell, then boots the existing
+  client-side "v25" SPA runtime (`app/_components/V25App.tsx` + `public/support.js` +
+  `public/v25-template.html`) on top of it, restoring the full interactive experience
+  (hero video, tab bars, cart, ticket flow, forms, admin Control Room). This is a
+  deliberate architecture — see `CLAUDE.md` before changing v25's markup/CSS.
+- **Database:** PostgreSQL via `pg` (`lib/server/db.ts`)
+- **Payments:** Stripe (card), Paystack (card, Kenya), M-Pesa Daraja STK Push
+  (`lib/server/mpesa.ts`, `app/api/mpesa/*`, `app/api/stripe/*`, `app/api/paystack/*`)
+- **Tickets:** PDF generation (`@react-pdf/renderer`, `jspdf`), QR code generation and
+  scanning (`qrcode`, `jsqr`) — `lib/tickets/`
+- **Auth:** Google Sign-In (Google OAuth) for the primary admin account, plus a backup
+  `ADMIN_ACCESS_CODE` login and scoped `crew_admin` roles — see the access control
+  matrix in `CLAUDE.md`
+- **Storage:** Vercel Blob (`@vercel/blob`) for uploaded assets
+- **Other integrations:** WhatsApp Business Platform messaging (`lib/whatsapp.ts`),
+  Meta (Facebook/Instagram) auto-posting (`lib/meta-social.ts`)
+- **Hosting:** Vercel, auto-deploys from `main`
 
 ## Project structure
 
 ```
-src/
-  app/
-    page.tsx                  # Dashboard UI with live preview
-    api/
-      automate/route.ts       # Main POST endpoint (called by CF Worker)
-      dry-run/route.ts        # Test scraper + image gen without posting
-      preview-image/route.ts  # Preview image template in browser
-  lib/
-    scraper.ts                # Direct HTML scraper (ppptv-v2.vercel.app)
-    image-gen.ts              # Satori + Sharp — 4:5 Bebas Neue template
-    formatter.ts              # Caption formatter with hashtags
-    publisher.ts              # Instagram + Facebook Graph API
-    dedup.ts                  # Cloudflare KV deduplication
-    types.ts                  # Shared TypeScript interfaces
-cloudflare/
-  worker.js                   # Cloudflare Worker with 10-min cron
-  wrangler.toml               # Worker config + KV binding
+app/            Next.js App Router routes (one folder per page) + API routes (app/api/*)
+app/admin/      Admin Control Room (orders, tickets, promos, products, invoices, comms, docs)
+lib/server/     Server-only modules: db, sessions/auth, mpesa, tickets, catalog, ops, notify
+lib/tickets/    Ticket PDF + QR generation
+lib/ops/        Operational helpers
+public/         Static assets, the v25 runtime template/vendor bundle, doc templates
+scripts/        Build/dev tooling (asset sync, favicon gen, hydration checks, etc.)
 ```
 
----
+See `API.md` for the full endpoint contract and `HANDOFF.md` for the current roadmap
+and known follow-ups.
 
-## Environment variables
+## Running locally
 
-Set in Vercel project settings:
-
-| Variable                 | Description                                |
-| ------------------------ | ------------------------------------------ |
-| `AUTOMATE_SECRET`        | Shared secret between CF Worker and Vercel |
-| `INSTAGRAM_ACCESS_TOKEN` | Meta long-lived user access token          |
-| `INSTAGRAM_ACCOUNT_ID`   | Instagram Business Account ID              |
-| `FACEBOOK_ACCESS_TOKEN`  | Meta page access token                     |
-| `FACEBOOK_PAGE_ID`       | Facebook Page ID                           |
-| `SUPABASE_URL`           | Supabase project URL (for Knowledge Base)  |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server only) |
-| `PPP_SITE_URL`           | Primary PPP TV site (RSS) feed base URL    |
-| `PPPTV_WORKER_URL`       | Cloudflare worker feed fallback            |
-| `GEMINI_API_KEY`         | Google Gemini API key for headlines        |
-| `NVIDIA_API_KEY`         | NVIDIA NIM key for captions                |
-
----
-
-## Cloudflare Worker secrets
+Requires Node.js 18+ and a PostgreSQL database.
 
 ```bash
-wrangler secret put VERCEL_APP_URL   # https://auto-news-station.vercel.app
-wrangler secret put AUTOMATE_SECRET  # same as Vercel env var
+npm install
+cp .env.local.example .env.local   # fill in the values you need (see below)
+npm run dev
 ```
 
----
+The app runs at `http://localhost:3000`. `predev`/`prebuild` automatically sync
+`assets/` into `public/assets/` (`scripts/sync-assets.mjs`).
 
-## Testing without social tokens
+### Environment variables
 
-Preview the image template in browser:
+Copy `.env.local.example` to `.env.local` and fill in only what you're working on —
+most features degrade gracefully without their keys set. Notably:
 
+- `DATABASE_URL` — Postgres connection string
+- `STRIPE_SECRET_KEY` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET`
+- `PAYSTACK_SECRET_KEY` / `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
+- `MPESA_CONSUMER_KEY` / `MPESA_CONSUMER_SECRET` / `MPESA_SHORTCODE` / `MPESA_PASSKEY`
+- `SESSION_SECRET` — required in production, signs admin/user session cookies
+- `ADMIN_ACCESS_CODE` — backup super-admin login for the Control Room
+- `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`
+- `WHATSAPP_*` — WhatsApp Business Platform (Meta)
+
+**Never commit real values for any of these.** `.env*` is gitignored except the
+`.env.local.example` template.
+
+## Building
+
+```bash
+npm run build
+npm run start   # serve the production build locally
+npm run lint
 ```
-GET /api/preview-image
-GET /api/preview-image?title=YOUR+HEADLINE&category=CELEBRITY
-GET /api/preview-image?title=HEADLINE&category=NEWS&imageUrl=https://...
-```
 
-Dry run (scrape + image gen, no posting):
+## Deployment
 
-```
-GET /api/dry-run
-```
+The site auto-deploys to Vercel on every push to `main` (see `vercel.json`,
+`.vercelignore`). Feature branches get their own Vercel preview deployment — the
+workflow is: branch → preview → review → merge to `main` (no direct pushes to `main`).
+Environment variables are configured in the Vercel project settings, not committed.
 
----
+## Further reading
 
-## Dashboard
-
-Live at `https://auto-news-station.vercel.app`
-
-- Click "Fetch Live Articles + Preview Images" to pull real articles
-- Click any article card to see the generated 4:5 image
-- Click the image to open fullscreen lightbox
-- Shows caption character counts for Instagram and Facebook
+- `CLAUDE.md` — architecture rules, security requirements, access control matrix
+- `API.md` — full API endpoint contract
+- `HANDOFF.md` — roadmap, current state, and outstanding follow-ups
