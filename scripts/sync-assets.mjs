@@ -16,9 +16,17 @@ async function main() {
   }
   await mkdir(destDir, { recursive: true });
   // .orig.* are local pre-compression masters (gitignored) - never ship them
-  await cp(src, dest, { recursive: true, filter: (p) => !/\.orig\.[a-z0-9]+$/i.test(p) });
+  // These three committed public files are already compressed. Copying their
+  // source masters over them silently undid the previous performance fix.
+  const optimized = new Set(['poster.png', 'video/hero-1.mp4', 'video/hero-main.mp4']);
+  await cp(src, dest, { recursive: true, filter: (p) => {
+    if (/\.orig\.[a-z0-9]+$/i.test(p)) return false;
+    const rel = path.relative(src, p).split(path.sep).join('/');
+    return !(optimized.has(rel) && existsSync(path.join(dest, rel)));
+  } });
   const s = await stat(dest);
   console.log('[sync-assets] copied /assets -> /public/assets', s.isDirectory() ? '(ok)' : '');
+  await import('./build-light-media.mjs');
 }
 
 main().catch((e) => {
