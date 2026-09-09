@@ -1,3 +1,12 @@
+/* Immediate local faces prevent FOIT when Google Fonts is slow or blocked.
+   The remote stylesheet can still replace these with the branded faces. */
+@font-face{font-family:'Space Grotesk';src:local('Arial');font-display:swap}
+@font-face{font-family:'Anton';src:local('Arial Black');font-display:swap}
+@font-face{font-family:'Bungee';src:local('Arial Black');font-display:swap}
+@font-face{font-family:'Permanent Marker';src:local('Comic Sans MS');font-display:swap}
+@font-face{font-family:'Titan One';src:local('Arial Black');font-display:swap}
+@font-face{font-family:'Archivo';src:local('Arial');font-display:swap}
+@font-face{font-family:'Spline Sans Mono';src:local('Consolas');font-display:swap}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{margin:0;background:#E6218C;color:#111;font-family:'Space Grotesk',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
