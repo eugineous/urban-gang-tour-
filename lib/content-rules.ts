@@ -109,6 +109,9 @@ function correctProse(html: string): string {
     html
       // Crew and partner bios addressed the reader as a partner.
       .replace(/For partners,/g, 'For investors,')
+      .replace(/(brands and|institutional|event|youth-focused|lifestyle|county) partners/g, '$1 investors')
+      .replace(/We put partners on stage/g, 'We put investors on stage')
+      .replace(/the partner that makes sure/g, 'the investor that makes sure')
       // Role labels on the wall and in the crew list. PPP TV keeps "Broadcast
       // Partner"; it is restored explicitly in correctShellContent().
       .replace(/\bExperience Partner\b/g, 'Experience Investor')

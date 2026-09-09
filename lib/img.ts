@@ -1,19 +1,10 @@
-// Edge image resizing.
-//
-// Why this exists: the homepage was shipping 25.6MB and decoding ~97MB of image
-// RAM in one go (poster.png alone was 9.3MB; lucy-ogunde.jpg was 2783x2783 and
-// 2.7MB). That is what OOM-killed iOS Safari mid-scroll - the tab dies and the
-// visitor gets a blank or flat-colour screen - and what made the site unusable
-// on a slow Kenyan mobile connection.
-//
-// The zone already has Cloudflare Image Resizing enabled, so every /assets/
-// image can be served through /cdn-cgi/image/ and come back correctly sized and
-// in WebP/AVIF for whatever browser asked. Measured on the live site:
-// lucy-ogunde.jpg 2,724,803 bytes -> 21,698 bytes at width=400. No binary in the
-// repo changes; the edge does the work and caches the result.
+// Responsive media. Bundled assets use build-generated WebP files, so a
+// disabled edge resizer cannot force phones to download the large originals.
+// Other same-origin uploads retain the edge-resizing path and error fallback.
+// scripts/build-light-media.mjs generates the versioned files before a build.
 
-/** Widths we are willing to ask the edge for. Kept short so the cache stays hot. */
-export const IMG_WIDTHS = [320, 480, 640, 960, 1280, 1600] as const;
+/** Widths generated at build time. Kept short so the cache stays hot. */
+export const IMG_WIDTHS = [480, 960, 1440] as const;
 
 const RESIZABLE = /\.(png|jpe?g|webp|avif)$/i;
 
@@ -23,6 +14,7 @@ export function isResizable(src: string): boolean {
   // Already resized, an inline data URI, an unresolved template binding, or a
   // cross-origin asset the edge does not own.
   if (src.startsWith('/cdn-cgi/')) return false;
+  if (src.startsWith('/assets/light-v1/')) return false;
   if (src.startsWith('data:')) return false;
   if (src.includes('{{')) return false;
   if (/^https?:\/\//i.test(src)) return false;
@@ -35,6 +27,10 @@ export function isResizable(src: string): boolean {
 /** One resized URL. `fit=scale-down` never upscales past the source. */
 export function cfImage(src: string, width: number, quality = 76): string {
   if (!isResizable(src)) return src;
+  if (src.startsWith('/assets/')) {
+    const size = IMG_WIDTHS.find((w) => w >= width) ?? 1440;
+    return `/assets/light-v1/${src.slice('/assets/'.length).split('?')[0]}.${size}.webp`;
+  }
   return `/cdn-cgi/image/width=${width},quality=${quality},format=auto,fit=scale-down/${src.replace(/^\//, '')}`;
 }
 
@@ -59,6 +55,9 @@ export function rewriteHtmlImages(html: string): string {
     const srcMatch = attrs.match(/\ssrc=["']([^"']+)["']/i);
     const src = srcMatch?.[1] ?? '';
     let out = attrs;
+    if (src.includes('{{')) {
+      out = out.replace(/\ssrc=/i, ' data-ugt-bound-src=');
+    }
 
     if (isResizable(src)) {
       // Default the layout hint to full-width-on-mobile, half on desktop. Any
@@ -111,7 +110,11 @@ export function rewriteHtmlVideos(html: string): string {
 
     // Real HTML boolean attributes. muted + playsinline are what make iOS allow
     // inline autoplay at all; without both, nothing plays on an iPhone.
-    out += ' autoplay muted loop playsinline preload="none" disablepictureinpicture';
+    // Keep the source inert until FastImages sees the video in the viewport.
+    // autoplay otherwise overrides preload=none, including in the hidden shell.
+    out = out.replace(/\ssrc=(["'])(.*?)\1/i, ' data-ugt-video="$2"');
+    out = out.replace(/\/assets\/video\/(hero-main|hero-1)\.mp4/g, '/assets/light-v1/video/$1.mp4');
+    out += ' muted loop playsinline preload="none" disablepictureinpicture';
 
     // Point the poster at a resized still instead of the 9.3MB PNG.
     const poster = out.match(/\sposter=["']([^"']+)["']/i)?.[1];

@@ -35,7 +35,7 @@ function fixImage(el: HTMLImageElement) {
   if (el.getAttribute(FELL_BACK) === '1') return;
   // getAttribute, not .src - .src resolves to an absolute URL and would defeat
   // the isResizable() path check.
-  const raw = el.getAttribute('src') || '';
+  const raw = el.getAttribute('data-ugt-bound-src') || el.getAttribute('src') || '';
 
   // An unresolved binding: the runtime has not filled it in yet. Leave it and
   // let the next mutation catch it. (These were being requested literally -
@@ -44,6 +44,7 @@ function fixImage(el: HTMLImageElement) {
   if (!isResizable(raw)) {
     el.dataset.ugtFast = '1';
     if (!el.loading) el.loading = 'lazy';
+    if (raw && el.getAttribute('src') !== raw) el.setAttribute('src', raw);
     return;
   }
 
@@ -85,39 +86,12 @@ function installImageFallback(): () => void {
 function fixVideo(el: HTMLVideoElement) {
   if (el.dataset.ugtFast === '1') return;
   el.dataset.ugtFast = '1';
-  // These four together are what iOS requires to play a video inline without a
-  // tap. Set as properties AND attributes: Safari checks the attribute at the
-  // moment the element is inserted.
-  el.muted = true;
-  el.defaultMuted = true;
+  el.muted = el.defaultMuted = true;
   el.playsInline = true;
   el.loop = true;
   el.setAttribute('muted', '');
   el.setAttribute('playsinline', '');
-  el.setAttribute('webkit-playsinline', '');
-  el.setAttribute('loop', '');
-
-  const poster = el.getAttribute('poster') || '';
-  if (isResizable(poster)) el.setAttribute('poster', cfImage(poster, 960, 62));
-
-  // On a metered or slow connection, never pull the video at all - the poster
-  // is enough and the visitor keeps their data.
-  const c = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-  const slow = c?.saveData === true || /^(slow-)?2g$/.test(c?.effectiveType || '');
-  if (slow) {
-    el.removeAttribute('autoplay');
-    el.preload = 'none';
-    el.removeAttribute('src');
-    el.load();
-    return;
-  }
-
-  el.preload = 'metadata';
-  el.autoplay = true;
-  el.setAttribute('autoplay', '');
-  // play() can still be rejected (low power mode). That is fine - the poster
-  // stays up instead of a dead coloured rectangle.
-  void el.play?.().catch(() => {});
+  el.preload = 'none';
 }
 
 function sweep(root: ParentNode) {
@@ -128,11 +102,58 @@ function sweep(root: ParentNode) {
 export function FastImages() {
   useEffect(() => {
     const removeFallback = installImageFallback();
+    const videos = new Set<HTMLVideoElement>();
+    const visible = new Set<HTMLVideoElement>();
+    const updateVideo = (video: HTMLVideoElement) => {
+      if (!visible.has(video) || document.hidden || !video.getClientRects().length) {
+        video.pause();
+        return;
+      }
+      const src = video.getAttribute('data-ugt-video');
+      if (src && !video.getAttribute('src')) video.src = src;
+      if (!video.getAttribute('src')) return;
+      video.autoplay = true;
+      void video.play().catch(() => {
+        // Low Power Mode can reject autoplay. Keep the poster and a play control.
+        video.controls = true;
+        video.removeAttribute('aria-hidden');
+      });
+    };
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        const video = target as HTMLVideoElement;
+        if (isIntersecting) visible.add(video); else visible.delete(video);
+        updateVideo(video);
+      });
+    }, { threshold: 0.1 });
+    const scanVideos = () => {
+      for (const video of videos) {
+        if (!video.isConnected) {
+          video.pause();
+          videoObserver.unobserve(video);
+          videos.delete(video);
+          visible.delete(video);
+        }
+      }
+      document.querySelectorAll('video').forEach((video) => {
+        if (videos.has(video)) return;
+        fixVideo(video);
+        videos.add(video);
+        videoObserver.observe(video);
+      });
+    };
+    const resume = () => visible.forEach(updateVideo);
+    document.addEventListener('visibilitychange', resume);
+    document.addEventListener('pointerdown', resume, { passive: true });
     sweep(document);
+    scanVideos();
 
     const obs = new MutationObserver((records) => {
+      let changed = false;
       for (const r of records) {
+        if (r.type === 'childList') changed = true;
         if (r.type === 'attributes' && r.target instanceof HTMLImageElement) {
+          if (r.attributeName === 'src' && r.target.hasAttribute('data-ugt-bound-src') && r.target.dataset.ugtFast === '1') continue;
           // The runtime re-wrote a src (a binding resolving, or a page switch).
           delete r.target.dataset.ugtFast;
           fixImage(r.target);
@@ -144,17 +165,22 @@ export function FastImages() {
           else if (n instanceof Element) sweep(n);
         }
       }
+      if (changed) scanVideos();
     });
 
     obs.observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['src'],
+      attributeFilter: ['src', 'data-ugt-bound-src'],
     });
 
     return () => {
       obs.disconnect();
+      videoObserver.disconnect();
+      videos.forEach((video) => video.pause());
+      document.removeEventListener('visibilitychange', resume);
+      document.removeEventListener('pointerdown', resume);
       removeFallback();
     };
   }, []);

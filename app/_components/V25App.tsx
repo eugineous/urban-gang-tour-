@@ -100,6 +100,8 @@ export function V25App({ page }: { page: string }) {
       .then((d) => {
         const rows: any[] = Array.isArray(d?.photos) ? d.photos : [];
         w.__UGT_GALLERY = rows.map((p) => p.url).filter(Boolean);
+        w.__UGT_GALLERY_PHOTOS = rows;
+        window.dispatchEvent(new Event('ugt:gallery'));
       })
       .catch(() => { w.__UGT_GALLERY = w.__UGT_GALLERY || []; });
     // Card checkout bridge: the v25 template's "Pay with Card" button calls
@@ -172,6 +174,9 @@ export function V25App({ page }: { page: string }) {
     let poll: ReturnType<typeof setInterval> | undefined;
     let done = false;
     let attempts = 0;
+    let cancelled = false;
+    const controller = new AbortController();
+    let retry: ReturnType<typeof setTimeout> | undefined;
 
     const dropVeil = () => {
       // hide only - removing the node raced React hydration (error 418)
@@ -188,6 +193,12 @@ export function V25App({ page }: { page: string }) {
         host.style.height = 'auto';
         const shell = document.getElementById('ssr-shell');
         if (shell) shell.style.display = 'none';
+        shell?.querySelectorAll('video').forEach((video) => {
+          video.pause();
+          video.removeAttribute('src');
+          video.removeAttribute('data-ugt-video');
+          video.load();
+        });
         dropVeil();
         if (poll) clearInterval(poll);
       }
@@ -197,11 +208,13 @@ export function V25App({ page }: { page: string }) {
     const veilCap = setTimeout(dropVeil, 7000);
 
     const attempt = () => {
+      if (cancelled) return;
       attempts += 1;
       // the layout preloads this, so it resolves from cache almost instantly
-      fetch('/v25-template.html', { cache: 'force-cache' })
-        .then((r) => r.text())
+      fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal })
+        .then((r) => { if (!r.ok) throw new Error('Template unavailable'); return r.text(); })
         .then((raw) => {
+          if (cancelled) return;
           // Same media rewrite the server applies to the SSR shells: literal
           // /assets/ images go through the edge resizer and get lazy-loaded,
           // and the <video> tags get real boolean muted/playsinline attributes
@@ -217,7 +230,8 @@ export function V25App({ page }: { page: string }) {
           poll = setInterval(reveal, 100);
         })
         .catch(() => {
-          if (attempts < 3) setTimeout(attempt, 1500);
+          if (cancelled) return;
+          if (attempts < 3) retry = setTimeout(attempt, 1500);
           else dropVeil(); // enhancement failed — show the SSR shell
         });
     };
@@ -269,16 +283,15 @@ export function V25App({ page }: { page: string }) {
       }
     };
     document.addEventListener('click', onCardClick);
-    // safety: if the runtime hasn't rendered in 6s, re-attempt the boot once
-    const watchdog = setTimeout(() => {
-      if (!done && attempts < 3) { host.innerHTML = ''; attempt(); }
-    }, 6000);
-    const hardStop = setTimeout(() => poll && clearInterval(poll), 25000);
+    // A slow download must never start a second runtime over the first one.
+    // Keep the server-rendered content visible while enhancement completes.
 
     return () => {
+      cancelled = true;
+      controller.abort();
+      if (retry) clearTimeout(retry);
+      if (!done) host.removeAttribute('data-booted');
       if (poll) clearInterval(poll);
-      clearTimeout(watchdog);
-      clearTimeout(hardStop);
       clearTimeout(veilCap);
       window.removeEventListener('popstate', onPop);
       document.removeEventListener('click', onLinkClick);

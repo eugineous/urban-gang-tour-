@@ -15,6 +15,7 @@ const TABS: { href: string; label: string; icon: string; cta?: boolean }[] = [
   { href: '/events', label: 'Tickets', icon: 'ticket' },
   { href: '/book', label: 'Book', icon: 'book', cta: true },
   { href: '/shop', label: 'Shop', icon: 'bag' },
+  { href: '/gallery', label: 'Gallery', icon: 'gallery' },
 ];
 
 const MENU_LINKS: { href: string; label: string; big?: boolean }[] = [
@@ -44,6 +45,8 @@ const SOCIALS: { href: string; label: string; icon: string }[] = [
 function Icon({ name }: { name: string }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   switch (name) {
+    case 'gallery':
+      return <svg viewBox="0 0 24 24" {...common}><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 6-6 4 4 3-3 5 5" /></svg>;
     case 'home':
       return <svg viewBox="0 0 24 24" {...common}><path d="M3 10.5 12 3l9 7.5" /><path d="M5.5 9.5V21h13V9.5" /><path d="M9.5 21v-6h5v6" /></svg>;
     case 'ticket':
