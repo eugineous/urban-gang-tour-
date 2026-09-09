@@ -1,3 +1,12 @@
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+
+// Makes Cloudflare bindings (env.UGT_UPLOADS, the R2 bucket - see
+// lib/server/r2.ts) available when running `next dev` locally, by proxying
+// binding calls to Wrangler's local simulation. No-ops outside dev. Bindings
+// are already available in `opennextjs-cloudflare build`/`preview` without
+// this - it's specifically for the plain `next dev` workflow.
+initOpenNextCloudflareForDev();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

@@ -204,6 +204,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
     throw e;
   } finally {
     client.release();
+    await pool.end();
   }
 }
 

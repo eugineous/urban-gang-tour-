@@ -19,7 +19,7 @@
 // preview/generate/list/void plumbing is type-agnostic.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { upload } from '@vercel/blob/client';
+import { upload } from '@/lib/client/r2-upload';
 import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip, api } from '../ops/ui';
 
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
@@ -63,7 +63,6 @@ const PARTNERS: { key: string; label: string; url: string }[] = [
   { key: 'synapse', label: 'Synapse', url: '/assets/partners/synapse.png' },
   { key: 'moyo', label: 'Moyo', url: '/assets/partners/moyo.png' },
   { key: 'ashton', label: 'Ashton', url: '/assets/partners/ashton.png' },
-  { key: 'sauti-moto', label: 'Sauti Moto', url: '/assets/partners/sauti-moto.jpg' },
   { key: 'experience-hub', label: 'Experience Hub', url: '/assets/partners/experience-hub.png' },
   { key: 'vibe-studios', label: 'Vibe Studios', url: '/assets/partners/vibe-studios.webp' },
 ];
@@ -81,7 +80,7 @@ const PROMO_SPEC: Record<string, PSpec> = {
       { key: 'dateDay', label: 'Date - day', ph: '19' }, { key: 'dateMonth', label: 'Date - month', ph: 'JULY' },
       { key: 'schoolName', label: 'School / event', ph: 'Lari Boys High Sch.' },
       { key: 'tagline1', label: 'Tagline 1', ph: 'Talent Day' }, { key: 'tagline2', label: 'Tagline 2', ph: '& Festival of Colours' },
-      { key: 'lineup', label: 'Line-up', area: true, ph: 'HYPE OLA · DJ CARIAN · MC PAPS ...' },
+      { key: 'lineup', label: 'Line-up', area: true, ph: 'HYPE OLA · DJ CARIAN · LARRY RAJ ...' },
     ], heroSlots: ['Host left', 'Host right', 'Circle left', 'Circle right'], missing: ['PPPtv Logo.png', 'tape-png-0.png'],
   },
   igStory: {
@@ -245,7 +244,6 @@ const LARI_CREW: CrewRow[] = [
   { name: 'Pauline Masika', role: 'Sound (hosts)' },
   { name: 'Hype Ola', role: 'Hype' },
   { name: 'Larry Raj', role: 'Hype / MC' },
-  { name: 'MC Paps', role: 'MC support (role TBC)' },
   { name: 'King Tae', role: 'DJ' },
   { name: 'Kalamu Nyeusi', role: 'DJ' },
   { name: 'DJ 1', role: 'Full event' },

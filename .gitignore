@@ -30,6 +30,11 @@ next-env.d.ts
 .vercel
 .env*.local
 
+# cloudflare / opennext build output
+.open-next/
+.wrangler/
+.dev.vars
+
 # copied from /assets at build by scripts/sync-assets.mjs
 public/assets/
 

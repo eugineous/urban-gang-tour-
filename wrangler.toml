@@ -1,0 +1,57 @@
+name = "urban-gang-tour"
+main = ".open-next/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Persists invocation logs + traces to the dashboard for debugging.
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# Self-reference, used by OpenNext's queue/revalidation plumbing (ISR) to
+# invoke this same Worker internally. Standard OpenNext Cloudflare
+# boilerplate - see https://opennext.js.org/cloudflare.
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "urban-gang-tour"
+
+# R2 bucket binding for the @vercel/blob -> R2 swap (gallery photos, promo
+# hero/partner images, generated documents - see lib/server/r2.ts). App code
+# reads this binding natively (env.UGT_UPLOADS.put/get/delete via
+# getCloudflareContext() from @opennextjs/cloudflare) - no R2 API credentials
+# anywhere: Cloudflare authenticates the binding itself since the Worker and
+# the bucket live in the same account. "ugt-uploads" is the real bucket
+# already created in the account this deploys to.
+[[r2_buckets]]
+binding = "UGT_UPLOADS"
+bucket_name = "ugt-uploads"
+
+# ISR incremental cache backing store (see open-next.config.ts) - fixes
+# every page render being an x-nextjs-cache MISS.
+[[r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "ugt-isr-cache"
+
+# vars = { }
+# Non-secret env vars (SITE_URL, R2_PUBLIC_URL_BASE etc.) can go here, or be
+# set per-environment via the dashboard / `wrangler secret put` for anything
+# sensitive (DATABASE_URL, PAYSTACK_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+# ADMIN_ACCESS_CODE, etc.) - never commit secrets into this file.
+
+[[routes]]
+pattern = "urbangangtour.co.ke"
+custom_domain = true
+
+[[routes]]
+pattern = "www.urbangangtour.co.ke"
+custom_domain = true

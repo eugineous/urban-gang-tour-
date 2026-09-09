@@ -56,7 +56,7 @@
 <button onClick="{{ work.campuses }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Campuses</button>
 <button onClick="{{ work.schools }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Schools</button>
 <button onClick="{{ work.mega }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Mega Events</button>
-<button onClick="{{ nav.partners }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px;border-top:2px dashed #ddd" style-hover="background:#FFD400">Our Partners</button>
+<button onClick="{{ nav.partners }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px;border-top:2px dashed #ddd" style-hover="background:#FFD400">Partners &amp; Investors</button>
 </div>
 </sc-if>
 </div>
@@ -714,7 +714,7 @@
 <h2 style="font-family:'Anton';font-size:clamp(32px,5vw,60px);margin:0;text-transform:uppercase;line-height:.92;color:#fff">Ready to bring the tour<br>to <span style="color:#FFD400">your people?</span></h2>
 <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:26px">
 <button onClick="{{ nav.contact }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:18px;padding:15px 28px;border:3px solid #111;border-radius:14px;box-shadow:5px 5px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Book the Tour</button>
-<button onClick="{{ work.brands }}" style="background:#21C7E6;color:#111;font-family:'Anton';font-size:18px;padding:15px 28px;border:3px solid #111;border-radius:14px;box-shadow:5px 5px 0 #fff" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #fff">Partner With Us</button>
+<button onClick="{{ work.brands }}" style="background:#21C7E6;color:#111;font-family:'Anton';font-size:18px;padding:15px 28px;border:3px solid #111;border-radius:14px;box-shadow:5px 5px 0 #fff" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #fff">Invest With Us</button>
 </div>
 </div>
 </div>
@@ -1232,7 +1232,7 @@
 <div style="max-width:1120px;margin:0 auto">
 <div style="display:inline-block;background:#111;color:#FFD400;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">THE NETWORK</div>
 <h1 style="font-family:'Anton';font-size:clamp(42px,6vw,84px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#111;text-shadow:4px 4px 0 #fff">The Gang Behind <span style="background:#21C7E6;color:#111;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">The Gang</span></h1>
-<p style="color:#fff;font-size:18px;line-height:1.6;max-width:660px;margin:18px 0 0;font-weight:500">Urban Gang Tour runs on a network of media, government, education, creative, and safety partners.</p>
+<p style="color:#fff;font-size:18px;line-height:1.6;max-width:660px;margin:18px 0 0;font-weight:500">Urban Gang Tour runs on a network of media, government, education, creative, and safety investors.</p>
 </div>
 </div>
 <div style="background:#fff;padding:44px 24px">
@@ -1240,7 +1240,7 @@
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px">
 <sc-for list="{{ partners }}" as="p" hint-placeholder-count="8">
 <button onClick="{{ p.open }}" style="text-align:left;position:relative;background:#F7F1E4;border:3px solid #111;border-radius:6px 22px 16px 16px;padding:20px;display:flex;gap:16px;align-items:flex-start;box-shadow:5px 5px 0 #111;transition:transform .18s" style-hover="transform:translate(-2px,-2px) rotate(-.5deg);box-shadow:8px 8px 0 #111">
-<div style="position:absolute;top:-3px;left:18px;background:#E6218C;color:#fff;font-size:9px;font-weight:800;letter-spacing:.12em;padding:4px 12px;border:2px solid #111;border-radius:0 0 8px 8px">PARTNER FILE</div>
+<div style="position:absolute;top:-3px;left:18px;background:#E6218C;color:#fff;font-size:9px;font-weight:800;letter-spacing:.12em;padding:4px 12px;border:2px solid #111;border-radius:0 0 8px 8px">{{ p.badge }}</div>
 <div style="width:76px;height:76px;flex:none;border-radius:12px;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;padding:8px;margin-top:10px">
 <sc-if value="{{ p.logo }}" hint-placeholder-val="{{ true }}"><img src="{{ p.logo }}" alt="{{ p.name }}" style="max-width:100%;max-height:100%;object-fit:contain"></sc-if>
 <sc-if value="{{ p.textOnly }}" hint-placeholder-val="{{ false }}"><span style="color:#111;font-family:'Anton';font-size:13px;text-align:center;line-height:1;text-transform:uppercase">{{ p.name }}</span></sc-if>
@@ -1255,7 +1255,7 @@
 <div style="background:#111;padding:50px 24px;text-align:center">
 <h2 style="font-family:'Anton';font-size:clamp(28px,4.5vw,52px);text-transform:uppercase;color:#fff;margin:0">There's a seat at <span style="color:#FFD400">this table.</span></h2>
 <p style="color:#bbb;margin:10px 0 22px;font-weight:600">Media houses, agencies, colleges, brands, and institutions.</p>
-<button onClick="{{ work.brands }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:18px;padding:15px 30px;border:3px solid #FFD400;border-radius:14px;box-shadow:6px 6px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:3px 3px 0 #E6218C">Start a Partnership</button>
+<button onClick="{{ work.brands }}" style="background:#FFD400;color:#111;font-family:'Anton';font-size:18px;padding:15px 30px;border:3px solid #FFD400;border-radius:14px;box-shadow:6px 6px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:3px 3px 0 #E6218C">Become an Investor</button>
 </div>
 </section>
 </sc-if>
@@ -1266,7 +1266,7 @@
 <div style="max-width:1040px;margin:0 auto">
 <div style="display:inline-block;background:#111;color:#FFD400;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">BOOK THE TOUR</div>
 <h1 style="font-family:'Anton';font-size:clamp(44px,7vw,88px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#111;text-shadow:4px 4px 0 #fff">Let's <span style="background:#FFD400;color:#111;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">Talk</span></h1>
-<p style="color:#fff;font-size:18px;line-height:1.6;max-width:600px;margin:16px 0 0;font-weight:500">Bookings, partnerships, media, or joining the crew. One form, fast replies. We reply within 48 hours.</p>
+<p style="color:#fff;font-size:18px;line-height:1.6;max-width:600px;margin:16px 0 0;font-weight:500">Bookings, investment, media, or joining the crew. One form, fast replies. We reply within 48 hours.</p>
 </div>
 </div>
 <div style="background:#FFD400;padding:40px 24px 60px">
@@ -1290,7 +1290,7 @@
 </div>
 <label style="display:block;margin-top:14px"><span style="font-weight:700;font-size:13px">I am reaching out about</span>
 <select value="{{ form.type }}" onChange="{{ onType }}" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px">
-<option>School Booking</option><option>Campus Rave</option><option>Mega Event</option><option>Sponsorship</option><option>Partnership</option><option>Media</option><option>Join the Crew</option><option>Other</option>
+<option>School Booking</option><option>Campus Rave</option><option>Mega Event</option><option>Sponsorship</option><option>Investment</option><option>Media</option><option>Join the Crew</option><option>Other</option>
 </select></label>
 <label style="display:block;margin-top:14px"><span style="font-weight:700;font-size:13px">Message</span><textarea value="{{ form.message }}" onChange="{{ onMsg }}" rows="4" placeholder="Tell us the date, the ground, and the vision." style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111;font-size:14px;resize:vertical"></textarea></label>
 <button type="submit" style="margin-top:18px;width:100%;padding:16px;border:3px solid #111;border-radius:14px;background:#E6218C;color:#fff;font-family:'Anton';font-size:19px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">SEND IT</button>
@@ -1686,7 +1686,7 @@ class Component extends DCLogic {
       {id:'eugine',img:'/assets/crew/eugine-micah.png',name:'Eugine Micah',role:'Co-Founder, Creative Director & Lead Host',tag:'The Face of the Tour',hype:true,bio:[
         'Eugine Micah is the co-founder and creative director of the Urban Gang Tour, and the lead host audiences across Kenya now recognise on sight. He built the tour from a single school hall into a travelling production that sets up a full stage, a live broadcast, and a mentorship programme in one day.',
         'As lead host of Urban News on PPP TV Kenya, Eugine turns every stop into television. He has hosted, produced, and directed hundreds of hours of youth programming, and moves comfortably from a school assembly to a festival main stage to a corporate activation without ever dropping the energy.',
-        'For partners, Eugine is the safest pair of hands in the room. He carries the vision, keeps a thirty-person crew moving to the minute, and knows exactly how to place a brand inside a cultural moment so it feels earned, not bolted on. When you book the Urban Gang Tour, you are booking Eugine\u2019s standard.']},
+        'For investors, Eugine is the safest pair of hands in the room. He carries the vision, keeps a thirty-person crew moving to the minute, and knows exactly how to place a brand inside a cultural moment so it feels earned, not bolted on. When you book the Urban Gang Tour, you are booking Eugine\u2019s standard.']},
       {id:'lucy',img:'/assets/crew/lucy-ogunde.jpg',name:'Lucy Ogunde',role:'Co-Founder & Co-Host',tag:'The Voice They Trust',hype:true,bio:[
         'Lucy Ogunde is co-founder of the Urban Gang Tour and its co-host: the warmth and the sharp wit that balances every show. She is the reason first-time performers feel safe enough to give their very best on a national stage.',
         'On camera for Urban News, Lucy leads interviews, mentors young women through the pageant and modelling categories, and anchors the parts of the day that stay with students long after the crew packs up. Her presence is a large part of why institutions trust the tour with their halls.',
@@ -1699,14 +1699,10 @@ class Component extends DCLogic {
         'Esther Wambui Gakunju leads modelling and pageantry for the Urban Gang Tour, directing the runway and the Miss/Mrs of the Institution crowning at every stop.',
         'A seasoned runway director working alongside Synapse Models, she coaches first-time models through the cultural, creative, cosplay, and professional categories, staging a full T-shaped runway to broadcast standard.',
         'For sponsors in beauty, fashion, and lifestyle, Esther is the gateway to a captivated audience. She builds the runway moments that dominate the highlight reels and give brands a premium, camera-ready stage.']},
-      {id:'mcpaps',img:'/assets/crew/mc-paps.webp',name:'MC Paps',role:'MC \u2014 The Voice of the Stage',tag:'The Hype Engine',hype:true,bio:[
-        'MC Paps is the Urban Gang Tour\u2019s stage opener and crowd activator, the voice that takes a nervous hall and turns it into a roaring crowd within minutes.',
-        'A veteran hype MC, he has opened for concerts, campus events, and county activations across Kenya. He reads a crowd instantly and knows exactly when to lift the energy and when to hand the moment over.',
-        'For any event, MC Paps is the difference between an audience that watches and an audience that participates. Book him and the room is warm, loud, and locked in before the first act even begins.']},
       {id:'kalamu',img:'/assets/crew/kalamu-nyeusi.jpg',name:'Kalamu Nyeusi',role:'Stage Manager & Spoken Word Lead',tag:'The Wordsmith',hype:false,bio:[
         'Kalamu Nyeusi is a stage manager and the spoken-word lead for the tour, holding the show together backstage while championing poetry and bars on stage.',
         'A respected spoken-word artist in his own right, he curates and judges the spoken-word and poetry showcases, and mentors young writers to perform with confidence and meaning.',
-        'For partners, Kalamu represents depth and substance. He is the crew member who ensures the tour is not only loud but says something, giving brands association with real cultural credibility.']},
+        'For investors, Kalamu represents depth and substance. He is the crew member who ensures the tour is not only loud but says something, giving brands association with real cultural credibility.']},
       {id:'carian',img:'/assets/crew/dj-carian.jpg',name:'DJ Carian',role:'Resident DJ \u00b7 XP Hub',tag:'The Soundtrack',hype:false,bio:[
         'DJ Carian is a resident DJ of the Urban Gang Tour, the soundtrack to every showcase, runway, and crowning.',
         'With years spinning at clubs, campuses, and live events across Kenya, he reads the floor and matches the energy of every segment, from a tense dance final to a celebratory finale.',
@@ -1715,18 +1711,18 @@ class Component extends DCLogic {
         'DJ Xavi is a resident DJ of the Urban Gang Tour, sharing the decks and keeping the sound alive from load-in to final act.',
         'A versatile selector comfortable across genres, he brings the current sound of young Kenya to every stage and knows how to keep a set fresh across a long event day.',
         'For sponsors, DJ Xavi is part of the reason the tour feels like a festival, not an assembly. He sets the tone that makes every brand moment feel like a celebration.']},
-      {id:'hypeola',img:'/assets/crew/hype-ola.jpg',name:'Hype Ola',role:'Partner & Hypeman \u00b7 CEO, The Experience Hub',tag:'The Hypeman',hype:false,bio:[
+      {id:'hypeola',img:'/assets/crew/hype-ola.jpg',name:'Hype Ola',role:'Investor & Hypeman \u00b7 CEO, The Experience Hub',tag:'The Hypeman',hype:false,bio:[
         'Hype Ola facilitates the performance pod, coaching young talent in music, stage presence, and delivery before they take the stage.',
         'A performer and trainer, he runs the pod that transforms raw ability into a confident stage act, giving students practical skills they keep long after the tour leaves.',
         'For education and youth-focused partners, Hype Ola embodies the mentorship promise of the tour. He is living proof that the day is about growth, not just spectacle.']},
       {id:'nyarangi',img:'/assets/crew2/nyarangi.png',name:'Khloe Nyarangi',role:'Head of Dance \u00b7 XP Hub',tag:'Head of Dance',hype:false,bio:[
         'Khloe Nyarangi is the Head of Dance for the Urban Gang Tour, leading the choreography and dance programme at every stop with The Experience Hub.',
         'With experience in performance and youth engagement, she creates a safe, high-energy space where students discover and sharpen their talent under real coaching.',
-        'For partners, Khloe is a relatable role model to the exact audience they want to reach. Her sessions are where potential visibly turns into purpose.']},
+        'For investors, Khloe is a relatable role model to the exact audience they want to reach. Her sessions are where potential visibly turns into purpose.']},
       {id:'fred',img:'/assets/crew/fred-oduor.jpeg',name:'Fred (Baba Harshna)',role:'Stage Manager',tag:'The Backbone',hype:false,bio:[
         'Fred, known on the road as Baba Harshna, is a stage manager who keeps the entire production running to time.',
         'He coordinates acts, transitions, and crew backstage so the audience only ever sees a seamless show. Nothing reaches the stage without passing through his checklist.',
-        'For partners, Fred is the invisible reason the day feels professional. His discipline is what lets a thirty-person crew deliver broadcast-quality events again and again.']},
+        'For investors, Fred is the invisible reason the day feels professional. His discipline is what lets a thirty-person crew deliver broadcast-quality events again and again.']},
       {id:'george',img:'/assets/crew/george-morgan.jpg',name:'George',role:'Lead Videographer',tag:'The Eye',hype:true,bio:[
         'George is the lead videographer of the Urban Gang Tour, the eye behind the footage that carries every stop to the nation.',
         'He shoots, directs, and oversees the field camera team, capturing the showcases, interviews, and crowd moments that become Urban News features and short-form content.',
@@ -1734,7 +1730,7 @@ class Component extends DCLogic {
       {id:'jayjey',img:'/assets/crew/jayjey.jpg',name:'Jayjey',role:'Field Content Creator',tag:'Social-First',hype:false,bio:[
         'Jayjey is a field content creator for the tour, capturing the fast, vertical, social-first moments as they happen.',
         'He lives in the crowd with a camera, turning raw energy into reels and stories that publish while the event is still live and rack up views overnight.',
-        'For partners, Jayjey delivers the always-on social presence that keeps a campaign trending. He is the reason the tour is felt online, not just on the ground.']},
+        'For investors, Jayjey delivers the always-on social presence that keeps a campaign trending. He is the reason the tour is felt online, not just on the ground.']},
       {id:'tony',img:'/assets/crew/tony-lallez.webp',name:'Tony',role:'Photographer',tag:'The Still Frame',hype:false,bio:[
         'Tony is the tour photographer, freezing the crowns, the runway walks, and the winning moments into images that last.',
         'With a strong editorial eye, he produces the stills that fill galleries, press features, and partner decks, giving every event a professional visual record.',
@@ -1745,7 +1741,7 @@ class Component extends DCLogic {
         'For brands, Rania is the always-on channel: the reason a partnership is felt online long after the convoy leaves the school gate.']},
       {id:'pauline',img:'/assets/crew/pauline-masika.png',name:'Pauline Masika',role:'Sound Engineer',tag:'The Sound',hype:false,bio:[
         'Pauline Masika is the tour\u2019s sound engineer \u2014 the ears behind every mic, monitor and mix on the road.',
-        'Working hand-in-hand with Ashton Sounds and Sauti Moto, she tunes each venue so a school field sounds like a broadcast studio.',
+        'Working hand-in-hand with Ashton Sounds, she tunes each venue so a school field sounds like a broadcast studio.',
         'For institutions, Pauline is the reassurance that their students are looked after. Her care and organisation are why schools invite the tour back year after year.']},
       {id:'karembo',img:'/assets/crew2/karembo.webp',name:'Karembo',role:'Dancer & Entertainer',tag:'Pure Energy',hype:true,bio:[
         'Karembo is a dancer and entertainer on the Urban Gang Tour \u2014 the performer who can pull a shy crowd onto its feet in one song.',
@@ -1773,14 +1769,16 @@ class Component extends DCLogic {
         'The tour feels alive online because Chiwaculture never lets it sleep.']}
     ];
     this.PARTNERS = [
-      {name:'PPP TV Kenya',role:'Broadcast Partner',logo:'/assets/partners/ppp-tv.png',textOnly:false,blurb:'Home of Urban News, the show that carries every tour stop to a national audience.'},
-      {name:'The Experience Hub',role:'Experience Partner',logo:'/assets/partners/xp-hub.png',textOnly:false,blurb:'Creative experiences, hype sets and engagement design across the tour.'},
-      {name:'Synapse Models',role:'Modelling & Pageantry',logo:'/assets/partners/synapse.png',textOnly:false,blurb:'Directs the modelling runway and the Mr & Miss of the Institution crowning at every stop.'},
-      {name:'Moyo Response',role:'Safety & First Aid',logo:'/assets/partners/moyo.png',textOnly:false,blurb:'On-site emergency response and first aid coverage at every event.'},
-      {name:'Ashton Sounds',role:'Stage & Sound',logo:'/assets/partners/ashton.png',textOnly:false,blurb:'Professional stage and sound production for tour events.'},
-      {name:'Sauti Moto',role:'Sound Production',logo:'/assets/partners/sauti-moto.jpg',textOnly:false,blurb:'Feel the fire, hear the sound. Live audio production on the road.'},
-      {name:'The Vibe Studios',role:'Photography Partner',logo:'/assets/partners/vibe-studios.webp',textOnly:false,blurb:'Official photography by MC Dinjo\u2019s studio \u2014 every iconic tour frame.'},
-      {name:'Delo Greens Management',role:'Environmental Partner',logo:'',textOnly:true,blurb:'Tree planting and green messaging with young audiences at every stop, led by CEO King Tae.'}
+      // PPP TV Kenya is the one true partner. Everyone else on this wall is an
+      // investor, and `badge` is what the card header prints so the two are
+      // never presented as the same thing.
+      {name:'PPP TV Kenya',role:'Broadcast Partner',badge:'PARTNER FILE',logo:'/assets/partners/ppp-tv.png',textOnly:false,blurb:'Home of Urban News, the show that carries every tour stop to a national audience.'},
+      {name:'The Experience Hub',role:'Experience Investor',badge:'INVESTOR FILE',logo:'/assets/partners/xp-hub.png',textOnly:false,blurb:'Creative experiences, hype sets and engagement design across the tour.'},
+      {name:'Synapse Models',role:'Modelling & Pageantry Investor',badge:'INVESTOR FILE',logo:'/assets/partners/synapse.png',textOnly:false,blurb:'Directs the modelling runway and the Mr & Miss of the Institution crowning at every stop.'},
+      {name:'Moyo Response',role:'Safety & First Aid Investor',badge:'INVESTOR FILE',logo:'/assets/partners/moyo.png',textOnly:false,blurb:'On-site emergency response and first aid coverage at every event.'},
+      {name:'Ashton Sounds',role:'Stage & Sound Investor',badge:'INVESTOR FILE',logo:'/assets/partners/ashton.png',textOnly:false,blurb:'Professional stage and sound production for tour events.'},
+      {name:'The Vibe Studios',role:'Photography Investor',badge:'INVESTOR FILE',logo:'/assets/partners/vibe-studios.webp',textOnly:false,blurb:'Official photography by MC Dinjo\u2019s studio \u2014 every iconic tour frame.'},
+      {name:'Delo Greens Management',role:'Environmental Investor',badge:'INVESTOR FILE',logo:'',textOnly:true,blurb:'Tree planting and green messaging with young audiences at every stop, led by CEO King Tae.'}
     ];
     this.PARTNER_FILES = {
       'PPP TV Kenya':{since:'Day one',stat1:'2.5M+',stat1l:'daily viewers',stat2:'CH 430',stat2l:'on StarTimes',about:[
@@ -1808,15 +1806,10 @@ class Component extends DCLogic {
         'Their crews raise the tour\u2019s signature T-shaped stage, tune the sound to the space, and deliver broadcast-ready audio clean enough to go straight into Urban News edits.',
         'When the tour promises a school "a real concert, not an assembly", Ashton Sounds is the promise-keeper — the same production standard whether the crowd is three hundred or three thousand.'],
         services:['Stage builds & rigging','PA & sound systems','Lighting design','Broadcast audio feeds'],credits:['Staging for the full 2026 calendar','T-stage + runway builds at every stop','Production for Campus Rave editions']},
-      'Sauti Moto':{since:'2026',stat1:'Live',stat1l:'audio on the road',stat2:'Fire',stat2l:'guaranteed',about:[
-        'Sauti Moto — "the sound of fire" — is the live audio production unit riding with the tour: the engineers behind the desks who make every mic, every set, and every drop hit clean.',
-        'They run front-of-house and monitor mixing, DJ backline for Carian and Xavi, and the live audio capture that feeds the tour\u2019s broadcast and social edits.',
-        'Feel the fire, hear the sound: it\u2019s their promise, and the reason a school field at 2 PM sounds like a headline show.'],
-        services:['Front-of-house mixing','Monitor engineering','DJ backline','Live audio capture'],credits:['Live audio across the 2026 run','Backline for both resident DJs','Audio capture for Urban News']},
       'The Vibe Studios':{since:'2026',stat1:'1000s',stat1l:'of frames per stop',stat2:'MC Dinjo',stat2l:'founder & lead eye',about:[
-        'The Vibe Studios is the official photography partner of the Urban Gang Tour \u2014 the studio of MC Dinjo, the lead eye behind the tour\u2019s most-shared stills.',
+        'The Vibe Studios is the official photography investor of the Urban Gang Tour \u2014 the studio of MC Dinjo, the lead eye behind the tour\u2019s most-shared stills.',
         'Their photographers work the pit, the stage and the crowd at every stop, delivering the posters, recaps and press images that carry each school\u2019s biggest day beyond the gate.',
-        'For partners, Vibe Studios frames are premium collateral: the images that end up on timelines, in decks, and on next term\u2019s posters.'],
+        'For investors, Vibe Studios frames are premium collateral: the images that end up on timelines, in decks, and on next term\u2019s posters.'],
         services:['Event photography','Editorial & press stills','Poster & campaign shoots','Same-day photo drops'],credits:['Official stills across the 2026 run','Poster photography for main events','The photo wall on this very website']},
       'Delo Greens Management':{since:'2025',stat1:'Trees',stat1l:'at every stop',stat2:'Green',stat2l:'legacy program',about:[
         'Delo Green Movement, led by CEO King Tae (Justus Abuko), is the tour\u2019s environmental conscience: the partner that makes sure every stop leaves something living behind.',
@@ -1845,7 +1838,7 @@ class Component extends DCLogic {
     this.ARTICLES = [
       {id:'gitchez',headline:'Gituamba Girls Erupts as Urban Gang Tour Brings the Festival of Colours',date:'2026-06-07',section:'Tour Recap',img:'/assets/gal/gituamba.jpg',dek:'A full day of showcases, a runway, and a national broadcast turned GITCHEZ into the loudest school day of the term.',body:['Gituamba Girls High School hosted the Urban Gang Tour for a Cultural Day and Festival of Colours that ran from morning assembly to a packed evening finale. Students competed across every kind of talent — music, dance, spoken word, comedy and modelling — while the mentorship pods ran sessions alongside the main stage.','Hosts Eugine Micah and Lucy Ogunde anchored the day for Urban News on PPP TV Kenya, interviewing performers, teachers, and the eventual category winners. The modelling runway, directed with Synapse Models, closed with the crowning of Miss of the Institution by the school administration.','The feature aired nationally on Urban News, carrying the school\u2019s name and its students far beyond Kiambu County.']},
       {id:'loreto',headline:'Loreto Kiambu Girls Turns Out in Full Colour for the Urban Gang Tour',date:'2026-06-01',section:'Tour Recap',img:'/assets/gal/loreto.jpg',dek:'The tour\u2019s June run opened at Loreto Kiambu with showcases, pods, and a runway finale.',body:['Loreto Kiambu Girls High School welcomed the Urban Gang Tour for a full production day, complete with stage, sound, and a thirty-person crew. Music, dance, spoken word, and comedy showcases filled the programme as students competed for their categories.','The mentorship pods drew large groups between performances, delivering the mentorship half of the tour\u2019s promise. Eugine and Lucy hosted throughout, with the day captured for a national Urban News feature.']},
-      {id:'koinange',headline:'Senior Chief Koinange Girls Kicks Off the 2026 Tour',date:'2026-05-30',section:'Tour Recap',img:'/assets/gal/koinange.jpg',dek:'The 2026 second-term tour launched at Senior Chief Koinange Girls to a roaring crowd.',body:['The Urban Gang Tour opened its 2026 second-term calendar at Senior Chief Koinange Girls, setting the tone for the stops that followed. MC Paps warmed up the hall before the first performances, and the crowd stayed loud through to the final crowning.','Every moment was filmed for Urban News, giving the school a national platform and the tour a strong start to the season.']},
+      {id:'koinange',headline:'Senior Chief Koinange Girls Kicks Off the 2026 Tour',date:'2026-05-30',section:'Tour Recap',img:'/assets/gal/koinange.jpg',dek:'The 2026 second-term tour launched at Senior Chief Koinange Girls to a roaring crowd.',body:['The Urban Gang Tour opened its 2026 second-term calendar at Senior Chief Koinange Girls, setting the tone for the stops that followed. The crowd stayed loud through to the final crowning.','Every moment was filmed for Urban News, giving the school a national platform and the tour a strong start to the season.']},
       {id:'lari',headline:'Next Stop: Lari Boys High School as Bookings Stay Open',date:'2026-07-08',section:'Upcoming',img:'/assets/gal/lari.jpg',dek:'The tour heads to Lari Boys High School in Kimende next, with more institutions still able to book this term.',body:['Lari Boys High School in Kimende is the next confirmed stop on the Urban Gang Tour calendar, set for 19 July. Preparations are already underway with the school administration to plan the day to the minute.','Bookings for the remainder of the term remain open to schools, campuses, and event organisers who want the full production and a national Urban News feature. Institutions can request a date through the tour\u2019s booking page.']}
     ,
       {id:'ngeya',headline:'Ngeya Girls Locks In 24 July as Naivasha Gets Its First Stop',date:'2026-07-09',section:'Upcoming',img:'/assets/gal/ngeya.jpg',dek:'The tour crosses into Nakuru County with a full production day confirmed for Ngeya Girls\u2019 Secondary School.',body:['Ngeya Girls\u2019 Secondary School in Naivasha has confirmed 24 July for its Urban Gang Tour stop \u2014 the first time the 2026 run leaves Kiambu County.','The full format travels with it: morning pods, tree planting with Delo Greens, talent competitions, the Synapse runway, and a crowning \u2014 all filmed for Urban News.']},
@@ -1857,7 +1850,7 @@ class Component extends DCLogic {
       {id:'lucy-feature',headline:'Lucy Ogunde: The Voice Every School Trusts',date:'2026-07-06',section:'The Gang',img:'/assets/news2/lucy-feature.webp',dek:'Co-founder, co-host, and the reason first-time performers dare to walk on stage.',body:['Lucy Ogunde anchors the parts of the day nobody forgets \u2014 the interviews, the pep talks behind the runway curtain, the crowning.','On camera for Urban News she leads with warmth and lands with authority \u2014 which is exactly why principals, parents and students all trust the tour with their biggest day.']},
       {id:'synapse-runway',headline:'Inside the Runway: Synapse Models and the Making of Mr & Miss',date:'2026-06-20',section:'The Gang',img:'/assets/news2/synapse.webp',dek:'How a T-shaped stage and a coaching squad turn first-time walkers into the stars of the term.',body:['Every crowning starts days earlier \u2014 Synapse Models and Head of Modelling Esther Wambui Gakunju coach student models through cultural, creative and professional wear categories before the big walk.','By the time the crown lands, the whole school knows every walker\u2019s name. That is the point.']},
       {id:'dj-duo',headline:'Two Decks, One Road: Carian & Xavi Keep the Tour Loud',date:'2026-06-15',section:'The Gang',img:'/assets/gal/campus-rave.jpg',dek:'The XP Hub selectors reading every crowd from gate-open to pack-down.',body:['DJ Carian and DJ Xavi split the day between them \u2014 warm-up sets, competition beds, hype-set drops and the closing run \u2014 without ever letting the field go quiet.','Both ride with The Experience Hub, which is why a school field at 2 PM sounds like a Friday night headline show.']},
-      {id:'vibes-eye',headline:'Shot By Vibes: MC Dinjo\u2019s Studio Is the Tour\u2019s Eye',date:'2026-07-02',section:'The Gang',img:'/assets/news2/vibes-1.webp',dek:'The Vibe Studios joins as official photography partner \u2014 every iconic frame, theirs.',body:['The Vibe Studios, led by MC Dinjo, is now the tour\u2019s official photography partner \u2014 the stills you see on posters, recaps and this very page come out of their lenses.','Their brief is simple: catch the moment a student realises the whole school is screaming their name.']},
+      {id:'vibes-eye',headline:'Shot By Vibes: MC Dinjo\u2019s Studio Is the Tour\u2019s Eye',date:'2026-07-02',section:'The Gang',img:'/assets/news2/vibes-1.webp',dek:'The Vibe Studios joins as official photography investor \u2014 every iconic frame, theirs.',body:['The Vibe Studios, led by MC Dinjo, is now the tour\u2019s official photography investor \u2014 the stills you see on posters, recaps and this very page come out of their lenses.','Their brief is simple: catch the moment a student realises the whole school is screaming their name.']},
       {id:'trees',headline:'One School, One Grove: The Delo Greens Tree Count Keeps Climbing',date:'2026-06-28',section:'Culture',img:'/assets/gal/g-trees.jpg',dek:'Every stop leaves something growing \u2014 inside the students and on the compound.',body:['Straight after the morning pods at every stop, students plant trees on their own school grounds with Delo Green Movement, led by CEO King Tae (Justus Abuko).','Hands in the soil, names on the saplings \u2014 a legacy that will outlive every scoreboard.']},
       {id:'moyo-heart',headline:'The Heart at the Gate: How Moyo Response Keeps 3,000 Students Safe',date:'2026-06-25',section:'Culture',img:'/assets/news2/moyo.webp',dek:'First aid stations, crowd sweeps and trained responders \u2014 the quiet department that lets the loud day happen.',body:['Moyo \u2014 Swahili for heart \u2014 is what Moyo Response brings to every stop: on-site emergency cover from gate-open to pack-down.','It is the reason the tour can promise schools a duty of care in writing, not just in spirit.']},
       {id:'mascot',headline:'The Roaming Mascot Has Entered the Chat',date:'2026-07-01',section:'Culture',img:'/assets/news2/mascot.webp',dek:'An unnamed legend in a suit is stealing scenes at every stop \u2014 and nobody knows who is inside.',body:['A mascot has started appearing at tour stops \u2014 photobombing runway shots, leading chants, and losing dance showcases on purpose.','The crew refuses to confirm who is inside the suit. The students have theories. Urban News is investigating.']}
@@ -1868,7 +1861,7 @@ class Component extends DCLogic {
       institutions:{label:'For Institutions',head:'Reach That Comes From Inside The Culture.',sub:'Universities, corporates, and government reach people best when the message comes from inside the culture, not above it. We already own the stage, the crew, the broadcast, and the trust.',bullets:['A full production unit and a national media tail','Owned segments and named award categories','Message integration built for young audiences','On-camera credit across the broadcast','Planned to the minute with your team','We make you look good doing it'],cta:'Start a Conversation',type:'Partnership'},
       campuses:{label:'Campus Rave',head:'Campus Rave. The Tour, Fully Grown.',sub:'The Urban Gang Tour experience scaled for universities and colleges. Bigger stage, bigger sound, broadcast-ready, career-connected.',bullets:['Festival-grade production: T-shaped runway, pro sound and lighting','Talents of every kind, showcased and awarded','Miss/Mrs of the Institution crowning with university leadership','Mentorship pods upgraded for career, entrepreneurship and wellness','Media lab: your creators join our field team and build portfolios','Full broadcast package plus brand activation zones'],cta:'Book a Campus Rave Consultation',type:'Campus Rave'},
       schools:{label:'For Schools',head:'Your School. Their Stage.',sub:'A full day of talent, mentorship, and awards for your students, ending with a national TV feature. It is where the Urban Gang was forged, and still some of the loudest work we do.',bullets:['A full production day: stage, sound, hosts, DJs and crew','Talents of every kind — music, dance, spoken word, comedy, modelling and more','Mentorship pods: sexual education, substance abuse, career, digital literacy and life','The Miss/Mrs of the Institution crowning by your Principal','Full videography and a feature on Urban News','Certificates for participants and winners'],cta:'Request a Quotation',type:'School Booking'},
-      mega:{label:'For Mega Events',head:'We Do Not Just Attend Big Events. We Power Them.',sub:'A full production unit for festivals, expos, county celebrations, corporate fun days, and national youth activations.',bullets:['A trained production crew: hosts, MCs, DJs, stage managers, medics','Stage and runway production with full branding','Talent showcase segments that turn any crowd into participants','Crowd activation and hype, opened by MC Paps','Broadcast feed to Urban News plus content everywhere','First aid coordination through Moyo Response'],cta:'Talk To Us About Your Event',type:'Mega Event'}
+      mega:{label:'For Mega Events',head:'We Do Not Just Attend Big Events. We Power Them.',sub:'A full production unit for festivals, expos, county celebrations, corporate fun days, and national youth activations.',bullets:['A trained production crew: hosts, MCs, DJs, stage managers, medics','Stage and runway production with full branding','Talent showcase segments that turn any crowd into participants','Crowd activation and hype','Broadcast feed to Urban News plus content everywhere','First aid coordination through Moyo Response'],cta:'Talk To Us About Your Event',type:'Mega Event'}
     };
   }
 
@@ -2180,7 +2173,7 @@ class Component extends DCLogic {
       shopWindow:this.PRODUCTS.slice(0,4).map((p,i)=>{ const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,badge:pi.badge,tilt:['-2deg','1.5deg','-1deg','2deg'][i%4],add:()=>this.addToCart(p.id)}; }),
       cd:(()=>{ const t=new Date('2026-07-19T09:00:00+03:00').getTime()-(s.nowTs||Date.now()); if(t<=0) return {live:true,d:'00',h:'00',m:'00',sec:'00'}; const p=(n)=>String(n).padStart(2,'0'); return {live:false, d:p(Math.floor(t/86400000)), h:p(Math.floor(t/3600000)%24), m:p(Math.floor(t/60000)%60), sec:p(Math.floor(t/1000)%60)}; })(),
       subnav:(()=>{ const tab=(p,label)=>({label, go:()=>this.go(p), on:s.page===p, bg:(s.page===p?'#E6218C':'#fff'), fg:(s.page===p?'#fff':'#111'), bd:'#111'});
-        if(['about','gang','partners'].includes(s.page)) return {title:'About & The Gang', items:[tab('about','Who We Are'),tab('gang','Meet The Gang'),tab('partners','Our Partners')]};
+        if(['about','gang','partners'].includes(s.page)) return {title:'About & The Gang', items:[tab('about','Who We Are'),tab('gang','Meet The Gang'),tab('partners','Partners & Investors')]};
         if(['exp','stops'].includes(s.page)) return {title:'The Tour', items:[tab('exp','The Experience'),tab('stops','Tour Stops & Calendar')]};
         if(['work','contact'].includes(s.page)) return {title:'Work With Us', items:[tab('work','Why Work With Us'),tab('contact','Book / Contact')]};
         return null; })(),

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
+import { r2Put } from '@/lib/server/r2';
 import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
@@ -134,11 +134,14 @@ async function phaseAttach(req: Request, body: any): Promise<NextResponse> {
   let pdf_url = '', png_url = '';
   try {
     const slug = (existing.issued_to || existing.type).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'doc';
+    // r2Put has no addRandomSuffix option (unlike @vercel/blob's put()) - the
+    // key already includes the serial + slug, which is unique per document,
+    // so no suffix is needed for collision-avoidance.
     const base = `documents/${existing.type}/${existing.serial}-${slug}`;
-    const pngUp = await put(`${base}.png`, pngBuf, { access: 'public', contentType: 'image/png', addRandomSuffix: true });
+    const pngUp = await r2Put(`${base}.png`, pngBuf, { contentType: 'image/png' });
     png_url = pngUp.url;
     if (pdfBuf) {
-      const pdfUp = await put(`${base}.pdf`, pdfBuf, { access: 'public', contentType: 'application/pdf', addRandomSuffix: true });
+      const pdfUp = await r2Put(`${base}.pdf`, pdfBuf, { contentType: 'application/pdf' });
       pdf_url = pdfUp.url;
     }
   } catch (e) {

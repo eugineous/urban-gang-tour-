@@ -3,7 +3,10 @@ export const SITE = {
   name: 'Urban Gang Tour',
   domain: 'https://urbangangtour.co.ke',
   slogan: 'From Potential to Purpose',
-  defaultOg: 'https://urbangangtour.co.ke/assets/poster.png',
+  // Served through the edge resizer: the raw poster.png is 9.3MB, which is far
+  // over WhatsApp's and Facebook's preview limits - link previews were being
+  // dropped silently. 1200x630 is the standard OG size.
+  defaultOg: 'https://urbangangtour.co.ke/cdn-cgi/image/width=1200,quality=80,format=auto/assets/poster.png',
   locale: 'en-KE',
   themeColor: '#E6218C',
   email: 'admin@urbangangtour.co.ke',

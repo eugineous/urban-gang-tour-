@@ -1,27 +1,88 @@
-// Postgres pool (DATABASE_URL). All callers must tolerate db()==null (503s).
-import { Pool } from 'pg';
+// Postgres access (DATABASE_URL). All callers must tolerate db()==null / q()
+// throwing 'db_not_configured' (503s).
+//
+// Cloudflare Workers cannot open raw TCP sockets, so the old `pg` driver
+// (which connects to Neon over TCP) cannot run here. `@neondatabase/serverless`
+// is Neon's own driver and offers two modes:
+//  - `neon()`: stateless, one-shot queries over plain HTTP. No connection
+//    object of any kind - each call is an independent fetch(). This is what
+//    `q()` uses below for every non-transactional query (the vast majority
+//    of call sites).
+//  - `Pool` (WebSocket-based): needed only for real multi-statement
+//    transactions (pool.connect() + BEGIN/COMMIT/ROLLBACK - see
+//    createNumberedDocument in ops.ts, tickets.ts, docgen.ts).
+//
+// IMPORTANT: earlier versions of this file cached a single module-level
+// `Pool` and reused it across requests. That crashed in production with
+// "Cannot perform I/O on behalf of a different request" - Cloudflare
+// Workers forbids reusing an I/O object (like an open WebSocket) that was
+// created during one request's execution context from a *later* request,
+// even within the same warm isolate. `db()` below returns a brand-new Pool
+// on every call instead - callers that open one MUST pool.end() it in a
+// finally block once done (see the four call sites above), so no
+// connection ever outlives the request that created it.
+import { neon, Pool, neonConfig } from '@neondatabase/serverless';
 
-let pool: Pool | null = null;
+// The Pool needs a WebSocket implementation for pool.connect()-based
+// transactions. Cloudflare Workers ships a native WebSocket global that the
+// driver picks up automatically with no config. Node.js (local dev,
+// `next build`, one-off scripts) needs the `ws` package wired in explicitly
+// per Neon's own guidance. Detect "running under Node" rather than
+// "WebSocket is undefined" - some Node versions have a native WebSocket
+// global that the driver doesn't treat as a drop-in.
+if (typeof process !== 'undefined' && process.versions?.node) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  neonConfig.webSocketConstructor = require('ws');
+}
 
+// Transactions only. Fresh Pool every call - never cache this at module
+// scope (see the comment above for why).
 export function db(): Pool | null {
   if (!process.env.DATABASE_URL) return null;
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 3,
-      // Neon serves publicly trusted certificates - verify them (an
-      // unverified TLS link to the database invites MITM).
-      ssl: process.env.DATABASE_URL.includes('localhost') ? undefined : { rejectUnauthorized: true },
-    });
-  }
-  return pool;
+  return new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 3,
+  });
 }
 
 export async function q<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-  const p = db();
-  if (!p) throw new Error('db_not_configured');
-  const r = await p.query(sql, params);
-  return r.rows as T[];
+  if (!process.env.DATABASE_URL) throw new Error('db_not_configured');
+  const client = neon(process.env.DATABASE_URL);
+  const rows = await client.query(sql, params);
+  return rows as T[];
+}
+
+// For multi-statement DDL blocks only (e.g. `CREATE TABLE ...; CREATE INDEX
+// ...;`). Unlike the old `pg` Pool, Neon's HTTP query() executes exactly one
+// statement per call - passing a semicolon-separated block through q()
+// throws (silently, wherever the caller has a catch-and-degrade pattern,
+// which is how every ensure*Schema()/ensure*Seeded() function here is
+// written - this is what caused every DB-backed public route to quietly
+// return empty results after the Cloudflare migration). Strips `--` line
+// comments first, then splits the remaining SQL on `;` and runs each
+// statement in sequence. The comment-strip step matters: this codebase's
+// schema blocks have prose comments that themselves contain semicolons
+// (grammatical punctuation, e.g. "...agree); the ALTER TABLE statements...")
+// - a naive split-on-`;` alone cuts mid-comment and sends a bare word like
+// "the" to Postgres as its own statement ("syntax error at or near \"the\"").
+// Only ever called with static, developer-authored schema strings (never
+// user input), so this simple line-comment strip is safe here - none of
+// this codebase's DDL uses dollar-quoted function bodies, block comments, or
+// string literals containing `--`.
+export async function qSchema(sql: string): Promise<void> {
+  if (!process.env.DATABASE_URL) throw new Error('db_not_configured');
+  const client = neon(process.env.DATABASE_URL);
+  const withoutComments = sql
+    .split('\n')
+    .map((line) => {
+      const idx = line.indexOf('--');
+      return idx === -1 ? line : line.slice(0, idx);
+    })
+    .join('\n');
+  const statements = withoutComments.split(';').map((s) => s.trim()).filter(Boolean);
+  for (const stmt of statements) {
+    await client.query(stmt);
+  }
 }
 
 export const SCHEMA = `

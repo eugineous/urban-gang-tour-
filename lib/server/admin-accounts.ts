@@ -9,7 +9,7 @@
 // rows in Postgres (metadata-only in PG11+, but the default value is what
 // SELECT returns for old rows), so no separate migration/backfill step is
 // needed - this ALTER alone preserves every current admin's access.
-import { db, q } from './db';
+import { db, q, qSchema } from './db';
 
 export type AdminRole = 'super_admin' | 'crew_admin';
 
@@ -61,7 +61,7 @@ let ensured: Promise<void> | null = null;
 export function ensureAdminAccountsSchema(): Promise<void> {
   if (!db()) return Promise.reject(new Error('db_not_configured'));
   if (!ensured) {
-    ensured = q(`
+    ensured = qSchema(`
       CREATE TABLE IF NOT EXISTS admin_google_emails (
         email TEXT PRIMARY KEY,
         added_at TIMESTAMPTZ DEFAULT now()

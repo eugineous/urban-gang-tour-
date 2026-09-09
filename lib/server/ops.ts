@@ -1,7 +1,7 @@
 // Server helpers for the UGT ops suite: idempotent schema, gapless document
 // numbering and audit logging. Every ops API route calls ensureOpsSchema()
 // lazily; all callers must tolerate db()==null and answer 503, never crash.
-import { db, q } from './db';
+import { db, q, qSchema } from './db';
 
 export const OPS_SCHEMA = `
 CREATE TABLE IF NOT EXISTS ops_events (
@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS marketplace_events (
 -- Gallery / photo wall admin uploads: collapses the hardcoded this.GALLERY
 -- literal in public/v25-template.html into an admin-editable table, same
 -- pattern as tour_events/products above. url points either at a real Vercel
--- Blob file (new admin uploads, see @vercel/blob in app/api/admin/gallery)
+-- R2 file (new admin uploads, see lib/server/r2.ts and app/api/admin/gallery)
 -- or at a public/assets/ path (photos seeded from the original literal never
 -- need to be re-uploaded). See lib/server/gallery.ts for the seed + read
 -- layer and app/api/site-data/gallery/route.ts for the public read side.
@@ -297,7 +297,7 @@ let ensured: Promise<void> | null = null;
 export function ensureOpsSchema(): Promise<void> {
   if (!db()) return Promise.reject(new Error('db_not_configured'));
   if (!ensured) {
-    ensured = q(OPS_SCHEMA).then(() => undefined).catch((e) => {
+    ensured = qSchema(OPS_SCHEMA).then(() => undefined).catch((e) => {
       ensured = null; // allow retry on next request
       throw e;
     });
@@ -364,5 +364,6 @@ export async function createNumberedDocument(docType: DocType, f: NewDocFields):
     throw e;
   } finally {
     client.release();
+    await pool.end();
   }
 }

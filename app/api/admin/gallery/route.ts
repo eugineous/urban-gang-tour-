@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { del } from '@vercel/blob';
+import { r2Del, isR2Url } from '@/lib/server/r2';
 import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
@@ -18,12 +18,6 @@ import { ensureGallerySeeded } from '@/lib/server/gallery';
 // CREATE TABLE), so every id here is parsed/bound as a number, not a string.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Only accept URLs that actually live in our Vercel Blob store as an
-// "upload" — never let the browser hand us an arbitrary URL to store as if
-// it were an uploaded file (CLAUDE.md: schema-based input validation, never
-// trust the browser).
-const BLOB_URL_RE = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//i;
 
 function bad(error: string, status = 400) {
   return NextResponse.json({ error }, { status });
@@ -65,13 +59,17 @@ export async function POST(req: Request) {
     await ensureOpsSchema();
     await ensureGallerySeeded();
     switch (kind) {
-      // Finalize a photo already uploaded straight to Vercel Blob from the
-      // browser (see the admin Gallery UI's use of @vercel/blob/client's
-      // upload()). We only ever write the resulting Blob URL, never accept
-      // raw file bytes on this route.
+      // Finalize a photo already uploaded straight to R2 from the browser
+      // (see the admin Gallery UI's use of lib/client/r2-upload.ts's
+      // upload()). We only ever write the resulting R2 URL, never accept
+      // raw file bytes on this route. Only accept URLs that actually live in
+      // our configured R2 public bucket as an "upload" — never let the
+      // browser hand us an arbitrary URL to store as if it were an uploaded
+      // file (CLAUDE.md: schema-based input validation, never trust the
+      // browser).
       case 'upload': {
         const url = s(d.url, 600);
-        if (!url || !BLOB_URL_RE.test(url)) return bad('invalid_url');
+        if (!url || !isR2Url(url)) return bad('invalid_url');
         const caption = s(d.caption, 300);
         const category = s(d.category, 120);
         const next = await q<{ next: number }>(`SELECT COALESCE(MAX(sort_order),0)+10 AS next FROM gallery_photos`);
@@ -108,13 +106,13 @@ export async function POST(req: Request) {
         const existing = await q<{ url: string }>(`SELECT url FROM gallery_photos WHERE id=$1`, [id]);
         if (!existing.length) return bad('not_found', 404);
         const url = existing[0].url || '';
-        // Only ever call Blob's del() on rows that actually live in Blob —
-        // seeded rows point at public/assets/ (a repo file, not Blob) and
-        // must never be passed to del(). If the Blob delete fails, bail
-        // before touching the DB row so retrying the delete stays safe.
-        if (BLOB_URL_RE.test(url)) {
+        // Only ever call r2Del() on rows that actually live in R2 — seeded
+        // rows point at public/assets/ (a repo file, not R2) and must never
+        // be passed to r2Del(). If the R2 delete fails, bail before touching
+        // the DB row so retrying the delete stays safe.
+        if (isR2Url(url)) {
           try {
-            await del(url);
+            await r2Del(url);
           } catch {
             return bad('blob_delete_failed', 502);
           }
