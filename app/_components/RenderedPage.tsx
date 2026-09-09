@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { routeByPath, SITE } from '@/lib/site';
+import { rewriteHtmlMedia } from '@/lib/img';
+import { correctShellContent } from '@/lib/content-rules';
 import { V25App } from './V25App';
+import { FastImages } from './FastImages';
 
 // Renders the faithful v25 markup for a page. When a captured fragment exists at
 // app/_rendered/<page>.html it is emitted verbatim (server-rendered — a crawler
@@ -12,7 +15,14 @@ function readCaptured(page: string): string | null {
     const p = path.join(process.cwd(), 'app', '_rendered', `${page}.html`);
     if (fs.existsSync(p)) {
       const html = fs.readFileSync(p, 'utf8').trim();
-      if (html.length > 0) return html;
+      // Two passes before this markup ever reaches a browser:
+      //  - correctShellContent: drops departed acts and relabels the partner
+      //    wall (these snapshots can no longer be regenerated - see
+      //    lib/content-rules.ts).
+      //  - rewriteHtmlMedia: routes images through the edge resizer and repairs
+      //    the video attributes (25.6MB page, ~97MB decoded, dead iOS autoplay
+      //    - see lib/img.ts).
+      if (html.length > 0) return rewriteHtmlMedia(correctShellContent(html));
     }
   } catch {
     /* fall through to fallback */
@@ -31,6 +41,7 @@ export function RenderedPage({ pathName }: { pathName: string }) {
     return (
       <>
         <div dangerouslySetInnerHTML={{ __html: captured }} />
+        <FastImages />
         <V25App page={page} />
       </>
     );
@@ -41,6 +52,7 @@ export function RenderedPage({ pathName }: { pathName: string }) {
   const heading = (r?.nav || r?.title.split('—')[0].trim() || 'Urban Gang Tour').toUpperCase();
   return (
     <>
+    <FastImages />
     <V25App page={page} />
     <main style={{ background: '#E6218C', minHeight: '60vh', padding: '64px 22px 90px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>

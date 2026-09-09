@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import SLUGS from '@/app/_lib/slugs.json';
+import { rewriteHtmlMedia } from '@/lib/img';
 
 // Progressive enhancement: after the SSR shell paints (great for crawlers +
 // first paint), boot v25's real dc-runtime into #v25-host, booted to THIS
@@ -200,7 +201,13 @@ export function V25App({ page }: { page: string }) {
       // the layout preloads this, so it resolves from cache almost instantly
       fetch('/v25-template.html', { cache: 'force-cache' })
         .then((r) => r.text())
-        .then((html) => {
+        .then((raw) => {
+          // Same media rewrite the server applies to the SSR shells: literal
+          // /assets/ images go through the edge resizer and get lazy-loaded,
+          // and the <video> tags get real boolean muted/playsinline attributes
+          // instead of the never-interpolated playsInline="{{ true }}" that
+          // left iOS showing a flat magenta rectangle. See lib/img.ts.
+          const html = rewriteHtmlMedia(raw);
           host.innerHTML = html; // injects <x-dc> + <script data-dc-script>
           const s = document.createElement('script');
           s.src = '/support.js';

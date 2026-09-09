@@ -155,7 +155,6 @@ export const PROMO_PARTNERS: PromoPartner[] = [
   { key: 'synapse',        label: 'Synapse Models', url: '/assets/partners/synapse.png' },
   { key: 'moyo',           label: 'Moyo',           url: '/assets/partners/moyo.png' },
   { key: 'ashton',         label: 'Ashton',         url: '/assets/partners/ashton.png' },
-  { key: 'sauti-moto',     label: 'Sauti Moto',     url: '/assets/partners/sauti-moto.jpg' },
   { key: 'experience-hub', label: 'Experience Hub', url: '/assets/partners/experience-hub.png' },
   { key: 'vibe-studios',   label: 'Vibe Studios',   url: '/assets/partners/vibe-studios.webp' },
 ];
