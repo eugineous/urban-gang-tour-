@@ -35,6 +35,21 @@ if (typeof process !== 'undefined' && process.versions?.node) {
   neonConfig.webSocketConstructor = require('ws');
 }
 
+/**
+ * Is a database configured? Use this for the `503 db_not_configured` guard at
+ * the top of a route.
+ *
+ * `if (!db())` was doing that job in about forty route files, which meant every
+ * one of those requests constructed a Pool purely to throw it away unread -
+ * including on /api/orders/status, which the checkout panel polls while a
+ * buyer waits for their M-Pesa prompt. Cheap per call, but pointless
+ * allocation on the hottest paths, and it reads as though a connection is
+ * being opened when none is needed.
+ */
+export function hasDb(): boolean {
+  return !!process.env.DATABASE_URL;
+}
+
 // Transactions only. Fresh Pool every call - never cache this at module
 // scope (see the comment above for why).
 export function db(): Pool | null {

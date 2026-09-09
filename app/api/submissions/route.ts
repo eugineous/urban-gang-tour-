@@ -8,7 +8,8 @@ import { notifyNewSubmission } from '@/lib/server/notify';
 // Student blog / news pitch submissions → admin Newsroom queue.
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit('subm:' + clientIp(req), 5, 60_000)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
+  // Per device, not per IP — see lib/server/ratelimit.ts.
+  if (!rateLimit('subm:' + clientIp(req), 5, 60_000, req)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   const b = await req.json().catch(() => ({}));
   const { name = '', school = '', title = '', pitch = '' } = b;
   for (const [k, v, max] of [['name', name, 100], ['school', school, 150], ['title', title, 150], ['pitch', pitch, 2000]] as const) {

@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { serverTotalWithPromos, getTicketTiers } from '@/lib/server/catalog';
 import { recordPromoCodeUse } from '@/lib/server/promos';
-import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { rateLimit, clientIp, PURCHASE_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { mpesaConfigured, stkPush, normalizePhone } from '@/lib/server/mpesa';
 import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
@@ -11,7 +11,12 @@ const seen = new Map<string, { id: string; ts: number }>(); // idempotency
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit(clientIp(req), 8, 60_000)) {
+  // 8 per device per minute, with a wide per-network backstop underneath (see
+  // lib/server/ratelimit.ts). This used to be 8 per IP, which meant a school
+  // hall or a campus on one NAT — and Safaricom's CGNAT generally — got eight
+  // ticket purchases a minute between everyone, and the rest were told to try
+  // again later. One buyer still cannot open more than eight orders a minute.
+  if (!rateLimit('orders:' + clientIp(req), 8, 60_000, req, PURCHASE_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   let body: any;
@@ -98,8 +103,13 @@ export async function POST(req: Request) {
 
   // persist order (ledger for admin reconciliation)
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (db()) {
+    // hasDb(), not db(): db() constructs a Pool, and this is only asking
+    // whether DATABASE_URL exists. On the order path that was a throwaway
+    // allocation per purchase. The write itself below goes over q(), which is
+    // stateless HTTP - no connection is held, so concurrent buyers are not
+    // capped by a Postgres connection limit.
+    const { q, hasDb } = await import('@/lib/server/db');
+    if (hasDb()) {
       await q(
         `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
         [id, JSON.stringify(orderItems), total, name, emailStr, msisdn]
@@ -129,8 +139,8 @@ export async function POST(req: Request) {
     const stk = await stkPush(msisdn, total, id, 'UrbanGang');
     // remember Daraja's CheckoutRequestID so the callback can mark this order paid
     try {
-      const { q, db } = await import('@/lib/server/db');
-      if (db() && stk?.CheckoutRequestID) {
+      const { q, hasDb } = await import('@/lib/server/db');
+      if (hasDb() && stk?.CheckoutRequestID) {
         await q(`UPDATE orders SET mpesa_ref=$2 WHERE id=$1`, [id, stk.CheckoutRequestID]);
       }
     } catch { /* non-fatal */ }

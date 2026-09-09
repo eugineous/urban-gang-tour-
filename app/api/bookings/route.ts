@@ -22,7 +22,8 @@ async function ensureTypeColumn(q: (sql: string) => Promise<any>) {
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit(clientIp(req), 5, 60_000)) {
+  // Per device, not per IP — see lib/server/ratelimit.ts.
+  if (!rateLimit('bookings:' + clientIp(req), 5, 60_000, req)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   let body: any;

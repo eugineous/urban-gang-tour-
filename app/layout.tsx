@@ -70,6 +70,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
+        {/* Device id for rate limiting (lib/server/ratelimit.ts).
+            Set here in the browser rather than in middleware on purpose: a
+            middleware Set-Cookie lands on the page response, and a response
+            carrying Set-Cookie is not edge-cacheable - it would have cost us
+            HTML caching sitewide to gain a cookie.
+            This is a bucket key, not a credential. A client can rotate it to
+            get a fresh per-device budget, which is why the per-network
+            backstop in ratelimit.ts still applies underneath it. What it buys
+            is the thing IP alone cannot do: telling 1000 people on one venue
+            wifi apart from one script hammering the order endpoint. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(!/(?:^|;\\s*)ugt_did=/.test(document.cookie)){var a=new Uint8Array(16);crypto.getRandomValues(a);var s='';for(var i=0;i<16;i++)s+=('0'+a[i].toString(16)).slice(-2);document.cookie='ugt_did='+s+';path=/;max-age=31536000;samesite=lax'+(location.protocol==='https:'?';secure':'');}}catch(e){}})();`,
+          }}
+        />
         {/* Edge-resizer fallback, installed before any image starts loading.
             Images are served through /cdn-cgi/image/ (see lib/img.ts), which
             makes Cloudflare's resizer a single point of failure for every

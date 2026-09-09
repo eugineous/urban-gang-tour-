@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getProducts, serverTotalWithPromos } from '@/lib/server/catalog';
 import { recordPromoCodeUse } from '@/lib/server/promos';
-import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { rateLimit, clientIp, PURCHASE_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
 import { paystackConfigured, paystackInit } from '@/lib/server/paystack';
@@ -25,7 +25,9 @@ async function ensureColumns(q: (sql: string, params?: any[]) => Promise<any[]>)
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit(clientIp(req), 8, 60_000)) {
+  // Per device, not per IP — a venue on one NAT must not share one budget.
+  // See lib/server/ratelimit.ts.
+  if (!rateLimit('paystack:' + clientIp(req), 8, 60_000, req, PURCHASE_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
 
