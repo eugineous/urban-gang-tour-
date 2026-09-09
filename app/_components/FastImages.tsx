@@ -35,11 +35,38 @@ function fixImage(el: HTMLImageElement) {
   }
 
   el.dataset.ugtFast = '1';
+  el.dataset.ugtSrc = raw; // fallback target - see installImageFallback below
   el.setAttribute('srcset', cfSrcSet(raw));
   if (!el.getAttribute('sizes')) el.setAttribute('sizes', '(max-width: 700px) 100vw, 50vw');
   el.setAttribute('src', cfImage(raw, 960));
   el.loading = 'lazy';
   el.decoding = 'async';
+}
+
+/**
+ * Fall back to the unresized original whenever an edge-resized URL fails.
+ *
+ * Routing every image through /cdn-cgi/image/ makes Cloudflare's resizer a
+ * single point of failure for the entire site's imagery. If it is disabled,
+ * rate-limited, or the zone changes, every image 404s at once - and on
+ * localhost the path does not exist at all. One capture-phase listener catches
+ * those failures and restores the original path, so the worst case is the site
+ * looking exactly like it did before this change rather than having no images.
+ */
+function installImageFallback(): () => void {
+  const onError = (e: Event) => {
+    const el = e.target;
+    if (!(el instanceof HTMLImageElement)) return;
+    const orig = el.dataset.ugtSrc;
+    if (!orig || el.dataset.ugtFellBack === '1') return;
+    el.dataset.ugtFellBack = '1';
+    el.removeAttribute('srcset');
+    el.removeAttribute('sizes');
+    el.setAttribute('src', orig);
+  };
+  // Capture phase: image load errors do not bubble.
+  document.addEventListener('error', onError, true);
+  return () => document.removeEventListener('error', onError, true);
 }
 
 function fixVideo(el: HTMLVideoElement) {
@@ -87,6 +114,7 @@ function sweep(root: ParentNode) {
 
 export function FastImages() {
   useEffect(() => {
+    const removeFallback = installImageFallback();
     sweep(document);
 
     const obs = new MutationObserver((records) => {
@@ -112,7 +140,10 @@ export function FastImages() {
       attributeFilter: ['src'],
     });
 
-    return () => obs.disconnect();
+    return () => {
+      obs.disconnect();
+      removeFallback();
+    };
   }, []);
 
   return null;

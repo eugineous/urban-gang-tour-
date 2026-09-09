@@ -244,6 +244,10 @@
 <button onClick="{{ closeTicket }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
 </div>
 <div style="padding:24px">
+<!-- One screen, not two. Buying a ticket used to be: open, pick a tier,
+     Continue, fill three fields, tick a box, Pay. The tier list, the quantity
+     and the buyer fields now sit on the same panel with the first tier already
+     selected, so the whole purchase is open -> type your number -> Pay. -->
 <sc-if value="{{ ticketStageSelect }}" hint-placeholder-val="{{ true }}">
 <div style="font-family:'Space Grotesk';font-weight:700;font-size:12px;text-transform:uppercase;color:#888;margin-bottom:10px;letter-spacing:.05em">Choose your ticket</div>
 <div style="display:flex;flex-direction:column;gap:10px">
@@ -262,25 +266,16 @@
 <button onClick="{{ ticQtyUp }}" style="width:40px;height:40px;border:2px solid #111;border-radius:10px;background:#fff;font-size:22px;font-weight:800;line-height:1">+</button>
 </div>
 </div>
-<div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px"><span style="font-weight:700;color:#888">Subtotal</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
-<button onClick="{{ toTicketDetails }}" style="margin-top:16px;width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#111;color:#FFD400;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">Continue →</button>
-</sc-if>
-<sc-if value="{{ ticketStageDetails }}" hint-placeholder-val="{{ false }}">
-<div style="font-family:'Space Grotesk';font-weight:700;font-size:12px;text-transform:uppercase;color:#888;margin-bottom:10px;letter-spacing:.05em">Your details</div>
-<form onSubmit="{{ confirmTicket }}">
-<input value="{{ ticketName }}" onChange="{{ onTName }}" placeholder="Full name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
-<input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email — ticket & invoice sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
-<input value="{{ ticketPhone }}" onChange="{{ onTPhone }}" placeholder="Phone (M-Pesa)" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
-<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;font-size:12px;line-height:1.55;color:#444">
-<input type="checkbox" checked="{{ ticAck }}" onChange="{{ onTAck }}" aria-label="Accept the terms before paying" style="flex:none;width:17px;height:17px;margin-top:1px;accent-color:#E6218C;cursor:pointer">
-<span>By paying, I confirm my details are correct and I agree to the <a href="/terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Terms</a>, <a href="/refund-policy" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Refund Policy</a> and <a href="/ticket-terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Ticket Terms</a>. Tickets are valid for one entry and are verified at the gate. Payment is processed securely by M-Pesa or Paystack and Urban Gang Tour does not store card details. Refunds apply only as set out in the Refund Policy.</span>
-</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ ticketSubFmt }}</span></div>
+<form onSubmit="{{ confirmTicket }}" style="margin-top:16px;padding-top:16px;border-top:2px dashed #ccc">
+<input value="{{ ticketName }}" onChange="{{ onTName }}" placeholder="Full name (goes on the ticket)" autocomplete="name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
+<input value="{{ ticketPhone }}" onChange="{{ onTPhone }}" type="tel" inputmode="numeric" placeholder="M-Pesa number" autocomplete="tel" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
+<input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email (optional — for the invoice)" autocomplete="email" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:16px">
 <sc-if value="{{ ticketErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ ticketErr }}</div></sc-if>
-<div style="display:flex;gap:10px">
-<button type="button" onClick="{{ backTicketSelect }}" style="flex:none;padding:14px 18px;border:3px solid #111;border-radius:13px;background:#fff;font-family:'Anton';font-size:16px">Back</button>
-<button type="submit" style="flex:1;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ ticketPayLabel }}</button>
-</div>
+<button type="submit" style="width:100%;padding:16px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:19px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ ticketPayLabel }}</button>
+<!-- Clickwrap on the Pay button rather than a separate tick box: same
+     agreement, one less tap. The terms sit directly above the action. -->
+<div style="margin-top:12px;font-size:11.5px;line-height:1.55;color:#666">By paying you confirm your details are correct and agree to the <a href="/terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Terms</a>, <a href="/refund-policy" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Refund Policy</a> and <a href="/ticket-terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Ticket Terms</a>. One entry per ticket, verified at the gate. Payment is processed securely by M-Pesa or Paystack; Urban Gang Tour never stores card details.</div>
 </form>
 </sc-if>
 <sc-if value="{{ ticketStageStk }}" hint-placeholder-val="{{ false }}">
@@ -366,16 +361,14 @@
 <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px"><span style="font-weight:700;color:#888">Total</span><span style="font-family:'Anton';font-size:24px;color:#E6218C">{{ coTotalFmt }}</span></div>
 </div>
 <form onSubmit="{{ confirmOrder }}">
-<input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="Full name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
-<input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email — receipt sent here" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px">
-<input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="Phone (M-Pesa) &amp; delivery contact" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:14px">
-<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;font-size:12px;line-height:1.55;color:#444">
-<input type="checkbox" checked="{{ coAck }}" onChange="{{ onCoAck }}" aria-label="Accept the terms before paying" style="flex:none;width:17px;height:17px;margin-top:1px;accent-color:#E6218C;cursor:pointer">
-<span>By paying, I confirm my details are correct and I agree to the <a href="/terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Terms</a>, <a href="/refund-policy" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Refund Policy</a> and <a href="/ticket-terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Ticket Terms</a>. Tickets are valid for one entry and are verified at the gate. Payment is processed securely by M-Pesa or Paystack and Urban Gang Tour does not store card details. Refunds apply only as set out in the Refund Policy.</span>
-</div>
+<input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="Full name" autocomplete="name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
+<input value="{{ coPhone }}" onChange="{{ onCoPhone }}" type="tel" inputmode="numeric" placeholder="M-Pesa number &amp; delivery contact" autocomplete="tel" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
+<input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email (optional — for the receipt)" autocomplete="email" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:16px">
 <sc-if value="{{ coErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ coErr }}</div></sc-if>
-<button type="submit" style="width:100%;padding:15px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ coPayLabel }}</button>
+<button type="submit" style="width:100%;padding:16px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ coPayLabel }}</button>
 <button type="button" onClick="{{ payCard }}" style="width:100%;margin-top:10px;padding:15px;border:3px solid #111;border-radius:13px;background:#21C7E6;color:#111;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay with Card</button>
+<!-- Clickwrap on the pay buttons instead of a separate tick box. -->
+<div style="margin-top:12px;font-size:11.5px;line-height:1.55;color:#666">By paying you confirm your details are correct and agree to the <a href="/terms" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Terms</a> and <a href="/refund-policy" target="_blank" rel="noopener" style="color:#E6218C;font-weight:700">Refund Policy</a>. Payment is processed securely by M-Pesa or Paystack; Urban Gang Tour never stores card details.</div>
 </form>
 </sc-if>
 <sc-if value="{{ coStageStk }}" hint-placeholder-val="{{ false }}">
@@ -1115,23 +1108,26 @@
 <div style="background:#F7F1E4;border-bottom:4px solid #111;padding:34px 24px 50px">
 <div style="max-width:1160px;margin:0 auto">
 <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:26px">
+<button onClick="{{ galAllChip.pick }}" style="background:{{ galAllChip.chipBg }};color:{{ galAllChip.chipFg }};border:3px solid #111;border-radius:100px;padding:9px 16px;font-family:'Space Grotesk';font-weight:700;font-size:12.5px;text-transform:uppercase;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">{{ galAllChip.label }}</button>
 <sc-for list="{{ galCatalog }}" as="c" hint-placeholder-count="6">
 <button onClick="{{ c.pick }}" style="background:{{ c.chipBg }};color:{{ c.chipFg }};border:3px solid #111;border-radius:100px;padding:9px 16px;font-family:'Space Grotesk';font-weight:700;font-size:12.5px;text-transform:uppercase;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">{{ c.name }} · {{ c.count }}</button>
 </sc-for>
 </div>
-<sc-if value="{{ hasGalSelected }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ galSections }}" as="g" hint-placeholder-count="3">
+<div style="margin-bottom:34px">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-<h2 style="font-family:'Anton';font-size:clamp(22px,3vw,34px);text-transform:uppercase;margin:0">{{ galSelected.name }}</h2>
-<span style="background:#FFD400;border:2px solid #111;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:800">{{ galSelected.count }} / 100 photos</span>
+<h2 style="font-family:'Anton';font-size:clamp(22px,3vw,34px);text-transform:uppercase;margin:0">{{ g.name }}</h2>
+<span style="background:#FFD400;border:2px solid #111;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:800">{{ g.count }} photos</span>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
-<sc-for list="{{ galSelected.pics }}" as="p" hint-placeholder-count="6">
-<div style="border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff;box-shadow:4px 4px 0 #111;transition:transform .18s" style-hover="transform:rotate(-1deg) scale(1.02)"><img src="{{ p.url }}" alt="{{ galSelected.name }} — Urban Gang Tour photo" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"></div>
+<sc-for list="{{ g.pics }}" as="p" hint-placeholder-count="6">
+<div style="border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff;box-shadow:4px 4px 0 #111;transition:transform .18s" style-hover="transform:rotate(-1deg) scale(1.02)"><img src="{{ p.url }}" alt="{{ g.name }} — Urban Gang Tour photo" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"></div>
 </sc-for>
 </div>
-</sc-if>
-<sc-if value="{{ galNoSelection }}" hint-placeholder-val="{{ false }}">
-<div style="border:3px dashed #999;border-radius:16px;padding:40px;text-align:center;color:#777;font-weight:600;font-family:'Permanent Marker';font-size:19px">↑ tap a school to open its catalogue</div>
+</div>
+</sc-for>
+<sc-if value="{{ galIsEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="border:3px dashed #999;border-radius:16px;padding:40px;text-align:center;color:#777;font-weight:600;font-family:'Permanent Marker';font-size:19px">photos from the next stop land here</div>
 </sc-if>
 </div>
 </div>
@@ -1915,10 +1911,15 @@ class Component extends DCLogic {
     if(e&&e.preventDefault)e.preventDefault();
     const t=this.state.ticket;
     if(t.busy) return;
-    if(!t.ack){ this.setPay('tic',{err:'Please accept the terms before paying'}); return; }
-    if(!t.name.trim()||!t.email.trim()){ this.setPay('tic',{err:'Fill in your name and email so we can send your ticket.'}); return; }
+    // No separate "accept the terms" tick box any more - the agreement is
+    // clickwrapped onto the Pay button, with the terms rendered directly above
+    // it. One less tap on the only screen that has to convert.
+    if(!t.name.trim()){ this.setPay('tic',{err:'Enter the name that goes on the ticket.'}); return; }
     const ph=this.msisdn(t.phone);
     if(!ph){ this.setPay('tic',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
+    // Email is optional: the ticket itself is delivered by SMS and lives at its
+    // own /t/<code> URL, so requiring an address only cost a field. It is still
+    // used for the invoice when given.
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('tic',{err:'M-Pesa payments are not available right now.'}); return; }
     this.setPay('tic',{busy:true,err:''});
     const idem='tic-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -1948,7 +1949,7 @@ class Component extends DCLogic {
   closeCheckout = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:null}})); };
   closeCheckoutBg = (e) => { if(e.target===e.currentTarget) this.closeCheckout(); };
   setCo = (k,v) => this.setState(s=>({checkout:{...s.checkout,[k]:v}}));
-  payCard = () => { const s=this.state; if(!s.cart.length) return; if(!s.checkout.ack){ this.setPay('co',{err:'Please accept the terms before paying'}); return; } const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
+  payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
   msisdn = (raw) => { const d=String(raw||'').replace(/\D/g,''); if(/^254(7|1)\d{8}$/.test(d)) return d; if(/^0(7|1)\d{8}$/.test(d)) return '254'+d.slice(1); if(/^(7|1)\d{8}$/.test(d)) return '254'+d; return null; };
   maskPhone = (p) => { const d=String(p||'').replace(/\D/g,''); return d.length>=8 ? d.slice(0,6)+'***'+d.slice(-2) : ''; };
   fmtSecs = (v) => { const n=Math.max(0,Number(v)||0); return Math.floor(n/60)+':'+String(n%60).padStart(2,'0'); };
@@ -2003,15 +2004,20 @@ class Component extends DCLogic {
     }
   };
   coTryAgain = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:'details',err:'',orderId:'',secs:0,busy:false}})); };
-  ticTryAgain = () => { this.stopPay(); this.setState(s=>({ticket:{...s.ticket,stage:'details',err:'',orderId:'',secs:0,busy:false}})); };
+  // 'select' is now the single buy screen (tiers, quantity and buyer fields on
+  // one panel), so a retry goes back there rather than to the old 'details'
+  // step, which no longer has any markup and would render an empty modal.
+  ticTryAgain = () => { this.stopPay(); this.setState(s=>({ticket:{...s.ticket,stage:'select',err:'',orderId:'',secs:0,busy:false}})); };
   saveLS = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
   loadLS = (k,d) => { try{ const v=JSON.parse(localStorage.getItem(k)||'null'); return Array.isArray(v)?v:d; }catch(e){ return d; } };
   confirmOrder = async (e) => {
     if(e&&e.preventDefault)e.preventDefault();
     const s=this.state, co=s.checkout;
     if(co.busy) return;
-    if(!co.ack){ this.setPay('co',{err:'Please accept the terms before paying'}); return; }
-    if(!co.name.trim()||!co.email.trim()||!s.cart.length){ this.setPay('co',{err:'Fill in your name and email so we can send your receipt.'}); return; }
+    // Terms are clickwrapped onto the Pay button (rendered directly above it),
+    // so there is no separate tick box to gate on. Email is optional here for
+    // the same reason as tickets: /api/orders takes phone-only guest orders.
+    if(!co.name.trim()||!s.cart.length){ this.setPay('co',{err:'Enter your name so we can label the order.'}); return; }
     const ph=this.msisdn(co.phone);
     if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('co',{err:'M-Pesa payments are not available right now.'}); return; }
@@ -2116,6 +2122,25 @@ class Component extends DCLogic {
     const stops = [...this.STOPS,...s.extraStops].map((x,i)=>{const done=x.status==='done';const next=x.status==='next';return {...x,tilt:this.TILTS[i%this.TILTS.length],accent:done?'#E6218C':'#0E9BD6',badge:done?'Completed':(next?'Next Stop':'Upcoming'),badgeBg:done?'#FFD400':'#21C7E6',isDone:done,isNext:next,isUp:(!done&&!next),stamp:done?'TOURED ✓':(next?'NEXT UP':'BOOKED'),stampBg:done?'#1F8A5B':(next?'#E6218C':'#21C7E6'),stampFg:done?'#fff':(next?'#fff':'#111'),nodeBorder:next?'#E6218C':(done?'#111':'#999')};});
     const nextStop = stops.find(x=>x.status==='next')||stops[0];
     const workBullets = wt.bullets;
+    // Gallery: build the school catalogues once, here, so the chips and the
+    // photo grid share one source. The page used to render nothing at all until
+    // a school was tapped ("tap a school to open its catalogue"), which meant
+    // every photo on the site was two taps deep. Now every catalogue with
+    // photos in it renders straight away and the chips only filter.
+    const galSeeds = {
+      'Senior Chief Koinange Girls':['/assets/gal/koinange.jpg','/assets/gal/g-winning.jpg'],
+      'Loreto Kiambu Girls High':['/assets/gal/loreto.jpg','/assets/gal/g-street.jpg'],
+      'Gituamba Girls High School':['/assets/gal/gituamba.jpg','/assets/gal/festival-colours.jpg','/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg'],
+      'Lari Boys High School':['/assets/gal/lari.jpg']
+    };
+    const galAll = [...this.STOPS,...s.extraStops].map(x=>x.name).map(n=>{
+      const pics=[...(galSeeds[n]||[]).map((u,i)=>({id:'seed-'+i,url:u})),...((s.galleryPics[n]||[]))];
+      return {name:n, count:pics.length, pics, has:pics.length>0};
+    });
+    const galFilled = galAll.filter(c=>c.has);
+    // No school picked means show them all, which is the default landing state.
+    const galSections = s.galPublicSchool ? galFilled.filter(c=>c.name===s.galPublicSchool) : galFilled;
+    const galTotal = galFilled.reduce((n,c)=>n+c.count,0);
     const bookForType = ()=>{ this.setState(st=>({page:'contact', form:{...st.form,type:wt.type}})); this.scrollTop(); };
     const fb = s.admin.filter==='all'?s.bookings:s.bookings.filter(b=>b.status===s.admin.filter);
     const bookings = fb.map(b=>({...b,confirm:()=>this.setStatus(b.id,'confirmed'),review:()=>this.setStatus(b.id,'review'),statusColor:b.status==='confirmed'?'#1B8A3A':b.status==='review'?'#B26A00':'#E6218C',statusLabel:b.status==='confirmed'?'Confirmed':b.status==='review'?'In review':'New'}));
@@ -2135,7 +2160,7 @@ class Component extends DCLogic {
       closeTicket:this.closeTicket, closeTicketBg:this.closeTicketBg, ticQtyUp:()=>this.ticQty(1), ticQtyDown:()=>this.ticQty(-1), ticketQty:tk.qty,
       onTName:this.onTName, onTEmail:this.onTEmail, onTPhone:this.onTPhone, ticketName:tk.name, ticketEmail:tk.email, ticketPhone:tk.phone,
       ticAck:tk.ack, onTAck:this.onTAck,
-      toTicketDetails:()=>this.ticStage('details'), backTicketSelect:()=>this.ticStage('select'), confirmTicket:this.confirmTicket,
+      confirmTicket:this.confirmTicket,
       ticketStageSelect:tk.stage==='select', ticketStageDetails:tk.stage==='details', ticketStageDone:tk.stage==='done',
       ticketStageStk:tk.stage==='stk', ticketStageFailed:tk.stage==='failed', ticketStageSlow:tk.stage==='slow',
       ticketErr:(tk.err||''), ticketPayLabel:(tk.busy?'Sending prompt...':'Pay & Get Ticket'), ticketOrderId:(tk.orderId||''), ticketStkPhone:(this.msisdn(tk.phone)||tk.phone||''), ticketSecsFmt:this.fmtSecs(tk.secs), ticDot1:(tk.secs%3===2?'1':'0.25'), ticDot2:(tk.secs%3===1?'1':'0.25'), ticDot3:(tk.secs%3===0?'1':'0.25'), ticketTryAgain:this.ticTryAgain, ticketReceiptHref:('/receipt/'+(tk.orderId||'')), ticketPhoneMasked:this.maskPhone(tk.order?tk.order.phone:(this.msisdn(tk.phone)||'')),
@@ -2221,9 +2246,11 @@ class Component extends DCLogic {
       galSchoolNames:[...this.STOPS,...s.extraStops].map(x=>x.name),
       galManagerPics:(s.galleryPics[s.galSchool]||[]).map(p=>({...p,del:()=>this.deleteGalleryPic(p.id)})),
       galManagerCount:(s.galleryPics[s.galSchool]||[]).length, galManagerHas:!!s.galSchool,
-      galCatalog:(()=>{ const seeds={'Senior Chief Koinange Girls':['/assets/gal/koinange.jpg','/assets/gal/g-winning.jpg'],'Loreto Kiambu Girls High':['/assets/gal/loreto.jpg','/assets/gal/g-street.jpg'],'Gituamba Girls High School':['/assets/gal/gituamba.jpg','/assets/gal/festival-colours.jpg','/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg'],'Lari Boys High School':['/assets/gal/lari.jpg']}; const names=[...this.STOPS,...s.extraStops].map(x=>x.name); const cats=names.map(n=>{ const pics=[...(seeds[n]||[]).map((u,i)=>({id:'seed-'+i,url:u})),...((s.galleryPics[n]||[]))]; return {name:n, count:pics.length, pics, has:pics.length>0, on:s.galPublicSchool===n, pick:()=>this.setGalPublic(n), chipBg:(s.galPublicSchool===n?'#E6218C':'#fff'), chipFg:(s.galPublicSchool===n?'#fff':'#111')}; }); return cats; })(),
-      galSelected:(()=>{ const seeds={'Senior Chief Koinange Girls':['/assets/gal/koinange.jpg','/assets/gal/g-winning.jpg'],'Loreto Kiambu Girls High':['/assets/gal/loreto.jpg','/assets/gal/g-street.jpg'],'Gituamba Girls High School':['/assets/gal/gituamba.jpg','/assets/gal/festival-colours.jpg','/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg'],'Lari Boys High School':['/assets/gal/lari.jpg']}; const n=s.galPublicSchool; if(!n) return null; const pics=[...(seeds[n]||[]).map((u,i)=>({id:'seed-'+i,url:u})),...((s.galleryPics[n]||[]))]; return {name:n,count:pics.length,pics}; })(),
-      hasGalSelected:!!s.galPublicSchool, galNoSelection:!s.galPublicSchool,
+      galCatalog:galAll.map(c=>({...c, on:s.galPublicSchool===c.name, pick:()=>this.setGalPublic(s.galPublicSchool===c.name?'':c.name), chipBg:(s.galPublicSchool===c.name?'#E6218C':'#fff'), chipFg:(s.galPublicSchool===c.name?'#fff':'#111')})),
+      // "All" chip: clears the filter so the full wall comes back.
+      galAllChip:{ label:'All Schools · '+galTotal, on:!s.galPublicSchool, pick:()=>this.setGalPublic(''), chipBg:(!s.galPublicSchool?'#E6218C':'#fff'), chipFg:(!s.galPublicSchool?'#fff':'#111') },
+      galSections,
+      galIsEmpty:galFilled.length===0,
       bookings, filters, metrics,
       isHome:s.page==='home', isAbout:s.page==='about', isExp:s.page==='exp', isWork:s.page==='work', isGang:s.page==='gang', isStops:s.page==='stops', isShop:s.page==='shop', isNews:s.page==='news', isGallery:s.page==='gallery', isPartners:s.page==='partners', isContact:s.page==='contact', isAdmin:s.page==='admin'
     };

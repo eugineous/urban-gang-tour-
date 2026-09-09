@@ -66,7 +66,14 @@ export function rewriteHtmlImages(html: string): string {
       const sizes = /\ssizes=/i.test(attrs) ? '' : ' sizes="(max-width: 700px) 100vw, 50vw"';
       out =
         out.replace(/\ssrc=["'][^"']+["']/i, ` src="${cfImage(src, 960)}"`) +
-        ` srcset="${cfSrcSet(src)}"${sizes}`;
+        ` srcset="${cfSrcSet(src)}"${sizes}` +
+        // The original path, kept so the page can fall back to it. Routing
+        // everything through /cdn-cgi/image/ makes edge resizing a single point
+        // of failure: if it is ever turned off, or the zone moves, every image
+        // on the site 404s at once. installImageFallback() watches for that and
+        // swaps this back in. It is also what makes the page work on localhost,
+        // where /cdn-cgi/ does not exist at all.
+        ` data-ugt-src="${src}"`;
     }
 
     // Every image below the fold decodes off the main thread and only when it
@@ -95,8 +102,11 @@ export function rewriteHtmlImages(html: string): string {
 export function rewriteHtmlVideos(html: string): string {
   return html.replace(/<video\b([^>]*)>/gi, (tag, attrs: string) => {
     let out = attrs
-      // strip the broken pseudo-attributes in every casing they appear in
-      .replace(/\s(?:autoPlay|autoplay|muted|loop|playsInline|playsinline)=["'][^"']*["']/gi, '')
+      // Strip both forms before re-adding: the broken pseudo-attributes
+      // (playsInline="{{ true }}") and any already-correct bare booleans the
+      // captured shells carry, so the result has exactly one of each rather
+      // than `muted autoplay ... autoplay muted loop playsinline`.
+      .replace(/\s(?:autoPlay|autoplay|muted|loop|playsInline|playsinline|disablePictureInPicture|disablepictureinpicture)(?:=["'][^"']*["'])?(?=\s|$)/gi, '')
       .replace(/\spreload=["'][^"']*["']/gi, '');
 
     // Real HTML boolean attributes. muted + playsinline are what make iOS allow

@@ -70,6 +70,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
+        {/* Edge-resizer fallback, installed before any image starts loading.
+            Images are served through /cdn-cgi/image/ (see lib/img.ts), which
+            makes Cloudflare's resizer a single point of failure for every
+            picture on the site - and it does not exist at all on localhost.
+            This capture-phase listener swaps a failed resized URL back to the
+            original path recorded in data-ugt-src, so the worst case is the
+            site looking the way it did before, not a page with no images.
+            Inline and in <head> deliberately: React mounts too late to catch
+            errors from the server-rendered shell. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG')return;var o=t.getAttribute('data-ugt-src');if(!o||t.getAttribute('data-ugt-fellback'))return;t.setAttribute('data-ugt-fellback','1');t.removeAttribute('srcset');t.removeAttribute('sizes');t.setAttribute('src',o);},true);`,
+          }}
+        />
         {/* Load the v25 runtime + template with priority so boot never gets
             starved behind the static shell's images/video on media-heavy pages. */}
         <link rel="preload" as="fetch" href="/v25-template.html" crossOrigin="anonymous" />
