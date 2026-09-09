@@ -17,7 +17,8 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import QRCode from 'qrcode';
-import { db, q } from './db';
+import { db, q, qSchema } from './db';
+import { isR2Url } from './r2';
 
 // ---------------------------------------------------------------------------
 // Schema (self-healing, mirrors lib/server/ops.ts's ensureOpsSchema pattern).
@@ -54,7 +55,7 @@ let ensured: Promise<void> | null = null;
 export function ensureDocgenSchema(): Promise<void> {
   if (!db()) return Promise.reject(new Error('db_not_configured'));
   if (!ensured) {
-    ensured = q(DOCGEN_SCHEMA).then(() => undefined).catch((e) => {
+    ensured = qSchema(DOCGEN_SCHEMA).then(() => undefined).catch((e) => {
       ensured = null; // allow retry on the next request
       throw e;
     });
@@ -155,7 +156,6 @@ export const PROMO_PARTNERS: PromoPartner[] = [
   { key: 'synapse',        label: 'Synapse Models', url: '/assets/partners/synapse.png' },
   { key: 'moyo',           label: 'Moyo',           url: '/assets/partners/moyo.png' },
   { key: 'ashton',         label: 'Ashton',         url: '/assets/partners/ashton.png' },
-  { key: 'sauti-moto',     label: 'Sauti Moto',     url: '/assets/partners/sauti-moto.jpg' },
   { key: 'experience-hub', label: 'Experience Hub', url: '/assets/partners/experience-hub.png' },
   { key: 'vibe-studios',   label: 'Vibe Studios',   url: '/assets/partners/vibe-studios.webp' },
 ];
@@ -182,16 +182,16 @@ export const PROMO_FIELDS: Record<string, string[]> = {
 };
 
 // A hero-image / partner URL is only ever injected if it is one of ours: an
-// uploaded Vercel Blob URL or a same-origin /assets or /uploads path. This
-// blocks an arbitrary external URL from being baked into the artwork.
+// uploaded R2 URL (our configured bucket, see lib/server/r2.ts's isR2Url) or
+// a same-origin /assets or /uploads path. This blocks an arbitrary external
+// URL from being baked into the artwork.
 function isSafeAssetUrl(u: string): boolean {
-  return /^https:\/\/[a-z0-9.-]+\.blob\.vercel-storage\.com\//i.test(u)
-    || /^\/(assets|uploads)\//.test(u);
+  return isR2Url(u) || /^\/(assets|uploads)\//.test(u);
 }
 export function resolvePartnerUrl(v: string): string {
   const known = PROMO_PARTNERS.find((pp) => pp.key === v);
   if (known) return known.url;
-  if (/^https:\/\/[a-z0-9.-]+\.blob\.vercel-storage\.com\//i.test(v)) return v;
+  if (isR2Url(v)) return v;
   if (/^\/assets\/partners\//.test(v)) return v;
   return '';
 }
@@ -287,6 +287,7 @@ export async function nextSerial(type: DocType): Promise<string> {
     throw e;
   } finally {
     client.release();
+    await pool.end();
   }
 }
 
@@ -1449,6 +1450,7 @@ export async function insertDocument(args: {
     throw e;
   } finally {
     client.release();
+    await pool.end();
   }
 }
 

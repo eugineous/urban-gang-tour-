@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { rateLimit, clientIp, PURCHASE_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
 import { paystackConfigured, paystackInit } from '@/lib/server/paystack';
@@ -26,7 +26,8 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit('mkt-checkout:' + clientIp(req), 8, 60_000)) {
+  // Per device, not per IP — see lib/server/ratelimit.ts.
+  if (!rateLimit('mkt-checkout:' + clientIp(req), 8, 60_000, req, PURCHASE_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   if (!paystackConfigured()) return NextResponse.json({ error: 'card_not_configured' }, { status: 503 });

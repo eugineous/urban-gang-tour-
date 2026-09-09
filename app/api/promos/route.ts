@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
+import { cached } from '@/lib/server/microcache';
 import { getActivePromos } from '@/lib/server/promos';
 
 // Public, read-only view of currently-active shop promos. Powers the
@@ -12,12 +13,16 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  if (!rateLimit('promos:' + clientIp(req), 30, 60_000)) {
+  // Loose: a public read that every page load makes, and a whole venue shares
+  // one IP. The strict budget is per-device — see ratelimit.ts.
+  if (!rateLimit('promos:' + clientIp(req), 60, 60_000, req, PUBLIC_READ_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   let promos: Awaited<ReturnType<typeof getActivePromos>> = [];
   try {
-    promos = await getActivePromos();
+    // Cached in-isolate with request coalescing: this fires on every page load
+    // and the answer is identical for everyone. See lib/server/microcache.ts.
+    promos = await cached('active-promos', 60_000, getActivePromos);
   } catch {
     // db not configured or a transient error — the banner/overlay just hide
     promos = [];

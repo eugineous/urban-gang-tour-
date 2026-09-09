@@ -3,7 +3,10 @@ export const SITE = {
   name: 'Urban Gang Tour',
   domain: 'https://urbangangtour.co.ke',
   slogan: 'From Potential to Purpose',
-  defaultOg: 'https://urbangangtour.co.ke/assets/poster.png',
+  // Served through the edge resizer: the raw poster.png is 9.3MB, which is far
+  // over WhatsApp's and Facebook's preview limits - link previews were being
+  // dropped silently. 1200x630 is the standard OG size.
+  defaultOg: 'https://urbangangtour.co.ke/cdn-cgi/image/width=1200,quality=80,format=auto/assets/poster.png',
   locale: 'en-KE',
   themeColor: '#E6218C',
   email: 'admin@urbangangtour.co.ke',
@@ -83,10 +86,13 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'daily', priority: 0.8,
   },
   {
-    path: '/partners', page: 'partners', nav: 'Partners',
-    title: 'Partners & Sponsors — Get Your Brand in the Moment',
+    // URL stays /partners - it is indexed and linked. Only the labels change:
+    // PPP TV Kenya is the sole partner, everyone else on this page is an
+    // investor.
+    path: '/partners', page: 'partners', nav: 'Partners & Investors',
+    title: 'Partners & Investors — Get Your Brand in the Moment',
     description:
-      'Partner with the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
+      'Invest in the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
     changefreq: 'monthly', priority: 0.7,
   },
   {

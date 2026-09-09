@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { q, db } from '@/lib/server/db';
-import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import { q, hasDb } from '@/lib/server/db';
+import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
+import { cached } from '@/lib/server/microcache';
 import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 // Public, read-only view of tour events (ticketed concerts, school tour
@@ -42,31 +43,38 @@ function publicRow(r: any) {
   };
 }
 
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' };
+
 export async function GET(req: Request) {
-  if (!rateLimit('site-events:' + clientIp(req), 30, 60_000)) {
+  // Loose: a public read that every page load makes, and a whole venue shares
+  // one IP. The strict budget is per-device — see ratelimit.ts.
+  if (!rateLimit('site-events:' + clientIp(req), 60, 60_000, req, PUBLIC_READ_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const kind = new URL(req.url).searchParams.get('kind');
   if (kind && !['ticketed', 'school', 'past'].includes(kind)) {
     return NextResponse.json({ error: 'invalid_kind' }, { status: 400 });
   }
-  if (!db()) return NextResponse.json({ ok: true, events: [] }, { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=60' } });
+  if (!hasDb()) return NextResponse.json({ ok: true, events: [] }, { headers: CACHE_HEADERS });
   try {
-    await ensureCatalogSeeded();
-    const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
-    const rows = kind
-      ? await q<any>(
-          `SELECT ${cols} FROM tour_events WHERE kind=$1 AND status = ANY($2) ORDER BY priority DESC, event_date ASC NULLS LAST`,
-          [kind, ['published', 'completed']]
-        )
-      : await q<any>(
-          `SELECT ${cols} FROM tour_events WHERE status = ANY($1) ORDER BY priority DESC, event_date ASC NULLS LAST`,
-          [['published', 'completed']]
-        );
-    return NextResponse.json(
-      { ok: true, events: rows.map(publicRow) },
-      { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=60' } }
-    );
+    // Cached per `kind` in-isolate with request coalescing: this is the
+    // heaviest of the four per-page-load reads and the answer is the same for
+    // everyone. See lib/server/microcache.ts.
+    const events = await cached(`site-events:${kind || 'all'}`, 60_000, async () => {
+      await ensureCatalogSeeded();
+      const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
+      const rows = kind
+        ? await q<any>(
+            `SELECT ${cols} FROM tour_events WHERE kind=$1 AND status = ANY($2) ORDER BY priority DESC, event_date ASC NULLS LAST`,
+            [kind, ['published', 'completed']]
+          )
+        : await q<any>(
+            `SELECT ${cols} FROM tour_events WHERE status = ANY($1) ORDER BY priority DESC, event_date ASC NULLS LAST`,
+            [['published', 'completed']]
+          );
+      return rows.map(publicRow);
+    });
+    return NextResponse.json({ ok: true, events }, { headers: CACHE_HEADERS });
   } catch {
     // DB hiccup — the template's window.__UGT_EVENTS bridge falls back to its
     // frozen literal, so an empty list here is safe, never a broken page.

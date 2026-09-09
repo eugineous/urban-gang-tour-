@@ -12,7 +12,8 @@ import { notifyNewReview } from '@/lib/server/notify';
 // aggregateRating Google sees is always real, moderated data.
 
 export async function GET(req: Request) {
-  if (!rateLimit('revg:' + clientIp(req), 30, 60_000)) {
+  // Public read — loose, and per device. See lib/server/ratelimit.ts.
+  if (!rateLimit('revg:' + clientIp(req), 60, 60_000, req)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const product = new URL(req.url).searchParams.get('product') || '';
@@ -39,7 +40,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit('rev:' + clientIp(req), 5, 60_000)) {
+  // Per device, not per IP — see lib/server/ratelimit.ts.
+  if (!rateLimit('rev:' + clientIp(req), 5, 60_000, req)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   let body: any;

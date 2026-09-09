@@ -26,7 +26,7 @@ const MENU_LINKS: { href: string; label: string; big?: boolean }[] = [
   { href: '/shop', label: 'Shop Merch' },
   { href: '/gallery', label: 'Gallery' },
   { href: '/blog', label: 'Urban News' },
-  { href: '/partners', label: 'Partners' },
+  { href: '/partners', label: 'Partners & Investors' },
   { href: '/work-with-us', label: 'Work With Us' },
   { href: '/contact-us', label: 'Contact Us' },
   { href: '/account', label: 'My Account' },

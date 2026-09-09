@@ -6,7 +6,7 @@
 // Same self-healing "ensure table" idiom as lib/server/admin-accounts.ts's
 // ensureAdminAccountsSchema() - CREATE TABLE IF NOT EXISTS, memoized promise,
 // retried on next call if it ever fails.
-import { db, q } from './db';
+import { db, q, qSchema } from './db';
 
 export interface ClientErrorRow {
   id: number;
@@ -23,7 +23,7 @@ let ensured: Promise<void> | null = null;
 export function ensureClientErrorsSchema(): Promise<void> {
   if (!db()) return Promise.reject(new Error('db_not_configured'));
   if (!ensured) {
-    ensured = q(`
+    ensured = qSchema(`
       CREATE TABLE IF NOT EXISTS client_errors (
         id SERIAL PRIMARY KEY,
         msg TEXT,

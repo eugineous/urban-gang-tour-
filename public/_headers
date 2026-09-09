@@ -1,0 +1,47 @@
+# Cloudflare Workers Static Assets header rules.
+#
+# Why this file exists: /assets/* is served by the [assets] binding in
+# wrangler.toml, which bypasses the Worker entirely - so the Cache-Control rule
+# in next.config.mjs's headers() never applies to it. Workers Assets then falls
+# back to its default of "public, max-age=0, must-revalidate", which is what
+# production was actually sending.
+#
+# Two costs of that default, both of which bite hardest under load:
+#   1. Every image and video revalidates with the edge on every page view, so a
+#      returning visitor re-checks ~50 assets instead of reading them from disk.
+#   2. Cloudflare's image resizer refused to cache the resized variants and
+#      returned `cf-images 299 "cache-control is too restrictive"` with
+#      CF-Cache-Status: MISS - so every /cdn-cgi/image/ request was re-resizing
+#      the original. That is the expensive path, and at 1000 concurrent
+#      visitors it is the one that falls over.
+#
+# Everything under /assets/ is content-addressed by filename: a changed image
+# gets a new name. So it is safe to cache for a year and mark immutable.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Next's build output is already hashed per build.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The v25 runtime and its template change only on deploy, but they are not
+# content-hashed, so give them a short shared cache with a long
+# stale-while-revalidate rather than a year.
+/v25-template.html
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/support.js
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Print/document templates used by the admin Document Generator.
+/doc-templates/*
+  Cache-Control: public, max-age=3600
+
+# Deliberately short: these are edited from the admin console and must be able
+# to change without a deploy.
+/uploads/*
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600

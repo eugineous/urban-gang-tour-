@@ -4,14 +4,14 @@
 // Never throws - a failed alert must never break the request that raised it.
 // Reserved for genuinely critical paths (payment reconciliation, order ledger
 // writes, webhook signature-failure bursts). Do not wire into routine errors.
-import { q, db } from './db';
+import { q, hasDb } from './db';
 
 const FALLBACK_EMAIL = 'euginemicah@gmail.com';
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 async function alertRecipient(): Promise<string> {
   try {
-    if (db()) {
+    if (hasDb()) {
       const rows = await q(`SELECT value FROM settings WHERE key='alert_email'`);
       // settings.value is JSONB; a stored string arrives already parsed
       const v = String(rows[0]?.value ?? '').replace(/^"|"$/g, '').trim();

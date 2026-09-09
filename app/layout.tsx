@@ -70,6 +70,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
+        {/* Device id for rate limiting (lib/server/ratelimit.ts).
+            Set here in the browser rather than in middleware on purpose: a
+            middleware Set-Cookie lands on the page response, and a response
+            carrying Set-Cookie is not edge-cacheable - it would have cost us
+            HTML caching sitewide to gain a cookie.
+            This is a bucket key, not a credential. A client can rotate it to
+            get a fresh per-device budget, which is why the per-network
+            backstop in ratelimit.ts still applies underneath it. What it buys
+            is the thing IP alone cannot do: telling 1000 people on one venue
+            wifi apart from one script hammering the order endpoint. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(!/(?:^|;\\s*)ugt_did=/.test(document.cookie)){var a=new Uint8Array(16);crypto.getRandomValues(a);var s='';for(var i=0;i<16;i++)s+=('0'+a[i].toString(16)).slice(-2);document.cookie='ugt_did='+s+';path=/;max-age=31536000;samesite=lax'+(location.protocol==='https:'?';secure':'');}}catch(e){}})();`,
+          }}
+        />
+        {/* Edge-resizer fallback, installed before any image starts loading.
+            Images are served through /cdn-cgi/image/ (see lib/img.ts), which
+            makes Cloudflare's resizer a single point of failure for every
+            picture on the site - and it does not exist at all on localhost.
+            This capture-phase listener swaps a failed resized URL back to the
+            original path recorded in data-ugt-src, so the worst case is the
+            site looking the way it did before, not a page with no images.
+            Inline and in <head> deliberately: React mounts too late to catch
+            errors from the server-rendered shell. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG')return;var o=t.getAttribute('data-ugt-src');if(!o||t.getAttribute('data-ugt-fellback'))return;t.setAttribute('data-ugt-fellback','1');t.removeAttribute('srcset');t.removeAttribute('sizes');t.setAttribute('src',o);},true);`,
+          }}
+        />
         {/* Load the v25 runtime + template with priority so boot never gets
             starved behind the static shell's images/video on media-heavy pages. */}
         <link rel="preload" as="fetch" href="/v25-template.html" crossOrigin="anonymous" />

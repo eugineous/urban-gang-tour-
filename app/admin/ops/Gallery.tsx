@@ -3,13 +3,13 @@
 // Gallery photo wall — single source of truth for public/v25-template.html's
 // this.GALLERY (see app/_components/V25App.tsx's window.__UGT_GALLERY bridge
 // and app/api/site-data/gallery/route.ts for the public read side). New
-// photos upload straight from the browser to the project's Vercel Blob store
-// via @vercel/blob/client, so an 8MB image never has to round-trip through a
-// Next.js function body — app/api/admin/gallery/upload/route.ts only ever
-// issues the short-lived client token.
+// photos upload straight from the browser to the project's Cloudflare R2
+// bucket via lib/client/r2-upload.ts, so an 8MB image never has to
+// round-trip through a Next.js function body — app/api/admin/gallery/upload/
+// route.ts only ever issues the short-lived presigned upload URL.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { upload } from '@vercel/blob/client';
+import { upload } from '@/lib/client/r2-upload';
 import {
   OC, card, btn, btnSmall, inp, label, h3,
   api, Toast, useToast,

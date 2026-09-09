@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { q, db, SCHEMA } from '@/lib/server/db';
+import { q, db, qSchema, SCHEMA } from '@/lib/server/db';
 import { isSuperAdmin } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import seed from '@/app/_lib/articles.seed.json';
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   if (!isSuperAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
-  await q(SCHEMA);
+  await qSchema(SCHEMA);
   let seeded = 0;
   for (const a of seed as any[]) {
     const r = await q(

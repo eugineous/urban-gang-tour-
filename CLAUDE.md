@@ -17,6 +17,28 @@ Apply these by default in every session. See `HANDOFF.md` for the full roadmap.
   Rotate any exposed key. Prefer short-lived credentials.
 - **Rate limit** every public endpoint. Unauthenticated traffic → IP/fingerprint limiting
   (not user-ID). Priority: login, signup, bookings, orders.
+  **Two tiers, and picking the wrong one breaks something real** (`lib/server/ratelimit.ts`):
+
+  | Call | Behaviour | Use for |
+  |---|---|---|
+  | `rateLimit(key, n, win)` | strict: `n` per IP | credential endpoints — `/api/auth`, `/api/admin/login`, `/api/admin/google`, `/api/organizer/login`, `/api/organizer/signup` |
+  | `rateLimit(key, n, win, req)` | `n` per device, wide IP backstop | anything a crowd touches — orders, checkouts, status polling, the four per-page-load reads |
+
+  Never pass `req` to a credential endpoint: the device cookie is client-set, so
+  an attacker would rotate it for a fresh budget on every login attempt. Always
+  pass it to a public endpoint: 1000 people at a school share one NAT (and
+  Safaricom uses CGNAT), so per-IP limits reject the venue. Measured 2026-09-09
+  before the fix: **94% of a 1000-person hall got 429s** on a normal page load.
+  Size the network backstop from the real peak — `PUBLIC_READ_NETWORK_LIMIT` for
+  cached reads and status polling, `PURCHASE_NETWORK_LIMIT` for a ticket drop.
+- **`clientIp()` reads `CF-Connecting-IP`**, not `X-Forwarded-For`. Cloudflare
+  appends to XFF rather than replacing it, so its first entry is a value the
+  *client* chose — the old code let anyone forge the rate-limit key, verified
+  against production by triggering a 429 on a made-up IP.
+- **Public reads go through `cached()`** (`lib/server/microcache.ts`), which
+  coalesces concurrent callers so a cache miss under load is one query, not a
+  thousand. Use `hasDb()`, never `db()`, to test whether a database is
+  configured — `db()` constructs a Pool.
 - **Input validation**: schema-based on every input. Type checks, length limits, reject
   unexpected fields (don't silently drop them).
 - **Never trust the browser** for prices/amounts — validate server-side on every payment.

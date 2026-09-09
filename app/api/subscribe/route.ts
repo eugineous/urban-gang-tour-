@@ -6,7 +6,8 @@ import { notifyNewSubscriber } from '@/lib/server/notify';
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit('sub:' + clientIp(req), 5, 60_000)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
+  // Per device, not per IP — see lib/server/ratelimit.ts.
+  if (!rateLimit('sub:' + clientIp(req), 5, 60_000, req)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   const { email } = await req.json().catch(() => ({}));
   if (typeof email !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return NextResponse.json({ error: 'invalid_email' }, { status: 400 });
