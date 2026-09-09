@@ -18,8 +18,21 @@ import { cfImage, cfSrcSet, isResizable } from '@/lib/img';
 // download. It also fixes any <video> the runtime injects, for the same
 // iOS-autoplay reason described in lib/img.ts.
 
+/** Marker attribute shared with the head script in app/layout.tsx. */
+const FELL_BACK = 'data-ugt-fellback';
+
 function fixImage(el: HTMLImageElement) {
   if (el.dataset.ugtFast === '1') return;
+  // Already fell back to the unresized original because the resizer failed.
+  // Without this the two halves fight: the fallback sets src back to
+  // /assets/..., the observer below sees that src change and re-rewrites it to
+  // the /cdn-cgi/ URL that just failed, and the image stays broken forever
+  // because the fallback only fires once per element.
+  //
+  // getAttribute rather than dataset: the head script in app/layout.tsx has to
+  // write this attribute too, and `dataset.ugtFellBack` would serialise to
+  // data-ugt-fell-back, a different attribute from the one that script sets.
+  if (el.getAttribute(FELL_BACK) === '1') return;
   // getAttribute, not .src - .src resolves to an absolute URL and would defeat
   // the isResizable() path check.
   const raw = el.getAttribute('src') || '';
@@ -35,7 +48,7 @@ function fixImage(el: HTMLImageElement) {
   }
 
   el.dataset.ugtFast = '1';
-  el.dataset.ugtSrc = raw; // fallback target - see installImageFallback below
+  el.setAttribute('data-ugt-src', raw); // fallback target - see installImageFallback below
   el.setAttribute('srcset', cfSrcSet(raw));
   if (!el.getAttribute('sizes')) el.setAttribute('sizes', '(max-width: 700px) 100vw, 50vw');
   el.setAttribute('src', cfImage(raw, 960));
@@ -57,9 +70,9 @@ function installImageFallback(): () => void {
   const onError = (e: Event) => {
     const el = e.target;
     if (!(el instanceof HTMLImageElement)) return;
-    const orig = el.dataset.ugtSrc;
-    if (!orig || el.dataset.ugtFellBack === '1') return;
-    el.dataset.ugtFellBack = '1';
+    const orig = el.getAttribute('data-ugt-src');
+    if (!orig || el.getAttribute(FELL_BACK) === '1') return;
+    el.setAttribute(FELL_BACK, '1');
     el.removeAttribute('srcset');
     el.removeAttribute('sizes');
     el.setAttribute('src', orig);
