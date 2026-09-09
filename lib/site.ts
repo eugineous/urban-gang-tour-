@@ -86,10 +86,13 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'daily', priority: 0.8,
   },
   {
-    path: '/partners', page: 'partners', nav: 'Partners',
-    title: 'Partners & Sponsors — Get Your Brand in the Moment',
+    // URL stays /partners - it is indexed and linked. Only the labels change:
+    // PPP TV Kenya is the sole partner, everyone else on this page is an
+    // investor.
+    path: '/partners', page: 'partners', nav: 'Partners & Investors',
+    title: 'Partners & Investors — Get Your Brand in the Moment',
     description:
-      'Partner with the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
+      'Invest in the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
     changefreq: 'monthly', priority: 0.7,
   },
   {
