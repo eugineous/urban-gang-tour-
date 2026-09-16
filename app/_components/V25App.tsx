@@ -12,6 +12,9 @@ import { rewriteHtmlMedia } from '@/lib/img';
 // rendered, the static shell is hidden.
 export function V25App({ page }: { page: string }) {
   useEffect(() => {
+    // Phones have their own purpose-built app shell. Do not boot the desktop
+    // runtime behind it: that was both visually wrong and expensive on mobile.
+    if (window.matchMedia('(max-width: 900px)').matches) return;
     const w = window as any;
     w.__UGT_PAGE = page;
     // Promo overlay bridge: fetch the public active-promos list once and

@@ -5,6 +5,7 @@ import { rewriteHtmlMedia } from '@/lib/img';
 import { correctShellContent } from '@/lib/content-rules';
 import { V25App } from './V25App';
 import { FastImages } from './FastImages';
+import { MobileApp } from './MobileApp';
 
 // Renders the faithful v25 markup for a page. When a captured fragment exists at
 // app/_rendered/<page>.html it is emitted verbatim (server-rendered — a crawler
@@ -40,6 +41,7 @@ export function RenderedPage({ pathName }: { pathName: string }) {
     // V25App then boots the live interactive runtime for this page on top.
     return (
       <>
+        <MobileApp page={page} />
         <div dangerouslySetInnerHTML={{ __html: captured }} />
         <FastImages />
         <V25App page={page} />
@@ -52,6 +54,7 @@ export function RenderedPage({ pathName }: { pathName: string }) {
   const heading = (r?.nav || r?.title.split('—')[0].trim() || 'Urban Gang Tour').toUpperCase();
   return (
     <>
+    <MobileApp page={page} />
     <FastImages />
     <V25App page={page} />
     <main style={{ background: '#E6218C', minHeight: '60vh', padding: '64px 22px 90px' }}>
