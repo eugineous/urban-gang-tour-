@@ -11,6 +11,7 @@ import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
+import { MobileApp } from './_components/MobileApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
 export const metadata: Metadata = {
@@ -129,6 +130,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
+        <MobileApp />
         {/* mount point for the live interactive v25 app (client-only) */}
         <div id="v25-host" />
         {/* Mobile bottom tab bar — outside #ssr-shell so it survives the
