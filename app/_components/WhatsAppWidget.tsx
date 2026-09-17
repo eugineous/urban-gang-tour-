@@ -1,15 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Floating WhatsApp chat button. Number is set by the admin in Control Room →
 // Comms; if none is configured the widget renders nothing.
 export function WhatsAppWidget() {
+  const pathname = usePathname();
   const [num, setNum] = useState<string | null>(null);
   useEffect(() => {
     fetch('/api/site-info').then((r) => r.json()).then((d) => setNum(d.whatsapp || null)).catch(() => {});
   }, []);
-  if (!num) return null;
+  if (pathname?.startsWith('/admin') || !num) return null;
   return (
     <a
       href={`https://wa.me/${num}?text=${encodeURIComponent('Habari Urban Gang! ')}`}

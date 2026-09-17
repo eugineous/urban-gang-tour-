@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Sitewide promo bar. Fetches the public /api/promos list (no internal
 // fields — see the route for what is deliberately withheld) and shows a
@@ -46,6 +47,7 @@ function fmtCountdown(ms: number): string {
 }
 
 export function PromoBanner() {
+  const pathname = usePathname();
   const [promos, setPromos] = useState<PublicPromo[] | null>(null);
   const [dismissed, setDismissed] = useState(true);
   const [now, setNow] = useState(() => Date.now());
@@ -82,7 +84,7 @@ export function PromoBanner() {
     return times.length ? Math.min(...times) : null;
   }, [promos]);
 
-  if (!promos || !promos.length || dismissed) return null;
+  if (pathname?.startsWith('/admin') || !promos || !promos.length || dismissed) return null;
 
   const headline = promos[0].bannerText || promos[0].name;
   const countdown = soonestEndMs ? fmtCountdown(soonestEndMs - now) : '';

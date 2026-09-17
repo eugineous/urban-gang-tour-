@@ -196,3 +196,10 @@ input,textarea,select{font-family:inherit}
   [data-ops-tabs-btns]{display:none !important}
   [data-ops-tabs-select]{display:block !important}
 }
+
+/* /admin is an internal workspace. The root layout also powers the public v25
+   site, so hide only its injected public shell around the Control Room rather
+   than duplicating the entire application layout. */
+#ssr-shell:has(.cr-shell),#ssr-shell:has(.cr-login){min-height:0 !important;background:transparent !important}
+#ssr-shell:has(.cr-shell)>div:first-child,#ssr-shell:has(.cr-shell)>div:last-child,#ssr-shell:has(.cr-login)>div:first-child,#ssr-shell:has(.cr-login)>div:last-child{display:none !important}
+body:has(.cr-shell) #v25-host,body:has(.cr-shell) #boot-veil,body:has(.cr-login) #v25-host,body:has(.cr-login) #boot-veil{display:none !important}

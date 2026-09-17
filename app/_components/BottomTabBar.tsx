@@ -133,6 +133,8 @@ export function BottomTabBar() {
   const active = (href: string) =>
     href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
 
+  if (routedPath?.startsWith('/admin')) return null;
+
   return (
     <>
       {open && (

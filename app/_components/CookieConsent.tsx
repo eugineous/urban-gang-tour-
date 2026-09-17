@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Privacy-first consent: analytics beacon only fires AFTER acceptance.
 // Choice is remembered locally; "Decline" disables the counter entirely.
 export function CookieConsent() {
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function CookieConsent() {
   const gaEnabled = Boolean(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
   const thirdParty = [adsEnabled && 'ads via Google', gaEnabled && 'Google Analytics'].filter(Boolean).join(' and ');
 
-  if (!show) return null;
+  if (pathname?.startsWith('/admin') || !show) return null;
   return (
     <div style={{ position: 'fixed', bottom: 14, left: 14, right: 14, zIndex: 10000, maxWidth: 560, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', padding: '16px 18px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>🍪 Quick one about your data</div>

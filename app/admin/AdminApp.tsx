@@ -2,13 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import './control-room.css';
+import ControlRoomHome from './ControlRoomHome';
+import SystemPanel from './SystemPanel';
 
 // Urban Gang Control Room — real, database-backed admin.
 // Styling follows v25: magenta/yellow/cyan, Anton headers, hard shadows.
 
 // UGT Ops Suite tools live in their own lazy chunks so this shell stays light.
 const opsLoading = () => <div style={{ background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 }}>Loading tool...</div>;
-const OpsDashboard = dynamic(() => import('./ops/OpsDashboard'), { ssr: false, loading: opsLoading });
 const Budgeter = dynamic(() => import('./ops/Budgeter'), { ssr: false, loading: opsLoading });
 const Invoices = dynamic(() => import('./ops/Invoices'), { ssr: false, loading: opsLoading });
 const Payments = dynamic(() => import('./ops/Payments'), { ssr: false, loading: opsLoading });
@@ -37,9 +39,17 @@ const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', border: 
 const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' };
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
-const TABS = ['Dashboard', 'Inbox', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic', 'Admins', 'Security'] as const;
+const TABS = ['Dashboard', 'Inbox', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic', 'Admins', 'Security', 'System'] as const;
 const OPS_TABS = ['Events', 'Products', 'Gallery', 'Marketplace', 'Budgeter', 'Invoices', 'Documents', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
+
+const NAV_GROUPS: { label: string; items: { tab: Tab; icon: string; label: string }[] }[] = [
+  { label: 'Work now', items: [{ tab: 'Dashboard', icon: '⌂', label: 'Today' }, { tab: 'Bookings', icon: '◎', label: 'Bookings' }, { tab: 'Inbox', icon: '✉', label: 'Inbox' }, { tab: 'Orders', icon: '▣', label: 'Orders & payments' }] },
+  { label: 'Run the tour', items: [{ tab: 'Events', icon: '◉', label: 'Events' }, { tab: 'Pipeline', icon: '↗', label: 'Leads pipeline' }, { tab: 'Contacts', icon: '◌', label: 'Contacts' }, { tab: 'Promos', icon: '★', label: 'Promos' }, { tab: 'Checklists', icon: '✓', label: 'Checklists' }] },
+  { label: 'Content & shop', items: [{ tab: 'Content', icon: '✎', label: 'Stories' }, { tab: 'Newsroom', icon: '▤', label: 'Newsroom' }, { tab: 'Comms', icon: '◒', label: 'Comms' }, { tab: 'Products', icon: '□', label: 'Products' }, { tab: 'Marketplace', icon: '▥', label: 'Marketplace' }, { tab: 'Gallery', icon: '▧', label: 'Gallery' }] },
+  { label: 'Business', items: [{ tab: 'Invoices', icon: '▤', label: 'Invoices' }, { tab: 'Expenses', icon: '−', label: 'Expenses' }, { tab: 'Payouts', icon: '↑', label: 'Payouts' }, { tab: 'Budgeter', icon: '≈', label: 'Budget' }, { tab: 'Documents', icon: '▱', label: 'Documents' }, { tab: 'Reviews', icon: '♥', label: 'Reviews' }] },
+  { label: 'System', items: [{ tab: 'System', icon: '⚙', label: 'System tools' }, { tab: 'People', icon: '♙', label: 'Audience' }, { tab: 'Traffic', icon: '▥', label: 'Traffic' }, { tab: 'Admins', icon: '♟', label: 'Staff access' }, { tab: 'Security', icon: '⌑', label: 'Security' }] },
+];
 
 // Client-side ONLY - this decides which tab buttons render, nothing more.
 // The real security boundary is server-side: every route behind these tabs
@@ -203,11 +213,11 @@ export default function AdminApp({ googleClientId }: { googleClientId: string })
     setSetupInfo(data.ok ? `✓ Database ready — ${data.tables.length} tables, ${data.seeded} articles seeded` : '⚠ ' + (data.error || 'failed'));
   };
 
-  if (authed === null) return <Shell><div style={{ ...card, textAlign: 'center' }}>Loading…</div></Shell>;
+  if (authed === null) return <LoginShell><div style={{ ...card, textAlign: 'center' }}>Loading…</div></LoginShell>;
 
   if (!authed) {
     return (
-      <Shell>
+      <LoginShell>
         <div style={{ ...card, maxWidth: 420, margin: '60px auto', textAlign: 'center' }}>
           <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 64, margin: '0 auto 10px' }} />
           <h1 style={{ fontFamily: 'Anton', fontSize: 28, margin: '0 0 4px' }}>CONTROL ROOM</h1>
@@ -221,59 +231,21 @@ export default function AdminApp({ googleClientId }: { googleClientId: string })
           <button style={{ ...btnDark, width: '100%', marginTop: 12, color: C.yellow }} onClick={login} disabled={!code}>ENTER CONTROL ROOM</button>
           {!googleClientId && <div style={{ marginTop: 12, fontSize: 11, color: '#8A4B00', background: '#FFF6CC', padding: 8, borderRadius: 8 }}>Google Sign-In is waiting for server configuration. Password login still works.</div>}
         </div>
-      </Shell>
+      </LoginShell>
     );
   }
 
   return (
-    <Shell>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 18 }}>
-        <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 44 }} />
-        <h1 style={{ fontFamily: 'Anton', fontSize: 26, margin: 0, color: '#fff', WebkitTextStroke: '1px #111' }}>CONTROL ROOM</h1>
-        <div style={{ flex: 1 }} />
-        <button style={btn} onClick={runSetup} disabled={busy}>⚙ Setup / Repair DB</button>
-        <button style={btnDark} onClick={async () => { await api('/api/admin/login', { method: 'DELETE' }); setAuthed(false); setSession(null); }}>Log out</button>
-      </div>
-      {setupInfo && <div style={{ ...card, marginBottom: 14, padding: 10, fontSize: 13 }}>{setupInfo}</div>}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-        {TABS.filter(canSee).map((t) => (
-          <button key={t} style={{ ...btn, background: tab === t ? C.pink : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
-        ))}
-      </div>
-      {/* Ops row: 14+ buttons wraps into an unwieldy multi-line block on a
-          narrow phone. Below 480px (tighter than the site's public 900px
-          nav breakpoint - see app/globals.css/BottomTabBar - because the
-          button row itself still reads fine on a tablet or a phone in
-          landscape; only a genuinely narrow portrait viewport needs the
-          swap) it collapses into a single <select> instead. Both markups
-          render always; app/globals.css's [data-ops-tabs-*] media query
-          toggles which one is visible so there is no JS width check or
-          hydration flash. The select reuses the exact same canSee() filter
-          as the button row, so a crew_admin's dropdown never lists a module
-          they don't have perms for. */}
-      <div data-ops-tabs-btns style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18, alignItems: 'center' }}>
-        <span style={{ fontFamily: 'Anton', fontSize: 13, color: '#fff', WebkitTextStroke: '0.5px #111', letterSpacing: '.06em' }}>OPS</span>
-        {OPS_TABS.filter(canSee).map((t) => (
-          <button key={t} style={{ ...btn, background: tab === t ? '#C7238E' : '#fff', color: tab === t ? '#fff' : '#111' }} onClick={() => setTab(t)}>{t}</button>
-        ))}
-      </div>
-      <select
-        data-ops-tabs-select
-        aria-label="Ops tools"
-        style={{ ...inp, marginBottom: 18 }}
-        value={(OPS_TABS as readonly string[]).includes(tab) ? tab : ''}
-        onChange={(e) => { if (e.target.value) setTab(e.target.value as Tab); }}
-      >
-        <option value="" disabled>OPS: pick a tool…</option>
-        {OPS_TABS.filter(canSee).map((t) => <option key={t} value={t}>{t}</option>)}
-      </select>
+    <Shell
+      tab={tab}
+      setTab={setTab}
+      canSee={canSee}
+      onLogout={async () => { await api('/api/admin/login', { method: 'DELETE' }); setAuthed(false); setSession(null); }}
+    >
       {toast && <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50, ...card, padding: '10px 16px', background: C.yellow }}>{toast}</div>}
 
       {tab === 'Dashboard' && (
-        <div style={{ display: 'grid', gap: 14 }}>
-          <OpsDashboard />
-          <Dashboard stats={stats} />
-        </div>
+        <ControlRoomHome stats={stats} onOpen={(next) => setTab(next as Tab)} />
       )}
       {tab === 'Inbox' && <GmailInbox googleClientId={googleClientId} say={say} />}
       {tab === 'Events' && <Events />}
@@ -356,15 +328,39 @@ export default function AdminApp({ googleClientId }: { googleClientId: string })
       {tab === 'Traffic' && <TrafficTab rows={rows} />}
       {tab === 'Admins' && <AdminAccounts />}
       {tab === 'Security' && <SecurityPanel googleClientId={googleClientId} say={say} />}
+      {tab === 'System' && <SystemPanel onOpen={(next) => setTab(next as Tab)} onRepair={runSetup} repairMessage={setupInfo} />}
     </Shell>
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
-  return <div style={{ minHeight: '100vh', background: C.pink, padding: '26px 18px 80px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
+function Shell({ children, tab, setTab, canSee, onLogout }: { children: React.ReactNode; tab: Tab; setTab: (tab: Tab) => void; canSee: (tab: Tab) => boolean; onLogout: () => void }) {
+  const labels: Record<string, [string, string]> = {
+    Dashboard: ['Today', 'Your focused starting point for enquiries, messages and commitments.'],
+    Inbox: ['Inbox', 'Read and reply to Urban Gang conversations from Gmail.'],
+    Bookings: ['Bookings', 'Turn new requests into clear next steps.'],
+    Orders: ['Orders & payments', 'Track orders, receipts and gate-ready tickets.'],
+    System: ['System tools', 'Access, backups and maintenance live here.'],
+  };
+  const [title, subtitle] = labels[tab] || [tab, 'Manage this part of the Urban Gang operation.'];
+  return <div className="cr-shell">
     <style>{`@media (min-width: 860px){.admin-split{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.65fr);gap:14px;align-items:start}}@media (max-width:859px){.admin-split{display:grid;gap:14px}.admin-split>section:first-child{max-height:420px!important}}`}</style>
-    <div style={{ maxWidth: 1280, margin: '0 auto' }}>{children}</div>
+    <header className="cr-topbar"><div className="cr-brand"><img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" /><strong>CONTROL ROOM</strong><span>Internal operations</span></div><div className="cr-topbar-spacer" /><button className="cr-logout" onClick={onLogout}>Log out</button></header>
+    <div className="cr-layout">
+      <aside className="cr-sidebar" aria-label="Control Room navigation">
+        {NAV_GROUPS.map((group) => {
+          const items = group.items.filter((item) => canSee(item.tab));
+          if (!items.length) return null;
+          return <div className="cr-nav-group" key={group.label}><span className="cr-nav-label">{group.label}</span>{items.map((item) => <button key={item.tab} className="cr-nav-button" aria-current={tab === item.tab ? 'page' : undefined} onClick={() => setTab(item.tab)}><i className="cr-nav-icon">{item.icon}</i>{item.label}</button>)}</div>;
+        })}
+        <div className="cr-sidebar-note">System tools are deliberately separate from daily work. Start with bookings and inbox.</div>
+      </aside>
+      <main className="cr-main"><div className="cr-page-head"><div><h1>{title}</h1><p>{subtitle}</p></div>{tab !== 'System' && <button className="cr-system-action" onClick={() => setTab('System')}>⚙ System tools</button>}</div>{children}</main>
+    </div>
   </div>;
+}
+
+function LoginShell({ children }: { children: React.ReactNode }) {
+  return <div className="cr-login"><header className="cr-login-brand"><img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" /><strong>CONTROL ROOM</strong></header><main className="cr-login-main">{children}</main></div>;
 }
 
 function Dashboard({ stats }: { stats: any }) {
