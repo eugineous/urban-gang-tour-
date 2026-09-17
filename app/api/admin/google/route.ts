@@ -5,11 +5,11 @@ import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { requireOrigin } from '@/lib/server/origin';
 import { getAdminAccount, type AdminAccount } from '@/lib/server/admin-accounts';
 import { notifyAdminLogin, notifyFailedAdminLogin } from '@/lib/server/notify';
-import { OAuth2Client } from 'google-auth-library';
 
 // Google Sign-In for the Control Room. The client posts the Google Identity
-// Services ID token; we verify it with Google's official auth library
-// (signature, expiry and audience are checked) and then require the email to
+// Services ID token; Google verifies its signature and expiry through the
+// tokeninfo endpoint, then we independently enforce issuer, audience and the
+// verified email allowlist before creating an admin session.
 // be on the allowlist: the ADMIN_GOOGLE_EMAILS env var unioned with the
 // admin_google_emails table, so accounts can be added without a redeploy.
 // Same admin session cookie as the access-code login.
@@ -33,7 +33,13 @@ export async function POST(req: Request) {
   if (!rateLimit('admg:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
-  const { credential } = await req.json().catch(() => ({}));
+  const body = await req.json().catch(() => ({}));
+  for (const key of Object.keys(body)) {
+    if (key !== 'credential') {
+      return NextResponse.json({ error: `unexpected_field:${key}` }, { status: 400 });
+    }
+  }
+  const { credential } = body;
   if (typeof credential !== 'string' || credential.length < 20 || credential.length > 4096) {
     return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   }
@@ -46,14 +52,28 @@ export async function POST(req: Request) {
 
   let info: any;
   try {
-    const ticket = await new OAuth2Client(clientId).verifyIdToken({ idToken: credential, audience: clientId });
-    info = ticket.getPayload();
+    const verification = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
+      { cache: 'no-store' },
+    );
+    if (!verification.ok) {
+      return NextResponse.json({ error: 'invalid_token' }, { status: 401 });
+    }
+    info = await verification.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_token' }, { status: 401 });
+    return NextResponse.json({ error: 'verify_unavailable' }, { status: 502 });
   }
 
   const email = String(info.email || '').toLowerCase();
-  if (info.aud !== clientId || info.email_verified !== true) {
+  const issuer = String(info.iss || '');
+  const expiresAt = Number(info.exp || 0);
+  const emailVerified = info.email_verified === true || info.email_verified === 'true';
+  if (
+    info.aud !== clientId
+    || !['accounts.google.com', 'https://accounts.google.com'].includes(issuer)
+    || expiresAt * 1000 <= Date.now()
+    || !emailVerified
+  ) {
     after(() => notifyFailedAdminLogin({ method: 'google', reason: 'token_mismatch', ip: clientIp(req) }));
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
   }
