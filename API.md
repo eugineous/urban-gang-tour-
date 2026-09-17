@@ -2,11 +2,11 @@
 
 All endpoints: JSON in/out. Public POSTs are IP rate-limited (never user-ID for
 anonymous traffic). Strict schemas — unknown fields are rejected with
-`unexpected_field:<name>`. Secrets live in Vercel env vars only.
+`unexpected_field:<name>`. Production secrets live in Cloudflare Worker secrets only.
 
 Cross-site protection (`lib/server/origin.ts`): public POSTs answer 403
 `bad_origin` when the browser sends an Origin header that is not
-urbangangtour.co.ke, the current Vercel deployment host, or localhost (a
+urbangangtour.co.ke, an explicitly configured preview host, or localhost (a
 missing Origin is tolerated for beacons/native apps). Admin mutations
 (`/api/admin/*` POST) REQUIRE a matching Origin outright. Exempt:
 `/api/mpesa/callback` and `/api/whatsapp/webhook` (server-to-server; the
@@ -165,7 +165,26 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
 
 ## Admin (require `ugt_admin` signed cookie; 401 otherwise)
 
-- `POST /api/admin/login` `{code}` → session. `DELETE` → logout. Rate-limited.
+- `POST /api/admin/login` `{password}` → session. Checks the owner-selected
+  scrypt hash first, then `ADMIN_ACCESS_CODE` as an emergency fallback.
+  `DELETE` → logout. Rate-limited.
+- `POST /api/admin/google` `{credential}` → verifies the Google ID token and
+  requires the email in `ADMIN_GOOGLE_EMAILS` or `admin_google_emails`.
+- `GET /api/admin/security` → password/Google/Gmail readiness (super admin).
+  `POST` `{password}` sets the owner-selected Control Room password as a salted
+  scrypt hash; plaintext is never stored.
+- `GET /api/admin/gmail` → Gmail connection status. `DELETE` disconnects
+  (super admin). Refresh tokens are AES-256-GCM encrypted with a key derived
+  from `SESSION_SECRET` before storage.
+- `POST /api/admin/gmail/connect` `{code}` → exchanges a Google Identity
+  Services popup authorisation code server-side and stores the encrypted
+  refresh token. Requires same Origin + `X-Requested-With: XmlHttpRequest`.
+- `GET /api/admin/gmail/messages?q=` → recent Gmail inbox messages. `POST`
+  sends an RFC 2822 reply through Gmail and keeps the original thread id,
+  `In-Reply-To`, and `References` headers.
+- `GET /api/admin/bookings/reply?id=B-...` → booking reply trail. `POST`
+  `{id,subject,body}` sends from the connected Gmail account, records the
+  reply, audit-logs it, and advances a new/review booking to `replied`.
 - `GET /api/admin/data?view=bookings|orders|posts|users|submissions|subscribers|traffic|settings|audit|stats|tickets`
 - `POST /api/tickets/verify` `{code}` — gate check-in (admin session +
   strict Origin, 120/min/IP). Validates the code's HMAC tag, then atomically
@@ -227,5 +246,5 @@ META_WA_SELF, META_IG_TOKEN, META_IG_USER_ID, META_FB_PAGE_ID, META_FB_PAGE_TOKE
 ## Scale notes
 In-memory rate limits are per-instance; swap to Upstash Redis
 (`UPSTASH_REDIS_REST_URL/TOKEN`) before heavy campaigns. Email sends batch in
-50s; move to a queue (e.g. Vercel Queues/cron) beyond ~2k subscribers.
+50s; move to a queue (for example Cloudflare Queues) beyond ~2k subscribers.
 Load-test checkout before big drops.

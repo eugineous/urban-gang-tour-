@@ -148,6 +148,21 @@ CREATE TABLE IF NOT EXISTS tickets (
   of_count INT NOT NULL, used_at TIMESTAMPTZ, used_by TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS admin_credentials (
+  id TEXT PRIMARY KEY, password_hash TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS admin_integrations (
+  id TEXT PRIMARY KEY, secret TEXT NOT NULL,
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS booking_replies (
+  id BIGSERIAL PRIMARY KEY, booking_id TEXT NOT NULL,
+  sender TEXT NOT NULL, recipient TEXT NOT NULL,
+  subject TEXT NOT NULL, body TEXT NOT NULL,
+  gmail_message_id TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT now()
+);
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_posted_at TIMESTAMPTZ;
 -- Indexes for the real query patterns (blog listing, admin ledgers, M-Pesa
 -- callback reconciliation, review lookups, audit trail). Applied with the
@@ -164,4 +179,5 @@ CREATE INDEX IF NOT EXISTS idx_users_phone ON users (phone);
 CREATE INDEX IF NOT EXISTS idx_submissions_created_at ON submissions (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_subscribers_created_at ON subscribers (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tickets_order_id ON tickets (order_id);
+CREATE INDEX IF NOT EXISTS idx_booking_replies_booking ON booking_replies (booking_id, created_at DESC);
 `;
