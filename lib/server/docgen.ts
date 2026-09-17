@@ -89,12 +89,14 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   call: { code: 'CALL', label: 'Call Sheet', template: '44-call-sheet-run-of-show-lari-boys.html' },
   budget: { code: 'BUD', label: 'Event Budget Sheet', template: '45-event-budget-sheet.html' },
   // Batch-by-quantity types (a run of N serialised items, each with its own QR).
-  tix: { code: 'TIX', label: 'Event Ticket', template: '22-ticket-event-vip.html' },
+  tix: { code: 'TIX', label: 'Event Ticket', template: '55-event-ticket-collector.html' },
   spass: { code: 'SPASS', label: 'Student Pass', template: '23-ticket-student-pass-front-back-game.html' },
   // band's template is resolved per bandType (see BAND_TEMPLATES / resolveTemplate).
   band: { code: 'BAND', label: 'Wristband', template: '10-wristband-ga-the-fan.html' },
   // Single-page letters and forms (phase: one template each, no batch/quantity).
   ltr: { code: 'LTR', label: 'Thank-You Letter', template: '49-thank-you-letter-schools.html' },
+  cor: { code: 'COR', label: 'Official Letterhead', template: '53-official-letterhead.html' },
+  brief: { code: 'BRF', label: 'Event Brief', template: '54-event-brief.html' },
   acc: { code: 'ACC', label: 'Media Accreditation', template: '46-media-accreditation-form.html' },
   pass: { code: 'PASS', label: 'Gate / Vehicle Pass', template: '48-gate-vehicle-pass.html' },
   rel: { code: 'REL', label: 'Talent Media Release', template: '50-talent-media-release-form.html' },
@@ -138,10 +140,11 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   posFestival:  { code: 'PROMO-PSFST', label: 'Poster - Festival of Colours', template: '38-poster-festival-of-colours.html',       promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
   posRave:      { code: 'PROMO-PSRAV', label: 'Poster - Campus Rave',         template: '39-poster-campus-rave.html',               promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
   posFinale:    { code: 'PROMO-PSFIN', label: 'Poster - The Crowning Finale', template: '40-poster-the-crowning-finale.html',       promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
+  posMaster:    { code: 'PROMO-MASTER', label: 'Poster - Event Master',       template: '56-poster-event-master.html',              promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr',
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'cor', 'brief', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr',
   'igNext', 'igStory', 'igWinner', 'igEpisode', 'igMerch', 'igBookings', 'igQuote',
-  'posTakeover', 'posHeadliner', 'posFestival', 'posRave', 'posFinale'] as const;
+  'posTakeover', 'posHeadliner', 'posFestival', 'posRave', 'posFinale', 'posMaster'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
 
 // Promo helpers + the managed partner-logo library (seeded from
@@ -179,6 +182,7 @@ export const PROMO_FIELDS: Record<string, string[]> = {
   posFestival:  ['dateDay', 'dateMonth', 'titleTop', 'titleBottom', 'dateChip', 'venueChip', 'timeChip'],
   posRave:      ['edition', 'dateChip', 'venueChip', 'timeChip', 'lineup'],
   posFinale:    ['dateChip', 'venueChip', 'tvChip'],
+  posMaster:    ['eyebrow', 'eventName', 'dateChip', 'venueChip', 'timeChip', 'cta'],
 };
 
 // A hero-image / partner URL is only ever injected if it is one of ours: an
@@ -595,6 +599,20 @@ function qrBadgeHtml(templateFile: string, serial: string, qr: string): string {
       + `<div style="font-weight:800;">${escapeHtml(serial)}</div>`
       + `<div style="color:#555;">urbangangtour.co.ke/verify</div></div></div>`;
   }
+  if (templateFile.startsWith('53-official-letterhead')) {
+    return `<div style="position:absolute;right:52px;bottom:72px;display:flex;align-items:center;gap:8px;z-index:5;background:#fffdf7;padding:6px 8px;border:1px solid #d7c8b6;border-radius:7px;">`
+      + `<img src="${qr}" alt="Verify" style="width:52px;height:52px;display:block;background:#fff;" />`
+      + `<div style="font-size:7.5px;font-weight:800;line-height:1.5;color:#111;"><div style="font-family:'Bungee';font-size:6px;color:#e6218c;">VERIFY</div>${escapeHtml(serial)}</div></div>`;
+  }
+  if (templateFile.startsWith('54-event-brief')) {
+    return `<div style="position:absolute;right:42px;bottom:49px;display:flex;align-items:center;gap:6px;z-index:5;">`
+      + `<img src="${qr}" alt="Verify" style="width:42px;height:42px;display:block;background:#fff;border:1px solid #fff;" />`
+      + `<div style="font-size:7px;font-weight:800;line-height:1.35;color:#fff;">VERIFY<br>${escapeHtml(serial)}</div></div>`;
+  }
+  if (templateFile.startsWith('55-event-ticket')) {
+    return `<div style="position:absolute;right:22px;bottom:18px;z-index:5;background:#fff;padding:4px;border-radius:4px;">`
+      + `<img src="${qr}" alt="Verify" style="width:58px;height:58px;display:block;" /></div>`;
+  }
   // Media accreditation: compact verify badge in the lower-left gap, above the
   // footer (office-use approval box + passport photo sit on the right).
   if (templateFile.startsWith('46-media')) {
@@ -907,6 +925,39 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
     if (!schoolName) throw new Error('schoolName_required');
     const payload = { schoolName, principalSalutation, winnerNames, winnerCategory, date };
     return { type, payload, issued_to: schoolName, event: winnerCategory, slug: slugify(schoolName), computed: {} };
+  }
+  if (type === 'cor') {
+    // General correspondence stays deliberately flexible, but its recipient,
+    // subject and body are always explicit in the immutable record.
+    const recipientName = str(p.recipientName, 160).trim();
+    const recipientRole = str(p.recipientRole, 120).trim();
+    const subject = str(p.subject, 180).trim();
+    const salutation = str(p.salutation, 120).trim();
+    const body = str(p.body, 1800).trim();
+    const signatoryName = str(p.signatoryName, 120).trim();
+    const signatoryRole = str(p.signatoryRole, 120).trim();
+    const date = formatCertDate(str(p.date, 60));
+    if (!recipientName) throw new Error('recipientName_required');
+    if (!subject) throw new Error('subject_required');
+    if (!body) throw new Error('body_required');
+    const payload = { recipientName, recipientRole, subject, salutation, body, signatoryName, signatoryRole, date };
+    return { type, payload, issued_to: recipientName, event: subject, slug: slugify(recipientName + '-' + subject), computed: {} };
+  }
+  if (type === 'brief') {
+    // A brief is a decision document, not a source of invented operational
+    // facts: all agenda, safety and contact content is supplied by the team.
+    const eventName = str(p.eventName, 160).trim();
+    const date = formatCertDate(str(p.date, 60));
+    const venue = str(p.venue, 160).trim();
+    const objective = str(p.objective, 360).trim();
+    const audience = str(p.audience, 260).trim();
+    const schedule = str(p.schedule, 700).trim();
+    const safety = str(p.safety, 520).trim();
+    const lead = str(p.lead, 120).trim();
+    const contact = str(p.contact, 140).trim();
+    if (!eventName) throw new Error('eventName_required');
+    const payload = { eventName, date, venue, objective, audience, schedule, safety, lead, contact };
+    return { type, payload, issued_to: eventName, event: venue, slug: slugify(eventName + '-brief'), computed: {} };
   }
   if (type === 'acc') {
     // Media accreditation. fullName is the identity (required). coveringAs is a
@@ -1267,6 +1318,21 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
         date: payload.date || '',
       },
     };
+  }
+  if (type === 'cor') {
+    return { values: {
+      recipientName: payload.recipientName || '', recipientRole: payload.recipientRole || '',
+      subject: payload.subject || '', salutation: payload.salutation || '', body: payload.body || '',
+      signatoryName: payload.signatoryName || '', signatoryRole: payload.signatoryRole || '',
+      date: payload.date || '', letterNo: serial,
+    } };
+  }
+  if (type === 'brief') {
+    return { values: {
+      briefNo: serial, eventName: payload.eventName || '', date: payload.date || '', venue: payload.venue || '',
+      objective: payload.objective || '', audience: payload.audience || '', schedule: payload.schedule || '',
+      safety: payload.safety || '', lead: payload.lead || '', contact: payload.contact || '',
+    } };
   }
   if (type === 'acc') {
     const cover: string[] = Array.isArray(payload.coveringAs) ? payload.coveringAs : [];

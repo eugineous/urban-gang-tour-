@@ -25,9 +25,9 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr'
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'cor' | 'brief' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr'
   | 'igNext' | 'igStory' | 'igWinner' | 'igEpisode' | 'igMerch' | 'igBookings' | 'igQuote'
-  | 'posTakeover' | 'posHeadliner' | 'posFestival' | 'posRave' | 'posFinale';
+  | 'posTakeover' | 'posHeadliner' | 'posFestival' | 'posRave' | 'posFinale' | 'posMaster';
 const TYPES: { key: DocType; label: string }[] = [
   { key: 'invoice', label: 'Invoice' },
   { key: 'receipt', label: 'Receipt' },
@@ -39,6 +39,8 @@ const TYPES: { key: DocType; label: string }[] = [
   { key: 'spass', label: 'Student Pass' },
   { key: 'band', label: 'Wristband' },
   { key: 'ltr', label: 'Thank-You Letter' },
+  { key: 'cor', label: 'Official Letterhead' },
+  { key: 'brief', label: 'Event Brief' },
   { key: 'acc', label: 'Media Accreditation' },
   { key: 'pass', label: 'Gate / Vehicle Pass' },
   { key: 'rel', label: 'Talent Release' },
@@ -154,6 +156,15 @@ const PROMO_SPEC: Record<string, PSpec> = {
       { key: 'dateChip', label: 'Date chip', ph: 'DATE TBA' }, { key: 'venueChip', label: 'Venue chip', ph: 'VENUE TBA' }, { key: 'tvChip', label: 'TV chip', ph: 'LIVE ON PPP TV' },
     ], heroSlots: ['Finalist 1', 'Finalist 2', 'Finalist 3'], partners: true,
   },
+  posMaster: {
+    label: 'Poster - Event Master', kind: 'poster', design: { w: 560, h: 784 }, png: [1080, 1512], pdf: true,
+    fields: [
+      { key: 'eyebrow', label: 'Series / presenter', ph: 'URBAN GANG TOUR PRESENTS' },
+      { key: 'eventName', label: 'Event name', ph: 'THE NEXT WAVE' },
+      { key: 'dateChip', label: 'Date', ph: 'SAT 21 SEPT' }, { key: 'venueChip', label: 'Venue', ph: 'NAIROBI · VENUE TBA' },
+      { key: 'timeChip', label: 'Time', ph: 'GATES 2 PM' }, { key: 'cta', label: 'Call to action', ph: 'TICKETS / INFO: URBANGANGTOUR.CO.KE' },
+    ], heroSlots: [], partners: true,
+  },
 };
 const PROMO_KEYS = Object.keys(PROMO_SPEC) as DocType[];
 const PROMO_TYPES: { key: DocType; label: string }[] = PROMO_KEYS.map((k) => ({ key: k, label: PROMO_SPEC[k].label }));
@@ -183,6 +194,8 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   spass: { w: 980, h: 706 },
   band: { w: 960, h: 96 },
   ltr: { w: 794, h: 1123 },
+  cor: { w: 794, h: 1123 },
+  brief: { w: 794, h: 1123 },
   acc: { w: 794, h: 1123 },
   pass: { w: 640, h: 440 },
   rel: { w: 794, h: 1123 },
@@ -206,6 +219,7 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   posFestival: { w: 560, h: 784 },
   posRave: { w: 560, h: 784 },
   posFinale: { w: 560, h: 784 },
+  posMaster: { w: 560, h: 784 },
 };
 
 // CSV column schema per certificate type (also the accepted header names).
@@ -361,6 +375,8 @@ export default function DocGen() {
 
   // Single-page letters and forms.
   const [ltr, setLtr] = useState({ schoolName: '', principalSalutation: '', winnerNames: '', winnerCategory: '', date: today() });
+  const [cor, setCor] = useState({ recipientName: '', recipientRole: '', subject: '', salutation: '', body: '', signatoryName: 'Eugine Micah', signatoryRole: 'Co-Founder & Creative Director', date: today() });
+  const [brief, setBrief] = useState({ eventName: '', date: today(), venue: '', objective: '', audience: '', schedule: '', safety: '', lead: '', contact: '' });
   const [acc, setAcc] = useState({
     fullName: '', idNumber: '', outlet: '', handle: '', phone: '', email: '',
     event: '', date: today(), equipment: '', approvedBy: '',
@@ -481,6 +497,12 @@ export default function DocGen() {
         winnerNames: ltr.winnerNames, winnerCategory: ltr.winnerCategory, date: ltr.date,
       } as Record<string, unknown>;
     }
+    if (type === 'cor') {
+      return { recipientName: cor.recipientName, recipientRole: cor.recipientRole, subject: cor.subject, salutation: cor.salutation, body: cor.body, signatoryName: cor.signatoryName, signatoryRole: cor.signatoryRole, date: cor.date } as Record<string, unknown>;
+    }
+    if (type === 'brief') {
+      return { eventName: brief.eventName, date: brief.date, venue: brief.venue, objective: brief.objective, audience: brief.audience, schedule: brief.schedule, safety: brief.safety, lead: brief.lead, contact: brief.contact } as Record<string, unknown>;
+    }
     if (type === 'acc') {
       return {
         fullName: acc.fullName, idNumber: acc.idNumber, outlet: acc.outlet, handle: acc.handle,
@@ -527,7 +549,7 @@ export default function DocGen() {
       moneyIn: moneyIn.filter((r) => r.source || r.count || r.rate).map((r) => ({ source: r.source, count: num(r.count), rate: num(r.rate) })),
       moneyOut: moneyOut.filter((r) => r.item || r.supplier || r.amount).map((r) => ({ item: r.item, supplier: r.supplier, amount: num(r.amount) })),
     } as Record<string, unknown>;
-  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, acc, pass, rel, cons, prop, sprop, agr, promo, heroImages, partnerLogos]);
+  }, [type, inv, rows, rct, cw, cp, call, crew, ros, dontForget, bud, moneyIn, moneyOut, tix, spass, band, ltr, cor, brief, acc, pass, rel, cons, prop, sprop, agr, promo, heroImages, partnerLogos]);
 
   // What the live preview renders: in batch mode, the first parsed row; else
   // the single-form payload.
@@ -545,6 +567,8 @@ export default function DocGen() {
     if (type === 'certp') return !!String(p?.participantName || '').trim();
     if (type === 'tix' || type === 'spass') return !!String(p?.eventName || '').trim();
     if (type === 'ltr' || type === 'cons' || type === 'sprop') return !!String(p?.schoolName || '').trim();
+    if (type === 'cor') return !!String(p?.recipientName || '').trim() && !!String(p?.subject || '').trim() && !!String(p?.body || '').trim();
+    if (type === 'brief') return !!String(p?.eventName || '').trim();
     if (type === 'acc') return !!String(p?.fullName || '').trim();
     if (type === 'prop') return !!String(p?.preparedFor || '').trim();
     if (type === 'agr') return !!String(p?.sponsorName || '').trim();
@@ -782,6 +806,8 @@ export default function DocGen() {
     : type === 'spass' ? 'Student pass (batch by quantity)'
     : type === 'band' ? 'Wristband (batch by quantity)'
     : type === 'ltr' ? 'Thank-you letter to a school'
+    : type === 'cor' ? 'Official letterhead'
+    : type === 'brief' ? 'Event brief'
     : type === 'acc' ? 'Media accreditation'
     : type === 'pass' ? 'Gate / vehicle pass'
     : type === 'rel' ? 'Talent media release'
@@ -860,6 +886,8 @@ export default function DocGen() {
                 {type === 'spass' && <StudentPassForm spass={spass} setSpass={setSpass} />}
                 {type === 'band' && <BandForm band={band} setBand={setBand} />}
                 {type === 'ltr' && <LetterForm ltr={ltr} setLtr={setLtr} />}
+                {type === 'cor' && <CorrespondenceForm cor={cor} setCor={setCor} />}
+                {type === 'brief' && <EventBriefForm brief={brief} setBrief={setBrief} />}
                 {type === 'acc' && <AccreditationForm acc={acc} setAcc={setAcc} />}
                 {type === 'pass' && <GatePassForm pass={pass} setPass={setPass} />}
                 {type === 'rel' && <ReleaseForm rel={rel} setRel={setRel} computed={computed} />}
@@ -1731,6 +1759,61 @@ function LetterForm({ ltr, setLtr }: any) {
       <Field lbl="Winner category / award"><input style={inp} value={ltr.winnerCategory} onChange={set('winnerCategory')} placeholder="e.g. Best Dance Crew" /></Field>
       <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
         Letter number is issued automatically (LTR serial) and printed as a verify QR in the corner.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Official correspondence. This is a real branded letterhead, deliberately
+// broad enough for confirmations, invitations and formal follow-up without
+// pretending to be a contract or inventing terms on the user's behalf.
+// ---------------------------------------------------------------------------
+function CorrespondenceForm({ cor, setCor }: any) {
+  const set = (k: string) => (e: any) => setCor({ ...cor, [k]: e.target.value });
+  return (
+    <div>
+      <div style={{ background: '#fff8e6', border: '1px solid #efd39b', borderRadius: 9, padding: '8px 10px', fontSize: 11.5, color: '#684d17', marginBottom: 10 }}>
+        Use for official correspondence. It is not a contract; agreements still need reviewed terms and signatures.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Recipient / organisation (required)"><input style={inp} value={cor.recipientName} onChange={set('recipientName')} placeholder="Name or organisation" /></Field>
+        <Field lbl="Recipient role / address line"><input style={inp} value={cor.recipientRole} onChange={set('recipientRole')} placeholder="e.g. The Principal" /></Field>
+      </div>
+      <Field lbl="Subject (required)"><input style={inp} value={cor.subject} onChange={set('subject')} placeholder="Clear, specific subject" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Salutation"><input style={inp} value={cor.salutation} onChange={set('salutation')} placeholder="Dear ..." /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={cor.date} onChange={set('date')} /></Field>
+      </div>
+      <Field lbl="Letter body (required)"><textarea style={{ ...inp, minHeight: 170, resize: 'vertical' }} value={cor.body} onChange={set('body')} placeholder="Write the approved message. Paragraph breaks are preserved in the PDF." /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Signatory"><input style={inp} value={cor.signatoryName} onChange={set('signatoryName')} /></Field>
+        <Field lbl="Signatory role"><input style={inp} value={cor.signatoryRole} onChange={set('signatoryRole')} /></Field>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Event brief: one clear source for the human-critical operating plan. It is
+// intentionally fact-led; no pricing, safety policy or programme is invented.
+// ---------------------------------------------------------------------------
+function EventBriefForm({ brief, setBrief }: any) {
+  const set = (k: string) => (e: any) => setBrief({ ...brief, [k]: e.target.value });
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Event / stop (required)"><input style={inp} value={brief.eventName} onChange={set('eventName')} placeholder="Official event name" /></Field>
+        <Field lbl="Date"><input type="date" style={inp} value={brief.date} onChange={set('date')} /></Field>
+      </div>
+      <Field lbl="Venue / location"><input style={inp} value={brief.venue} onChange={set('venue')} placeholder="Venue and locality" /></Field>
+      <Field lbl="Objective"><textarea style={{ ...inp, minHeight: 64 }} value={brief.objective} onChange={set('objective')} placeholder="What success looks like for this stop" /></Field>
+      <Field lbl="Audience / guest notes"><textarea style={{ ...inp, minHeight: 64 }} value={brief.audience} onChange={set('audience')} placeholder="Audience, access, partners, VIPs, special notes" /></Field>
+      <Field lbl="Run of show / key beats"><textarea style={{ ...inp, minHeight: 100 }} value={brief.schedule} onChange={set('schedule')} placeholder="Time — activity\nTime — activity" /></Field>
+      <Field lbl="Safety & escalation notes"><textarea style={{ ...inp, minHeight: 80 }} value={brief.safety} onChange={set('safety')} placeholder="Approved safety plan, access restrictions, escalation contacts" /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field lbl="Event lead"><input style={inp} value={brief.lead} onChange={set('lead')} placeholder="Name and role" /></Field>
+        <Field lbl="Day-of contact"><input style={inp} value={brief.contact} onChange={set('contact')} placeholder="Approved phone or email" /></Field>
       </div>
     </div>
   );
