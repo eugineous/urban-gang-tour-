@@ -166,6 +166,12 @@ export async function POST(req: Request) {
         await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','save_setting',$1)`, [JSON.stringify({ key: data.key })]);
         return NextResponse.json({ ok: true });
       case 'bookingStatus':
+        if (typeof data?.id !== 'string' || !/^B-[A-Z0-9-]{4,40}$/i.test(data.id)) {
+          return NextResponse.json({ error: 'invalid_booking_id' }, { status: 400 });
+        }
+        if (!['new', 'review', 'replied', 'confirmed', 'closed'].includes(data.status)) {
+          return NextResponse.json({ error: 'invalid_booking_status' }, { status: 400 });
+        }
         await q(`UPDATE bookings SET status=$2 WHERE id=$1`, [data.id, data.status]);
         return NextResponse.json({ ok: true });
       case 'orderStatus':

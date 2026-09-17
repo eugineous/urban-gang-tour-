@@ -25,6 +25,9 @@ const Gallery = dynamic(() => import('./ops/Gallery'), { ssr: false, loading: op
 const Marketplace = dynamic(() => import('./ops/Marketplace'), { ssr: false, loading: opsLoading });
 const AdminAccounts = dynamic(() => import('./ops/AdminAccounts'), { ssr: false, loading: opsLoading });
 const DocGen = dynamic(() => import('./docs/DocGen'), { ssr: false, loading: opsLoading });
+const BookingsInbox = dynamic(() => import('./BookingsInbox'), { ssr: false, loading: opsLoading });
+const GmailInbox = dynamic(() => import('./GmailInbox'), { ssr: false, loading: opsLoading });
+const SecurityPanel = dynamic(() => import('./SecurityPanel'), { ssr: false, loading: opsLoading });
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111' };
 const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
@@ -34,7 +37,7 @@ const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', border: 
 const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' };
 const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
 
-const TABS = ['Dashboard', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic', 'Admins'] as const;
+const TABS = ['Dashboard', 'Inbox', 'Bookings', 'Orders', 'Content', 'Newsroom', 'Comms', 'Site & SEO', 'People', 'Traffic', 'Admins', 'Security'] as const;
 const OPS_TABS = ['Events', 'Products', 'Gallery', 'Marketplace', 'Budgeter', 'Invoices', 'Documents', 'Payments', 'Contacts', 'Payouts', 'Expenses', 'Pipeline', 'Promos', 'Checklists', 'Reviews'] as const;
 type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 
@@ -46,7 +49,7 @@ type Tab = (typeof TABS)[number] | (typeof OPS_TABS)[number];
 // sync with lib/server/admin-accounts.ts's MODULE_KEYS and the route-level
 // perm mapping - it is not itself a source of truth.
 const TAB_PERM: Partial<Record<Tab, string>> = {
-  Bookings: 'bookings', Orders: 'orders', Content: 'content', Newsroom: 'newsroom',
+  Inbox: 'bookings', Bookings: 'bookings', Orders: 'orders', Content: 'content', Newsroom: 'newsroom',
   Comms: 'comms', 'Site & SEO': 'site_seo', People: 'people', Traffic: 'traffic',
   Events: 'events', Products: 'products', Gallery: 'gallery', Marketplace: 'marketplace',
   Budgeter: 'ops_budgeter', Invoices: 'ops_invoices', Documents: 'documents', Payments: 'ops_payments',
@@ -61,7 +64,7 @@ async function api(path: string, opts?: RequestInit) {
   return { status: r.status, data: await r.json().catch(() => ({})) };
 }
 
-export default function AdminApp() {
+export default function AdminApp({ googleClientId }: { googleClientId: string }) {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
@@ -90,7 +93,7 @@ export default function AdminApp() {
   // access the account may not actually have.
   const canSee = useCallback((t: Tab): boolean => {
     if (t === 'Dashboard') return true;
-    if (t === 'Admins') return session?.scope === 'super_admin';
+    if (t === 'Admins' || t === 'Security') return session?.scope === 'super_admin';
     const perm = TAB_PERM[t];
     if (!perm) return true;
     if (!session) return false;
@@ -118,6 +121,11 @@ export default function AdminApp() {
       setStats(s[0] || null);
     });
   }, [load]);
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    if (requested && ([...TABS, ...OPS_TABS] as readonly string[]).includes(requested)) setTab(requested as Tab);
+  }, []);
 
   const viewFor: Record<string, string> = {
     Bookings: 'bookings', Orders: 'orders', Content: 'posts', Newsroom: 'submissions',
@@ -148,9 +156,9 @@ export default function AdminApp() {
 
   const login = async () => {
     setErr('');
-    const { status, data } = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ code }) });
+    const { status, data } = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: code }) });
     if (status === 200) { setAuthed(true); await refreshSession(); const s = await load('stats'); setStats(s[0] || null); }
-    else setErr(data.error === 'wrong_code' ? 'Wrong access code.' : data.error === 'admin_not_configured' ? 'ADMIN_ACCESS_CODE env var is not set in Vercel.' : 'Login failed: ' + (data.error || status));
+    else setErr(data.error === 'wrong_password' ? 'That password is not correct.' : data.error === 'admin_not_configured' ? 'Control Room login has not been configured yet.' : 'Login failed: ' + (data.error || status));
   };
 
   // Google Sign-In (GIS) — alternative to the access code. The gsi/client
@@ -158,7 +166,7 @@ export default function AdminApp() {
   // login card is showing and the library is ready.
   useEffect(() => {
     if (authed !== false) return;
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = googleClientId;
     if (!clientId) return;
     let tries = 0;
     const t = setInterval(() => {
@@ -179,7 +187,7 @@ export default function AdminApp() {
       } else if (++tries > 40) clearInterval(t);
     }, 250);
     return () => clearInterval(t);
-  }, [authed, load]);
+  }, [authed, load, googleClientId]);
 
   const save = async (kind: string, data: any, after?: () => void) => {
     setBusy(true);
@@ -203,14 +211,15 @@ export default function AdminApp() {
         <div style={{ ...card, maxWidth: 420, margin: '60px auto', textAlign: 'center' }}>
           <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 64, margin: '0 auto 10px' }} />
           <h1 style={{ fontFamily: 'Anton', fontSize: 28, margin: '0 0 4px' }}>CONTROL ROOM</h1>
-          <div style={{ color: '#888', fontSize: 12, marginBottom: 16 }}>authorised staff only</div>
+          <div style={{ color: '#666', fontSize: 12, marginBottom: 16 }}>Authorised staff only</div>
           <div id="gsi-admin-btn" style={{ display: 'flex', justifyContent: 'center', minHeight: 44, marginBottom: 14 }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 12px', color: '#aaa', fontSize: 12 }}>
-            <span style={{ flex: 1, borderTop: '1px solid #ddd' }} /> or use your access code <span style={{ flex: 1, borderTop: '1px solid #ddd' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 12px', color: '#888', fontSize: 12 }}>
+            <span style={{ flex: 1, borderTop: '1px solid #ddd' }} /> or use your password <span style={{ flex: 1, borderTop: '1px solid #ddd' }} />
           </div>
-          <input style={inp} type="password" placeholder="Access code" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && login()} />
+          <input style={inp} type="password" autoComplete="current-password" aria-label="Control Room password" placeholder="Control Room password" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && login()} />
           {err && <div style={{ color: '#c00', fontSize: 13, marginTop: 8 }}>{err}</div>}
-          <button style={{ ...btnDark, width: '100%', marginTop: 12, color: C.yellow }} onClick={login}>ENTER CONTROL ROOM</button>
+          <button style={{ ...btnDark, width: '100%', marginTop: 12, color: C.yellow }} onClick={login} disabled={!code}>ENTER CONTROL ROOM</button>
+          {!googleClientId && <div style={{ marginTop: 12, fontSize: 11, color: '#8A4B00', background: '#FFF6CC', padding: 8, borderRadius: 8 }}>Google Sign-In is waiting for server configuration. Password login still works.</div>}
         </div>
       </Shell>
     );
@@ -266,6 +275,7 @@ export default function AdminApp() {
           <Dashboard stats={stats} />
         </div>
       )}
+      {tab === 'Inbox' && <GmailInbox googleClientId={googleClientId} say={say} />}
       {tab === 'Events' && <Events />}
       {tab === 'Products' && <Products />}
       {tab === 'Gallery' && <Gallery />}
@@ -281,16 +291,7 @@ export default function AdminApp() {
       {tab === 'Promos' && <Promos />}
       {tab === 'Checklists' && <Checklists />}
       {tab === 'Reviews' && <Reviews />}
-      {tab === 'Bookings' && (
-        <Table rows={rows} cols={['id', 'name', 'org', 'type', 'email', 'phone', 'message', 'status']}
-          exportKind="bookings"
-          actions={(r) => (
-            <select defaultValue={r.status} style={{ ...inp, width: 110, padding: 6 }}
-              onChange={(e) => save('bookingStatus', { id: r.id, status: e.target.value }, () => {})}>
-              {['new', 'review', 'confirmed', 'closed'].map((s) => <option key={s}>{s}</option>)}
-            </select>
-          )} />
-      )}
+      {tab === 'Bookings' && <BookingsInbox rows={rows} googleClientId={googleClientId} say={say} onChanged={() => load('bookings').then(setRows)} />}
       {tab === 'Orders' && (
         <>
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>
@@ -354,13 +355,15 @@ export default function AdminApp() {
       {tab === 'People' && <PeopleTab load={load} />}
       {tab === 'Traffic' && <TrafficTab rows={rows} />}
       {tab === 'Admins' && <AdminAccounts />}
+      {tab === 'Security' && <SecurityPanel googleClientId={googleClientId} say={say} />}
     </Shell>
   );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
   return <div style={{ minHeight: '100vh', background: C.pink, padding: '26px 18px 80px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
-    <div style={{ maxWidth: 1200, margin: '0 auto' }}>{children}</div>
+    <style>{`@media (min-width: 860px){.admin-split{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.65fr);gap:14px;align-items:start}}@media (max-width:859px){.admin-split{display:grid;gap:14px}.admin-split>section:first-child{max-height:420px!important}}`}</style>
+    <div style={{ maxWidth: 1280, margin: '0 auto' }}>{children}</div>
   </div>;
 }
 
