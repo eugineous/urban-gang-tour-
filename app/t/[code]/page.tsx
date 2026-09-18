@@ -140,7 +140,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
           <div className={!paid ? 'tk-blur' : used ? 'tk-dim' : undefined}>
             <div className="tk-top">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" />
+              <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
               <span className="tk-ppp">PPP TV KENYA</span>
             </div>
             <div className="tk-rule" />

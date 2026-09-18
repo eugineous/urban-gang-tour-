@@ -91,7 +91,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
         <div style={{ background: '#111', padding: '20px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style={{ height: 46, width: 'auto' }} />
+            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 46, width: 'auto' }} />
             <div>
               <div style={{ fontFamily: anton, fontSize: 12, letterSpacing: '.06em', color: '#FFD400', textTransform: 'uppercase' }}>Urban Gang Tour</div>
               <div style={{ fontFamily: anton, fontSize: 22, color: '#fff', textTransform: 'uppercase', lineHeight: 1.1 }}>Official Receipt</div>

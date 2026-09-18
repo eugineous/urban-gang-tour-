@@ -64,7 +64,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ serial:
         <div style={{ background: '#111', padding: '20px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style={{ height: 42, width: 'auto' }} />
+            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 42, width: 'auto' }} />
             <div>
               <div style={{ fontFamily: anton, fontSize: 11, letterSpacing: '.06em', color: '#FFD400', textTransform: 'uppercase' }}>Urban Gang Tour</div>
               <div style={{ fontFamily: anton, fontSize: 20, color: '#fff', textTransform: 'uppercase', lineHeight: 1.1 }}>Document Check</div>

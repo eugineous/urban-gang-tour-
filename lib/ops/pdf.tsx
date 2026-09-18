@@ -67,12 +67,12 @@ let logoCache: string | null | undefined;
 export async function getLogoDataUri(): Promise<string | null> {
   if (logoCache !== undefined) return logoCache;
   try {
-    const buf = await readFile(path.join(process.cwd(), 'public', 'assets', 'ugt-logo-v2.png'));
+    const buf = await readFile(path.join(process.cwd(), 'public', 'uploads', 'URBAN GANG TOUR OFFICIAL LOGO.png'));
     logoCache = 'data:image/png;base64,' + buf.toString('base64');
     return logoCache;
   } catch { /* fall through */ }
   try {
-    const r = await fetch('https://urbangangtour.co.ke/assets/ugt-logo-v2.png');
+    const r = await fetch('https://urbangangtour.co.ke/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png');
     if (r.ok) {
       const buf = Buffer.from(await r.arrayBuffer());
       logoCache = 'data:image/png;base64,' + buf.toString('base64');

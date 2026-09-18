@@ -219,7 +219,7 @@ export default function AdminApp({ googleClientId }: { googleClientId: string })
     return (
       <LoginShell>
         <div style={{ ...card, maxWidth: 420, margin: '60px auto', textAlign: 'center' }}>
-          <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 64, margin: '0 auto 10px' }} />
+          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="" style={{ height: 64, margin: '0 auto 10px' }} />
           <h1 style={{ fontFamily: 'Anton', fontSize: 28, margin: '0 0 4px' }}>CONTROL ROOM</h1>
           <div style={{ color: '#666', fontSize: 12, marginBottom: 16 }}>Authorised staff only</div>
           <div id="gsi-admin-btn" style={{ display: 'flex', justifyContent: 'center', minHeight: 44, marginBottom: 14 }} />
@@ -344,7 +344,7 @@ function Shell({ children, tab, setTab, canSee, onLogout }: { children: React.Re
   const [title, subtitle] = labels[tab] || [tab, 'Manage this part of the Urban Gang operation.'];
   return <div className="cr-shell">
     <style>{`@media (min-width: 860px){.admin-split{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.65fr);gap:14px;align-items:start}}@media (max-width:859px){.admin-split{display:grid;gap:14px}.admin-split>section:first-child{max-height:420px!important}}`}</style>
-    <header className="cr-topbar"><div className="cr-brand"><img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" /><strong>CONTROL ROOM</strong><span>Internal operations</span></div><div className="cr-topbar-spacer" /><button className="cr-logout" onClick={onLogout}>Log out</button></header>
+    <header className="cr-topbar"><div className="cr-brand"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /><strong>CONTROL ROOM</strong><span>Internal operations</span></div><div className="cr-topbar-spacer" /><button className="cr-logout" onClick={onLogout}>Log out</button></header>
     <div className="cr-layout">
       <aside className="cr-sidebar" aria-label="Control Room navigation">
         {NAV_GROUPS.map((group) => {
@@ -360,7 +360,7 @@ function Shell({ children, tab, setTab, canSee, onLogout }: { children: React.Re
 }
 
 function LoginShell({ children }: { children: React.ReactNode }) {
-  return <div className="cr-login"><header className="cr-login-brand"><img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" /><strong>CONTROL ROOM</strong></header><main className="cr-login-main">{children}</main></div>;
+  return <div className="cr-login"><header className="cr-login-brand"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /><strong>CONTROL ROOM</strong></header><main className="cr-login-main">{children}</main></div>;
 }
 
 function Dashboard({ stats }: { stats: any }) {

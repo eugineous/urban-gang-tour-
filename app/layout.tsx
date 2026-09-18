@@ -145,7 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             regenerate the whole tree (error 418) on slow loads. */}
         <div id="boot-veil" aria-hidden="true" suppressHydrationWarning>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 84, width: 'auto' }} />
+          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 84, width: 'auto' }} />
           <div className="boot-veil-bar"><span /></div>
         </div>
         <noscript>

@@ -141,7 +141,7 @@ export function BottomTabBar() {
         <div className="ugt-sheet" role="dialog" aria-label="Site menu">
           <div className="ugt-sheet-head">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" />
+            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
             <button className="ugt-sheet-close" aria-label="Close menu" onClick={() => setOpen(false)}>✕</button>
           </div>
           <nav className="ugt-sheet-links">

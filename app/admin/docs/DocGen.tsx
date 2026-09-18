@@ -169,6 +169,27 @@ const PROMO_SPEC: Record<string, PSpec> = {
 const PROMO_KEYS = Object.keys(PROMO_SPEC) as DocType[];
 const PROMO_TYPES: { key: DocType; label: string }[] = PROMO_KEYS.map((k) => ({ key: k, label: PROMO_SPEC[k].label }));
 const isPromoType = (t: DocType) => (PROMO_KEYS as string[]).includes(t);
+// These are intentional visual masters rather than transactional forms: they
+// give the team a live, printable reference for every physical brand touchpoint
+// that does not yet need a serial or person/event-specific data merge.
+const PRODUCTION_REFERENCES = [
+  { group: 'Identity', label: 'Founder business card', file: '01-business-card-eugine-ticket.html' },
+  { group: 'Identity', label: 'Artist / presenter business card', file: '02-business-card-lucy-torn-poster.html' },
+  { group: 'Identity', label: 'Team business card', file: '03-business-card-team-backstage.html' },
+  { group: 'Comms', label: 'Urban Wire newsletter', file: '09-newsletter-the-urban-wire.html' },
+  { group: 'Comms', label: 'Email signature', file: '21-email-signature.html' },
+  { group: 'Sales', label: 'Brochure / one-pager', file: '25-brochure-one-pager.html' },
+  { group: 'Sales', label: 'Artist & crew rate card', file: '51-artist-crew-rate-card.html' },
+  { group: 'Event print', label: 'Campus Rave wristband', file: '13-wristband-event-campus-rave.html' },
+  { group: 'Event print', label: 'Outdoor teardrop flags', file: '14-outdoor-teardrops-telescopic-handflag-to-scale.html' },
+  { group: 'Event print', label: '3 × 5 ft event flag', file: '15-event-flag-3x5ft.html' },
+  { group: 'Event print', label: 'Press / media wall', file: '16-press-media-wall-3x2.25m.html' },
+  { group: 'Event print', label: 'Stage backdrop', file: '17-stage-backdrop-20x8ft.html' },
+  { group: 'Merch', label: 'Sticker pack', file: '28-sticker-pack-a5.html' },
+  { group: 'Merch', label: 'Bandana print', file: '29-bandana-55x55cm.html' },
+  { group: 'Merch', label: 'Team kit', file: '30-team-kit-backs-jersey-hoodie.html' },
+  { group: 'Social', label: 'Highlight covers', file: '20-ig-highlight-covers.html' },
+] as const;
 function safeName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
 }
@@ -429,6 +450,7 @@ export default function DocGen() {
   const [result, setResult] = useState<{ serial: string; pdf_url: string; filename: string; png_url?: string; isPromo?: boolean } | null>(null);
   const [toast, setToast] = useState('');
   const [recent, setRecent] = useState<RecentDoc[]>([]);
+  const [reference, setReference] = useState<(typeof PRODUCTION_REFERENCES)[number] | null>(null);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3500); };
 
@@ -996,6 +1018,7 @@ export default function DocGen() {
           </table>
         </div>
       </div>
+      <ProductionLibrary reference={reference} setReference={setReference} />
     </div>
   );
 }
@@ -1790,6 +1813,34 @@ function CorrespondenceForm({ cor, setCor }: any) {
         <Field lbl="Signatory"><input style={inp} value={cor.signatoryName} onChange={set('signatoryName')} /></Field>
         <Field lbl="Signatory role"><input style={inp} value={cor.signatoryRole} onChange={set('signatoryRole')} /></Field>
       </div>
+
+    </div>
+  );
+}
+
+function ProductionLibrary({ reference, setReference }: {
+  reference: (typeof PRODUCTION_REFERENCES)[number] | null;
+  setReference: (v: (typeof PRODUCTION_REFERENCES)[number] | null) => void;
+}) {
+  const groups = Array.from(new Set(PRODUCTION_REFERENCES.map((x) => x.group)));
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <div><h3 style={{ ...h3, margin: 0 }}>Production design library</h3><div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Official-logo mockups for every non-transactional physical and digital touchpoint. Open a design, inspect it at full scale, then hand it to print or use it as the locked visual master.</div></div>
+        {reference && <a href={`/doc-templates/${reference.file}`} target="_blank" rel="noreferrer" style={{ ...btnDark, textDecoration: 'none' }}>Open full size ↗</a>}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(170px,1fr))', gap: 8, marginTop: 14 }}>
+        {groups.map((group) => (
+          <div key={group} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 9, background: '#fafafa' }}>
+            <div style={{ fontFamily: 'Bungee', fontSize: 8, letterSpacing: '.08em', color: '#777', marginBottom: 7 }}>{group.toUpperCase()}</div>
+            {PRODUCTION_REFERENCES.filter((x) => x.group === group).map((x) => <button key={x.file} onClick={() => setReference(x)} style={{ ...btnSmall, display: 'block', width: '100%', marginBottom: 5, textAlign: 'left', background: reference?.file === x.file ? '#E6218C' : '#fff', color: reference?.file === x.file ? '#fff' : '#111' }}>{x.label}</button>)}
+          </div>
+        ))}
+      </div>
+      {reference && <div style={{ marginTop: 14, border: '2px solid #111', borderRadius: 12, overflow: 'hidden', background: '#171017' }}>
+        <div style={{ color: '#fff', padding: '8px 12px', fontFamily: 'Anton', letterSpacing: '.03em' }}>{reference.label}</div>
+        <iframe title={reference.label} src={`/doc-templates/${reference.file}`} style={{ display: 'block', width: '100%', height: 620, border: 0, background: '#1a0c13' }} />
+      </div>}
     </div>
   );
 }

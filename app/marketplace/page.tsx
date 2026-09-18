@@ -35,6 +35,8 @@ export default async function MarketplacePage() {
     <main style={{ background: '#0c0c0c', minHeight: '80vh', padding: '48px 18px 90px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 30 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ width: 'min(210px, 55vw)', height: 'auto', margin: '0 auto 14px', display: 'block' }} />
           <h1 style={{ fontFamily: 'Anton', color: '#fff', fontSize: 'clamp(32px,7vw,58px)', textTransform: 'uppercase', margin: '0 0 8px', WebkitTextStroke: '1px #E6218C' }}>Ticket Marketplace</h1>
           <p style={{ color: '#bbb', maxWidth: 620, margin: '0 auto', lineHeight: 1.6 }}>
             Independently organized events, ticketed securely through Urban Gang Tour. Each event below is run by its own

@@ -99,7 +99,7 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
       <div className="tks-wrap">
         <div className="tks-head">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" />
+          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
           <div className="tks-title">Your Tickets</div>
           <div className="tks-sub">ORDER <b>{id}</b>{meta ? <> &middot; {meta.date}</> : null}</div>
         </div>

@@ -152,7 +152,7 @@ export default function GateApp() {
     return (
       <div style={{ ...wrap, alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 60, marginBottom: 14 }} />
+        <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 60, marginBottom: 14 }} />
         <div style={{ fontFamily: anton, fontSize: 26, textTransform: 'uppercase' }}>Gate Scanner</div>
         <p style={{ color: '#9a9aa4', fontSize: 13.5, lineHeight: 1.6, maxWidth: 300 }}>
           {permDenied
@@ -178,7 +178,7 @@ export default function GateApp() {
       <div style={{ position: 'relative', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '14px 16px', background: 'linear-gradient(180deg, rgba(12,12,12,.9), rgba(12,12,12,0))' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/ugt-logo-v2.png" alt="" style={{ height: 32 }} />
+          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 32 }} />
           <div>
             <div style={{ fontFamily: anton, fontSize: 16, lineHeight: 1, textTransform: 'uppercase' }}>Gate Scanner</div>
             <div style={{ fontSize: 10, letterSpacing: '.18em', color: C.yellow }}>SCANS: {scans}</div>
