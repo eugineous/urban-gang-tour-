@@ -173,6 +173,7 @@ const isPromoType = (t: DocType) => (PROMO_KEYS as string[]).includes(t);
 // give the team a live, printable reference for every physical brand touchpoint
 // that does not yet need a serial or person/event-specific data merge.
 const PRODUCTION_REFERENCES = [
+  { group: 'Creative review', label: 'Round 01 — direction board', file: '00-creative-direction-review.html' },
   { group: 'Identity', label: 'Founder business card', file: '01-business-card-eugine-ticket.html' },
   { group: 'Identity', label: 'Artist / presenter business card', file: '02-business-card-lucy-torn-poster.html' },
   { group: 'Identity', label: 'Team business card', file: '03-business-card-team-backstage.html' },
