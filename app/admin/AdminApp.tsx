@@ -69,6 +69,18 @@ const TAB_PERM: Partial<Record<Tab, string>> = {
 
 interface AdminSession { scope: 'super_admin' | 'crew_admin'; perms: string[] }
 
+// A scoped teammate should land in the place where they can act immediately,
+// rather than in a super-admin financial overview full of irrelevant cards.
+function startingTab(scope: AdminSession['scope'], perms: string[]): Tab {
+  if (scope === 'super_admin') return 'Dashboard';
+  const first: [string, Tab][] = [
+    ['gallery', 'Gallery'], ['newsroom', 'Newsroom'], ['content', 'Content'],
+    ['bookings', 'Bookings'], ['events', 'Events'], ['products', 'Products'],
+    ['ops_contacts', 'Contacts'], ['documents', 'Documents'], ['gate_scanner', 'Events'],
+  ];
+  return first.find(([perm]) => perms.includes(perm))?.[1] || 'Dashboard';
+}
+
 async function api(path: string, opts?: RequestInit) {
   const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
   return { status: r.status, data: await r.json().catch(() => ({})) };
@@ -126,6 +138,7 @@ export default function AdminApp({ googleClientId }: { googleClientId: string })
     api('/api/admin/me').then(async ({ status, data }) => {
       if (status === 401) { setAuthed(false); return; }
       setSession({ scope: data.scope, perms: data.perms || [] });
+      setTab(startingTab(data.scope, data.perms || []));
       setAuthed(true);
       const s = await load('stats');
       setStats(s[0] || null);
