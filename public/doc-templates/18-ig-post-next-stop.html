@@ -1,2 +1,216 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#121019;font-family:Arial,Helvetica,sans-serif}.post{width:600px;height:600px;position:relative;overflow:hidden;background:#f900b5;color:#fff}.art{position:absolute;inset:0;background:radial-gradient(circle at 82% 13%,#ffd523 0 9%,transparent 9.5%),radial-gradient(circle at 8% 84%,#20c9e4 0 13%,transparent 13.5%),linear-gradient(135deg,#f900b5,#8b104f)}.pattern{position:absolute;inset:0;opacity:.16;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:13px 13px}.top{position:relative;z-index:3;padding:24px;display:flex;align-items:flex-start;justify-content:space-between}.logo{width:134px;height:auto}.date{background:#ffd523;color:#18151b;padding:8px 12px;text-align:center;min-width:72px;border:2px solid #18151b;box-shadow:3px 3px #18151b}.date b{display:block;font-size:30px;line-height:.8}.date span{font-size:8px;font-weight:900;letter-spacing:.12em}.faces{position:absolute;z-index:2;left:35px;right:35px;top:145px;height:230px}.faces img{position:absolute;width:154px;height:202px;object-fit:cover;border:5px solid #fff;box-shadow:7px 8px 0 #18151b}.faces img:nth-child(1){left:72px;transform:rotate(-5deg)}.faces img:nth-child(2){right:72px;transform:rotate(5deg)}.faces img:nth-child(3){left:0;top:91px;width:84px;height:84px;border-radius:50%;border-color:#ffd523}.faces img:nth-child(4){right:0;top:91px;width:84px;height:84px;border-radius:50%;border-color:#20c9e4}.caption{position:absolute;z-index:4;top:361px;left:25px;right:25px;text-align:center}.caption small{font-size:8px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;background:#20c9e4;color:#18151b;padding:6px 9px}.school{font-size:30px;line-height:.9;text-transform:uppercase;font-weight:950;letter-spacing:-.045em;text-shadow:3px 3px #18151b;margin:13px 0 7px}.tags{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}.tags span{padding:5px 8px;background:#18151b;border:1px solid #fff;font-size:9px;font-weight:900;text-transform:uppercase}.footer{position:absolute;z-index:3;bottom:0;left:0;right:0;min-height:104px;background:#18151b;padding:13px 26px;text-align:center}.footer b{display:block;color:#ffd523;font-size:8px;letter-spacing:.14em;text-transform:uppercase}.lineup{margin-top:6px;font-size:10px;line-height:1.35;font-weight:900;text-transform:uppercase;color:#fff}</style></head><body><main class="post" data-doc-page="promo"><div class="art"></div><div class="pattern"></div><header class="top"><img class="logo" src="../uploads/URBAN GANG TOUR OFFICIAL LOGO.png" alt="Urban Gang Tour"><div class="date"><b data-field="dateDay"></b><span data-field="dateMonth"></span></div></header><section class="faces"><img data-hero-slot="0" src="../assets/crew/eugine-micah.png" alt=""><img data-hero-slot="1" src="../assets/crew/lucy-ogunde.jpg" alt=""><img data-hero-slot="2" src="../assets/crew/hype-ola.jpg" alt=""><img data-hero-slot="3" src="../assets/crew/dj-carian.jpg" alt=""></section><section class="caption"><small>The gang is pulling up to</small><h1 class="school" data-field="schoolName"></h1><div class="tags"><span data-field="tagline1"></span><span data-field="tagline2"></span></div></section><footer class="footer"><b>Vibes by</b><div class="lineup" data-field="lineup"></div></footer></main></body></html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #121019;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      .post {
+        width: 600px;
+        height: 600px;
+        position: relative;
+        overflow: hidden;
+        background: #f900b5;
+        color: #fff;
+      }
+      .art {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 82% 13%, #ffd523 0 9%, transparent 9.5%),
+          radial-gradient(circle at 8% 84%, #20c9e4 0 13%, transparent 13.5%),
+          linear-gradient(135deg, #f900b5, #8b104f);
+      }
+      .pattern {
+        position: absolute;
+        inset: 0;
+        opacity: 0.16;
+        background-image: radial-gradient(#fff 1px, transparent 1px);
+        background-size: 13px 13px;
+      }
+      .top {
+        position: relative;
+        z-index: 3;
+        padding: 24px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+      .logo {
+        width: 134px;
+        height: auto;
+      }
+      .date {
+        background: #ffd523;
+        color: #18151b;
+        padding: 8px 12px;
+        text-align: center;
+        min-width: 72px;
+        border: 2px solid #18151b;
+        box-shadow: 3px 3px #18151b;
+      }
+      .date b {
+        display: block;
+        font-size: 30px;
+        line-height: 0.8;
+      }
+      .date span {
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+      }
+      .faces {
+        position: absolute;
+        z-index: 2;
+        left: 35px;
+        right: 35px;
+        top: 145px;
+        height: 230px;
+      }
+      .faces img {
+        position: absolute;
+        width: 154px;
+        height: 202px;
+        object-fit: cover;
+        border: 5px solid #fff;
+        box-shadow: 7px 8px 0 #18151b;
+      }
+      .faces img:nth-child(1) {
+        left: 72px;
+        transform: rotate(-5deg);
+      }
+      .faces img:nth-child(2) {
+        right: 72px;
+        transform: rotate(5deg);
+      }
+      .faces img:nth-child(3) {
+        left: 0;
+        top: 91px;
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        border-color: #ffd523;
+      }
+      .faces img:nth-child(4) {
+        right: 0;
+        top: 91px;
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        border-color: #20c9e4;
+      }
+      .caption {
+        position: absolute;
+        z-index: 4;
+        top: 361px;
+        left: 25px;
+        right: 25px;
+        text-align: center;
+      }
+      .caption small {
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        background: #20c9e4;
+        color: #18151b;
+        padding: 6px 9px;
+      }
+      .school {
+        font-size: 30px;
+        line-height: 0.9;
+        text-transform: uppercase;
+        font-weight: 950;
+        letter-spacing: -0.045em;
+        text-shadow: 3px 3px #18151b;
+        margin: 13px 0 7px;
+      }
+      .tags {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .tags span {
+        padding: 5px 8px;
+        background: #18151b;
+        border: 1px solid #fff;
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .footer {
+        position: absolute;
+        z-index: 3;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        min-height: 104px;
+        background: #18151b;
+        padding: 13px 26px;
+        text-align: center;
+      }
+      .footer b {
+        display: block;
+        color: #ffd523;
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .lineup {
+        margin-top: 6px;
+        font-size: 10px;
+        line-height: 1.35;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="post" data-doc-page="promo">
+      <div class="art"></div>
+      <div class="pattern"></div>
+      <header class="top">
+        <img
+          class="logo"
+          src="../uploads/URBAN GANG TOUR OFFICIAL LOGO.png"
+          alt="Urban Gang Tour"
+        />
+        <div class="date">
+          <b data-field="dateDay">19</b><span data-field="dateMonth">JULY</span>
+        </div>
+      </header>
+      <section class="faces">
+        <img
+          data-hero-slot="0"
+          src="../assets/crew/eugine-micah.png"
+          alt=""
+        /><img
+          data-hero-slot="1"
+          src="../assets/crew/lucy-ogunde.jpg"
+          alt=""
+        /><img
+          data-hero-slot="2"
+          src="../assets/crew/hype-ola.jpg"
+          alt=""
+        /><img data-hero-slot="3" src="../assets/crew/dj-carian.jpg" alt="" />
+      </section>
+      <section class="caption">
+        <small>The gang is pulling up to</small>
+        <h1 class="school" data-field="schoolName">Lari Boys High School</h1>
+        <div class="tags">
+          <span data-field="tagline1">Talent Day</span><span data-field="tagline2">Festival of Colours</span>
+        </div>
+      </section>
+      <footer class="footer">
+        <b>Vibes by</b>
+        <div class="lineup" data-field="lineup">HYPE OLA · DJ CARIAN · LARRY RAJ</div>
+      </footer>
+    </main>
+  </body>
+</html>

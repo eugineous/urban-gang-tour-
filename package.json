@@ -5,6 +5,7 @@
   "scripts": {
     "predev": "node scripts/sync-assets.mjs",
     "dev": "next dev",
+    "docs:audit": "node scripts/audit-doc-templates.mjs",
     "prebuild": "node scripts/sync-assets.mjs",
     "build": "next build",
     "start": "next start",

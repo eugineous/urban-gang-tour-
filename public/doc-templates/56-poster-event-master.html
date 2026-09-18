@@ -1,6 +1,176 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-html,body{margin:0;padding:0;background:#121019;font-family:Arial,Helvetica,sans-serif}.poster{width:560px;height:784px;position:relative;overflow:hidden;background:#080b16;color:#fff}.art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.shade{position:absolute;inset:0;background:linear-gradient(180deg,#080b1677 0%,#080b1611 28%,#080b1633 48%,#080b16ed 84%,#080b16 100%)}.edge{position:absolute;inset:15px;border:1px solid #ffffff4d}.inside{position:relative;height:100%;padding:30px;display:flex;flex-direction:column}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.logo{width:145px;height:auto}.eyebrow{max-width:180px;text-align:right;color:#20c9e4;font-size:8px;line-height:1.45;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.kick{margin-top:auto;color:#ffd523;font-size:8px;letter-spacing:.17em;text-transform:uppercase;font-weight:900}.title{font-size:55px;line-height:.82;letter-spacing:-.065em;text-transform:uppercase;font-weight:950;margin:12px 0 17px;text-shadow:4px 4px 0 #f900b5;overflow-wrap:anywhere}.details{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1.5px solid #fff;color:#fff;padding:7px 9px;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.chip.yellow{background:#ffd523;color:#18151b;border-color:#ffd523}.chip.pink{background:#f900b5;border-color:#f900b5}.venue{margin-top:13px;font-size:10px;font-weight:900;letter-spacing:.08em;line-height:1.35;text-transform:uppercase}.cta{margin-top:16px;padding-top:12px;border-top:2px solid #20c9e4;color:#ffd523;font-size:8px;font-weight:900;letter-spacing:.1em;line-height:1.45;text-transform:uppercase}.brandline{position:absolute;bottom:18px;right:30px;color:#fff8;font-size:6px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
-</style></head><body>
-<main class="poster" data-doc-page="posMaster"><img class="art" src="../assets/doc-art/urban-gang-event-master.png" alt=""><div class="shade"></div><div class="edge"></div><section class="inside"><header class="top"><img class="logo" src="../uploads/URBAN GANG TOUR OFFICIAL LOGO.png" alt="Urban Gang Tour"><div class="eyebrow" data-field="eyebrow"></div></header><div class="kick">One city. One moment.</div><h1 class="title" data-field="eventName"></h1><div class="details"><span class="chip yellow" data-field="dateChip"></span><span class="chip pink" data-field="timeChip"></span></div><div class="venue" data-field="venueChip"></div><div class="cta" data-field="cta"></div></section><div class="brandline">Urban Gang Tour · official event artwork</div></main>
-</body></html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #121019;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      .poster {
+        width: 560px;
+        height: 784px;
+        position: relative;
+        overflow: hidden;
+        background: #080b16;
+        color: #fff;
+      }
+      .art {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          #080b1677 0%,
+          #080b1611 28%,
+          #080b1633 48%,
+          #080b16ed 84%,
+          #080b16 100%
+        );
+      }
+      .edge {
+        position: absolute;
+        inset: 15px;
+        border: 1px solid #ffffff4d;
+      }
+      .inside {
+        position: relative;
+        height: 100%;
+        padding: 30px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+      }
+      .top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+      }
+      .logo {
+        width: 145px;
+        height: auto;
+      }
+      .eyebrow {
+        max-width: 180px;
+        text-align: right;
+        color: #20c9e4;
+        font-size: 8px;
+        line-height: 1.45;
+        font-weight: 900;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+      .kick {
+        margin-top: auto;
+        color: #ffd523;
+        font-size: 8px;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+        font-weight: 900;
+      }
+      .title {
+        font-size: 55px;
+        line-height: 0.82;
+        letter-spacing: -0.065em;
+        text-transform: uppercase;
+        font-weight: 950;
+        margin: 12px 0 17px;
+        text-shadow: 4px 4px 0 #f900b5;
+        overflow-wrap: anywhere;
+      }
+      .details {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        border: 1.5px solid #fff;
+        color: #fff;
+        padding: 7px 9px;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .chip.yellow {
+        background: #ffd523;
+        color: #18151b;
+        border-color: #ffd523;
+      }
+      .chip.pink {
+        background: #f900b5;
+        border-color: #f900b5;
+      }
+      .venue {
+        margin-top: 13px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        line-height: 1.35;
+        text-transform: uppercase;
+      }
+      .cta {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 2px solid #20c9e4;
+        color: #ffd523;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        line-height: 1.45;
+        text-transform: uppercase;
+      }
+      .brandline {
+        position: absolute;
+        bottom: 18px;
+        right: 30px;
+        color: #fff8;
+        font-size: 6px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="poster" data-doc-page="posMaster">
+      <img
+        class="art"
+        src="../assets/doc-art/urban-gang-event-master-v2.png"
+        alt=""
+      />
+      <div class="shade"></div>
+      <div class="edge"></div>
+      <section class="inside">
+        <header class="top">
+          <img
+            class="logo"
+            src="../uploads/URBAN GANG TOUR OFFICIAL LOGO.png"
+            alt="Urban Gang Tour"
+          />
+          <div class="eyebrow" data-field="eyebrow">URBAN GANG TOUR PRESENTS</div>
+        </header>
+        <div class="kick">One city. One moment.</div>
+        <h1 class="title" data-field="eventName">THE NEXT WAVE</h1>
+        <div class="details">
+          <span class="chip yellow" data-field="dateChip">SAT 21 SEPT</span
+          ><span class="chip pink" data-field="timeChip">GATES 2 PM</span>
+        </div>
+        <div class="venue" data-field="venueChip">NAIROBI · VENUE TBA</div>
+        <div class="cta" data-field="cta">TICKETS / INFO: URBANGANGTOUR.CO.KE</div>
+      </section>
+      <div class="brandline">Urban Gang Tour · official event artwork</div>
+    </main>
+  </body>
+</html>

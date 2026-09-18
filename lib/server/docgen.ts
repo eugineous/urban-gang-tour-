@@ -165,10 +165,8 @@ export const PROMO_PARTNERS: PromoPartner[] = [
 
 // The stamped text blanks per promo template (data-field names). Only these
 // keys survive from the client payload (unknown fields are dropped), and each
-// maps 1:1 to a [data-field] leaf element in the template. Fields inside nested
-// markup (a headline split by <br>, a two-tone highlighted word) are NOT listed
-// - they stay at their template default because injectField only replaces a
-// tag-free text node.
+// maps 1:1 to a [data-field] element in the template. A field host may carry
+// intentional default copy; it is replaced only when the form submits a value.
 export const PROMO_FIELDS: Record<string, string[]> = {
   igNext:       ['dateDay', 'dateMonth', 'schoolName', 'tagline1', 'tagline2', 'lineup'],
   igStory:      ['date1', 'school1', 'venue1', 'date2', 'school2', 'venue2', 'date3', 'school3', 'venue3'],
