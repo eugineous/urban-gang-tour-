@@ -422,7 +422,11 @@ export function escapeHtml(v: unknown): string {
 }
 
 function injectField(html: string, field: string, value: string): string {
-  const re = new RegExp(`(<(div|span)\\b[^>]*\\bdata-field="${field}"[^>]*>)[^<]*?(</\\2>)`);
+  // Field hosts are intentionally plain-text elements, but they are not
+  // limited to div/span: meaningful headings such as a ticket's event name
+  // are often <h1>. Keep the paired-tag guard so nested markup is never
+  // flattened, while allowing every ordinary text element to be populated.
+  const re = new RegExp(`(<([a-z][\\w:-]*)\\b[^>]*\\bdata-field="${field}"[^>]*>)[^<]*?(</\\2>)`, 'i');
   return html.replace(re, (_m, open, _tag, close) => open + escapeHtml(value) + close);
 }
 
@@ -558,7 +562,7 @@ export async function fillTemplate(
   // [data-doc-page] node, so a <head> CSS rule would never reach the output.
   if (opts.tierScheme === 'ga') {
     html = html.replace(/<[^>]*\bdata-tier-gold="1"[^>]*>/g, (tag) =>
-      tag.replace(/#FFD400/g, '#E6218C').replace(/#f0a500/g, '#ff3d9e').replace(/color:#111/g, 'color:#fff'));
+      tag.replace(/#FFD400/gi, '#E6218C').replace(/#ffd523/gi, '#E6218C').replace(/#f0a500/gi, '#ff3d9e').replace(/color:#(?:111|18151b)/g, 'color:#fff'));
     html = html.replace(/<[^>]*\bdata-tier-goldbg="1"[^>]*>/g, (tag) =>
       tag.replace(/rgba\(255,212,0,\.06\)/g, 'rgba(230,33,140,.12)'));
   }
