@@ -537,7 +537,10 @@ export async function fillTemplate(
         (_m, open, close) => open + `<img src="${opts.qrDataUrl}" alt="Verify" style="width:100%;height:100%;object-fit:contain;display:block;background:#fff;" />` + close
       );
     } else if (badge) {
-      html = html.replace(/(<div\b[^>]*\bdata-doc-page="[^"]*"[^>]*>)/, (_m, open) => open + badge);
+      // Templates use both <div> and semantic <main> roots. Inject into either
+      // document-page host so a valid QR never silently disappears merely
+      // because a redesigned template uses the semantic element.
+      html = html.replace(/(<(?:div|main)\b[^>]*\bdata-doc-page="[^"]*"[^>]*>)/, (_m, open) => open + badge);
     } else {
       // generic swap path for templates that have an empty striped placeholder
       html = html.replace(
