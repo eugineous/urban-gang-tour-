@@ -430,6 +430,12 @@ function injectField(html: string, field: string, value: string): string {
   return html.replace(re, (_m, open, _tag, close) => open + escapeHtml(value) + close);
 }
 
+function appendInlineStyle(tag: string, css: string): string {
+  return tag.includes('style="')
+    ? tag.replace(/(style="[^"]*)"/, `$1;${css}"`)
+    : tag.replace(/>$/, ` style="${css}">`);
+}
+
 export interface FillOpts {
   serial: string; qrDataUrl?: string; method?: string; tierScheme?: 'ga' | 'vip';
   // Selectable chips (media accreditation "covering as", gate-pass "zone").
@@ -511,14 +517,14 @@ export async function fillTemplate(
     // snapshot, where an unterminated attribute swallows the next attribute into
     // a bogus name (e.g. `lane:title`) and produces invalid XML - which makes
     // the snapshot SVG fail to load. Keeping the quote keeps the markup valid.
-    html = html.replace(/<span\b[^>]*\bdata-chip="([^"]*)"[^>]*>/g, (tag, token) => {
-      if (on.has(token)) return tag.replace(/(style="[^"]*)"/, '$1;box-shadow:0 0 0 3px #111;position:relative;z-index:2;"');
-      if (dim && String(token).startsWith(dim)) return tag.replace(/(style="[^"]*)"/, '$1;opacity:.28;"');
+    html = html.replace(/<[a-z][\w:-]*\b[^>]*\bdata-chip="([^"]*)"[^>]*>/gi, (tag, token) => {
+      if (on.has(token)) return appendInlineStyle(tag, 'box-shadow:0 0 0 3px #111;position:relative;z-index:2;');
+      if (dim && String(token).startsWith(dim)) return appendInlineStyle(tag, 'opacity:.28;');
       return tag;
     });
-    html = html.replace(/(<span\b[^>]*\bdata-chip-box="([^"]*)"[^>]*>)[\s\S]*?(<\/span>)/g, (m, open, token, close) => {
+    html = html.replace(/(<([a-z][\w:-]*)\b[^>]*\bdata-chip-box="([^"]*)"[^>]*>)[\s\S]*?(<\/\2>)/gi, (m, open, _tag, token, close) => {
       if (!on.has(token)) return m;
-      const filled = open.replace(/(style="[^"]*)"/, '$1;background:#111;display:flex;align-items:center;justify-content:center;"');
+      const filled = appendInlineStyle(open, 'background:#111;display:flex;align-items:center;justify-content:center;');
       return filled + `<span style="color:#fff;font-size:11px;line-height:1;font-weight:700;">&#10003;</span>` + close;
     });
   }
@@ -1435,6 +1441,7 @@ export function buildValues(type: DocType, payload: any, serial: string): { valu
         inKindValue,
         paymentTerms: payload.paymentTerms || '',
         balanceDueDate: payload.balanceDueDate || '',
+        agreementNo: serial,
       },
       // lane -> single-select chip (dim the other lanes); rights -> multi-select
       // ticks. Same mechanism the accreditation / gate-pass chips use.

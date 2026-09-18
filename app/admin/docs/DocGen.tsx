@@ -2076,7 +2076,7 @@ function SchoolProposalForm({ sprop, setSprop }: any) {
 }
 
 // ---------------------------------------------------------------------------
-// Sponsorship agreement (single page, real contract, AGR serial + verify QR).
+// Sponsorship agreement draft (single page, AGR serial + verify QR).
 // lane is single-select (ticks + highlights the matching chip, dims the rest);
 // rights are multi-select ticks mirroring the contract's own checkboxes; fee
 // and in-kind value are agreed KSH figures formatted server-side.
@@ -2099,6 +2099,9 @@ function AgreementForm({ agr, setAgr }: any) {
   const exclusivityOn = (agr.rightsGranted || []).includes('EXCLUSIVITY');
   return (
     <div>
+      <div style={{ marginBottom: 12, padding: 10, borderRadius: 9, border: '1px solid #d59b00', background: '#fff8e6', fontSize: 11.5, lineHeight: 1.45, color: '#604700' }}>
+        <b>Commercial draft — review before signature.</b> Confirm the parties, scope, rights, payment, tax and cancellation terms with an authorised signatory and legal adviser where required. A serial and QR verify the issued record; they do not make unapproved terms legally valid.
+      </div>
       <Field lbl="Sponsor name (required)"><input style={inp} value={agr.sponsorName} onChange={set('sponsorName')} placeholder="Sponsor / brand legal name" /></Field>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <Field lbl="Sponsor address"><input style={inp} value={agr.sponsorAddress} onChange={set('sponsorAddress')} placeholder="P.O. Box / physical address" /></Field>
