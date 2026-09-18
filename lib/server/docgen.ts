@@ -426,7 +426,7 @@ function injectField(html: string, field: string, value: string): string {
   // limited to div/span: meaningful headings such as a ticket's event name
   // are often <h1>. Keep the paired-tag guard so nested markup is never
   // flattened, while allowing every ordinary text element to be populated.
-  const re = new RegExp(`(<([a-z][\\w:-]*)\\b[^>]*\\bdata-field="${field}"[^>]*>)[^<]*?(</\\2>)`, 'i');
+  const re = new RegExp(`(<([a-z][\\w:-]*)\\b[^>]*\\bdata-field="${field}"[^>]*>)[^<]*?(</\\2>)`, 'gi');
   return html.replace(re, (_m, open, _tag, close) => open + escapeHtml(value) + close);
 }
 
