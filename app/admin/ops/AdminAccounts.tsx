@@ -24,6 +24,17 @@ async function api(path: string, opts?: RequestInit) {
 
 const EMPTY = { email: '', role: 'crew_admin' as 'super_admin' | 'crew_admin', perms: [] as string[] };
 
+// Presets are a fast, understandable starting point for real operational roles.
+// They are not a second authorisation system: selecting one merely populates the
+// exact module permissions below, which the super-admin can still review/edit.
+const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] = [
+  { label: 'Photographer', description: 'Upload and organise event imagery.', perms: ['gallery'] },
+  { label: 'Content editor', description: 'Draft stories, update the news feed and publish approved content.', perms: ['content', 'newsroom', 'gallery'] },
+  { label: 'School liaison', description: 'Manage school leads, bookings, event details and parent/school communications.', perms: ['bookings', 'events', 'ops_contacts', 'comms', 'documents'] },
+  { label: 'Event lead', description: 'Run the event, tickets, gate, checklists, crew payouts and field documents.', perms: ['events', 'orders', 'gate_scanner', 'ops_checklists', 'ops_payouts', 'documents', 'ops_expenses'] },
+  { label: 'Merch manager', description: 'Manage products, orders, reviews and marketplace activity.', perms: ['products', 'orders', 'reviews', 'marketplace'] },
+];
+
 export default function AdminAccounts() {
   const [rows, setRows] = useState<Account[]>([]);
   const [moduleKeys, setModuleKeys] = useState<string[]>([]);
@@ -93,6 +104,15 @@ export default function AdminAccounts() {
         </div>
         {edit.role === 'crew_admin' && (
           <div style={{ marginTop: 12 }}>
+            <span style={label}>Start from an operational role</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 8, marginTop: 6, marginBottom: 14 }}>
+              {ROLE_PRESETS.map((preset) => (
+                <button key={preset.label} type="button" onClick={() => setEdit({ ...edit, perms: preset.perms })} style={{ textAlign: 'left', padding: '10px', border: '1px solid #ddd', borderRadius: 10, background: '#fff', cursor: 'pointer' }}>
+                  <b style={{ display: 'block', color: '#111', marginBottom: 3 }}>{preset.label}</b>
+                  <span style={{ fontSize: 11, color: '#666', lineHeight: 1.35 }}>{preset.description}</span>
+                </button>
+              ))}
+            </div>
             <span style={label}>Modules this account can access</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
               {moduleKeys.map((k) => (
