@@ -236,6 +236,12 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
     template: "17-stage-backdrop-20x8ft.html",
     promo: { kind: "post", png: [3000, 1200], pdf: "A3" },
   },
+  staffCard: {
+    code: "PROMO-CARD",
+    label: "Staff Business Card",
+    template: "02-business-card-lucy-torn-poster.html",
+    promo: { kind: "post", png: [1400, 1704], pdf: "A3" },
+  },
   igNext: {
     code: "PROMO-NEXT",
     label: "IG Post - Next Stop",
@@ -340,6 +346,7 @@ export const ACTIVE_DOC_TYPES = [
   "teamKit",
   "mediaWall",
   "stageBack",
+  "staffCard",
   "igNext",
   "igStory",
   "igWinner",
@@ -417,6 +424,7 @@ export const PROMO_FIELDS: Record<string, string[]> = {
   ],
   mediaWall: ["eventLabel", "wallLine", "handle"],
   stageBack: ["eventName", "eventLine", "hostLeft", "hostRight"],
+  staffCard: ["name", "role", "roleSecondary", "phone", "email", "website", "location", "handle"],
   igNext: [
     "dateDay",
     "dateMonth",
@@ -492,6 +500,16 @@ const PROMO_FIELD_LIMITS: Record<string, Record<string, number>> = {
     eventLine: 54,
     hostLeft: 24,
     hostRight: 24,
+  },
+  staffCard: {
+    name: 30,
+    role: 38,
+    roleSecondary: 38,
+    phone: 32,
+    email: 80,
+    website: 60,
+    location: 40,
+    handle: 48,
   },
 };
 

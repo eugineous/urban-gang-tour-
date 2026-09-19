@@ -64,6 +64,7 @@ type DocType =
   | "teamKit"
   | "mediaWall"
   | "stageBack"
+  | "staffCard"
   | "igNext"
   | "igStory"
   | "igWinner"
@@ -272,6 +273,24 @@ const PROMO_SPEC: Record<string, PSpec> = {
     ],
     heroSlots: ["Left featured image", "Right featured image"],
     partners: true,
+  },
+  staffCard: {
+    label: "Staff Business Card",
+    kind: "post",
+    design: { w: 469, h: 566 },
+    png: [1400, 1704],
+    pdf: true,
+    fields: [
+      { key: "name", label: "Full name", ph: "MAYA KIMANI", max: 30 },
+      { key: "role", label: "Primary role", ph: "PARTNERSHIPS LEAD", max: 38 },
+      { key: "roleSecondary", label: "Secondary role", ph: "URBAN NEWS · UGT", max: 38 },
+      { key: "phone", label: "Phone", ph: "+254 700 000 000", max: 32 },
+      { key: "email", label: "Email", ph: "hello@urbangangtour.co.ke", max: 80 },
+      { key: "website", label: "Website", ph: "urbangangtour.co.ke", max: 60 },
+      { key: "location", label: "Location", ph: "NAIROBI, KENYA", max: 40 },
+      { key: "handle", label: "Social handle", ph: "@URBAN_NEWSGANG", max: 48 },
+    ],
+    heroSlots: ["Profile photo"],
   },
   igNext: {
     label: "IG Post - Next Stop",
@@ -545,11 +564,6 @@ const PRODUCTION_REFERENCES = [
   },
   {
     group: "Identity",
-    label: "Artist / presenter business card",
-    file: "02-business-card-lucy-torn-poster.html",
-  },
-  {
-    group: "Identity",
     label: "Team business card",
     file: "03-business-card-team-backstage.html",
   },
@@ -637,6 +651,7 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   teamKit: { w: 844, h: 568 },
   mediaWall: { w: 740, h: 555 },
   stageBack: { w: 1400, h: 560 },
+  staffCard: { w: 469, h: 566 },
   // Promo cards are captured at their design px (see PROMO_SPEC.design) and
   // exported at PROMO_SPEC.png. The preview iframe uses these design px.
   igNext: { w: 600, h: 600 },
