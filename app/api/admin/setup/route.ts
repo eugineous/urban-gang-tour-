@@ -3,6 +3,7 @@ import { q, db, qSchema, SCHEMA } from '@/lib/server/db';
 import { isSuperAdmin } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import seed from '@/app/_lib/articles.seed.json';
+import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 
 // One-time (idempotent) setup: create tables + seed the 17 v25 articles + defaults.
 // CRITICAL EXCEPTION (CLAUDE.md): Setup/Repair DB is always super_admin-only
@@ -12,11 +13,12 @@ export async function POST(req: Request) {
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   await qSchema(SCHEMA);
+  await ensureContentWorkflowSchema();
   let seeded = 0;
   for (const a of seed as any[]) {
     const r = await q(
-      `INSERT INTO posts (slug, headline, section, image, dek, body, date)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (slug) DO NOTHING RETURNING slug`,
+      `INSERT INTO posts (slug, headline, section, image, dek, body, date, editorial_status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,'published') ON CONFLICT (slug) DO NOTHING RETURNING slug`,
       [a.id, a.headline, a.section || 'News', a.img || '', a.dek || '', JSON.stringify(a.body || []), a.date || new Date().toISOString().slice(0, 10)]
     );
     seeded += r.length;

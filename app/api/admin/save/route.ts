@@ -1,11 +1,12 @@
 import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, isSuperAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { SITE } from '@/lib/site';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
 import { notifyPostPublished } from '@/lib/server/notify';
 import { pingIndexNow } from '@/lib/server/indexnow';
+import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
@@ -105,17 +106,34 @@ export async function POST(req: Request) {
         const body = Array.isArray(data.body)
           ? data.body
           : String(data.body || '').split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
-        await ensureSocialColumn();
-        const prev = await q(`SELECT published, social_posted_at FROM posts WHERE slug=$1`, [slug]);
-        const saved = await q(
-          `INSERT INTO posts (slug, headline, section, image, dek, body, published, date)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,COALESCE($8::date, CURRENT_DATE))
-           ON CONFLICT (slug) DO UPDATE SET headline=$2, section=$3, image=$4, dek=$5, body=$6, published=$7,
-             date=COALESCE($8::date, posts.date), updated_at=now()
-           RETURNING date`,
-          [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), data.published !== false, data.date || null]
+        await Promise.all([ensureSocialColumn(), ensureContentWorkflowSchema()]);
+        const actor = adminActor(req);
+        const superAdmin = isSuperAdmin(req);
+        const prev = await q<{ published: boolean; social_posted_at: string | null; submitted_by: string; editorial_status: string }>(
+          `SELECT published, social_posted_at, submitted_by, editorial_status FROM posts WHERE slug=$1`, [slug]
         );
-        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','save_post',$1)`, [JSON.stringify({ slug })]);
+        // Content-scoped crew can prepare and submit only their own unpublished
+        // work. A super admin remains the explicit publishing gate. This is
+        // enforced here, not just by the Control Room UI.
+        if (!superAdmin && prev.length && (prev[0].published || (prev[0].submitted_by && prev[0].submitted_by !== actor))) {
+          return NextResponse.json({ error: 'review_required' }, { status: 403 });
+        }
+        const submittedForReview = data.submitForReview === true;
+        const published = superAdmin && data.published !== false;
+        const workflow = published ? 'published' : (submittedForReview ? 'in_review' : 'draft');
+        const submittedBy = prev[0]?.submitted_by || actor;
+        const saved = await q(
+          `INSERT INTO posts (slug, headline, section, image, dek, body, published, date, editorial_status, submitted_by, reviewed_by, reviewed_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,COALESCE($8::date, CURRENT_DATE),$9,$10,$11,CASE WHEN $9='published' THEN now() ELSE NULL END)
+           ON CONFLICT (slug) DO UPDATE SET headline=$2, section=$3, image=$4, dek=$5, body=$6, published=$7,
+             date=COALESCE($8::date, posts.date), editorial_status=$9,
+             submitted_by=CASE WHEN posts.submitted_by='' THEN $10 ELSE posts.submitted_by END,
+             reviewed_by=CASE WHEN $9='published' THEN $11 ELSE posts.reviewed_by END,
+             reviewed_at=CASE WHEN $9='published' THEN now() ELSE posts.reviewed_at END, updated_at=now()
+           RETURNING date`,
+          [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), published, data.date || null, workflow, submittedBy, published ? actor : '']
+        );
+        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'save_post',$2)`, [actor, JSON.stringify({ slug, workflow })]);
         // Auto-post to socials on FIRST publish only: the article is published
         // now, was not published before, has never been announced, and its
         // date is today or earlier. A future-dated (scheduled) post must not
@@ -127,11 +145,11 @@ export async function POST(req: Request) {
         const savedDate = saved[0]?.date ? isoDate(saved[0].date) : null;
         const todayIso = new Date().toISOString().slice(0, 10);
         const isFutureDated = !!savedDate && savedDate > todayIso;
-        const firstPublish = data.published !== false
+        const firstPublish = published
           && !prev[0]?.social_posted_at
           && (!prev.length || prev[0].published === false)
           && !isFutureDated;
-        if (isFutureDated && data.published !== false) {
+        if (isFutureDated && published) {
           console.log(`[social] ${slug}: scheduled for ${savedDate}, skipping announce until then`);
         }
         if (firstPublish && (facebookConfigured() || instagramConfigured())) {
@@ -145,18 +163,28 @@ export async function POST(req: Request) {
         // article, not just first publish - the spec covers updates too, and
         // an edited headline/body is exactly what we want re-crawled. The
         // events/shop admin mutations already do the same (see admin/ops).
-        if (data.published !== false && !isFutureDated) {
+        if (published && !isFutureDated) {
           after(() => pingIndexNow([`/blog/${slug}`, '/blog', '/feed.xml', '/news-sitemap.xml']));
         }
         return NextResponse.json({ ok: true, slug });
       }
-      case 'deletePost':
+      case 'deletePost': {
+        await ensureContentWorkflowSchema();
+        const actor = adminActor(req);
+        const existing = await q<{ published: boolean; submitted_by: string }>(
+          `SELECT published, submitted_by FROM posts WHERE slug=$1`, [data.slug]
+        );
+        if (!existing.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+        if (!isSuperAdmin(req) && (existing[0].published || !existing[0].submitted_by || existing[0].submitted_by !== actor)) {
+          return NextResponse.json({ error: 'review_required' }, { status: 403 });
+        }
         await q(`DELETE FROM posts WHERE slug=$1`, [data.slug]);
-        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','delete_post',$1)`, [JSON.stringify({ slug: data.slug })]);
+        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'delete_post',$2)`, [actor, JSON.stringify({ slug: data.slug })]);
         // IndexNow handles removals the same as updates - engines re-crawl,
         // see the 404 and drop the URL.
         after(() => pingIndexNow([`/blog/${data.slug}`, '/blog']));
         return NextResponse.json({ ok: true });
+      }
       case 'setting':
         await q(
           `INSERT INTO settings (key, value) VALUES ($1,$2)

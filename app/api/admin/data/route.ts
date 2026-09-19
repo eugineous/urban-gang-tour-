@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin, isSuperAdmin, hasPerm } from '@/lib/server/session';
 import { getTicketTiers } from '@/lib/server/catalog';
+import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 
 const VIEWS: Record<string, string> = {
   bookings: `SELECT * FROM bookings ORDER BY created_at DESC LIMIT 500`,
   orders: `SELECT * FROM orders ORDER BY created_at DESC LIMIT 500`,
-  posts: `SELECT slug, headline, section, image, dek, body, published, date FROM posts ORDER BY date DESC LIMIT 500`,
+  posts: `SELECT slug, headline, section, image, dek, body, published, date, editorial_status, submitted_by, reviewed_by, reviewed_at FROM posts ORDER BY date DESC LIMIT 500`,
   users: `SELECT id, email, phone, name, role, created_at FROM users ORDER BY created_at DESC LIMIT 500`,
   submissions: `SELECT * FROM submissions ORDER BY created_at DESC LIMIT 500`,
   subscribers: `SELECT * FROM subscribers ORDER BY created_at DESC LIMIT 1000`,
@@ -45,6 +46,13 @@ export async function GET(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const view = new URL(req.url).searchParams.get('view') || 'stats';
+  if (view === 'posts') {
+    try {
+      await ensureContentWorkflowSchema();
+    } catch (e: any) {
+      return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
+    }
+  }
   // Not a DB view: the events/tiers catalog for the Issue Free Ticket form
   // (server catalog.ts stays the single source of truth - this only mirrors
   // it for the dropdown; the comp ticket route re-validates independently).

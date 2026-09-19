@@ -811,6 +811,7 @@ export default function AdminApp({
           rows={rows}
           editPost={editPost}
           setEditPost={setEditPost}
+          canPublish={session?.scope === "super_admin"}
           onSave={(p: any) =>
             save("post", p, () => {
               setEditPost(null);
@@ -2001,15 +2002,20 @@ function Table({
   );
 }
 
-function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
+function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish }: any) {
   if (editPost) {
     const p = editPost;
     const set = (k: string, v: any) => setEditPost({ ...p, [k]: v });
     return (
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
-          {p.slug ? "EDIT: " + p.slug : "NEW POST"}
-        </h3>
+          <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
+            {p.slug ? "EDIT: " + p.slug : "NEW POST"}
+          </h3>
+          {!canPublish && (
+            <div style={{ background: "#FFF3C4", border: "1px solid #E6B800", borderRadius: 9, padding: "9px 11px", fontSize: 12, lineHeight: 1.45 }}>
+              Your work stays private until a super admin reviews and publishes it. Use <b>Save draft</b> while writing, then <b>Send for review</b> when it is ready.
+            </div>
+          )}
         <div style={{ display: "grid", gap: 10 }}>
           <input
             style={inp}
@@ -2059,18 +2065,31 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
             value={Array.isArray(p.body) ? p.body.join("\n\n") : p.body || ""}
             onChange={(e) => set("body", e.target.value)}
           />
-          <label style={{ fontSize: 13 }}>
-            <input
-              type="checkbox"
-              checked={p.published !== false}
-              onChange={(e) => set("published", e.target.checked)}
-            />{" "}
-            Published (visible on the site + sitemap)
-          </label>
+          {canPublish ? (
+            <label style={{ fontSize: 13 }}>
+              <input
+                type="checkbox"
+                checked={p.published === true}
+                onChange={(e) => set("published", e.target.checked)}
+              />{" "}
+              Published (visible on the site + sitemap)
+            </label>
+          ) : null}
           <div style={{ display: "flex", gap: 10 }}>
-            <button style={btn} onClick={() => onSave(p)}>
-              💾 Save post
-            </button>
+            {canPublish ? (
+              <button style={btn} onClick={() => onSave(p)}>
+                💾 Save post
+              </button>
+            ) : (
+              <>
+                <button style={btnDark} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
+                  Save draft
+                </button>
+                <button style={btn} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
+                  Send for review
+                </button>
+              </>
+            )}
             <button style={btnDark} onClick={() => setEditPost(null)}>
               Cancel
             </button>
@@ -2083,11 +2102,12 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
     <div style={card}>
       <div style={{ display: "flex", marginBottom: 10 }}>
         <div style={{ fontSize: 13 }}>
-          These posts power <b>/blog</b> (Urban News) — save and they are live
-          within 5 minutes (no code needed).
+          {canPublish
+            ? <>Review submitted stories here, then publish approved work to <b>/blog</b>.</>
+            : <>Create a story for the Urban News desk. Published stories cannot be changed from this account.</>}
         </div>
         <div style={{ flex: 1 }} />
-        <button style={btn} onClick={() => setEditPost({ published: true })}>
+        <button style={btn} onClick={() => setEditPost({ published: canPublish })}>
           ＋ New post
         </button>
       </div>
@@ -2095,7 +2115,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
         <table style={{ borderCollapse: "collapse", width: "100%" }}>
           <thead>
             <tr>
-              {["date", "slug", "headline", "section", "status", ""].map(
+              {["date", "slug", "headline", "section", "workflow", "contributor", ""].map(
                 (c) => (
                   <th key={c} style={th}>
                     {c}
@@ -2109,12 +2129,16 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
               const rDate = String(r.date).slice(0, 10);
               const todayIso = new Date().toISOString().slice(0, 10);
               const scheduled = r.published && rDate > todayIso;
-              const status = !r.published
-                ? "Draft"
+              const workflow = r.editorial_status === "in_review"
+                ? "Needs review"
+                : !r.published
+                  ? "Draft"
+                  : scheduled
+                    ? "Scheduled"
+                    : "Published";
+              const statusStyle = r.editorial_status === "in_review"
+                ? { background: "#E6F7FB", color: "#0B6075", border: "1px solid #7BD1E5" }
                 : scheduled
-                  ? "Scheduled"
-                  : "Published";
-              const statusStyle = scheduled
                 ? {
                     background: "#FFF3C4",
                     color: "#7a5b00",
@@ -2156,18 +2180,21 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete }: any) {
                         textTransform: "uppercase",
                       }}
                     >
-                      {status}
+                      {workflow}
                     </span>
                   </td>
+                  <td style={td}>{r.submitted_by || "—"}</td>
                   <td style={td}>
                     <button
                       style={{ ...btn, padding: "5px 9px", marginRight: 6 }}
                       onClick={() => setEditPost(r)}
+                      disabled={!canPublish && r.published}
                     >
                       Edit
                     </button>
                     <button
                       style={{ ...btnDark, padding: "5px 9px" }}
+                      disabled={!canPublish && r.published}
                       onClick={() => onDelete(r.slug)}
                     >
                       Delete
