@@ -326,18 +326,35 @@ export async function GET(req: Request) {
       }
       case "merch": {
         await ensureCatalogSeeded();
-        const [products, suppliers, quotes] = await Promise.all([
-          q(
-            `SELECT id, name, price, active FROM products ORDER BY active DESC, name`,
-          ),
-          q(`SELECT * FROM merch_suppliers ORDER BY status, name`),
-          q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price
+        const [products, suppliers, quotes, inventoryMoves] = await Promise.all(
+          [
+            q(
+              `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point,
+                    COUNT(m.id)::int AS inventory_move_count,
+                    COALESCE(SUM(m.quantity),0)::int AS inventory_on_hand
+             FROM products p
+             LEFT JOIN merch_inventory_moves m ON m.product_id=p.id
+             GROUP BY p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point
+             ORDER BY p.active DESC, p.name`,
+            ),
+            q(`SELECT * FROM merch_suppliers ORDER BY status, name`),
+            q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price
              FROM merch_supplier_quotes q
              LEFT JOIN merch_suppliers s ON s.id=q.supplier_id
              LEFT JOIN products p ON p.id=q.product_id
              ORDER BY q.updated_at DESC, q.id DESC`),
-        ]);
-        return NextResponse.json({ ok: true, products, suppliers, quotes });
+            q(`SELECT m.*, p.name AS product_name
+             FROM merch_inventory_moves m JOIN products p ON p.id=m.product_id
+             ORDER BY m.created_at DESC, m.id DESC LIMIT 100`),
+          ],
+        );
+        return NextResponse.json({
+          ok: true,
+          products,
+          suppliers,
+          quotes,
+          inventoryMoves,
+        });
       }
 
       // ---- Third-party ticketing marketplace ----
@@ -529,6 +546,7 @@ const KIND_PERM: Record<string, string> = {
   "merchSupplier.delete": "ops_merch",
   "merchQuote.save": "ops_merch",
   "merchQuote.delete": "ops_merch",
+  "merchInventory.record": "ops_merch",
   "marketplaceOrganizer.suspend": "marketplace",
   "marketplaceOrganizer.reinstate": "marketplace",
   "marketplaceEvent.approve": "marketplace",
@@ -1471,6 +1489,51 @@ export async function POST(req: Request) {
         if (!row.length) return bad("not_found", 404);
         await opsAudit("ops.merch.quote.delete", { id });
         return NextResponse.json({ ok: true });
+      }
+      case "merchInventory.record": {
+        const productId = s(d.productId, 60);
+        const moveType = s(d.moveType, 30);
+        const quantity = intOrNull(d.quantity);
+        const reorderPoint = intOrNull(d.reorderPoint);
+        const positive = new Set(["opening", "received", "return"]);
+        const negative = new Set(["event_sale", "damage"]);
+        if (!productId || !quantity || quantity <= 0 || quantity > 100000)
+          return bad("invalid_stock_quantity");
+        if (!positive.has(moveType) && !negative.has(moveType))
+          return bad("invalid_stock_movement");
+        if (
+          reorderPoint !== null &&
+          (reorderPoint < 0 || reorderPoint > 100000)
+        )
+          return bad("invalid_reorder_point");
+        const product = await q(`SELECT id FROM products WHERE id=$1`, [
+          productId,
+        ]);
+        if (!product.length) return bad("unknown_product", 404);
+        const signedQuantity = negative.has(moveType) ? -quantity : quantity;
+        const row = await q(
+          `INSERT INTO merch_inventory_moves (product_id, quantity, move_type, note, reference)
+           VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+          [
+            productId,
+            signedQuantity,
+            moveType,
+            s(d.note, 1000),
+            s(d.reference, 120),
+          ],
+        );
+        await q(
+          `UPDATE products SET inventory_tracked=true,
+           reorder_point=COALESCE($2, reorder_point), updated_at=now() WHERE id=$1`,
+          [productId, reorderPoint],
+        );
+        await opsAudit("ops.merch.inventory.record", {
+          id: row[0]?.id,
+          productId,
+          moveType,
+          quantity: signedQuantity,
+        });
+        return NextResponse.json({ ok: true, row: row[0] });
       }
 
       // ---- Third-party ticketing marketplace ----

@@ -29,7 +29,16 @@ import {
   useToast,
 } from "./ui";
 
-type Product = { id: string; name: string; price: number; active: boolean };
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  active: boolean;
+  inventory_tracked: boolean;
+  reorder_point: number | null;
+  inventory_move_count: number;
+  inventory_on_hand: number;
+};
 type Supplier = {
   id: number;
   name: string;
@@ -57,6 +66,16 @@ type Quote = {
   valid_until: string | null;
   note: string;
 };
+type InventoryMove = {
+  id: number;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  move_type: string;
+  note: string;
+  reference: string;
+  created_at: string;
+};
 
 const EMPTY_SUPPLIER = {
   id: null as number | null,
@@ -82,6 +101,14 @@ const EMPTY_QUOTE = {
   validUntil: "",
   note: "",
 };
+const EMPTY_STOCK = {
+  productId: "",
+  moveType: "received",
+  quantity: null as number | null,
+  reorderPoint: null as number | null,
+  note: "",
+  reference: "",
+};
 
 function optionalNumber(value: string): number | null {
   return value === "" ? null : Math.max(0, Math.round(Number(value) || 0));
@@ -91,11 +118,13 @@ export default function MerchDesk() {
   const [products, setProducts] = useState<Product[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [inventoryMoves, setInventoryMoves] = useState<InventoryMove[]>([]);
   const [supplierEdit, setSupplierEdit] = useState<
     typeof EMPTY_SUPPLIER | null
   >(null);
   const [quoteEdit, setQuoteEdit] = useState<typeof EMPTY_QUOTE | null>(null);
-  const [tab, setTab] = useState<"overview" | "suppliers" | "quotes">(
+  const [stockEdit, setStockEdit] = useState<typeof EMPTY_STOCK | null>(null);
+  const [tab, setTab] = useState<"overview" | "stock" | "suppliers" | "quotes">(
     "overview",
   );
   const [qy, setQy] = useState("");
@@ -118,6 +147,12 @@ export default function MerchDesk() {
         retail_price: q.retail_price === null ? null : Number(q.retail_price),
         unit_cost: q.unit_cost === null ? null : Number(q.unit_cost),
         setup_cost: q.setup_cost === null ? null : Number(q.setup_cost),
+      })),
+    );
+    setInventoryMoves(
+      (data.inventoryMoves || []).map((m: any) => ({
+        ...m,
+        quantity: Number(m.quantity),
       })),
     );
   }, [say]);
@@ -174,6 +209,112 @@ export default function MerchDesk() {
       reload();
     }
   };
+
+  const saveStock = async () => {
+    if (
+      !stockEdit?.productId ||
+      !stockEdit.quantity ||
+      stockEdit.quantity < 1
+    ) {
+      say("Choose a product and enter the verified quantity");
+      return;
+    }
+    setBusy(true);
+    const { data } = await opsPost("merchInventory.record", stockEdit);
+    setBusy(false);
+    if (data.error) say("Failed: " + data.error);
+    else {
+      say("Stock movement recorded");
+      setStockEdit(null);
+      reload();
+    }
+  };
+
+  if (stockEdit)
+    return (
+      <div style={card}>
+        <Toast msg={toast} />
+        <h3 style={h3}>RECORD VERIFIED STOCK MOVEMENT</h3>
+        <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
+          The first saved movement turns tracking on for this product. Do not
+          enter a guess: this is the operational stock record used after paid
+          online orders.
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+          }}
+        >
+          <div>
+            <span style={label}>Product *</span>
+            <select
+              style={inp}
+              value={stockEdit.productId}
+              onChange={(e) =>
+                setStockEdit({ ...stockEdit, productId: e.target.value })
+              }
+            >
+              <option value="">Choose product</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <span style={label}>Movement *</span>
+            <select
+              style={inp}
+              value={stockEdit.moveType}
+              onChange={(e) =>
+                setStockEdit({ ...stockEdit, moveType: e.target.value })
+              }
+            >
+              <option value="opening">Opening count (+)</option>
+              <option value="received">Received delivery (+)</option>
+              <option value="return">Return (+)</option>
+              <option value="event_sale">Event or offline sale (-)</option>
+              <option value="damage">Damage or loss (-)</option>
+            </select>
+          </div>
+          <NumberField
+            title="Verified quantity *"
+            value={stockEdit.quantity}
+            set={(quantity) => setStockEdit({ ...stockEdit, quantity })}
+          />
+          <NumberField
+            title="Reorder point"
+            value={stockEdit.reorderPoint}
+            set={(reorderPoint) => setStockEdit({ ...stockEdit, reorderPoint })}
+          />
+          <Field
+            title="Reference"
+            value={stockEdit.reference}
+            set={(reference) => setStockEdit({ ...stockEdit, reference })}
+            placeholder="GRN, event name, delivery note..."
+          />
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <span style={label}>Notes</span>
+          <textarea
+            style={{ ...inp, minHeight: 75 }}
+            value={stockEdit.note}
+            onChange={(e) =>
+              setStockEdit({ ...stockEdit, note: e.target.value })
+            }
+            placeholder="Verified count, condition, location, or reason."
+          />
+        </div>
+        <Actions
+          busy={busy}
+          save={saveStock}
+          cancel={() => setStockEdit(null)}
+        />
+      </div>
+    );
 
   if (supplierEdit)
     return (
@@ -406,6 +547,12 @@ export default function MerchDesk() {
           >
             + Quote
           </button>
+          <button
+            style={btnDark}
+            onClick={() => setStockEdit({ ...EMPTY_STOCK })}
+          >
+            + Stock move
+          </button>
         </div>
         <div style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
           Private sourcing and cost workspace. It never changes checkout pricing
@@ -415,7 +562,7 @@ export default function MerchDesk() {
         <div
           style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}
         >
-          {(["overview", "suppliers", "quotes"] as const).map((t) => (
+          {(["overview", "stock", "suppliers", "quotes"] as const).map((t) => (
             <button
               key={t}
               style={{
@@ -448,6 +595,10 @@ export default function MerchDesk() {
             <Metric
               value={`${quotedProducts} / ${products.length}`}
               label="Products with a unit quote"
+            />
+            <Metric
+              value={String(products.filter((p) => p.inventory_tracked).length)}
+              label="Products being tracked"
             />
           </div>
           <div style={card}>
@@ -512,6 +663,131 @@ export default function MerchDesk() {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+      {tab === "stock" && (
+        <>
+          <div style={card}>
+            <h3 style={h3}>STOCK READINESS</h3>
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
+              Untracked means no verified opening or delivery count has been
+              recorded. It is not the same as zero stock. Paid online orders
+              reduce only tracked products, once per paid order.
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                <thead>
+                  <tr>
+                    {[
+                      "product",
+                      "on hand",
+                      "reorder point",
+                      "state",
+                      "history",
+                    ].map((c) => (
+                      <th key={c} style={th}>
+                        {c}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => {
+                    const needsReorder =
+                      p.inventory_tracked &&
+                      p.reorder_point !== null &&
+                      p.inventory_on_hand <= p.reorder_point;
+                    return (
+                      <tr key={p.id}>
+                        <td style={td}>
+                          <b>{p.name}</b>
+                        </td>
+                        <td style={{ ...td, fontWeight: 800 }}>
+                          {p.inventory_tracked
+                            ? p.inventory_on_hand
+                            : "Not tracking"}
+                        </td>
+                        <td style={td}>
+                          {p.inventory_tracked
+                            ? (p.reorder_point ?? "Not set")
+                            : "—"}
+                        </td>
+                        <td style={td}>
+                          {p.inventory_tracked ? (
+                            <Chip
+                              text={needsReorder ? "reorder review" : "tracked"}
+                              bg={needsReorder ? "#FDF2D9" : "#E7F7ED"}
+                              color={needsReorder ? OC.orange : OC.green}
+                            />
+                          ) : (
+                            <Chip text="not tracking" />
+                          )}
+                        </td>
+                        <td style={td}>
+                          {p.inventory_move_count} movement
+                          {p.inventory_move_count === 1 ? "" : "s"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style={card}>
+            <h3 style={h3}>RECENT STOCK ACTIVITY</h3>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                <thead>
+                  <tr>
+                    {[
+                      "date",
+                      "product",
+                      "movement",
+                      "quantity",
+                      "reference",
+                      "notes",
+                    ].map((c) => (
+                      <th key={c} style={th}>
+                        {c}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {inventoryMoves.map((m) => (
+                    <tr key={m.id}>
+                      <td style={td}>{fmtDate(m.created_at)}</td>
+                      <td style={td}>{m.product_name}</td>
+                      <td style={td}>
+                        <Chip text={m.move_type.replace("_", " ")} />
+                      </td>
+                      <td
+                        style={{
+                          ...td,
+                          fontWeight: 800,
+                          color: m.quantity < 0 ? OC.red : OC.green,
+                        }}
+                      >
+                        {m.quantity > 0 ? "+" : ""}
+                        {m.quantity}
+                      </td>
+                      <td style={td}>{m.reference || "—"}</td>
+                      <td style={td}>{m.note || "—"}</td>
+                    </tr>
+                  ))}
+                  {!inventoryMoves.length && (
+                    <tr>
+                      <td style={td} colSpan={6}>
+                        No movements yet. Record a verified opening count or
+                        delivery when stock is physically confirmed.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

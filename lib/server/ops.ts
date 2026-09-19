@@ -177,6 +177,20 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+-- A product is deliberately untracked until UGT records a real opening or
+-- receiving movement. This prevents an empty ledger from being misread as
+-- zero stock and avoids publishing invented availability to the shop.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS inventory_tracked BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point INT;
+CREATE TABLE IF NOT EXISTS merch_inventory_moves (
+  id BIGSERIAL PRIMARY KEY,
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  quantity INT NOT NULL CHECK (quantity <> 0),
+  move_type TEXT NOT NULL CHECK (move_type IN ('opening','received','return','event_sale','damage','adjustment','online_sale')),
+  note TEXT DEFAULT '',
+  reference TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 -- Private merchandise sourcing. These records never feed public catalog or
 -- checkout responses: they hold real vendor contacts and quotes entered by
 -- UGT staff, not generated pricing assumptions.
@@ -299,6 +313,10 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DES
 CREATE INDEX IF NOT EXISTS idx_tour_events_kind_status_priority ON tour_events (kind, status, priority DESC, event_date);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
 CREATE INDEX IF NOT EXISTS idx_merch_quotes_product_supplier ON merch_supplier_quotes (product_id, supplier_id);
+CREATE INDEX IF NOT EXISTS idx_merch_inventory_product_created ON merch_inventory_moves (product_id, created_at DESC);
+-- A payment gateway may retry a success webhook. One paid order may deduct a
+-- tracked product only once, regardless of the gateway that reported it.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_merch_inventory_online_sale_once ON merch_inventory_moves (product_id, reference, move_type) WHERE move_type='online_sale' AND reference <> '';
 CREATE INDEX IF NOT EXISTS idx_marketplace_organizers_status ON marketplace_organizers (status);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_status_date ON marketplace_events (status, event_date);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_organizer_id ON marketplace_events (organizer_id);
