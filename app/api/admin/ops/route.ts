@@ -75,6 +75,29 @@ function hasAnyPerm(req: Request, keys: string[]): boolean {
   return keys.some((k) => hasPerm(req, k));
 }
 
+const CONTACT_TYPES = ["school", "talent", "partner", "media"] as const;
+type ContactType = (typeof CONTACT_TYPES)[number];
+
+function contactType(v: unknown): ContactType {
+  return (CONTACT_TYPES as readonly string[]).includes(String(v))
+    ? (v as ContactType)
+    : "school";
+}
+
+function allowedContactTypes(req: Request): ContactType[] {
+  if (hasPerm(req, "ops_contacts")) return [...CONTACT_TYPES];
+  const types: ContactType[] = [];
+  if (hasPerm(req, "ops_school_contacts")) types.push("school");
+  if (hasPerm(req, "ops_talent_partners")) {
+    types.push("talent", "partner", "media");
+  }
+  return types;
+}
+
+function canManageContactType(req: Request, type: ContactType): boolean {
+  return allowedContactTypes(req).includes(type);
+}
+
 // 'event'/'events' are a shared workspace view: Budgeter, Payments, Payouts,
 // Expenses, Checklists and Invoices all load the same event header. The data
 // behind each tool is intentionally selected *after* its own permission is
@@ -101,7 +124,7 @@ const VIEW_PERM: Record<string, string[]> = {
   budgets: ["ops_budgeter"],
   documents: ["ops_invoices"],
   payments: ["ops_payments"],
-  contacts: ["ops_contacts"],
+  contacts: ["ops_contacts", "ops_school_contacts", "ops_talent_partners"],
   leads: ["ops_pipeline"],
   promos: ["ops_promos"],
   tourEvents: ["events"],
@@ -259,10 +282,12 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, rows });
       }
       case "contacts": {
+        const allowedTypes = allowedContactTypes(req);
         const rows = await q(
-          `SELECT * FROM ops_contacts ORDER BY org, name LIMIT 1000`,
+          `SELECT * FROM ops_contacts WHERE contact_type = ANY($1::text[]) ORDER BY org, name LIMIT 1000`,
+          [allowedTypes],
         );
-        return NextResponse.json({ ok: true, rows });
+        return NextResponse.json({ ok: true, rows, allowedTypes });
       }
       case "leads": {
         const rows = await q(
@@ -463,8 +488,6 @@ const KIND_PERM: Record<string, string> = {
   "doc.status": "ops_invoices",
   "doc.delete": "ops_invoices",
   "payment.delete": "ops_payments",
-  "contact.save": "ops_contacts",
-  "contact.delete": "ops_contacts",
   "payout.save": "ops_payouts",
   "payout.togglePaid": "ops_payouts",
   "payout.delete": "ops_payouts",
@@ -530,6 +553,28 @@ export async function POST(req: Request) {
     // Invoices tab (paying down an invoice) - either perm may call it.
     if (!hasAnyPerm(req, ["ops_payments", "ops_invoices"]))
       return bad("forbidden", 403);
+  } else if (kind === "contact.save" || kind === "contact.delete") {
+    // The target record, not merely the screen, defines the authority. This
+    // prevents a school liaison from changing a hidden talent/partner row by
+    // replaying the request outside the Control Room UI.
+    await ensureOpsSchema();
+    const id = intOrNull(d.id);
+    const existing = id
+      ? await q<{ contact_type: string }>(
+          `SELECT contact_type FROM ops_contacts WHERE id=$1`,
+          [id],
+        )
+      : [];
+    if (id && !existing.length) return bad("not_found", 404);
+    const existingType = existing[0]
+      ? contactType(existing[0].contact_type)
+      : null;
+    if (existingType && !canManageContactType(req, existingType))
+      return bad("forbidden", 403);
+    const type = contactType(
+      kind === "contact.save" ? d.contactType : existingType,
+    );
+    if (!canManageContactType(req, type)) return bad("forbidden", 403);
   } else if (KIND_PERM[kind]) {
     if (!hasPerm(req, KIND_PERM[kind])) return bad("forbidden", 403);
   }
@@ -822,16 +867,17 @@ export async function POST(req: Request) {
           s(d.notes, 2000),
           dateOrNull(d.nextFollowup),
           s(d.status || "lead", 30),
+          contactType(d.contactType),
         ];
         let row;
         if (id)
           row = await q(
-            `UPDATE ops_contacts SET name=$1, org=$2, role=$3, phone=$4, email=$5, notes=$6, next_followup=$7, status=$8 WHERE id=$9 RETURNING *`,
+            `UPDATE ops_contacts SET name=$1, org=$2, role=$3, phone=$4, email=$5, notes=$6, next_followup=$7, status=$8, contact_type=$9 WHERE id=$10 RETURNING *`,
             [...fields, id],
           );
         else
           row = await q(
-            `INSERT INTO ops_contacts (name, org, role, phone, email, notes, next_followup, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+            `INSERT INTO ops_contacts (name, org, role, phone, email, notes, next_followup, status, contact_type) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
             fields,
           );
         await opsAudit("ops.contact.save", { id: row[0]?.id, name });

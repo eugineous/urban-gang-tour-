@@ -68,7 +68,19 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
       label: "School liaison",
       description:
         "Manage school leads, bookings, event details and parent/school communications.",
-      perms: ["bookings", "events", "ops_contacts", "comms", "documents"],
+      perms: [
+        "bookings",
+        "events",
+        "ops_school_contacts",
+        "comms",
+        "documents",
+      ],
+    },
+    {
+      label: "Talent & partner coordinator",
+      description:
+        "Manage talent, partner and media relationships without school contact access.",
+      perms: ["ops_talent_partners", "documents"],
     },
     {
       label: "Event lead",
