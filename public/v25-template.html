@@ -1949,7 +1949,7 @@ class Component extends DCLogic {
   closeCheckout = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:null}})); };
   closeCheckoutBg = (e) => { if(e.target===e.currentTarget) this.closeCheckout(); };
   setCo = (k,v) => this.setState(s=>({checkout:{...s.checkout,[k]:v}}));
-  payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
+  payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty,variant:l.size||undefined})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
   msisdn = (raw) => { const d=String(raw||'').replace(/\D/g,''); if(/^254(7|1)\d{8}$/.test(d)) return d; if(/^0(7|1)\d{8}$/.test(d)) return '254'+d.slice(1); if(/^(7|1)\d{8}$/.test(d)) return '254'+d; return null; };
   maskPhone = (p) => { const d=String(p||'').replace(/\D/g,''); return d.length>=8 ? d.slice(0,6)+'***'+d.slice(-2) : ''; };
   fmtSecs = (v) => { const n=Math.max(0,Number(v)||0); return Math.floor(n/60)+':'+String(n%60).padStart(2,'0'); };
@@ -2022,7 +2022,7 @@ class Component extends DCLogic {
     if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('co',{err:'M-Pesa payments are not available right now.'}); return; }
     const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:pi.price,total:pi.price*l.qty}; });
-    const items=s.cart.map(l=>({id:l.id,qty:l.qty}));
+    const items=s.cart.map(l=>({id:l.id,qty:l.qty,variant:l.size||undefined}));
     this.setPay('co',{busy:true,err:''});
     const idem='co-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
     const r=await window.__UGT_MPESA_PAY({items,name:co.name.trim(),email:co.email.trim(),phone:ph,idempotencyKey:idem});
