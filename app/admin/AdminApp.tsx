@@ -689,7 +689,7 @@ export default function AdminApp({
       {tab === "Budgeter" && <Budgeter />}
       {tab === "Invoices" && <Invoices />}
       {tab === "Documents" && <DocGen />}
-      {tab === "Payments" && <Payments />}
+      {tab === "Payments" && <Payments canExportFinancialReport={session?.scope === "super_admin"} />}
       {tab === "Contacts" && <Contacts />}
       {tab === "Payouts" && <Payouts />}
       {tab === "Expenses" && <Expenses />}

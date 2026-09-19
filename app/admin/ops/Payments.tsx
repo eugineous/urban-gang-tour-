@@ -30,7 +30,7 @@ import {
   useSearch,
 } from "./ui";
 
-export default function Payments() {
+export default function Payments({ canExportFinancialReport = false }: { canExportFinancialReport?: boolean }) {
   const { events, reload: reloadEvents } = useEvents();
   const [eventId, setEventId] = useState<number | null>(null);
   const [detail, setDetail] = useState<any>(null);
@@ -279,7 +279,7 @@ export default function Payments() {
                   Save terms
                 </button>
               </div>
-              <div style={{ marginTop: 14 }}>
+              {canExportFinancialReport && <div style={{ marginTop: 14 }}>
                 <a
                   style={{
                     ...btnSmall,
@@ -291,7 +291,7 @@ export default function Payments() {
                 >
                   Event financial report PDF (internal)
                 </a>
-              </div>
+              </div>}
             </div>
 
             <div style={card}>
