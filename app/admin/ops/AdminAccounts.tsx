@@ -61,7 +61,7 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
     {
       label: "Content editor",
       description:
-        "Draft stories, update the news feed and publish approved content.",
+        "Draft stories, manage pitches and gallery assets, then send stories to a super admin for publishing.",
       perms: ["content", "newsroom", "gallery"],
     },
     {
