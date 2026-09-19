@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Manage who can sign in to the Control Room via Google, and what they can
 // touch. SUPER-ADMIN ONLY: AdminApp.tsx only renders this tab's button when
@@ -7,80 +7,178 @@
 // call this component makes). Every add/edit/remove is audit-logged
 // server-side with the acting super_admin's email.
 
-import { useCallback, useEffect, useState } from 'react';
-import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th, Chip, Toast, useToast, OC, SearchBox, useSearch } from './ui';
+import { useCallback, useEffect, useState } from "react";
+import {
+  card,
+  btn,
+  btnDark,
+  btnMagenta,
+  btnSmall,
+  inp,
+  label,
+  h3,
+  td,
+  th,
+  Chip,
+  Toast,
+  useToast,
+  OC,
+  SearchBox,
+  useSearch,
+} from "./ui";
 
 interface Account {
   email: string;
-  role: 'super_admin' | 'crew_admin';
+  role: "super_admin" | "crew_admin";
   perms: string[];
   added_at: string;
 }
 
 async function api(path: string, opts?: RequestInit) {
-  const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const r = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+  });
   return { status: r.status, data: await r.json().catch(() => ({})) };
 }
 
-const EMPTY = { email: '', role: 'crew_admin' as 'super_admin' | 'crew_admin', perms: [] as string[] };
+const EMPTY = {
+  email: "",
+  role: "crew_admin" as "super_admin" | "crew_admin",
+  perms: [] as string[],
+};
 
 // Presets are a fast, understandable starting point for real operational roles.
 // They are not a second authorisation system: selecting one merely populates the
 // exact module permissions below, which the super-admin can still review/edit.
-const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] = [
-  { label: 'Photographer', description: 'Upload and organise event imagery.', perms: ['gallery'] },
-  { label: 'Content editor', description: 'Draft stories, update the news feed and publish approved content.', perms: ['content', 'newsroom', 'gallery'] },
-  { label: 'School liaison', description: 'Manage school leads, bookings, event details and parent/school communications.', perms: ['bookings', 'events', 'ops_contacts', 'comms', 'documents'] },
-  { label: 'Event lead', description: 'Run the event, tickets, gate, checklists, crew payouts and field documents.', perms: ['events', 'orders', 'gate_scanner', 'ops_checklists', 'ops_payouts', 'documents', 'ops_expenses'] },
-  { label: 'Merch manager', description: 'Manage products, orders, reviews and marketplace activity.', perms: ['products', 'orders', 'reviews', 'marketplace'] },
-];
+const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
+  [
+    {
+      label: "Photographer",
+      description: "Upload and organise event imagery.",
+      perms: ["gallery"],
+    },
+    {
+      label: "Content editor",
+      description:
+        "Draft stories, update the news feed and publish approved content.",
+      perms: ["content", "newsroom", "gallery"],
+    },
+    {
+      label: "School liaison",
+      description:
+        "Manage school leads, bookings, event details and parent/school communications.",
+      perms: ["bookings", "events", "ops_contacts", "comms", "documents"],
+    },
+    {
+      label: "Event lead",
+      description:
+        "Run published events, tickets, gate operations, checklists and field documents.",
+      perms: [
+        "events",
+        "orders",
+        "gate_scanner",
+        "ops_checklists",
+        "documents",
+      ],
+    },
+    {
+      label: "Finance officer",
+      description:
+        "Manage budgets, invoices, deposits, expenses and crew payout records.",
+      perms: [
+        "ops_budgeter",
+        "ops_invoices",
+        "ops_payments",
+        "ops_payouts",
+        "ops_expenses",
+      ],
+    },
+    {
+      label: "Merch manager",
+      description: "Manage products, orders, reviews and marketplace activity.",
+      perms: ["products", "orders", "reviews", "marketplace"],
+    },
+  ];
 
 export default function AdminAccounts() {
   const [rows, setRows] = useState<Account[]>([]);
   const [moduleKeys, setModuleKeys] = useState<string[]>([]);
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
-  const [qy, setQy] = useState('');
+  const [qy, setQy] = useState("");
   const [busy, setBusy] = useState(false);
-  const [loadErr, setLoadErr] = useState('');
+  const [loadErr, setLoadErr] = useState("");
   const [toast, say] = useToast();
 
   const reload = useCallback(async () => {
-    const { status, data } = await api('/api/admin/accounts');
-    if (status === 401) { setLoadErr('Super-admin access required.'); return; }
-    if (data.error) { setLoadErr(data.error); return; }
-    setLoadErr('');
+    const { status, data } = await api("/api/admin/accounts");
+    if (status === 401) {
+      setLoadErr("Super-admin access required.");
+      return;
+    }
+    if (data.error) {
+      setLoadErr(data.error);
+      return;
+    }
+    setLoadErr("");
     setRows(data.rows || []);
     setModuleKeys(data.moduleKeys || []);
   }, []);
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const togglePerm = (k: string) => {
     if (!edit) return;
     const has = edit.perms.includes(k);
-    setEdit({ ...edit, perms: has ? edit.perms.filter((p) => p !== k) : [...edit.perms, k] });
+    setEdit({
+      ...edit,
+      perms: has ? edit.perms.filter((p) => p !== k) : [...edit.perms, k],
+    });
   };
 
   const save = async () => {
     if (!edit) return;
     const email = edit.email.trim().toLowerCase();
-    if (!email || !email.includes('@')) { say('Enter a valid email'); return; }
+    if (!email || !email.includes("@")) {
+      say("Enter a valid email");
+      return;
+    }
     setBusy(true);
     const existing = rows.some((r) => r.email === email);
-    const { data } = await api('/api/admin/accounts', {
-      method: 'POST',
-      body: JSON.stringify({ kind: existing ? 'update' : 'add', data: { email, role: edit.role, perms: edit.perms } }),
+    const { data } = await api("/api/admin/accounts", {
+      method: "POST",
+      body: JSON.stringify({
+        kind: existing ? "update" : "add",
+        data: { email, role: edit.role, perms: edit.perms },
+      }),
     });
     setBusy(false);
-    if (data.error) { say('Failed: ' + data.error); return; }
-    say('Saved');
+    if (data.error) {
+      say("Failed: " + data.error);
+      return;
+    }
+    say("Saved");
     setEdit(null);
     reload();
   };
 
   const remove = async (email: string) => {
-    if (!confirm(`Remove admin access for ${email}? They will no longer be able to sign in with Google.`)) return;
-    const { data } = await api('/api/admin/accounts', { method: 'POST', body: JSON.stringify({ kind: 'remove', data: { email } }) });
-    if (data.error) say('Failed: ' + data.error); else { say('Removed'); reload(); }
+    if (
+      !confirm(
+        `Remove admin access for ${email}? They will no longer be able to sign in with Google.`,
+      )
+    )
+      return;
+    const { data } = await api("/api/admin/accounts", {
+      method: "POST",
+      body: JSON.stringify({ kind: "remove", data: { email } }),
+    });
+    if (data.error) say("Failed: " + data.error);
+    else {
+      say("Removed");
+      reload();
+    }
   };
 
   const shown = useSearch(rows, qy);
@@ -91,87 +189,237 @@ export default function AdminAccounts() {
     return (
       <div style={card}>
         <Toast msg={toast} />
-        <h3 style={h3}>{rows.some((r) => r.email === edit.email.trim().toLowerCase()) ? 'EDIT ADMIN' : 'NEW ADMIN'}</h3>
-        <div style={{ display: 'grid', gap: 10, maxWidth: 420 }}>
-          <div><span style={label}>Google email *</span><input style={inp} placeholder="name@example.com" value={edit.email} onChange={(e) => setEdit({ ...edit, email: e.target.value })} /></div>
+        <h3 style={h3}>
+          {rows.some((r) => r.email === edit.email.trim().toLowerCase())
+            ? "EDIT ADMIN"
+            : "NEW ADMIN"}
+        </h3>
+        <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
+          <div>
+            <span style={label}>Google email *</span>
+            <input
+              style={inp}
+              placeholder="name@example.com"
+              value={edit.email}
+              onChange={(e) => setEdit({ ...edit, email: e.target.value })}
+            />
+          </div>
           <div>
             <span style={label}>Role</span>
-            <select style={inp} value={edit.role} onChange={(e) => setEdit({ ...edit, role: e.target.value as 'super_admin' | 'crew_admin' })}>
-              <option value="crew_admin">Crew admin (scoped to selected modules)</option>
-              <option value="super_admin">Super admin (full access, incl. managing admins)</option>
+            <select
+              style={inp}
+              value={edit.role}
+              onChange={(e) =>
+                setEdit({
+                  ...edit,
+                  role: e.target.value as "super_admin" | "crew_admin",
+                })
+              }
+            >
+              <option value="crew_admin">
+                Crew admin (scoped to selected modules)
+              </option>
+              <option value="super_admin">
+                Super admin (full access, incl. managing admins)
+              </option>
             </select>
           </div>
         </div>
-        {edit.role === 'crew_admin' && (
+        {edit.role === "crew_admin" && (
           <div style={{ marginTop: 12 }}>
             <span style={label}>Start from an operational role</span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 8, marginTop: 6, marginBottom: 14 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
+                gap: 8,
+                marginTop: 6,
+                marginBottom: 14,
+              }}
+            >
               {ROLE_PRESETS.map((preset) => (
-                <button key={preset.label} type="button" onClick={() => setEdit({ ...edit, perms: preset.perms })} style={{ textAlign: 'left', padding: '10px', border: '1px solid #ddd', borderRadius: 10, background: '#fff', cursor: 'pointer' }}>
-                  <b style={{ display: 'block', color: '#111', marginBottom: 3 }}>{preset.label}</b>
-                  <span style={{ fontSize: 11, color: '#666', lineHeight: 1.35 }}>{preset.description}</span>
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => setEdit({ ...edit, perms: preset.perms })}
+                  style={{
+                    textAlign: "left",
+                    padding: "10px",
+                    border: "1px solid #ddd",
+                    borderRadius: 10,
+                    background: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <b
+                    style={{ display: "block", color: "#111", marginBottom: 3 }}
+                  >
+                    {preset.label}
+                  </b>
+                  <span
+                    style={{ fontSize: 11, color: "#666", lineHeight: 1.35 }}
+                  >
+                    {preset.description}
+                  </span>
                 </button>
               ))}
             </div>
             <span style={label}>Modules this account can access</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                marginTop: 6,
+              }}
+            >
               {moduleKeys.map((k) => (
-                <label key={k} style={{
-                  display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700,
-                  padding: '6px 10px', border: '2px solid #111', borderRadius: 100,
-                  background: edit.perms.includes(k) ? OC.magenta : '#fff', color: edit.perms.includes(k) ? '#fff' : '#111',
-                  cursor: 'pointer',
-                }}>
-                  <input type="checkbox" checked={edit.perms.includes(k)} onChange={() => togglePerm(k)} style={{ margin: 0 }} />
+                <label
+                  key={k}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    padding: "6px 10px",
+                    border: "2px solid #111",
+                    borderRadius: 100,
+                    background: edit.perms.includes(k) ? OC.magenta : "#fff",
+                    color: edit.perms.includes(k) ? "#fff" : "#111",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={edit.perms.includes(k)}
+                    onChange={() => togglePerm(k)}
+                    style={{ margin: 0 }}
+                  />
                   {k}
                 </label>
               ))}
             </div>
-            {!edit.perms.length && <div style={{ fontSize: 12, color: OC.orange, marginTop: 6 }}>No modules selected - this account will be able to sign in but see nothing.</div>}
+            {!edit.perms.length && (
+              <div style={{ fontSize: 12, color: OC.orange, marginTop: 6 }}>
+                No modules selected - this account will be able to sign in but
+                see nothing.
+              </div>
+            )}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <button style={btnMagenta} disabled={busy} onClick={save}>Save admin</button>
-          <button style={btnDark} onClick={() => setEdit(null)}>Cancel</button>
+        <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+          <button style={btnMagenta} disabled={busy} onClick={save}>
+            Save admin
+          </button>
+          <button style={btnDark} onClick={() => setEdit(null)}>
+            Cancel
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
+    <div style={{ display: "grid", gap: 14 }}>
       <Toast msg={toast} />
       <div style={{ ...card, fontSize: 13 }}>
-        Controls who can sign in to the Control Room with <b>Google Sign-In</b> and what they can touch. This screen and its API are super-admin only. The owner&apos;s access code always works and is always full access, independent of this list.
+        Controls who can sign in to the Control Room with <b>Google Sign-In</b>{" "}
+        and what they can touch. This screen and its API are super-admin only.
+        The owner&apos;s access code always works and is always full access,
+        independent of this list.
       </div>
       <div style={card}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-          <h3 style={{ ...h3, marginBottom: 0 }}>ADMIN ACCOUNTS ({rows.length})</h3>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <h3 style={{ ...h3, marginBottom: 0 }}>
+            ADMIN ACCOUNTS ({rows.length})
+          </h3>
           <div style={{ flex: 1 }} />
-          <SearchBox value={qy} onChange={setQy} placeholder="Search admins..." />
-          <button style={btn} onClick={() => setEdit({ ...EMPTY })}>+ Add admin</button>
+          <SearchBox
+            value={qy}
+            onChange={setQy}
+            placeholder="Search admins..."
+          />
+          <button style={btn} onClick={() => setEdit({ ...EMPTY })}>
+            + Add admin
+          </button>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead><tr>{['email', 'role', 'modules', 'added', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ borderCollapse: "collapse", width: "100%" }}>
+            <thead>
+              <tr>
+                {["email", "role", "modules", "added", ""].map((c) => (
+                  <th key={c} style={th}>
+                    {c}
+                  </th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
               {shown.map((r) => (
                 <tr key={r.email}>
                   <td style={td}>{r.email}</td>
-                  <td style={td}><Chip text={r.role} bg={r.role === 'super_admin' ? '#111' : '#eee'} color={r.role === 'super_admin' ? '#fff' : '#333'} /></td>
+                  <td style={td}>
+                    <Chip
+                      text={r.role}
+                      bg={r.role === "super_admin" ? "#111" : "#eee"}
+                      color={r.role === "super_admin" ? "#fff" : "#333"}
+                    />
+                  </td>
                   <td style={{ ...td, maxWidth: 320 }}>
-                    {r.role === 'super_admin' ? <span style={{ color: '#888' }}>all modules</span> : (r.perms.length ? r.perms.join(', ') : <span style={{ color: OC.orange }}>none</span>)}
+                    {r.role === "super_admin" ? (
+                      <span style={{ color: "#888" }}>all modules</span>
+                    ) : r.perms.length ? (
+                      r.perms.join(", ")
+                    ) : (
+                      <span style={{ color: OC.orange }}>none</span>
+                    )}
                   </td>
                   <td style={td}>{String(r.added_at).slice(0, 10)}</td>
                   <td style={td}>
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      <button style={btnSmall} onClick={() => setEdit({ email: r.email, role: r.role, perms: r.perms })}>Edit</button>
-                      <button style={{ ...btnSmall, background: '#111', color: '#fff' }} onClick={() => remove(r.email)}>Remove</button>
+                    <div style={{ display: "flex", gap: 5 }}>
+                      <button
+                        style={btnSmall}
+                        onClick={() =>
+                          setEdit({
+                            email: r.email,
+                            role: r.role,
+                            perms: r.perms,
+                          })
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        style={{
+                          ...btnSmall,
+                          background: "#111",
+                          color: "#fff",
+                        }}
+                        onClick={() => remove(r.email)}
+                      >
+                        Remove
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {!shown.length && <tr><td style={td} colSpan={5}>{rows.length ? 'No admins match your search.' : 'No accounts yet - only the access code and any ADMIN_GOOGLE_EMAILS env-listed addresses can sign in.'}</td></tr>}
+              {!shown.length && (
+                <tr>
+                  <td style={td} colSpan={5}>
+                    {rows.length
+                      ? "No admins match your search."
+                      : "No accounts yet - only the access code and any ADMIN_GOOGLE_EMAILS env-listed addresses can sign in."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
