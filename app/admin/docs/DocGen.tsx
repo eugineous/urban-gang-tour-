@@ -579,11 +579,6 @@ const PRODUCTION_REFERENCES = [
   },
   {
     group: "Event print",
-    label: "Campus Rave wristband",
-    file: "13-wristband-event-campus-rave.html",
-  },
-  {
-    group: "Event print",
     label: "Outdoor teardrop flags",
     file: "14-outdoor-teardrops-telescopic-handflag-to-scale.html",
   },
