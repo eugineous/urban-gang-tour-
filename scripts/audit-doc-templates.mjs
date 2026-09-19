@@ -13,8 +13,10 @@ const STATIC_MASTER_RATIONALE = {
   '14-outdoor-teardrops-telescopic-handflag-to-scale.html': 'Large-format flag production master.',
   '15-event-flag-3x5ft.html': 'Reusable 3x5ft flag production master.',
   '20-ig-highlight-covers.html': 'Fixed social highlight icon set.',
+  '25-brochure-one-pager.html': 'Fixed corporate capabilities one-pager.',
   '28-sticker-pack-a5.html': 'Fixed A5 merchandise print master.',
   '29-bandana-55x55cm.html': 'Fixed 55x55cm merchandise print master.',
+  '51-artist-crew-rate-card.html': 'Commercial discussion guide; rates stay agreement-controlled.',
 };
 
 const templates = (await readdir(root))
@@ -41,9 +43,10 @@ for (const file of templates) {
   }
   const issues = [];
   if (!html.includes(LOGO)) issues.push('missing-official-logo');
-  const kind = rootMatch ? 'generator' : 'static-master';
-  if (!rootMatch && fields.length) issues.push('field-without-doc-root');
-  if (!rootMatch && !STATIC_MASTER_RATIONALE[file]) issues.push('static-master-without-rationale');
+  const isStaticMaster = !!STATIC_MASTER_RATIONALE[file];
+  const kind = isStaticMaster ? 'static-master' : 'generator';
+  if (isStaticMaster && fields.length) issues.push('field-on-static-master');
+  if (!isStaticMaster && !rootMatch) issues.push('generator-without-doc-root');
   if (fields.some((field) => !/^[a-z][\w:-]*:[a-z][\w-]*$/i.test(field))) issues.push('invalid-field-host');
   rows.push({ file, kind, page: rootMatch?.[1] || '-', fields: fields.length, assets: assetRefs.length, rationale: STATIC_MASTER_RATIONALE[file] || '-', missingAssets, issues });
 }
