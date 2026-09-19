@@ -673,7 +673,7 @@ export default function AdminApp({
       )}
 
       {tab === "Dashboard" && (
-        <ControlRoomHome stats={stats} onOpen={(next) => setTab(next as Tab)} />
+        <ControlRoomHome stats={stats} scope={session?.scope} perms={session?.perms || []} onOpen={(next) => setTab(next as Tab)} />
       )}
       {tab === "Inbox" && (
         <GmailInbox googleClientId={googleClientId} say={say} />

@@ -46,6 +46,30 @@ export async function GET(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const view = new URL(req.url).searchParams.get('view') || 'stats';
+  // The dashboard used to return an all-business financial snapshot to any
+  // signed-in admin. Filter it at the API boundary so a gallery contributor
+  // or content editor never receives orders, revenue, bookings, audience, or
+  // traffic figures they have not been assigned to handle.
+  if (view === 'stats') {
+    try {
+      const raw = (await q<any>(VIEWS.stats))[0] || {};
+      const filtered: Record<string, unknown> = {};
+      if (hasPerm(req, 'bookings')) filtered.new_bookings = raw.new_bookings;
+      if (hasPerm(req, 'orders')) {
+        filtered.orders = raw.orders;
+        filtered.revenue = raw.revenue;
+      }
+      if (hasPerm(req, 'content')) filtered.posts = raw.posts;
+      if (hasPerm(req, 'people')) {
+        filtered.users = raw.users;
+        filtered.subscribers = raw.subscribers;
+      }
+      if (hasPerm(req, 'traffic')) filtered.hits_7d = raw.hits_7d;
+      return NextResponse.json({ ok: true, rows: [filtered] });
+    } catch (e: any) {
+      return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
+    }
+  }
   if (view === 'posts') {
     try {
       await ensureContentWorkflowSchema();
