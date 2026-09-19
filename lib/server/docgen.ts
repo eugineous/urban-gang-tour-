@@ -127,6 +127,7 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
 // Promo templates use only local, audited assets. Uploaded heroes and partner
 // marks are allowed only after their URLs pass the owned-asset validator.
   newsletter:   { code: 'PROMO-WIRE', label: 'Urban Wire Newsletter',        template: '09-newsletter-the-urban-wire.html',         promo: { kind: 'post',   png: [1080, 2025] } },
+  emailSig:     { code: 'PROMO-SIG',  label: 'Email Signature',              template: '21-email-signature.html',                   promo: { kind: 'post',   png: [1280, 360] } },
   igNext:       { code: 'PROMO-NEXT',  label: 'IG Post - Next Stop',          template: '18-ig-post-next-stop.html',               promo: { kind: 'post',   png: [1080, 1080] } },
   igStory:      { code: 'PROMO-CAL',   label: 'IG Story - Term Calendar',     template: '19-ig-story-term-calendar.html',           promo: { kind: 'story',  png: [1080, 1920] } },
   igWinner:     { code: 'PROMO-WIN',   label: 'IG Post - Winner Spotlight',   template: '31-ig-post-winner-spotlight.html',         promo: { kind: 'post',   png: [1080, 1080] } },
@@ -141,7 +142,7 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   posFinale:    { code: 'PROMO-PSFIN', label: 'Poster - The Crowning Finale', template: '40-poster-the-crowning-finale.html',       promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
   posMaster:    { code: 'PROMO-MASTER', label: 'Poster - Event Master',       template: '56-poster-event-master.html',              promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'cor', 'brief', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr', 'newsletter',
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'cor', 'brief', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr', 'newsletter', 'emailSig',
   'igNext', 'igStory', 'igWinner', 'igEpisode', 'igMerch', 'igBookings', 'igQuote',
   'posTakeover', 'posHeadliner', 'posFestival', 'posRave', 'posFinale', 'posMaster'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
@@ -168,6 +169,7 @@ export const PROMO_PARTNERS: PromoPartner[] = [
 // intentional default copy; it is replaced only when the form submits a value.
 export const PROMO_FIELDS: Record<string, string[]> = {
   newsletter:   ['issueNo', 'heroHeadline', 'heroSummary', 'storyOne', 'storyTwo', 'ticker', 'merchHeadline', 'merchBody'],
+  emailSig:     ['name', 'role', 'phone', 'email', 'website', 'handle', 'cta'],
   igNext:       ['dateDay', 'dateMonth', 'schoolName', 'tagline1', 'tagline2', 'lineup'],
   igStory:      ['date1', 'school1', 'venue1', 'date2', 'school2', 'venue2', 'date3', 'school3', 'venue3'],
   igWinner:     ['winnerLine'],

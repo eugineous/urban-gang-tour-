@@ -25,7 +25,7 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'cor' | 'brief' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr' | 'newsletter'
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'cor' | 'brief' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr' | 'newsletter' | 'emailSig'
   | 'igNext' | 'igStory' | 'igWinner' | 'igEpisode' | 'igMerch' | 'igBookings' | 'igQuote'
   | 'posTakeover' | 'posHeadliner' | 'posFestival' | 'posRave' | 'posFinale' | 'posMaster';
 const TYPES: { key: DocType; label: string }[] = [
@@ -88,6 +88,18 @@ const PROMO_SPEC: Record<string, PSpec> = {
       { key: 'merchHeadline', label: 'Merch headline', ph: 'REP THE GANG — THE DROP IS LIVE' },
       { key: 'merchBody', label: 'Merch detail', area: true, ph: 'Caps, tees and more. Worn on tour, shipped countrywide.' },
     ], heroSlots: ['Lead story photo', 'Story card one photo', 'Story card two photo'],
+  },
+  emailSig: {
+    label: 'Email Signature', kind: 'post', design: { w: 640, h: 180 }, png: [1280, 360],
+    fields: [
+      { key: 'name', label: 'Name', ph: 'ALEX MUGO' },
+      { key: 'role', label: 'Role / team', ph: 'PARTNERSHIPS · URBAN GANG TOUR' },
+      { key: 'phone', label: 'Phone', ph: '+254 700 000 000' },
+      { key: 'email', label: 'Email', ph: 'hello@urbangangtour.co.ke' },
+      { key: 'website', label: 'Website', ph: 'urbangangtour.co.ke' },
+      { key: 'handle', label: 'Social handle', ph: '@urban_newsgang' },
+      { key: 'cta', label: 'Call to action', ph: 'BOOK THE TOUR · PARTNER WITH US' },
+    ], heroSlots: ['Profile photo'],
   },
   igNext: {
     label: 'IG Post - Next Stop', kind: 'post', design: { w: 600, h: 600 }, png: [1080, 1080],
@@ -191,7 +203,6 @@ const PRODUCTION_REFERENCES = [
   { group: 'Identity', label: 'Artist / presenter business card', file: '02-business-card-lucy-torn-poster.html' },
   { group: 'Identity', label: 'Team business card', file: '03-business-card-team-backstage.html' },
   { group: 'Comms', label: 'Urban Wire newsletter', file: '09-newsletter-the-urban-wire.html' },
-  { group: 'Comms', label: 'Email signature', file: '21-email-signature.html' },
   { group: 'Sales', label: 'Brochure / one-pager', file: '25-brochure-one-pager.html' },
   { group: 'Sales', label: 'Artist & crew rate card', file: '51-artist-crew-rate-card.html' },
   { group: 'Event print', label: 'Campus Rave wristband', file: '13-wristband-event-campus-rave.html' },
@@ -241,6 +252,7 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   sprop: { w: 794, h: 1123 },
   agr: { w: 794, h: 1123 },
   newsletter: { w: 640, h: 1200 },
+  emailSig: { w: 640, h: 180 },
   // Promo cards are captured at their design px (see PROMO_SPEC.design) and
   // exported at PROMO_SPEC.png. The preview iframe uses these design px.
   igNext: { w: 600, h: 600 },
