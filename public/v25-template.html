@@ -469,7 +469,7 @@
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
 <div><div style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase">From</div><div style="font-family:'Anton';font-size:22px">{{ ev.fromFmt }}</div></div>
-<button onClick="{{ ev.buy }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:16px;padding:13px 22px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 {{ ev.accent }}" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">Get Tickets</button>
+<div style="display:flex;align-items:center;gap:12px"><a href="{{ ev.detailHref }}" style="color:#111;font-size:12px;font-weight:800;text-transform:uppercase">Details</a><button onClick="{{ ev.buy }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:16px;padding:13px 22px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 {{ ev.accent }}" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">Get Tickets</button></div>
 </div>
 </div>
 </div>
@@ -2180,7 +2180,7 @@ class Component extends DCLogic {
     const tk=s.ticket; const tev=this.MAIN_EVENTS.find(x=>x.id===tk.eventId)||null; const tSub=tev?tev.tiers[tk.tier].price*tk.qty:0;
     const sw=s.swipe; const swProd=this.PRODUCTS[sw.i]||null; const swSizes=(swProd&&Array.isArray(swProd.variants)&&swProd.variants.length)?swProd.variants.map(v=>v.label):['One Size'];
     return {
-      mainEvents:this.MAIN_EVENTS.map(ev=>({...ev,fromFmt:this.fmt(ev.tiers[0].price),buy:()=>this.buyTicket(ev.id)})),
+      mainEvents:this.MAIN_EVENTS.map(ev=>({...ev,fromFmt:this.fmt(ev.tiers[0].price),detailHref:'/events/'+encodeURIComponent(ev.id),buy:()=>this.buyTicket(ev.id)})),
       ticketOpen:!!tk.eventId, ticketEvent:(tev||{name:''}), ticketTiers:(tev?tev.tiers.map((tr,i)=>({name:tr.name,priceFmt:this.fmt(tr.price),bg:(i===tk.tier?'#FFD400':'#fff'),pick:()=>this.setTier(i)})):[]),
       closeTicket:this.closeTicket, closeTicketBg:this.closeTicketBg, ticQtyUp:()=>this.ticQty(1), ticQtyDown:()=>this.ticQty(-1), ticketQty:tk.qty,
       onTName:this.onTName, onTEmail:this.onTEmail, onTPhone:this.onTPhone, ticketName:tk.name, ticketEmail:tk.email, ticketPhone:tk.phone,

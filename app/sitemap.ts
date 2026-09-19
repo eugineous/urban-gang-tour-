@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { ROUTES, SITE } from '@/lib/site';
 import { getBlogPosts } from './_lib/blog';
+import { hasDb, q } from '@/lib/server/db';
+import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 // Lists every crawlable URL, including each /blog/[slug]. /admin is excluded
 // (noindex). robots.ts points crawlers here.
@@ -29,5 +31,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...pages, ...authors, ...posts];
+  // Event rich results need one canonical URL for each real ticketed event.
+  // Only published events with a confirmed upcoming date are exposed here.
+  // A transient DB issue leaves the established sitemap intact.
+  let ticketedEvents: MetadataRoute.Sitemap = [];
+  if (hasDb()) {
+    try {
+      await ensureCatalogSeeded();
+      const rows = await q<{ id: string; updated_at: string }>(
+        `SELECT id, updated_at::text AS updated_at FROM tour_events
+         WHERE kind='ticketed' AND status='published' AND event_date >= CURRENT_DATE
+         ORDER BY event_date ASC`
+      );
+      ticketedEvents = rows.map((event) => ({
+        url: `${SITE.domain}/events/${encodeURIComponent(event.id)}`,
+        lastModified: event.updated_at ? new Date(event.updated_at) : now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }));
+    } catch {
+      ticketedEvents = [];
+    }
+  }
+
+  return [...pages, ...authors, ...posts, ...ticketedEvents];
 }
