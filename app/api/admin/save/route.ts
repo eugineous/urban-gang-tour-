@@ -18,6 +18,8 @@ let socialColReady = false;
 async function ensureSocialColumn() {
   if (socialColReady) return;
   await q(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_posted_at TIMESTAMPTZ`);
+  await q(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_automation_claimed_at TIMESTAMPTZ`);
+  await q(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_automation_result TEXT DEFAULT ''`);
   socialColReady = true;
 }
 
@@ -129,7 +131,8 @@ export async function POST(req: Request) {
              date=COALESCE($8::date, posts.date), editorial_status=$9,
              submitted_by=CASE WHEN posts.submitted_by='' THEN $10 ELSE posts.submitted_by END,
              reviewed_by=CASE WHEN $9='published' THEN $11 ELSE posts.reviewed_by END,
-             reviewed_at=CASE WHEN $9='published' THEN now() ELSE posts.reviewed_at END, updated_at=now()
+             reviewed_at=CASE WHEN $9='published' THEN now() ELSE posts.reviewed_at END,
+             social_automation_claimed_at=NULL, social_automation_result='', updated_at=now()
            RETURNING date`,
           [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), published, data.date || null, workflow, submittedBy, published ? actor : '']
         );

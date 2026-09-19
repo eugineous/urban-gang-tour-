@@ -1,5 +1,5 @@
 name = "urban-gang-tour"
-main = ".open-next/worker.js"
+main = "worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
@@ -17,6 +17,10 @@ enabled = true
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
+
+# Runs a guarded, idempotent content-announcement check. Times are UTC.
+[triggers]
+crons = ["*/15 * * * *"]
 
 # Self-reference, used by OpenNext's queue/revalidation plumbing (ISR) to
 # invoke this same Worker internally. Standard OpenNext Cloudflare
