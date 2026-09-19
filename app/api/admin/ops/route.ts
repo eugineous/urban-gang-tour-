@@ -333,6 +333,7 @@ export async function GET(req: Request) {
           inventoryMoves,
           fulfillments,
           variants,
+          purchaseOrders,
         ] = await Promise.all([
           q(
             `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point,
@@ -368,6 +369,15 @@ export async function GET(req: Request) {
           q(
             `SELECT v.*, p.name AS product_name FROM merch_variants v JOIN products p ON p.id=v.product_id ORDER BY p.name, v.label`,
           ),
+          q(
+            `SELECT po.*, s.name AS supplier_name, p.name AS product_name,
+                    q.production_method, q.unit_cost, q.minimum_quantity
+             FROM merch_purchase_orders po
+             LEFT JOIN merch_suppliers s ON s.id=po.supplier_id
+             LEFT JOIN products p ON p.id=po.product_id
+             LEFT JOIN merch_supplier_quotes q ON q.id=po.quote_id
+             ORDER BY po.updated_at DESC, po.id DESC LIMIT 300`,
+          ),
         ]);
         return NextResponse.json({
           ok: true,
@@ -377,6 +387,7 @@ export async function GET(req: Request) {
           inventoryMoves,
           fulfillments,
           variants,
+          purchaseOrders,
         });
       }
 
@@ -573,6 +584,8 @@ const KIND_PERM: Record<string, string> = {
   "merchFulfillment.save": "ops_merch",
   "merchVariant.save": "ops_merch",
   "merchVariant.delete": "ops_merch",
+  "merchPurchaseOrder.save": "ops_merch",
+  "merchPurchaseOrder.cancel": "ops_merch",
   "marketplaceOrganizer.suspend": "marketplace",
   "marketplaceOrganizer.reinstate": "marketplace",
   "marketplaceEvent.approve": "marketplace",
@@ -1649,6 +1662,94 @@ export async function POST(req: Request) {
         );
         if (!rows.length) return bad("not_found", 404);
         await opsAudit("ops.merch.variant.delete", { id });
+        return NextResponse.json({ ok: true });
+      }
+      case "merchPurchaseOrder.save": {
+        const id = intOrNull(d.id);
+        const supplierId = intOrNull(d.supplierId);
+        const quoteId = intOrNull(d.quoteId);
+        const productId = s(d.productId, 60);
+        const quantity = intOrNull(d.quantity);
+        const allowed = new Set([
+          "draft",
+          "approved",
+          "sent",
+          "in_production",
+          "received",
+          "cancelled",
+        ]);
+        const status = s(d.status, 30) || "draft";
+        if (
+          !supplierId ||
+          !quoteId ||
+          !productId ||
+          !quantity ||
+          quantity < 1 ||
+          quantity > 100000 ||
+          !allowed.has(status)
+        )
+          return bad("invalid_purchase_order");
+        // A production instruction is usable only if it preserves the exact
+        // verified supplier, product and source quote relationship. It does
+        // not copy or approve a payment amount.
+        const verifiedQuote = await q<{ id: number }>(
+          `SELECT id FROM merch_supplier_quotes
+           WHERE id=$1 AND supplier_id=$2 AND product_id=$3`,
+          [quoteId, supplierId, productId],
+        );
+        if (!verifiedQuote.length) return bad("quote_relationship_mismatch");
+        const rows = id
+          ? await q(
+              `UPDATE merch_purchase_orders
+               SET supplier_id=$1,quote_id=$2,product_id=$3,status=$4,quantity=$5,
+                   reference=$6,note=$7,updated_at=now()
+               WHERE id=$8 RETURNING *`,
+              [
+                supplierId,
+                quoteId,
+                productId,
+                status,
+                quantity,
+                s(d.reference, 160),
+                s(d.note, 2000),
+                id,
+              ],
+            )
+          : await q(
+              `INSERT INTO merch_purchase_orders
+               (supplier_id,quote_id,product_id,status,quantity,reference,note)
+               VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+              [
+                supplierId,
+                quoteId,
+                productId,
+                status,
+                quantity,
+                s(d.reference, 160),
+                s(d.note, 2000),
+              ],
+            );
+        if (!rows.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.purchase_order.save", {
+          id: rows[0].id,
+          supplierId,
+          quoteId,
+          productId,
+          status,
+          quantity,
+        });
+        return NextResponse.json({ ok: true, row: rows[0] });
+      }
+      case "merchPurchaseOrder.cancel": {
+        const id = intOrNull(d.id);
+        if (!id) return bad("missing_id");
+        const rows = await q(
+          `UPDATE merch_purchase_orders SET status='cancelled',updated_at=now()
+           WHERE id=$1 AND status <> 'received' RETURNING id`,
+          [id],
+        );
+        if (!rows.length) return bad("not_found_or_received", 404);
+        await opsAudit("ops.merch.purchase_order.cancel", { id });
         return NextResponse.json({ ok: true });
       }
 

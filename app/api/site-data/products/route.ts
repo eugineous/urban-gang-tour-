@@ -31,7 +31,17 @@ export async function GET(req: Request) {
     const products = await cached('site-products', 60_000, async () => {
       await ensureCatalogSeeded();
       const rows = await q<any>(
-        `SELECT id, name, price, image, category, description FROM products WHERE active ORDER BY id`,
+        `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
+                COALESCE(
+                  jsonb_agg(jsonb_build_object('label',v.label,'priceAdjustment',v.price_adjustment,'sku',v.sku)
+                    ORDER BY v.label) FILTER (WHERE v.id IS NOT NULL),
+                  '[]'::jsonb
+                ) AS variants
+         FROM products p
+         LEFT JOIN merch_variants v ON v.product_id=p.id AND v.active=true
+         WHERE p.active
+         GROUP BY p.id, p.name, p.price, p.image, p.category, p.description
+         ORDER BY p.id`,
       );
       return rows.map((r) => ({
         id: r.id,
@@ -40,6 +50,11 @@ export async function GET(req: Request) {
         image: r.image || '',
         category: r.category || '',
         description: r.description || '',
+        variants: Array.isArray(r.variants) ? r.variants.map((v: any) => ({
+          label: String(v.label || ''),
+          priceAdjustment: Number(v.priceAdjustment || 0),
+          sku: String(v.sku || ''),
+        })).filter((v: any) => v.label) : [],
       }));
     });
     return NextResponse.json({ ok: true, products }, { headers: CACHE_HEADERS });

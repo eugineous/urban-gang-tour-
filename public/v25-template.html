@@ -149,8 +149,8 @@
 </sc-if>
 <div style="color:#E6218C;font-family:'Anton';font-size:26px">{{ quick.priceFmt }}</div>
 <p style="color:#444;line-height:1.6;font-size:14px;margin:14px 0 16px">{{ quick.desc }}</p>
-<sc-if value="{{ quick.isApparel }}" hint-placeholder-val="{{ false }}">
-<div style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:8px">Pick your size</div>
+<sc-if value="{{ quick.hasOptions }}" hint-placeholder-val="{{ false }}">
+<div style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:8px">Choose your option</div>
 <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">
 <sc-for list="{{ quick.sizes }}" as="z" hint-placeholder-count="5">
 <button onClick="{{ z.pick }}" style="min-width:46px;padding:9px 0;border:2px solid #111;border-radius:9px;font-weight:800;font-size:13.5px;background:{{ z.bg }}" style-hover="background:#FFD400">{{ z.z }}</button>
@@ -1067,7 +1067,7 @@
 </div>
 <div style="background:#E6218C;padding:40px 24px 60px">
 <div style="max-width:1200px;margin:0 auto">
-<div style="font-family:'Permanent Marker';color:#111;font-size:18px;transform:rotate(-1deg);margin-bottom:16px;text-align:center">tap a tag → pick your size → straight in the bag</div>
+<div style="font-family:'Permanent Marker';color:#111;font-size:18px;transform:rotate(-1deg);margin-bottom:16px;text-align:center">tap a tag → choose your option → straight in the bag</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px">
 <sc-for list="{{ products }}" as="p" hint-placeholder-count="8">
 <div style="position:relative;padding-top:16px;transform:rotate({{ p.tilt }});transform-origin:top center;transition:transform .25s cubic-bezier(.3,1.4,.5,1)" style-hover="transform:rotate(0deg)">
@@ -1930,7 +1930,7 @@ class Component extends DCLogic {
   ticketMailto=()=>{ const o=this.state.ticket.order; if(!o) return '#'; const body='Ticket '+o.ref+'%0AEvent: '+o.eventName+'%0ADate: '+o.eventDate+' '+o.eventTime+'%0AVenue: '+o.venue+', '+o.city+'%0AName: '+o.name+'%0AType: '+o.tierName+' x'+o.qty+'%0ATotal: KES '+o.total+'%0AInvoice: '+o.invoice; return 'mailto:'+o.email+'?subject=Your%20Urban%20Gang%20Tour%20Ticket%20'+o.ref+'&body='+body; };
   printTicket=()=>{ const o=this.state.ticket.order; if(!o)return; const w=window.open('','_blank'); if(!w)return; w.document.write('<html><head><title>'+o.ref+'</title></head><body style="font-family:system-ui,sans-serif;padding:28px;color:#111"><div style="border:3px solid #111;border-radius:16px;padding:24px;max-width:460px"><div style="font-weight:800;letter-spacing:.1em;color:#E6218C">URBAN GANG TOUR \u2014 E-TICKET</div><h2 style="margin:8px 0">'+o.eventName+'</h2><p>'+o.eventDate+' · '+o.eventTime+'<br>'+o.venue+', '+o.city+'</p><hr><p><b>Attendee:</b> '+o.name+'<br><b>Type:</b> '+o.tierName+' × '+o.qty+'<br><b>Ref:</b> '+o.ref+'<br><b>Invoice:</b> '+o.invoice+'<br><b>Total paid:</b> KES '+o.total.toLocaleString()+'</p></div><scr'+'ipt>window.print()</scr'+'ipt></body></html>'); w.document.close(); };
   addSwipe=(id,size)=>this.setState(s=>{ const c=s.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===id&&x.size===size); if(i>=0)c[i].qty++; else c.push({id,qty:1,size}); return {cart:c}; });
-  swipeDecide=(like)=>{ const s=this.state; const prod=this.PRODUCTS[s.swipe.i]; const size=(prod&&prod.cat==='Apparel')?s.swipe.size:null; if(like&&prod){ this.addSwipe(prod.id,size); this.flash('Added '+(size?size+' · ':'')+prod.name); } this.setState(st=>({swipe:{...st.swipe,i:st.swipe.i+1}})); };
+  swipeDecide=(like)=>{ const s=this.state; const prod=this.PRODUCTS[s.swipe.i]; const options=(prod&&Array.isArray(prod.variants))?prod.variants:[]; const size=options.some(v=>v.label===s.swipe.size)?s.swipe.size:(options[0]&&options[0].label)||null; if(like&&prod){ this.addSwipe(prod.id,size); this.flash('Added '+(size?' · '+size:'')+' '+prod.name); } this.setState(st=>({swipe:{...st.swipe,i:st.swipe.i+1}})); };
   setSwipeSize=(z)=>this.setState(s=>({swipe:{...s.swipe,size:z}}));
   resetSwipe=()=>this.setState(s=>({swipe:{...s.swipe,i:0}}));
   onCardDown=(e)=>{ this._card=e.currentTarget; this._sx=e.clientX; this._dx=0; this._drag=true; this._card.style.transition='none'; try{this._card.setPointerCapture(e.pointerId);}catch(_){} };
@@ -1938,12 +1938,12 @@ class Component extends DCLogic {
   onCardUp=(e)=>{ if(!this._drag)return; this._drag=false; const dx=this._dx||0; const el=this._card; this._card=null; if(el) el.style.transition='transform .3s ease, opacity .3s ease'; if(dx>110){ if(el) el.style.transform='translateX(720px) rotate(28deg)'; setTimeout(()=>this.swipeDecide(true),150); } else if(dx<-110){ if(el) el.style.transform='translateX(-720px) rotate(-28deg)'; setTimeout(()=>this.swipeDecide(false),150); } else if(el){ el.style.transform=''; el.style.opacity='1'; } };
 
   quickCloseBg = (e) => { if(e.target===e.currentTarget) this.quickClose(); };
-  addQuick = () => { const st=this.state; const p=this.PRODUCTS.find(x=>x.id===st.quickId); if(!p) return; const size=(p.cat==='Apparel')?st.quickSize:null; this.setState(s2=>{ const c=s2.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===p.id&&x.size===size); if(i>=0) c[i].qty+=s2.quickQty; else c.push({id:p.id,qty:s2.quickQty,size}); return {cart:c, quickId:null, cartOpen:true, quickQty:1}; }); this.flash('In the bag'+(size?' \u2014 size '+size:'')+'. Sawa!'); };
+  addQuick = () => { const st=this.state; const p=this.PRODUCTS.find(x=>x.id===st.quickId); if(!p) return; const options=Array.isArray(p.variants)?p.variants:[]; const size=options.some(v=>v.label===st.quickSize)?st.quickSize:null; this.setState(s2=>{ const c=s2.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===p.id&&x.size===size); if(i>=0) c[i].qty+=s2.quickQty; else c.push({id:p.id,qty:s2.quickQty,size}); return {cart:c, quickId:null, cartOpen:true, quickQty:1}; }); this.flash('In the bag'+(size?' · '+size:'')+'. Sawa!'); };
   addToCart = (id) => this.setState(s=>{ const c=s.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===id&&!x.size); if(i>=0) c[i].qty++; else c.push({id,qty:1}); return {cart:c, cartOpen:true, quickId:null}; });
   incAt = (i) => this.setState(s=>({cart:s.cart.map((x,j)=>j===i?{...x,qty:x.qty+1}:x)}));
   decAt = (i) => this.setState(s=>({cart:s.cart.map((x,j)=>j===i?{...x,qty:x.qty-1}:x).filter(x=>x.qty>0)}));
   removeAt = (i) => this.setState(s=>({cart:s.cart.filter((x,j)=>j!==i)}));
-  openQuick = (id) => this.setState({quickId:id});
+  openQuick = (id) => { const p=this.PRODUCTS.find(x=>x.id===id); const first=(p&&Array.isArray(p.variants)&&p.variants[0])?p.variants[0].label:null; this.setState({quickId:id,quickSize:first}); };
   quickClose = () => this.setState({quickId:null});
   checkout = () => this.setState({cartOpen:false, checkout:{stage:'details',name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[],ack:false}});
   closeCheckout = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:null}})); };
@@ -2021,7 +2021,7 @@ class Component extends DCLogic {
     const ph=this.msisdn(co.phone);
     if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('co',{err:'M-Pesa payments are not available right now.'}); return; }
-    const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit:pi.price,total:pi.price*l.qty}; });
+    const lines=s.cart.map(l=>{ const p=this.PRODUCTS.find(x=>x.id===l.id); const pi=this.priceInfo(p); const variant=Array.isArray(p.variants)?p.variants.find(v=>v.label===l.size):null; const unit=pi.price+Number((variant&&variant.priceAdjustment)||0); return {name:p.name+(l.size?' ('+l.size+')':''),qty:l.qty,unit,total:unit*l.qty}; });
     const items=s.cart.map(l=>({id:l.id,qty:l.qty,variant:l.size||undefined}));
     this.setPay('co',{busy:true,err:''});
     const idem='co-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -2119,13 +2119,15 @@ class Component extends DCLogic {
   renderVals(){
     const s = this.state;
     const prodById = (id)=> this.PRODUCTS.find(p=>p.id===id);
-    const cartLines = s.cart.map((l,idx)=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {id:l.id+'-'+(l.size||'std'),name:p.name,sub:(l.size?'Size '+l.size:p.cat),img:p.img,qty:l.qty,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,origFmt:pi.origFmt,inc:()=>this.incAt(idx),dec:()=>this.decAt(idx),remove:()=>this.removeAt(idx)}; });
+    const optionAdjustment=(p,choice)=>{ const v=p&&Array.isArray(p.variants)?p.variants.find(x=>x.label===choice):null; return v?Number(v.priceAdjustment||0):0; };
+    const cartLines = s.cart.map((l,idx)=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {id:l.id+'-'+(l.size||'std'),name:p.name,sub:(l.size?'Option '+l.size:p.cat),img:p.img,qty:l.qty,priceFmt:this.fmt(pi.price+optionAdjustment(p,l.size)),hasPromo:pi.hasPromo,origFmt:pi.origFmt,inc:()=>this.incAt(idx),dec:()=>this.decAt(idx),remove:()=>this.removeAt(idx)}; });
     const cartCount = s.cart.reduce((a,b)=>a+b.qty,0);
-    const cartTotal = s.cart.reduce((a,b)=>a+b.qty*this.priceInfo(prodById(b.id)).price,0);
-    const products = this.PRODUCTS.map((p,i)=>{ const ap=p.cat==='Apparel'; const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,origFmt:pi.origFmt,badge:pi.badge,tilt:this.TILTS[i%this.TILTS.length],add:()=>this.addToCart(p.id),quick:()=>this.openQuick(p.id),btn:(ap?()=>this.openQuick(p.id):()=>this.addToCart(p.id)),btnLabel:(ap?'Choose Size →':'Add to Bag')}; });
+    const cartTotal = s.cart.reduce((a,b)=>a+b.qty*(this.priceInfo(prodById(b.id)).price+optionAdjustment(prodById(b.id),b.size)),0);
+    const products = this.PRODUCTS.map((p,i)=>{ const hasOptions=Array.isArray(p.variants)&&p.variants.length>0; const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,origFmt:pi.origFmt,badge:pi.badge,tilt:this.TILTS[i%this.TILTS.length],add:()=>this.addToCart(p.id),quick:()=>this.openQuick(p.id),btn:(hasOptions?()=>this.openQuick(p.id):()=>this.addToCart(p.id)),btnLabel:(hasOptions?'Choose Option →':'Add to Bag')}; });
     const quickP = s.quickId?prodById(s.quickId):null;
     const quickPi = quickP?this.priceInfo(quickP):null;
-    const quick = quickP?{...quickP,priceFmt:quickPi.priceFmt,hasPromo:quickPi.hasPromo,origFmt:quickPi.origFmt,badge:quickPi.badge,isApparel:quickP.cat==='Apparel',totalFmt:this.fmt(quickPi.price*s.quickQty),qty:s.quickQty,qtyUp:()=>this.setState(st=>({quickQty:Math.min(20,st.quickQty+1)})),qtyDown:()=>this.setState(st=>({quickQty:Math.max(1,st.quickQty-1)})),sizes:['S','M','L','XL','XXL'].map(z=>({z,bg:(z===s.quickSize?'#FFD400':'#fff'),pick:()=>this.setState({quickSize:z})})),add:this.addQuick}:null;
+    const quickOptions=quickP&&Array.isArray(quickP.variants)?quickP.variants:[];
+    const quick = quickP?{...quickP,priceFmt:this.fmt(quickPi.price+optionAdjustment(quickP,s.quickSize)),hasPromo:quickPi.hasPromo,origFmt:quickPi.origFmt,badge:quickPi.badge,hasOptions:quickOptions.length>0,totalFmt:this.fmt((quickPi.price+optionAdjustment(quickP,s.quickSize))*s.quickQty),qty:s.quickQty,qtyUp:()=>this.setState(st=>({quickQty:Math.min(20,st.quickQty+1)})),qtyDown:()=>this.setState(st=>({quickQty:Math.max(1,st.quickQty-1)})),sizes:quickOptions.map(v=>({z:v.label,bg:(v.label===s.quickSize?'#FFD400':'#fff'),pick:()=>this.setState({quickSize:v.label})})),add:this.addQuick}:null;
     const audiences = this.AUDIENCES.map((a,i)=>({...a,go:()=>this.goWork(a.tab),n:'0'+(i+1),plate:['#FFD400','#21C7E6','#E6218C','#FFD400'][i%4]}));
     const wt = this.WORKTABS[s.workTab];
     const pill = (on)=>on?{border:'#111',bg:'#FFD400',color:'#111'}:{border:'#111',bg:'#fff',color:'#111'};
@@ -2176,7 +2178,7 @@ class Component extends DCLogic {
       {label:'Paid orders',value:s.orders.length,color:'#21C7E6'}
     ];
     const tk=s.ticket; const tev=this.MAIN_EVENTS.find(x=>x.id===tk.eventId)||null; const tSub=tev?tev.tiers[tk.tier].price*tk.qty:0;
-    const sw=s.swipe; const swProd=this.PRODUCTS[sw.i]||null; const swSizes=(swProd&&swProd.cat==='Apparel')?['S','M','L','XL']:['One Size'];
+    const sw=s.swipe; const swProd=this.PRODUCTS[sw.i]||null; const swSizes=(swProd&&Array.isArray(swProd.variants)&&swProd.variants.length)?swProd.variants.map(v=>v.label):['One Size'];
     return {
       mainEvents:this.MAIN_EVENTS.map(ev=>({...ev,fromFmt:this.fmt(ev.tiers[0].price),buy:()=>this.buyTicket(ev.id)})),
       ticketOpen:!!tk.eventId, ticketEvent:(tev||{name:''}), ticketTiers:(tev?tev.tiers.map((tr,i)=>({name:tr.name,priceFmt:this.fmt(tr.price),bg:(i===tk.tier?'#FFD400':'#fff'),pick:()=>this.setTier(i)})):[]),

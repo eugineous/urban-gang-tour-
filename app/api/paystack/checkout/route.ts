@@ -5,6 +5,7 @@ import { rateLimit, clientIp, PURCHASE_NETWORK_LIMIT } from '@/lib/server/rateli
 import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
 import { paystackConfigured, paystackInit } from '@/lib/server/paystack';
+import { applyVerifiedMerchVariants } from '@/lib/server/merch-variants';
 
 // Card checkout via Paystack (KES, Kenyan settlement). Mirrors the Stripe
 // route: strict schema, prices ONLY from lib/server/catalog.ts, ledger row
@@ -53,12 +54,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
     }
     for (const k of Object.keys(it)) {
-      if (k !== 'id' && k !== 'qty') return NextResponse.json({ error: `unexpected_field:items.${k}` }, { status: 400 });
+      if (k !== 'id' && k !== 'qty' && k !== 'variant') return NextResponse.json({ error: `unexpected_field:items.${k}` }, { status: 400 });
     }
     if (typeof it.id !== 'string' || !catalogPrices[it.id]) {
       return NextResponse.json({ error: 'unknown_product' }, { status: 400 });
     }
     if (!Number.isInteger(it.qty) || it.qty < 1 || it.qty > 20) {
+      return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
+    }
+    if (it.variant !== undefined && (typeof it.variant !== 'string' || it.variant.length > 100)) {
       return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
     }
   }
@@ -73,7 +77,7 @@ export async function POST(req: Request) {
   if (!paystackConfigured()) return NextResponse.json({ error: 'card_not_configured' }, { status: 503 });
 
   let total: number;
-  let lines: { id: string; qty: number; name: string; unit: number }[];
+  let lines: { id: string; qty: number; name: string; unit: number; variant?: string }[];
   let appliedPromoCode: { promoId: number; promoName: string } | null;
   try {
     const priced = await serverTotalWithPromos(
@@ -82,6 +86,9 @@ export async function POST(req: Request) {
     );
     total = priced.total;
     lines = priced.lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name, unit: l.unit }));
+    const variants = await applyVerifiedMerchVariants(items, lines);
+    lines = variants.lines;
+    total += variants.adjustment;
     appliedPromoCode = priced.appliedPromoCode;
   } catch (e: any) { return NextResponse.json({ error: String(e.message) }, { status: 400 }); }
 

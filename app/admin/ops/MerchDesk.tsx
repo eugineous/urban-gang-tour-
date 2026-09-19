@@ -101,6 +101,20 @@ type Variant = {
   price_adjustment: number;
   active: boolean;
 };
+type PurchaseOrder = {
+  id: number;
+  supplier_id: number | null;
+  quote_id: number | null;
+  product_id: string | null;
+  supplier_name: string;
+  product_name: string;
+  production_method: string;
+  status: string;
+  quantity: number | null;
+  reference: string;
+  note: string;
+  updated_at: string;
+};
 
 const EMPTY_SUPPLIER = {
   id: null as number | null,
@@ -150,6 +164,16 @@ const EMPTY_VARIANT = {
   priceAdjustment: 0,
   active: true,
 };
+const EMPTY_PURCHASE_ORDER = {
+  id: null as number | null,
+  supplierId: null as number | null,
+  quoteId: null as number | null,
+  productId: "",
+  status: "draft",
+  quantity: null as number | null,
+  reference: "",
+  note: "",
+};
 
 function optionalNumber(value: string): number | null {
   return value === "" ? null : Math.max(0, Math.round(Number(value) || 0));
@@ -162,6 +186,7 @@ export default function MerchDesk() {
   const [inventoryMoves, setInventoryMoves] = useState<InventoryMove[]>([]);
   const [fulfillments, setFulfillments] = useState<Fulfillment[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [supplierEdit, setSupplierEdit] = useState<
     typeof EMPTY_SUPPLIER | null
   >(null);
@@ -173,8 +198,17 @@ export default function MerchDesk() {
   const [variantEdit, setVariantEdit] = useState<typeof EMPTY_VARIANT | null>(
     null,
   );
+  const [purchaseOrderEdit, setPurchaseOrderEdit] = useState<
+    typeof EMPTY_PURCHASE_ORDER | null
+  >(null);
   const [tab, setTab] = useState<
-    "overview" | "variants" | "fulfilment" | "stock" | "suppliers" | "quotes"
+    | "overview"
+    | "variants"
+    | "production"
+    | "fulfilment"
+    | "stock"
+    | "suppliers"
+    | "quotes"
   >("overview");
   const [qy, setQy] = useState("");
   const [busy, setBusy] = useState(false);
@@ -216,6 +250,7 @@ export default function MerchDesk() {
         price_adjustment: Number(v.price_adjustment),
       })),
     );
+    setPurchaseOrders(data.purchaseOrders || []);
   }, [say]);
   useEffect(() => {
     reload();
@@ -288,6 +323,31 @@ export default function MerchDesk() {
     }
   };
 
+  const savePurchaseOrder = async () => {
+    if (
+      !purchaseOrderEdit?.supplierId ||
+      !purchaseOrderEdit.quoteId ||
+      !purchaseOrderEdit.productId ||
+      !purchaseOrderEdit.quantity ||
+      purchaseOrderEdit.quantity < 1
+    ) {
+      say("Choose the verified supplier quote and quantity");
+      return;
+    }
+    setBusy(true);
+    const { data } = await opsPost(
+      "merchPurchaseOrder.save",
+      purchaseOrderEdit,
+    );
+    setBusy(false);
+    if (data.error) say("Failed: " + data.error);
+    else {
+      say("Production order saved");
+      setPurchaseOrderEdit(null);
+      reload();
+    }
+  };
+
   if (variantEdit)
     return (
       <div style={card}>
@@ -351,6 +411,151 @@ export default function MerchDesk() {
         />
       </div>
     );
+
+  if (purchaseOrderEdit) {
+    const compatibleQuotes = quotes.filter(
+      (q) =>
+        q.supplier_id === purchaseOrderEdit.supplierId &&
+        q.product_id === purchaseOrderEdit.productId,
+    );
+    return (
+      <div style={card}>
+        <Toast msg={toast} />
+        <h3 style={h3}>PRODUCTION ORDER</h3>
+        <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
+          Link one verified supplier quote to a production instruction. This
+          does not approve payment, delivery or stock. Record received units as
+          a separate verified stock movement.
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+          }}
+        >
+          <div>
+            <span style={label}>Supplier *</span>
+            <select
+              style={inp}
+              value={purchaseOrderEdit.supplierId ?? ""}
+              onChange={(e) =>
+                setPurchaseOrderEdit({
+                  ...purchaseOrderEdit,
+                  supplierId: optionalNumber(e.target.value),
+                  quoteId: null,
+                })
+              }
+            >
+              <option value="">Choose active supplier</option>
+              {suppliers
+                .filter((s) => s.status === "active")
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div>
+            <span style={label}>Product *</span>
+            <select
+              style={inp}
+              value={purchaseOrderEdit.productId}
+              onChange={(e) =>
+                setPurchaseOrderEdit({
+                  ...purchaseOrderEdit,
+                  productId: e.target.value,
+                  quoteId: null,
+                })
+              }
+            >
+              <option value="">Choose product</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <span style={label}>Verified quote *</span>
+            <select
+              style={inp}
+              value={purchaseOrderEdit.quoteId ?? ""}
+              onChange={(e) =>
+                setPurchaseOrderEdit({
+                  ...purchaseOrderEdit,
+                  quoteId: optionalNumber(e.target.value),
+                })
+              }
+            >
+              <option value="">Choose matching quote</option>
+              {compatibleQuotes.map((q) => (
+                <option key={q.id} value={q.id}>
+                  #{q.id} {q.production_method || "Production method not set"}
+                </option>
+              ))}
+            </select>
+          </div>
+          <NumberField
+            title="Verified quantity *"
+            value={purchaseOrderEdit.quantity}
+            set={(quantity) =>
+              setPurchaseOrderEdit({ ...purchaseOrderEdit, quantity })
+            }
+          />
+          <div>
+            <span style={label}>Production state</span>
+            <select
+              style={inp}
+              value={purchaseOrderEdit.status}
+              onChange={(e) =>
+                setPurchaseOrderEdit({
+                  ...purchaseOrderEdit,
+                  status: e.target.value,
+                })
+              }
+            >
+              {[
+                ["draft", "Draft"],
+                ["approved", "Approved"],
+                ["sent", "Sent to supplier"],
+                ["in_production", "In production"],
+                ["received", "Received"],
+                ["cancelled", "Cancelled"],
+              ].map(([value, text]) => (
+                <option key={value} value={value}>
+                  {text}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Field
+            title="Supplier reference"
+            value={purchaseOrderEdit.reference}
+            set={(reference) =>
+              setPurchaseOrderEdit({ ...purchaseOrderEdit, reference })
+            }
+            placeholder="Verified reference, if any"
+          />
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <Field
+            title="Internal note"
+            value={purchaseOrderEdit.note}
+            set={(note) => setPurchaseOrderEdit({ ...purchaseOrderEdit, note })}
+            placeholder="Scope, proof or handover note"
+          />
+        </div>
+        <Actions
+          busy={busy}
+          save={savePurchaseOrder}
+          cancel={() => setPurchaseOrderEdit(null)}
+        />
+      </div>
+    );
+  }
 
   const saveStock = async () => {
     if (
@@ -820,6 +1025,7 @@ export default function MerchDesk() {
             [
               "overview",
               "variants",
+              "production",
               "fulfilment",
               "stock",
               "suppliers",
@@ -1027,6 +1233,103 @@ export default function MerchDesk() {
                     <td style={td} colSpan={6}>
                       No variants yet. Add a verified option when the physical
                       product has one.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {tab === "production" && (
+        <div style={card}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+              marginBottom: 10,
+            }}
+          >
+            <h3 style={{ ...h3, marginBottom: 0 }}>
+              PRODUCTION ORDERS ({purchaseOrders.length})
+            </h3>
+            <div style={{ flex: 1 }} />
+            <button
+              style={btnMagenta}
+              onClick={() => setPurchaseOrderEdit({ ...EMPTY_PURCHASE_ORDER })}
+            >
+              + Production order
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
+            An auditable production handover, tied to an existing supplier
+            quote. It does not create a payment or increase stock automatically.
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ borderCollapse: "collapse", width: "100%" }}>
+              <thead>
+                <tr>
+                  {["product", "supplier", "quote method", "quantity", "state", "reference", "updated", ""].map(
+                    (c) => (
+                      <th key={c} style={th}>
+                        {c}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {purchaseOrders.map((po) => (
+                  <tr key={po.id}>
+                    <td style={td}><b>{po.product_name || "Retained product"}</b></td>
+                    <td style={td}>{po.supplier_name || "Retained supplier"}</td>
+                    <td style={td}>{po.production_method || "—"}</td>
+                    <td style={td}>{po.quantity ?? "—"}</td>
+                    <td style={td}><Chip text={po.status.replaceAll("_", " ")} /></td>
+                    <td style={td}>{po.reference || "—"}</td>
+                    <td style={td}>{fmtDate(po.updated_at)}</td>
+                    <td style={td}>
+                      <div style={{ display: "flex", gap: 5 }}>
+                        <button
+                          style={btnSmall}
+                          onClick={() =>
+                            setPurchaseOrderEdit({
+                              id: po.id,
+                              supplierId: po.supplier_id,
+                              quoteId: po.quote_id,
+                              productId: po.product_id || "",
+                              status: po.status,
+                              quantity: po.quantity,
+                              reference: po.reference,
+                              note: po.note,
+                            })
+                          }
+                        >
+                          Open
+                        </button>
+                        {po.status !== "received" && po.status !== "cancelled" && (
+                          <button
+                            style={{ ...btnSmall, background: "#111", color: "#fff" }}
+                            onClick={async () => {
+                              if (!confirm("Cancel this production order?")) return;
+                              const { data } = await opsPost("merchPurchaseOrder.cancel", { id: po.id });
+                              if (data.error) say("Failed: " + data.error);
+                              else reload();
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {!purchaseOrders.length && (
+                  <tr>
+                    <td style={td} colSpan={8}>
+                      No production orders yet. Add one only after recording a verified supplier quote.
                     </td>
                   </tr>
                 )}

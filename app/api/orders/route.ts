@@ -10,6 +10,7 @@ import { mpesaConfigured, stkPush, normalizePhone } from "@/lib/server/mpesa";
 import { sameOrigin } from "@/lib/server/origin";
 import { alertCritical } from "@/lib/server/alert";
 import { notifyNewOrder } from "@/lib/server/notify";
+import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
 
 const seen = new Map<string, { id: string; ts: number }>(); // idempotency
 
@@ -154,27 +155,18 @@ export async function POST(req: Request) {
         name: l.name,
         unit: l.unit,
       }));
-      const requestedVariants = items
-        .filter((it: any) => it.variant)
-        .map((it: any) => ({ productId: it.id, label: it.variant }));
-      if (requestedVariants.length) {
-        const { q, hasDb } = await import("@/lib/server/db");
-        if (!hasDb()) throw new Error("variant_catalog_unavailable");
-        for (const requested of requestedVariants) {
-          const rows = await q<{ label: string; price_adjustment: number }>(
-            `SELECT label, price_adjustment FROM merch_variants WHERE product_id=$1 AND label=$2 AND active=true`,
-            [requested.productId, requested.label],
-          );
-          if (!rows.length) throw new Error("unknown_variant");
-          const line = orderItems.find((l) => l.id === requested.productId);
-          if (!line) throw new Error("unknown_product");
-          line.variant = rows[0].label;
-          line.name = `${line.name} (${rows[0].label})`;
-          line.unit =
-            Number(line.unit || 0) + Number(rows[0].price_adjustment || 0);
-          total += Number(rows[0].price_adjustment || 0) * line.qty;
-        }
-      }
+      const variants = await applyVerifiedMerchVariants(
+        items,
+        orderItems as {
+          id: string;
+          qty: number;
+          name: string;
+          unit: number;
+          variant?: string;
+        }[],
+      );
+      orderItems = variants.lines;
+      total += variants.adjustment;
       appliedPromoCode = priced.appliedPromoCode;
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 400 });

@@ -85,7 +85,7 @@ export function V25App({ page }: { page: string }) {
       .then((r) => r.json())
       .then((d) => {
         const rows: any[] = Array.isArray(d?.products) ? d.products : [];
-        w.__UGT_PRODUCTS = rows.map((p) => ({ id: p.id, name: p.name, price: p.price, img: p.image, cat: p.category, desc: p.description }));
+        w.__UGT_PRODUCTS = rows.map((p) => ({ id: p.id, name: p.name, price: p.price, img: p.image, cat: p.category, desc: p.description, variants: Array.isArray(p.variants) ? p.variants : [] }));
       })
       .catch(() => { w.__UGT_PRODUCTS = w.__UGT_PRODUCTS || []; });
     // Gallery bridge: the photo wall's this.GALLERY used to be a hardcoded
@@ -112,9 +112,9 @@ export function V25App({ page }: { page: string }) {
     // The server re-prices everything from lib/server/catalog.ts and answers
     // with a hosted checkout URL. Paystack first (KES, Kenyan settlement),
     // Stripe as the fallback rail when Paystack is not configured.
-    w.__UGT_CARD_PAY = async (items: { id: string; qty: number }[], email?: string) => {
+    w.__UGT_CARD_PAY = async (items: { id: string; qty: number; variant?: string }[], email?: string) => {
       try {
-        const body: { items: { id: string; qty: number }[]; email?: string } = { items };
+        const body: { items: { id: string; qty: number; variant?: string }[]; email?: string } = { items };
         if (email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) body.email = email;
         const payload = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
         let r = await fetch('/api/paystack/checkout', payload);
