@@ -1862,7 +1862,7 @@ class Component extends DCLogic {
   }
 
   scrollTop(){ try{ window.scrollTo({top:0,left:0,behavior:'auto'}); }catch(e){} }
-  go = window.__UGT_GO = (page) => { try{const __m={home:'/',about:'/about',gang:'/the-gang',exp:'/experience',stops:'/experience',work:'/work-with-us',shop:'/shop',news:'/urban-news',gallery:'/gallery',partners:'/partners',events:'/events',contact:'/book',admin:'/admin'};const __u=__m[page];if(__u&&location.pathname!==__u)history.pushState({ugt:page},'',__u);}catch(e){} this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
+  go = window.__UGT_GO = (page) => { if(page==='admin'){ window.location.assign('/admin'); return; } try{const __m={home:'/',about:'/about',gang:'/the-gang',exp:'/experience',stops:'/experience',work:'/work-with-us',shop:'/shop',news:'/urban-news',gallery:'/gallery',partners:'/partners',events:'/events',contact:'/book'};const __u=__m[page];if(__u&&location.pathname!==__u)history.pushState({ugt:page},'',__u);}catch(e){} this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
   goWork = window.__UGT_GO_WORK = (tab) => { try{if(location.pathname!=='/work-with-us')history.pushState({ugt:'work'},'','/work-with-us');}catch(e){} this.setState({page:'work', workTab:tab, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
   toggleBook = () => this.setState(s=>({bookOpen:!s.bookOpen}));
   toggleMobile = () => this.setState(s=>({mobileOpen:!s.mobileOpen}));
@@ -2058,7 +2058,7 @@ class Component extends DCLogic {
   setAdmin = (k,v) => this.setState(s=>({admin:{...s.admin,[k]:v,err:''}}));
   CLIENT_ID = '891554517634-ca1ksf4cva8hfu32ig4bm6ol9d09se78.apps.googleusercontent.com';
   ADMIN_EMAIL = '';
-  adminLogin = (e) => { if(e&&e.preventDefault) e.preventDefault(); this.setState(s=>{ const p=(s.admin.pass||'').trim(); if(false) return {admin:{...s.admin,authed:true,err:'',role:'super',name:'Super Admin',perms:['bookings','orders','stops','blog','gallery','team'],tab:'bookings'}}; const a=this.loadLS('ugt_admins',[]).find(x=>x.pass===p); if(a){ const first={blog:'newsroom',gallery:'galleryman',bookings:'bookings',orders:'orders',stops:'events'}; const tab=first[a.perms[0]]||'bookings'; return {admin:{...s.admin,authed:true,err:'',role:'limited',name:a.name,perms:a.perms,tab}}; } return {admin:{...s.admin,err:'Wrong access code. Ask the Super Admin for your password.'}}; }); };
+  adminLogin = (e) => { if(e&&e.preventDefault) e.preventDefault(); window.location.assign('/admin'); };
   decodeJwt = (t) => { try{ const p=t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(atob(p).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''))); }catch(e){ return {}; } };
   onGoogleCred = (resp) => { const data=this.decodeJwt(resp.credential||''); const email=(data.email||'').toLowerCase(); if(email===this.ADMIN_EMAIL){ this.setState(s=>({admin:{...s.admin,authed:true,role:'super',name:'Super Admin',perms:['bookings','orders','stops','blog','gallery','team'],email,err:''}})); } else { this.setState(s=>({admin:{...s.admin,err:'That Google account is not authorised for the Control Room.'}})); } };
   initGoogle = () => {
@@ -2088,7 +2088,7 @@ class Component extends DCLogic {
     this._onScroll=()=>{ const el=document.getElementById('ugt-progress'); if(!el) return; const h=document.documentElement,max=(h.scrollHeight-h.clientHeight)||1; el.style.width=Math.min(100,Math.max(0,(h.scrollTop/max)*100))+'%'; };
     window.addEventListener('scroll',this._onScroll,{passive:true});
     requestAnimationFrame(()=>this.scanReveal());
-    try{ if(/\/admin(\/|$)/.test(location.pathname||'')||/#\/?admin/.test(location.hash||'')){ this.setState({page:'admin'}); } }catch(e){}
+    try{ if(/\/admin(\/|$)/.test(location.pathname||'')||/#\/?admin/.test(location.hash||'')){ window.location.replace('/admin'); return; } }catch(e){}
     if('serviceWorker' in navigator){ try{ navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{}); if(window.caches&&caches.keys){ caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{}); } }catch(e){} }
     window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); this._installEvt=e; this.setState({canInstall:true}); });
     window.addEventListener('appinstalled',()=>{ this._installEvt=null; this.setState({canInstall:false}); this.flash('App installed \u2014 find Urban Gang Tour on your home screen.'); });
