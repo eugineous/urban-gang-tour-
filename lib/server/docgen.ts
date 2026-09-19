@@ -224,6 +224,12 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
     template: "30-team-kit-backs-jersey-hoodie.html",
     promo: { kind: "post", png: [1760, 1100], pdf: "A3" },
   },
+  mediaWall: {
+    code: "PROMO-WALL",
+    label: "Press / Media Wall",
+    template: "16-press-media-wall-3x2.25m.html",
+    promo: { kind: "post", png: [3000, 2250], pdf: "A3" },
+  },
   igNext: {
     code: "PROMO-NEXT",
     label: "IG Post - Next Stop",
@@ -326,6 +332,7 @@ export const ACTIVE_DOC_TYPES = [
   "newsletter",
   "emailSig",
   "teamKit",
+  "mediaWall",
   "igNext",
   "igStory",
   "igWinner",
@@ -401,6 +408,7 @@ export const PROMO_FIELDS: Record<string, string[]> = {
     "hoodieNumber",
     "hoodieLine",
   ],
+  mediaWall: ["eventLabel", "wallLine", "handle"],
   igNext: [
     "dateDay",
     "dateMonth",
@@ -465,6 +473,11 @@ const PROMO_FIELD_LIMITS: Record<string, Record<string, number>> = {
     hoodieName: 14,
     hoodieNumber: 3,
     hoodieLine: 44,
+  },
+  mediaWall: {
+    eventLabel: 30,
+    wallLine: 46,
+    handle: 28,
   },
 };
 

@@ -62,6 +62,7 @@ type DocType =
   | "newsletter"
   | "emailSig"
   | "teamKit"
+  | "mediaWall"
   | "igNext"
   | "igStory"
   | "igWinner"
@@ -241,6 +242,20 @@ const PROMO_SPEC: Record<string, PSpec> = {
       },
     ],
     heroSlots: [],
+  },
+  mediaWall: {
+    label: "Press / Media Wall",
+    kind: "post",
+    design: { w: 740, h: 555 },
+    png: [3000, 2250],
+    pdf: true,
+    fields: [
+      { key: "eventLabel", label: "Event label", ph: "THE NEXT STOP", max: 30 },
+      { key: "wallLine", label: "Wall line", ph: "PRESS / MEDIA WALL · 3M × 2.25M", max: 46 },
+      { key: "handle", label: "Social handle", ph: "@URBAN_NEWSGANG", max: 28 },
+    ],
+    heroSlots: [],
+    partners: true,
   },
   igNext: {
     label: "IG Post - Next Stop",
@@ -549,11 +564,6 @@ const PRODUCTION_REFERENCES = [
   },
   {
     group: "Event print",
-    label: "Press / media wall",
-    file: "16-press-media-wall-3x2.25m.html",
-  },
-  {
-    group: "Event print",
     label: "Stage backdrop",
     file: "17-stage-backdrop-20x8ft.html",
   },
@@ -614,6 +624,7 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   newsletter: { w: 640, h: 1200 },
   emailSig: { w: 640, h: 180 },
   teamKit: { w: 844, h: 568 },
+  mediaWall: { w: 740, h: 555 },
   // Promo cards are captured at their design px (see PROMO_SPEC.design) and
   // exported at PROMO_SPEC.png. The preview iframe uses these design px.
   igNext: { w: 600, h: 600 },
