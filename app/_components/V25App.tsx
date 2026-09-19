@@ -180,6 +180,8 @@ export function V25App({ page }: { page: string }) {
     let cancelled = false;
     const controller = new AbortController();
     let retry: ReturnType<typeof setTimeout> | undefined;
+    let readinessCap: ReturnType<typeof setTimeout> | undefined;
+    let started = false;
 
     const dropVeil = () => {
       // hide only - removing the node raced React hydration (error 418)
@@ -214,7 +216,10 @@ export function V25App({ page }: { page: string }) {
       if (cancelled) return;
       attempts += 1;
       // the layout preloads this, so it resolves from cache almost instantly
-      fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal })
+      // Cloudflare normalises this public asset to the extensionless URL. Use
+      // that canonical path directly, rather than paying for a redirect during
+      // the first interactive paint.
+      fetch('/v25-template', { cache: 'no-cache', signal: controller.signal })
         .then((r) => { if (!r.ok) throw new Error('Template unavailable'); return r.text(); })
         .then((raw) => {
           if (cancelled) return;
@@ -239,13 +244,21 @@ export function V25App({ page }: { page: string }) {
         });
     };
 
-    // The three public data bridges are intentionally parallel, but the
-    // template reads their window values during construction. Wait for all of
-    // them to settle before the first boot so an admin-edited catalogue, event
-    // calendar or gallery cannot lose a race to frozen fallback content.
-    void Promise.allSettled([eventsReady, productsReady, galleryReady]).then(
-      attempt,
-    );
+    // The three public data bridges are intentionally parallel, and normally
+    // settle before this runs. They must never, however, become a single point
+    // of failure for the whole desktop site. A transient database connection
+    // or stalled response should leave the server-rendered page usable and
+    // then boot the interactive runtime, not strand the visitor on a static
+    // shell indefinitely. The cap is deliberately longer than the usual edge
+    // response but short enough to protect a real shopper on a weak network.
+    const start = () => {
+      if (cancelled || started) return;
+      started = true;
+      if (readinessCap) clearTimeout(readinessCap);
+      attempt();
+    };
+    void Promise.allSettled([eventsReady, productsReady, galleryReady]).then(start);
+    readinessCap = setTimeout(start, 1800);
     // Instant in-app navigation. Once the runtime is booted it exposes
     // window.__UGT_GO (patched go() in the template). Internal links then
     // switch pages in-app — no full reload, no re-boot — which is what makes
@@ -299,6 +312,7 @@ export function V25App({ page }: { page: string }) {
       cancelled = true;
       controller.abort();
       if (retry) clearTimeout(retry);
+      if (readinessCap) clearTimeout(readinessCap);
       if (!done) host.removeAttribute('data-booted');
       if (poll) clearInterval(poll);
       clearTimeout(veilCap);
