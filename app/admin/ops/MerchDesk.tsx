@@ -76,6 +76,22 @@ type InventoryMove = {
   reference: string;
   created_at: string;
 };
+type Fulfillment = {
+  order_id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  items: unknown;
+  total: number;
+  order_status: string;
+  order_created_at: string;
+  status: string;
+  assignee: string;
+  handoff_method: string;
+  reference: string;
+  note: string;
+  updated_at: string | null;
+};
 
 const EMPTY_SUPPLIER = {
   id: null as number | null,
@@ -109,6 +125,14 @@ const EMPTY_STOCK = {
   note: "",
   reference: "",
 };
+const EMPTY_FULFILLMENT = {
+  orderId: "",
+  status: "new",
+  assignee: "",
+  handoffMethod: "",
+  reference: "",
+  note: "",
+};
 
 function optionalNumber(value: string): number | null {
   return value === "" ? null : Math.max(0, Math.round(Number(value) || 0));
@@ -119,14 +143,18 @@ export default function MerchDesk() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [inventoryMoves, setInventoryMoves] = useState<InventoryMove[]>([]);
+  const [fulfillments, setFulfillments] = useState<Fulfillment[]>([]);
   const [supplierEdit, setSupplierEdit] = useState<
     typeof EMPTY_SUPPLIER | null
   >(null);
   const [quoteEdit, setQuoteEdit] = useState<typeof EMPTY_QUOTE | null>(null);
   const [stockEdit, setStockEdit] = useState<typeof EMPTY_STOCK | null>(null);
-  const [tab, setTab] = useState<"overview" | "stock" | "suppliers" | "quotes">(
-    "overview",
-  );
+  const [fulfillmentEdit, setFulfillmentEdit] = useState<
+    typeof EMPTY_FULFILLMENT | null
+  >(null);
+  const [tab, setTab] = useState<
+    "overview" | "fulfilment" | "stock" | "suppliers" | "quotes"
+  >("overview");
   const [qy, setQy] = useState("");
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
@@ -155,12 +183,19 @@ export default function MerchDesk() {
         quantity: Number(m.quantity),
       })),
     );
+    setFulfillments(
+      (data.fulfillments || []).map((f: any) => ({
+        ...f,
+        total: Number(f.total),
+      })),
+    );
   }, [say]);
   useEffect(() => {
     reload();
   }, [reload]);
 
   const visibleQuotes = useSearch(quotes, qy);
+  const visibleFulfillments = useSearch(fulfillments, qy);
   const activeSuppliers = suppliers.filter((s) => s.status === "active").length;
   const quotedProducts = new Set(
     quotes
@@ -229,6 +264,118 @@ export default function MerchDesk() {
       reload();
     }
   };
+
+  const saveFulfillment = async () => {
+    if (!fulfillmentEdit?.orderId) return;
+    setBusy(true);
+    const { data } = await opsPost("merchFulfillment.save", fulfillmentEdit);
+    setBusy(false);
+    if (data.error) say("Failed: " + data.error);
+    else {
+      say("Fulfilment updated");
+      setFulfillmentEdit(null);
+      reload();
+    }
+  };
+
+  if (fulfillmentEdit)
+    return (
+      <div style={card}>
+        <Toast msg={toast} />
+        <h3 style={h3}>FULFILMENT WORK ITEM</h3>
+        <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
+          Order {fulfillmentEdit.orderId}. Use only confirmed collection or
+          dispatch details. Marking a handover as dispatched or collected also
+          updates the order ledger to fulfilled.
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+          }}
+        >
+          <div>
+            <span style={label}>Work state</span>
+            <select
+              style={inp}
+              value={fulfillmentEdit.status}
+              onChange={(e) =>
+                setFulfillmentEdit({
+                  ...fulfillmentEdit,
+                  status: e.target.value,
+                })
+              }
+            >
+              {[
+                ["new", "New"],
+                ["picking", "Picking"],
+                ["packed", "Packed"],
+                ["dispatch_ready", "Dispatch ready"],
+                ["dispatched", "Dispatched"],
+                ["collected", "Collected"],
+                ["cancelled", "Cancelled"],
+              ].map(([value, text]) => (
+                <option key={value} value={value}>
+                  {text}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Field
+            title="Assigned to"
+            value={fulfillmentEdit.assignee}
+            set={(assignee) =>
+              setFulfillmentEdit({ ...fulfillmentEdit, assignee })
+            }
+            placeholder="Staff member"
+          />
+          <div>
+            <span style={label}>Handover method</span>
+            <select
+              style={inp}
+              value={fulfillmentEdit.handoffMethod}
+              onChange={(e) =>
+                setFulfillmentEdit({
+                  ...fulfillmentEdit,
+                  handoffMethod: e.target.value,
+                })
+              }
+            >
+              <option value="">Not set</option>
+              <option value="collection">Collection</option>
+              <option value="delivery">Delivery</option>
+              <option value="courier">Courier</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <Field
+            title="Reference"
+            value={fulfillmentEdit.reference}
+            set={(reference) =>
+              setFulfillmentEdit({ ...fulfillmentEdit, reference })
+            }
+            placeholder="Verified handover or tracking reference"
+          />
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <span style={label}>Internal note</span>
+          <textarea
+            style={{ ...inp, minHeight: 75 }}
+            value={fulfillmentEdit.note}
+            onChange={(e) =>
+              setFulfillmentEdit({ ...fulfillmentEdit, note: e.target.value })
+            }
+            placeholder="Packing, collection, dispatch or exception details."
+          />
+        </div>
+        <Actions
+          busy={busy}
+          save={saveFulfillment}
+          cancel={() => setFulfillmentEdit(null)}
+        />
+      </div>
+    );
 
   if (stockEdit)
     return (
@@ -562,7 +709,9 @@ export default function MerchDesk() {
         <div
           style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}
         >
-          {(["overview", "stock", "suppliers", "quotes"] as const).map((t) => (
+          {(
+            ["overview", "fulfilment", "stock", "suppliers", "quotes"] as const
+          ).map((t) => (
             <button
               key={t}
               style={{
@@ -599,6 +748,17 @@ export default function MerchDesk() {
             <Metric
               value={String(products.filter((p) => p.inventory_tracked).length)}
               label="Products being tracked"
+            />
+            <Metric
+              value={String(
+                fulfillments.filter(
+                  (f) =>
+                    !["dispatched", "collected", "cancelled"].includes(
+                      f.status,
+                    ),
+                ).length,
+              )}
+              label="Open fulfilment work"
             />
           </div>
           <div style={card}>
@@ -668,6 +828,121 @@ export default function MerchDesk() {
             </div>
           </div>
         </>
+      )}
+      {tab === "fulfilment" && (
+        <div style={card}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+              marginBottom: 10,
+            }}
+          >
+            <h3 style={{ ...h3, marginBottom: 0 }}>
+              FULFILMENT QUEUE ({fulfillments.length})
+            </h3>
+            <div style={{ flex: 1 }} />
+            <SearchBox
+              value={qy}
+              onChange={setQy}
+              placeholder="Search order or customer..."
+            />
+          </div>
+          <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
+            Paid merchandise orders only. This is an internal work queue, not a
+            promise of a courier, collection time, or tracking number.
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ borderCollapse: "collapse", width: "100%" }}>
+              <thead>
+                <tr>
+                  {[
+                    "order",
+                    "customer",
+                    "items",
+                    "work state",
+                    "handover",
+                    "assignee",
+                    "",
+                  ].map((c) => (
+                    <th key={c} style={th}>
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {visibleFulfillments.map((f) => {
+                  const items =
+                    typeof f.items === "string"
+                      ? JSON.parse(f.items || "[]")
+                      : Array.isArray(f.items)
+                        ? f.items
+                        : [];
+                  return (
+                    <tr key={f.order_id}>
+                      <td style={td}>
+                        <b>{f.order_id}</b>
+                        <div style={{ fontSize: 11, color: "#777" }}>
+                          {fmtDate(f.order_created_at)}
+                        </div>
+                      </td>
+                      <td style={td}>
+                        {f.customer_name || "—"}
+                        <div style={{ fontSize: 11, color: "#777" }}>
+                          {f.customer_phone || f.customer_email || "No contact"}
+                        </div>
+                      </td>
+                      <td style={td}>
+                        {items
+                          .map((i: any) => `${i.name || i.id} × ${i.qty}`)
+                          .join(", ") || "—"}
+                      </td>
+                      <td style={td}>
+                        <Chip text={f.status.replace("_", " ")} />
+                      </td>
+                      <td style={td}>
+                        {f.handoff_method || "Not set"}
+                        <div style={{ fontSize: 11, color: "#777" }}>
+                          {f.reference || ""}
+                        </div>
+                      </td>
+                      <td style={td}>{f.assignee || "Unassigned"}</td>
+                      <td style={td}>
+                        <button
+                          style={btnSmall}
+                          onClick={() =>
+                            setFulfillmentEdit({
+                              orderId: f.order_id,
+                              status: f.status,
+                              assignee: f.assignee,
+                              handoffMethod: f.handoff_method,
+                              reference: f.reference,
+                              note: f.note,
+                            })
+                          }
+                        >
+                          Open
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {!visibleFulfillments.length && (
+                  <tr>
+                    <td style={td} colSpan={7}>
+                      {fulfillments.length
+                        ? "No work items match your search."
+                        : "No paid merchandise orders are waiting for fulfilment."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
       {tab === "stock" && (
         <>

@@ -191,6 +191,27 @@ CREATE TABLE IF NOT EXISTS merch_inventory_moves (
   reference TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+-- Fulfilment is separate from the payment ledger. It gives the merchandise
+-- team a real pick, pack and handover workflow without inventing a delivery
+-- provider, tracking number or customer instruction.
+CREATE TABLE IF NOT EXISTS merch_fulfillments (
+  order_id TEXT PRIMARY KEY REFERENCES orders(id) ON DELETE RESTRICT,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','picking','packed','dispatch_ready','dispatched','collected','cancelled')),
+  assignee TEXT DEFAULT '',
+  handoff_method TEXT DEFAULT '',
+  reference TEXT DEFAULT '',
+  note TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS merch_fulfillment_events (
+  id BIGSERIAL PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
+  status TEXT NOT NULL,
+  note TEXT DEFAULT '',
+  actor TEXT DEFAULT 'admin',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 -- Private merchandise sourcing. These records never feed public catalog or
 -- checkout responses: they hold real vendor contacts and quotes entered by
 -- UGT staff, not generated pricing assumptions.
@@ -314,6 +335,8 @@ CREATE INDEX IF NOT EXISTS idx_tour_events_kind_status_priority ON tour_events (
 CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
 CREATE INDEX IF NOT EXISTS idx_merch_quotes_product_supplier ON merch_supplier_quotes (product_id, supplier_id);
 CREATE INDEX IF NOT EXISTS idx_merch_inventory_product_created ON merch_inventory_moves (product_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_merch_fulfillments_status_updated ON merch_fulfillments (status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_merch_fulfillment_events_order_created ON merch_fulfillment_events (order_id, created_at DESC);
 -- A payment gateway may retry a success webhook. One paid order may deduct a
 -- tracked product only once, regardless of the gateway that reported it.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_merch_inventory_online_sale_once ON merch_inventory_moves (product_id, reference, move_type) WHERE move_type='online_sale' AND reference <> '';

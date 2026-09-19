@@ -30,6 +30,16 @@ export async function recordPaidMerchOrder(order: {
       continue;
     quantities.set(id, (quantities.get(id) || 0) + qty);
   }
+  if (!quantities.size) return;
+
+  // This creates a real work item for paid merchandise only. Existing paid
+  // orders are also surfaced by the Fulfilment desk as "new" until a staff
+  // member updates them, so launching this feature does not lose history.
+  await q(
+    `INSERT INTO merch_fulfillments (order_id) VALUES ($1)
+     ON CONFLICT (order_id) DO NOTHING`,
+    [order.id],
+  );
 
   await Promise.all(
     [...quantities].map(async ([productId, qty]) => {

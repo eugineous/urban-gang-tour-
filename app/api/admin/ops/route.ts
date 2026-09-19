@@ -326,8 +326,8 @@ export async function GET(req: Request) {
       }
       case "merch": {
         await ensureCatalogSeeded();
-        const [products, suppliers, quotes, inventoryMoves] = await Promise.all(
-          [
+        const [products, suppliers, quotes, inventoryMoves, fulfillments] =
+          await Promise.all([
             q(
               `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point,
                     COUNT(m.id)::int AS inventory_move_count,
@@ -346,14 +346,27 @@ export async function GET(req: Request) {
             q(`SELECT m.*, p.name AS product_name
              FROM merch_inventory_moves m JOIN products p ON p.id=m.product_id
              ORDER BY m.created_at DESC, m.id DESC LIMIT 100`),
-          ],
-        );
+            q(`SELECT o.id AS order_id, o.name AS customer_name, o.email AS customer_email,
+                      o.phone AS customer_phone, o.items, o.total, o.status AS order_status,
+                      o.created_at AS order_created_at, COALESCE(f.status,'new') AS status,
+                      COALESCE(f.assignee,'') AS assignee, COALESCE(f.handoff_method,'') AS handoff_method,
+                      COALESCE(f.reference,'') AS reference, COALESCE(f.note,'') AS note,
+                      f.updated_at
+               FROM orders o LEFT JOIN merch_fulfillments f ON f.order_id=o.id
+               WHERE o.status IN ('paid','fulfilled')
+                 AND EXISTS (
+                   SELECT 1 FROM jsonb_array_elements(o.items) AS item
+                   WHERE COALESCE(item->>'id','') NOT LIKE 'ticket:%'
+                 )
+               ORDER BY COALESCE(f.updated_at, o.created_at) DESC, o.created_at DESC LIMIT 300`),
+          ]);
         return NextResponse.json({
           ok: true,
           products,
           suppliers,
           quotes,
           inventoryMoves,
+          fulfillments,
         });
       }
 
@@ -547,6 +560,7 @@ const KIND_PERM: Record<string, string> = {
   "merchQuote.save": "ops_merch",
   "merchQuote.delete": "ops_merch",
   "merchInventory.record": "ops_merch",
+  "merchFulfillment.save": "ops_merch",
   "marketplaceOrganizer.suspend": "marketplace",
   "marketplaceOrganizer.reinstate": "marketplace",
   "marketplaceEvent.approve": "marketplace",
@@ -1533,6 +1547,53 @@ export async function POST(req: Request) {
           moveType,
           quantity: signedQuantity,
         });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "merchFulfillment.save": {
+        const orderId = s(d.orderId, 60);
+        const status = s(d.status, 30);
+        const allowed = new Set([
+          "new",
+          "picking",
+          "packed",
+          "dispatch_ready",
+          "dispatched",
+          "collected",
+          "cancelled",
+        ]);
+        if (!orderId || !allowed.has(status)) return bad("invalid_fulfillment");
+        const orders = await q<{ id: string; status: string }>(
+          `SELECT id, status FROM orders WHERE id=$1 AND status IN ('paid','fulfilled')
+           AND EXISTS (SELECT 1 FROM jsonb_array_elements(items) AS item WHERE COALESCE(item->>'id','') NOT LIKE 'ticket:%')`,
+          [orderId],
+        );
+        if (!orders.length) return bad("paid_merch_order_not_found", 404);
+        const row = await q(
+          `INSERT INTO merch_fulfillments (order_id, status, assignee, handoff_method, reference, note)
+           VALUES ($1,$2,$3,$4,$5,$6)
+           ON CONFLICT (order_id) DO UPDATE SET status=EXCLUDED.status, assignee=EXCLUDED.assignee,
+             handoff_method=EXCLUDED.handoff_method, reference=EXCLUDED.reference, note=EXCLUDED.note, updated_at=now()
+           RETURNING *`,
+          [
+            orderId,
+            status,
+            s(d.assignee, 120),
+            s(d.handoffMethod, 30),
+            s(d.reference, 160),
+            s(d.note, 2000),
+          ],
+        );
+        await q(
+          `INSERT INTO merch_fulfillment_events (order_id, status, note, actor) VALUES ($1,$2,$3,$4)`,
+          [orderId, status, s(d.note, 2000), adminActor(req)],
+        );
+        if (status === "dispatched" || status === "collected") {
+          await q(
+            `UPDATE orders SET status='fulfilled' WHERE id=$1 AND status='paid'`,
+            [orderId],
+          );
+        }
+        await opsAudit("ops.merch.fulfillment.save", { orderId, status });
         return NextResponse.json({ ok: true, row: row[0] });
       }
 
