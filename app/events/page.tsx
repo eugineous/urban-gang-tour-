@@ -12,10 +12,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);
 }
 
-// Events JSON-LD is rebuilt from the DB (tour_events) on every render instead
-// of the static structuredDataForPath('/events') block, so Google always sees
-// the current admin-edited events/prices — see jsonld.ts eventsFromDb() for
-// the DB-error fallback to the frozen static snapshot.
+// Events JSON-LD is rebuilt from the database on every render instead of the
+// static snapshot. It is omitted when the live database is unavailable or has
+// no current published ticketed events, rather than advertising stale events.
 export default async function Page() {
   const events = await eventsFromDb();
   return (

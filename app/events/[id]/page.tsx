@@ -90,7 +90,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     location: { '@type': 'Place', name: event.venue, address: { '@type': 'PostalAddress', addressLocality: event.city || undefined, addressCountry: 'KE' } },
     image: event.image ? [`${SITE.domain}${event.image}`] : undefined,
     organizer: { '@id': `${SITE.domain}/#org` },
-    offers: tiers.map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}/events` })),
+    offers: tiers.map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
   } : null;
   const accent = /^#[0-9A-F]{6}$/i.test(event.accent) ? event.accent : '#E6218C';
   const eventDate = formatEventDate(event.event_date);
