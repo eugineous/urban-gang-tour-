@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { listGmailMessages, markGmailMessageRead, sendGmailMessage } from '@/lib/server/gmail';
-import { adminActor, hasPerm, isAdmin } from '@/lib/server/session';
+import { adminActor, isSuperAdmin } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { hasDb, q } from '@/lib/server/db';
 
 function allowed(req: Request): boolean {
-  return isAdmin(req) && (hasPerm(req, 'bookings') || hasPerm(req, 'comms'));
+  return isSuperAdmin(req);
 }
 
 export async function GET(req: Request) {

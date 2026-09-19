@@ -67,8 +67,8 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
 
   if (!connection.connected && !loading) {
     return <div style={{ ...card, padding: 22 }}>
-      <div style={{ fontFamily: 'Anton', fontSize: 26 }}>CONNECT YOUR GMAIL</div>
-      <p style={{ maxWidth: 620, fontSize: 14, lineHeight: 1.55 }}>Read and reply to Urban Gang enquiries without leaving the Control Room. Access is encrypted on the server and can be disconnected at any time.</p>
+      <div style={{ fontFamily: 'Anton', fontSize: 26 }}>CONNECT URBAN GANG GMAIL</div>
+      <p style={{ maxWidth: 620, fontSize: 14, lineHeight: 1.55 }}>Read and reply to Urban Gang conversations without leaving the Control Room. This is the owner-only full inbox. Booking staff use the booking reply workspace, and comms staff use the broadcast workspace.</p>
       <GmailConnectButton clientId={googleClientId} onConnected={(email) => { setConnection({ connected: true, email }); load(); }} />
     </div>;
   }

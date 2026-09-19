@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { gmailConnection, removeGmailConnection } from '@/lib/server/gmail';
-import { hasPerm, isAdmin, isSuperAdmin } from '@/lib/server/session';
+import { isSuperAdmin } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { hasDb, q } from '@/lib/server/db';
 
 export async function GET(req: Request) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  if (!hasPerm(req, 'bookings') && !hasPerm(req, 'comms')) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
+  // The connected account is a full mailbox, not a booking-only mailbox.
+  // Booking staff have the scoped booking reply route instead, and comms staff
+  // have the broadcast route, so neither needs unrestricted inbox visibility.
+  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   try {
     return NextResponse.json({ ok: true, ...(await gmailConnection()) });
   } catch (error: any) {

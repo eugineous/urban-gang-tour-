@@ -362,7 +362,7 @@ export default function AdminApp({
   const canSee = useCallback(
     (t: Tab): boolean => {
       if (t === "Dashboard") return true;
-      if (t === "Admins" || t === "Security")
+      if (t === "Inbox" || t === "Admins" || t === "Security")
         return session?.scope === "super_admin";
       const perm = TAB_PERM[t];
       if (!perm) return true;
