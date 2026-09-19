@@ -326,27 +326,33 @@ export async function GET(req: Request) {
       }
       case "merch": {
         await ensureCatalogSeeded();
-        const [products, suppliers, quotes, inventoryMoves, fulfillments] =
-          await Promise.all([
-            q(
-              `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point,
+        const [
+          products,
+          suppliers,
+          quotes,
+          inventoryMoves,
+          fulfillments,
+          variants,
+        ] = await Promise.all([
+          q(
+            `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point,
                     COUNT(m.id)::int AS inventory_move_count,
                     COALESCE(SUM(m.quantity),0)::int AS inventory_on_hand
              FROM products p
              LEFT JOIN merch_inventory_moves m ON m.product_id=p.id
              GROUP BY p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point
              ORDER BY p.active DESC, p.name`,
-            ),
-            q(`SELECT * FROM merch_suppliers ORDER BY status, name`),
-            q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price
+          ),
+          q(`SELECT * FROM merch_suppliers ORDER BY status, name`),
+          q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price
              FROM merch_supplier_quotes q
              LEFT JOIN merch_suppliers s ON s.id=q.supplier_id
              LEFT JOIN products p ON p.id=q.product_id
              ORDER BY q.updated_at DESC, q.id DESC`),
-            q(`SELECT m.*, p.name AS product_name
+          q(`SELECT m.*, p.name AS product_name
              FROM merch_inventory_moves m JOIN products p ON p.id=m.product_id
              ORDER BY m.created_at DESC, m.id DESC LIMIT 100`),
-            q(`SELECT o.id AS order_id, o.name AS customer_name, o.email AS customer_email,
+          q(`SELECT o.id AS order_id, o.name AS customer_name, o.email AS customer_email,
                       o.phone AS customer_phone, o.items, o.total, o.status AS order_status,
                       o.created_at AS order_created_at, COALESCE(f.status,'new') AS status,
                       COALESCE(f.assignee,'') AS assignee, COALESCE(f.handoff_method,'') AS handoff_method,
@@ -359,7 +365,10 @@ export async function GET(req: Request) {
                    WHERE COALESCE(item->>'id','') NOT LIKE 'ticket:%'
                  )
                ORDER BY COALESCE(f.updated_at, o.created_at) DESC, o.created_at DESC LIMIT 300`),
-          ]);
+          q(
+            `SELECT v.*, p.name AS product_name FROM merch_variants v JOIN products p ON p.id=v.product_id ORDER BY p.name, v.label`,
+          ),
+        ]);
         return NextResponse.json({
           ok: true,
           products,
@@ -367,6 +376,7 @@ export async function GET(req: Request) {
           quotes,
           inventoryMoves,
           fulfillments,
+          variants,
         });
       }
 
@@ -561,6 +571,8 @@ const KIND_PERM: Record<string, string> = {
   "merchQuote.delete": "ops_merch",
   "merchInventory.record": "ops_merch",
   "merchFulfillment.save": "ops_merch",
+  "merchVariant.save": "ops_merch",
+  "merchVariant.delete": "ops_merch",
   "marketplaceOrganizer.suspend": "marketplace",
   "marketplaceOrganizer.reinstate": "marketplace",
   "marketplaceEvent.approve": "marketplace",
@@ -1595,6 +1607,49 @@ export async function POST(req: Request) {
         }
         await opsAudit("ops.merch.fulfillment.save", { orderId, status });
         return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "merchVariant.save": {
+        const id = intOrNull(d.id);
+        const productId = s(d.productId, 60);
+        const label = s(d.label, 100);
+        const adjustment = intOrNull(d.priceAdjustment) ?? 0;
+        if (
+          !productId ||
+          !label ||
+          adjustment < -1000000 ||
+          adjustment > 1000000
+        )
+          return bad("invalid_variant");
+        const rows = id
+          ? await q(
+              `UPDATE merch_variants SET product_id=$1,label=$2,sku=$3,price_adjustment=$4,active=$5,updated_at=now() WHERE id=$6 RETURNING *`,
+              [
+                productId,
+                label,
+                s(d.sku, 100),
+                adjustment,
+                d.active !== false,
+                id,
+              ],
+            )
+          : await q(
+              `INSERT INTO merch_variants (product_id,label,sku,price_adjustment,active) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+              [productId, label, s(d.sku, 100), adjustment, d.active !== false],
+            );
+        if (!rows.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.variant.save", { id: rows[0].id, productId });
+        return NextResponse.json({ ok: true, row: rows[0] });
+      }
+      case "merchVariant.delete": {
+        const id = intOrNull(d.id);
+        if (!id) return bad("missing_id");
+        const rows = await q(
+          `UPDATE merch_variants SET active=false,updated_at=now() WHERE id=$1 RETURNING id`,
+          [id],
+        );
+        if (!rows.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.variant.delete", { id });
+        return NextResponse.json({ ok: true });
       }
 
       // ---- Third-party ticketing marketplace ----

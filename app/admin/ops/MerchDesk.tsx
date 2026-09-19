@@ -92,6 +92,15 @@ type Fulfillment = {
   note: string;
   updated_at: string | null;
 };
+type Variant = {
+  id: number;
+  product_id: string;
+  product_name: string;
+  label: string;
+  sku: string;
+  price_adjustment: number;
+  active: boolean;
+};
 
 const EMPTY_SUPPLIER = {
   id: null as number | null,
@@ -133,6 +142,14 @@ const EMPTY_FULFILLMENT = {
   reference: "",
   note: "",
 };
+const EMPTY_VARIANT = {
+  id: null as number | null,
+  productId: "",
+  label: "",
+  sku: "",
+  priceAdjustment: 0,
+  active: true,
+};
 
 function optionalNumber(value: string): number | null {
   return value === "" ? null : Math.max(0, Math.round(Number(value) || 0));
@@ -144,6 +161,7 @@ export default function MerchDesk() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [inventoryMoves, setInventoryMoves] = useState<InventoryMove[]>([]);
   const [fulfillments, setFulfillments] = useState<Fulfillment[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [supplierEdit, setSupplierEdit] = useState<
     typeof EMPTY_SUPPLIER | null
   >(null);
@@ -152,8 +170,11 @@ export default function MerchDesk() {
   const [fulfillmentEdit, setFulfillmentEdit] = useState<
     typeof EMPTY_FULFILLMENT | null
   >(null);
+  const [variantEdit, setVariantEdit] = useState<typeof EMPTY_VARIANT | null>(
+    null,
+  );
   const [tab, setTab] = useState<
-    "overview" | "fulfilment" | "stock" | "suppliers" | "quotes"
+    "overview" | "variants" | "fulfilment" | "stock" | "suppliers" | "quotes"
   >("overview");
   const [qy, setQy] = useState("");
   const [busy, setBusy] = useState(false);
@@ -187,6 +208,12 @@ export default function MerchDesk() {
       (data.fulfillments || []).map((f: any) => ({
         ...f,
         total: Number(f.total),
+      })),
+    );
+    setVariants(
+      (data.variants || []).map((v: any) => ({
+        ...v,
+        price_adjustment: Number(v.price_adjustment),
       })),
     );
   }, [say]);
@@ -244,6 +271,86 @@ export default function MerchDesk() {
       reload();
     }
   };
+
+  const saveVariant = async () => {
+    if (!variantEdit?.productId || !variantEdit.label.trim()) {
+      say("Choose a product and option label");
+      return;
+    }
+    setBusy(true);
+    const { data } = await opsPost("merchVariant.save", variantEdit);
+    setBusy(false);
+    if (data.error) say("Failed: " + data.error);
+    else {
+      say("Variant saved");
+      setVariantEdit(null);
+      reload();
+    }
+  };
+
+  if (variantEdit)
+    return (
+      <div style={card}>
+        <Toast msg={toast} />
+        <h3 style={h3}>VARIANT</h3>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+          }}
+        >
+          <div>
+            <span style={label}>Product *</span>
+            <select
+              style={inp}
+              value={variantEdit.productId}
+              onChange={(e) =>
+                setVariantEdit({ ...variantEdit, productId: e.target.value })
+              }
+            >
+              <option value="">Choose product</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Field
+            title="Option label *"
+            value={variantEdit.label}
+            set={(label) => setVariantEdit({ ...variantEdit, label })}
+            placeholder="Verified size, colour or edition"
+          />
+          <Field
+            title="SKU"
+            value={variantEdit.sku}
+            set={(sku) => setVariantEdit({ ...variantEdit, sku })}
+            placeholder="Optional internal SKU"
+          />
+          <div>
+            <span style={label}>Price adjustment, KES</span>
+            <input
+              style={inp}
+              type="number"
+              value={variantEdit.priceAdjustment}
+              onChange={(e) =>
+                setVariantEdit({
+                  ...variantEdit,
+                  priceAdjustment: Math.round(Number(e.target.value) || 0),
+                })
+              }
+            />
+          </div>
+        </div>
+        <Actions
+          busy={busy}
+          save={saveVariant}
+          cancel={() => setVariantEdit(null)}
+        />
+      </div>
+    );
 
   const saveStock = async () => {
     if (
@@ -710,7 +817,14 @@ export default function MerchDesk() {
           style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}
         >
           {(
-            ["overview", "fulfilment", "stock", "suppliers", "quotes"] as const
+            [
+              "overview",
+              "variants",
+              "fulfilment",
+              "stock",
+              "suppliers",
+              "quotes",
+            ] as const
           ).map((t) => (
             <button
               key={t}
@@ -828,6 +942,98 @@ export default function MerchDesk() {
             </div>
           </div>
         </>
+      )}
+      {tab === "variants" && (
+        <div style={card}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              marginBottom: 10,
+            }}
+          >
+            <h3 style={{ ...h3, marginBottom: 0 }}>
+              PRODUCT VARIANTS ({variants.length})
+            </h3>
+            <div style={{ flex: 1 }} />
+            <button
+              style={btnMagenta}
+              onClick={() => setVariantEdit({ ...EMPTY_VARIANT })}
+            >
+              + Variant
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
+            Enter verified size, colour or edition options. Customer selection
+            is deliberately switched on only when cart pricing and variant stock
+            are ready.
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ borderCollapse: "collapse", width: "100%" }}>
+              <thead>
+                <tr>
+                  {[
+                    "product",
+                    "option",
+                    "SKU",
+                    "price adjustment",
+                    "state",
+                    "",
+                  ].map((c) => (
+                    <th key={c} style={th}>
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {variants.map((v) => (
+                  <tr key={v.id}>
+                    <td style={td}>{v.product_name}</td>
+                    <td style={td}>
+                      <b>{v.label}</b>
+                    </td>
+                    <td style={td}>{v.sku || "—"}</td>
+                    <td style={td}>
+                      {v.price_adjustment
+                        ? `${v.price_adjustment > 0 ? "+" : ""}${fmtKES(v.price_adjustment)}`
+                        : "Base price"}
+                    </td>
+                    <td style={td}>
+                      <Chip text={v.active ? "active" : "retired"} />
+                    </td>
+                    <td style={td}>
+                      <button
+                        style={btnSmall}
+                        onClick={() =>
+                          setVariantEdit({
+                            id: v.id,
+                            productId: v.product_id,
+                            label: v.label,
+                            sku: v.sku,
+                            priceAdjustment: v.price_adjustment,
+                            active: v.active,
+                          })
+                        }
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {!variants.length && (
+                  <tr>
+                    <td style={td} colSpan={6}>
+                      No variants yet. Add a verified option when the physical
+                      product has one.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
       {tab === "fulfilment" && (
         <div style={card}>

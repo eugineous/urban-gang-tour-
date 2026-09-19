@@ -212,6 +212,17 @@ CREATE TABLE IF NOT EXISTS merch_fulfillment_events (
   actor TEXT DEFAULT 'admin',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS merch_variants (
+  id BIGSERIAL PRIMARY KEY,
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  label TEXT NOT NULL,
+  sku TEXT DEFAULT '',
+  price_adjustment INT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (product_id, label)
+);
 -- Private merchandise sourcing. These records never feed public catalog or
 -- checkout responses: they hold real vendor contacts and quotes entered by
 -- UGT staff, not generated pricing assumptions.
@@ -337,6 +348,7 @@ CREATE INDEX IF NOT EXISTS idx_merch_quotes_product_supplier ON merch_supplier_q
 CREATE INDEX IF NOT EXISTS idx_merch_inventory_product_created ON merch_inventory_moves (product_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_merch_fulfillments_status_updated ON merch_fulfillments (status, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_merch_fulfillment_events_order_created ON merch_fulfillment_events (order_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_merch_variants_product_active ON merch_variants (product_id, active);
 -- A payment gateway may retry a success webhook. One paid order may deduct a
 -- tracked product only once, regardless of the gateway that reported it.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_merch_inventory_online_sale_once ON merch_inventory_moves (product_id, reference, move_type) WHERE move_type='online_sale' AND reference <> '';
