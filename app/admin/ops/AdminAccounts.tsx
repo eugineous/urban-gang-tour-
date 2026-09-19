@@ -100,6 +100,7 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
         "Manage budgets, invoices, deposits, expenses and crew payout records.",
       perms: [
         "ops_budgeter",
+        "ops_merch",
         "ops_invoices",
         "ops_payments",
         "ops_payouts",
@@ -109,7 +110,7 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
     {
       label: "Merch manager",
       description: "Manage products, orders, reviews and marketplace activity.",
-      perms: ["products", "orders", "reviews", "marketplace"],
+      perms: ["products", "ops_merch", "orders", "reviews", "marketplace"],
     },
   ];
 

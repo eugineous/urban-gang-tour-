@@ -28,6 +28,7 @@ export const MODULE_KEYS = [
   "traffic",
   "events",
   "products",
+  "ops_merch",
   "gallery",
   "marketplace",
   "ops_budgeter",

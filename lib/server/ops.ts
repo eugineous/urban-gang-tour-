@@ -177,6 +177,37 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+-- Private merchandise sourcing. These records never feed public catalog or
+-- checkout responses: they hold real vendor contacts and quotes entered by
+-- UGT staff, not generated pricing assumptions.
+CREATE TABLE IF NOT EXISTS merch_suppliers (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  service TEXT DEFAULT '',
+  contact_name TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  location TEXT DEFAULT '',
+  lead_days INT,
+  minimum_order INT,
+  notes TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'prospect',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS merch_supplier_quotes (
+  id SERIAL PRIMARY KEY,
+  supplier_id INT REFERENCES merch_suppliers(id) ON DELETE SET NULL,
+  product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
+  production_method TEXT DEFAULT '',
+  minimum_quantity INT,
+  unit_cost INT,
+  setup_cost INT,
+  valid_until DATE,
+  note TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 -- Third-party ticketing marketplace: any outside event organizer can sign up,
 -- submit an event, and — once approved — sell tickets through
 -- urbangangtour.co.ke with UGT taking an automatic commission per ticket via
@@ -267,6 +298,7 @@ CREATE INDEX IF NOT EXISTS idx_ops_expenses_event_id ON ops_expenses (event_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tour_events_kind_status_priority ON tour_events (kind, status, priority DESC, event_date);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
+CREATE INDEX IF NOT EXISTS idx_merch_quotes_product_supplier ON merch_supplier_quotes (product_id, supplier_id);
 CREATE INDEX IF NOT EXISTS idx_marketplace_organizers_status ON marketplace_organizers (status);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_status_date ON marketplace_events (status, event_date);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_organizer_id ON marketplace_events (organizer_id);

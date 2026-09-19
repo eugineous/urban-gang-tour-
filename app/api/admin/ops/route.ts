@@ -129,6 +129,7 @@ const VIEW_PERM: Record<string, string[]> = {
   promos: ["ops_promos"],
   tourEvents: ["events"],
   products: ["products"],
+  merch: ["ops_merch"],
   marketplaceOrganizers: ["marketplace"],
   marketplaceEvents: ["marketplace"],
   marketplaceOrders: ["marketplace"],
@@ -323,6 +324,21 @@ export async function GET(req: Request) {
         const rows = await q(`SELECT * FROM products ORDER BY active DESC, id`);
         return NextResponse.json({ ok: true, rows });
       }
+      case "merch": {
+        await ensureCatalogSeeded();
+        const [products, suppliers, quotes] = await Promise.all([
+          q(
+            `SELECT id, name, price, active FROM products ORDER BY active DESC, name`,
+          ),
+          q(`SELECT * FROM merch_suppliers ORDER BY status, name`),
+          q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price
+             FROM merch_supplier_quotes q
+             LEFT JOIN merch_suppliers s ON s.id=q.supplier_id
+             LEFT JOIN products p ON p.id=q.product_id
+             ORDER BY q.updated_at DESC, q.id DESC`),
+        ]);
+        return NextResponse.json({ ok: true, products, suppliers, quotes });
+      }
 
       // ---- Third-party ticketing marketplace ----
       case "marketplaceOrganizers": {
@@ -509,6 +525,10 @@ const KIND_PERM: Record<string, string> = {
   "tourEvent.delete": "events",
   "product.save": "products",
   "product.delete": "products",
+  "merchSupplier.save": "ops_merch",
+  "merchSupplier.delete": "ops_merch",
+  "merchQuote.save": "ops_merch",
+  "merchQuote.delete": "ops_merch",
   "marketplaceOrganizer.suspend": "marketplace",
   "marketplaceOrganizer.reinstate": "marketplace",
   "marketplaceEvent.approve": "marketplace",
@@ -1349,6 +1369,107 @@ export async function POST(req: Request) {
         if (!row.length) return bad("not_found", 404);
         await opsAudit("ops.product.delete", { id });
         after(() => pingIndexNow(["/shop"]));
+        return NextResponse.json({ ok: true });
+      }
+
+      // ---- Private merchandise sourcing and quote comparison ----
+      case "merchSupplier.save": {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        if (!name) return bad("missing_name");
+        const status = ["prospect", "active", "paused", "archived"].includes(
+          s(d.status, 30),
+        )
+          ? s(d.status, 30)
+          : "prospect";
+        const fields = [
+          name,
+          s(d.service, 120),
+          s(d.contactName, 200),
+          s(d.phone, 40),
+          s(d.email, 200),
+          s(d.location, 200),
+          intOrNull(d.leadDays),
+          intOrNull(d.minimumOrder),
+          s(d.notes, 2000),
+          status,
+        ];
+        const row = id
+          ? await q(
+              `UPDATE merch_suppliers SET name=$1, service=$2, contact_name=$3, phone=$4, email=$5, location=$6, lead_days=$7, minimum_order=$8, notes=$9, status=$10, updated_at=now() WHERE id=$11 RETURNING *`,
+              [...fields, id],
+            )
+          : await q(
+              `INSERT INTO merch_suppliers (name, service, contact_name, phone, email, location, lead_days, minimum_order, notes, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+              fields,
+            );
+        if (!row.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.supplier.save", { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "merchSupplier.delete": {
+        const id = intOrNull(d.id);
+        if (!id) return bad("missing_id");
+        // Archive retains historic quotes and the vendor decision trail.
+        const row = await q(
+          `UPDATE merch_suppliers SET status='archived', updated_at=now() WHERE id=$1 RETURNING *`,
+          [id],
+        );
+        if (!row.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.supplier.archive", { id });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "merchQuote.save": {
+        const id = intOrNull(d.id);
+        const supplierId = intOrNull(d.supplierId);
+        const productId = s(d.productId, 60);
+        if (!supplierId || !productId)
+          return bad("missing_supplier_or_product");
+        const supplier = await q(
+          `SELECT id FROM merch_suppliers WHERE id=$1 AND status <> 'archived'`,
+          [supplierId],
+        );
+        const product = await q(`SELECT id FROM products WHERE id=$1`, [
+          productId,
+        ]);
+        if (!supplier.length || !product.length)
+          return bad("invalid_supplier_or_product");
+        const fields = [
+          supplierId,
+          productId,
+          s(d.productionMethod, 120),
+          intOrNull(d.minimumQuantity),
+          intOrNull(d.unitCost),
+          intOrNull(d.setupCost),
+          dateOrNull(d.validUntil),
+          s(d.note, 2000),
+        ];
+        const row = id
+          ? await q(
+              `UPDATE merch_supplier_quotes SET supplier_id=$1, product_id=$2, production_method=$3, minimum_quantity=$4, unit_cost=$5, setup_cost=$6, valid_until=$7, note=$8, updated_at=now() WHERE id=$9 RETURNING *`,
+              [...fields, id],
+            )
+          : await q(
+              `INSERT INTO merch_supplier_quotes (supplier_id, product_id, production_method, minimum_quantity, unit_cost, setup_cost, valid_until, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+              fields,
+            );
+        if (!row.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.quote.save", {
+          id: row[0]?.id,
+          supplierId,
+          productId,
+        });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "merchQuote.delete": {
+        const id = intOrNull(d.id);
+        if (!id) return bad("missing_id");
+        const row = await q(
+          `DELETE FROM merch_supplier_quotes WHERE id=$1 RETURNING id`,
+          [id],
+        );
+        if (!row.length) return bad("not_found", 404);
+        await opsAudit("ops.merch.quote.delete", { id });
         return NextResponse.json({ ok: true });
       }
 

@@ -79,6 +79,10 @@ const Marketplace = dynamic(() => import("./ops/Marketplace"), {
   ssr: false,
   loading: opsLoading,
 });
+const MerchDesk = dynamic(() => import("./ops/MerchDesk"), {
+  ssr: false,
+  loading: opsLoading,
+});
 const AdminAccounts = dynamic(() => import("./ops/AdminAccounts"), {
   ssr: false,
   loading: opsLoading,
@@ -167,6 +171,7 @@ const TABS = [
 const OPS_TABS = [
   "Events",
   "Products",
+  "Merch Desk",
   "Gallery",
   "Marketplace",
   "Budgeter",
@@ -213,6 +218,7 @@ const NAV_GROUPS: {
       { tab: "Newsroom", icon: "▤", label: "Newsroom" },
       { tab: "Comms", icon: "◒", label: "Comms" },
       { tab: "Products", icon: "□", label: "Products" },
+      { tab: "Merch Desk", icon: "◈", label: "Merch desk" },
       { tab: "Marketplace", icon: "▥", label: "Marketplace" },
       { tab: "Gallery", icon: "▧", label: "Gallery" },
     ],
@@ -259,6 +265,7 @@ const TAB_PERM: Partial<Record<Tab, string | string[]>> = {
   Traffic: "traffic",
   Events: "events",
   Products: "products",
+  "Merch Desk": "ops_merch",
   Gallery: "gallery",
   Marketplace: "marketplace",
   Budgeter: "ops_budgeter",
@@ -290,6 +297,7 @@ function startingTab(scope: AdminSession["scope"], perms: string[]): Tab {
     ["bookings", "Bookings"],
     ["events", "Events"],
     ["products", "Products"],
+    ["ops_merch", "Merch Desk"],
     ["ops_contacts", "Contacts"],
     ["ops_school_contacts", "Contacts"],
     ["ops_talent_partners", "Contacts"],
@@ -665,6 +673,7 @@ export default function AdminApp({
       )}
       {tab === "Events" && <Events />}
       {tab === "Products" && <Products />}
+      {tab === "Merch Desk" && <MerchDesk />}
       {tab === "Gallery" && <Gallery />}
       {tab === "Marketplace" && <Marketplace />}
       {tab === "Budgeter" && <Budgeter />}
