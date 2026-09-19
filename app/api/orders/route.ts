@@ -11,6 +11,7 @@ import { sameOrigin } from "@/lib/server/origin";
 import { alertCritical } from "@/lib/server/alert";
 import { notifyNewOrder } from "@/lib/server/notify";
 import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
+import { assertMerchStockAvailable } from "@/lib/server/inventory";
 
 const seen = new Map<string, { id: string; ts: number }>(); // idempotency
 
@@ -167,6 +168,7 @@ export async function POST(req: Request) {
       );
       orderItems = variants.lines;
       total += variants.adjustment;
+      await assertMerchStockAvailable(orderItems);
       appliedPromoCode = priced.appliedPromoCode;
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 400 });
@@ -194,18 +196,6 @@ export async function POST(req: Request) {
   const id = "ORD-" + Date.now().toString(36).toUpperCase();
   if (typeof idempotencyKey === "string" && idempotencyKey)
     seen.set(idempotencyKey, { id, ts: Date.now() });
-  console.log(
-    "[order]",
-    JSON.stringify({
-      id,
-      items: orderItems,
-      total,
-      name,
-      email: emailStr,
-      msisdn,
-    }),
-  );
-
   // persist order (ledger for admin reconciliation)
   try {
     // hasDb(), not db(): db() constructs a Pool, and this is only asking

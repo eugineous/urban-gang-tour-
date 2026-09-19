@@ -182,15 +182,31 @@ CREATE TABLE IF NOT EXISTS products (
 -- zero stock and avoids publishing invented availability to the shop.
 ALTER TABLE products ADD COLUMN IF NOT EXISTS inventory_tracked BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point INT;
+CREATE TABLE IF NOT EXISTS merch_variants (
+  id BIGSERIAL PRIMARY KEY,
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  label TEXT NOT NULL,
+  sku TEXT DEFAULT '',
+  price_adjustment INT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (product_id, label)
+);
 CREATE TABLE IF NOT EXISTS merch_inventory_moves (
   id BIGSERIAL PRIMARY KEY,
   product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  variant_id BIGINT REFERENCES merch_variants(id) ON DELETE RESTRICT,
   quantity INT NOT NULL CHECK (quantity <> 0),
   move_type TEXT NOT NULL CHECK (move_type IN ('opening','received','return','event_sale','damage','adjustment','online_sale')),
   note TEXT DEFAULT '',
   reference TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+-- Adds size, colour or edition-level stock without changing historic product
+-- movements. A NULL value remains a genuine product-wide movement.
+ALTER TABLE merch_inventory_moves
+  ADD COLUMN IF NOT EXISTS variant_id BIGINT REFERENCES merch_variants(id) ON DELETE RESTRICT;
 -- Fulfilment is separate from the payment ledger. It gives the merchandise
 -- team a real pick, pack and handover workflow without inventing a delivery
 -- provider, tracking number or customer instruction.
@@ -211,17 +227,6 @@ CREATE TABLE IF NOT EXISTS merch_fulfillment_events (
   note TEXT DEFAULT '',
   actor TEXT DEFAULT 'admin',
   created_at TIMESTAMPTZ DEFAULT now()
-);
-CREATE TABLE IF NOT EXISTS merch_variants (
-  id BIGSERIAL PRIMARY KEY,
-  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
-  label TEXT NOT NULL,
-  sku TEXT DEFAULT '',
-  price_adjustment INT NOT NULL DEFAULT 0,
-  active BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE (product_id, label)
 );
 CREATE TABLE IF NOT EXISTS merch_purchase_orders (
   id BIGSERIAL PRIMARY KEY,
@@ -358,13 +363,19 @@ CREATE INDEX IF NOT EXISTS idx_tour_events_kind_status_priority ON tour_events (
 CREATE INDEX IF NOT EXISTS idx_products_active ON products (active);
 CREATE INDEX IF NOT EXISTS idx_merch_quotes_product_supplier ON merch_supplier_quotes (product_id, supplier_id);
 CREATE INDEX IF NOT EXISTS idx_merch_inventory_product_created ON merch_inventory_moves (product_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_merch_inventory_variant_created ON merch_inventory_moves (variant_id, created_at DESC) WHERE variant_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_merch_fulfillments_status_updated ON merch_fulfillments (status, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_merch_fulfillment_events_order_created ON merch_fulfillment_events (order_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_merch_variants_product_active ON merch_variants (product_id, active);
 CREATE INDEX IF NOT EXISTS idx_merch_purchase_orders_status_updated ON merch_purchase_orders (status, updated_at DESC);
 -- A payment gateway may retry a success webhook. One paid order may deduct a
 -- tracked product only once, regardless of the gateway that reported it.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_merch_inventory_online_sale_once ON merch_inventory_moves (product_id, reference, move_type) WHERE move_type='online_sale' AND reference <> '';
+-- Retire the former product-only key once. An order can legitimately contain
+-- two variants of one product, so idempotency has to preserve that distinction.
+DROP INDEX IF EXISTS idx_merch_inventory_online_sale_once;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_merch_inventory_online_sale_variant_once
+  ON merch_inventory_moves (product_id, COALESCE(variant_id, 0), reference)
+  WHERE move_type='online_sale' AND reference <> '';
 CREATE INDEX IF NOT EXISTS idx_marketplace_organizers_status ON marketplace_organizers (status);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_status_date ON marketplace_events (status, event_date);
 CREATE INDEX IF NOT EXISTS idx_marketplace_events_organizer_id ON marketplace_events (organizer_id);

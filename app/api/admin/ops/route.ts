@@ -364,8 +364,9 @@ export async function GET(req: Request) {
              LEFT JOIN merch_suppliers s ON s.id=q.supplier_id
              LEFT JOIN products p ON p.id=q.product_id
              ORDER BY q.updated_at DESC, q.id DESC`),
-          q(`SELECT m.*, p.name AS product_name
+          q(`SELECT m.*, p.name AS product_name, v.label AS variant_label
              FROM merch_inventory_moves m JOIN products p ON p.id=m.product_id
+             LEFT JOIN merch_variants v ON v.id=m.variant_id
              ORDER BY m.created_at DESC, m.id DESC LIMIT 100`),
           q(`SELECT o.id AS order_id, o.name AS customer_name, o.email AS customer_email,
                       o.phone AS customer_phone, o.items, o.total, o.status AS order_status,
@@ -381,7 +382,14 @@ export async function GET(req: Request) {
                  )
                ORDER BY COALESCE(f.updated_at, o.created_at) DESC, o.created_at DESC LIMIT 300`),
           q(
-            `SELECT v.*, p.name AS product_name FROM merch_variants v JOIN products p ON p.id=v.product_id ORDER BY p.name, v.label`,
+            `SELECT v.*, p.name AS product_name,
+                    COUNT(m.id)::int AS inventory_move_count,
+                    COALESCE(SUM(m.quantity),0)::int AS inventory_on_hand
+             FROM merch_variants v
+             JOIN products p ON p.id=v.product_id
+             LEFT JOIN merch_inventory_moves m ON m.variant_id=v.id
+             GROUP BY v.id, p.name
+             ORDER BY p.name, v.label`,
           ),
           q(
             `SELECT po.*, s.name AS supplier_name, p.name AS product_name,
@@ -1585,6 +1593,7 @@ export async function POST(req: Request) {
       }
       case "merchInventory.record": {
         const productId = s(d.productId, 60);
+        const variantId = intOrNull(d.variantId);
         const moveType = s(d.moveType, 30);
         const quantity = intOrNull(d.quantity);
         const reorderPoint = intOrNull(d.reorderPoint);
@@ -1603,12 +1612,20 @@ export async function POST(req: Request) {
           productId,
         ]);
         if (!product.length) return bad("unknown_product", 404);
+        if (variantId !== null) {
+          const variant = await q(
+            `SELECT id FROM merch_variants WHERE id=$1 AND product_id=$2`,
+            [variantId, productId],
+          );
+          if (!variant.length) return bad("variant_product_mismatch", 400);
+        }
         const signedQuantity = negative.has(moveType) ? -quantity : quantity;
         const row = await q(
-          `INSERT INTO merch_inventory_moves (product_id, quantity, move_type, note, reference)
-           VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+          `INSERT INTO merch_inventory_moves (product_id, variant_id, quantity, move_type, note, reference)
+           VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
           [
             productId,
+            variantId,
             signedQuantity,
             moveType,
             s(d.note, 1000),
@@ -1623,6 +1640,7 @@ export async function POST(req: Request) {
         await opsAudit("ops.merch.inventory.record", {
           id: row[0]?.id,
           productId,
+          variantId,
           moveType,
           quantity: signedQuantity,
         });

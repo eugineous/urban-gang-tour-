@@ -70,6 +70,8 @@ type InventoryMove = {
   id: number;
   product_id: string;
   product_name: string;
+  variant_id: number | null;
+  variant_label: string | null;
   quantity: number;
   move_type: string;
   note: string;
@@ -100,6 +102,8 @@ type Variant = {
   sku: string;
   price_adjustment: number;
   active: boolean;
+  inventory_move_count: number;
+  inventory_on_hand: number;
 };
 type PurchaseOrder = {
   id: number;
@@ -142,6 +146,7 @@ const EMPTY_QUOTE = {
 };
 const EMPTY_STOCK = {
   productId: "",
+  variantId: null as number | null,
   moveType: "received",
   quantity: null as number | null,
   reorderPoint: null as number | null,
@@ -712,7 +717,11 @@ export default function MerchDesk() {
               style={inp}
               value={stockEdit.productId}
               onChange={(e) =>
-                setStockEdit({ ...stockEdit, productId: e.target.value })
+                setStockEdit({
+                  ...stockEdit,
+                  productId: e.target.value,
+                  variantId: null,
+                })
               }
             >
               <option value="">Choose product</option>
@@ -721,6 +730,29 @@ export default function MerchDesk() {
                   {p.name}
                 </option>
               ))}
+            </select>
+          </div>
+          <div>
+            <span style={label}>Variant</span>
+            <select
+              style={inp}
+              value={stockEdit.variantId ?? ""}
+              onChange={(e) =>
+                setStockEdit({
+                  ...stockEdit,
+                  variantId: optionalNumber(e.target.value),
+                })
+              }
+              disabled={!stockEdit.productId}
+            >
+              <option value="">All variants / product-wide</option>
+              {variants
+                .filter((v) => v.product_id === stockEdit.productId)
+                .map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.label}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
@@ -1171,9 +1203,9 @@ export default function MerchDesk() {
             </button>
           </div>
           <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
-            Enter verified size, colour or edition options. Customer selection
-            is deliberately switched on only when cart pricing and variant stock
-            are ready.
+            Enter verified size, colour or edition options. Customer pricing is
+            server-verified. Once a variant has its own stock movement, checkout
+            also protects that specific count.
           </p>
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", width: "100%" }}>
@@ -1184,6 +1216,7 @@ export default function MerchDesk() {
                     "option",
                     "SKU",
                     "price adjustment",
+                    "variant stock",
                     "state",
                     "",
                   ].map((c) => (
@@ -1205,6 +1238,11 @@ export default function MerchDesk() {
                       {v.price_adjustment
                         ? `${v.price_adjustment > 0 ? "+" : ""}${fmtKES(v.price_adjustment)}`
                         : "Base price"}
+                    </td>
+                    <td style={td}>
+                      {v.inventory_move_count
+                        ? v.inventory_on_hand
+                        : "Not tracked"}
                     </td>
                     <td style={td}>
                       <Chip text={v.active ? "active" : "retired"} />
@@ -1230,7 +1268,7 @@ export default function MerchDesk() {
                 ))}
                 {!variants.length && (
                   <tr>
-                    <td style={td} colSpan={6}>
+                    <td style={td} colSpan={7}>
                       No variants yet. Add a verified option when the physical
                       product has one.
                     </td>
@@ -1467,7 +1505,7 @@ export default function MerchDesk() {
                 <thead>
                   <tr>
                     {[
-                      "product",
+                      "product / variant",
                       "on hand",
                       "reorder point",
                       "state",
@@ -1546,7 +1584,10 @@ export default function MerchDesk() {
                   {inventoryMoves.map((m) => (
                     <tr key={m.id}>
                       <td style={td}>{fmtDate(m.created_at)}</td>
-                      <td style={td}>{m.product_name}</td>
+                      <td style={td}>
+                        {m.product_name}
+                        {m.variant_label ? `, ${m.variant_label}` : ""}
+                      </td>
                       <td style={td}>
                         <Chip text={m.move_type.replace("_", " ")} />
                       </td>
