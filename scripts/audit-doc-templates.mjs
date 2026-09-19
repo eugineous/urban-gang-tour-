@@ -14,9 +14,10 @@ for (const file of templates) {
   const fields = [...html.matchAll(/<([a-z][\w:-]*)\b[^>]*\bdata-field="([^"]+)"[^>]*>/gi)]
     .map((m) => `${m[1].toLowerCase()}:${m[2]}`);
   const rootMatch = /data-doc-page="([^"]+)"/i.exec(html);
-  const assetRefs = [...html.matchAll(/(?:src|url\()\s*=?\s*["']?([^"'\)\s]+)(?:["']|\))/gi)]
-    .map((m) => m[1])
-    .filter((ref) => ref.startsWith('../assets/') || ref.startsWith('../uploads/'));
+  const assetRefs = [
+    ...[...html.matchAll(/\bsrc\s*=\s*["']([^"']+)["']/gi)].map((m) => m[1]),
+    ...[...html.matchAll(/\burl\(\s*["']?([^"'\)\s]+)["']?\s*\)/gi)].map((m) => m[1]),
+  ].filter((ref) => ref.startsWith('../assets/') || ref.startsWith('../uploads/'));
   const missingAssets = [];
   for (const ref of assetRefs) {
     try {
