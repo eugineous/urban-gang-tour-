@@ -20,7 +20,7 @@ export default async function Page() {
   const events = await eventsFromDb();
   return (
     <>
-      <JsonLd data={[events, breadcrumbFor(PATH)]} />
+      <JsonLd data={[events, breadcrumbFor(PATH)].filter(Boolean)} />
       <RenderedPage pathName={PATH} />
     </>
   );

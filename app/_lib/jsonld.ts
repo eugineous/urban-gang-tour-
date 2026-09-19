@@ -75,65 +75,60 @@ function timeTo24h(t: string): string {
   return `${String(h).padStart(2, '0')}:${m[2]}:00`;
 }
 
-// Live rebuild of the /events JSON-LD @graph straight from tour_events
-// (kind='ticketed' | 'school', status='published') — the same admin-edited
-// rows the public site and checkout read, so Google always sees the current
-// name/date/venue/price, never a frozen copy. Rows with no confirmed
-// event_date (TBA school stops) are omitted rather than emitting an invalid
-// startDate. Any DB problem (including DATABASE_URL not configured) falls
-// back to the static app/_lib/jsonld.data.json snapshot — SEO must never
-// break because of a transient DB issue.
-export async function eventsFromDb(): Promise<unknown> {
+// Live rebuild of the /events JSON-LD @graph straight from the current,
+// publicly ticketed tour_events rows. School events are intentionally left
+// out: Google excludes spectator events primarily involving minors on school
+// premises from its public Event experience. Each ticketed entry points to its
+// crawlable event leaf URL, not to the generic schedule page.
+//
+// An unavailable database returns no Event markup rather than a stale static
+// event list. Accuracy is more useful than a rich-result hint that could sell
+// an expired, moved or unpublished show.
+export async function eventsFromDb(): Promise<unknown | null> {
   try {
     const { q, db } = await import('@/lib/server/db');
-    if (!db()) return EVENTS;
+    if (!db()) return null;
     // event_date::text — plain 'YYYY-MM-DD' string, never a local-midnight
     // Date object (see lib/server/db.ts's note on pg's DATE parser).
     const rows = await q<any>(
-      `SELECT id, kind, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers
-       FROM tour_events WHERE kind IN ('ticketed','school') AND status='published' AND event_date IS NOT NULL
+      `SELECT id, name, event_date::text AS event_date, event_time, venue, city, image, description, tiers
+       FROM tour_events
+       WHERE kind='ticketed' AND status='published' AND event_date >= CURRENT_DATE
        ORDER BY priority DESC, event_date ASC`
     );
-    if (!rows.length) return EVENTS;
+    if (!rows.length) return null;
     const graph = rows.map((r: any) => {
       const dateStr = String(r.event_date).slice(0, 10);
       const desc = String(r.description || '').replace(/—/g, '-');
-      if (r.kind === 'ticketed') {
-        const tiers: { name: string; price: number }[] = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
-        return {
-          '@type': 'Event',
-          name: r.name,
-          startDate: `${dateStr}T${timeTo24h(r.event_time)}+03:00`,
-          eventStatus: 'https://schema.org/EventScheduled',
-          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-          location: { '@type': 'Place', name: r.venue || '', address: { '@type': 'PostalAddress', addressLocality: r.city || '', addressCountry: 'KE' } },
-          image: r.image ? `${SITE.domain}${r.image}` : undefined,
-          organizer: { '@id': `${SITE.domain}/#org` },
-          performer: PERFORMER,
-          description: desc || `${r.name} at ${r.venue}, ${r.city}.`,
-          offers: tiers.map((t) => ({
-            '@type': 'Offer', name: t.name, price: String(Math.round(Number(t.price) || 0)),
-            priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}/events`,
-          })),
-        };
-      }
+      const tiers: { name: string; price: number }[] = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
+      const eventUrl = `${SITE.domain}/events/${encodeURIComponent(r.id)}`;
       return {
-        '@type': ['Event', 'EducationEvent'],
-        name: `Urban Gang Tour — ${r.name}`,
-        startDate: dateStr,
+        '@type': 'Event',
+        '@id': eventUrl,
+        url: eventUrl,
+        name: r.name,
+        // Never invent a midnight start time when the operator has not
+        // confirmed one. A date-only event is valid for an all-day/TBA-time
+        // listing and remains truthful until the schedule is set.
+        startDate: /^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(String(r.event_time || '').trim())
+          ? `${dateStr}T${timeTo24h(r.event_time)}+03:00`
+          : dateStr,
         eventStatus: 'https://schema.org/EventScheduled',
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-        location: { '@type': 'Place', name: r.name, address: { '@type': 'PostalAddress', addressLocality: r.venue || '', addressCountry: 'KE' } },
+        location: { '@type': 'Place', name: r.venue || '', address: { '@type': 'PostalAddress', addressLocality: r.city || '', addressCountry: 'KE' } },
         image: r.image ? `${SITE.domain}${r.image}` : undefined,
         organizer: { '@id': `${SITE.domain}/#org` },
         performer: PERFORMER,
-        description: desc || 'A full day of talent showcases, mentorship pods, a modelling runway, and a national Urban News broadcast.',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}/events` },
+        description: desc || r.name,
+        offers: tiers.map((t) => ({
+          '@type': 'Offer', name: t.name, price: String(Math.round(Number(t.price) || 0)),
+          priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: eventUrl,
+        })),
       };
     });
     return { '@context': 'https://schema.org', '@graph': graph };
   } catch {
-    return EVENTS;
+    return null;
   }
 }
 
