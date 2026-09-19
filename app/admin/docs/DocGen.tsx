@@ -25,7 +25,7 @@ import { card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, th, td, Chip,
 const VERIFY_BASE = 'https://urbangangtour.co.ke/verify/';
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'cor' | 'brief' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr'
+type DocType = 'invoice' | 'receipt' | 'certw' | 'certp' | 'call' | 'budget' | 'tix' | 'spass' | 'band' | 'ltr' | 'cor' | 'brief' | 'acc' | 'pass' | 'rel' | 'cons' | 'prop' | 'sprop' | 'agr' | 'newsletter'
   | 'igNext' | 'igStory' | 'igWinner' | 'igEpisode' | 'igMerch' | 'igBookings' | 'igQuote'
   | 'posTakeover' | 'posHeadliner' | 'posFestival' | 'posRave' | 'posFinale' | 'posMaster';
 const TYPES: { key: DocType; label: string }[] = [
@@ -76,6 +76,19 @@ interface PSpec {
   fields: PField[]; heroSlots: string[]; partners?: boolean; missing?: string[];
 }
 const PROMO_SPEC: Record<string, PSpec> = {
+  newsletter: {
+    label: 'Urban Wire Newsletter', kind: 'post', design: { w: 640, h: 1200 }, png: [1080, 2025],
+    fields: [
+      { key: 'issueNo', label: 'Issue number', ph: '021' },
+      { key: 'heroHeadline', label: 'Lead headline', area: true, ph: 'THE MOMENT THE GANG SHOWED UP' },
+      { key: 'heroSummary', label: 'Lead story summary', area: true, ph: 'Two concise sentences about the biggest moment.' },
+      { key: 'storyOne', label: 'Story card one', area: true, ph: 'FROM THE ROAD — STOP RECAP' },
+      { key: 'storyTwo', label: 'Story card two', area: true, ph: 'URBAN NEWS — EPISODE OR ANNOUNCEMENT' },
+      { key: 'ticker', label: 'Ticker', area: true, ph: 'NEXT STOP LOADING · MERCH RESTOCK · NEW EPISODE' },
+      { key: 'merchHeadline', label: 'Merch headline', ph: 'REP THE GANG — THE DROP IS LIVE' },
+      { key: 'merchBody', label: 'Merch detail', area: true, ph: 'Caps, tees and more. Worn on tour, shipped countrywide.' },
+    ], heroSlots: ['Lead story photo', 'Story card one photo', 'Story card two photo'],
+  },
   igNext: {
     label: 'IG Post - Next Stop', kind: 'post', design: { w: 600, h: 600 }, png: [1080, 1080],
     fields: [
@@ -227,6 +240,7 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   prop: { w: 794, h: 1123 },
   sprop: { w: 794, h: 1123 },
   agr: { w: 794, h: 1123 },
+  newsletter: { w: 640, h: 1200 },
   // Promo cards are captured at their design px (see PROMO_SPEC.design) and
   // exported at PROMO_SPEC.png. The preview iframe uses these design px.
   igNext: { w: 600, h: 600 },

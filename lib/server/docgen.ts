@@ -124,10 +124,9 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   // record (audit + re-download) but NO verify QR on the artwork. Text blanks
   // are stamped with data-field; hero photos fill data-hero-slot img slots from
   // uploads; picked partner logos fill a data-partner-strip on white chips.
-  // Several templates reference brand images the owner still has to supply
-  // (PPPtv Logo.png, tape-png-0.png, an-arrow-...webp, CAMPUS RAVE LOGO png.png)
-  // - those render BLANK (the capture is missing-image tolerant) until dropped
-  // into public/uploads. Nothing here fabricates a brand image.
+// Promo templates use only local, audited assets. Uploaded heroes and partner
+// marks are allowed only after their URLs pass the owned-asset validator.
+  newsletter:   { code: 'PROMO-WIRE', label: 'Urban Wire Newsletter',        template: '09-newsletter-the-urban-wire.html',         promo: { kind: 'post',   png: [1080, 2025] } },
   igNext:       { code: 'PROMO-NEXT',  label: 'IG Post - Next Stop',          template: '18-ig-post-next-stop.html',               promo: { kind: 'post',   png: [1080, 1080] } },
   igStory:      { code: 'PROMO-CAL',   label: 'IG Story - Term Calendar',     template: '19-ig-story-term-calendar.html',           promo: { kind: 'story',  png: [1080, 1920] } },
   igWinner:     { code: 'PROMO-WIN',   label: 'IG Post - Winner Spotlight',   template: '31-ig-post-winner-spotlight.html',         promo: { kind: 'post',   png: [1080, 1080] } },
@@ -142,7 +141,7 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   posFinale:    { code: 'PROMO-PSFIN', label: 'Poster - The Crowning Finale', template: '40-poster-the-crowning-finale.html',       promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
   posMaster:    { code: 'PROMO-MASTER', label: 'Poster - Event Master',       template: '56-poster-event-master.html',              promo: { kind: 'poster', png: [1080, 1512], pdf: 'A3' } },
 };
-export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'cor', 'brief', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr',
+export const ACTIVE_DOC_TYPES = ['invoice', 'receipt', 'certw', 'certp', 'call', 'budget', 'tix', 'spass', 'band', 'ltr', 'cor', 'brief', 'acc', 'pass', 'rel', 'cons', 'prop', 'sprop', 'agr', 'newsletter',
   'igNext', 'igStory', 'igWinner', 'igEpisode', 'igMerch', 'igBookings', 'igQuote',
   'posTakeover', 'posHeadliner', 'posFestival', 'posRave', 'posFinale', 'posMaster'] as const;
 export type DocType = (typeof ACTIVE_DOC_TYPES)[number];
@@ -168,6 +167,7 @@ export const PROMO_PARTNERS: PromoPartner[] = [
 // maps 1:1 to a [data-field] element in the template. A field host may carry
 // intentional default copy; it is replaced only when the form submits a value.
 export const PROMO_FIELDS: Record<string, string[]> = {
+  newsletter:   ['issueNo', 'heroHeadline', 'heroSummary', 'storyOne', 'storyTwo', 'ticker', 'merchHeadline', 'merchBody'],
   igNext:       ['dateDay', 'dateMonth', 'schoolName', 'tagline1', 'tagline2', 'lineup'],
   igStory:      ['date1', 'school1', 'venue1', 'date2', 'school2', 'venue2', 'date3', 'school3', 'venue3'],
   igWinner:     ['winnerLine'],
@@ -424,7 +424,7 @@ function injectField(html: string, field: string, value: string): string {
   // limited to div/span: meaningful headings such as a ticket's event name
   // are often <h1>. Keep the paired-tag guard so nested markup is never
   // flattened, while allowing every ordinary text element to be populated.
-  const re = new RegExp(`(<([a-z][\\w:-]*)\\b[^>]*\\bdata-field="${field}"[^>]*>)[^<]*?(</\\2>)`, 'gi');
+  const re = new RegExp(`(<([a-z][\\w:-]*)\\b[^>]*\\bdata-field="${field}"[^>]*>)[^<]*?(</\\2\\s*>)`, 'gi');
   return html.replace(re, (_m, open, _tag, close) => open + escapeHtml(value) + close);
 }
 
