@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" role="img" aria-label="Hand-drawn arrow">
+  <path d="M14 78C43 77 77 67 111 35" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+  <path d="m86 27 31 7-10 29" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 83C49 82 83 69 114 39" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" opacity=".48"/>
+</svg>
