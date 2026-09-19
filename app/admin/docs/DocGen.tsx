@@ -63,6 +63,7 @@ type DocType =
   | "emailSig"
   | "teamKit"
   | "mediaWall"
+  | "stageBack"
   | "igNext"
   | "igStory"
   | "igWinner"
@@ -255,6 +256,21 @@ const PROMO_SPEC: Record<string, PSpec> = {
       { key: "handle", label: "Social handle", ph: "@URBAN_NEWSGANG", max: 28 },
     ],
     heroSlots: [],
+    partners: true,
+  },
+  stageBack: {
+    label: "Stage Backdrop",
+    kind: "post",
+    design: { w: 1400, h: 560 },
+    png: [3000, 1200],
+    pdf: true,
+    fields: [
+      { key: "eventName", label: "Event name", ph: "THE NEXT STOP", max: 42 },
+      { key: "eventLine", label: "Event line", ph: "LIVE PRODUCTION · NAIROBI", max: 54 },
+      { key: "hostLeft", label: "Left featured name", ph: "EUGINE MICAH", max: 24 },
+      { key: "hostRight", label: "Right featured name", ph: "LUCY OGUNDE", max: 24 },
+    ],
+    heroSlots: ["Left featured image", "Right featured image"],
     partners: true,
   },
   igNext: {
@@ -562,11 +578,6 @@ const PRODUCTION_REFERENCES = [
     label: "3 × 5 ft event flag",
     file: "15-event-flag-3x5ft.html",
   },
-  {
-    group: "Event print",
-    label: "Stage backdrop",
-    file: "17-stage-backdrop-20x8ft.html",
-  },
   { group: "Merch", label: "Sticker pack", file: "28-sticker-pack-a5.html" },
   { group: "Merch", label: "Bandana print", file: "29-bandana-55x55cm.html" },
   {
@@ -625,6 +636,7 @@ const DIMS: Record<DocType, { w: number; h: number }> = {
   emailSig: { w: 640, h: 180 },
   teamKit: { w: 844, h: 568 },
   mediaWall: { w: 740, h: 555 },
+  stageBack: { w: 1400, h: 560 },
   // Promo cards are captured at their design px (see PROMO_SPEC.design) and
   // exported at PROMO_SPEC.png. The preview iframe uses these design px.
   igNext: { w: 600, h: 600 },

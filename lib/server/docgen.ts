@@ -230,6 +230,12 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
     template: "16-press-media-wall-3x2.25m.html",
     promo: { kind: "post", png: [3000, 2250], pdf: "A3" },
   },
+  stageBack: {
+    code: "PROMO-STAGE",
+    label: "Stage Backdrop",
+    template: "17-stage-backdrop-20x8ft.html",
+    promo: { kind: "post", png: [3000, 1200], pdf: "A3" },
+  },
   igNext: {
     code: "PROMO-NEXT",
     label: "IG Post - Next Stop",
@@ -333,6 +339,7 @@ export const ACTIVE_DOC_TYPES = [
   "emailSig",
   "teamKit",
   "mediaWall",
+  "stageBack",
   "igNext",
   "igStory",
   "igWinner",
@@ -409,6 +416,7 @@ export const PROMO_FIELDS: Record<string, string[]> = {
     "hoodieLine",
   ],
   mediaWall: ["eventLabel", "wallLine", "handle"],
+  stageBack: ["eventName", "eventLine", "hostLeft", "hostRight"],
   igNext: [
     "dateDay",
     "dateMonth",
@@ -478,6 +486,12 @@ const PROMO_FIELD_LIMITS: Record<string, Record<string, number>> = {
     eventLabel: 30,
     wallLine: 46,
     handle: 28,
+  },
+  stageBack: {
+    eventName: 42,
+    eventLine: 54,
+    hostLeft: 24,
+    hostRight: 24,
   },
 };
 
@@ -871,18 +885,25 @@ export async function fillTemplate(
   // default chips (where present) stay. The container holds only spans, so the
   // lazy inner match stops at the container's own closing tag.
   if (opts.partnerLogos && opts.partnerLogos.length) {
-    const chips = opts.partnerLogos
-      .map((u) => {
-        const safe = String(u).replace(/"/g, "&quot;");
-        return (
-          `<span style="background:#fff;border-radius:6px;padding:5px 9px;display:inline-flex;align-items:center;box-shadow:2px 2px 0 rgba(17,17,17,.28);">` +
-          `<img src="${safe}" alt="" style="height:24px;width:auto;display:block;" /></span>`
-        );
-      })
-      .join("");
     html = html.replace(
       /(<(div|span)\b[^>]*\bdata-partner-strip="1"[^>]*>)[\s\S]*?(<\/\2>)/,
-      (_m, open, _tag, close) => open + chips + close,
+      (_m, open, _tag, close) => {
+        // Most cards use 24px marks. Large-format artwork may deliberately
+        // declare a larger print-safe mark height, capped defensively here.
+        const requested = Number(/\bdata-partner-height="(\d{1,2})"/.exec(open)?.[1] || 24);
+        const height = Math.max(18, Math.min(56, requested));
+        const padding = height >= 34 ? "6px 11px" : "5px 9px";
+        const chips = opts.partnerLogos!
+          .map((u) => {
+            const safe = String(u).replace(/"/g, "&quot;");
+            return (
+              `<span style="background:#fff;border-radius:6px;padding:${padding};display:inline-flex;align-items:center;box-shadow:2px 2px 0 rgba(17,17,17,.28);">` +
+              `<img src="${safe}" alt="" style="height:${height}px;width:auto;display:block;" /></span>`
+            );
+          })
+          .join("");
+        return open + chips + close;
+      },
     );
   }
 
