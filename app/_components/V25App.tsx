@@ -39,7 +39,7 @@ export function V25App({ page }: { page: string }) {
     // recomputed server-side (lib/server/catalog.ts), so a stale or failed
     // fetch here only means the page shows its frozen fallback content, it
     // never blocks or changes checkout.
-    fetch('/api/site-data/events')
+    const eventsReady = fetch('/api/site-data/events')
       .then((r) => r.json())
       .then((d) => {
         const rows: any[] = Array.isArray(d?.events) ? d.events : [];
@@ -81,7 +81,7 @@ export function V25App({ page }: { page: string }) {
         w.__UGT_EVENTS = { ticketed, school, past };
       })
       .catch(() => { w.__UGT_EVENTS = w.__UGT_EVENTS || { ticketed: [], school: [], past: [] }; });
-    fetch('/api/site-data/products')
+    const productsReady = fetch('/api/site-data/products')
       .then((r) => r.json())
       .then((d) => {
         const rows: any[] = Array.isArray(d?.products) ? d.products : [];
@@ -98,7 +98,7 @@ export function V25App({ page }: { page: string }) {
     // same fire-and-forget/safe-empty-fallback pattern as the events/products
     // bridges above: a stale or failed fetch here only means the page shows
     // its frozen fallback photos, never a broken page.
-    fetch('/api/site-data/gallery')
+    const galleryReady = fetch('/api/site-data/gallery')
       .then((r) => r.json())
       .then((d) => {
         const rows: any[] = Array.isArray(d?.photos) ? d.photos : [];
@@ -239,7 +239,13 @@ export function V25App({ page }: { page: string }) {
         });
     };
 
-    attempt();
+    // The three public data bridges are intentionally parallel, but the
+    // template reads their window values during construction. Wait for all of
+    // them to settle before the first boot so an admin-edited catalogue, event
+    // calendar or gallery cannot lose a race to frozen fallback content.
+    void Promise.allSettled([eventsReady, productsReady, galleryReady]).then(
+      attempt,
+    );
     // Instant in-app navigation. Once the runtime is booted it exposes
     // window.__UGT_GO (patched go() in the template). Internal links then
     // switch pages in-app — no full reload, no re-boot — which is what makes
