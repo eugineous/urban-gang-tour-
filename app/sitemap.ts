@@ -31,6 +31,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // Each active product has a canonical purchase page. Product markup belongs
+  // on these single-product URLs, not on the catalogue listing.
+  let products: MetadataRoute.Sitemap = [];
+  if (hasDb()) {
+    try {
+      await ensureCatalogSeeded();
+      const rows = await q<{ id: string; updated_at: string }>(
+        `SELECT id, updated_at::text AS updated_at FROM products
+         WHERE active ORDER BY id`
+      );
+      products = rows.map((product) => ({
+        url: `${SITE.domain}/shop/${encodeURIComponent(product.id)}`,
+        lastModified: product.updated_at ? new Date(product.updated_at) : now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+    } catch {
+      products = [];
+    }
+  }
+
   // Event rich results need one canonical URL for each real ticketed event.
   // Only published events with a confirmed upcoming date are exposed here.
   // A transient DB issue leaves the established sitemap intact.
@@ -54,5 +75,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...pages, ...authors, ...posts, ...ticketedEvents];
+  return [...pages, ...authors, ...posts, ...products, ...ticketedEvents];
 }

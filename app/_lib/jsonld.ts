@@ -8,56 +8,37 @@ export const ORG = data.org;
 export const WEBSITE = data.website;
 export const EVENTS = data.events;      // @graph of Event / EducationEvent  -> /events
 export const PEOPLE = data.people;      // @graph of Person (crew)           -> /the-gang
-export const PRODUCTS = data.products;  // ItemList of Product               -> /shop
 export const NEWSORG = data.newsorg;    // NewsMediaOrganization             -> /blog
 export const ARTICLES = data.articles;  // @graph of NewsArticle             -> /blog
 
-// PRODUCTS enriched with real, moderated review data. Products with approved
-// reviews get aggregateRating + up to 3 recent review objects; products with
-// none get no rating fields at all (absent is fine for Google, fabricated is
-// not). Any DB problem falls back to the plain static block.
-export async function productsWithReviews(): Promise<unknown> {
+// The shop index is a catalogue, not a product-detail page. Google recommends
+// Product markup on a URL focused on one product, so this only exposes live
+// product leaf URLs. Each /shop/[id] page supplies the purchase markup.
+// An unavailable database produces no catalogue markup rather than stale
+// prices or retired products.
+export async function shopCatalogList(): Promise<unknown | null> {
   try {
     const { q, db } = await import('@/lib/server/db');
-    const { getProducts } = await import('@/lib/server/catalog');
-    if (!db()) return PRODUCTS;
-    const [rows, catalogPrices] = await Promise.all([
-      q<{ product_id: string; author: string; rating: number; body: string; created_at: string }>(
-        `SELECT product_id, author, rating, body, created_at FROM product_reviews
-         WHERE approved ORDER BY created_at DESC`
-      ),
-      getProducts(),
-    ]);
-    if (!rows.length) return PRODUCTS;
-    const byName = new Map<string, typeof rows>();
-    for (const r of rows) {
-      const name = catalogPrices[r.product_id]?.name;
-      if (!name) continue;
-      if (!byName.has(name)) byName.set(name, []);
-      byName.get(name)!.push(r);
-    }
-    const block = JSON.parse(JSON.stringify(PRODUCTS));
-    for (const item of block.itemListElement || []) {
-      const revs = byName.get(item.name);
-      if (!revs?.length) continue;
-      item.aggregateRating = {
-        '@type': 'AggregateRating',
-        ratingValue: Math.round((revs.reduce((s, r) => s + r.rating, 0) / revs.length) * 10) / 10,
-        reviewCount: revs.length,
-        bestRating: 5,
-        worstRating: 1,
-      };
-      item.review = revs.slice(0, 3).map((r) => ({
-        '@type': 'Review',
-        author: { '@type': 'Person', name: r.author },
-        reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5, worstRating: 1 },
-        reviewBody: r.body,
-        datePublished: String(r.created_at).slice(0, 10),
-      }));
-    }
-    return block;
+    const { ensureCatalogSeeded } = await import('@/lib/server/catalog');
+    if (!db()) return null;
+    await ensureCatalogSeeded();
+    const rows = await q<{ id: string; name: string }>(
+      `SELECT id, name FROM products WHERE active ORDER BY id`
+    );
+    if (!rows.length) return null;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Urban Gang Merch',
+      itemListElement: rows.map((product, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: product.name,
+        url: `${SITE.domain}/shop/${encodeURIComponent(product.id)}`,
+      })),
+    };
   } catch {
-    return PRODUCTS;
+    return null;
   }
 }
 
@@ -138,8 +119,6 @@ export function structuredDataForPath(path: string): unknown[] {
   switch (path) {
     case '/events':
       out.push(EVENTS); break;
-    case '/shop':
-      out.push(PRODUCTS); break;
     case '/the-gang':
       out.push(PEOPLE); break;
     case '/blog':

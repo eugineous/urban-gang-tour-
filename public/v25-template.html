@@ -1084,7 +1084,7 @@
 </button>
 <div style="padding:13px 15px;display:flex;flex-direction:column;flex:1">
 <div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ p.name }}</div>
-<div style="color:#888;font-size:11px;font-weight:700;text-transform:uppercase;margin:4px 0 10px">tap tag for details</div>
+<a href="/shop/{{ p.id }}" style="color:#555;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 10px;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px">Details &amp; options →</a>
 <button onClick="{{ p.btn }}" style="margin-top:auto;width:100%;padding:11px;border:3px solid #111;border-radius:11px;background:#21C7E6;color:#111;font-family:'Space Grotesk';font-weight:700;font-size:13px;text-transform:uppercase" style-hover="background:#FFD400">{{ p.btnLabel }}</button>
 </div>
 </div>
@@ -2070,6 +2070,10 @@ class Component extends DCLogic {
   scanReveal(){ try{ document.querySelectorAll('main h2').forEach(el=>{ if(!el.hasAttribute('data-reveal')&&!el.classList.contains('seen')) el.setAttribute('data-reveal',''); }); if(!this._revObs){ this._revObs=new IntersectionObserver((es)=>{ es.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('seen'); this._revObs.unobserve(en.target); } }); },{threshold:0.12,rootMargin:'0px 0px -8% 0px'}); } document.querySelectorAll('[data-reveal]:not(.seen)').forEach(el=>this._revObs.observe(el)); }catch(e){} }
   componentDidMount(){
     try{ const orders=this.loadLS('ugt_orders',[]); const inbox=this.loadLS('ugt_inbox',[]); const extraStops=this.loadLS('ugt_stops',[]); const storedCart=this.loadLS('ugt_cart',[]); const cart=(Array.isArray(storedCart)?storedCart:[]).filter(l=>l&&this.PRODUCTS.some(p=>p.id===l.id)&&Number.isInteger(l.qty)&&l.qty>0&&l.qty<=20); const admins=this.loadLS('ugt_admins',[]); const publishedBlogs=this.loadLS('ugt_published',[]); this.setState(s=>({orders, extraStops, admins, publishedBlogs, cart:(cart.length?cart:s.cart), bookings:[...inbox,...s.bookings]})); }catch(e){}
+    // Product detail pages send a shopper back here with ?item=<product id>.
+    // The catalogue has already loaded before this runtime boots, so open the
+    // existing option picker instead of duplicating cart/payment logic.
+    try{ const item=new URLSearchParams(location.search).get('item'); if(this.state.page==='shop'&&item&&this.PRODUCTS.some(p=>p.id===item)) this.openQuick(item); }catch(e){}
     if(this.state.page==='gallery'){this._galleryLoaded=true;this.loadGallery();}
     // Rotate whole words instead of rerendering the entire app per letter.
     let wordIndex=0;
