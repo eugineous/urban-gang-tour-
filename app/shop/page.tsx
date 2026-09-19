@@ -6,7 +6,10 @@ import { RenderedPage } from '@/app/_components/RenderedPage';
 
 const PATH = '/shop';
 
-export const revalidate = 300;
+// The catalogue and its active product set are owner-managed in the database.
+// Rendering at the edge prevents a build-time environment from freezing an
+// empty or stale list into the public page.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);

@@ -4,6 +4,10 @@ import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';
 import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
+// Product and ticket URLs are owner-managed database records. The sitemap
+// must read them at request time instead of capturing a build-time snapshot.
+export const dynamic = 'force-dynamic';
+
 // Lists every crawlable URL, including each /blog/[slug]. /admin is excluded
 // (noindex). robots.ts points crawlers here.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
