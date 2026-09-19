@@ -113,10 +113,9 @@ const EVENT_WORKSPACE_PERMS = [
   "ops_invoices",
 ];
 
-// Per-view module scoping for GET. 'dashboard' has no entry: every admin can
-// see the landing tab, but its audit-log slice is stripped for non-super
-// admins inside the handler (viewing the audit log is always super_admin
-// only, per CLAUDE.md's critical exceptions).
+// Per-view module scoping for GET. The consolidated ops dashboard is handled
+// as a super-admin-only view in its case below because it combines financial,
+// contact and commercial data from otherwise separate modules.
 const VIEW_PERM: Record<string, string[]> = {
   events: EVENT_WORKSPACE_PERMS,
   event: EVENT_WORKSPACE_PERMS,
@@ -477,7 +476,10 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, rows });
       }
       case "dashboard": {
-        // One aggregate call powering the admin landing tab.
+        // This is a cross-module executive view, not a generic staff landing
+        // page. A scoped account must use its explicitly assigned desk.
+        if (!isSuperAdmin(req)) return bad("forbidden", 403);
+        // One aggregate call powering the executive landing tab.
         const invoices = await q<any>(`
           SELECT d.id, d.lines, d.status, d.due_date,
             COALESCE((SELECT SUM(p.amount) FROM ops_payments p WHERE p.invoice_id=d.id),0) AS paid
@@ -526,14 +528,9 @@ export async function GET(req: Request) {
         } catch {
           /* reviews table may not exist yet */
         }
-        // Audit log is always super_admin-only (CLAUDE.md critical
-        // exception) - a crew_admin gets an empty activity feed here rather
-        // than a 403, since the rest of the dashboard is open to them.
-        const audit = isSuperAdmin(req)
-          ? await q(
-              `SELECT actor, action, detail, created_at FROM audit_log ORDER BY created_at DESC LIMIT 8`,
-            )
-          : [];
+        const audit = await q(
+          `SELECT actor, action, detail, created_at FROM audit_log ORDER BY created_at DESC LIMIT 8`,
+        );
         return NextResponse.json({
           ok: true,
           outstanding,
