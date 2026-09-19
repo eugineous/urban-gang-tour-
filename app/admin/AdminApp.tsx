@@ -67,6 +67,10 @@ const Events = dynamic(() => import("./ops/Events"), {
   ssr: false,
   loading: opsLoading,
 });
+const EventOperations = dynamic(() => import("./ops/EventOperations"), {
+  ssr: false,
+  loading: opsLoading,
+});
 const Products = dynamic(() => import("./ops/Products"), {
   ssr: false,
   loading: opsLoading,
@@ -170,6 +174,7 @@ const TABS = [
 ] as const;
 const OPS_TABS = [
   "Events",
+  "Event Operations",
   "Products",
   "Merch Desk",
   "Gallery",
@@ -205,6 +210,7 @@ const NAV_GROUPS: {
     label: "Run the tour",
     items: [
       { tab: "Events", icon: "◉", label: "Events" },
+      { tab: "Event Operations", icon: "◍", label: "Event operations" },
       { tab: "Pipeline", icon: "↗", label: "Leads pipeline" },
       { tab: "Contacts", icon: "◌", label: "Contacts" },
       { tab: "Promos", icon: "★", label: "Promos" },
@@ -264,6 +270,7 @@ const TAB_PERM: Partial<Record<Tab, string | string[]>> = {
   People: "people",
   Traffic: "traffic",
   Events: "events",
+  "Event Operations": "events",
   Products: "products",
   "Merch Desk": "ops_merch",
   Gallery: "gallery",
@@ -295,7 +302,7 @@ function startingTab(scope: AdminSession["scope"], perms: string[]): Tab {
     ["newsroom", "Newsroom"],
     ["content", "Content"],
     ["bookings", "Bookings"],
-    ["events", "Events"],
+    ["events", "Event Operations"],
     ["products", "Products"],
     ["ops_merch", "Merch Desk"],
     ["ops_contacts", "Contacts"],
@@ -672,6 +679,9 @@ export default function AdminApp({
         <GmailInbox googleClientId={googleClientId} say={say} />
       )}
       {tab === "Events" && <Events />}
+      {tab === "Event Operations" && (
+        <EventOperations openChecklist={() => setTab("Checklists")} />
+      )}
       {tab === "Products" && <Products />}
       {tab === "Merch Desk" && <MerchDesk />}
       {tab === "Gallery" && <Gallery />}

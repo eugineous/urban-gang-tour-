@@ -120,6 +120,7 @@ const EVENT_WORKSPACE_PERMS = [
 const VIEW_PERM: Record<string, string[]> = {
   events: EVENT_WORKSPACE_PERMS,
   event: EVENT_WORKSPACE_PERMS,
+  eventOps: ["events"],
   budget: ["ops_budgeter"],
   budgets: ["ops_budgeter"],
   documents: ["ops_invoices"],
@@ -174,6 +175,19 @@ export async function GET(req: Request) {
             ${latestBudgetColumn}, ${paidTotalColumn}
           FROM ops_events e ORDER BY e.event_date DESC NULLS LAST, e.id DESC LIMIT 500`);
         return NextResponse.json({ ok: true, rows, access });
+      }
+      case "eventOps": {
+        // Event managers get only operational headers and readiness. Terms,
+        // budgets, expenses, payouts and payments remain in their owning
+        // modules, each behind its own permission.
+        const rows = await q(`
+          SELECT e.id, e.name, e.school, e.event_date::text AS event_date,
+            e.status, e.created_at, e.updated_at,
+            (SELECT COUNT(*)::int FROM ops_checklist_items c WHERE c.event_id=e.id) AS checklist_total,
+            (SELECT COUNT(*)::int FROM ops_checklist_items c WHERE c.event_id=e.id AND c.done_at IS NOT NULL) AS checklist_done
+          FROM ops_events e
+          ORDER BY e.event_date ASC NULLS LAST, e.id DESC LIMIT 500`);
+        return NextResponse.json({ ok: true, rows });
       }
       case "event": {
         if (!id) return bad("missing_id");
@@ -586,6 +600,7 @@ const KIND_PERM: Record<string, string> = {
   "merchVariant.delete": "ops_merch",
   "merchPurchaseOrder.save": "ops_merch",
   "merchPurchaseOrder.cancel": "ops_merch",
+  "eventOps.save": "events",
   "marketplaceOrganizer.suspend": "marketplace",
   "marketplaceOrganizer.reinstate": "marketplace",
   "marketplaceEvent.approve": "marketplace",
@@ -689,6 +704,45 @@ export async function POST(req: Request) {
           );
         }
         await opsAudit("ops.event.save", { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "eventOps.save": {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        const status = s(d.status, 30) || "planned";
+        const allowed = new Set([
+          "planned",
+          "confirmed",
+          "in_progress",
+          "completed",
+          "cancelled",
+        ]);
+        if (!name || !allowed.has(status)) return bad("invalid_event");
+        const fields = [
+          name,
+          s(d.school, 200),
+          dateOrNull(d.eventDate),
+          status,
+        ];
+        const row = id
+          ? await q(
+              `UPDATE ops_events SET name=$1, school=$2, event_date=$3,
+               status=$4, updated_at=now() WHERE id=$5 RETURNING
+               id,name,school,event_date::text AS event_date,status,updated_at`,
+              [...fields, id],
+            )
+          : await q(
+              `INSERT INTO ops_events (name,school,event_date,status)
+               VALUES ($1,$2,$3,$4) RETURNING
+               id,name,school,event_date::text AS event_date,status,updated_at`,
+              fields,
+            );
+        if (!row.length) return bad("not_found", 404);
+        await opsAudit("ops.event.header.save", {
+          id: row[0].id,
+          name,
+          status,
+        });
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case "event.delete": {
