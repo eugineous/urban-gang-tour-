@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
-import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 export const revalidate = 300;
 
@@ -21,7 +20,6 @@ type Product = {
 
 const productForPage = cache(async (id: string): Promise<Product | null> => {
   if (!/^[a-z0-9-]{1,80}$/.test(id) || !hasDb()) return null;
-  await ensureCatalogSeeded();
   const rows = await q<Product>(
     `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
             COALESCE(

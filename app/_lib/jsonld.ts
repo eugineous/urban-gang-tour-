@@ -19,9 +19,7 @@ export const ARTICLES = data.articles;  // @graph of NewsArticle             -> 
 export async function shopCatalogList(): Promise<unknown | null> {
   try {
     const { q, db } = await import('@/lib/server/db');
-    const { ensureCatalogSeeded } = await import('@/lib/server/catalog');
     if (!db()) return null;
-    await ensureCatalogSeeded();
     const rows = await q<{ id: string; name: string }>(
       `SELECT id, name FROM products WHERE active ORDER BY id`
     );

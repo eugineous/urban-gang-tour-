@@ -4,7 +4,7 @@
 // The problem it solves: booting any page fires four fetches -
 // /api/promos, /api/site-data/events, /api/site-data/products and
 // /api/site-data/gallery (see app/_components/V25App.tsx). Each one ran
-// ensureCatalogSeeded() and a fresh SELECT against Neon on every single
+// a fresh SELECT against Neon on every single
 // request. A thousand people arriving at once is four thousand round trips to
 // Postgres for four answers that are identical for everybody and change maybe
 // twice a week.

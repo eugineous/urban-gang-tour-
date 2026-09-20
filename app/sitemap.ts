@@ -2,7 +2,6 @@ import type { MetadataRoute } from 'next';
 import { ROUTES, SITE } from '@/lib/site';
 import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';
-import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 // Product and ticket URLs are owner-managed database records. The sitemap
 // must read them at request time instead of capturing a build-time snapshot.
@@ -40,7 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let products: MetadataRoute.Sitemap = [];
   if (hasDb()) {
     try {
-      await ensureCatalogSeeded();
       const rows = await q<{ id: string; updated_at: string }>(
         `SELECT id, updated_at::text AS updated_at FROM products
          WHERE active ORDER BY id`
@@ -62,7 +60,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let ticketedEvents: MetadataRoute.Sitemap = [];
   if (hasDb()) {
     try {
-      await ensureCatalogSeeded();
       const rows = await q<{ id: string; updated_at: string }>(
         `SELECT id, updated_at::text AS updated_at FROM tour_events
          WHERE kind='ticketed' AND status='published' AND event_date >= CURRENT_DATE

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
-import { ensureCatalogSeeded, formatEventDate } from '@/lib/server/catalog';
+import { formatEventDate } from '@/lib/server/catalog';
 
 export const revalidate = 300;
 
@@ -24,7 +24,6 @@ type TicketedEvent = {
 
 const eventForPage = cache(async (id: string): Promise<TicketedEvent | null> => {
   if (!/^[a-z0-9-]{1,80}$/.test(id) || !hasDb()) return null;
-  await ensureCatalogSeeded();
   const rows = await q<TicketedEvent>(
     `SELECT id, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers
      FROM tour_events WHERE id=$1 AND kind='ticketed' AND status='published' LIMIT 1`,
