@@ -314,7 +314,7 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
                   />
                 </div>
                 <div>
-                  <span style={label}>Date</span>
+                  <span style={label}>Payment date, blank means today</span>
                   <input
                     style={inp}
                     type="date"
@@ -352,8 +352,9 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
                 Add deposit
               </button>
               <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
-                Payments against a specific invoice are recorded in the Invoices
-                tool so receipts auto-issue.
+                Record only a confirmed receipt of funds. This ledger is
+                append-only. Invoice payments are recorded in the Invoices tool
+                so receipts auto-issue.
               </div>
             </div>
           </div>
@@ -408,24 +409,8 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
                       <td style={td}>
                         {p.invoice_id ? "#" + p.invoice_id : ""}
                       </td>
-                      <td style={td}>
-                        <button
-                          style={{
-                            ...btnSmall,
-                            background: "#111",
-                            color: "#fff",
-                          }}
-                          onClick={async () => {
-                            if (!confirm("Delete this payment record?")) return;
-                            const { data } = await opsPost("payment.delete", {
-                              id: p.id,
-                            });
-                            if (data.error) say("Failed: " + data.error);
-                            else load(eventId);
-                          }}
-                        >
-                          Del
-                        </button>
+                      <td style={{ ...td, color: "#666", fontSize: 12 }}>
+                        Recorded
                       </td>
                     </tr>
                   ))}

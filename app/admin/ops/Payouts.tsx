@@ -337,13 +337,18 @@ export default function Payouts() {
                         <div
                           style={{ display: "flex", gap: 5, flexWrap: "wrap" }}
                         >
-                          <button
+                          {p.paid ? (
+                            <span style={{ ...btnSmall, color: "#666" }}>
+                              Paid record locked
+                            </span>
+                          ) : <button
                             style={{
                               ...btnSmall,
-                              background: p.paid ? "#fff" : OC.green,
-                              color: p.paid ? "#111" : "#fff",
+                              background: OC.green,
+                              color: "#fff",
                             }}
                             onClick={async () => {
+                              if (!confirm("Confirm this crew payout has already been made today. This only records the fact and does not send money.")) return;
                               const { data } = await opsPost(
                                 "payout.togglePaid",
                                 { id: p.id },
@@ -352,9 +357,10 @@ export default function Payouts() {
                               else load(eventId);
                             }}
                           >
-                            {p.paid ? "Mark pending" : "Mark paid"}
+                            Record paid today
                           </button>
-                          <button
+                          }
+                          {!p.paid && <button
                             style={{
                               ...btnSmall,
                               background: "#111",
@@ -375,7 +381,7 @@ export default function Payouts() {
                             }}
                           >
                             Del
-                          </button>
+                          </button>}
                         </div>
                       </td>
                     </tr>

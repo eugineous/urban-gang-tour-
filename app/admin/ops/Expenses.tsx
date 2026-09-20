@@ -266,7 +266,7 @@ export default function Expenses() {
                 />
               </div>
               <div>
-                <span style={label}>Date</span>
+                <span style={label}>Spend date, blank means today</span>
                 <input
                   style={inp}
                   type="date"
@@ -282,6 +282,10 @@ export default function Expenses() {
             >
               Record expense
             </button>
+            <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+              Record only a confirmed spend. Expense records are immutable after
+              they enter the event ledger.
+            </div>
           </div>
 
           <div
@@ -401,24 +405,8 @@ export default function Expenses() {
                         <td style={td}>
                           <b>{fmtKES(e.amount)}</b>
                         </td>
-                        <td style={td}>
-                          <button
-                            style={{
-                              ...btnSmall,
-                              background: "#111",
-                              color: "#fff",
-                            }}
-                            onClick={async () => {
-                              if (!confirm("Delete this expense?")) return;
-                              const { data } = await opsPost("expense.delete", {
-                                id: e.id,
-                              });
-                              if (data.error) say("Failed: " + data.error);
-                              else load(eventId);
-                            }}
-                          >
-                            Del
-                          </button>
+                        <td style={{ ...td, color: "#666", fontSize: 12 }}>
+                          Recorded
                         </td>
                       </tr>
                     ))}

@@ -208,7 +208,10 @@ export function useToast(): [string, (m: string) => void] {
 
 export function downloadCSV(filename: string, rows: Array<Record<string, unknown>>, cols: string[]) {
   const esc = (v: unknown) => {
-    const s = String(v ?? '');
+    const raw = String(v ?? '');
+    // Prevent spreadsheet programs from treating a user-controlled cell as a
+    // formula when an internal financial export is opened.
+    const s = /^[=+\-@]/.test(raw) ? "'" + raw : raw;
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   const body = [cols.join(','), ...rows.map((r) => cols.map((c) => esc(r[c])).join(','))].join('\n');

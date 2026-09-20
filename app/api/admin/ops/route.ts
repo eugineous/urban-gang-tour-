@@ -63,6 +63,33 @@ function dateOrNull(v: unknown): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : null;
 }
 
+function positiveAmount(v: unknown): number | null {
+  const n = Number(v);
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
+}
+
+function documentLines(raw: unknown): DocLine[] | null {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 60) return null;
+  const lines = raw.map((line: any) => ({
+    label: s(line?.label, 300),
+    qty: Number(line?.qty),
+    amount: Number(line?.amount),
+  }));
+  if (
+    lines.some(
+      (line) =>
+        !line.label ||
+        !Number.isSafeInteger(line.qty) ||
+        line.qty < 1 ||
+        !Number.isSafeInteger(line.amount) ||
+        line.amount < 0,
+    )
+  )
+    return null;
+  const total = docTotals(lines).total;
+  return Number.isSafeInteger(total) && total > 0 ? lines : null;
+}
+
 async function paidForInvoice(invoiceId: number): Promise<number> {
   const r = await q<{ paid: string }>(
     `SELECT COALESCE(SUM(amount),0) AS paid FROM ops_payments WHERE invoice_id=$1`,
@@ -768,8 +795,10 @@ export async function POST(req: Request) {
         if (!data || typeof data !== "object") return bad("missing_data");
         if (!eventId) {
           // Create the event from the budget header so the Budgeter can start
-          // from a blank sheet.
-          const name = s(data.eventName, 200) || "Untitled event";
+          // from a blank sheet. Do not create a made-up event label in the
+          // operational ledger when the user has not supplied a real one.
+          const name = s(data.eventName, 200);
+          if (!name) return bad("missing_event_name");
           const ev = await q(
             `INSERT INTO ops_events (name, school, event_date, distance_band) VALUES ($1,$2,$3,$4) RETURNING id`,
             [
@@ -810,16 +839,21 @@ export async function POST(req: Request) {
       case "doc.create": {
         const docType = s(d.docType, 20) as DocType;
         if (!["quote", "invoice"].includes(docType)) return bad("bad_doc_type");
-        const lines: DocLine[] = Array.isArray(d.lines)
-          ? d.lines.slice(0, 60).map((l: any) => ({
-              label: s(l.label, 300),
-              qty: Math.max(0, Number(l.qty) || 0),
-              amount: Number(l.amount) || 0,
-            }))
-          : [];
+        const lines = documentLines(d.lines);
+        if (!lines) return bad("invalid_document_lines");
+        const eventId = intOrNull(d.eventId);
+        const sourceBudgetId = intOrNull(d.sourceBudgetId);
+        if (sourceBudgetId) {
+          const budget = await q<{ event_id: number }>(
+            `SELECT event_id FROM ops_budgets WHERE id=$1`,
+            [sourceBudgetId],
+          );
+          if (!budget.length || !eventId || budget[0].event_id !== eventId)
+            return bad("budget_event_mismatch", 409);
+        }
         const row = await createNumberedDocument(docType, {
-          eventId: intOrNull(d.eventId),
-          sourceBudgetId: intOrNull(d.sourceBudgetId),
+          eventId,
+          sourceBudgetId,
           invoiceId: null,
           billTo: {
             name: s(d.billToName, 200),
@@ -845,15 +879,13 @@ export async function POST(req: Request) {
       case "doc.update": {
         const id = intOrNull(d.id);
         if (!id) return bad("missing_id");
-        const lines: DocLine[] = Array.isArray(d.lines)
-          ? d.lines.slice(0, 60).map((l: any) => ({
-              label: s(l.label, 300),
-              qty: Math.max(0, Number(l.qty) || 0),
-              amount: Number(l.amount) || 0,
-            }))
-          : [];
-        await q(
-          `UPDATE ops_documents SET bill_to=$1, lines=$2, payment_terms=$3, due_date=$4, pay_details=$5, notes=$6, updated_at=now() WHERE id=$7`,
+        const lines = documentLines(d.lines);
+        if (!lines) return bad("invalid_document_lines");
+        // Once it has been issued externally, retain the exact factual copy.
+        // Corrections require a new numbered document, not a silent rewrite.
+        const updated = await q(
+          `UPDATE ops_documents SET bill_to=$1, lines=$2, payment_terms=$3, due_date=$4, pay_details=$5, notes=$6, updated_at=now()
+           WHERE id=$7 AND status='draft' AND doc_type IN ('quote','invoice') RETURNING id`,
           [
             JSON.stringify({
               name: s(d.billToName, 200),
@@ -870,6 +902,7 @@ export async function POST(req: Request) {
             id,
           ],
         );
+        if (!updated.length) return bad("document_not_editable_after_issue", 409);
         await opsAudit("ops.doc.update", { id });
         return NextResponse.json({ ok: true });
       }
@@ -877,37 +910,44 @@ export async function POST(req: Request) {
         const id = intOrNull(d.id);
         const status = s(d.status, 20);
         if (!id) return bad("missing_id");
-        if (
-          ![
-            "draft",
-            "sent",
-            "part-paid",
-            "paid",
-            "issued",
-            "accepted",
-            "declined",
-          ].includes(status)
-        )
-          return bad("bad_status");
-        await q(
-          `UPDATE ops_documents SET status=$1, updated_at=now() WHERE id=$2`,
-          [status, id],
+        const docs = await q<{ doc_type: string; status: string }>(
+          `SELECT doc_type, status FROM ops_documents WHERE id=$1`,
+          [id],
         );
+        if (!docs.length) return bad("not_found", 404);
+        const current = docs[0];
+        const permitted =
+          (current.doc_type === "invoice" && current.status === "draft" && status === "sent") ||
+          (current.doc_type === "quote" && current.status === "draft" && status === "sent") ||
+          (current.doc_type === "quote" && current.status === "sent" && ["accepted", "declined"].includes(status));
+        // Payment-derived statuses and receipts are server-generated only.
+        if (!permitted) return bad("invalid_document_status_transition", 409);
+        const updated = await q(
+          `UPDATE ops_documents SET status=$1, updated_at=now() WHERE id=$2 AND status=$3 RETURNING id`,
+          [status, id, current.status],
+        );
+        if (!updated.length) return bad("document_changed_retry", 409);
         await opsAudit("ops.doc.status", { id, status });
         return NextResponse.json({ ok: true });
       }
       case "doc.delete": {
         const id = intOrNull(d.id);
         if (!id) return bad("missing_id");
-        await q(`DELETE FROM ops_documents WHERE id=$1`, [id]);
+        const deleted = await q(
+          `DELETE FROM ops_documents WHERE id=$1 AND status='draft'
+           AND NOT EXISTS (SELECT 1 FROM ops_payments WHERE invoice_id=$1)
+           RETURNING id`,
+          [id],
+        );
+        if (!deleted.length) return bad("document_not_deletable_after_issue", 409);
         await opsAudit("ops.doc.delete", { id });
         return NextResponse.json({ ok: true });
       }
 
       // ---- Payments ----
       case "payment.record": {
-        const amount = intOrNull(d.amount);
-        if (!amount || amount <= 0) return bad("bad_amount");
+        const amount = positiveAmount(d.amount);
+        if (!amount) return bad("bad_amount");
         const invoiceId = intOrNull(d.invoiceId);
         let eventId = intOrNull(d.eventId);
         let receipt: { id: number; doc_number: string } | null = null;
@@ -918,8 +958,23 @@ export async function POST(req: Request) {
             [invoiceId],
           );
           if (!inv.length) return bad("invoice_not_found", 404);
+          if (inv[0].status === "draft") return bad("issue_invoice_before_recording_payment", 409);
+          if (eventId && inv[0].event_id && eventId !== inv[0].event_id)
+            return bad("invoice_event_mismatch", 409);
           if (!eventId) eventId = inv[0].event_id;
+          const lines: DocLine[] =
+            typeof inv[0].lines === "string"
+              ? JSON.parse(inv[0].lines)
+              : inv[0].lines || [];
+          const total = docTotals(lines).total;
+          const paid = await paidForInvoice(invoiceId);
+          if (!Number.isSafeInteger(total) || total < 1 || amount > total - paid)
+            return bad("payment_exceeds_invoice_balance", 409);
         }
+        if (!eventId) return bad("missing_eventId");
+        const methods = new Set(["mpesa", "bank", "cash", "cheque", "other"]);
+        const method = s(d.method || "mpesa", 30).toLowerCase();
+        if (!methods.has(method)) return bad("invalid_payment_method");
         const pay = await q(
           `INSERT INTO ops_payments (event_id, invoice_id, amount, paid_on, method, reference) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
           [
@@ -927,7 +982,7 @@ export async function POST(req: Request) {
             invoiceId,
             amount,
             dateOrNull(d.paidOn) || new Date().toISOString().slice(0, 10),
-            s(d.method || "mpesa", 30),
+            method,
             s(d.reference, 100),
           ],
         );
@@ -985,11 +1040,7 @@ export async function POST(req: Request) {
         });
       }
       case "payment.delete": {
-        const id = intOrNull(d.id);
-        if (!id) return bad("missing_id");
-        await q(`DELETE FROM ops_payments WHERE id=$1`, [id]);
-        await opsAudit("ops.payment.delete", { id });
-        return NextResponse.json({ ok: true });
+        return bad("payment_records_are_immutable", 409);
       }
 
       // ---- Contacts ----
@@ -1059,16 +1110,19 @@ export async function POST(req: Request) {
         const person = s(d.person, 200);
         if (!person) return bad("missing_person");
         if (!id && !eventId) return bad("missing_eventId");
+        const payoutAmount = positiveAmount(d.amount);
+        if (!payoutAmount) return bad("bad_amount");
         const fields = [
           person,
           s(d.phone, 40),
           s(d.role, 100),
-          Math.max(0, intOrNull(d.amount) ?? 0),
+          payoutAmount,
         ];
         let row;
         if (id)
           row = await q(
-            `UPDATE ops_crew_payouts SET person=$1, phone=$2, role=$3, amount=$4 WHERE id=$5 RETURNING *`,
+            `UPDATE ops_crew_payouts SET person=$1, phone=$2, role=$3, amount=$4
+             WHERE id=$5 AND paid=false RETURNING *`,
             [...fields, id],
           );
         else
@@ -1076,6 +1130,7 @@ export async function POST(req: Request) {
             `INSERT INTO ops_crew_payouts (event_id, person, phone, role, amount) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
             [eventId, ...fields],
           );
+        if (!row.length) return bad("paid_payout_is_immutable", 409);
         await opsAudit("ops.payout.save", { id: row[0]?.id, person });
         return NextResponse.json({ ok: true, row: row[0] });
       }
@@ -1083,16 +1138,22 @@ export async function POST(req: Request) {
         const id = intOrNull(d.id);
         if (!id) return bad("missing_id");
         const row = await q(
-          `UPDATE ops_crew_payouts SET paid = NOT paid, paid_on = CASE WHEN paid THEN NULL ELSE CURRENT_DATE END WHERE id=$1 RETURNING *`,
+          `UPDATE ops_crew_payouts SET paid=true, paid_on=CURRENT_DATE
+           WHERE id=$1 AND paid=false RETURNING *`,
           [id],
         );
+        if (!row.length) return bad("payout_already_marked_paid", 409);
         await opsAudit("ops.payout.togglePaid", { id, paid: row[0]?.paid });
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case "payout.delete": {
         const id = intOrNull(d.id);
         if (!id) return bad("missing_id");
-        await q(`DELETE FROM ops_crew_payouts WHERE id=$1`, [id]);
+        const deleted = await q(
+          `DELETE FROM ops_crew_payouts WHERE id=$1 AND paid=false RETURNING id`,
+          [id],
+        );
+        if (!deleted.length) return bad("paid_payout_is_immutable", 409);
         await opsAudit("ops.payout.delete", { id });
         return NextResponse.json({ ok: true });
       }
@@ -1104,33 +1165,26 @@ export async function POST(req: Request) {
         const label = s(d.label, 300);
         if (!label) return bad("missing_label");
         if (!id && !eventId) return bad("missing_eventId");
+        if (id) return bad("expense_records_are_immutable", 409);
+        const expenseAmount = positiveAmount(d.amount);
+        if (!expenseAmount) return bad("bad_amount");
         const fields = [
           label,
           s(d.category || "general", 100),
-          Math.max(0, intOrNull(d.amount) ?? 0),
+          expenseAmount,
           dateOrNull(d.spentOn) || new Date().toISOString().slice(0, 10),
           s(d.note, 500),
         ];
         let row;
-        if (id)
-          row = await q(
-            `UPDATE ops_expenses SET label=$1, category=$2, amount=$3, spent_on=$4, note=$5 WHERE id=$6 RETURNING *`,
-            [...fields, id],
-          );
-        else
-          row = await q(
-            `INSERT INTO ops_expenses (event_id, label, category, amount, spent_on, note) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-            [eventId, ...fields],
-          );
+        row = await q(
+          `INSERT INTO ops_expenses (event_id, label, category, amount, spent_on, note) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+          [eventId, ...fields],
+        );
         await opsAudit("ops.expense.save", { id: row[0]?.id, label });
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case "expense.delete": {
-        const id = intOrNull(d.id);
-        if (!id) return bad("missing_id");
-        await q(`DELETE FROM ops_expenses WHERE id=$1`, [id]);
-        await opsAudit("ops.expense.delete", { id });
-        return NextResponse.json({ ok: true });
+        return bad("expense_records_are_immutable", 409);
       }
 
       // ---- Checklists ----

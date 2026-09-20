@@ -722,7 +722,7 @@ export default function Invoices() {
                             Send
                           </a>
                         ) : null}
-                        {r.doc_type !== "receipt" && (
+                        {r.doc_type !== "receipt" && r.liveStatus === "draft" && (
                           <button
                             style={{ ...btnSmall, background: "#fff" }}
                             onClick={() =>
@@ -773,7 +773,7 @@ export default function Invoices() {
                               Record payment
                             </button>
                           )}
-                        <button
+                        {r.liveStatus === "draft" && <button
                           style={{
                             ...btnSmall,
                             background: "#111",
@@ -797,7 +797,7 @@ export default function Invoices() {
                           }}
                         >
                           Del
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>
@@ -833,6 +833,10 @@ export default function Invoices() {
             <div style={{ fontSize: 13, marginBottom: 10 }}>
               {payFor.doc_number}: total {fmtKES(docTotals(payFor.lines).total)}
               , paid {fmtKES(payFor.paid)}
+            </div>
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
+              Record only a confirmed payment. This action does not collect funds
+              and cannot be undone in the ledger.
             </div>
             <div style={{ display: "grid", gap: 10 }}>
               <div>
