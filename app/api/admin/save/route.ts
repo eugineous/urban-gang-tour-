@@ -11,6 +11,29 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
 }
 
+const COMMS_SETTING_KEYS = new Set([
+  'whatsapp_number',
+  'notify_email',
+  'notify_on_new_order',
+  'notify_on_new_booking',
+  'notify_on_new_signup',
+  'notify_on_admin_login',
+  'notify_on_failed_admin_login',
+  'notify_on_post_published',
+  'notify_on_new_submission',
+  'notify_on_payment_success',
+  'notify_on_payment_failure',
+  'notify_on_ticket_scan',
+  'notify_on_whatsapp_message',
+  'notify_on_new_subscriber',
+  'notify_on_new_review',
+  'notify_on_new_organizer',
+]);
+
+function validSeoKey(key: string): boolean {
+  return key === 'site' || /^seo:\/[a-z0-9/_-]*$/i.test(key);
+}
+
 // Multiplexed admin mutations. kind: post|deletePost|setting|bookingStatus|orderStatus|deleteSubmission
 // Each kind is scoped to the module it actually belongs to (see AdminApp.tsx
 // tabs) rather than a blanket isAdmin() check - a crew_admin only reaches
@@ -36,12 +59,21 @@ export async function POST(req: Request) {
       if (!hasPerm(req, 'newsroom')) return forbidden();
       break;
     case 'setting': {
-      // 'setting' is shared by the Site & SEO tab (keys 'site' and
-      // 'seo:<path>') and the Comms tab (whatsapp_number, notify_* keys) -
-      // scope by which key is being written, not the kind alone.
+      // Settings are an allowlist, not an open key-value store. In particular
+      // a comms-scoped account must never be able to write marketplace,
+      // finance, or an unrecognised future setting through a forged request.
       const key = String(data?.key ?? '');
-      const isSeo = key === 'site' || key.startsWith('seo:');
-      if (isSeo ? !hasPerm(req, 'site_seo') : !hasPerm(req, 'comms')) return forbidden();
+      if (!validSeoKey(key) && !COMMS_SETTING_KEYS.has(key)) {
+        return NextResponse.json({ error: 'invalid_setting_key' }, { status: 400 });
+      }
+      if (validSeoKey(key)) {
+        if (!hasPerm(req, 'site_seo')) return forbidden();
+      } else if (!isSuperAdmin(req)) {
+        // These values select public contact information and external owner
+        // notifications. Content and comms staff can compose posts, but only
+        // the owner can change where operational data is sent.
+        return forbidden();
+      }
       break;
     }
     default:
@@ -141,12 +173,23 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
       }
       case 'setting':
+        if (data.key === 'whatsapp_number' &&
+          (typeof data.value !== 'string' || !/^\d{10,15}$/.test(data.value))) {
+          return NextResponse.json({ error: 'invalid_whatsapp_number' }, { status: 400 });
+        }
+        if (data.key === 'notify_email' &&
+          (typeof data.value !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.value) || data.value.length > 200)) {
+          return NextResponse.json({ error: 'invalid_notify_email' }, { status: 400 });
+        }
+        if (String(data.key).startsWith('notify_on_') && typeof data.value !== 'boolean') {
+          return NextResponse.json({ error: 'invalid_notify_toggle' }, { status: 400 });
+        }
         await q(
           `INSERT INTO settings (key, value) VALUES ($1,$2)
            ON CONFLICT (key) DO UPDATE SET value=$2, updated_at=now()`,
           [String(data.key), JSON.stringify(data.value)]
         );
-        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','save_setting',$1)`, [JSON.stringify({ key: data.key })]);
+        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'save_setting',$2)`, [adminActor(req), JSON.stringify({ key: data.key })]);
         return NextResponse.json({ ok: true });
       case 'bookingStatus':
         if (typeof data?.id !== 'string' || !/^B-[A-Z0-9-]{4,40}$/i.test(data.id)) {
