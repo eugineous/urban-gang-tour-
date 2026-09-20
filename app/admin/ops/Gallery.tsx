@@ -21,6 +21,7 @@ interface Photo {
   url: string;
   caption: string;
   category: string;
+  published: boolean;
   sort_order: number;
   created_at: string;
 }
@@ -109,6 +110,16 @@ export default function Gallery() {
     reload();
   };
 
+  const setPublished = async (p: Photo, published: boolean) => {
+    const { data } = await galleryPost('publish', { id: p.id, published });
+    if (data.error) {
+      say(data.error === 'caption_and_category_required' ? 'Save a caption and category before publishing' : 'Publish change failed: ' + data.error);
+      return;
+    }
+    say(published ? 'Published to the public gallery' : 'Moved back to review');
+    reload();
+  };
+
   const move = async (index: number, dir: -1 | 1) => {
     const target = index + dir;
     if (target < 0 || target >= rows.length) return;
@@ -139,7 +150,7 @@ export default function Gallery() {
           <SearchBox value={qy} onChange={setQy} placeholder="Search by caption or category..." />
         </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Live: these photos feed the public site's photo wall. A new upload goes straight to storage from your browser (no code deploy) and is live within about a minute. Use the arrows to reorder — first photo shows first. Reordering is disabled while searching.
+          Review first, then publish. Drafts stay private in this desk. A published photo feeds the public photo wall, while unpublished historic assets remain available here for labelling or removal. Use the arrows to reorder published photos. Reordering is disabled while searching.
         </div>
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -184,6 +195,9 @@ export default function Gallery() {
               </div>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 <button style={btnSmall} onClick={() => saveMeta(p)}>Save</button>
+                <button style={{ ...btnSmall, background: p.published ? '#111' : OC.magenta, color: '#fff' }} onClick={() => setPublished(p, !p.published)}>
+                  {p.published ? 'Unpublish' : 'Publish'}
+                </button>
                 <button style={btnSmall} disabled={reorderDisabled || i <= 0} onClick={() => move(i, -1)}>↑ Move up</button>
                 <button style={btnSmall} disabled={reorderDisabled || i === rows.length - 1} onClick={() => move(i, 1)}>↓ Move down</button>
                 <button style={{ ...btnSmall, background: '#111', color: '#fff' }} onClick={() => remove(p)}>Delete</button>

@@ -37,7 +37,7 @@ export async function GET(req: Request) {
   if (!db()) return bad('db_not_configured', 503);
   try {
     await ensureOpsSchema();
-    const rows = await q(`SELECT id, url, caption, category, sort_order, created_at FROM gallery_photos ORDER BY sort_order ASC, id ASC`);
+    const rows = await q(`SELECT id, url, caption, category, published, sort_order, created_at FROM gallery_photos ORDER BY published ASC, sort_order ASC, id ASC`);
     return NextResponse.json({ ok: true, rows });
   } catch {
     return bad('server_error', 500);
@@ -86,6 +86,22 @@ export async function POST(req: Request) {
         const row = await q(`UPDATE gallery_photos SET caption=$1, category=$2 WHERE id=$3 RETURNING *`, [caption, category, id]);
         if (!row.length) return bad('not_found', 404);
         await opsAudit('gallery.update', { id, actor: adminActor(req) });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case 'publish': {
+        const id = intId(d.id);
+        if (!id || typeof d.published !== 'boolean') return bad('invalid_publish_state');
+        const row = await q(
+          `UPDATE gallery_photos SET published=$1
+            WHERE id=$2 AND ($1=false OR (btrim(caption)<>'' AND btrim(category)<>''))
+          RETURNING *`,
+          [d.published, id],
+        );
+        if (!row.length) {
+          const exists = await q(`SELECT 1 FROM gallery_photos WHERE id=$1`, [id]);
+          return exists.length ? bad('caption_and_category_required') : bad('not_found', 404);
+        }
+        await opsAudit('gallery.publish', { id, published: d.published, actor: adminActor(req) });
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case 'reorder': {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
+import { ensureOpsSchema } from '@/lib/server/ops';
 
 // Public, read-only view of the gallery photo wall — the single DB-backed
 // source app/_components/V25App.tsx bridges into window.__UGT_GALLERY for
@@ -28,8 +29,9 @@ export async function GET(req: Request) {
   }
   try {
     const photos = await cached('site-gallery', 60_000, async () => {
+      await ensureOpsSchema();
       const rows = await q<any>(
-        `SELECT id, url, caption, category, sort_order FROM gallery_photos ORDER BY sort_order ASC, id ASC`,
+        `SELECT id, url, caption, category, sort_order FROM gallery_photos WHERE published=true ORDER BY sort_order ASC, id ASC`,
       );
       return rows.map((r) => ({
         id: r.id,
