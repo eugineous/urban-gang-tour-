@@ -866,6 +866,7 @@ export default function AdminApp({
         <CommsTab
           say={say}
           settings={settings}
+          canManageDeliverySettings={session?.scope === "super_admin"}
           onSaveSetting={(key: string, value: any) =>
             save("setting", { key, value })
           }
@@ -1284,10 +1285,12 @@ const IG_WALL_RE =
 function CommsTab({
   say,
   settings,
+  canManageDeliverySettings,
   onSaveSetting,
 }: {
   say: (m: string) => void;
   settings: Record<string, any>;
+  canManageDeliverySettings: boolean;
   onSaveSetting: (key: string, value: any) => void;
 }) {
   const [subject, setSubject] = useState("");
@@ -1636,7 +1639,7 @@ function CommsTab({
           </span>
         </div>
       </div>
-      <div style={{ ...card }}>
+      {canManageDeliverySettings && <div style={{ ...card }}>
         <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
           WHATSAPP CHAT BUTTON (public site)
         </h3>
@@ -1661,8 +1664,8 @@ function CommsTab({
             Save
           </button>
         </div>
-      </div>
-      <div style={{ ...card }}>
+      </div>}
+      {canManageDeliverySettings && <div style={{ ...card }}>
         <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
           OWNER NOTIFICATIONS
         </h3>
@@ -1926,7 +1929,7 @@ function CommsTab({
             💾 Save notifications
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

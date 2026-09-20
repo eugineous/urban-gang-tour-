@@ -67,12 +67,11 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
     {
       label: "School liaison",
       description:
-        "Manage school leads, bookings, event details and parent/school communications.",
+        "Manage school leads, bookings, event details and parent/school documents.",
       perms: [
         "bookings",
         "events",
         "ops_school_contacts",
-        "comms",
         "documents",
       ],
     },
@@ -85,10 +84,9 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
     {
       label: "Event lead",
       description:
-        "Run published events, tickets, gate operations, checklists and field documents.",
+        "Run event operations, gate scanning, checklists and field documents.",
       perms: [
         "events",
-        "orders",
         "gate_scanner",
         "ops_checklists",
         "documents",
@@ -109,8 +107,8 @@ const ROLE_PRESETS: { label: string; description: string; perms: string[] }[] =
     },
     {
       label: "Merch manager",
-      description: "Manage products, orders, reviews and marketplace activity.",
-      perms: ["products", "ops_merch", "orders", "reviews", "marketplace"],
+      description: "Manage products, stock, orders and reviews.",
+      perms: ["products", "ops_merch", "orders", "reviews"],
     },
   ];
 

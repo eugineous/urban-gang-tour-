@@ -42,6 +42,16 @@ const VIEW_PERM: Record<string, string> = {
   tickets: 'orders',
 };
 
+function canReadSetting(req: Request, key: unknown): boolean {
+  // The settings table is shared infrastructure, not a per-desk data source.
+  // Keep a scoped site's metadata editor away from notification recipients and
+  // any future operational setting simply because both happen to use this
+  // table. Super admins retain the full configuration view.
+  if (isSuperAdmin(req)) return true;
+  const name = String(key || '');
+  return hasPerm(req, 'site_seo') && (name === 'site' || /^seo:\/[a-z0-9/_-]*$/i.test(name));
+}
+
 export async function GET(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
@@ -88,9 +98,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, rows: events });
   }
   if (view === 'audit' && !isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  // 'settings' is shared by the Site & SEO and Comms tabs (site/seo:* keys
-  // vs whatsapp/notify keys all live in the same table) - either perm may
-  // read it; the save side (app/api/admin/save) still splits by key.
+  // Settings carry delivery destinations as well as public metadata. A
+  // scoped Site & SEO account may read only the records it can edit. A Comms
+  // account uses its dedicated social-status endpoint instead, so it never
+  // receives owner notification recipients or unrelated configuration.
   if (view === 'settings' && !hasPerm(req, 'site_seo') && !hasPerm(req, 'comms')) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
@@ -100,6 +111,9 @@ export async function GET(req: Request) {
   if (!sql) return NextResponse.json({ error: 'unknown_view' }, { status: 400 });
   try {
     const rows = await q(sql);
+    if (view === 'settings') {
+      return NextResponse.json({ ok: true, rows: rows.filter((row: any) => canReadSetting(req, row?.key)) });
+    }
     return NextResponse.json({ ok: true, rows });
   } catch (e: any) {
     return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
