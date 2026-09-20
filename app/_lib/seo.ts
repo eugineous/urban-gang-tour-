@@ -48,12 +48,27 @@ export async function metadataForPathDynamic(path: string): Promise<Metadata> {
     if (db()) {
       const rows = await q(`SELECT value FROM settings WHERE key=$1`, ['seo:' + path]);
       const o = rows[0]?.value || {};
-      if (o.title || o.description) {
+      // Settings are editable in the Control Room. Only accept strings here:
+      // a malformed saved JSON value should never turn into an object in an
+      // HTML metadata field, and every social card must describe the same
+      // current page as its title and description.
+      const title = typeof o.title === 'string' && o.title.trim() ? o.title.trim() : undefined;
+      const description = typeof o.description === 'string' && o.description.trim() ? o.description.trim() : undefined;
+      if (title || description) {
         return {
           ...base,
-          title: o.title || base.title,
-          description: o.description || base.description,
-          openGraph: { ...(base.openGraph as any), title: o.title || (base.openGraph as any)?.title, description: o.description || (base.openGraph as any)?.description },
+          title: title || base.title,
+          description: description || base.description,
+          openGraph: {
+            ...(base.openGraph as any),
+            title: title || (base.openGraph as any)?.title,
+            description: description || (base.openGraph as any)?.description,
+          },
+          twitter: {
+            ...(base.twitter as any),
+            title: title || (base.twitter as any)?.title,
+            description: description || (base.twitter as any)?.description,
+          },
         };
       }
     }

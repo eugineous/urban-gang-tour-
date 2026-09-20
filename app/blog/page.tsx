@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { metadataForPathDynamic } from '@/app/_lib/seo';
-import { structuredDataForPath } from '@/app/_lib/jsonld';
+import { newsIndexJsonLd, structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { getBlogPosts } from '@/app/_lib/blog';
 import { getUpcomingStops, getTrendingAndMostRead, getMostSearched } from '@/app/_lib/news-data';
@@ -53,7 +53,7 @@ export default async function BlogIndex() {
 
   return (
     <>
-      <JsonLd data={structuredDataForPath(PATH)} />
+      <JsonLd data={[...structuredDataForPath(PATH), newsIndexJsonLd(posts)]} />
       <NewsClient
         hero={stories[0] ?? null}
         stories={stories.slice(1)}

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'My Account — Urban Gang Tour',
   description: 'Log in or create your Urban Gang account to pitch stories, track orders and stay close to the tour.',
   alternates: { canonical: 'https://urbangangtour.co.ke/account' },
+  robots: { index: false, follow: true },
 };
 
 export default function AccountPage() {

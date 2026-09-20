@@ -8,8 +8,45 @@ export const ORG = data.org;
 export const WEBSITE = data.website;
 export const EVENTS = data.events;      // @graph of Event / EducationEvent  -> /events
 export const PEOPLE = data.people;      // @graph of Person (crew)           -> /the-gang
-export const NEWSORG = data.newsorg;    // NewsMediaOrganization             -> /blog
-export const ARTICLES = data.articles;  // @graph of NewsArticle             -> /blog
+// The legacy data file's publisher identifier is shared by article pages, so
+// keep that stable. Its public URL, however, must point at the live /blog
+// route rather than the retired /news path.
+export const NEWSORG = { ...data.newsorg, url: `${SITE.domain}/blog` };
+
+type NewsIndexItem = {
+  slug: string;
+  headline: string;
+  datePublished: string;
+};
+
+// An index page is a collection, not one article. Listing only the live
+// Control Room-published stories avoids presenting a historical static
+// snapshot as current reporting, while still giving crawlers clear links to
+// the stories the page actually contains.
+export function newsIndexJsonLd(posts: NewsIndexItem[]): Record<string, unknown> {
+  const articles = posts.slice(0, 50);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${SITE.domain}/blog#collection`,
+    name: 'Urban News',
+    url: `${SITE.domain}/blog`,
+    isPartOf: { '@id': `${SITE.domain}/#website` },
+    publisher: { '@id': `${SITE.domain}/news#pub` },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListOrder: 'https://schema.org/ItemListOrderDescending',
+      numberOfItems: posts.length,
+      itemListElement: articles.map((post, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${SITE.domain}/blog/${encodeURIComponent(post.slug)}`,
+        name: post.headline,
+        datePublished: post.datePublished,
+      })),
+    },
+  };
+}
 
 // The shop index is a catalogue, not a product-detail page. Google recommends
 // Product markup on a URL focused on one product, so this only exposes live
@@ -120,7 +157,7 @@ export function structuredDataForPath(path: string): unknown[] {
     case '/the-gang':
       out.push(PEOPLE); break;
     case '/blog':
-      out.push(NEWSORG, ARTICLES); break;
+      out.push(NEWSORG); break;
   }
   out.push(breadcrumbFor(path));
   return out.filter(Boolean);

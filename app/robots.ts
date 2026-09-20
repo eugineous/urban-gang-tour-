@@ -8,7 +8,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/organizer', '/api/', '/t/', '/tickets/', '/v25-template.html'],
+        // Pages use a crawlable noindex directive where they must stay out of
+        // search. Blocking those URLs here would prevent Google from reading
+        // that directive. robots.txt is not an access-control mechanism.
+        disallow: ['/api/', '/v25-template.html'],
       },
     ],
     sitemap: [`${SITE.domain}/sitemap.xml`, `${SITE.domain}/news-sitemap.xml`],

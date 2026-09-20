@@ -10,10 +10,12 @@ export const dynamic = 'force-dynamic';
 // Lists every crawlable URL, including each /blog/[slug]. /admin is excluded
 // (noindex). robots.ts points crawlers here.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
-  const pages = ROUTES.filter((r) => r.path !== '/admin').map((r) => ({
+  // Google only uses lastmod when it is consistently accurate. Static route
+  // definitions do not expose a source-of-truth modification timestamp, so
+  // omit it rather than claiming every page changed whenever the sitemap was
+  // requested. Database-owned records below retain their real updated_at.
+  const pages = ROUTES.filter((r) => r.path !== '/admin' && r.path !== '/account').map((r) => ({
     url: SITE.domain + (r.path === '/' ? '' : r.path),
-    lastModified: now,
     changeFrequency: r.changefreq,
     priority: r.priority,
   }));
@@ -29,7 +31,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // (like /blog/[slug], they define their own metadata in-file).
   const authors = ['eugine-micah', 'lucy-ogunde'].map((slug) => ({
     url: `${SITE.domain}/author/${slug}`,
-    lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.5,
   }));
@@ -45,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       products = rows.map((product) => ({
         url: `${SITE.domain}/shop/${encodeURIComponent(product.id)}`,
-        lastModified: product.updated_at ? new Date(product.updated_at) : now,
+        lastModified: product.updated_at ? new Date(product.updated_at) : undefined,
         changeFrequency: 'weekly' as const,
         priority: 0.7,
       }));
@@ -67,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       ticketedEvents = rows.map((event) => ({
         url: `${SITE.domain}/events/${encodeURIComponent(event.id)}`,
-        lastModified: event.updated_at ? new Date(event.updated_at) : now,
+        lastModified: event.updated_at ? new Date(event.updated_at) : undefined,
         changeFrequency: 'weekly' as const,
         priority: 0.8,
       }));
