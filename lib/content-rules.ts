@@ -143,22 +143,10 @@ function correctProse(html: string): string {
 }
 
 /**
- * Same seed photos the live template falls back to before the DB-backed
- * gallery loads (see public/v25-template.html's galSeeds). Duplicated here
- * rather than imported because this file has to stay parseable as plain
- * string transforms with zero build-time dependency on the template.
+ * Legacy shell helper. Captured shells have no gallery fallback: live gallery
+ * content arrives only from the Gallery desk after hydration.
  */
-const GALLERY_SEEDS: Record<string, string[]> = {
-  'Senior Chief Koinange Girls': ['/assets/gal/koinange.jpg', '/assets/gal/g-winning.jpg'],
-  'Loreto Kiambu Girls High': ['/assets/gal/loreto.jpg', '/assets/gal/g-street.jpg'],
-  'Gituamba Girls High School': [
-    '/assets/gal/gituamba.jpg',
-    '/assets/gal/festival-colours.jpg',
-    '/assets/gal/g-crowning.jpg',
-    '/assets/gal/g-trees.jpg',
-  ],
-  'Lari Boys High School': ['/assets/gal/lari.jpg'],
-};
+const GALLERY_SEEDS: Record<string, string[]> = {};
 
 /**
  * The captured gallery.html snapshot predates the "open the gallery up" fix
@@ -248,7 +236,6 @@ export function correctShellContent(html: string): string {
   out = removeEnclosing(out, '/assets/partners/sauti-moto.jpg', { tag: 'div' });
 
   out = correctPartnerBadges(out);
-  out = injectGalleryPhotos(out);
   out = correctProse(out);
 
   // Restore the one real partner, in case a broad replace above caught it.

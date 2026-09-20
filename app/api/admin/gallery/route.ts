@@ -4,7 +4,6 @@ import { r2Del, isR2Url } from '@/lib/server/r2';
 import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
-import { ensureGallerySeeded } from '@/lib/server/gallery';
 
 // Admin gallery photo CRUD: list, finalize an upload (the file itself is
 // already in Vercel Blob by the time this is called — see
@@ -38,7 +37,6 @@ export async function GET(req: Request) {
   if (!db()) return bad('db_not_configured', 503);
   try {
     await ensureOpsSchema();
-    await ensureGallerySeeded();
     const rows = await q(`SELECT id, url, caption, category, sort_order, created_at FROM gallery_photos ORDER BY sort_order ASC, id ASC`);
     return NextResponse.json({ ok: true, rows });
   } catch {
@@ -57,7 +55,6 @@ export async function POST(req: Request) {
   const d = body?.data ?? {};
   try {
     await ensureOpsSchema();
-    await ensureGallerySeeded();
     switch (kind) {
       // Finalize a photo already uploaded straight to R2 from the browser
       // (see the admin Gallery UI's use of lib/client/r2-upload.ts's
@@ -106,10 +103,8 @@ export async function POST(req: Request) {
         const existing = await q<{ url: string }>(`SELECT url FROM gallery_photos WHERE id=$1`, [id]);
         if (!existing.length) return bad('not_found', 404);
         const url = existing[0].url || '';
-        // Only ever call r2Del() on rows that actually live in R2 — seeded
-        // rows point at public/assets/ (a repo file, not R2) and must never
-        // be passed to r2Del(). If the R2 delete fails, bail before touching
-        // the DB row so retrying the delete stays safe.
+        // Only call r2Del() on rows stored in the owned R2 bucket. If the R2
+        // delete fails, bail before touching the DB row so retrying stays safe.
         if (isR2Url(url)) {
           try {
             await r2Del(url);

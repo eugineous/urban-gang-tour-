@@ -309,13 +309,10 @@ CREATE TABLE IF NOT EXISTS marketplace_events (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
--- Gallery / photo wall admin uploads: collapses the hardcoded this.GALLERY
--- literal in public/v25-template.html into an admin-editable table, same
--- pattern as tour_events/products above. url points either at a real Vercel
--- R2 file (new admin uploads, see lib/server/r2.ts and app/api/admin/gallery)
--- or at a public/assets/ path (photos seeded from the original literal never
--- need to be re-uploaded). See lib/server/gallery.ts for the seed + read
--- layer and app/api/site-data/gallery/route.ts for the public read side.
+-- Gallery / photo wall admin uploads. This is the sole source for published
+-- public gallery photos, following the same admin-editable pattern as events
+-- and products above. New uploads use the owned R2 bucket, see
+-- lib/server/r2.ts and app/api/admin/gallery/route.ts.
 --
 -- NOTE: this table already existed in production (id SERIAL, url, caption,
 -- category, width, height, created_at, all NOT NULL — an orphaned column set

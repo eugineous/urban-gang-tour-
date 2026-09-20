@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
-import { ensureGallerySeeded } from '@/lib/server/gallery';
 
 // Public, read-only view of the gallery photo wall — the single DB-backed
 // source app/_components/V25App.tsx bridges into window.__UGT_GALLERY for
@@ -29,7 +28,6 @@ export async function GET(req: Request) {
   }
   try {
     const photos = await cached('site-gallery', 60_000, async () => {
-      await ensureGallerySeeded();
       const rows = await q<any>(
         `SELECT id, url, caption, category, sort_order FROM gallery_photos ORDER BY sort_order ASC, id ASC`,
       );
@@ -43,8 +41,8 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({ ok: true, photos }, { headers: CACHE_HEADERS });
   } catch {
-    // DB hiccup — the template's window.__UGT_GALLERY bridge falls back to
-    // its frozen literal, so an empty list here is safe, never a broken page.
+    // DB hiccup: the desktop and mobile clients render their explicit empty
+    // gallery state. Do not revive retired photos from a static fallback.
     return NextResponse.json({ ok: true, photos: [] });
   }
 }

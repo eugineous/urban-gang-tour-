@@ -2130,14 +2130,8 @@ class Component extends DCLogic {
     // a school was tapped ("tap a school to open its catalogue"), which meant
     // every photo on the site was two taps deep. Now every catalogue with
     // photos in it renders straight away and the chips only filter.
-    const galSeeds = {
-      'Senior Chief Koinange Girls':['/assets/gal/koinange.jpg','/assets/gal/g-winning.jpg'],
-      'Loreto Kiambu Girls High':['/assets/gal/loreto.jpg','/assets/gal/g-street.jpg'],
-      'Gituamba Girls High School':['/assets/gal/gituamba.jpg','/assets/gal/festival-colours.jpg','/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg'],
-      'Lari Boys High School':['/assets/gal/lari.jpg']
-    };
     const galAll = [...this.STOPS,...s.extraStops].map(x=>x.name).map(n=>{
-      const pics=[...(galSeeds[n]||[]).map((u,i)=>({id:'seed-'+i,url:u})),...((s.galleryPics[n]||[]))];
+      const pics=[...((s.galleryPics[n]||[]))];
       return {name:n, count:pics.length, pics, has:pics.length>0};
     });
     // Include published uploads, even when their category is not a tour stop.
