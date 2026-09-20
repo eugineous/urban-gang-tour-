@@ -1,5 +1,5 @@
 import { NextResponse, after } from 'next/server';
-import { checkPassword, signToken, sessionCookie, clearCookie } from '@/lib/server/session';
+import { checkPassword, signToken, sessionCookie, clearCookie, sessionSecretConfigured } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { requireOrigin } from '@/lib/server/origin';
 import { notifyAdminLogin, notifyFailedAdminLogin } from '@/lib/server/notify';
@@ -17,6 +17,7 @@ function matchesBackupPassword(value: string, expected: string): boolean {
 
 export async function POST(req: Request) {
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
+  if (!sessionSecretConfigured()) return NextResponse.json({ error: 'session_not_configured' }, { status: 503 });
   if (!rateLimit('adm:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }

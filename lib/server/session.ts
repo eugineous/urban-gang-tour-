@@ -1,7 +1,23 @@
 // Signed-cookie sessions (HMAC-SHA256, no external deps).
 import { createHmac, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
 
-const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
+// A public development value must never sign a production administrator
+// cookie. Local development stays convenient, while production fails closed
+// until SESSION_SECRET is configured as a Worker secret.
+function secret(): string | null {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  return process.env.NODE_ENV === 'production' ? null : 'dev-secret-change-me';
+}
+
+export function sessionSecretConfigured(): boolean {
+  return secret() !== null;
+}
+
+function requireSecret(): string {
+  const value = secret();
+  if (!value) throw new Error('session_secret_not_configured');
+  return value;
+}
 
 function b64u(buf: Buffer | string): string {
   return Buffer.from(buf).toString('base64url');
@@ -9,15 +25,17 @@ function b64u(buf: Buffer | string): string {
 
 export function signToken(payload: object, days = 30): string {
   const body = b64u(JSON.stringify({ ...payload, exp: Date.now() + days * 86400_000 }));
-  const sig = createHmac('sha256', SECRET()).update(body).digest('base64url');
+  const sig = createHmac('sha256', requireSecret()).update(body).digest('base64url');
   return `${body}.${sig}`;
 }
 
 export function verifyToken<T = any>(token: string | undefined | null): T | null {
   if (!token) return null;
+  const tokenSecret = secret();
+  if (!tokenSecret) return null;
   const [body, sig] = token.split('.');
   if (!body || !sig) return null;
-  const expect = createHmac('sha256', SECRET()).update(body).digest('base64url');
+  const expect = createHmac('sha256', tokenSecret).update(body).digest('base64url');
   if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
   try {
     const data = JSON.parse(Buffer.from(body, 'base64url').toString());

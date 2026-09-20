@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { hasDb } from '@/lib/server/db';
-import { signToken, sessionCookie } from '@/lib/server/session';
+import { signToken, sessionCookie, sessionSecretConfigured } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { requireOrigin } from '@/lib/server/origin';
 import { getAdminAccount, type AdminAccount } from '@/lib/server/admin-accounts';
@@ -30,6 +30,7 @@ async function dbAccount(email: string): Promise<AdminAccount | null> {
 }
 export async function POST(req: Request) {
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
+  if (!sessionSecretConfigured()) return NextResponse.json({ error: 'session_not_configured' }, { status: 503 });
   if (!rateLimit('admg:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
