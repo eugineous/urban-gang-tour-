@@ -16,7 +16,6 @@ import {
   DEFAULT_CHECKLIST_TEMPLATE,
 } from "@/lib/server/ops";
 import { docTotals, DocLine } from "@/lib/ops/budget-calc";
-import { ensureCatalogSeeded } from "@/lib/server/catalog";
 import {
   getCommissionPercent,
   setCommissionPercent,
@@ -316,7 +315,6 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, rows });
       }
       case "tourEvents": {
-        await ensureCatalogSeeded();
         // event_date::text — plain 'YYYY-MM-DD' for the admin form's <input
         // type="date">, never a local-midnight Date object that would print
         // wrong (see lib/server/db.ts's note on pg's DATE parser).
@@ -333,12 +331,10 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, rows });
       }
       case "products": {
-        await ensureCatalogSeeded();
         const rows = await q(`SELECT * FROM products ORDER BY active DESC, id`);
         return NextResponse.json({ ok: true, rows });
       }
       case "merch": {
-        await ensureCatalogSeeded();
         const [
           products,
           suppliers,
@@ -1326,7 +1322,6 @@ export async function POST(req: Request) {
       // checkout pricing layer (lib/server/catalog.ts) and the /events JSON-LD
       // (app/_lib/jsonld.ts eventsFromDb) all read from this same table.
       case "tourEvent.save": {
-        await ensureCatalogSeeded();
         const kind = ["ticketed", "school", "past"].includes(d.kind)
           ? d.kind
           : null;
@@ -1431,7 +1426,6 @@ export async function POST(req: Request) {
 
       // ---- Shop products ----
       case "product.save": {
-        await ensureCatalogSeeded();
         const name = s(d.name, 200);
         if (!name) return bad("missing_name");
         const price = Math.max(0, Math.round(Number(d.price) || 0));
