@@ -15,7 +15,7 @@ WhatsApp webhook is HMAC signature-verified) and `/api/client-error`
 
 Critical alerts (`lib/server/alert.ts`): M-Pesa reconciliation failures, order
 ledger write failures and WhatsApp signature-failure bursts email the owner via
-Resend (settings key `alert_email`, fallback owner address) and always log with
+Resend (settings key `alert_email`, or the explicitly configured `notify_email`) and always log with
 an `[ALERT]` prefix.
 
 Routine notifications (`lib/server/notify.ts`): separate, opt-in owner emails so

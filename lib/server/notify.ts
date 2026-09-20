@@ -10,7 +10,6 @@
 // `[notify]` line describing what happened (sent, skipped, or failed).
 import { q, db } from './db';
 
-const FALLBACK_EMAIL = 'euginemicah@gmail.com'; // same fallback lib/server/alert.ts uses
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 function esc(s: string): string {
@@ -26,9 +25,10 @@ async function settingValue(key: string): Promise<unknown> {
   return rows[0]?.value;
 }
 
-// settings key 'notify_email' - falls back to the alert_email fallback
-// address when unset or invalid, same convention as alertRecipient().
-async function notifyRecipient(): Promise<string> {
+// Notification delivery is opt-in twice: its individual toggle must be on and
+// an owner must explicitly save a recipient. Never silently route customer or
+// school information to a compiled-in personal address.
+async function notifyRecipient(): Promise<string | null> {
   try {
     if (db()) {
       const v = await settingValue('notify_email');
@@ -37,8 +37,8 @@ async function notifyRecipient(): Promise<string> {
       const s = String(v ?? '').replace(/^"|"$/g, '').trim();
       if (EMAIL_RE.test(s)) return s;
     }
-  } catch { /* fall through to fallback */ }
-  return FALLBACK_EMAIL;
+  } catch { /* fall through to no recipient */ }
+  return null;
 }
 
 async function notifyEnabled(key: string): Promise<boolean> {
@@ -53,6 +53,10 @@ async function notifyEnabled(key: string): Promise<boolean> {
 async function sendNotify(subject: string, html: string, text: string): Promise<boolean> {
   if (!process.env.RESEND_API_KEY) return false;
   const to = await notifyRecipient();
+  if (!to) {
+    console.warn('[notify] skipped: notify_email is not configured');
+    return false;
+  }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
