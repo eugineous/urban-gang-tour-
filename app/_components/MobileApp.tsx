@@ -32,12 +32,23 @@ export function MobileApp() {
   const total = useMemo(() => bag.reduce((n, item) => n + item.price * item.qty, 0), [bag]);
   useEffect(() => {
     if (!page) return;
-    Promise.allSettled([fetch('/api/site-data/events').then(r => r.json()), fetch('/api/site-data/products').then(r => r.json()), fetch('/api/site-data/gallery').then(r => r.json())]).then(([a, b, c]) => {
-      if (a.status === 'fulfilled') setEvents(Array.isArray(a.value.events) ? a.value.events : []);
-      setProducts(b.status === 'fulfilled' && Array.isArray(b.value.products) ? b.value.products : []);
-      setProductsLoaded(true);
-      setPhotos(c.status === 'fulfilled' && Array.isArray(c.value.photos) ? c.value.photos : []);
-    });
+    let cancelled = false;
+    // These are intentionally independent. A slow gallery should never hold
+    // the shop hostage on a low-bandwidth phone, and vice versa.
+    void fetch('/api/site-data/events')
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setEvents(Array.isArray(data?.events) ? data.events : []); })
+      .catch(() => { if (!cancelled) setEvents([]); });
+    void fetch('/api/site-data/products')
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setProducts(Array.isArray(data?.products) ? data.products : []); })
+      .catch(() => { if (!cancelled) setProducts([]); })
+      .finally(() => { if (!cancelled) setProductsLoaded(true); });
+    void fetch('/api/site-data/gallery')
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setPhotos(Array.isArray(data?.photos) ? data.photos : []); })
+      .catch(() => { if (!cancelled) setPhotos([]); });
+    return () => { cancelled = true; };
   }, [page]);
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get('item');
