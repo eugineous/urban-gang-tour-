@@ -100,6 +100,36 @@ const TYPES: { key: DocType; label: string }[] = [
   { key: "agr", label: "Sponsorship Agreement" },
 ];
 
+// The library is deliberately organised around the job being done, not the
+// implementation's document codes. This keeps a busy event-day user from
+// scanning a flat wall of nearly forty choices.
+const DOCUMENT_GROUPS: Array<{
+  label: string;
+  note: string;
+  types: DocType[];
+}> = [
+  {
+    label: "Finance & records",
+    note: "Invoices, receipts and a server-calculated event budget.",
+    types: ["invoice", "receipt", "budget"],
+  },
+  {
+    label: "Event delivery",
+    note: "Run the day, control access and issue event materials.",
+    types: ["call", "brief", "tix", "spass", "band", "pass"],
+  },
+  {
+    label: "Schools & safeguarding",
+    note: "School-facing correspondence, recognition and guardian paperwork.",
+    types: ["certw", "certp", "ltr", "rel", "cons", "sprop"],
+  },
+  {
+    label: "Partners & correspondence",
+    note: "Formal letters, media access and partnership preparation.",
+    types: ["cor", "acc", "prop", "agr"],
+  },
+];
+
 // ---------------------------------------------------------------------------
 // PROMO / SOCIAL pieces (PNG output; posters also an A3 PDF). Each declares its
 // card design px (drives preview + capture), its target PNG size, its stamped
@@ -547,6 +577,39 @@ const PROMO_TYPES: { key: DocType; label: string }[] = PROMO_KEYS.map((k) => ({
   key: k,
   label: PROMO_SPEC[k].label,
 }));
+const PROMO_GROUPS: Array<{ label: string; note: string; types: DocType[] }> = [
+  {
+    label: "Social & editorial",
+    note: "Posts, stories, newsletter and staff communication assets.",
+    types: [
+      "newsletter",
+      "emailSig",
+      "igNext",
+      "igStory",
+      "igWinner",
+      "igEpisode",
+      "igMerch",
+      "igBookings",
+      "igQuote",
+    ],
+  },
+  {
+    label: "Print & event environment",
+    note: "Physical collateral and production-ready artwork.",
+    types: [
+      "teamKit",
+      "mediaWall",
+      "stageBack",
+      "staffCard",
+      "posTakeover",
+      "posHeadliner",
+      "posFestival",
+      "posRave",
+      "posFinale",
+      "posMaster",
+    ],
+  },
+];
 const isPromoType = (t: DocType) => (PROMO_KEYS as string[]).includes(t);
 // These are intentional visual masters rather than transactional forms: they
 // give the team a live, printable reference for every physical brand touchpoint
@@ -704,115 +767,6 @@ interface OutRow {
 const emptyIn = (): InRow => ({ source: "", count: "", rate: "" });
 const emptyOut = (): OutRow => ({ item: "", supplier: "", amount: "" });
 
-// Seeded default for the Call Sheet form: the real "Lari Boys" event content
-// extracted from template 44 so the admin starts from a real example and edits
-// it, rather than an empty form (per spec).
-const LARI_CALL = {
-  eventName: "Lari Boys High School",
-  venue: "Kimende",
-  date: "Sun 19 Jul",
-  crewCall: "5:00 AM",
-  dayRate: "KSH 1,000",
-  director: "Mark Musumba",
-  stageManager: "Fred",
-};
-const LARI_CREW: CrewRow[] = [
-  { name: "Eugine Micah", role: "Host & MC" },
-  { name: "Lucy Ogunde", role: "Host & MC" },
-  { name: "Mark Musumba", role: "Event Director" },
-  { name: "Fred", role: "Stage Manager" },
-  { name: "Pauline Masika", role: "Sound (hosts)" },
-  { name: "Hype Ola", role: "Hype" },
-  { name: "Larry Raj", role: "Hype / MC" },
-  { name: "King Tae", role: "DJ" },
-  { name: "Kalamu Nyeusi", role: "DJ" },
-  { name: "DJ 1", role: "Full event" },
-  { name: "DJ 2", role: "Talents & modelling" },
-  { name: "George Morgan", role: "Video (full event)" },
-  { name: "Dinjo", role: "Photo & YouTube raw" },
-  { name: "Rania Martin", role: "Social lead & reels" },
-  { name: "Chiwaculture", role: "Reels" },
-  { name: "Ferooz Mkenya", role: "Driver, PPP TV" },
-  { name: "Esther Gakunju", role: "Head, Synapse Models" },
-  { name: "Models x2", role: "1M / 1F" },
-  { name: "XP Hub Dancers x2", role: "Dancers" },
-  { name: "Karembo", role: "Dancer" },
-];
-const LARI_ROS: RosRow[] = [
-  {
-    time: "5:00",
-    segment: "Crew call",
-    notes: "Stage, sound, lights, branding build",
-  },
-  { time: "9:00", segment: "Podcasts & talks", notes: "" },
-  { time: "9:40", segment: "Tree planting", notes: "Scouts + Green Movement" },
-  {
-    time: "10:00",
-    segment: "Opening",
-    notes: "Prayers, anthems, principal speech, scouts",
-  },
-  {
-    time: "10:30",
-    segment: "Eugine & Lucy intro",
-    notes: "Dancers, DJs & crew introduced",
-  },
-  { time: "10:50", segment: "Hosts' hype + Hype Ola set", notes: "" },
-  { time: "11:10", segment: "Rap battle", notes: "" },
-  { time: "11:40", segment: "Modelling walk I", notes: "Synapse leads" },
-  { time: "12:00", segment: "Dance battle", notes: "" },
-  { time: "12:35", segment: "Spoken word", notes: "Poetry, narratives" },
-  {
-    time: "13:00",
-    segment: "Modelling walk II",
-    notes: "Hype set by Larry Raj",
-  },
-  {
-    time: "13:30",
-    segment: "Lunch",
-    notes: "Crew eats in shifts, stage never empty",
-  },
-  { time: "14:00", segment: "Hype set, Eugine & Lucy", notes: "Music battle" },
-  {
-    time: "14:45",
-    segment: "Public speaking",
-    notes: "News reporting, comedy",
-  },
-  {
-    time: "15:30",
-    segment: "Awards & crowning",
-    notes: "Certificates ready side-stage",
-  },
-  {
-    time: "16:10",
-    segment: "Teachers' dance battle",
-    notes: "Crowd favourite",
-  },
-  {
-    time: "16:25",
-    segment: "Colour festival I",
-    notes: "Safety pins checked, wind called by Fred",
-  },
-  {
-    time: "16:35",
-    segment: "Musicians",
-    notes: "Musician 1, 2, main musician",
-  },
-  {
-    time: "17:25",
-    segment: "Colour festival II",
-    notes: "Event ends, strike & load-out",
-  },
-];
-const LARI_DONTFORGET = [
-  "Cylinder safety pins",
-  "Powder cans x12",
-  "Certificates",
-  "Gifts (Mr Flex)",
-  "Posters up by 8 AM",
-  "Nganya parked by 9 AM",
-  "Deposit receipt copy for the office",
-];
-
 // Seeded default for the Budget form: the template's own line-item labels with
 // empty figures, so the admin fills real numbers and the server computes totals.
 const BUDGET_IN_SEED: InRow[] = [
@@ -907,11 +861,20 @@ export default function DocGen() {
     stopName: "",
   });
 
-  // Call sheet form (pre-seeded with the real Lari Boys example).
-  const [call, setCall] = useState({ ...LARI_CALL });
-  const [crew, setCrew] = useState<CrewRow[]>(LARI_CREW.map((r) => ({ ...r })));
-  const [ros, setRos] = useState<RosRow[]>(LARI_ROS.map((r) => ({ ...r })));
-  const [dontForget, setDontForget] = useState<string[]>([...LARI_DONTFORGET]);
+  // A call sheet must begin clean. Carrying an old event's people, rates or
+  // timings into a new issue is an easy way to create an operational error.
+  const [call, setCall] = useState({
+    eventName: "",
+    venue: "",
+    date: "",
+    crewCall: "",
+    dayRate: "",
+    director: "",
+    stageManager: "",
+  });
+  const [crew, setCrew] = useState<CrewRow[]>([emptyCrew()]);
+  const [ros, setRos] = useState<RosRow[]>([emptyRos()]);
+  const [dontForget, setDontForget] = useState<string[]>([""]);
 
   // Budget form. Figures start empty; totals + profit are computed server-side.
   const [bud, setBud] = useState({
@@ -1103,6 +1066,11 @@ export default function DocGen() {
   } | null>(null);
   const [toast, setToast] = useState("");
   const [recent, setRecent] = useState<RecentDoc[]>([]);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [recentSearch, setRecentSearch] = useState("");
+  const [recentStatus, setRecentStatus] = useState<"all" | "final" | "void">(
+    "all",
+  );
   const [reference, setReference] = useState<
     (typeof PRODUCTION_REFERENCES)[number] | null
   >(null);
@@ -1565,7 +1533,12 @@ export default function DocGen() {
         return;
       }
 
-      setResult({ serial, pdf_url: r2.data.pdf_url, filename });
+      setResult({
+        serial,
+        pdf_url: r2.data.pdf_url,
+        png_url: r2.data.png_url || "",
+        filename,
+      });
       say("Generated " + serial);
       loadRecent();
     } catch (e: any) {
@@ -1815,6 +1788,56 @@ export default function DocGen() {
     type === "band"
       ? true
       : !!String((singlePayload as any)?.eventName || "").trim();
+  const typeLabel = (key: string) =>
+    TYPES.find((entry) => entry.key === key)?.label ||
+    PROMO_TYPES.find((entry) => entry.key === key)?.label ||
+    key;
+  const libraryNeedle = librarySearch.trim().toLowerCase();
+  const groupMatches = (group: { label: string; note: string; types: DocType[] }) =>
+    !libraryNeedle ||
+    group.label.toLowerCase().includes(libraryNeedle) ||
+    group.note.toLowerCase().includes(libraryNeedle) ||
+    group.types.some((key) => typeLabel(key).toLowerCase().includes(libraryNeedle));
+  const matchingDocumentGroups = DOCUMENT_GROUPS.map((group) => ({
+    ...group,
+    types: group.types.filter((key) =>
+      !libraryNeedle
+        ? true
+        : typeLabel(key).toLowerCase().includes(libraryNeedle) ||
+          group.label.toLowerCase().includes(libraryNeedle) ||
+          group.note.toLowerCase().includes(libraryNeedle),
+    ),
+  })).filter((group) => group.types.length > 0 && groupMatches(group));
+  const matchingPromoGroups = PROMO_GROUPS.map((group) => ({
+    ...group,
+    types: group.types.filter((key) =>
+      !libraryNeedle
+        ? true
+        : typeLabel(key).toLowerCase().includes(libraryNeedle) ||
+          group.label.toLowerCase().includes(libraryNeedle) ||
+          group.note.toLowerCase().includes(libraryNeedle),
+    ),
+  })).filter((group) => group.types.length > 0 && groupMatches(group));
+  const recentNeedle = recentSearch.trim().toLowerCase();
+  const filteredRecent = recent.filter((doc) => {
+    const matchesStatus = recentStatus === "all" || doc.status === recentStatus;
+    const matchesText =
+      !recentNeedle ||
+      [doc.serial, doc.issued_to, doc.event, typeLabel(doc.type)]
+        .join(" ")
+        .toLowerCase()
+        .includes(recentNeedle);
+    return matchesStatus && matchesText;
+  });
+  const activeWorkflowNote = isPromoType(type)
+    ? "Creative artwork is a production proof. Use approved copy and only assets you have the right to publish or print."
+    : type === "agr"
+      ? "This is a branded agreement template, not an approval of the commercial terms. Confirm the parties, scope and agreed terms before issue."
+      : type === "rel" || type === "cons"
+        ? "This workflow handles sensitive participant information. Use only authorised information and review the completed document before issue."
+        : type === "call" || type === "brief" || isQtyType(type)
+          ? "Use the currently confirmed event details. The preview is a proof, not a final issued document."
+          : "Check every entered detail against the current approved record before generating the final document.";
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
@@ -1845,6 +1868,35 @@ export default function DocGen() {
         </div>
         <div
           style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(220px, 1fr) auto",
+            gap: 10,
+            alignItems: "center",
+            padding: 10,
+            marginBottom: 12,
+            border: "1px solid #eadde7",
+            borderRadius: 10,
+            background: "#fff9fd",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800 }}>
+              Find the right starting point
+            </div>
+            <div style={{ fontSize: 11, color: "#6b5965", marginTop: 2 }}>
+              Choose by the job, then inspect the live proof before issuing.
+            </div>
+          </div>
+          <input
+            aria-label="Search document library"
+            value={librarySearch}
+            onChange={(event) => setLibrarySearch(event.target.value)}
+            placeholder="Search invoice, school, poster..."
+            style={{ ...inp, minWidth: 220 }}
+          />
+        </div>
+        <div
+          style={{
             fontSize: 11,
             fontWeight: 800,
             textTransform: "uppercase",
@@ -1853,22 +1905,35 @@ export default function DocGen() {
             margin: "2px 0 6px",
           }}
         >
-          Documents (PDF)
+          Operational documents (PDF)
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {TYPES.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => switchType(t.key)}
-              style={{
-                ...btn,
-                background: type === t.key ? "#C7238E" : "#fff",
-                color: type === t.key ? "#fff" : "#111",
-              }}
-            >
-              {t.label}
-            </button>
+        <div style={{ display: "grid", gap: 10 }}>
+          {matchingDocumentGroups.map((group) => (
+            <div key={group.label}>
+              <div style={{ fontSize: 12, fontWeight: 800 }}>{group.label}</div>
+              <div style={{ fontSize: 11, color: "#777", margin: "2px 0 6px" }}>
+                {group.note}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {group.types.map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => switchType(key)}
+                    style={{
+                      ...btn,
+                      background: type === key ? "#C7238E" : "#fff",
+                      color: type === key ? "#fff" : "#111",
+                    }}
+                  >
+                    {typeLabel(key)}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
+          {matchingDocumentGroups.length === 0 && (
+            <div style={{ fontSize: 12, color: "#777" }}>No operational document matches that search.</div>
+          )}
         </div>
         <div
           style={{
@@ -1880,22 +1945,35 @@ export default function DocGen() {
             margin: "14px 0 6px",
           }}
         >
-          Promo / Social (PNG)
+          Creative production (PNG, posters also A3 PDF)
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {PROMO_TYPES.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => switchType(t.key)}
-              style={{
-                ...btn,
-                background: type === t.key ? "#111" : "#fff",
-                color: type === t.key ? "#fff" : "#111",
-              }}
-            >
-              {t.label}
-            </button>
+        <div style={{ display: "grid", gap: 10 }}>
+          {matchingPromoGroups.map((group) => (
+            <div key={group.label}>
+              <div style={{ fontSize: 12, fontWeight: 800 }}>{group.label}</div>
+              <div style={{ fontSize: 11, color: "#777", margin: "2px 0 6px" }}>
+                {group.note}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {group.types.map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => switchType(key)}
+                    style={{
+                      ...btn,
+                      background: type === key ? "#111" : "#fff",
+                      color: type === key ? "#fff" : "#111",
+                    }}
+                  >
+                    {typeLabel(key)}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
+          {matchingPromoGroups.length === 0 && (
+            <div style={{ fontSize: 12, color: "#777" }}>No creative asset matches that search.</div>
+          )}
         </div>
       </div>
 
@@ -1940,6 +2018,19 @@ export default function DocGen() {
                 ))}
               </div>
             )}
+          </div>
+          <div
+            style={{
+              marginTop: 10,
+              padding: "8px 10px",
+              borderLeft: "3px solid #C7238E",
+              background: "#fff8fc",
+              color: "#644557",
+              fontSize: 12,
+              lineHeight: 1.45,
+            }}
+          >
+            {activeWorkflowNote}
           </div>
 
           {batchMode ? (
@@ -2169,6 +2260,16 @@ export default function DocGen() {
                             >
                               Open verify page
                             </a>
+                            {result.png_url && (
+                              <a
+                                href={result.png_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ ...btnSmall, textDecoration: "none" }}
+                              >
+                                Open print proof
+                              </a>
+                            )}
                           </div>
                           <div
                             style={{
@@ -2206,7 +2307,44 @@ export default function DocGen() {
 
       {/* -------- RECENT -------- */}
       <div style={card}>
-        <h3 style={h3}>Recent documents</h3>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: 10,
+          }}
+        >
+          <div>
+            <h3 style={{ ...h3, margin: 0 }}>Recent documents</h3>
+            <div style={{ fontSize: 11, color: "#777", marginTop: 2 }}>
+              Final records remain immutable. Use Void for a correction, then issue a new record.
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              aria-label="Search recent documents"
+              value={recentSearch}
+              onChange={(event) => setRecentSearch(event.target.value)}
+              placeholder="Search serial, recipient, event..."
+              style={{ ...inp, width: 230 }}
+            />
+            <select
+              aria-label="Filter recent documents by status"
+              value={recentStatus}
+              onChange={(event) =>
+                setRecentStatus(event.target.value as "all" | "final" | "void")
+              }
+              style={{ ...inp, width: 110 }}
+            >
+              <option value="all">All status</option>
+              <option value="final">Valid</option>
+              <option value="void">Void</option>
+            </select>
+          </div>
+        </div>
         <div style={{ overflowX: "auto" }}>
           <table
             style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}
@@ -2222,19 +2360,21 @@ export default function DocGen() {
               </tr>
             </thead>
             <tbody>
-              {recent.length === 0 && (
+              {filteredRecent.length === 0 && (
                 <tr>
                   <td style={td} colSpan={6}>
-                    No documents yet.
+                    {recent.length === 0
+                      ? "No documents yet."
+                      : "No documents match the current filters."}
                   </td>
                 </tr>
               )}
-              {recent.map((d) => (
+              {filteredRecent.map((d) => (
                 <tr key={d.id}>
                   <td style={{ ...td, fontWeight: 700, whiteSpace: "nowrap" }}>
                     {d.serial}
                   </td>
-                  <td style={td}>{d.type}</td>
+                  <td style={td}>{typeLabel(d.type)}</td>
                   <td style={td}>{d.issued_to || "-"}</td>
                   <td style={{ ...td, whiteSpace: "nowrap" }}>
                     {String(d.created_at).slice(0, 10)}
@@ -3295,8 +3435,8 @@ function CallSheetForm({
   return (
     <div>
       <div style={{ fontSize: 11, color: "#999", marginBottom: 10 }}>
-        Pre-filled with the real Lari Boys example. Edit it, or clear the fields
-        and enter your own event.
+        Start with the confirmed event plan. Names, timings and any rate must be
+        entered from the current approved record before this sheet is issued.
       </div>
       <Field lbl="Event / school (issued to)">
         <input
