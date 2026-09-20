@@ -1430,10 +1430,13 @@ function CommsTab({
         >
           <button
             style={btn}
+            disabled={!canManageDeliverySettings}
             onClick={async () => {
+              if (!canManageDeliverySettings) return;
+              if (!confirm("Send this newsletter to every current subscriber? This cannot be recalled.")) return;
               const { status: st, data } = await api("/api/admin/broadcast", {
                 method: "POST",
-                body: JSON.stringify({ subject, body }),
+                body: JSON.stringify({ subject, body, confirmation: "send_newsletter" }),
               });
               say(
                 st === 200
@@ -1442,7 +1445,7 @@ function CommsTab({
               );
             }}
           >
-            Send to subscribers
+            {canManageDeliverySettings ? "Send to subscribers" : "Owner approval required"}
           </button>
           <a
             style={{ ...btnDark, textDecoration: "none" }}
@@ -1460,8 +1463,8 @@ function CommsTab({
         <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
           With Meta keys set this posts straight to the Facebook Page (and
           Instagram when you add an image URL). Without them, the buttons open
-          each app with your text ready to send. New articles you publish in
-          Content auto-post to connected channels.
+          each app with your text ready to send. Automatic article announcements
+          stay off until the owner enables them in server configuration.
         </div>
         <textarea
           style={{ ...inp, minHeight: 90 }}
@@ -1486,9 +1489,13 @@ function CommsTab({
         >
           <button
             style={btn}
+            disabled={!canManageDeliverySettings}
             onClick={async () => {
+              if (!canManageDeliverySettings) return;
+              if (!confirm("Publish this message to the connected social channels now? This cannot be recalled.")) return;
               const payload: any = { text: social };
               if (socialImg.trim()) payload.imageUrl = socialImg.trim();
+              payload.confirmation = "post_social";
               const { status: st, data } = await api("/api/admin/social", {
                 method: "POST",
                 body: JSON.stringify(payload),
@@ -1500,7 +1507,7 @@ function CommsTab({
               );
             }}
           >
-            Post via API
+            {canManageDeliverySettings ? "Post via API" : "Owner approval required"}
           </button>
           <a
             style={{ ...btnDark, textDecoration: "none" }}
@@ -1539,9 +1546,11 @@ function CommsTab({
           {status && chip(!!status.instagram_ready, "Instagram API")}
         </div>
         <div style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
-          {status?.facebook_ready || status?.instagram_ready
-            ? "✓ Connected channels auto-post every new article the moment you publish it."
-            : "Auto-posts new articles when connected — set META_FB_PAGE_ID + META_FB_PAGE_TOKEN (Facebook) and META_IG_USER_ID + META_IG_TOKEN (Instagram) once Meta app review clears."}
+          {status?.automation_ready
+            ? "✓ Article automation is enabled. It only uses the owner-selected channels for articles published while this setting is on."
+            : status?.automation_enabled
+            ? "Automation is enabled but not ready. Add an explicit target and connected channel before publishing a story you want announced."
+            : "Automatic article announcements are off. Connecting a channel alone never posts the archive or a newly published story."}
         </div>
       </div>
       <div style={{ ...card }}>

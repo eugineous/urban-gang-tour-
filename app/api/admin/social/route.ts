@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { adminActor, isAdmin, isSuperAdmin, hasPerm } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
 import { IG_POST_RE, IG_WALL_MAX, normalizeIgUrl, getIgWall } from '@/lib/server/social-wall';
+import { contentAutomationEnabled, contentAutomationReady } from '@/lib/server/content-automation';
 
 // Roles: admin only (both methods). All tokens are server-side env vars.
 //
@@ -11,7 +12,7 @@ import { IG_POST_RE, IG_WALL_MAX, normalizeIgUrl, getIgWall } from '@/lib/server
 //   -> channel readiness flags + saved whatsapp number + the curated ig_wall list.
 // POST /api/admin/social
 //   { kind:'wall.save', urls:[...] }       -> save the "From the Gram" list (settings key 'ig_wall')
-//   { text, imageUrl? }                    -> composer: posts text to the Facebook Page (if
+//   { text, imageUrl?, confirmation }      -> owner-confirmed composer: posts text to the Facebook Page (if
 //     META_FB_PAGE_ID+META_FB_PAGE_TOKEN), sends a WhatsApp self-draft (META_WA_TOKEN+
 //     META_WA_PHONE_ID+META_WA_SELF), and posts to Instagram when imageUrl is provided
 //     (META_IG_USER_ID+META_IG_TOKEN — IG feed posts require an image).
@@ -30,6 +31,9 @@ export async function GET(req: Request) {
     facebook_ready: facebookConfigured(),
     instagram_ready: instagramConfigured(),
     email_ready: !!process.env.RESEND_API_KEY,
+    automation_enabled: contentAutomationEnabled(),
+    automation_ready: contentAutomationReady(),
+    can_publish_outbound: isSuperAdmin(req),
     whatsapp_number: waNum,
     ig_wall: await getIgWall(),
   });
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
          ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=now()`,
         [JSON.stringify(urls)],
       );
-      await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('admin','save_ig_wall',$1)`, [JSON.stringify({ count: urls.length })]);
+      await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'save_ig_wall',$2)`, [adminActor(req), JSON.stringify({ count: urls.length })]);
     } catch (e: any) {
       return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
     }
@@ -71,9 +75,14 @@ export async function POST(req: Request) {
   }
 
   // ---- Composer: post now ----------------------------------------------------
-  const { text, imageUrl } = body || {};
-  const extra = Object.keys(body || {}).filter((k) => k !== 'text' && k !== 'imageUrl');
+  // A permanent, public outbound message is owner-only. Comms staff can still
+  // prepare browser share drafts and curate the public Instagram wall, but
+  // cannot turn a forged browser request into a publication.
+  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'owner_approval_required' }, { status: 403 });
+  const { text, imageUrl, confirmation } = body || {};
+  const extra = Object.keys(body || {}).filter((k) => k !== 'text' && k !== 'imageUrl' && k !== 'confirmation');
   if (extra.length) return NextResponse.json({ error: 'unexpected_fields' }, { status: 400 });
+  if (confirmation !== 'post_social') return NextResponse.json({ error: 'confirmation_required' }, { status: 400 });
   if (typeof text !== 'string' || text.length < 2 || text.length > 2000) {
     return NextResponse.json({ error: 'invalid_text' }, { status: 400 });
   }
@@ -120,6 +129,21 @@ export async function POST(req: Request) {
       error: 'no_channels_configured',
       hint: 'Set META_FB_PAGE_ID + META_FB_PAGE_TOKEN (Facebook Page), META_WA_TOKEN + META_WA_PHONE_ID (WhatsApp) and/or META_IG_TOKEN + META_IG_USER_ID (Instagram) in Vercel env vars. Until then use the one-click share buttons.',
     }, { status: 503 });
+  }
+  // Record only delivery outcomes and content metadata, not the copy itself.
+  // The audit row lets the owner distinguish a deliberate manual post from a
+  // scheduled article announcement without duplicating social content in the
+  // operations log.
+  try {
+    if (db()) {
+      await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'manual_social_post',$2)`, [
+        adminActor(req),
+        JSON.stringify({ image: !!imageUrl, characters: text.length, result: results.join(' · ').slice(0, 500) }),
+      ]);
+    }
+  } catch {
+    // A delivery must not be reported as failed after it has already reached a
+    // channel merely because optional audit persistence was unavailable.
   }
   return NextResponse.json({ ok: true, result: results.join(' · ') });
 }

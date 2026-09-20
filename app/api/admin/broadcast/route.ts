@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { adminActor, isAdmin, isSuperAdmin } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
 // POST /api/admin/broadcast  {subject, body}
-// Admin-only, scoped to the 'comms' module (Newsletter Broadcast lives on
-// the Comms tab). Emails every newsletter subscriber via Resend (RESEND_API_KEY).
+// Owner-only, because a newsletter is a permanent external delivery to every
+// subscriber. Comms staff can draft copy and export the list, but a forged
+// request must not send a full audience broadcast.
 // Contract: 200 {ok,sent} | 400 invalid | 401 not admin | 403 forbidden/bad origin | 503 email/db not configured
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  if (!hasPerm(req, 'comms')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'owner_approval_required' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  const { subject, body } = await req.json().catch(() => ({}));
+  const { subject, body, confirmation } = await req.json().catch(() => ({}));
+  if (confirmation !== 'send_newsletter') return NextResponse.json({ error: 'confirmation_required' }, { status: 400 });
   if (typeof subject !== 'string' || subject.length < 2 || subject.length > 200) return NextResponse.json({ error: 'invalid_subject' }, { status: 400 });
   if (typeof body !== 'string' || body.length < 2 || body.length > 20000) return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
@@ -32,6 +34,14 @@ export async function POST(req: Request) {
       });
       if (r.ok) sent += batch.length;
     } catch { /* count only confirmed batches */ }
+  }
+  try {
+    await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'newsletter_broadcast',$2)`, [
+      adminActor(req),
+      JSON.stringify({ sent, total: subs.length, subject_length: subject.length, body_length: body.length }),
+    ]);
+  } catch {
+    // An audit failure cannot safely undo a delivery that has already happened.
   }
   return NextResponse.json({ ok: true, sent, total: subs.length });
 }

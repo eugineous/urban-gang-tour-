@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
-import { dispatchDueArticleAnnouncements } from '@/lib/server/content-automation';
+import { contentAutomationEnabled, dispatchDueArticleAnnouncements } from '@/lib/server/content-automation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,6 +18,11 @@ export async function POST(req: Request) {
   if (!secret) return NextResponse.json({ error: 'automation_not_configured' }, { status: 503 });
   if (!sameSecret(req.headers.get('x-ugt-cron') || '', secret)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  // Credentials for the scheduler are not permission to publish. Keep the
+  // endpoint inert until the owner enables the separate automation switch.
+  if (!contentAutomationEnabled()) {
+    return NextResponse.json({ error: 'automation_disabled' }, { status: 503 });
   }
   try {
     const outcome = await dispatchDueArticleAnnouncements();

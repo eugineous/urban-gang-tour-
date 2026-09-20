@@ -4,21 +4,52 @@ import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInst
 
 export type ScheduledPost = { slug: string; headline: string; dek: string; image: string };
 
+// Outbound publishing is deliberately a two-key decision. Credentials only
+// prove that a channel can be reached; they must not turn every new article
+// into a post. An owner has to opt in to automation and name each target.
+// Keeping this server-side also means a browser or a saved settings row cannot
+// enable external delivery by accident.
+export function contentAutomationEnabled(): boolean {
+  return process.env.UGT_SOCIAL_AUTOMATION_ENABLED === 'true';
+}
+
+function automatedTargets(): Set<'fb' | 'ig'> {
+  const raw = process.env.META_AUTOPOST_TARGETS || '';
+  const values = raw.toLowerCase().split(',').map((value) => value.trim());
+  const targets = new Set<'fb' | 'ig'>();
+  if (values.includes('fb')) targets.add('fb');
+  if (values.includes('ig')) targets.add('ig');
+  return targets;
+}
+
+function hasAutomatedChannel(): boolean {
+  const targets = automatedTargets();
+  return (targets.has('fb') && facebookConfigured()) || (targets.has('ig') && instagramConfigured());
+}
+
+// Readiness is intentionally stricter than the owner switch. Publishing a
+// story while targets or channel credentials are incomplete never creates a
+// latent queue which could surprise the owner later when credentials appear.
+export function contentAutomationReady(): boolean {
+  return contentAutomationEnabled() && hasAutomatedChannel();
+}
+
 // Sends only the announcement of an already-public article. This function
 // never changes publication state, creates content, or accepts browser input.
 export async function announcePublishedArticle(post: ScheduledPost): Promise<{ posted: boolean; result: string }> {
+  if (!contentAutomationEnabled()) return { posted: false, result: 'automation_disabled' };
   const url = `${SITE.domain}/blog/${post.slug}`;
   const summary = [post.headline, post.dek].filter(Boolean).join('\n\n');
-  const targets = (process.env.META_AUTOPOST_TARGETS || 'fb,ig').toLowerCase();
+  const targets = automatedTargets();
   const results: string[] = [];
   let posted = false;
 
-  if (targets.includes('fb') && facebookConfigured()) {
+  if (targets.has('fb') && facebookConfigured()) {
     const r = await postToFacebookPage({ message: `${summary}\n\n${url}`, link: url });
     results.push(r.ok ? 'facebook:posted' : `facebook:failed(${r.error || 'error'})`);
     posted ||= r.ok;
   }
-  if (targets.includes('ig') && instagramConfigured()) {
+  if (targets.has('ig') && instagramConfigured()) {
     const imageUrl = post.image.startsWith('https://') ? post.image : post.image.startsWith('/') ? SITE.domain + post.image : '';
     if (!imageUrl) {
       results.push('instagram:skipped(no_public_image)');
@@ -49,7 +80,7 @@ type DispatchOutcome = 'posted' | 'held' | 'skipped';
 // old in-memory copy of the story.
 export async function dispatchArticleAnnouncement(slug: string): Promise<DispatchOutcome> {
   if (!hasDb()) throw new Error('db_not_configured');
-  if (!facebookConfigured() && !instagramConfigured()) return 'skipped';
+  if (!contentAutomationReady()) return 'skipped';
   await ensureContentAutomationSchema();
   const claim = await q<ScheduledPost>(
     `UPDATE posts
@@ -94,7 +125,9 @@ export async function dispatchArticleAnnouncement(slug: string): Promise<Dispatc
 // the claim after correcting its image or copy.
 export async function dispatchDueArticleAnnouncements(limit = 10): Promise<{ scanned: number; posted: number; held: number; disabled: boolean }> {
   if (!hasDb()) throw new Error('db_not_configured');
-  if (!facebookConfigured() && !instagramConfigured()) return { scanned: 0, posted: 0, held: 0, disabled: true };
+  if (!contentAutomationReady()) {
+    return { scanned: 0, posted: 0, held: 0, disabled: true };
+  }
   await ensureContentAutomationSchema();
   const candidates = await q<{ slug: string }>(
     `SELECT slug FROM posts

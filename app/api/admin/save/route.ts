@@ -5,7 +5,7 @@ import { requireOrigin } from '@/lib/server/origin';
 import { notifyPostPublished } from '@/lib/server/notify';
 import { pingIndexNow } from '@/lib/server/indexnow';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
-import { dispatchArticleAnnouncement, ensureContentAutomationSchema } from '@/lib/server/content-automation';
+import { contentAutomationReady, dispatchArticleAnnouncement, ensureContentAutomationSchema } from '@/lib/server/content-automation';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
@@ -117,13 +117,12 @@ export async function POST(req: Request) {
           [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), published, data.date || null, workflow, submittedBy, published ? actor : '']
         );
         await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'save_post',$2)`, [actor, JSON.stringify({ slug, workflow })]);
-        // Auto-post to socials on FIRST publish only: the article is published
-        // now, was not published before, has never been announced, and its
-        // date is today or earlier. A future-dated (scheduled) post must not
-        // trigger the social announcement early — it isn't publicly visible
-        // yet (see app/_lib/blog.ts's `date <= CURRENT_DATE` filter). There is
-        // no cron job that re-fires the announcement when the date arrives;
-        // that would need Vercel Cron and is left out of scope for now.
+        // Social automation is eligible only on FIRST publication, and only
+        // while an owner has explicitly enabled the server-side automation
+        // switch and completed a selected channel. Connecting credentials or
+        // targets later must never backfill articles that were published while
+        // automation was not ready. Future-dated stories are held for the
+        // guarded Worker check once their public date arrives.
         const isoDate = (d: any) => (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10);
         const savedDate = saved[0]?.date ? isoDate(saved[0].date) : null;
         const todayIso = new Date().toISOString().slice(0, 10);
@@ -131,7 +130,8 @@ export async function POST(req: Request) {
         const initialPublication = published
           && !prev[0]?.social_posted_at
           && (!prev.length || prev[0].published === false);
-        if (initialPublication) {
+        const automationEligible = initialPublication && contentAutomationReady();
+        if (automationEligible) {
           // This is the explicit opt-in that makes a story eligible for the
           // scheduled publisher. Existing archive rows retain the DB default
           // of false and are never sent merely because a channel is connected.
@@ -140,7 +140,7 @@ export async function POST(req: Request) {
         if (isFutureDated && published) {
           console.log(`[social] ${slug}: scheduled for ${savedDate}, skipping announce until then`);
         }
-        if (initialPublication && !isFutureDated) {
+        if (automationEligible && !isFutureDated) {
           after(() => dispatchArticleAnnouncement(slug).catch((e) => console.log('[social] announce failed:', e?.message)));
         }
         if (initialPublication) {
