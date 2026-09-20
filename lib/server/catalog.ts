@@ -9,11 +9,12 @@
 // admin price change is live within ~45s, no deploy needed, while checkout
 // still never round-trips the DB on every request.
 //
-// FALLBACK_* below are frozen literals of the tour's real content at the time
-// this migration shipped. They serve two purposes: (1) the one-time seed
-// inserted into the DB tables (idempotent — see ensureCatalogSeeded), and
-// (2) an offline fallback so a DB hiccup degrades to "today's real prices"
-// rather than breaking checkout.
+// The seed literals below exist for an explicit, one-time database bootstrap
+// and for formatting already-recorded legacy receipts. Runtime reads and new
+// checkout must never use them as an offline price or event fallback: once
+// staff edit the live catalogue, a fallback would be commercially wrong. A
+// database outage therefore serves only a recently cached live value, or
+// refuses the requested sale.
 import {
   getActivePromos,
   bestAutoDiscountForProduct,
@@ -172,19 +173,18 @@ let productsCache: { at: number; data: Record<string, ProductCacheRow> } | null 
 
 export async function getProducts(): Promise<Record<string, ProductCacheRow>> {
   if (productsCache && Date.now() - productsCache.at < CACHE_TTL_MS) return productsCache.data;
-  if (!db()) return FALLBACK_PRICES;
+  if (!db()) return productsCache?.data || {};
   try {
-    await ensureCatalogSeeded();
     const rows = await q<{ id: string; name: string; price: number }>(
       `SELECT id, name, price FROM products WHERE active ORDER BY id`
     );
-    if (!rows.length) return productsCache?.data || FALLBACK_PRICES;
+    if (!rows.length) return productsCache?.data || {};
     const map: Record<string, ProductCacheRow> = {};
     for (const r of rows) map[r.id] = { name: r.name, price: Number(r.price) };
     productsCache = { at: Date.now(), data: map };
     return map;
   } catch {
-    return productsCache?.data || FALLBACK_PRICES;
+    return productsCache?.data || {};
   }
 }
 
@@ -220,9 +220,8 @@ let ticketedCache: { at: number; data: CatalogEvent[] } | null = null;
 // getEventMeta()/getEventName() (display) read from.
 export async function getTicketedEvents(): Promise<CatalogEvent[]> {
   if (ticketedCache && Date.now() - ticketedCache.at < CACHE_TTL_MS) return ticketedCache.data;
-  if (!db()) return fallbackTicketedEvents();
+  if (!db()) return ticketedCache?.data || [];
   try {
-    await ensureCatalogSeeded();
     // event_date::text — see lib/server/db.ts's note on pg's DATE parser: cast
     // to text at the SQL level so the value is a plain 'YYYY-MM-DD' string,
     // never a local-midnight Date object whose re-serialization shifts by a
@@ -232,7 +231,7 @@ export async function getTicketedEvents(): Promise<CatalogEvent[]> {
        FROM tour_events WHERE kind='ticketed' AND status='published'
        ORDER BY priority DESC, event_date ASC NULLS LAST`
     );
-    if (!rows.length) return ticketedCache?.data || fallbackTicketedEvents();
+    if (!rows.length) return ticketedCache?.data || [];
     const list: CatalogEvent[] = rows.map((r: any) => ({
       id: r.id,
       name: r.name,
@@ -248,7 +247,7 @@ export async function getTicketedEvents(): Promise<CatalogEvent[]> {
     ticketedCache = { at: Date.now(), data: list };
     return list;
   } catch {
-    return ticketedCache?.data || fallbackTicketedEvents();
+    return ticketedCache?.data || [];
   }
 }
 

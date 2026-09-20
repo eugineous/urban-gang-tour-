@@ -10,7 +10,7 @@
 // (POST /api/tickets/verify).
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { db } from './db';
-import { getTicketedEvents, getTicketTiers, FALLBACK_EVENT_META } from './catalog';
+import { getTicketedEvents, getTicketTiers } from './catalog';
 import { getMarketplaceEventById } from './marketplace';
 
 // 32 chars, no 0/O/1/I. 32 divides 256, so byte % 32 is bias-free.
@@ -23,7 +23,8 @@ const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
 // against the same DB-backed, cached tour_events read as pricing (see
 // lib/server/catalog.ts getTicketedEvents()) — so ticket pages/PDFs always
 // show the current admin-edited event name/date/venue, not a frozen copy.
-// FALLBACK_EVENT_META (catalog.ts) is used only if the DB is unreachable.
+// If live metadata is unavailable, callers get no metadata rather than a
+// superseded venue or schedule.
 //
 // marketplaceEventId (present on a ticket row's marketplace_event_id column)
 // redirects resolution to the third-party marketplace_events table instead —
@@ -46,7 +47,7 @@ export async function getEventMeta(
   const events = await getTicketedEvents();
   const ev = events.find((e) => e.id === eventId);
   if (ev) return { date: ev.date, time: ev.time, venue: ev.venue, city: ev.city, accent: ev.accent };
-  return FALLBACK_EVENT_META[eventId];
+  return undefined;
 }
 
 export async function getEventName(eventId: string, marketplaceEventId?: string | null): Promise<string> {

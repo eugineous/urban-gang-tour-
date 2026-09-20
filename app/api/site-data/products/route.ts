@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
-import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 // Public, read-only view of active shop products — the single DB-backed
 // source app/_components/V25App.tsx bridges into window.__UGT_PRODUCTS for
@@ -13,8 +12,7 @@ import { ensureCatalogSeeded } from '@/lib/server/catalog';
 //
 // Every page load fetches this, so it is cached in-isolate for 60s with
 // request coalescing (lib/server/microcache.ts). Without that, a thousand
-// simultaneous arrivals were a thousand SELECTs plus a thousand
-// ensureCatalogSeeded() calls for one answer that is the same for everyone.
+// simultaneous arrivals are coalesced into one SELECT for one shared answer.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +27,6 @@ export async function GET(req: Request) {
   if (!hasDb()) return NextResponse.json({ ok: true, products: [] }, { headers: CACHE_HEADERS });
   try {
     const products = await cached('site-products', 60_000, async () => {
-      await ensureCatalogSeeded();
       const rows = await q<any>(
         `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
                 COALESCE(

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
-import { ensureCatalogSeeded } from '@/lib/server/catalog';
 
 // Public, read-only view of tour events (ticketed concerts, school tour
 // stops, past-client showcase) — the single DB-backed source
@@ -61,7 +60,6 @@ export async function GET(req: Request) {
     // heaviest of the four per-page-load reads and the answer is the same for
     // everyone. See lib/server/microcache.ts.
     const events = await cached(`site-events:${kind || 'all'}`, 60_000, async () => {
-      await ensureCatalogSeeded();
       const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
       const rows = kind
         ? await q<any>(
@@ -76,8 +74,8 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({ ok: true, events }, { headers: CACHE_HEADERS });
   } catch {
-    // DB hiccup — the template's window.__UGT_EVENTS bridge falls back to its
-    // frozen literal, so an empty list here is safe, never a broken page.
+    // DB hiccup — the desktop bridge renders an explicit unpublished state,
+    // so an empty list is safe and never revives stale event details.
     return NextResponse.json({ ok: true, events: [] });
   }
 }
