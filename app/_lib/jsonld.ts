@@ -8,10 +8,11 @@ export const ORG = data.org;
 export const WEBSITE = data.website;
 export const EVENTS = data.events;      // @graph of Event / EducationEvent  -> /events
 export const PEOPLE = data.people;      // @graph of Person (crew)           -> /the-gang
-// The legacy data file's publisher identifier is shared by article pages, so
-// keep that stable. Its public URL, however, must point at the live /blog
-// route rather than the retired /news path.
-export const NEWSORG = { ...data.newsorg, url: `${SITE.domain}/blog` };
+// Keep both the publisher identifier and URL on the live /blog route. Article
+// pages import this identifier too, so all newsroom markup resolves to one
+// canonical publisher instead of the retired /news URL.
+export const NEWS_PUBLISHER_ID = `${SITE.domain}/blog#publisher`;
+export const NEWSORG = { ...data.newsorg, '@id': NEWS_PUBLISHER_ID, url: `${SITE.domain}/blog` };
 
 type NewsIndexItem = {
   slug: string;
@@ -32,7 +33,7 @@ export function newsIndexJsonLd(posts: NewsIndexItem[]): Record<string, unknown>
     name: 'Urban News',
     url: `${SITE.domain}/blog`,
     isPartOf: { '@id': `${SITE.domain}/#website` },
-    publisher: { '@id': `${SITE.domain}/news#pub` },
+    publisher: { '@id': NEWS_PUBLISHER_ID },
     mainEntity: {
       '@type': 'ItemList',
       itemListOrder: 'https://schema.org/ItemListOrderDescending',

@@ -1,4 +1,5 @@
 import { SITE } from '@/lib/site';
+import { NEWS_PUBLISHER_ID } from './jsonld';
 
 export type BlogPost = {
   slug: string;
@@ -64,6 +65,6 @@ export function articleJsonLd(post: BlogPost) {
       { '@type': 'Person', name: 'Eugine Micah', url: `${SITE.domain}/author/eugine-micah` },
       { '@type': 'Person', name: 'Lucy Ogunde', url: `${SITE.domain}/author/lucy-ogunde` },
     ],
-    publisher: { '@id': `${SITE.domain}/news#pub` },
+    publisher: { '@id': NEWS_PUBLISHER_ID },
   };
 }
