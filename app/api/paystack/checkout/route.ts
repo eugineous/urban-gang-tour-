@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { getProducts, serverTotalWithPromos } from '@/lib/server/catalog';
 import { recordPromoCodeUse } from '@/lib/server/promos';
 import { rateLimit, clientIp, PURCHASE_NETWORK_LIMIT } from '@/lib/server/ratelimit';
@@ -6,6 +7,7 @@ import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
 import { paystackConfigured, paystackInit } from '@/lib/server/paystack';
 import { applyVerifiedMerchVariants } from '@/lib/server/merch-variants';
+import { assertMerchStockAvailable } from '@/lib/server/inventory';
 
 // Card checkout via Paystack (KES, Kenyan settlement). Mirrors the Stripe
 // route: strict schema, prices ONLY from lib/server/catalog.ts, ledger row
@@ -89,10 +91,12 @@ export async function POST(req: Request) {
     const variants = await applyVerifiedMerchVariants(items, lines);
     lines = variants.lines;
     total += variants.adjustment;
+    if (!Number.isSafeInteger(total) || total < 1) throw new Error('invalid_order_total');
+    await assertMerchStockAvailable(lines);
     appliedPromoCode = priced.appliedPromoCode;
   } catch (e: any) { return NextResponse.json({ error: String(e.message) }, { status: 400 }); }
 
-  const id = 'ORD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+  const id = 'ORD-' + Date.now().toString(36).toUpperCase() + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
 
   try {
     const { q, db } = await import('@/lib/server/db');

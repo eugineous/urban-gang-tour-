@@ -1,4 +1,5 @@
 import { NextResponse, after } from "next/server";
+import { randomUUID } from "crypto";
 import { serverTotalWithPromos, getTicketTiers } from "@/lib/server/catalog";
 import { recordPromoCodeUse } from "@/lib/server/promos";
 import {
@@ -13,7 +14,14 @@ import { notifyNewOrder } from "@/lib/server/notify";
 import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
 import { assertMerchStockAvailable } from "@/lib/server/inventory";
 
-const seen = new Map<string, { id: string; ts: number }>(); // idempotency
+const seen = new Map<string, { id: string; ts: number }>(); // short-lived retry guard
+const IDEMPOTENCY_TTL_MS = 10 * 60_000;
+
+function pruneSeen(now: number) {
+  for (const [key, value] of seen) {
+    if (now - value.ts >= IDEMPOTENCY_TTL_MS) seen.delete(key);
+  }
+}
 
 export async function POST(req: Request) {
   if (!sameOrigin(req))
@@ -120,6 +128,7 @@ export async function POST(req: Request) {
         id: "ticket:" + ticket.eventId + ":" + ticket.tier,
         qty: ticket.qty,
         name: ev.name + " - " + tier.name,
+        unit: tier.price,
       },
     ];
   } else {
@@ -174,6 +183,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: e.message }, { status: 400 });
     }
   }
+  if (!Number.isSafeInteger(total) || total < 1) {
+    return NextResponse.json({ error: "invalid_order_total" }, { status: 400 });
+  }
   if (typeof name !== "string" || name.length < 2 || name.length > 100)
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   const emailStr = typeof email === "string" && email ? email : "";
@@ -186,16 +198,40 @@ export async function POST(req: Request) {
       { status: 400 },
     );
 
-  // idempotency: same key within 10 min returns the same order id
-  if (typeof idempotencyKey === "string" && idempotencyKey) {
-    const prev = seen.get(idempotencyKey);
-    if (prev && Date.now() - prev.ts < 600_000)
+  if (
+    idempotencyKey !== undefined &&
+    (typeof idempotencyKey !== "string" ||
+      !/^[A-Za-z0-9_-]{8,128}$/.test(idempotencyKey))
+  ) {
+    return NextResponse.json({ error: "invalid_idempotency_key" }, { status: 400 });
+  }
+
+  // Idempotency keys are scoped to the buyer's normalised M-Pesa number, so
+  // one browser cannot learn another buyer's pending order id by reusing a key.
+  const seenKey = idempotencyKey ? `${msisdn}\u0000${idempotencyKey}` : "";
+  const now = Date.now();
+  pruneSeen(now);
+  if (seenKey) {
+    const prev = seen.get(seenKey);
+    if (prev && now - prev.ts < IDEMPOTENCY_TTL_MS)
       return NextResponse.json({ ok: true, id: prev.id, deduped: true });
   }
 
-  const id = "ORD-" + Date.now().toString(36).toUpperCase();
-  if (typeof idempotencyKey === "string" && idempotencyKey)
-    seen.set(idempotencyKey, { id, ts: Date.now() });
+  if (!mpesaConfigured()) {
+    return NextResponse.json(
+      {
+        ok: false,
+        payment: "not_configured",
+        hint: "Set MPESA_* env vars in Vercel to activate live STK push.",
+      },
+      { status: 503 },
+    );
+  }
+
+  const id =
+    "ORD-" +
+    now.toString(36).toUpperCase() +
+    randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase();
   // persist order (ledger for admin reconciliation)
   try {
     // hasDb(), not db(): db() constructs a Pool, and this is only asking
@@ -204,65 +240,65 @@ export async function POST(req: Request) {
     // stateless HTTP - no connection is held, so concurrent buyers are not
     // capped by a Postgres connection limit.
     const { q, hasDb } = await import("@/lib/server/db");
-    if (hasDb()) {
-      await q(
-        `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [id, JSON.stringify(orderItems), total, name, emailStr, msisdn],
-      );
-      // Order is now durably created — safe to count the code redemption.
-      // Never on a failed/aborted attempt, only here.
-      if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
-      // Routine "new order" owner notification (opt-in, OFF by default) -
-      // fires on checkout creation, not payment confirmation, so the owner
-      // hears about a checkout starting even before M-Pesa confirms it.
-      // Fire-and-forget: never blocks or fails the checkout response.
-      after(() =>
-        notifyNewOrder({
-          id,
-          total,
-          name,
-          email: emailStr,
-          phone: msisdn,
-          status: "pending",
-        }),
-      );
-    }
+    if (!hasDb())
+      return NextResponse.json({ error: "db_not_configured" }, { status: 503 });
+    await q(
+      `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
+      [id, JSON.stringify(orderItems), total, name, emailStr, msisdn],
+    );
+    // Only a durable order can be retried or sent to a payment provider.
+    if (seenKey) seen.set(seenKey, { id, ts: now });
+    // Order is now durably created — safe to count the code redemption.
+    // Never on a failed/aborted attempt, only here.
+    if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
+    // Routine "new order" owner notification (opt-in, OFF by default) -
+    // fires on checkout creation, not payment confirmation, so the owner
+    // hears about a checkout starting even before M-Pesa confirms it.
+    // Fire-and-forget: never blocks or fails the checkout response.
+    after(() =>
+      notifyNewOrder({
+        id,
+        total,
+        name,
+        email: emailStr,
+        phone: msisdn,
+        status: "pending",
+      }),
+    );
   } catch (e: any) {
-    // ledger write failed while the payment flow continues - reconcile manually
     console.error("[order-db]", e);
     await alertCritical(
       "Order creation DB write failed",
-      `order ${id} total ${total} phone ${msisdn}: ${String(e?.message || e)}`,
+      `order ${id} total ${total}: ${String(e?.message || e)}`,
     );
+    return NextResponse.json({ error: "order_create_failed" }, { status: 500 });
   }
 
-  if (!mpesaConfigured()) {
-    return NextResponse.json(
-      {
-        ok: false,
-        id,
-        total,
-        payment: "not_configured",
-        hint: "Set MPESA_* env vars in Vercel to activate live STK push.",
-      },
-      { status: 503 },
-    );
-  }
   try {
     const stk = await stkPush(msisdn, total, id, "UrbanGang");
-    // remember Daraja's CheckoutRequestID so the callback can mark this order paid
+    // A successful STK HTTP response is not payment confirmation. Store the
+    // provider reference before acknowledging it to the browser, otherwise a
+    // later callback could not be tied to the durable order ledger.
     try {
       const { q, hasDb } = await import("@/lib/server/db");
-      if (hasDb() && stk?.CheckoutRequestID) {
-        await q(`UPDATE orders SET mpesa_ref=$2 WHERE id=$1`, [
-          id,
-          stk.CheckoutRequestID,
-        ]);
-      }
-    } catch {
-      /* non-fatal */
+      if (!hasDb() || typeof stk?.CheckoutRequestID !== "string")
+        throw new Error("missing_checkout_reference");
+      const updated = await q(
+        `UPDATE orders SET mpesa_ref=$2 WHERE id=$1 AND status='pending' RETURNING id`,
+        [id, stk.CheckoutRequestID],
+      );
+      if (!updated.length) throw new Error("order_not_pending");
+    } catch (e: any) {
+      await alertCritical(
+        "M-Pesa checkout reference was not recorded",
+        `order ${id}: ${String(e?.message || e)}`,
+      );
+      return NextResponse.json(
+        { ok: false, id, total, error: "payment_reference_unavailable" },
+        { status: 503 },
+      );
     }
-    return NextResponse.json({ ok: true, id, total, stk });
+    return NextResponse.json({ ok: true, id, total });
   } catch (e: any) {
     return NextResponse.json(
       {

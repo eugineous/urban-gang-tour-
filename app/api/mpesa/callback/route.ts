@@ -1,5 +1,5 @@
 import { NextResponse, after } from "next/server";
-import { q, db } from "@/lib/server/db";
+import { q, hasDb } from "@/lib/server/db";
 import { alertCritical } from "@/lib/server/alert";
 import { sendReceiptEmail } from "@/lib/server/receipt-email";
 import { ensureTickets } from "@/lib/server/tickets";
@@ -22,16 +22,32 @@ export async function POST(req: Request) {
         ResultDesc: cb?.ResultDesc,
       }),
     );
-    if (db() && cb?.CheckoutRequestID) {
+    if (hasDb() && typeof cb?.CheckoutRequestID === "string") {
       try {
         if (cb.ResultCode === 0) {
           const items = cb?.CallbackMetadata?.Item || [];
           const receipt =
             items.find((i: any) => i.Name === "MpesaReceiptNumber")?.Value ||
             "";
+          const callbackAmount = Number(
+            items.find((i: any) => i.Name === "Amount")?.Value,
+          );
+          if (
+            !String(receipt) ||
+            !Number.isSafeInteger(callbackAmount) ||
+            callbackAmount < 1
+          ) {
+            await alertCritical(
+              "M-Pesa success callback was incomplete",
+              `CheckoutRequestID ${cb.CheckoutRequestID} did not include a valid receipt and amount`,
+            );
+            return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+          }
           const rows = await q(
-            `UPDATE orders SET status='paid', mpesa_receipt=$2 WHERE mpesa_ref=$1 RETURNING *`,
-            [cb.CheckoutRequestID, String(receipt)],
+            `UPDATE orders SET status='paid', mpesa_receipt=$2
+             WHERE mpesa_ref=$1 AND status='pending' AND total=$3
+             RETURNING *`,
+            [cb.CheckoutRequestID, String(receipt), callbackAmount],
           );
           // mint e-tickets, then the branded receipt email (which links them) -
           // fire-and-forget after the ack, never blocking Daraja's timeout

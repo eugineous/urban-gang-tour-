@@ -41,13 +41,23 @@ export async function POST(req: Request) {
 
   if (event?.event === "charge.success") {
     const ref = String(event.data?.reference || "");
-    if (/^ORD-[A-Z0-9-]{4,40}$/.test(ref)) {
+    const amountSubunit = Number(event.data?.amount);
+    const amountKes = amountSubunit / 100;
+    if (
+      /^ORD-[A-Z0-9-]{4,40}$/.test(ref) &&
+      Number.isSafeInteger(amountSubunit) &&
+      amountSubunit > 0 &&
+      Number.isSafeInteger(amountKes)
+    ) {
       try {
         const { q, db } = await import("@/lib/server/db");
         if (db()) {
           const rows = await q(
-            `UPDATE orders SET status='paid' WHERE id=$1 AND status IN ('pending','failed') RETURNING *`,
-            [ref],
+            `UPDATE orders SET status='paid'
+             WHERE id=$1 AND paystack_ref=$1
+               AND status IN ('pending','failed') AND total=$2
+             RETURNING *`,
+            [ref, amountKes],
           );
           if (rows.length) {
             await q(

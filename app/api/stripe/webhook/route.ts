@@ -72,16 +72,27 @@ export async function POST(req: Request) {
           session: session.id,
         }),
       );
-      if (orderId) {
+      const amountSubunit = Number(session.amount_total);
+      const amountKes = amountSubunit / 100;
+      if (
+        orderId &&
+        session.payment_status === "paid" &&
+        String(session.currency || "").toLowerCase() === "kes" &&
+        Number.isSafeInteger(amountSubunit) &&
+        amountSubunit > 0 &&
+        Number.isSafeInteger(amountKes)
+      ) {
         try {
           const { q, db } = await import("@/lib/server/db");
           if (db()) {
             await ensureColumns(q);
             const rows = await q(
-              `UPDATE orders SET status='paid', stripe_payment_intent=$2,
+            `UPDATE orders SET status='paid', stripe_payment_intent=$2,
                  stripe_session=COALESCE(NULLIF(stripe_session,''), $3)
-               WHERE id=$1 RETURNING *`,
-              [orderId, pi, session.id],
+               WHERE id=$1 AND stripe_session=$3
+                 AND status IN ('pending','failed') AND total=$4
+               RETURNING *`,
+              [orderId, pi, session.id, amountKes],
             );
             if (rows.length === 0) {
               await alertCritical(
