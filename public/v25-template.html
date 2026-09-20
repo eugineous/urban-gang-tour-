@@ -1133,7 +1133,7 @@
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
 <sc-for list="{{ g.pics }}" as="p" hint-placeholder-count="6">
-<div style="border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff;box-shadow:4px 4px 0 #111;transition:transform .18s" style-hover="transform:rotate(-1deg) scale(1.02)"><img src="{{ p.url }}" alt="{{ g.name }} — Urban Gang Tour photo" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"></div>
+<div style="border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff;box-shadow:4px 4px 0 #111;transition:transform .18s" style-hover="transform:rotate(-1deg) scale(1.02)"><img src="{{ p.url }}" alt="{{ p.alt }}" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"></div>
 </sc-for>
 </div>
 </div>
@@ -2143,7 +2143,7 @@ class Component extends DCLogic {
       const name=photo.category || 'Tour Highlights';
       let group=galAll.find(c=>c.name===name);
       if(!group){group={name,count:0,pics:[],has:true};galAll.push(group);}
-      group.pics.push({id:photo.id||photo.url,url:photo.url});
+      group.pics.push({id:photo.id||photo.url,url:photo.url,alt:photo.altText||photo.caption||name+' photo'});
       group.count=group.pics.length;group.has=true;
     }
     const galFilled = galAll.filter(c=>c.has);

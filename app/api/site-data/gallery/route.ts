@@ -31,13 +31,14 @@ export async function GET(req: Request) {
     const photos = await cached('site-gallery', 60_000, async () => {
       await ensureOpsSchema();
       const rows = await q<any>(
-        `SELECT id, url, caption, category, sort_order FROM gallery_photos WHERE published=true ORDER BY sort_order ASC, id ASC`,
+        `SELECT id, url, caption, category, alt_text, sort_order FROM gallery_photos WHERE published=true ORDER BY sort_order ASC, id ASC`,
       );
       return rows.map((r) => ({
         id: r.id,
         url: r.url || '',
         caption: r.caption || '',
         category: r.category || '',
+        altText: r.alt_text || '',
         sortOrder: Number(r.sort_order) || 0,
       }));
     });

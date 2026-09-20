@@ -25,6 +25,13 @@ const MAX_BYTES = 8 * 1024 * 1024; // 8MB cap - enforced for real here (unlike
 // a presigned URL, the file passes through this handler, so the byte count
 // actually received can be checked, not just a client-declared size).
 
+function hasExpectedImageSignature(buf: Buffer, contentType: string): boolean {
+  if (contentType === 'image/jpeg') return buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+  if (contentType === 'image/png') return buf.length >= 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (contentType === 'image/webp') return buf.length >= 12 && buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP';
+  return false;
+}
+
 export async function POST(request: Request): Promise<NextResponse> {
   if (!(await verifyAdminSession(request))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(request, 'gallery')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
@@ -47,6 +54,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({ error: 'invalid_size' }, { status: 400 });
     }
     buf = Buffer.from(arrayBuf);
+    if (!hasExpectedImageSignature(buf, contentType)) {
+      return NextResponse.json({ error: 'invalid_image_bytes' }, { status: 400 });
+    }
   } catch {
     return NextResponse.json({ error: 'read_failed' }, { status: 400 });
   }

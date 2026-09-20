@@ -334,6 +334,7 @@ CREATE TABLE IF NOT EXISTS gallery_photos (
   url TEXT NOT NULL,
   caption TEXT DEFAULT '',
   category TEXT DEFAULT '',
+  alt_text TEXT DEFAULT '',
   published BOOLEAN NOT NULL DEFAULT false,
   width INT,
   height INT,
@@ -341,6 +342,7 @@ CREATE TABLE IF NOT EXISTS gallery_photos (
 );
 ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
 ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS alt_text TEXT DEFAULT '';
 ALTER TABLE gallery_photos ALTER COLUMN width DROP NOT NULL;
 ALTER TABLE gallery_photos ALTER COLUMN height DROP NOT NULL;
 ALTER TABLE gallery_photos ALTER COLUMN category SET DEFAULT '';
