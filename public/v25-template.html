@@ -994,6 +994,7 @@
 </div>
 </div>
 <div style="background:#111;border-bottom:4px solid #FFD400;padding:40px 24px">
+<sc-if value="{{ hasNextStop }}" hint-placeholder-val="{{ true }}">
 <div data-col2 style="max-width:1060px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:0;border:4px solid #FFD400;border-radius:22px;overflow:hidden;box-shadow:10px 10px 0 rgba(255,212,0,.25);background:#1b1b1b">
 <div style="position:relative;min-height:260px"><img src="{{ nextStop.img }}" alt="{{ nextStop.name }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
 <span style="position:absolute;top:14px;left:14px;background:#E6218C;color:#fff;border:2px solid #fff;border-radius:100px;padding:6px 14px;font-family:'Bungee';font-size:12px;animation:blink 2s steps(1) infinite">● NEXT STOP</span></div>
@@ -1009,6 +1010,10 @@
 <button onClick="{{ nav.contact }}" style="margin-top:auto;align-self:flex-start;background:#FFD400;color:#111;font-family:'Anton';font-size:15px;padding:12px 22px;border:3px solid #fff;border-radius:12px;box-shadow:4px 4px 0 #E6218C" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #E6218C">Get Your School On The Route →</button>
 </div>
 </div>
+</sc-if>
+<sc-if value="{{ noNextStop }}" hint-placeholder-val="{{ false }}">
+<div style="max-width:760px;margin:0 auto;text-align:center;border:3px dashed #FFD400;border-radius:18px;padding:34px 24px;color:#fff"><div style="font-family:'Anton';font-size:30px;text-transform:uppercase;color:#FFD400">The next stop is not published yet.</div><p style="margin:10px auto 0;max-width:540px;color:#ddd;line-height:1.55;font-weight:600">When an institution confirms and the event desk publishes it, the real date and location will appear here.</p><button onClick="{{ nav.contact }}" style="margin-top:18px;background:#FFD400;color:#111;font-family:'Anton';font-size:15px;padding:12px 22px;border:3px solid #fff;border-radius:12px;box-shadow:4px 4px 0 #E6218C">Talk to the bookings team →</button></div>
+</sc-if>
 </div>
 <div style="background:#F7F1E4;border-bottom:4px solid #111;padding:50px 24px">
 <div style="max-width:860px;margin:0 auto">
@@ -1017,6 +1022,7 @@
 <h2 style="font-family:'Anton';font-size:clamp(30px,4.5vw,54px);text-transform:uppercase;margin:4px 0 0;line-height:.92">The 2026 <span style="background:#FFD400;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">Route Map</span></h2>
 </div>
 <div style="position:relative">
+<sc-if value="{{ hasStops }}" hint-placeholder-val="{{ true }}">
 <div style="position:absolute;top:10px;bottom:10px;left:44px;width:14px;background:#111;border-radius:8px" data-routeline></div>
 <div style="position:absolute;top:10px;bottom:10px;left:49px;width:4px;background:repeating-linear-gradient(#FFD400 0 20px,transparent 20px 42px)" data-routeline2></div>
 <div style="display:flex;flex-direction:column;gap:22px;position:relative">
@@ -1037,6 +1043,8 @@
 </div>
 </sc-for>
 </div>
+</sc-if>
+<sc-if value="{{ noStops }}" hint-placeholder-val="{{ false }}"><div style="background:#fff;border:3px dashed #999;border-radius:16px;padding:34px;text-align:center;color:#555;font-weight:700">No tour stops are published on this route yet.</div></sc-if>
 </div>
 </div>
 </div>
@@ -1602,22 +1610,9 @@ class Component extends DCLogic {
         {id:'B-2036',name:'Kevin O.',org:'Freelance Videographer',type:'Join the Crew',date:'2026-06-18',status:'review',email:'kev.films@gmail.com',msg:'Camera op, Kiambu county, own gimbal.'}
       ]
     };
-    this.PRODUCTS = (typeof window!=='undefined' && window.__UGT_PRODUCTS && window.__UGT_PRODUCTS.length) ? window.__UGT_PRODUCTS : [
-      {id:'p1',name:'Magenta Oversized Tee',price:2500,img:'/assets/merch/magenta-tee.png',cat:'Apparel',desc:'Heavyweight oversized tee in signature magenta. Boxy fit, drop shoulder, tour print. You wore this when it happened.'},
-      {id:'p2',name:'Black Crewneck Sweatshirt',price:3800,img:'/assets/merch/crewneck.png',cat:'Apparel',desc:'Heavyweight brushed-fleece crewneck. Warm, boxy, built for late load-outs and cold campus mornings.'},
-      {id:'p3',name:'Structured Snapback',price:1800,img:'/assets/merch/snapback.png',cat:'Headwear',desc:'Six-panel structured snapback, flat brim, embroidered mark. Adjustable, one size.'},
-      {id:'p4',name:'Bucket Hat',price:1600,img:'/assets/merch/bucket-hat.png',cat:'Headwear',desc:'All-day festival bucket hat. Shade for the field, statement for the feed.'},
-      {id:'p5',name:'Canvas Tote',price:1200,img:'/assets/merch/tote.png',cat:'Accessories',desc:'Heavy cotton canvas tote. Carries merch, books, and the whole vibe.'},
-      {id:'p6',name:'Cuffed Beanie',price:1400,img:'/assets/merch/beanie.png',cat:'Headwear',desc:'Ribbed cuffed knit beanie with woven tab. Crew-approved.'},
-      {id:'p7',name:'Insulated Bottle',price:2200,img:'/assets/merch/bottle.png',cat:'Accessories',desc:'Matte-black double-wall insulated steel bottle. Cold all day on the road.'},
-      {id:'p8',name:'Wristband Pack',price:500,img:'/assets/merch/wristbands.png',cat:'Accessories',desc:'Silicone wristband pack. The cheapest way to rep the gang.'},
-      {id:'p9',name:'Drawstring Gym Sack',price:1500,img:'/assets/merch/gym-sack.png',cat:'Accessories',desc:'Lightweight drawstring sack for kit, shoes, and merch runs.'},
-      {id:'p10',name:'Cropped Baby Tee',price:2200,img:'/assets/merch/baby-tee.png',cat:'Apparel',desc:'Fitted cropped baby tee. Clean, cropped, loud on the timeline.'},
-      {id:'p11',name:'Football Jersey',price:3200,img:'/assets/merch/jersey.png',cat:'Apparel',desc:'Breathable football-style jersey. Team colours, tour badge.'},
-      {id:'p12',name:'Crossbody Waist Bag',price:2000,img:'/assets/merch/waist-bag.png',cat:'Accessories',desc:'Crossbody waist bag for phone, cards, and backstage passes.'},
-      {id:'p13',name:'Woven Lanyard',price:400,img:'/assets/merch/lanyard.png',cat:'Accessories',desc:'Black woven lanyard for passes, keys and backstage energy.'},
-      {id:'p14',name:'Sticker Sheet',price:300,img:'/assets/merch/stickers.png',cat:'Accessories',desc:'Die-cut vinyl sticker sheet. Laptops, bottles, matatu windows.'}
-    ];
+    // Product names, prices and variants are authoritative only when supplied
+    // by the live catalogue bridge. Never revive obsolete sample merchandise.
+    this.PRODUCTS = (typeof window!=='undefined' && window.__UGT_PRODUCTS && window.__UGT_PRODUCTS.length) ? window.__UGT_PRODUCTS : [];
     this.DIVISIONS = [
       {key:'mic',card:'#FFD400',title:'Live',desc:'Festivals, concerts, awards, competitions, campus takeovers. Built to broadcast standard, run first light to final pack-down.'},
       {key:'tv',card:'#21C7E6',title:'Broadcast',desc:'We make television and we host it. Every stage feeds the national screen through Urban News on PPP TV Kenya.'},
@@ -1677,11 +1672,9 @@ class Component extends DCLogic {
       {key:'star',title:'Celebrity Guests',bg:'#FFD400',desc:'Celebrity influencers and musicians drop in to perform and connect.'},
       {key:'check',title:'Tree Planting',bg:'#21C7E6',desc:'A greener compound at every stop, planted by the students themselves.'}
     ];
-    this.MAIN_EVENTS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.ticketed && window.__UGT_EVENTS.ticketed.length) ? window.__UGT_EVENTS.ticketed : [
-      {id:'xp-dance',name:'The Experience Hub Dance Event',tagline:'The dance takeover \u2014 crews, cyphers, hype sets and celebrity performances.',date:'Sat 16 Aug 2026',time:'2:00 PM',venue:'KICC Grounds',city:'Nairobi',img:'/assets/gal/xp-dance.jpg',accent:'#E6218C',tiers:[{name:'Regular',price:500},{name:'VIP',price:1500},{name:'VVIP Table',price:5000}]},
-      {id:'festival-colours',name:'Urban Festival Of Colours',tagline:'One field, a thousand colours, dancers, DJs and non-stop hype.',date:'Sat 20 Sep 2026',time:'11:00 AM',venue:'Uhuru Gardens',city:'Nairobi',img:'/assets/gal/festival-colours.jpg',accent:'#21C7E6',tiers:[{name:'Early Bird',price:800},{name:'Regular',price:1200},{name:'VIP',price:3000}]},
-      {id:'campus-rave',name:'Campus Rave \u2014 Nairobi Edition',tagline:'The tour, fully grown. Bigger stage, bigger sound, broadcast-ready.',date:'Fri 3 Oct 2026',time:'4:00 PM',venue:'Carnivore Grounds',city:'Nairobi',img:'/assets/gal/campus-rave.jpg',accent:'#FFD400',tiers:[{name:'Regular',price:1000},{name:'VIP',price:2500},{name:'VVIP',price:6000}]}
-    ];
+    // Ticket sales are never allowed to fall back to draft dates, venues or
+    // prices. Only a published row from the event desk can populate this.
+    this.MAIN_EVENTS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.ticketed && window.__UGT_EVENTS.ticketed.length) ? window.__UGT_EVENTS.ticketed : [];
     this.TEAM = [
       {id:'eugine',img:'/assets/crew/eugine-micah.png',name:'Eugine Micah',role:'Co-Founder, Creative Director & Lead Host',tag:'The Face of the Tour',hype:true,bio:[
         'Eugine Micah is the co-founder and creative director of the Urban Gang Tour, and the lead host audiences across Kenya now recognise on sight. He built the tour from a single school hall into a travelling production that sets up a full stage, a live broadcast, and a mentorship programme in one day.',
@@ -1817,23 +1810,9 @@ class Component extends DCLogic {
         'Their green messaging runs through the day\u2019s programme, connecting Kenyan youth culture to environmental stewardship in a way that feels like part of the show, not a lecture.'],
         services:['Tree planting programs','Environmental education','Green event consulting','Legacy projects for schools'],credits:['Tree planting at every 2026 stop','Student green ambassador pods','Post-event grove check-ins with schools']}
     };
-    this.STOPS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.school && window.__UGT_EVENTS.school.length) ? window.__UGT_EVENTS.school : [
-      {day:'30',mon:'MAY',year:'2026',name:'Senior Chief Koinange Girls',loc:'Kiambu County',status:'done',img:'/assets/gal/koinange.jpg'},
-      {day:'01',mon:'JUN',year:'2026',name:'Loreto Kiambu Girls High',loc:'Kiambu County',status:'done',img:'/assets/gal/loreto.jpg'},
-      {day:'07',mon:'JUN',year:'2026',name:'Gituamba Girls High School',loc:'Kiambu County',status:'done',img:'/assets/gal/gituamba.jpg'},
-      {day:'19',mon:'JUL',year:'2026',name:'Lari Boys High School',loc:'Kimende, Lari, Kiambu County',status:'done',img:'/assets/gal/lari.jpg'},
-      {day:'24',mon:'JUL',year:'2026',name:'Ngeya Girls\u2019 Secondary School',loc:'Naivasha, Nakuru County',status:'next',img:'/assets/gal/ngeya.jpg'},
-      {day:'28',mon:'JUL',year:'2026',name:'St. Augustine Secondary School',loc:'Mlolongo, Machakos County',status:'upcoming',img:'/assets/gal/staugustine.jpg'},
-      {day:'TBA',mon:'JUL',year:'2026',name:'Maai Mahiu Boys High School',loc:'Maai Mahiu, Nakuru County',status:'upcoming',img:'/assets/gal/maimahiu-boys.jpg'},
-      {day:'TBA',mon:'AUG',year:'2026',name:'Maai Mahiu Girls High School',loc:'Maai Mahiu, Nakuru County',status:'upcoming',img:'/assets/gal/maimahiu-girls.jpg'},
-      {day:'TBA',mon:'AUG',year:'2026',name:'Dr. Kiano Boys High School',loc:'Githiga, Kangema, Murang\u2019a County',status:'upcoming',img:'/assets/gal/drkiano.jpg'}
-    ];
-    this.WORKS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.past && window.__UGT_EVENTS.past.length) ? window.__UGT_EVENTS.past : [
-      {name:'Goshen Group of Schools',loc:'Nakuru'},
-      {name:'Achego Girls High School',loc:'Muhoroni, Kisumu County'},
-      {name:'Campus Rave Editions',loc:'Nairobi Region'}
-    ];
-    this.GALLERY = (typeof window!=='undefined' && window.__UGT_GALLERY && window.__UGT_GALLERY.length) ? window.__UGT_GALLERY : ['/assets/gal/g-crowning.jpg','/assets/gal/g-trees.jpg','/assets/gal/g-runway.jpg','/assets/gal/g-street.jpg','/assets/gal/g-winning.jpg'];
+    this.STOPS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.school && window.__UGT_EVENTS.school.length) ? window.__UGT_EVENTS.school : [];
+    this.WORKS = (typeof window!=='undefined' && window.__UGT_EVENTS && window.__UGT_EVENTS.past && window.__UGT_EVENTS.past.length) ? window.__UGT_EVENTS.past : [];
+    this.GALLERY = (typeof window!=='undefined' && window.__UGT_GALLERY && window.__UGT_GALLERY.length) ? window.__UGT_GALLERY : [];
     this.NEWS = ['Show intro with the hosts on location','School and institution feature','Student interviews and stories','Club visits and campus culture','Competition highlights and winner moments','Principal and leadership interviews','Behind the scenes with the crew','Outro with the next-stop tease'];
     this.ARTICLES = [
       {id:'gitchez',headline:'Gituamba Girls Erupts as Urban Gang Tour Brings the Festival of Colours',date:'2026-06-07',section:'Tour Recap',img:'/assets/gal/gituamba.jpg',dek:'A full day of showcases, a runway, and a national broadcast turned GITCHEZ into the loudest school day of the term.',body:['Gituamba Girls High School hosted the Urban Gang Tour for a Cultural Day and Festival of Colours that ran from morning assembly to a packed evening finale. Students competed across every kind of talent — music, dance, spoken word, comedy and modelling — while the mentorship pods ran sessions alongside the main stage.','Hosts Eugine Micah and Lucy Ogunde anchored the day for Urban News on PPP TV Kenya, interviewing performers, teachers, and the eventual category winners. The modelling runway, directed with Synapse Models, closed with the crowning of Miss of the Institution by the school administration.','The feature aired nationally on Urban News, carrying the school\u2019s name and its students far beyond Kiambu County.']},
@@ -2220,7 +2199,7 @@ class Component extends DCLogic {
       tabOrders:s.admin.tab==='orders', tabOrdersColor:at('orders').color, tabOrdersBg:at('orders').bg, setOrders:()=>this.setAdminTab('orders'),
       orderRows:s.orders.map(o=>({...o,totalFmt:this.fmt(o.total),kindBg:(o.kind==='Ticket'?'#FFD400':'#21C7E6')})),
       noOrders:s.orders.length===0,
-      nextStop:{...nextStop},
+      nextStop:{...(nextStop||{})}, hasNextStop:!!nextStop, noNextStop:!nextStop, hasStops:stops.length>0, noStops:stops.length===0,
       newsLeadRaw:(()=>{ const a=this.ARTICLES.find(x=>x.id==='lari')||this.ARTICLES[0]; return {...a, dateFmt:new Date(a.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}), firstPara:a.body[0]}; })(),
       newsGroups:(()=>{ const all=[...s.publishedBlogs,...this.ARTICLES]; const secs=[['Tour Recap','#E6218C','FRESH OFF THE ROAD'],['Upcoming','#21C7E6','UP NEXT ON THE CALENDAR'],['The Gang','#FFD400','THE GANG FILES'],['Culture','#1F8A5B','CULTURE DESK']]; return secs.map(([sec,color,label])=>({label,color,items:all.filter(a=>a.section===sec && a.id!=='lari').map(a=>({...a,dateFmt:new Date(a.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}))})); })(),
       newsTicker:[...s.publishedBlogs,...this.ARTICLES].map(a=>a.headline).join(' \u2726 '),

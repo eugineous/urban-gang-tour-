@@ -37,8 +37,8 @@ export function V25App({ page }: { page: string }) {
     // STOPS / WORKS / PRODUCTS render code needs zero changes. DISPLAY ONLY —
     // exactly like the promo bridge above, the real charge is always
     // recomputed server-side (lib/server/catalog.ts), so a stale or failed
-    // fetch here only means the page shows its frozen fallback content, it
-    // never blocks or changes checkout.
+    // fetch here only leaves the relevant public section empty. It never
+    // blocks checkout or substitutes a fabricated catalogue.
     const eventsReady = fetch('/api/site-data/events')
       .then((r) => r.json())
       .then((d) => {
@@ -95,9 +95,8 @@ export function V25App({ page }: { page: string }) {
     // list once, before boot, and normalize it down to the same plain array
     // of URL strings the template's this.GALLERY always was, so the
     // template's existing render code needs zero changes. DISPLAY ONLY —
-    // same fire-and-forget/safe-empty-fallback pattern as the events/products
-    // bridges above: a stale or failed fetch here only means the page shows
-    // its frozen fallback photos, never a broken page.
+    // same fire-and-forget/safe-empty pattern as the events/products bridges:
+    // a stale or failed fetch leaves that gallery section empty, never broken.
     const galleryReady = fetch('/api/site-data/gallery')
       .then((r) => r.json())
       .then((d) => {
