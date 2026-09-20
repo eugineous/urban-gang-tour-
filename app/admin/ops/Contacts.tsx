@@ -35,6 +35,7 @@ interface Contact {
   email: string;
   notes: string;
   next_followup: string | null;
+  last_contacted_at: string | null;
   status: string;
   contact_type: string;
 }
@@ -64,6 +65,8 @@ export default function Contacts() {
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
   const [qy, setQy] = useState("");
   const [busy, setBusy] = useState(false);
+  const [logging, setLogging] = useState<Contact | null>(null);
+  const [nextFollowup, setNextFollowup] = useState("");
   const [toast, say] = useToast();
 
   const reload = useCallback(async () => {
@@ -84,6 +87,39 @@ export default function Contacts() {
       rows.filter((r) => r.next_followup && fmtDate(r.next_followup) <= today),
     [rows, today],
   );
+  const relationshipNeedsPlan = useMemo(
+    () => rows.filter((r) => ["active", "partner"].includes(r.status) && !r.next_followup),
+    [rows],
+  );
+
+  const followupLabel = (c: Contact) => {
+    const date = fmtDate(c.next_followup);
+    if (!date) return "No follow-up planned";
+    if (date < today) return `Overdue since ${date}`;
+    return date === today ? "Due today" : `Next ${date}`;
+  };
+
+  const openFollowup = (c: Contact) => {
+    setLogging(c);
+    setNextFollowup("");
+  };
+
+  const completeFollowup = async () => {
+    if (!logging) return;
+    setBusy(true);
+    const { data } = await opsPost("contact.followup.complete", {
+      id: logging.id,
+      nextFollowup,
+    });
+    setBusy(false);
+    if (data.error) {
+      say("Failed: " + data.error);
+      return;
+    }
+    say("Follow-up logged");
+    setLogging(null);
+    reload();
+  };
 
   const groups = useMemo(() => {
     const filtered = rows.filter(
@@ -245,6 +281,21 @@ export default function Contacts() {
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <Toast msg={toast} />
+      {relationshipNeedsPlan.length > 0 && (
+        <div style={{ ...card, borderColor: OC.magenta, boxShadow: `5px 5px 0 ${OC.magenta}` }}>
+          <h3 style={h3}>RELATIONSHIP FOLLOW-UP PLAN ({relationshipNeedsPlan.length})</h3>
+          <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
+            Active relationships without a next follow-up date. Add a plan deliberately, rather than assuming a message was sent.
+          </div>
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            {relationshipNeedsPlan.slice(0, 12).map((c) => (
+              <button key={c.id} style={btnSmall} onClick={() => startEdit(c)}>
+                Plan: {c.org || c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {due.length > 0 && (
         <div
           style={{
@@ -268,7 +319,7 @@ export default function Contacts() {
               }}
             >
               <Chip
-                text={fmtDate(c.next_followup)}
+                text={followupLabel(c)}
                 bg="#FDF2D9"
                 color={OC.orange}
               />
@@ -292,6 +343,9 @@ export default function Contacts() {
               )}
               <button style={btnSmall} onClick={() => startEdit(c)}>
                 Open
+              </button>
+              <button style={{ ...btnSmall, background: OC.magenta, color: "#fff" }} onClick={() => openFollowup(c)}>
+                Log follow-up
               </button>
             </div>
           ))}
@@ -414,7 +468,7 @@ export default function Contacts() {
                       <td style={td}>
                         {c.next_followup ? (
                           <Chip
-                            text={fmtDate(c.next_followup)}
+                            text={followupLabel(c)}
                             bg={
                               fmtDate(c.next_followup) <= today
                                 ? "#FDF2D9"
@@ -432,9 +486,13 @@ export default function Contacts() {
                       </td>
                       <td style={td}>
                         <Chip text={c.status} />
+                        {c.last_contacted_at ? <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>Last logged {fmtDate(c.last_contacted_at)}</div> : null}
                       </td>
                       <td style={td}>
                         <div style={{ display: "flex", gap: 5 }}>
+                          <button style={{ ...btnSmall, background: OC.magenta, color: "#fff" }} onClick={() => openFollowup(c)}>
+                            Log
+                          </button>
                           <button style={btnSmall} onClick={() => startEdit(c)}>
                             Edit
                           </button>
@@ -471,6 +529,25 @@ export default function Contacts() {
           </div>
         )}
       </div>
+      {logging && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 70, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,.5)" }}>
+          <div style={{ ...card, width: "100%", maxWidth: 430 }}>
+            <h3 style={h3}>LOG FOLLOW-UP</h3>
+            <div style={{ fontSize: 13, marginBottom: 10 }}>
+              {logging.name}{logging.org ? `, ${logging.org}` : ""}
+            </div>
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 12 }}>
+              This records today as a completed relationship touchpoint. It does not send WhatsApp or email, and it stores no message content.
+            </div>
+            <label style={label}>Next follow-up, optional</label>
+            <input style={inp} type="date" min={today} value={nextFollowup} onChange={(e) => setNextFollowup(e.target.value)} />
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+              <button style={btnMagenta} disabled={busy} onClick={completeFollowup}>Log today</button>
+              <button style={btnDark} disabled={busy} onClick={() => setLogging(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

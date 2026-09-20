@@ -66,12 +66,17 @@ CREATE TABLE IF NOT EXISTS ops_contacts (
   email TEXT DEFAULT '',
   notes TEXT DEFAULT '',
   next_followup DATE,
+  last_contacted_at DATE,
   status TEXT DEFAULT 'lead',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 -- Existing entries are conservatively school-classified until the owner
 -- deliberately reclassifies them in the Control Room.
 ALTER TABLE ops_contacts ADD COLUMN IF NOT EXISTS contact_type TEXT NOT NULL DEFAULT 'school';
+-- A deliberately small relationship signal. It records that a coordinator
+-- logged a contact point without copying the message, call content or other
+-- sensitive detail into the operating system.
+ALTER TABLE ops_contacts ADD COLUMN IF NOT EXISTS last_contacted_at DATE;
 CREATE TABLE IF NOT EXISTS ops_crew_payouts (
   id SERIAL PRIMARY KEY,
   event_id INT REFERENCES ops_events(id) ON DELETE CASCADE,

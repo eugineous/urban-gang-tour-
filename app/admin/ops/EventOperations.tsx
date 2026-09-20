@@ -55,6 +55,22 @@ const STATUS = [
   ["cancelled", "Cancelled"],
 ];
 
+function nextAction(row: EventRow): { text: string; color: string; bg: string } {
+  const total = Number(row.checklist_total || 0);
+  const done = Number(row.checklist_done || 0);
+  if (row.status === "cancelled") return { text: "No action, cancelled", color: "#555", bg: "#eee" };
+  if (row.status === "completed")
+    return total && done < total
+      ? { text: `Close ${total - done} checklist item${total - done === 1 ? "" : "s"}`, color: OC.orange, bg: "#FDF2D9" }
+      : { text: "Operational record complete", color: OC.green, bg: "#E7F5EE" };
+  if (!row.event_date) return { text: "Set the event date", color: OC.orange, bg: "#FDF2D9" };
+  if (!total) return { text: "Start the event checklist", color: OC.orange, bg: "#FDF2D9" };
+  if (done < total) return { text: `Complete ${total - done} checklist item${total - done === 1 ? "" : "s"}`, color: OC.orange, bg: "#FDF2D9" };
+  if (row.status === "planned") return { text: "Update state when the host confirms", color: OC.magenta, bg: "#EFE7EC" };
+  if (row.status === "confirmed") return { text: "Use the checklist on event day", color: OC.green, bg: "#E7F5EE" };
+  return { text: "Close the operational record after the event", color: OC.magenta, bg: "#EFE7EC" };
+}
+
 export default function EventOperations({
   openChecklist,
 }: {
@@ -208,7 +224,7 @@ export default function EventOperations({
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
-                {["event", "host", "date", "readiness", "state", "updated", ""].map(
+                {["event", "host", "date", "readiness", "next action", "state", "updated", ""].map(
                   (column) => (
                     <th key={column} style={th}>
                       {column}
@@ -222,6 +238,7 @@ export default function EventOperations({
                 const total = Number(row.checklist_total || 0);
                 const done = Number(row.checklist_done || 0);
                 const ready = total > 0 && total === done;
+                const action = nextAction(row);
                 return (
                   <tr key={row.id}>
                     <td style={td}><b>{row.name}</b></td>
@@ -234,6 +251,7 @@ export default function EventOperations({
                         color={ready ? OC.green : OC.orange}
                       />
                     </td>
+                    <td style={td}><Chip text={action.text} bg={action.bg} color={action.color} /></td>
                     <td style={td}><Chip text={row.status.replaceAll("_", " ")} /></td>
                     <td style={td}>{fmtDate(row.updated_at)}</td>
                     <td style={td}>
@@ -262,7 +280,7 @@ export default function EventOperations({
               })}
               {!visible.length && (
                 <tr>
-                  <td style={td} colSpan={7}>
+                    <td style={td} colSpan={8}>
                     {rows.length ? "No events match your search." : "No operational events yet. Create one after a lead is qualified or a school date is confirmed."}
                   </td>
                 </tr>

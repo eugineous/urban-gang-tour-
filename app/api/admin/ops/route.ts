@@ -76,6 +76,7 @@ function hasAnyPerm(req: Request, keys: string[]): boolean {
 
 const CONTACT_TYPES = ["school", "talent", "partner", "media"] as const;
 type ContactType = (typeof CONTACT_TYPES)[number];
+const CONTACT_STATUSES = ["lead", "active", "partner", "dormant"] as const;
 
 function contactType(v: unknown): ContactType {
   return (CONTACT_TYPES as readonly string[]).includes(String(v))
@@ -647,12 +648,17 @@ export async function POST(req: Request) {
     // Invoices tab (paying down an invoice) - either perm may call it.
     if (!hasAnyPerm(req, ["ops_payments", "ops_invoices"]))
       return bad("forbidden", 403);
-  } else if (kind === "contact.save" || kind === "contact.delete") {
+  } else if (
+    kind === "contact.save" ||
+    kind === "contact.delete" ||
+    kind === "contact.followup.complete"
+  ) {
     // The target record, not merely the screen, defines the authority. This
     // prevents a school liaison from changing a hidden talent/partner row by
     // replaying the request outside the Control Room UI.
     await ensureOpsSchema();
     const id = intOrNull(d.id);
+    if (kind !== "contact.save" && !id) return bad("missing_id");
     const existing = id
       ? await q<{ contact_type: string }>(
           `SELECT contact_type FROM ops_contacts WHERE id=$1`,
@@ -665,10 +671,9 @@ export async function POST(req: Request) {
       : null;
     if (existingType && !canManageContactType(req, existingType))
       return bad("forbidden", 403);
-    const type = contactType(
-      kind === "contact.save" ? d.contactType : existingType,
-    );
-    if (!canManageContactType(req, type)) return bad("forbidden", 403);
+    const type =
+      kind === "contact.save" ? contactType(d.contactType) : existingType;
+    if (!type || !canManageContactType(req, type)) return bad("forbidden", 403);
   } else if (KIND_PERM[kind]) {
     if (!hasPerm(req, KIND_PERM[kind])) return bad("forbidden", 403);
   }
@@ -991,6 +996,9 @@ export async function POST(req: Request) {
         const id = intOrNull(d.id);
         const name = s(d.name, 200);
         if (!name) return bad("missing_name");
+        const status = s(d.status || "lead", 30);
+        if (!(CONTACT_STATUSES as readonly string[]).includes(status))
+          return bad("invalid_contact_status");
         const fields = [
           name,
           s(d.org, 200),
@@ -999,7 +1007,7 @@ export async function POST(req: Request) {
           s(d.email, 200),
           s(d.notes, 2000),
           dateOrNull(d.nextFollowup),
-          s(d.status || "lead", 30),
+          status,
           contactType(d.contactType),
         ];
         let row;
@@ -1014,6 +1022,25 @@ export async function POST(req: Request) {
             fields,
           );
         await opsAudit("ops.contact.save", { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "contact.followup.complete": {
+        const id = intOrNull(d.id);
+        if (!id) return bad("missing_id");
+        // This is intentionally not a messaging action. It only records that
+        // a staff member completed a relationship touchpoint today and, if
+        // they chose one, stores the next follow-up date.
+        const row = await q(
+          `UPDATE ops_contacts
+             SET last_contacted_at=CURRENT_DATE, next_followup=$1
+           WHERE id=$2 RETURNING *`,
+          [dateOrNull(d.nextFollowup), id],
+        );
+        if (!row.length) return bad("not_found", 404);
+        await opsAudit("ops.contact.followup.complete", {
+          id,
+          nextFollowup: dateOrNull(d.nextFollowup),
+        });
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case "contact.delete": {
@@ -1200,30 +1227,33 @@ export async function POST(req: Request) {
         const id = intOrNull(d.id);
         const name = s(d.name, 200);
         if (!name) return bad("missing_name");
-        const stage = (LEAD_STAGES as readonly string[]).includes(d.stage)
-          ? d.stage
-          : "new";
         const fields = [
           name,
           s(d.org, 200),
           s(d.phone, 40),
           s(d.email, 200),
           s(d.note, 2000),
-          stage,
-          s(d.lostReason, 300),
         ];
         let row;
         if (id)
           row = await q(
-            `UPDATE ops_leads SET name=$1, org=$2, phone=$3, email=$4, note=$5, stage=$6, lost_reason=$7, updated_at=now() WHERE id=$8 RETURNING *`,
+            // Stage changes must use lead.move below. Keeping ordinary edits
+            // out of that path prevents a forged form request from skipping
+            // the qualification and contracting workflow.
+            `UPDATE ops_leads SET name=$1, org=$2, phone=$3, email=$4, note=$5, updated_at=now() WHERE id=$6 RETURNING *`,
             [...fields, id],
           );
         else
           row = await q(
-            `INSERT INTO ops_leads (name, org, phone, email, note, stage, lost_reason) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+            `INSERT INTO ops_leads (name, org, phone, email, note, stage, lost_reason) VALUES ($1,$2,$3,$4,$5,'new','') RETURNING *`,
             fields,
           );
-        await opsAudit("ops.lead.save", { id: row[0]?.id, name, stage });
+        if (!row.length && id) return bad("not_found", 404);
+        await opsAudit("ops.lead.save", {
+          id: row[0]?.id,
+          name,
+          stage: row[0]?.stage,
+        });
         return NextResponse.json({ ok: true, row: row[0] });
       }
       case "lead.move": {
@@ -1232,7 +1262,24 @@ export async function POST(req: Request) {
         if (!id) return bad("missing_id");
         if (!(LEAD_STAGES as readonly string[]).includes(stage))
           return bad("bad_stage");
+        const existing = await q<{ stage: string }>(
+          `SELECT stage FROM ops_leads WHERE id=$1`,
+          [id],
+        );
+        if (!existing.length) return bad("not_found", 404);
+        const current = existing[0].stage;
+        const currentIndex = LEAD_STAGES.indexOf(current as any);
+        const targetIndex = LEAD_STAGES.indexOf(stage as any);
+        const canMoveToLost = stage === "lost" && current !== "lost" && current !== "completed";
+        const canStep =
+          currentIndex >= 0 &&
+          targetIndex >= 0 &&
+          stage !== "lost" &&
+          current !== "lost" &&
+          Math.abs(targetIndex - currentIndex) === 1;
+        if (!canMoveToLost && !canStep) return bad("invalid_lead_transition");
         const lostReason = stage === "lost" ? s(d.lostReason, 300) : "";
+        if (stage === "lost" && !lostReason) return bad("missing_lost_reason");
         const row = await q(
           `UPDATE ops_leads SET stage=$1, lost_reason=$2, updated_at=now() WHERE id=$3 RETURNING *`,
           [stage, lostReason, id],
@@ -1252,6 +1299,8 @@ export async function POST(req: Request) {
             eventId: lead[0].event_id,
             already: true,
           });
+        if (!["confirmed", "contracted"].includes(lead[0].stage))
+          return bad("lead_not_ready_for_event");
         const ev = await q(
           `INSERT INTO ops_events (name, school, status) VALUES ($1,$2,'planned') RETURNING id`,
           [
@@ -1260,7 +1309,7 @@ export async function POST(req: Request) {
           ],
         );
         await q(
-          `UPDATE ops_leads SET event_id=$1, stage=CASE WHEN stage IN ('new','contacted','negotiating') THEN 'confirmed' ELSE stage END, updated_at=now() WHERE id=$2`,
+          `UPDATE ops_leads SET event_id=$1, updated_at=now() WHERE id=$2`,
           [ev[0].id, id],
         );
         await opsAudit("ops.lead.convert", { id, eventId: ev[0].id });
