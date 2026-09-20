@@ -106,6 +106,20 @@ export function V25App({ page }: { page: string }) {
         window.dispatchEvent(new Event('ugt:gallery'));
       })
       .catch(() => { w.__UGT_GALLERY = w.__UGT_GALLERY || []; });
+    // News bridge: current published articles belong to the Content desk.
+    // Do not let the desktop rail render old, bundled story copy while the
+    // newsroom is unavailable. The template has an explicit empty-news state.
+    const postsReady = fetch('/api/site-data/posts')
+      .then((r) => r.json())
+      .then((d) => {
+        const rows: any[] = Array.isArray(d?.posts) ? d.posts : [];
+        w.__UGT_ARTICLES = rows.map((post) => ({
+          id: post.id, headline: post.headline, date: post.date,
+          section: post.section, img: post.img, dek: post.dek,
+          body: Array.isArray(post.body) ? post.body : [],
+        }));
+      })
+      .catch(() => { w.__UGT_ARTICLES = w.__UGT_ARTICLES || []; });
     // Card checkout bridge: the v25 template's "Pay with Card" button calls
     // this with the same {id, qty} cart lines the M-Pesa order flow sends.
     // The server re-prices everything from lib/server/catalog.ts and answers
@@ -243,7 +257,7 @@ export function V25App({ page }: { page: string }) {
         });
     };
 
-    // The three public data bridges are intentionally parallel, and normally
+    // The public data bridges are intentionally parallel, and normally
     // settle before this runs. They must never, however, become a single point
     // of failure for the whole desktop site. A transient database connection
     // or stalled response should leave the server-rendered page usable and
@@ -256,7 +270,7 @@ export function V25App({ page }: { page: string }) {
       if (readinessCap) clearTimeout(readinessCap);
       attempt();
     };
-    void Promise.allSettled([eventsReady, productsReady, galleryReady]).then(start);
+    void Promise.allSettled([eventsReady, productsReady, galleryReady, postsReady]).then(start);
     readinessCap = setTimeout(start, 1800);
     // Instant in-app navigation. Once the runtime is booted it exposes
     // window.__UGT_GO (patched go() in the template). Internal links then

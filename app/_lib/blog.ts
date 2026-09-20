@@ -1,4 +1,3 @@
-import seed from './articles.seed.json';
 import { SITE } from '@/lib/site';
 
 export type BlogPost = {
@@ -12,20 +11,9 @@ export type BlogPost = {
   body: string[];
 };
 
-function fromSeed(): BlogPost[] {
-  return (seed as any[]).map((a) => ({
-    slug: a.id,
-    headline: a.headline,
-    datePublished: String(a.date),
-    dateModified: String(a.date),
-    section: a.section || 'News',
-    image: a.img?.startsWith('/') ? a.img : '/' + (a.img || 'assets/poster.png'),
-    description: a.dek || '',
-    body: a.body || [],
-  }));
-}
-
-// DB-backed posts (admin-editable), seed fallback so the site never breaks.
+// DB-backed posts, edited and published through the Control Room. A missing
+// database or an empty newsroom is an honest empty feed, never a prewritten
+// article presented as a current report.
 export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
     const { q, db } = await import('@/lib/server/db');
@@ -50,8 +38,8 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         }));
       }
     }
-  } catch { /* fall back to seed */ }
-  return fromSeed();
+  } catch { /* an unavailable newsroom has no public posts */ }
+  return [];
 }
 
 export async function getBlogPost(slug: string): Promise<BlogPost | undefined> {
