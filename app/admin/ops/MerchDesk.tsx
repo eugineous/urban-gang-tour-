@@ -65,6 +65,7 @@ type Quote = {
   setup_cost: number | null;
   valid_until: string | null;
   note: string;
+  purchase_order_count: number;
 };
 type InventoryMove = {
   id: number;
@@ -418,6 +419,8 @@ export default function MerchDesk() {
     );
 
   if (purchaseOrderEdit) {
+    const productionLocked =
+      purchaseOrderEdit.id !== null && purchaseOrderEdit.status !== "draft";
     const compatibleQuotes = quotes.filter(
       (q) =>
         q.supplier_id === purchaseOrderEdit.supplierId &&
@@ -430,7 +433,8 @@ export default function MerchDesk() {
         <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>
           Link one verified supplier quote to a production instruction. This
           does not approve payment, delivery or stock. Record received units as
-          a separate verified stock movement.
+          a separate verified stock movement. To close an order as received,
+          use the same verified reference on that stock receipt.
         </p>
         <div
           style={{
@@ -444,6 +448,7 @@ export default function MerchDesk() {
             <select
               style={inp}
               value={purchaseOrderEdit.supplierId ?? ""}
+              disabled={productionLocked}
               onChange={(e) =>
                 setPurchaseOrderEdit({
                   ...purchaseOrderEdit,
@@ -454,7 +459,11 @@ export default function MerchDesk() {
             >
               <option value="">Choose active supplier</option>
               {suppliers
-                .filter((s) => s.status === "active")
+                .filter(
+                  (s) =>
+                    s.status === "active" ||
+                    s.id === purchaseOrderEdit.supplierId,
+                )
                 .map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -467,6 +476,7 @@ export default function MerchDesk() {
             <select
               style={inp}
               value={purchaseOrderEdit.productId}
+              disabled={productionLocked}
               onChange={(e) =>
                 setPurchaseOrderEdit({
                   ...purchaseOrderEdit,
@@ -488,6 +498,7 @@ export default function MerchDesk() {
             <select
               style={inp}
               value={purchaseOrderEdit.quoteId ?? ""}
+              disabled={productionLocked}
               onChange={(e) =>
                 setPurchaseOrderEdit({
                   ...purchaseOrderEdit,
@@ -509,6 +520,7 @@ export default function MerchDesk() {
             set={(quantity) =>
               setPurchaseOrderEdit({ ...purchaseOrderEdit, quantity })
             }
+            disabled={productionLocked}
           />
           <div>
             <span style={label}>Production state</span>
@@ -1749,42 +1761,48 @@ export default function MerchDesk() {
                     <td style={td}>{fmtDate(q.valid_until)}</td>
                     <td style={td}>
                       <div style={{ display: "flex", gap: 5 }}>
-                        <button
-                          style={btnSmall}
-                          onClick={() =>
-                            setQuoteEdit({
-                              id: q.id,
-                              supplierId: q.supplier_id,
-                              productId: q.product_id || "",
-                              productionMethod: q.production_method,
-                              minimumQuantity: q.minimum_quantity,
-                              unitCost: q.unit_cost,
-                              setupCost: q.setup_cost,
-                              validUntil: fmtDate(q.valid_until),
-                              note: q.note,
-                            })
-                          }
-                        >
-                          Edit
-                        </button>
-                        <button
-                          style={{
-                            ...btnSmall,
-                            background: "#111",
-                            color: "#fff",
-                          }}
-                          onClick={async () => {
-                            if (!confirm("Delete this quote?")) return;
-                            const { data } = await opsPost(
-                              "merchQuote.delete",
-                              { id: q.id },
-                            );
-                            if (data.error) say("Failed: " + data.error);
-                            else reload();
-                          }}
-                        >
-                          Del
-                        </button>
+                        {Number(q.purchase_order_count || 0) > 0 ? (
+                          <Chip text="used in production, retained" />
+                        ) : (
+                          <>
+                            <button
+                              style={btnSmall}
+                              onClick={() =>
+                                setQuoteEdit({
+                                  id: q.id,
+                                  supplierId: q.supplier_id,
+                                  productId: q.product_id || "",
+                                  productionMethod: q.production_method,
+                                  minimumQuantity: q.minimum_quantity,
+                                  unitCost: q.unit_cost,
+                                  setupCost: q.setup_cost,
+                                  validUntil: fmtDate(q.valid_until),
+                                  note: q.note,
+                                })
+                              }
+                            >
+                              Edit
+                            </button>
+                            <button
+                              style={{
+                                ...btnSmall,
+                                background: "#111",
+                                color: "#fff",
+                              }}
+                              onClick={async () => {
+                                if (!confirm("Delete this quote?")) return;
+                                const { data } = await opsPost(
+                                  "merchQuote.delete",
+                                  { id: q.id },
+                                );
+                                if (data.error) say("Failed: " + data.error);
+                                else reload();
+                              }}
+                            >
+                              Del
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1834,10 +1852,12 @@ function NumberField({
   title,
   value,
   set,
+  disabled,
 }: {
   title: string;
   value: number | null;
   set: (value: number | null) => void;
+  disabled?: boolean;
 }) {
   return (
     <div>
@@ -1846,6 +1866,7 @@ function NumberField({
         style={inp}
         type="number"
         min={0}
+        disabled={disabled}
         value={value ?? ""}
         onChange={(e) => set(optionalNumber(e.target.value))}
         placeholder="TBD"

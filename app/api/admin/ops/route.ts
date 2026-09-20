@@ -354,7 +354,8 @@ export async function GET(req: Request) {
              ORDER BY p.active DESC, p.name`,
           ),
           q(`SELECT * FROM merch_suppliers ORDER BY status, name`),
-          q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price
+          q(`SELECT q.*, s.name AS supplier_name, p.name AS product_name, p.price AS retail_price,
+                    (SELECT COUNT(*)::int FROM merch_purchase_orders po WHERE po.quote_id=q.id) AS purchase_order_count
              FROM merch_supplier_quotes q
              LEFT JOIN merch_suppliers s ON s.id=q.supplier_id
              LEFT JOIN products p ON p.id=q.product_id
@@ -1504,6 +1505,11 @@ export async function POST(req: Request) {
           s(d.notes, 2000),
           status,
         ];
+        if (
+          (fields[6] !== null && (fields[6] as number) < 0) ||
+          (fields[7] !== null && (fields[7] as number) < 0)
+        )
+          return bad("invalid_supplier_terms");
         const row = id
           ? await q(
               `UPDATE merch_suppliers SET name=$1, service=$2, contact_name=$3, phone=$4, email=$5, location=$6, lead_days=$7, minimum_order=$8, notes=$9, status=$10, updated_at=now() WHERE id=$11 RETURNING *`,
@@ -1544,13 +1550,33 @@ export async function POST(req: Request) {
         ]);
         if (!supplier.length || !product.length)
           return bad("invalid_supplier_or_product");
+        const minimumQuantity = intOrNull(d.minimumQuantity);
+        const unitCost = intOrNull(d.unitCost);
+        const setupCost = intOrNull(d.setupCost);
+        if (
+          (minimumQuantity !== null && minimumQuantity < 1) ||
+          (unitCost !== null && unitCost < 0) ||
+          (setupCost !== null && setupCost < 0)
+        )
+          return bad("invalid_quote_terms");
+        if (id) {
+          // Once an instruction names a quote, changing or deleting that
+          // quote would rewrite the procurement trail. Record a replacement
+          // quote instead, then create a new production order if needed.
+          const used = await q<{ count: number }>(
+            `SELECT COUNT(*)::int AS count FROM merch_purchase_orders WHERE quote_id=$1`,
+            [id],
+          );
+          if (Number(used[0]?.count || 0) > 0)
+            return bad("quote_is_used_by_production_order", 409);
+        }
         const fields = [
           supplierId,
           productId,
           s(d.productionMethod, 120),
-          intOrNull(d.minimumQuantity),
-          intOrNull(d.unitCost),
-          intOrNull(d.setupCost),
+          minimumQuantity,
+          unitCost,
+          setupCost,
           dateOrNull(d.validUntil),
           s(d.note, 2000),
         ];
@@ -1574,6 +1600,12 @@ export async function POST(req: Request) {
       case "merchQuote.delete": {
         const id = intOrNull(d.id);
         if (!id) return bad("missing_id");
+        const used = await q<{ count: number }>(
+          `SELECT COUNT(*)::int AS count FROM merch_purchase_orders WHERE quote_id=$1`,
+          [id],
+        );
+        if (Number(used[0]?.count || 0) > 0)
+          return bad("quote_is_used_by_production_order", 409);
         const row = await q(
           `DELETE FROM merch_supplier_quotes WHERE id=$1 RETURNING id`,
           [id],
@@ -1599,7 +1631,7 @@ export async function POST(req: Request) {
           (reorderPoint < 0 || reorderPoint > 100000)
         )
           return bad("invalid_reorder_point");
-        const product = await q(`SELECT id FROM products WHERE id=$1`, [
+        const product = await q<{ id: string; inventory_tracked: boolean }>(`SELECT id, inventory_tracked FROM products WHERE id=$1`, [
           productId,
         ]);
         if (!product.length) return bad("unknown_product", 404);
@@ -1611,6 +1643,35 @@ export async function POST(req: Request) {
           if (!variant.length) return bad("variant_product_mismatch", 400);
         }
         const signedQuantity = negative.has(moveType) ? -quantity : quantity;
+        if (negative.has(moveType)) {
+          // A manual deduction is a confirmed physical event, so do not let
+          // it create a fictional negative starting count. Paid online sales
+          // are recorded separately by the payment callback to preserve the
+          // real order ledger even if a later reconciliation finds a gap.
+          if (!product[0].inventory_tracked)
+            return bad("stock_not_tracked_record_opening_or_receipt_first", 409);
+          const productBalance = await q<{ on_hand: number }>(
+            `SELECT COALESCE(SUM(quantity),0)::int AS on_hand
+             FROM merch_inventory_moves WHERE product_id=$1`,
+            [productId],
+          );
+          if (Number(productBalance[0]?.on_hand || 0) < quantity)
+            return bad("insufficient_inventory", 409);
+          if (variantId !== null) {
+            const variantBalance = await q<{
+              movement_count: number;
+              on_hand: number;
+            }>(
+              `SELECT COUNT(*)::int AS movement_count, COALESCE(SUM(quantity),0)::int AS on_hand
+               FROM merch_inventory_moves WHERE variant_id=$1`,
+              [variantId],
+            );
+            if (!Number(variantBalance[0]?.movement_count || 0))
+              return bad("variant_stock_not_tracked", 409);
+            if (Number(variantBalance[0]?.on_hand || 0) < quantity)
+              return bad("variant_out_of_stock", 409);
+          }
+        }
         const row = await q(
           `INSERT INTO merch_inventory_moves (product_id, variant_id, quantity, move_type, note, reference)
            VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
@@ -1649,7 +1710,17 @@ export async function POST(req: Request) {
           "collected",
           "cancelled",
         ]);
-        if (!orderId || !allowed.has(status)) return bad("invalid_fulfillment");
+        const handoffMethod = s(d.handoffMethod, 30);
+        const handoffMethods = new Set(["", "collection", "delivery", "courier", "other"]);
+        if (!orderId || !allowed.has(status) || !handoffMethods.has(handoffMethod))
+          return bad("invalid_fulfillment");
+        if (status === "collected" && handoffMethod !== "collection")
+          return bad("collection_handoff_method_required");
+        if (
+          status === "dispatched" &&
+          !new Set(["delivery", "courier", "other"]).has(handoffMethod)
+        )
+          return bad("dispatch_handoff_method_required");
         const orders = await q<{ id: string; status: string }>(
           `SELECT id, status FROM orders WHERE id=$1 AND status IN ('paid','fulfilled')
            AND EXISTS (SELECT 1 FROM jsonb_array_elements(items) AS item WHERE COALESCE(item->>'id','') NOT LIKE 'ticket:%')`,
@@ -1666,7 +1737,7 @@ export async function POST(req: Request) {
             orderId,
             status,
             s(d.assignee, 120),
-            s(d.handoffMethod, 30),
+            handoffMethod,
             s(d.reference, 160),
             s(d.note, 2000),
           ],
@@ -1696,6 +1767,25 @@ export async function POST(req: Request) {
           adjustment > 1000000
         )
           return bad("invalid_variant");
+        const product = await q<{ id: string }>(
+          `SELECT id FROM products WHERE id=$1`,
+          [productId],
+        );
+        if (!product.length) return bad("unknown_product", 404);
+        if (id) {
+          const existing = await q<{ product_id: string; movement_count: number }>(
+            `SELECT v.product_id, COUNT(m.id)::int AS movement_count
+             FROM merch_variants v LEFT JOIN merch_inventory_moves m ON m.variant_id=v.id
+             WHERE v.id=$1 GROUP BY v.id`,
+            [id],
+          );
+          if (!existing.length) return bad("not_found", 404);
+          if (
+            existing[0].product_id !== productId &&
+            Number(existing[0].movement_count || 0) > 0
+          )
+            return bad("variant_product_locked_after_stock_history", 409);
+        }
         const rows = id
           ? await q(
               `UPDATE merch_variants SET product_id=$1,label=$2,sku=$3,price_adjustment=$4,active=$5,updated_at=now() WHERE id=$6 RETURNING *`,
@@ -1752,15 +1842,67 @@ export async function POST(req: Request) {
           !allowed.has(status)
         )
           return bad("invalid_purchase_order");
+        if (!id) {
+          // New production instructions are issued only to suppliers marked
+          // active by the merch team. Existing orders remain updateable after
+          // a supplier is paused so the factual handover trail can be closed.
+          const activeSupplier = await q<{ id: number }>(
+            `SELECT id FROM merch_suppliers WHERE id=$1 AND status='active'`,
+            [supplierId],
+          );
+          if (!activeSupplier.length) return bad("supplier_not_active", 409);
+        }
         // A production instruction is usable only if it preserves the exact
         // verified supplier, product and source quote relationship. It does
         // not copy or approve a payment amount.
-        const verifiedQuote = await q<{ id: number }>(
-          `SELECT id FROM merch_supplier_quotes
+        const verifiedQuote = await q<{ id: number; valid_until: string | null }>(
+          `SELECT id, valid_until::text AS valid_until FROM merch_supplier_quotes
            WHERE id=$1 AND supplier_id=$2 AND product_id=$3`,
           [quoteId, supplierId, productId],
         );
         if (!verifiedQuote.length) return bad("quote_relationship_mismatch");
+        if (
+          !id &&
+          verifiedQuote[0].valid_until &&
+          verifiedQuote[0].valid_until < new Date().toISOString().slice(0, 10)
+        )
+          return bad("quote_expired_record_a_current_quote", 409);
+        if (id) {
+          const existing = await q<{
+            supplier_id: number;
+            quote_id: number;
+            product_id: string;
+            quantity: number;
+            status: string;
+          }>(
+            `SELECT supplier_id, quote_id, product_id, quantity, status
+             FROM merch_purchase_orders WHERE id=$1`,
+            [id],
+          );
+          if (!existing.length) return bad("not_found", 404);
+          if (["received", "cancelled"].includes(existing[0].status))
+            return bad("production_order_is_closed", 409);
+          if (
+            existing[0].status !== "draft" &&
+            (existing[0].supplier_id !== supplierId ||
+              existing[0].quote_id !== quoteId ||
+              existing[0].product_id !== productId ||
+              Number(existing[0].quantity) !== quantity)
+          )
+            return bad("production_order_locked_after_draft", 409);
+        }
+        const reference = s(d.reference, 160);
+        if (status === "received") {
+          if (!reference) return bad("receipt_reference_required", 409);
+          const receipts = await q<{ quantity: number }>(
+            `SELECT COALESCE(SUM(quantity),0)::int AS quantity
+             FROM merch_inventory_moves
+             WHERE product_id=$1 AND move_type='received' AND reference=$2`,
+            [productId, reference],
+          );
+          if (Number(receipts[0]?.quantity || 0) < quantity)
+            return bad("record_matching_stock_receipt_before_closing_production", 409);
+        }
         const rows = id
           ? await q(
               `UPDATE merch_purchase_orders
@@ -1773,7 +1915,7 @@ export async function POST(req: Request) {
                 productId,
                 status,
                 quantity,
-                s(d.reference, 160),
+                reference,
                 s(d.note, 2000),
                 id,
               ],
@@ -1788,7 +1930,7 @@ export async function POST(req: Request) {
                 productId,
                 status,
                 quantity,
-                s(d.reference, 160),
+                reference,
                 s(d.note, 2000),
               ],
             );
