@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { listGmailMessages, markGmailMessageRead, sendGmailMessage } from '@/lib/server/gmail';
-import { adminActor, isSuperAdmin } from '@/lib/server/session';
+import { adminActor, isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { hasDb, q } from '@/lib/server/db';
 
-function allowed(req: Request): boolean {
-  return isSuperAdmin(req);
+async function allowed(req: Request): Promise<boolean> {
+  return (await verifyAdminSession(req)) && isSuperAdmin(req);
 }
 
 export async function GET(req: Request) {
-  if (!allowed(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await allowed(req))) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   const url = new URL(req.url);
   const raw = (url.searchParams.get('q') || '').trim();
   const query = raw ? `in:inbox newer_than:1y ${raw}` : 'in:inbox newer_than:30d';
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!allowed(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await allowed(req))) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const body = await req.json().catch(() => ({}));
   const allowedFields = new Set(['messageId', 'threadId', 'to', 'subject', 'body', 'inReplyTo', 'references']);

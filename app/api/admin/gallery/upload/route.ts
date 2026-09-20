@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { r2Put, r2Configured } from '@/lib/server/r2';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
 // Proxy upload for gallery photos: the browser POSTs the file straight to
@@ -26,7 +26,7 @@ const MAX_BYTES = 8 * 1024 * 1024; // 8MB cap - enforced for real here (unlike
 // actually received can be checked, not just a client-declared size).
 
 export async function POST(request: Request): Promise<NextResponse> {
-  if (!isAdmin(request)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(request))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(request, 'gallery')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(request)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!r2Configured()) return NextResponse.json({ error: 'r2_not_configured' }, { status: 503 });

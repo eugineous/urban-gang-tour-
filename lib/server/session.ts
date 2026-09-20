@@ -1,5 +1,7 @@
 // Signed-cookie sessions (HMAC-SHA256, no external deps).
 import { createHmac, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
+import { hasDb } from './db';
+import { findAdminAccount } from './admin-accounts';
 
 // A public development value must never sign a production administrator
 // cookie. Local development stays convenient, while production fails closed
@@ -81,12 +83,102 @@ export interface AdminTokenPayload {
   email?: string;
   scope?: 'super_admin' | 'crew_admin';
   perms?: string[];
+  // Google sessions are verified against the current source on every
+  // protected request. The source is signed with the token, so a client
+  // cannot turn a database-scoped account into an environment owner account.
+  authSource?: 'access_code' | 'google_db' | 'google_env';
   exp?: number;
 }
+
+const verifiedAdminSessions = new WeakMap<Request, AdminTokenPayload | null>();
 
 function adminToken(req: Request): AdminTokenPayload | null {
   const t = verifyToken<AdminTokenPayload>(cookieVal(req, 'ugt_admin'));
   return t && t.role === 'admin' ? t : null;
+}
+
+function envAllowsAdmin(email: string): boolean {
+  return (process.env.ADMIN_GOOGLE_EMAILS || '')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email.toLowerCase());
+}
+
+// Resolve a signed session against its current authority before any route
+// relies on it. Database-backed Google accounts deliberately do not trust
+// the role/perms embedded in the old cookie: a removed account is rejected
+// and a changed role is reflected on its very next protected request.
+//
+// There is no cache here. A revocation window is worse than one small
+// one-shot database query for an administrator-only request. If the current
+// authority cannot be checked, fail closed rather than using stale scope.
+export async function verifyAdminSession(req: Request): Promise<boolean> {
+  if (verifiedAdminSessions.has(req)) return verifiedAdminSessions.get(req) !== null;
+  const token = adminToken(req);
+  if (!token) {
+    verifiedAdminSessions.set(req, null);
+    return false;
+  }
+
+  // Access-code sessions have no individual account record. They remain
+  // owner sessions, while Google identities below are always resolved again.
+  if (!token.email || token.authSource === 'access_code') {
+    verifiedAdminSessions.set(req, token);
+    return true;
+  }
+
+  const email = token.email.toLowerCase();
+  if (token.authSource === 'google_env') {
+    const resolved = envAllowsAdmin(email)
+      ? { ...token, email, scope: 'super_admin' as const, perms: [] }
+      : null;
+    verifiedAdminSessions.set(req, resolved);
+    return resolved !== null;
+  }
+
+  // New database sessions use google_db. Legacy Google sessions did not
+  // carry a source, so resolve their current DB row first and only fall back
+  // to the current environment allowlist for the original owner setup.
+  if (!hasDb()) {
+    verifiedAdminSessions.set(req, null);
+    return false;
+  }
+  try {
+    const account = await findAdminAccount(email);
+    if (account) {
+      const scope = account.role === 'crew_admin' ? 'crew_admin' : 'super_admin';
+      verifiedAdminSessions.set(req, {
+        ...token,
+        email: account.email,
+        scope,
+        perms: scope === 'crew_admin' ? account.perms : [],
+        authSource: 'google_db',
+      });
+      return true;
+    }
+    // A current database account that has been removed must not silently
+    // fall back to an old cookie. Only a legacy token may recognise the
+    // present environment allowlist, preserving pre-accounts owner access.
+    const legacyEnvOwner = token.authSource === undefined && envAllowsAdmin(email);
+    const resolved = legacyEnvOwner
+      ? { ...token, email, scope: 'super_admin' as const, perms: [], authSource: 'google_env' as const }
+      : null;
+    verifiedAdminSessions.set(req, resolved);
+    return resolved !== null;
+  } catch {
+    verifiedAdminSessions.set(req, null);
+    return false;
+  }
+}
+
+function resolvedAdminToken(req: Request): AdminTokenPayload | null {
+  if (verifiedAdminSessions.has(req)) return verifiedAdminSessions.get(req) || null;
+  const token = adminToken(req);
+  // Do not let a Google cookie reach a route that forgot to call
+  // verifyAdminSession. This fail-closed default keeps future endpoints from
+  // reintroducing the stale-session vulnerability.
+  return token?.email ? null : token;
 }
 
 // True for ANY signed-in admin session, super_admin or crew_admin alike.
@@ -95,7 +187,7 @@ function adminToken(req: Request): AdminTokenPayload | null {
 // tab's aggregate stats). Never use this alone to gate a scoped module -
 // use hasPerm() or isSuperAdmin() for anything module-specific or sensitive.
 export function isAdmin(req: Request): boolean {
-  return adminToken(req) !== null;
+  return resolvedAdminToken(req) !== null;
 }
 
 // True only for the owner's full-access role: the access-code login (always
@@ -103,7 +195,7 @@ export function isAdmin(req: Request): boolean {
 // admin_google_emails row has role='super_admin' (the default, so existing
 // admins are never silently downgraded).
 export function isSuperAdmin(req: Request): boolean {
-  const t = adminToken(req);
+  const t = resolvedAdminToken(req);
   if (!t) return false;
   return t.scope !== 'crew_admin';
 }
@@ -112,7 +204,7 @@ export function isSuperAdmin(req: Request): boolean {
 // super_admin, true for crew_admin only when moduleKey is in their signed
 // perms array. This is the check every module-scoped route should use.
 export function hasPerm(req: Request, moduleKey: string): boolean {
-  const t = adminToken(req);
+  const t = resolvedAdminToken(req);
   if (!t) return false;
   if (t.scope !== 'crew_admin') return true;
   return Array.isArray(t.perms) && t.perms.includes(moduleKey);
@@ -121,7 +213,7 @@ export function hasPerm(req: Request, moduleKey: string): boolean {
 // The caller's own role/perms, for the /api/admin/me self-check and for
 // building a fresh session token that preserves an existing scope.
 export function adminScope(req: Request): { scope: 'super_admin' | 'crew_admin'; perms: string[] } | null {
-  const t = adminToken(req);
+  const t = resolvedAdminToken(req);
   if (!t) return null;
   const scope = t.scope === 'crew_admin' ? 'crew_admin' : 'super_admin';
   return { scope, perms: scope === 'crew_admin' && Array.isArray(t.perms) ? t.perms : [] };
@@ -132,7 +224,7 @@ export function adminScope(req: Request): { scope: 'super_admin' | 'crew_admin';
 // identity beyond the shared code, so they fall back to the literal string
 // 'admin' - same convention every other admin route already uses.
 export function adminActor(req: Request): string {
-  const t = adminToken(req);
+  const t = resolvedAdminToken(req);
   return t?.email ? t.email : 'admin';
 }
 

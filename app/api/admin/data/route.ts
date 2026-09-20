@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, isSuperAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, isSuperAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { getTicketTiers } from '@/lib/server/catalog';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 
@@ -116,7 +116,7 @@ function canReadSetting(req: Request, key: unknown): boolean {
 }
 
 export async function GET(req: Request) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const view = new URL(req.url).searchParams.get('view') || 'stats';
   // The dashboard used to return an all-business financial snapshot to any

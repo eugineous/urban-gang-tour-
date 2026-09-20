@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { gmailConnection, removeGmailConnection } from '@/lib/server/gmail';
-import { isSuperAdmin } from '@/lib/server/session';
+import { isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { hasDb, q } from '@/lib/server/db';
 
@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   // The connected account is a full mailbox, not a booking-only mailbox.
   // Booking staff have the scoped booking reply route instead, and comms staff
   // have the broadcast route, so neither needs unrestricted inbox visibility.
-  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   try {
     return NextResponse.json({ ok: true, ...(await gmailConnection()) });
   } catch (error: any) {
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   try {
     await removeGmailConnection();

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { ensureDocgenSchema, listDocuments } from '@/lib/server/docgen';
 
 // GET /api/admin/docs/list -> recent documents (serial, type, issued_to,
@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request): Promise<NextResponse> {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(req, 'documents')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   try {

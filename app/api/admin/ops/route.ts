@@ -5,6 +5,7 @@ import {
   isSuperAdmin,
   hasPerm,
   adminActor,
+  verifyAdminSession,
 } from "@/lib/server/session";
 import { requireOrigin } from "@/lib/server/origin";
 import {
@@ -138,7 +139,7 @@ const VIEW_PERM: Record<string, string[]> = {
 };
 
 export async function GET(req: Request) {
-  if (!isAdmin(req)) return bad("unauthorized", 401);
+  if (!(await verifyAdminSession(req))) return bad("unauthorized", 401);
   if (!db()) return bad("db_not_configured", 503);
   const url = new URL(req.url);
   const view = url.searchParams.get("view") || "";
@@ -621,7 +622,7 @@ const SUPER_ADMIN_ONLY_KINDS = new Set([
 ]);
 
 export async function POST(req: Request) {
-  if (!isAdmin(req)) return bad("unauthorized", 401);
+  if (!(await verifyAdminSession(req))) return bad("unauthorized", 401);
   if (!requireOrigin(req)) return bad("bad_origin", 403);
   if (!db()) return bad("db_not_configured", 503);
   let body: any;

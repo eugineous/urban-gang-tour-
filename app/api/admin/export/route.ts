@@ -1,5 +1,5 @@
 import { q, db } from '@/lib/server/db';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { ensureOpsSchema } from '@/lib/server/ops';
 
 const OPS_KINDS = new Set(['invoices', 'payments', 'contacts', 'expenses', 'payouts']);
@@ -57,7 +57,7 @@ const KIND_PERM: Record<string, string> = {
 };
 
 export async function GET(req: Request) {
-  if (!isAdmin(req)) return new Response('unauthorized', { status: 401 });
+  if (!(await verifyAdminSession(req))) return new Response('unauthorized', { status: 401 });
   const kind = new URL(req.url).searchParams.get('kind') || 'orders';
   if (!hasPerm(req, KIND_PERM[kind] || '__none__')) return new Response('forbidden', { status: 403 });
   if (!db()) return new Response('db not configured', { status: 503 });

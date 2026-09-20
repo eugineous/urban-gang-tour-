@@ -9,7 +9,7 @@
 // rows in Postgres (metadata-only in PG11+, but the default value is what
 // SELECT returns for old rows), so no separate migration/backfill step is
 // needed - this ALTER alone preserves every current admin's access.
-import { db, q, qSchema } from "./db";
+import { db, hasDb, q, qSchema } from "./db";
 
 export type AdminRole = "super_admin" | "crew_admin";
 
@@ -118,6 +118,34 @@ export async function getAdminAccount(
   email: string,
 ): Promise<AdminAccount | null> {
   await ensureAdminAccountsSchema();
+  const rows = await q<{
+    email: string;
+    role: string;
+    perms: unknown;
+    added_at: string;
+  }>(
+    `SELECT email, role, perms, added_at FROM admin_google_emails WHERE lower(email) = $1`,
+    [email.toLowerCase()],
+  );
+  if (!rows.length) return null;
+  const r = rows[0];
+  return {
+    email: r.email,
+    role: normRole(r.role),
+    perms: normPerms(
+      typeof r.perms === "string" ? JSON.parse(r.perms) : r.perms,
+    ),
+    added_at: r.added_at,
+  };
+}
+
+// Read-only current-account lookup for request-time authorization. Unlike
+// getAdminAccount(), this intentionally never runs schema DDL: a protected
+// request must be able to fail closed without creating or altering anything.
+export async function findAdminAccount(
+  email: string,
+): Promise<AdminAccount | null> {
+  if (!hasDb()) return null;
   const rows = await q<{
     email: string;
     role: string;

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasDb, q, qSchema } from '@/lib/server/db';
 import { sendGmailMessage } from '@/lib/server/gmail';
-import { adminActor, hasPerm, isAdmin } from '@/lib/server/session';
+import { adminActor, hasPerm, isAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
 let ready: Promise<void> | null = null;
@@ -29,12 +29,12 @@ function ensureSchema(): Promise<void> {
   return ready;
 }
 
-function canUse(req: Request): boolean {
-  return isAdmin(req) && hasPerm(req, 'bookings');
+async function canUse(req: Request): Promise<boolean> {
+  return (await verifyAdminSession(req)) && isAdmin(req) && hasPerm(req, 'bookings');
 }
 
 export async function GET(req: Request) {
-  if (!canUse(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await canUse(req))) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   const id = new URL(req.url).searchParams.get('id') || '';
   if (!/^B-[A-Z0-9-]{4,40}$/i.test(id)) return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
   try {
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!canUse(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await canUse(req))) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const payload = await req.json().catch(() => ({}));
   const allowed = new Set(['id', 'subject', 'body']);

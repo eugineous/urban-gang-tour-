@@ -1,5 +1,5 @@
 import { deflateRawSync } from 'node:zlib';
-import { isSuperAdmin, adminActor } from '@/lib/server/session';
+import { isSuperAdmin, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { q, db } from '@/lib/server/db';
 
@@ -134,7 +134,7 @@ function buildZip(files: { name: string; data: Buffer }[]): Buffer {
 // super_admin-only, whatever perms a crew_admin holds - it dumps every
 // table, including customer contact info no single module perm covers.
 export async function GET(req: Request) {
-  if (!isSuperAdmin(req)) return new Response('unauthorized', { status: 401 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return new Response('unauthorized', { status: 401 });
   if (!rateLimit('bak:' + clientIp(req), 2, 60_000)) {
     return new Response('too_many_requests', { status: 429 });
   }

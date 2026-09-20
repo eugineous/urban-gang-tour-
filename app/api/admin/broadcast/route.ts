@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { adminActor, isAdmin, isSuperAdmin } from '@/lib/server/session';
+import { adminActor, isAdmin, isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
 // POST /api/admin/broadcast  {subject, body}
@@ -9,7 +9,7 @@ import { requireOrigin } from '@/lib/server/origin';
 // request must not send a full audience broadcast.
 // Contract: 200 {ok,sent} | 400 invalid | 401 not admin | 403 forbidden/bad origin | 503 email/db not configured
 export async function POST(req: Request) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!isSuperAdmin(req)) return NextResponse.json({ error: 'owner_approval_required' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const { subject, body, confirmation } = await req.json().catch(() => ({}));

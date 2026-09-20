@@ -92,6 +92,6 @@ export async function POST(req: Request) {
 
   after(() => notifyAdminLogin({ email, method: 'google', scope, ip: clientIp(req) }));
   const res = NextResponse.json({ ok: true, email, scope, perms });
-  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email, scope, perms }, 7), 7));
+  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email, scope, perms, authSource: account ? 'google_db' : 'google_env' }, 7), 7));
   return res;
 }

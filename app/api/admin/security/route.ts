@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { adminPasswordHash, setAdminPasswordHash } from '@/lib/server/admin-password';
 import { gmailConnection } from '@/lib/server/gmail';
-import { hashPassword, isSuperAdmin } from '@/lib/server/session';
+import { hashPassword, isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { adminActor } from '@/lib/server/session';
 import { hasDb, q } from '@/lib/server/db';
 
 export async function GET(req: Request) {
-  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   try {
     const [passwordHash, gmail] = await Promise.all([adminPasswordHash(), gmailConnection()]);
     return NextResponse.json({
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const body = await req.json().catch(() => ({}));
   if (Object.keys(body).some((key) => key !== 'password')) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { q, db, qSchema, SCHEMA } from '@/lib/server/db';
-import { isSuperAdmin } from '@/lib/server/session';
+import { isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 
@@ -10,7 +10,7 @@ import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 // CRITICAL EXCEPTION (CLAUDE.md): Setup/Repair DB is always super_admin-only
 // - it runs DDL across the entire schema, not a single module.
 export async function POST(req: Request) {
-  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   await qSchema(SCHEMA);

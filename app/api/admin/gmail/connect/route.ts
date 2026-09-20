@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { exchangeGoogleCode, gmailProfile, storeGmailConnection } from '@/lib/server/gmail';
-import { isSuperAdmin } from '@/lib/server/session';
+import { isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { hasDb, q } from '@/lib/server/db';
 
 export async function POST(req: Request) {
-  if (!isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (req.headers.get('x-requested-with') !== 'XmlHttpRequest') {
     return NextResponse.json({ error: 'bad_request_source' }, { status: 403 });

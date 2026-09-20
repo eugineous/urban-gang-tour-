@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, isSuperAdmin, hasPerm, adminActor } from '@/lib/server/session';
+import { isAdmin, isSuperAdmin, hasPerm, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { notifyPostPublished } from '@/lib/server/notify';
 import { pingIndexNow } from '@/lib/server/indexnow';
@@ -39,7 +39,7 @@ function validSeoKey(key: string): boolean {
 // tabs) rather than a blanket isAdmin() check - a crew_admin only reaches
 // the kinds their perms cover.
 export async function POST(req: Request) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const { kind, data } = await req.json().catch(() => ({}));

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, q } from '@/lib/server/db';
-import { isSuperAdmin, adminActor } from '@/lib/server/session';
+import { isSuperAdmin, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
   listAdminAccounts, upsertAdminAccount, removeAdminAccount, MODULE_KEYS, isModuleKey,
@@ -27,7 +27,7 @@ async function audit(actor: string, action: string, detail: unknown) {
 }
 
 export async function GET(req: Request) {
-  if (!isSuperAdmin(req)) return bad('unauthorized', 401);
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return bad('unauthorized', 401);
   if (!db()) return bad('db_not_configured', 503);
   try {
     const rows = await listAdminAccounts();
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isSuperAdmin(req)) return bad('unauthorized', 401);
+  if (!(await verifyAdminSession(req)) || !isSuperAdmin(req)) return bad('unauthorized', 401);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!db()) return bad('db_not_configured', 503);
   let body: any;

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const res = NextResponse.json({ ok: true });
   // The access code is the owner's own backup key - always full access,
   // never scope-limited (see CLAUDE.md's access control matrix).
-  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', scope: 'super_admin' }, 7), 7));
+  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', scope: 'super_admin', authSource: 'access_code' }, 7), 7));
   return res;
 }
 

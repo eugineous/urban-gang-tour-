@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { r2Del, isR2Url } from '@/lib/server/r2';
-import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
+import { isAdmin, hasPerm, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
 
@@ -32,7 +32,7 @@ function intId(v: unknown): number | null {
 }
 
 export async function GET(req: Request) {
-  if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!(await verifyAdminSession(req))) return bad('unauthorized', 401);
   if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!db()) return bad('db_not_configured', 503);
   try {
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!(await verifyAdminSession(req))) return bad('unauthorized', 401);
   if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!db()) return bad('db_not_configured', 503);

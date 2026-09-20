@@ -1,5 +1,5 @@
 import { NextResponse, after } from 'next/server';
-import { isAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket, getEventName, getEventMeta } from '@/lib/server/tickets';
@@ -32,7 +32,7 @@ async function ticketPayload(t: { event_id: string; tier_name: string; holder: s
 }
 
 export async function POST(req: Request) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(req, 'gate_scanner')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!rateLimit('gate:' + clientIp(req), 120, 60_000)) {

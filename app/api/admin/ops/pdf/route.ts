@@ -2,7 +2,7 @@ import React from 'react';
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { q, db } from '@/lib/server/db';
-import { isAdmin, isSuperAdmin, hasPerm } from '@/lib/server/session';
+import { isAdmin, isSuperAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
 import { getLogoDataUri, OutboundPdf, BudgetSheetPdf, EventReportPdf, OutboundDoc, EventReportInput } from '@/lib/ops/pdf';
 import { BudgetData } from '@/lib/ops/budget-calc';
@@ -41,7 +41,7 @@ function pdfResponse(buf: Buffer, filename: string) {
 }
 
 export async function GET(req: Request) {
-  if (!isAdmin(req)) return bad('unauthorized', 401);
+  if (!(await verifyAdminSession(req))) return bad('unauthorized', 401);
   if (!db()) return bad('db_not_configured', 503);
   const url = new URL(req.url);
   const type = url.searchParams.get('type') || '';
