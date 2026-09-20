@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { shell, wrap, card, btn, btnMagenta, btnDark, inp, label, h1, Chip, STATUS_CHIP, api, useToast, Toast } from '../../../ui';
+import { shell, wrap, card, btn, btnMagenta, btnDark, inp, label, h1, Chip, STATUS_CHIP, api, organizerAccessMessage, useToast, Toast } from '../../../ui';
 
 interface Tier { name: string; price: number }
 
@@ -11,6 +11,7 @@ export default function EditEventForm() {
   const id = params?.id as string;
   const [ready, setReady] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [accessError, setAccessError] = useState('');
   const [status, setStatus] = useState('draft');
   const [ticketsSold, setTicketsSold] = useState(0);
   const [name, setName] = useState('');
@@ -28,7 +29,7 @@ export default function EditEventForm() {
   useEffect(() => {
     if (!id) return;
     api('/api/organizer/me').then(({ data }) => {
-      if (!data.organizer) { window.location.href = '/organizer/login'; return; }
+      if (!data.organizer) { setAccessError(organizerAccessMessage(data.error)); setReady(true); return; }
       api(`/api/organizer/events/${id}`).then(({ status: st, data: d }) => {
         if (st !== 200) { setNotFound(true); setReady(true); return; }
         const r = d.row;
@@ -50,6 +51,11 @@ export default function EditEventForm() {
 
   const submit = async () => {
     if (name.trim().length < 2) return say('Event name is required');
+    if (!description.trim()) return say('Add a description for buyers and reviewers');
+    if (!locked && !eventDate) return say('Enter the event date');
+    if (!locked && !venue.trim()) return say('Enter the venue');
+    if (!locked && !city.trim()) return say('Enter the city');
+    if (!locked && (!tiers.length || tiers.some((tier) => !tier.name.trim()))) return say('Every ticket tier needs a name');
     setBusy(true);
     const body: any = { name, description, image };
     if (!locked) Object.assign(body, { eventDate: eventDate || null, venue, city, tiers });
@@ -59,7 +65,8 @@ export default function EditEventForm() {
     else say('Failed: ' + (data.error || 'unknown error'));
   };
 
-  if (!ready) return null;
+  if (!ready) return <div style={shell}><div style={wrap}><div style={card}>Checking organizer access…</div></div></div>;
+  if (accessError) return <div style={shell}><div style={wrap}><div style={card}>{accessError}<div style={{ marginTop: 14 }}><a href="/organizer/login" style={{ ...btnMagenta, textDecoration: 'none', display: 'inline-block' }}>Organizer login</a></div></div></div></div>;
   if (notFound) return <div style={shell}><div style={wrap}><div style={{ ...card, background: '#fff' }}>Event not found.</div></div></div>;
 
   const st = STATUS_CHIP[status] || STATUS_CHIP.draft;

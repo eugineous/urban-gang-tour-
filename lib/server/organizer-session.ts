@@ -6,6 +6,7 @@
 // SESSION_SECRET. Reuses the same scrypt password hashing
 // (hashPassword/checkPassword) from session.ts — no new crypto primitive.
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { hasDb, q } from '@/lib/server/db';
 
 const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
 const COOKIE = 'ugt_organizer';
@@ -19,6 +20,10 @@ export interface OrganizerSession {
   email: string;
   businessName: string;
 }
+
+export type ActiveOrganizerResult =
+  | { organizer: OrganizerSession; error?: never; status: 200 }
+  | { organizer: null; error: 'unauthorized' | 'db_not_configured' | 'account_not_active'; status: 401 | 403 | 503 };
 
 export function signOrganizerToken(payload: OrganizerSession, days = 30): string {
   const body = b64u(JSON.stringify({ ...payload, ctx: 'org', exp: Date.now() + days * 86400_000 }));
@@ -49,6 +54,31 @@ function cookieVal(req: Request, name: string): string | null {
 
 export function currentOrganizer(req: Request): OrganizerSession | null {
   return verifyOrganizerToken(cookieVal(req, COOKIE));
+}
+
+// A valid cookie proves who signed in, not that the account is still allowed
+// to operate. Check the current organizer row on every authenticated portal
+// request so a suspension or approval change takes effect immediately instead
+// of waiting for a 30-day cookie to expire.
+export async function currentApprovedOrganizer(req: Request): Promise<ActiveOrganizerResult> {
+  const session = currentOrganizer(req);
+  if (!session) return { organizer: null, error: 'unauthorized', status: 401 };
+  if (!hasDb()) return { organizer: null, error: 'db_not_configured', status: 503 };
+  const rows = await q<{ id: string; email: string; business_name: string; status: string }>(
+    `SELECT id, email, business_name, status FROM marketplace_organizers WHERE id=$1`,
+    [session.id],
+  );
+  const organizer = rows[0];
+  if (!organizer || organizer.status !== 'approved')
+    return { organizer: null, error: 'account_not_active', status: 403 };
+  return {
+    organizer: {
+      id: organizer.id,
+      email: organizer.email,
+      businessName: organizer.business_name,
+    },
+    status: 200,
+  };
 }
 
 export function organizerSessionCookie(token: string, days = 30): string {

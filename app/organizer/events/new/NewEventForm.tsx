@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { shell, wrap, card, btn, btnMagenta, btnDark, inp, label, h1, api, useToast, Toast } from '../../ui';
+import { shell, wrap, card, btn, btnMagenta, btnDark, inp, label, h1, api, organizerAccessMessage, useToast, Toast } from '../../ui';
 
 interface Tier { name: string; price: number }
 
 export default function NewEventForm() {
   const [ready, setReady] = useState(false);
+  const [accessError, setAccessError] = useState('');
   const [name, setName] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [venue, setVenue] = useState('');
@@ -19,7 +20,7 @@ export default function NewEventForm() {
 
   useEffect(() => {
     api('/api/organizer/me').then(({ data }) => {
-      if (!data.organizer) window.location.href = '/organizer/login';
+      if (!data.organizer) setAccessError(organizerAccessMessage(data.error));
       else setReady(true);
     });
   }, []);
@@ -28,18 +29,23 @@ export default function NewEventForm() {
 
   const submit = async () => {
     if (name.trim().length < 2) return say('Event name is required');
+    if (!eventDate) return say('Enter the event date');
+    if (!venue.trim()) return say('Enter the venue');
+    if (!city.trim()) return say('Enter the city');
+    if (!description.trim()) return say('Add a description for buyers and reviewers');
     if (!tiers.length || tiers.some((t) => !t.name.trim())) return say('Every ticket tier needs a name');
     setBusy(true);
     const { data } = await api('/api/organizer/events', {
       method: 'POST',
-      body: JSON.stringify({ name, eventDate: eventDate || null, venue, city, description, image, tiers }),
+      body: JSON.stringify({ name, eventDate, venue, city, description, image, tiers }),
     });
     setBusy(false);
     if (data.ok) window.location.href = '/organizer/dashboard';
     else say('Failed: ' + (data.error || 'unknown error'));
   };
 
-  if (!ready) return null;
+  if (accessError) return <div style={shell}><div style={wrap}><div style={card}>{accessError}<div style={{ marginTop: 14 }}><a href="/organizer/login" style={{ ...btnMagenta, textDecoration: 'none', display: 'inline-block' }}>Organizer login</a></div></div></div></div>;
+  if (!ready) return <div style={shell}><div style={wrap}><div style={card}>Checking organizer access…</div></div></div>;
 
   return (
     <div style={shell}>

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
-import { currentOrganizer } from '@/lib/server/organizer-session';
+import { currentApprovedOrganizer } from '@/lib/server/organizer-session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  return NextResponse.json({ organizer: currentOrganizer(req) });
+  const access = await currentApprovedOrganizer(req);
+  if (!access.organizer)
+    return NextResponse.json({ organizer: null, error: access.error }, { status: access.status });
+  return NextResponse.json({ organizer: access.organizer });
 }

@@ -52,6 +52,14 @@ export function Toast({ msg }: { msg: string }) {
   return <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 60, ...card, padding: '10px 16px', background: OC.gold, maxWidth: 320 }}>{msg}</div>;
 }
 
+export function organizerAccessMessage(error: unknown): string {
+  if (error === 'account_not_active')
+    return 'This organizer account is no longer active. Contact the Urban Gang Tour Marketplace team if you believe this is a mistake.';
+  if (error === 'db_not_configured')
+    return 'The organizer portal is temporarily unavailable. Please try again later.';
+  return 'Your session has ended. Please log in again.';
+}
+
 export function fmtKES(n: number | null | undefined): string {
   if (n === null || n === undefined || !Number.isFinite(Number(n))) return 'KES 0';
   return 'KES ' + Math.round(Number(n)).toLocaleString('en-KE');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { shell, wrap, card, btn, btnMagenta, btnDark, h1, h3, Chip, STATUS_CHIP, api, fmtKES } from '../ui';
+import { shell, wrap, card, btn, btnMagenta, btnDark, h1, h3, Chip, STATUS_CHIP, api, fmtKES, organizerAccessMessage } from '../ui';
 
 interface Tier { name: string; price: number }
 interface EventRow {
@@ -18,23 +18,31 @@ function parseTiers(v: Tier[] | string): Tier[] {
 export default function Dashboard() {
   const [organizer, setOrganizer] = useState<Organizer | null | undefined>(undefined);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [accessError, setAccessError] = useState('');
+  const [eventsError, setEventsError] = useState('');
 
   useEffect(() => {
     api('/api/organizer/me').then(({ data }) => {
       setOrganizer(data.organizer || null);
-      if (!data.organizer) window.location.href = '/organizer/login';
+      if (!data.organizer) setAccessError(organizerAccessMessage(data.error));
     });
   }, []);
 
   useEffect(() => {
     if (!organizer) return;
-    api('/api/organizer/events').then(({ data }) => setEvents(data.rows || []));
+    api('/api/organizer/events').then(({ status, data }) => {
+      if (status !== 200) {
+        setEventsError(data.error === 'account_not_active' ? organizerAccessMessage(data.error) : 'Your events could not be loaded. Please try again.');
+        return;
+      }
+      setEvents(data.rows || []);
+    });
   }, [organizer]);
 
   const logout = async () => { await api('/api/organizer/logout', { method: 'POST' }); window.location.href = '/organizer/login'; };
 
   if (organizer === undefined) return <div style={shell}><div style={wrap}><div style={{ ...card, background: '#fff' }}>Loading…</div></div></div>;
-  if (!organizer) return null;
+  if (!organizer) return <div style={shell}><div style={wrap}><div style={card}>{accessError || 'Your session has ended. Please log in again.'}<div style={{ marginTop: 14 }}><a href="/organizer/login" style={{ ...btnMagenta, textDecoration: 'none', display: 'inline-block' }}>Organizer login</a></div></div></div></div>;
 
   const totalSold = events.reduce((n, e) => n + Number(e.tickets_sold || 0), 0);
   const totalRevenue = events.reduce((n, e) => n + Number(e.organizer_revenue || 0), 0);
@@ -66,6 +74,7 @@ export default function Dashboard() {
 
         <div style={card}>
           <h3 style={h3}>YOUR EVENTS</h3>
+          {eventsError && <div role="alert" style={{ fontSize: 13, color: '#C0392B', marginBottom: 12 }}>{eventsError}</div>}
           {!events.length && <div style={{ fontSize: 13, color: '#666' }}>No events yet — submit your first one.</div>}
           <div style={{ display: 'grid', gap: 12 }}>
             {events.map((e) => {
