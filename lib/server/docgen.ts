@@ -2436,7 +2436,7 @@ function docId(): string {
 }
 
 // Atomic: bump the serial and insert the immutable record in one transaction.
-export async function insertDocument(args: {
+export type DocumentInsertArgs = {
   type: DocType;
   payload: Record<string, unknown>;
   issued_to: string;
@@ -2444,7 +2444,9 @@ export async function insertDocument(args: {
   pdf_url: string;
   png_url: string;
   created_by: string;
-}): Promise<{ id: string; serial: string }> {
+};
+
+export async function insertDocument(args: DocumentInsertArgs): Promise<{ id: string; serial: string }> {
   const pool = db();
   if (!pool) throw new Error("db_not_configured");
   const client = await pool.connect();
@@ -2469,6 +2471,50 @@ export async function insertDocument(args: {
     );
     await client.query("COMMIT");
     return { id, serial };
+  } catch (e) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+// Batch equivalent of insertDocument. Every serial bump and immutable row is
+// committed together, so a 200-person certificate run is either fully
+// reserved or leaves no numbering trace at all. This is deliberately separate
+// from client-side loops over insertDocument, which cannot provide that
+// all-or-nothing guarantee.
+export async function insertDocumentsBatch(args: DocumentInsertArgs[]): Promise<Array<{ id: string; serial: string }>> {
+  if (!args.length) return [];
+  const pool = db();
+  if (!pool) throw new Error("db_not_configured");
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const records: Array<{ id: string; serial: string }> = [];
+    for (const item of args) {
+      const serial = await bumpSerial(client, item.type);
+      const id = docId();
+      await client.query(
+        `INSERT INTO ug_documents (id, type, serial, payload, issued_to, event, status, pdf_url, png_url, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,'final',$7,$8,$9)`,
+        [
+          id,
+          item.type,
+          serial,
+          JSON.stringify(item.payload),
+          item.issued_to,
+          item.event,
+          item.pdf_url,
+          item.png_url,
+          item.created_by,
+        ],
+      );
+      records.push({ id, serial });
+    }
+    await client.query("COMMIT");
+    return records;
   } catch (e) {
     await client.query("ROLLBACK").catch(() => {});
     throw e;

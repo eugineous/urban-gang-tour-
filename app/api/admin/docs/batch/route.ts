@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
-  ensureDocgenSchema, isDocType, preparePayload, insertDocument,
+  ensureDocgenSchema, isDocType, preparePayload, insertDocumentsBatch,
   renderDoc, docgenAudit, DOC_TYPES, PreparedDoc,
 } from '@/lib/server/docgen';
 
@@ -47,12 +47,14 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   }
 
-  // Phase A - validate ALL rows before reserving ANY serial. A single failure
-  // aborts the whole batch with the offending row index; no serial is burned.
+  // Phase A - validate and pre-render ALL rows before reserving ANY serial. A
+  // missing/broken template is handled just like a bad row, before numbering.
   const prepared: PreparedDoc[] = [];
   for (let i = 0; i < rows.length; i++) {
     try {
-      prepared.push(preparePayload(type, rows[i]));
+      const row = preparePayload(type, rows[i]);
+      await renderDoc(type, row.payload, 'PREVIEW');
+      prepared.push(row);
     } catch (e) {
       return NextResponse.json(
         { error: 'row_invalid', row: i, detail: (e as Error)?.message || 'invalid' },
@@ -61,28 +63,23 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
   }
 
-  // Phase B - reserve a serial + immutable record and render each row. Serials
-  // are issued sequentially (insertDocument bumps + inserts atomically per row).
+  // Phase B - reserve the full serial run + immutable records in ONE database
+  // transaction. A failure rolls back every row and every serial bump.
   const def = DOC_TYPES[type];
   const actor = adminActor(req);
   const docs: Array<{ id: string; serial: string; html: string; filename: string }> = [];
+  let records: Array<{ id: string; serial: string }>;
+  try {
+    records = await insertDocumentsBatch(prepared.map((pr) => ({
+      type, payload: pr.payload, issued_to: pr.issued_to, event: pr.event,
+      pdf_url: '', png_url: '', created_by: actor,
+    })));
+  } catch (e) {
+    return NextResponse.json({ error: 'insert_failed', detail: (e as Error)?.message }, { status: 500 });
+  }
   for (let i = 0; i < prepared.length; i++) {
     const pr = prepared[i];
-    let rec: { id: string; serial: string };
-    try {
-      rec = await insertDocument({
-        type, payload: pr.payload, issued_to: pr.issued_to, event: pr.event,
-        pdf_url: '', png_url: '', created_by: actor,
-      });
-    } catch (e) {
-      // Rows before i are already committed (gapless, no numbers skipped). We
-      // surface how far we got so the client attaches what exists and the
-      // owner can re-run the tail.
-      return NextResponse.json(
-        { error: 'insert_failed', row: i, detail: (e as Error)?.message, reserved: docs },
-        { status: 500 }
-      );
-    }
+    const rec = records[i];
     let html = '';
     try {
       // Batch is only ever the certificate / quantity (single-page) types, so
