@@ -541,7 +541,7 @@ export default function AdminApp({
     setBusy(false);
     setSetupInfo(
       data.ok
-        ? `✓ Database ready — ${data.tables.length} tables, ${data.seeded} articles seeded`
+        ? `✓ Database ready, ${data.tables.length} tables. No sample articles were added.`
         : "⚠ " + (data.error || "failed"),
     );
   };

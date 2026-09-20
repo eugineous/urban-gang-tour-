@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { metadataForPath } from '@/app/_lib/seo';
+import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { getBlogPosts } from '@/app/_lib/blog';
@@ -10,7 +10,9 @@ import { FeedAd } from '@/app/_components/Ads';
 import { NewsClient, type Desk, type Story } from './NewsClient';
 
 const PATH = '/blog';
-export const metadata: Metadata = metadataForPath(PATH);
+export async function generateMetadata(): Promise<Metadata> {
+  return metadataForPathDynamic(PATH);
+}
 
 export const revalidate = 300;
 
