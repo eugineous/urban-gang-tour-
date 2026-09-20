@@ -2,65 +2,13 @@ import { NextResponse, after } from 'next/server';
 import { q, db } from '@/lib/server/db';
 import { isAdmin, isSuperAdmin, hasPerm, adminActor } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
-import { SITE } from '@/lib/site';
-import { facebookConfigured, instagramConfigured, postToFacebookPage, postToInstagram } from '@/lib/meta-social';
 import { notifyPostPublished } from '@/lib/server/notify';
 import { pingIndexNow } from '@/lib/server/indexnow';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
+import { dispatchArticleAnnouncement, ensureContentAutomationSchema } from '@/lib/server/content-automation';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
-}
-
-// Lazy schema: posts.social_posted_at marks articles already announced on
-// socials so edits never double-post. Idempotent; run once per instance.
-let socialColReady = false;
-async function ensureSocialColumn() {
-  if (socialColReady) return;
-  await q(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_posted_at TIMESTAMPTZ`);
-  await q(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_automation_claimed_at TIMESTAMPTZ`);
-  await q(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS social_automation_result TEXT DEFAULT ''`);
-  socialColReady = true;
-}
-
-// Fire-and-forget announcement of a freshly published article (runs via
-// after(), so it never blocks or fails the publish response).
-async function announceArticle(post: { slug: string; headline: string; dek: string; image: string }) {
-  const url = `${SITE.domain}/blog/${post.slug}`;
-  const summary = [post.headline, post.dek].filter(Boolean).join('\n\n');
-  let posted = false;
-
-  // The owner's Instagram already cross-posts to the Facebook page. Set
-  // META_AUTOPOST_TARGETS=ig to let that cross-post carry Facebook and avoid
-  // double-posting; default posts to both directly.
-  const targets = (process.env.META_AUTOPOST_TARGETS || 'fb,ig').toLowerCase();
-
-  if (targets.includes('fb') && facebookConfigured()) {
-    const r = await postToFacebookPage({ message: `${summary}\n\n${url}`, link: url });
-    console.log(`[social] facebook ${post.slug}: ${r.ok ? 'posted' : 'failed - ' + r.error}`);
-    if (r.ok) posted = true;
-  }
-  if (targets.includes('ig') && instagramConfigured()) {
-    // IG needs a public absolute https image URL; site-relative paths resolve
-    // against the production domain, anything else skips IG.
-    const img = post.image.startsWith('https://') ? post.image
-      : post.image.startsWith('/') ? SITE.domain + post.image : '';
-    if (img) {
-      const caption = `${summary}\n\nRead the full story - link in bio. #UrbanGangTour #UrbanNews #Yezaskiii`;
-      const r = await postToInstagram({ imageUrl: img, caption });
-      console.log(`[social] instagram ${post.slug}: ${r.ok ? 'posted' : 'failed - ' + r.error}`);
-      if (r.ok) posted = true;
-    } else {
-      console.log(`[social] instagram ${post.slug}: skipped - post has no image`);
-    }
-  }
-  if (posted) {
-    try {
-      await q(`UPDATE posts SET social_posted_at=now() WHERE slug=$1`, [post.slug]);
-    } catch (e: any) {
-      console.log(`[social] could not mark ${post.slug} as posted: ${e?.message}`);
-    }
-  }
 }
 
 // Multiplexed admin mutations. kind: post|deletePost|setting|bookingStatus|orderStatus|deleteSubmission
@@ -108,7 +56,7 @@ export async function POST(req: Request) {
         const body = Array.isArray(data.body)
           ? data.body
           : String(data.body || '').split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
-        await Promise.all([ensureSocialColumn(), ensureContentWorkflowSchema()]);
+        await Promise.all([ensureContentAutomationSchema(), ensureContentWorkflowSchema()]);
         const actor = adminActor(req);
         const superAdmin = isSuperAdmin(req);
         const prev = await q<{ published: boolean; social_posted_at: string | null; submitted_by: string; editorial_status: string }>(
@@ -148,18 +96,22 @@ export async function POST(req: Request) {
         const savedDate = saved[0]?.date ? isoDate(saved[0].date) : null;
         const todayIso = new Date().toISOString().slice(0, 10);
         const isFutureDated = !!savedDate && savedDate > todayIso;
-        const firstPublish = published
+        const initialPublication = published
           && !prev[0]?.social_posted_at
-          && (!prev.length || prev[0].published === false)
-          && !isFutureDated;
+          && (!prev.length || prev[0].published === false);
+        if (initialPublication) {
+          // This is the explicit opt-in that makes a story eligible for the
+          // scheduled publisher. Existing archive rows retain the DB default
+          // of false and are never sent merely because a channel is connected.
+          await q(`UPDATE posts SET social_automation_enabled=true WHERE slug=$1`, [slug]);
+        }
         if (isFutureDated && published) {
           console.log(`[social] ${slug}: scheduled for ${savedDate}, skipping announce until then`);
         }
-        if (firstPublish && (facebookConfigured() || instagramConfigured())) {
-          const payload = { slug, headline: String(data.headline), dek: String(data.dek || ''), image: String(data.image || '') };
-          after(() => announceArticle(payload).catch((e) => console.log('[social] announce failed:', e?.message)));
+        if (initialPublication && !isFutureDated) {
+          after(() => dispatchArticleAnnouncement(slug).catch((e) => console.log('[social] announce failed:', e?.message)));
         }
-        if (firstPublish) {
+        if (initialPublication) {
           after(() => notifyPostPublished({ slug, headline: String(data.headline), section: data.section || 'News' }));
         }
         // Ping IndexNow on every save of a live (published, not future-dated)
