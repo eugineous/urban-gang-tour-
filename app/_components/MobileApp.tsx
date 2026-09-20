@@ -25,10 +25,12 @@ export function MobileApp() {
   const [bag, setBag] = useState<BagLine[]>([]);
   const [picking, setPicking] = useState<Product | null>(null);
   const [bagOpen, setBagOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
   const [bagEmail, setBagEmail] = useState('');
   const [bagBusy, setBagBusy] = useState(false);
   const [bagError, setBagError] = useState('');
   const [booking, setBooking] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [cartRestored, setCartRestored] = useState(false);
   const total = useMemo(() => bag.reduce((n, item) => n + item.price * item.qty, 0), [bag]);
   useEffect(() => {
     if (!page) return;
@@ -56,7 +58,30 @@ export function MobileApp() {
     const product = products.find((row) => row.id === id);
     if (product) setPicking(product);
   }, [page, products, productsLoaded]);
-  useEffect(() => { try { localStorage.setItem('ugt_cart', JSON.stringify(bag.map(item => ({ id: item.id, qty: item.qty, ...(item.variant ? { size: item.variant } : {}) })))); } catch {} }, [bag]);
+  useEffect(() => {
+    if (!productsLoaded || cartRestored) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('ugt_cart') || '[]');
+      if (Array.isArray(saved)) {
+        const restored = saved.flatMap((row): BagLine[] => {
+          const product = products.find((item) => item.id === row?.id);
+          if (!product) return [];
+          const variant = typeof row.variant === 'string' ? row.variant : typeof row.size === 'string' ? row.size : undefined;
+          const option = product.variants?.find((item) => item.label === variant);
+          // Never revive an option which is no longer published with the product.
+          if (variant && !option) return [];
+          const qty = Math.max(1, Math.min(20, Number(row?.qty) || 1));
+          return [{ id: product.id, name: product.name, price: product.price + Number(option?.priceAdjustment || 0), qty, variant }];
+        });
+        setBag(restored);
+      }
+    } catch {
+      // A bad local browser value should never block the live catalogue.
+    } finally {
+      setCartRestored(true);
+    }
+  }, [products, productsLoaded, cartRestored]);
+  useEffect(() => { if (!cartRestored) return; try { localStorage.setItem('ugt_cart', JSON.stringify(bag.map(item => ({ id: item.id, qty: item.qty, ...(item.variant ? { size: item.variant } : {}) })))); } catch {} }, [bag, cartRestored]);
   if (!page) return null;
   const today = new Date().toISOString().slice(0, 10);
   const ticketedEvents = events.filter((event) => event.kind === 'ticketed' && !!event.eventDate && event.eventDate >= today);
@@ -84,8 +109,8 @@ export function MobileApp() {
   };
   const sendBooking = async (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); setBooking('sending'); const f = new FormData(e.currentTarget); try { const r = await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: f.get('name'), org: f.get('org'), email: f.get('email'), phone: f.get('phone'), type: 'School Booking', message: f.get('message') }) }); setBooking(r.ok ? 'sent' : 'error'); } catch { setBooking('error'); } };
   return <main className="ugt-mobile-app">
-    <header className="ugt-mobile-top"><Link href="/" aria-label="Urban Gang Tour"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /></Link><button className="ugt-mobile-bag" onClick={() => setBagOpen(true)}>Bag <b>{bag.reduce((sum, item) => sum + item.qty, 0)}</b></button></header>
-    {page === 'home' && <><section className="ugt-mobile-hero"><p>THE TOUR THAT PUTS YOU ON</p><h1>Make the<br />moment.</h1><span>Live shows, talent and culture moving across Kenya.</span><Link className="ugt-mobile-primary" href="/events">Find an event <b>→</b></Link></section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>Next up</h2><Link href="/events">What’s next</Link></div>{ticketedEvents[0] ? <EventCard event={ticketedEvents[0]} onPick={setTicket} featured /> : upcomingStops[0] ? <SchoolStopCard event={upcomingStops[0]} featured /> : <EmptyEvents />}</section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>On the road</h2><Link href="/gallery">Open gallery</Link></div>{photos.length ? <PhotoStrip photos={photos.slice(0, 4)} /> : <EmptyGallery />}</section><section className="ugt-mobile-cta"><p>Bring the tour to your school</p><Link href="/book">Start a booking <b>→</b></Link></section></>}
+    <header className="ugt-mobile-top"><Link href="/" aria-label="Urban Gang Tour home"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /></Link><div className="ugt-mobile-top-actions"><button className="ugt-mobile-explore" aria-expanded={exploreOpen} aria-controls="ugt-mobile-explore" onClick={() => setExploreOpen(true)}>Explore</button><button className="ugt-mobile-bag" aria-label={`Open bag, ${bag.reduce((sum, item) => sum + item.qty, 0)} items`} onClick={() => setBagOpen(true)}>Bag <b>{bag.reduce((sum, item) => sum + item.qty, 0)}</b></button></div></header>
+    {page === 'home' && <><section className="ugt-mobile-hero"><p>URBAN GANG TOUR · KENYA</p><h1>Make the<br />moment.</h1><span>Live shows, talent and culture moving across Kenya.</span><Link className="ugt-mobile-primary" href="/events">Find an event <b>→</b></Link></section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>Next up</h2><Link href="/events">See all</Link></div>{ticketedEvents[0] ? <EventCard event={ticketedEvents[0]} onPick={setTicket} featured /> : upcomingStops[0] ? <SchoolStopCard event={upcomingStops[0]} featured /> : <EmptyEvents />}</section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>Choose your lane</h2><button className="ugt-mobile-text-button" onClick={() => setExploreOpen(true)}>All routes</button></div><div className="ugt-mobile-paths"><Link href="/book"><span>01</span><strong>Bring the tour</strong><small>Schools and institutions</small><b>→</b></Link><Link href="/partners"><span>02</span><strong>Build with us</strong><small>Brands and partners</small><b>→</b></Link><Link href="/blog"><span>03</span><strong>Read the road</strong><small>Urban News and recaps</small><b>→</b></Link></div></section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>On the road</h2><Link href="/gallery">Open gallery</Link></div>{photos.length ? <PhotoStrip photos={photos.slice(0, 4)} /> : <EmptyGallery />}</section><section className="ugt-mobile-cta"><p>Bring the tour to your school</p><Link href="/book">Start a booking <b>→</b></Link></section></>}
     {page === 'events' && <><section className="ugt-mobile-intro pink"><p>WHAT’S NEXT</p><h1>Find your<br />moment.</h1><span>Public tickets appear here when they are released. School stops are listed separately.</span></section>{ticketedEvents.length ? <section className="ugt-mobile-section ugt-mobile-stack">{ticketedEvents.map(event => <EventCard event={event} onPick={setTicket} key={event.id} />)}</section> : <section className="ugt-mobile-section"><EmptyEvents /></section>}{upcomingStops.length ? <section className="ugt-mobile-section ugt-mobile-stack"><div className="ugt-mobile-heading"><h2>On the school run</h2></div>{upcomingStops.map(event => <SchoolStopCard event={event} key={event.id} />)}</section> : null}</>}
     {page === 'gallery' && <><section className="ugt-mobile-intro blue"><p>PHOTO WALL</p><h1>You had to<br />be there.</h1><span>The faces, fits and full-volume moments from the road.</span></section>{photos.length ? <section className="ugt-mobile-gallery">{photos.map(photo => <figure key={photo.id}><img src={photo.url} alt={photo.caption || photo.category || 'Urban Gang Tour'} /><figcaption>{photo.category || 'On the road'}</figcaption></figure>)}</section> : <section className="ugt-mobile-section"><EmptyGallery /></section>}</>}
     {page === 'shop' && <><section className="ugt-mobile-intro yellow"><p>THE DROP</p><h1>Wear the<br />movement.</h1><span>Tour pieces made for the way you show up.</span></section>{products.length ? <section className="ugt-mobile-products-grid">{products.map(item => <article key={item.id}><div className="ugt-mobile-product-art">{item.image && <img src={item.image} alt={item.name} />}</div><p>{item.category || 'Urban Gang'}</p><h2>{item.name}</h2><div><strong>{price(item.price)}</strong><button onClick={() => setPicking(item)}>Choose +</button></div><Link href={`/shop/${encodeURIComponent(item.id)}`}>Details</Link></article>)}</section> : <section className="ugt-mobile-section"><EmptyShop /></section>}</>}
@@ -93,6 +118,7 @@ export function MobileApp() {
     <nav className="ugt-mobile-nav"><Tab href="/" text="Home" glyph="⌂" active={page === 'home'} /><Tab href="/events" text="Events" glyph="◉" active={page === 'events'} /><Tab href="/book" text="Book" glyph="＋" active={page === 'book'} cta /><Tab href="/gallery" text="Gallery" glyph="▧" active={page === 'gallery'} /><Tab href="/shop" text="Shop" glyph="□" active={page === 'shop'} /></nav>
     {ticket && <Ticket event={ticket} close={() => setTicket(null)} />}
     {picking && <ProductPicker product={picking} close={() => setPicking(null)} add={add} />}
+    {exploreOpen && <ExplorePanel close={() => setExploreOpen(false)} />}
     {bagOpen && <aside className="ugt-mobile-overlay"><button className="ugt-mobile-close" onClick={() => setBagOpen(false)}>×</button><p>YOUR BAG</p><h2>{bag.length ? `${bag.reduce((sum, item) => sum + item.qty, 0)} piece${bag.reduce((sum, item) => sum + item.qty, 0) === 1 ? '' : 's'} ready` : 'Your bag is empty'}</h2>{bag.map((item, i) => <div className="ugt-mobile-bag-line" key={`${item.id}-${item.variant || 'standard'}`}><span>{item.name}{item.variant ? ` · ${item.variant}` : ''} × {item.qty}</span><b>{price(item.price * item.qty)}</b><button onClick={() => setBag(old => old.filter((_, index) => index !== i))}>Remove</button></div>)}{bag.length > 0 && <><div className="ugt-mobile-total"><span>Total</span><b>{price(total)}</b></div><label>Email for your receipt<input type="email" value={bagEmail} onChange={e => setBagEmail(e.target.value)} /></label>{bagError && <p className="ugt-mobile-error">{bagError}</p>}<button className="ugt-mobile-pay" onClick={checkoutBag} disabled={bagBusy}>{bagBusy ? 'Opening payment…' : 'Pay securely by card →'}</button><p className="ugt-mobile-muted">Secure payment opens through our payment provider.</p></>}</aside>}
   </main>;
 }
@@ -104,6 +130,21 @@ function SchoolStopCard({ event, featured = false }: { event: Event; featured?: 
 function EmptyEvents() { return <div className="ugt-mobile-empty"><p>PUBLIC TICKETS</p><h3>Nothing public is on sale right now.</h3><span>When a ticketed Urban Gang event is released, the real date, venue and ticket options will appear here.</span><Link href="/book">Book the tour <b>→</b></Link></div>; }
 function EmptyGallery() { return <div className="ugt-mobile-empty"><p>PHOTO WALL</p><h3>The gallery is being prepared.</h3><span>Verified event images will appear here once the content desk publishes them.</span></div>; }
 function EmptyShop() { return <div className="ugt-mobile-empty"><p>URBAN GANG MERCH</p><h3>The next drop is not published yet.</h3><span>When the merch desk publishes an active product, its real price and options will appear here.</span></div>; }
+function ExplorePanel({ close }: { close: () => void }) {
+  return <aside className="ugt-mobile-explore-panel" id="ugt-mobile-explore" role="dialog" aria-modal="true" aria-label="Explore Urban Gang Tour">
+    <div className="ugt-mobile-explore-head"><p>EXPLORE URBAN GANG</p><button className="ugt-mobile-close" aria-label="Close explore menu" onClick={close}>×</button></div>
+    <h2>Pick your<br />next move.</h2>
+    <nav aria-label="Explore Urban Gang Tour">
+      <Link href="/about" onClick={close}><span>01</span><strong>Our story</strong><b>→</b></Link>
+      <Link href="/the-gang" onClick={close}><span>02</span><strong>Meet the gang</strong><b>→</b></Link>
+      <Link href="/experience" onClick={close}><span>03</span><strong>The tour experience</strong><b>→</b></Link>
+      <Link href="/blog" onClick={close}><span>04</span><strong>Urban News</strong><b>→</b></Link>
+      <Link href="/partners" onClick={close}><span>05</span><strong>Partners and investors</strong><b>→</b></Link>
+      <Link href="/contact-us" onClick={close}><span>06</span><strong>Contact the team</strong><b>→</b></Link>
+    </nav>
+    <Link className="ugt-mobile-explore-cta" href="/book" onClick={close}>Book the tour <b>→</b></Link>
+  </aside>;
+}
 function ProductPicker({ product, close, add }: { product: Product; close: () => void; add: (product: Product, variant: string | undefined, qty: number) => void }) {
   const variants = product.variants || [];
   const [variant, setVariant] = useState<string | undefined>(variants[0]?.label);
