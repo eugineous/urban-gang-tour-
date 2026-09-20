@@ -42,6 +42,69 @@ const VIEW_PERM: Record<string, string> = {
   tickets: 'orders',
 };
 
+type QueueItem = {
+  key: string;
+  label: string;
+  target: string;
+  count: number;
+};
+
+type QueueSource = {
+  key: string;
+  label: string;
+  state: 'ready' | 'unavailable';
+};
+
+async function queueCount(sql: string): Promise<number | null> {
+  try {
+    const rows = await q<{ count: string | number }>(sql);
+    const value = Number(rows[0]?.count ?? 0);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  } catch {
+    // Reporting must not trigger schema setup or hide the entire dashboard
+    // when a desk has not been set up yet. The client receives an explicit
+    // unavailable source state instead of a made-up zero.
+    return null;
+  }
+}
+
+async function currentQueue(req: Request): Promise<{ period: string; generatedAt: string; items: QueueItem[]; sources: QueueSource[] }> {
+  const items: QueueItem[] = [];
+  const sources: QueueSource[] = [];
+  const add = async (key: string, label: string, target: string, sql: string) => {
+    const count = await queueCount(sql);
+    sources.push({ key, label, state: count === null ? 'unavailable' : 'ready' });
+    if (count !== null) items.push({ key, label, target, count });
+  };
+
+  // Each query is an aggregate only. It deliberately returns no customer,
+  // school, supplier, crew, or financial detail, and runs only for an
+  // explicitly assigned desk.
+  const jobs: Promise<void>[] = [];
+  if (hasPerm(req, 'bookings')) jobs.push(add('bookings', 'New booking enquiries', 'Bookings', `SELECT COUNT(*) AS count FROM bookings WHERE status='new'`));
+  if (hasPerm(req, 'orders')) jobs.push(add('orders', 'Paid order records to review', 'Orders', `SELECT COUNT(*) AS count FROM orders WHERE status='paid'`));
+  if (hasPerm(req, 'content')) jobs.push(add('content', 'Unpublished stories', 'Content', `SELECT COUNT(*) AS count FROM posts WHERE NOT published`));
+  if (hasPerm(req, 'newsroom')) jobs.push(add('newsroom', 'New story pitches', 'Newsroom', `SELECT COUNT(*) AS count FROM submissions WHERE status='new'`));
+  if (hasPerm(req, 'gallery')) jobs.push(add('gallery', 'Gallery drafts awaiting review', 'Gallery', `SELECT COUNT(*) AS count FROM gallery_photos WHERE NOT published`));
+  if (hasPerm(req, 'events')) jobs.push(add('events', 'Active event records', 'Event Operations', `SELECT COUNT(*) AS count FROM ops_events WHERE status IN ('planned','confirmed','in_progress')`));
+  if (hasPerm(req, 'ops_checklists')) jobs.push(add('checklists', 'Open checklist items', 'Checklists', `SELECT COUNT(*) AS count FROM ops_checklist_items WHERE done_at IS NULL`));
+  if (hasPerm(req, 'ops_school_contacts')) jobs.push(add('school_followups', 'School follow-ups due', 'Contacts', `SELECT COUNT(*) AS count FROM ops_contacts WHERE contact_type='school' AND next_followup IS NOT NULL AND next_followup <= CURRENT_DATE`));
+  if (hasPerm(req, 'ops_talent_partners')) jobs.push(add('partner_followups', 'Talent, partner and media follow-ups due', 'Contacts', `SELECT COUNT(*) AS count FROM ops_contacts WHERE contact_type IN ('talent','partner','media') AND next_followup IS NOT NULL AND next_followup <= CURRENT_DATE`));
+  if (hasPerm(req, 'ops_merch')) jobs.push(add('fulfilment', 'Merch orders in fulfilment', 'Merch Desk', `SELECT COUNT(*) AS count FROM merch_fulfillments WHERE status IN ('new','picking','packed','dispatch_ready')`));
+  await Promise.all(jobs);
+  // Queries deliberately run in parallel, so restore a stable presentation
+  // order before the client renders its source note.
+  items.sort((a, b) => a.key.localeCompare(b.key));
+  sources.sort((a, b) => a.key.localeCompare(b.key));
+
+  return {
+    period: 'Current status queue',
+    generatedAt: new Date().toISOString(),
+    items,
+    sources,
+  };
+}
+
 function canReadSetting(req: Request, key: unknown): boolean {
   // The settings table is shared infrastructure, not a per-desk data source.
   // Keep a scoped site's metadata editor away from notification recipients and
@@ -76,6 +139,13 @@ export async function GET(req: Request) {
       }
       if (hasPerm(req, 'traffic')) filtered.hits_7d = raw.hits_7d;
       return NextResponse.json({ ok: true, rows: [filtered] });
+    } catch (e: any) {
+      return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
+    }
+  }
+  if (view === 'worklist') {
+    try {
+      return NextResponse.json({ ok: true, ...(await currentQueue(req)) });
     } catch (e: any) {
       return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
     }
