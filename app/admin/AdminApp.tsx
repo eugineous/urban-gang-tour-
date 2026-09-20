@@ -107,6 +107,10 @@ const SecurityPanel = dynamic(() => import("./SecurityPanel"), {
   ssr: false,
   loading: opsLoading,
 });
+const SearchConsolePanel = dynamic(() => import("./SearchConsolePanel"), {
+  ssr: false,
+  loading: opsLoading,
+});
 
 const C = { pink: "#E6218C", yellow: "#FFD400", cyan: "#21C7E6", ink: "#111" };
 const card: React.CSSProperties = {
@@ -854,13 +858,16 @@ export default function AdminApp({
         </>
       )}
       {tab === "Site & SEO" && (
-        <SiteTab
-          settings={settings}
-          setSettings={setSettings}
-          seoPath={seoPath}
-          setSeoPath={setSeoPath}
-          onSave={(key: string, value: any) => save("setting", { key, value })}
-        />
+        <>
+          {session?.scope === "super_admin" ? <SearchConsolePanel /> : null}
+          <SiteTab
+            settings={settings}
+            setSettings={setSettings}
+            seoPath={seoPath}
+            setSeoPath={setSeoPath}
+            onSave={(key: string, value: any) => save("setting", { key, value })}
+          />
+        </>
       )}
       {tab === "Comms" && (
         <CommsTab
