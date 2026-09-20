@@ -611,6 +611,24 @@ const PROMO_GROUPS: Array<{ label: string; note: string; types: DocType[] }> = [
   },
 ];
 const isPromoType = (t: DocType) => (PROMO_KEYS as string[]).includes(t);
+
+function inheritedCreativeSlots(
+  type: DocType,
+  promo: Record<string, string>,
+  heroImages: string[],
+  partnerLogos: string[],
+): string[] {
+  if (!isPromoType(type)) return [];
+  const spec = PROMO_SPEC[type];
+  const inherited = spec.fields
+    .filter((field) => !String(promo[field.key] || "").trim())
+    .map((field) => field.label);
+  spec.heroSlots.forEach((slot, index) => {
+    if (!String(heroImages[index] || "").trim()) inherited.push(slot);
+  });
+  if (spec.partners && partnerLogos.length === 0) inherited.push("partner logos");
+  return inherited;
+}
 // These are intentional visual masters rather than transactional forms: they
 // give the team a live, printable reference for every physical brand touchpoint
 // that does not yet need a serial or person/event-specific data merge.
@@ -1020,6 +1038,7 @@ export default function DocGen() {
   const [promo, setPromo] = useState<Record<string, string>>({});
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
+  const [creativeProofAcceptedFor, setCreativeProofAcceptedFor] = useState("");
 
   // Quantity-batch state (tickets / passes / bands).
   const [qty, setQty] = useState("3");
@@ -1081,6 +1100,18 @@ export default function DocGen() {
   };
 
   const batchMode = isCertType(type) && mode === "batch";
+  const creativeDefaults = useMemo(
+    () => inheritedCreativeSlots(type, promo, heroImages, partnerLogos),
+    [type, promo, heroImages, partnerLogos],
+  );
+  // A proof acknowledgement belongs to the exact combination of copy, photos
+  // and partner marks on screen. Editing any of those inputs makes the prior
+  // acknowledgement stale and requires a fresh visual review.
+  const creativeProofKey = useMemo(
+    () => JSON.stringify({ type, promo, heroImages, partnerLogos }),
+    [type, promo, heroImages, partnerLogos],
+  );
+  const creativeProofAccepted = creativeProofAcceptedFor === creativeProofKey;
 
   // The single-form payload for this type (preview + single Generate).
   const singlePayload = useMemo(() => {
@@ -1458,6 +1489,7 @@ export default function DocGen() {
     setPromo({});
     setHeroImages([]);
     setPartnerLogos([]);
+    setCreativeProofAcceptedFor("");
   }
 
   async function doGenerate() {
@@ -1468,7 +1500,12 @@ export default function DocGen() {
       // Phase 1: reserve the real serial + get the filled HTML.
       const r1 = await api("/api/admin/docs/generate", {
         method: "POST",
-        body: JSON.stringify({ type, payload: singlePayload }),
+        body: JSON.stringify({
+          type,
+          payload: isPromoType(type)
+            ? { ...singlePayload, acceptTemplateDefaults: creativeProofAccepted }
+            : singlePayload,
+        }),
       });
       if (r1.status !== 200 || (!r1.data?.html && !r1.data?.pages)) {
         say("Generate failed: " + (r1.data?.error || r1.status));
@@ -2134,6 +2171,34 @@ export default function DocGen() {
                     say={say}
                   />
                 )}
+                {isPromoType(type) && creativeDefaults.length > 0 && (
+                  <label
+                    style={{
+                      display: "flex",
+                      gap: 9,
+                      alignItems: "flex-start",
+                      marginTop: 14,
+                      padding: 11,
+                      border: "1px solid #D99A00",
+                      borderRadius: 9,
+                      background: "#FFF8E8",
+                      color: "#6E4D00",
+                      fontSize: 12,
+                      lineHeight: 1.45,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={creativeProofAccepted}
+                      onChange={(event) => setCreativeProofAcceptedFor(event.target.checked ? creativeProofKey : "")}
+                      style={{ marginTop: 3 }}
+                    />
+                    <span>
+                      <b>Final proof acknowledgement required.</b> This artwork still uses master content in {creativeDefaults.length} slot{creativeDefaults.length === 1 ? "" : "s"}, including {creativeDefaults.slice(0, 3).join(", ")}{creativeDefaults.length > 3 ? ", and more" : ""}. I have reviewed the live proof and deliberately approve those inherited claims, names, images or partner marks for this final asset.
+                    </span>
+                  </label>
+                )}
               </div>
 
               {isQtyType(type) ? (
@@ -2162,8 +2227,8 @@ export default function DocGen() {
                   >
                     <button
                       onClick={doGenerate}
-                      disabled={gen}
-                      style={{ ...btnMagenta, opacity: gen ? 0.6 : 1 }}
+                      disabled={gen || (isPromoType(type) && creativeDefaults.length > 0 && !creativeProofAccepted)}
+                      style={{ ...btnMagenta, opacity: gen || (isPromoType(type) && creativeDefaults.length > 0 && !creativeProofAccepted) ? 0.6 : 1 }}
                     >
                       {gen ? "Generating..." : "Generate document"}
                     </button>

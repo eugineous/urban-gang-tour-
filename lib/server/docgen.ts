@@ -479,6 +479,29 @@ export const PROMO_FIELDS: Record<string, string[]> = {
   ],
 };
 
+// A creative template can contain deliberate visual master copy and images.
+// Those masters are useful for proofing but must never quietly become a final
+// event asset. This map lets the server identify every slot that would remain
+// inherited when the owner has not supplied current material.
+const PROMO_HERO_SLOT_COUNTS: Partial<Record<DocType, number>> = {
+  newsletter: 3,
+  emailSig: 1,
+  stageBack: 2,
+  staffCard: 1,
+  igNext: 4,
+  igStory: 2,
+  igWinner: 1,
+  igEpisode: 1,
+  igMerch: 2,
+  posTakeover: 4,
+  posHeadliner: 1,
+  posFestival: 3,
+  posFinale: 3,
+};
+const PROMO_PARTNER_SLOT_TYPES = new Set<DocType>([
+  "mediaWall", "stageBack", "posTakeover", "posFestival", "posFinale", "posMaster",
+]);
+
 // Physical artwork has deliberately smaller safe areas than social cards.
 // Keep personalisation inside its intended print zone before it reaches the
 // renderer; the template remains the authority for visual styling.
@@ -1949,6 +1972,55 @@ export function preparePayload(type: DocType, raw: any): PreparedDoc {
     slug: slugify(payload.receivedFrom),
     computed: { amountWords, amountFigures: amount },
   };
+}
+
+// Final issue validation lives separately from preview preparation. A blank
+// preview remains valuable when composing or comparing a brand master, but a
+// final serial, PDF or PNG needs enough current information to be attributable
+// and cannot silently preserve an old template claim.
+export function validateFinalIssue(
+  type: DocType,
+  prepared: PreparedDoc,
+  raw: any,
+): void {
+  const p: any = prepared.payload;
+  if (type === "invoice") {
+    if (!String(p.billTo || "").trim()) throw new Error("invoice_billTo_required");
+    if (!String(p.eventProject || "").trim()) throw new Error("invoice_eventProject_required");
+    if (!Array.isArray(p.lineItems) || !p.lineItems.some((item: any) => item.description && item.qty > 0 && item.rate > 0)) {
+      throw new Error("invoice_completed_line_item_required");
+    }
+    if (!(Number(p.total) > 0)) throw new Error("invoice_positive_total_required");
+    return;
+  }
+  if (type === "receipt") {
+    if (!String(p.receivedFrom || "").trim()) throw new Error("receipt_receivedFrom_required");
+    if (!String(p.beingPaymentFor || "").trim()) throw new Error("receipt_payment_purpose_required");
+    if (!(Number(p.amountFigures) > 0)) throw new Error("receipt_positive_amount_required");
+    return;
+  }
+  if (!isPromo(type)) return;
+
+  // An asset label is deliberately required even when it is not printed. It
+  // keeps the immutable record searchable and prevents a generic visual master
+  // from being issued as a finished campaign piece.
+  if (!String(p.eventName || "").trim()) throw new Error("creative_asset_label_required");
+
+  const inherited: string[] = [];
+  for (const field of PROMO_FIELDS[type] || []) {
+    if (!String(p[field] || "").trim()) inherited.push(`text:${field}`);
+  }
+  const heroes = Array.isArray(p.heroImages) ? p.heroImages : [];
+  const heroCount = PROMO_HERO_SLOT_COUNTS[type] || 0;
+  for (let i = 0; i < heroCount; i++) {
+    if (!String(heroes[i] || "").trim()) inherited.push(`image:${i + 1}`);
+  }
+  if (PROMO_PARTNER_SLOT_TYPES.has(type) && (!Array.isArray(p.partnerLogos) || p.partnerLogos.length === 0)) {
+    inherited.push("partner_logos");
+  }
+  if (inherited.length && raw?.acceptTemplateDefaults !== true) {
+    throw new Error(`creative_proof_acknowledgement_required:${inherited.slice(0, 8).join(",")}`);
+  }
 }
 
 // Soft cross-reference: does this serial belong to an existing, non-void

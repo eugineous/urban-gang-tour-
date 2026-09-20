@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { r2Put } from '@/lib/server/r2';
-import { isAdmin, hasPerm, adminActor } from '@/lib/server/session';
+import { isAdmin, hasPerm, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import {
-  ensureDocgenSchema, isDocType, preparePayloadFull, insertDocument, setDocumentAssets,
+  ensureDocgenSchema, isDocType, preparePayloadFull, validateFinalIssue, insertDocument, setDocumentAssets,
   getDocumentById, renderDoc, docgenAudit, DOC_TYPES,
 } from '@/lib/server/docgen';
 
@@ -39,7 +39,7 @@ function decodeBase64(v: unknown, kind: string): Buffer {
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(req, 'documents')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
 
@@ -70,6 +70,7 @@ async function phaseReserve(req: Request, body: any): Promise<NextResponse> {
   let prepared;
   try {
     prepared = await preparePayloadFull(type, payload);
+    validateFinalIssue(type, prepared, payload);
   } catch (e) {
     // Validation / business-rule failure (e.g. a required field, or the
     // under-18 talent release with no guardian block). Fail CLOSED before any
