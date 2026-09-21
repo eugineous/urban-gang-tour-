@@ -5,6 +5,7 @@ import { JsonLd } from '@/app/_components/JsonLd';
 import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
 import { formatEventDate } from '@/lib/server/catalog';
+import { PUBLIC_EVENT_STATUSES, isEventSellable, eventSchemaStatus } from '@/lib/server/event-lifecycle';
 
 export const revalidate = 300;
 
@@ -35,14 +36,22 @@ type TicketedEvent = {
   image: string;
   description: string;
   tiers: Tier[] | string;
+  status: string;
+  previous_start_at: string | null;
 };
 
 const eventForPage = cache(async (id: string): Promise<TicketedEvent | null> => {
   if (!/^[a-z0-9-]{1,80}$/.test(id) || !hasDb()) return null;
+  // Buyers holding tickets must still see what happened to their event, so
+  // every PUBLIC lifecycle state renders here with truthful status UI —
+  // only `published` is buyable (see isEventSellable). Drafts,
+  // pending_review, archived and rejected rows stay invisible (404), per
+  // Google's keep-the-event-and-flip-its-status rule.
   const rows = await q<TicketedEvent>(
-    `SELECT id, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers
-     FROM tour_events WHERE id=$1 AND kind='ticketed' AND status='published' LIMIT 1`,
-    [id]
+    `SELECT id, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
+            status, previous_start_at::text AS previous_start_at
+     FROM tour_events WHERE id=$1 AND kind='ticketed' AND status = ANY($2) LIMIT 1`,
+    [id, [...PUBLIC_EVENT_STATUSES]]
   );
   return rows[0] || null;
 });
@@ -93,21 +102,42 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const tiers = safeTiers(event.tiers);
   const startDate = dateTime(event);
   const path = `/events/${event.id}`;
+  const status = String(event.status || 'published');
+  const sellable = isEventSellable({ status, kind: 'ticketed', tiers });
+  const soldOut = status === 'sold_out';
+  const prev = event.previous_start_at ? String(event.previous_start_at).slice(0, 10) : null;
+  const statusNote: Record<string, string> = {
+    sales_paused: 'Ticket sales are paused for this event. Check back soon.',
+    sold_out: 'This event is sold out.',
+    postponed: 'This event has been postponed. A new date will be announced — your tickets stay valid.',
+    rescheduled: prev && prev !== String(event.event_date).slice(0, 10)
+      ? `This event was rescheduled (previously ${prev}). Your tickets stay valid for the new date.`
+      : 'This event was rescheduled. Your tickets stay valid for the new date.',
+    cancelled: 'This event has been cancelled. Ticket holders will be contacted about refunds.',
+    completed: 'This event has already happened.',
+  };
+  // Offers only where the public can actually buy (Google's requirement):
+  // published lists InStock tiers, sold_out lists SoldOut, every other state
+  // carries status markup with no offers at all.
   const eventJsonLd = startDate && event.venue ? {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.name,
     url: `${SITE.domain}${path}`,
     startDate,
-    eventStatus: 'https://schema.org/EventScheduled',
+    ...(status === 'rescheduled' && prev ? { previousStartDate: `${prev}T00:00:00+03:00` } : {}),
+    eventStatus: eventSchemaStatus(status),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     location: { '@type': 'Place', name: event.venue, address: { '@type': 'PostalAddress', addressLocality: event.city || undefined, addressCountry: 'KE' } },
     image: event.image ? [`${SITE.domain}${event.image}`] : undefined,
     organizer: { '@id': `${SITE.domain}/#org` },
-    offers: tiers.map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
+    offers: (!sellable && !soldOut) ? undefined : tiers.map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
   } : null;
   const accent = /^#[0-9A-F]{6}$/i.test(event.accent) ? event.accent : '#E6218C';
   const eventDate = formatEventDate(event.event_date);
+  const shareText = encodeURIComponent(`${event.name} — ${event.venue || ''} ${eventDate}`.trim());
+  const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
+  const calStart = startDate ? startDate.replace(/[-:]/g, '').replace('+03:00', '') : null;
 
   return <main style={{ minHeight: '100vh', color: '#111', background: '#fffafc', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
     {eventJsonLd ? <JsonLd data={eventJsonLd} /> : null}
@@ -126,17 +156,25 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       </div>
     </section>
     <section style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(30px,6vw,72px) 20px 86px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(290px,420px)', gap: 28, alignItems: 'start' }}>
+      {statusNote[status] ? <p role="status" style={{ margin: '0 0 22px', background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 16, lineHeight: 1.5, padding: '14px 18px', borderRadius: 12 }}>{statusNote[status]}</p> : null}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 28, alignItems: 'start' }}>
         <div>
           <p style={{ margin: 0, color: accent, fontWeight: 900, letterSpacing: '.1em', fontSize: 12, textTransform: 'uppercase' }}>Event details</p>
           <dl style={{ margin: '16px 0 0', borderTop: '2px solid #111' }}>
             {[['Date', eventDate], ['Time', event.event_time || 'To be confirmed'], ['Venue', event.venue || 'To be confirmed'], ['City', event.city || 'Kenya']].map(([label, value]) => <div key={label} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 14, padding: '15px 0', borderBottom: '1px solid #d8d0d5' }}><dt style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase' }}>{label}</dt><dd style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{value}</dd></div>)}
           </dl>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 22 }}>
+            <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener" style={{ fontWeight: 800, fontSize: 14, color: '#111', border: '2px solid #111', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}>Share on WhatsApp</a>
+            <a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener" style={{ fontWeight: 800, fontSize: 14, color: '#111', border: '2px solid #111', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}>Share on X</a>
+            {calStart ? <a href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${shareText}&dates=${calStart}/${calStart}&details=${shareUrl}`} target="_blank" rel="noopener" style={{ fontWeight: 800, fontSize: 14, color: '#111', border: '2px solid #111', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}>Add to calendar</a> : null}
+          </div>
         </div>
         <aside style={{ background: '#fff', border: '3px solid #111', borderRadius: 18, padding: 22, boxShadow: `8px 8px 0 ${accent}` }}>
           <p style={{ margin: 0, color: '#555', fontWeight: 800, fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase' }}>Ticket options</p>
           {tiers.length ? <div style={{ display: 'grid', gap: 10, margin: '15px 0 22px' }}>{tiers.map((tier) => <div key={tier.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: '1px solid #e1dce0', fontWeight: 800 }}><span>{tier.name}</span><span>{money(tier.price)}</span></div>)}</div> : <p style={{ lineHeight: 1.5 }}>Ticket options will be confirmed on the ticket desk.</p>}
-          <a href="/events" style={{ display: 'block', textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 11, padding: '15px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 19, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
+          {sellable
+            ? <a href="/events" style={{ display: 'block', textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 11, padding: '15px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 19, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
+            : <p role="status" style={{ margin: 0, textAlign: 'center', background: '#eee7ea', borderRadius: 11, padding: '15px 18px', fontWeight: 800 }}>{soldOut ? 'Sold out' : 'Tickets not on sale'}</p>}
           <a href="/book" style={{ display: 'block', textAlign: 'center', marginTop: 12, color: '#111', fontWeight: 800 }}>Book Urban Gang Tour for your event</a>
         </aside>
       </div>
