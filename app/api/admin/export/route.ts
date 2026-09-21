@@ -41,7 +41,9 @@ function buildKindQuery(kind: string, search: string | null, from: string | null
       if (from) w.push(`created_at >= ${push(from)}`);
       if (to)   w.push(`created_at < (${push(to)}::date + interval '1 day')`);
       return {
-        cols: 'id, total, status, name, email, phone, mpesa_receipt, created_at',
+        cols: `id, total, status, name, email, phone, mpesa_receipt, pay_method,
+               (SELECT COALESCE(SUM(amount),0) FROM refunds r WHERE r.order_id=orders.id) AS refunded,
+               created_at`,
         from: 'orders',
         where: w,
         orderBy: 'created_at DESC',
@@ -224,6 +226,15 @@ export async function GET(req: Request) {
   let totalCount: number;
   try {
     if (OPS_KINDS.has(kind)) await ensureOpsSchema();
+    if (kind === 'orders') {
+      // The refunds ledger is created on first refund; the export must not
+      // fail on a database that has never recorded one.
+      await q(`CREATE TABLE IF NOT EXISTS refunds (
+        id SERIAL PRIMARY KEY, order_id TEXT NOT NULL, amount INT NOT NULL,
+        reason TEXT NOT NULL, actor TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+      )`);
+      await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_method TEXT DEFAULT 'mpesa'`);
+    }
     const [dataRows, countRows] = await Promise.all([
       q(dataSql, dataParams),
       q<{ n: string }>(countSql, parts.params),
