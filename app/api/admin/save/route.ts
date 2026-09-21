@@ -214,6 +214,26 @@ export async function POST(req: Request) {
         if (!isOrderStatus(data.status)) {
           return NextResponse.json({ error: 'invalid_order_status' }, { status: 400 });
         }
+        // Refunds must always write a ledger row (amount, reason, actor) via
+        // lib/server/refunds.ts — never a bare status flip. The bare
+        // transition is rejected here so "refunded" cannot exist without money
+        // truth behind it.
+        if (data.status === 'refunded' || data.status === 'partially_refunded') {
+          const { recordRefund } = await import('@/lib/server/refunds');
+          try {
+            const out = await recordRefund({
+              orderId: data.id,
+              amountKes: Math.round(Number(data.refundAmount)),
+              reason: String(data.refundReason || ''),
+              actor: adminActor(req),
+            });
+            return NextResponse.json({ ok: true, status: out.status, refundId: out.refundId });
+          } catch (e: any) {
+            const msg = String(e?.message || 'refund_failed');
+            const status = msg === 'order_not_found' ? 404 : msg === 'order_not_refundable' ? 409 : 400;
+            return NextResponse.json({ error: msg }, { status });
+          }
+        }
         const cur = await q<{ status: string }>(`SELECT status FROM orders WHERE id=$1`, [data.id]);
         if (!cur.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
         if (!canAdminSetOrderStatus(cur[0].status, data.status)) {

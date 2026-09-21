@@ -19,6 +19,8 @@ export interface OrganizerSession {
   id: string;
   email: string;
   businessName: string;
+  /** Password version at issue time — bumped on reset so old cookies die. */
+  pwdv?: number;
 }
 
 export type ActiveOrganizerResult =
@@ -64,13 +66,17 @@ export async function currentApprovedOrganizer(req: Request): Promise<ActiveOrga
   const session = currentOrganizer(req);
   if (!session) return { organizer: null, error: 'unauthorized', status: 401 };
   if (!hasDb()) return { organizer: null, error: 'db_not_configured', status: 503 };
-  const rows = await q<{ id: string; email: string; business_name: string; status: string }>(
-    `SELECT id, email, business_name, status FROM marketplace_organizers WHERE id=$1`,
+  const rows = await q<{ id: string; email: string; business_name: string; status: string; password_version: number | null }>(
+    `SELECT id, email, business_name, status, password_version FROM marketplace_organizers WHERE id=$1`,
     [session.id],
   );
   const organizer = rows[0];
   if (!organizer || organizer.status !== 'approved')
     return { organizer: null, error: 'account_not_active', status: 403 };
+  // Password reset revocation: a cookie issued before the current password
+  // version is dead, even though its HMAC is still valid.
+  if ((session.pwdv ?? 0) !== (organizer.password_version ?? 0))
+    return { organizer: null, error: 'unauthorized', status: 401 };
   return {
     organizer: {
       id: organizer.id,

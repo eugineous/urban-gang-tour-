@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const password = typeof body?.password === 'string' ? body.password : '';
   if (!em || !EMAIL_RE.test(em) || !password) return NextResponse.json({ error: 'invalid_credentials' }, { status: 400 });
 
-  const rows = await q(`SELECT id, business_name, email, password_hash, status FROM marketplace_organizers WHERE email=$1`, [em]);
+  const rows = await q(`SELECT id, business_name, email, password_hash, password_version, status FROM marketplace_organizers WHERE email=$1`, [em]);
   if (!rows.length || !checkPassword(password, rows[0].password_hash)) {
     return NextResponse.json({ error: 'wrong_credentials' }, { status: 401 });
   }
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   if (org.status === 'suspended') return NextResponse.json({ error: 'account_suspended' }, { status: 403 });
   if (org.status !== 'approved') return NextResponse.json({ error: 'not_approved' }, { status: 403 });
 
-  const token = signOrganizerToken({ id: org.id, email: org.email, businessName: org.business_name });
+  const token = signOrganizerToken({ id: org.id, email: org.email, businessName: org.business_name, pwdv: Number(org.password_version || 0) });
   const res = NextResponse.json({ ok: true, organizer: { id: org.id, email: org.email, businessName: org.business_name } });
   res.headers.set('Set-Cookie', organizerSessionCookie(token));
   return res;

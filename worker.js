@@ -11,5 +11,13 @@ export default {
       headers: { 'x-ugt-cron': env.UGT_CRON_SECRET },
     });
     ctx.waitUntil(env.WORKER_SELF_REFERENCE.fetch(request));
+    // Release abandoned checkout holds so capped tiers free their seats even
+    // when no payment callback ever arrives. Same secret, same self-call —
+    // a second endpoint, not a second trust model.
+    const sweep = new Request('https://urbangangtour.co.ke/api/internal/cron/ticket-sweeper', {
+      method: 'POST',
+      headers: { 'x-ugt-cron': env.UGT_CRON_SECRET },
+    });
+    ctx.waitUntil(env.WORKER_SELF_REFERENCE.fetch(sweep));
   },
 };

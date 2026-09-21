@@ -325,8 +325,17 @@ CREATE TABLE IF NOT EXISTS marketplace_organizers (
   rejection_reason TEXT DEFAULT '',
   applied_at TIMESTAMPTZ DEFAULT now(),
   approved_at TIMESTAMPTZ,
+  password_version INT NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+-- Single-use password-reset tokens (SHA-256 hash at rest, 1h expiry).
+CREATE TABLE IF NOT EXISTS organizer_reset_tokens (
+  token_hash TEXT PRIMARY KEY,
+  organizer_id TEXT NOT NULL REFERENCES marketplace_organizers(id) ON DELETE CASCADE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_organizer_reset_tokens_organizer ON organizer_reset_tokens (organizer_id);
 CREATE TABLE IF NOT EXISTS marketplace_events (
   id TEXT PRIMARY KEY,
   organizer_id TEXT NOT NULL REFERENCES marketplace_organizers(id) ON DELETE CASCADE,
