@@ -1,4 +1,5 @@
 import { NextResponse, after } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { q, db } from '@/lib/server/db';
 import { isAdmin, isSuperAdmin, hasPerm, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
@@ -152,6 +153,9 @@ export async function POST(req: Request) {
         // events/shop admin mutations already do the same (see admin/ops).
         if (published && !isFutureDated) {
           after(() => pingIndexNow([`/blog/${slug}`, '/blog', '/feed.xml', '/news-sitemap.xml']));
+          // Flush the sitemap cache so the new post URL appears immediately.
+          revalidatePath('/sitemap.xml');
+          revalidateTag('sitemap');
         }
         return NextResponse.json({ ok: true, slug });
       }

@@ -184,3 +184,30 @@ export const PURCHASE_NETWORK_LIMIT = 3_000;
 export function limit(req: Request, scope: string, perDevice = 10, windowMs = 60_000): boolean {
   return rateLimit(`${scope}:${clientIp(req)}`, perDevice, windowMs, req);
 }
+
+export interface RateLimitStats {
+  activeBuckets: number;
+  maxBuckets: number;
+  topKeys: Array<{ key: string; count: number; resetsIn: number }>;
+}
+
+/**
+ * Returns the count of active (non-expired) rate-limit buckets and the top 10
+ * most-hit keys. Used by the admin Security panel for diagnostics.
+ */
+export function getRateLimitStats(): RateLimitStats {
+  const now = Date.now();
+  const active: Array<[string, Bucket]> = [];
+  for (const [k, v] of hits) {
+    if (now <= v.reset) active.push([k, v]);
+  }
+  const topKeys = active
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 10)
+    .map(([key, v]) => ({
+      key,
+      count: v.count,
+      resetsIn: Math.max(0, Math.round((v.reset - now) / 1000)),
+    }));
+  return { activeBuckets: active.length, maxBuckets: MAX_KEYS, topKeys };
+}

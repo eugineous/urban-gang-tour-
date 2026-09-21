@@ -147,6 +147,12 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'monthly', priority: 0.3,
   },
   {
+    path: '/faq', page: 'legal',
+    title: 'FAQ — Urban Gang Tour',
+    description: 'Frequently asked questions about Urban Gang Tour events, tickets, merch, and more.',
+    changefreq: 'monthly', priority: 0.6,
+  },
+  {
     path: '/admin', page: 'admin',
     title: 'Admin — Urban Gang Control Room',
     description: 'Urban Gang Tour admin control room.',

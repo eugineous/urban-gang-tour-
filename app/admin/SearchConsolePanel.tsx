@@ -46,6 +46,8 @@ export default function SearchConsolePanel() {
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [inspectError, setInspectError] = useState('');
   const [inspecting, setInspecting] = useState(false);
+  const [authed, setAuthed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const load = async () => {
     setLoading(true); setError('');
@@ -59,7 +61,18 @@ export default function SearchConsolePanel() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    // Verify admin session before allowing any data access.
+    (async () => {
+      try {
+        const r = await fetch('/api/admin/me', { credentials: 'include' });
+        if (r.ok) setAuthed(true);
+      } catch { /* not authed */ }
+      setAuthChecked(true);
+    })();
+  }, []);
+
+  useEffect(() => { if (authed) load(); }, [authed]);
 
   const inspect = async () => {
     setInspecting(true); setInspectError(''); setInspection(null);

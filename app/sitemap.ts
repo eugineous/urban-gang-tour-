@@ -7,6 +7,12 @@ import { hasDb, q } from '@/lib/server/db';
 // must read them at request time instead of capturing a build-time snapshot.
 export const dynamic = 'force-dynamic';
 
+// Tag-based revalidation: when admin publishes a new post or event, call
+// revalidateTag('sitemap') to flush the cached sitemap response immediately.
+// revalidate=0 means "never cache between requests", but the tag still lets
+// an on-demand flush from the admin pipeline skip even the SSG grace period.
+export const revalidate = 0;
+
 // Lists every crawlable URL, including each /blog/[slug]. /admin is excluded
 // (noindex). robots.ts points crawlers here.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

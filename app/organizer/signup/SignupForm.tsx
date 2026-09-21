@@ -65,24 +65,42 @@ export default function SignupForm() {
         </p>
         <div style={card}>
           <div style={{ display: 'grid', gap: 12 }}>
-            <div><span style={label}>Business / organizer name *</span><input style={inp} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="e.g. Nairobi Live Events" /></div>
-            <div><span style={label}>Contact person *</span><input style={inp} value={contactName} onChange={(e) => setContactName(e.target.value)} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div><span style={label}>Email *</span><input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div><span style={label}>Phone *</span><input style={inp} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0712345678" /></div>
+            <div>
+              <label htmlFor="org-business-name" style={label}>Business / organizer name *</label>
+              <input id="org-business-name" style={inp} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="e.g. Nairobi Live Events" autoComplete="organization" />
             </div>
-            <div><span style={label}>Password (min 8 characters) *</span><input style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+            <div>
+              <label htmlFor="org-contact-name" style={label}>Contact person *</label>
+              <input id="org-contact-name" style={inp} value={contactName} onChange={(e) => setContactName(e.target.value)} autoComplete="name" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label htmlFor="org-email" style={label}>Email *</label>
+                <input id="org-email" style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+              </div>
+              <div>
+                <label htmlFor="org-phone" style={label}>Phone *</label>
+                <input id="org-phone" style={inp} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0712345678" autoComplete="tel" />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="org-password" style={label}>Password (min 8 characters) *</label>
+              <input id="org-password" style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
+            </div>
             <div style={{ borderTop: '1px dashed #ccc', paddingTop: 12, marginTop: 4 }}>
               <span style={{ ...label, marginBottom: 8 }}>Payout details — where we send your share automatically per sale</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <span style={label}>Settlement bank *</span>
-                  <select style={inp} value={settlementBank} onChange={(e) => setSettlementBank(e.target.value)}>
+                  <label htmlFor="org-bank" style={label}>Settlement bank *</label>
+                  <select id="org-bank" style={inp} value={settlementBank} onChange={(e) => setSettlementBank(e.target.value)}>
                     <option value="">Select bank...</option>
                     {banks.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                   </select>
                 </div>
-                <div><span style={label}>Account number *</span><input style={inp} value={settlementAccount} onChange={(e) => setSettlementAccount(e.target.value)} /></div>
+                <div>
+                  <label htmlFor="org-account" style={label}>Account number *</label>
+                  <input id="org-account" style={inp} value={settlementAccount} onChange={(e) => setSettlementAccount(e.target.value)} autoComplete="off" />
+                </div>
               </div>
             </div>
             <button style={{ ...btnMagenta, marginTop: 8 }} disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Apply to sell tickets'}</button>

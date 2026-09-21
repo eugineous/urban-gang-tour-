@@ -7,6 +7,19 @@ import { hasDb, q } from '@/lib/server/db';
 
 export const revalidate = 300;
 
+// Pre-generate active products for ISR. An unavailable database at build time
+// yields no pre-generated pages (honest empty list); pages are then rendered
+// on demand and cached for the revalidate window.
+export async function generateStaticParams() {
+  if (!hasDb()) return [];
+  try {
+    const rows = await q<{ id: string }>(`SELECT id FROM products WHERE active`);
+    return rows.map((r) => ({ id: r.id }));
+  } catch {
+    return [];
+  }
+}
+
 type Variant = { label: string; priceAdjustment: number; sku: string };
 type Product = {
   id: string;

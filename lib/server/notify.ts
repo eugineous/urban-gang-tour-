@@ -9,6 +9,7 @@
 // must never break the request that raised it - and always log one
 // `[notify]` line describing what happened (sent, skipped, or failed).
 import { q, db } from './db';
+import { sendWhatsAppText, isWhatsAppConfigured } from '../whatsapp';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -73,6 +74,31 @@ async function sendNotify(subject: string, html: string, text: string): Promise<
     return false;
   }
   return true;
+}
+
+// Sends a WhatsApp message to the admin's own number (META_WA_SELF /
+// WHATSAPP_SELF). Requires the WhatsApp Cloud API to be configured
+// (WHATSAPP_ACCESS_TOKEN + WHATSAPP_PHONE_NUMBER_ID). Silently skips and
+// logs when either condition is unmet — never throws.
+async function notifyViaWhatsApp(body: string): Promise<void> {
+  try {
+    const adminTo = process.env.META_WA_SELF || process.env.WHATSAPP_SELF || '';
+    if (!isWhatsAppConfigured() || !adminTo) {
+      console.log('[notify:wa] skipped: whatsapp not configured or META_WA_SELF not set');
+      return;
+    }
+    // Strip non-digits from the number before sending (E.164 without plus)
+    const to = adminTo.replace(/\D/g, '');
+    if (!to) return;
+    const result = await sendWhatsAppText(to, body);
+    if (result.ok) {
+      console.log('[notify:wa] sent');
+    } else {
+      console.warn('[notify:wa] failed:', result.error);
+    }
+  } catch (e) {
+    console.error('[notify:wa] error', e);
+  }
 }
 
 // Shared card renderer for every notification below - the two originals
@@ -279,6 +305,9 @@ export async function notifyPaymentSuccess(ev: PaymentEvent): Promise<void> {
       textLines('Payment received', rows)
     );
     console.log('[notify]', ok ? 'payment-success sent:' : 'payment-success failed:', ev.orderId);
+    await notifyViaWhatsApp(
+      `✅ Payment confirmed: ${ev.orderId}\nGateway: ${ev.gateway}\nAmount: KES ${Number(ev.amount || 0).toLocaleString('en-US')}`
+    );
   } catch (e) {
     console.error('[notify] payment-success error', e);
   }
@@ -374,6 +403,9 @@ export async function notifyNewOrder(order: NewOrderRow): Promise<void> {
 </div>`;
     const ok = await sendNotify(subject, html, text);
     console.log('[notify]', ok ? 'new-order sent:' : 'new-order failed:', order.id);
+    await notifyViaWhatsApp(
+      `🎟 New order: ${order.id}\nAmount: KES ${Number(order.total || 0).toLocaleString('en-US')}\nName: ${order.name || ''}\nPhone: ${order.phone || ''}`
+    );
   } catch (e) {
     console.error('[notify] new-order error', e);
   }

@@ -14,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/v25-template.html'],
       },
     ],
-    sitemap: [`${SITE.domain}/sitemap.xml`, `${SITE.domain}/news-sitemap.xml`],
+    sitemap: [`${SITE.domain}/sitemap.xml`, `${SITE.domain}/news-sitemap.xml`, `${SITE.domain}/image-sitemap.xml`],
     host: SITE.domain,
   };
 }

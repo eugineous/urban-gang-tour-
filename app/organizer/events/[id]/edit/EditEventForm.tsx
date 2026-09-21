@@ -87,21 +87,55 @@ export default function EditEventForm() {
         )}
         <div style={card}>
           <div style={{ display: 'grid', gap: 12 }}>
-            <div><span style={label}>Event name *</span><input style={inp} value={name} onChange={(e) => setName(e.target.value)} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div><span style={label}>Date</span><input style={inp} type="date" value={eventDate} disabled={locked} onChange={(e) => setEventDate(e.target.value)} /></div>
-              <div><span style={label}>City</span><input style={inp} value={city} disabled={locked} onChange={(e) => setCity(e.target.value)} /></div>
+            <div>
+              <label htmlFor="edit-evt-name" style={label}>Event name *</label>
+              <input id="edit-evt-name" style={inp} value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-            <div><span style={label}>Venue</span><input style={inp} value={venue} disabled={locked} onChange={(e) => setVenue(e.target.value)} /></div>
-            <div><span style={label}>Description</span><textarea style={{ ...inp, minHeight: 90 }} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-            <div><span style={label}>Image URL</span><input style={inp} value={image} onChange={(e) => setImage(e.target.value)} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label htmlFor="edit-evt-date" style={label}>Date</label>
+                <input id="edit-evt-date" style={inp} type="date" value={eventDate} disabled={locked} onChange={(e) => setEventDate(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="edit-evt-city" style={label}>City</label>
+                <input id="edit-evt-city" style={inp} value={city} disabled={locked} onChange={(e) => setCity(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="edit-evt-venue" style={label}>Venue</label>
+              <input id="edit-evt-venue" style={inp} value={venue} disabled={locked} onChange={(e) => setVenue(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="edit-evt-description" style={label}>Description</label>
+              <textarea id="edit-evt-description" style={{ ...inp, minHeight: 90 }} value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="edit-evt-image" style={label}>Image URL</label>
+              <input id="edit-evt-image" style={inp} value={image} onChange={(e) => setImage(e.target.value)} />
+            </div>
             <div>
               <span style={label}>Ticket tiers{locked ? ' (locked — tickets already sold)' : ''}</span>
               {tiers.map((t, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                  <input style={{ ...inp, flex: 2 }} value={t.name} disabled={locked} onChange={(e) => setTier(i, { name: e.target.value })} />
-                  <input style={{ ...inp, flex: 1 }} type="number" min={0} value={t.price} disabled={locked} onChange={(e) => setTier(i, { price: Number(e.target.value) || 0 })} />
-                  {!locked && tiers.length > 1 && <button style={btnDark} onClick={() => setTiers(tiers.filter((_, idx) => idx !== i))}>✕</button>}
+                  <input
+                    style={{ ...inp, flex: 2 }}
+                    aria-label={`Tier ${i + 1} name`}
+                    value={t.name}
+                    disabled={locked}
+                    onChange={(e) => setTier(i, { name: e.target.value })}
+                  />
+                  <input
+                    style={{ ...inp, flex: 1 }}
+                    type="number"
+                    min={0}
+                    aria-label={`Tier ${i + 1} price in KES`}
+                    value={t.price}
+                    disabled={locked}
+                    onChange={(e) => setTier(i, { price: Number(e.target.value) || 0 })}
+                  />
+                  {!locked && tiers.length > 1 && (
+                    <button style={btnDark} aria-label={`Remove tier ${i + 1}`} onClick={() => setTiers(tiers.filter((_, idx) => idx !== i))}>✕</button>
+                  )}
                 </div>
               ))}
               {!locked && <button style={btn} onClick={() => setTiers([...tiers, { name: '', price: 0 }])}>+ Add tier</button>}

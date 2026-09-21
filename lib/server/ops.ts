@@ -98,6 +98,18 @@ CREATE TABLE IF NOT EXISTS ops_expenses (
   note TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS ops_suppliers (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT DEFAULT 'Other',
+  phone TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  address TEXT DEFAULT '',
+  default_rate INT DEFAULT 0,
+  notes TEXT DEFAULT '',
+  last_used_at DATE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 CREATE TABLE IF NOT EXISTS ops_checklist_templates (
   id SERIAL PRIMARY KEY,
   label TEXT NOT NULL,
@@ -187,6 +199,10 @@ CREATE TABLE IF NOT EXISTS products (
 -- zero stock and avoids publishing invented availability to the shop.
 ALTER TABLE products ADD COLUMN IF NOT EXISTS inventory_tracked BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point INT;
+-- Unit cost (what UGT pays to produce/buy the item). Zero means "not yet
+-- recorded" — never invented. Markup is derived as (price - cost) / cost,
+-- shown in the Control Room only; it is never trusted from the browser.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price INT NOT NULL DEFAULT 0;
 CREATE TABLE IF NOT EXISTS merch_variants (
   id BIGSERIAL PRIMARY KEY,
   product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,

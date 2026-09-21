@@ -68,18 +68,150 @@ const EXPORT_KINDS: { kind: string; label: string }[] = [
   { kind: 'payouts', label: 'Crew payouts' },
 ];
 
+interface ExportState {
+  search: string;
+  from: string;
+  to: string;
+}
+
+const defaultExportState = (): ExportState => ({ search: '', from: '', to: '' });
+
+function buildExportUrl(kind: string, state: ExportState): string {
+  const params = new URLSearchParams({ kind });
+  if (state.search.trim()) params.set('search', state.search.trim());
+  if (state.from) params.set('from', state.from);
+  if (state.to)   params.set('to', state.to);
+  return `/api/admin/export?${params}`;
+}
+
 function ExportPanel() {
+  const [states, setStates] = useState<Record<string, ExportState>>(
+    () => Object.fromEntries(EXPORT_KINDS.map(({ kind }) => [kind, defaultExportState()]))
+  );
+  const [counts, setCounts] = useState<Record<string, number | null>>({});
+  const [open, setOpen] = useState<string | null>(null);
+
+  const fetchCount = async (kind: string, state: ExportState) => {
+    setCounts((prev) => ({ ...prev, [kind]: null }));
+    try {
+      const res = await fetch(buildExportUrl(kind, state), { method: 'HEAD' }).catch(() => null);
+      if (res) {
+        const total = res.headers.get('X-Total-Count');
+        if (total !== null) { setCounts((prev) => ({ ...prev, [kind]: Number(total) })); return; }
+      }
+      // HEAD may not work if route doesn't support it; fall back to a range-0 GET
+      const res2 = await fetch(buildExportUrl(kind, { ...state }) + '&limit=0&offset=0').catch(() => null);
+      if (res2) {
+        const total = res2.headers.get('X-Total-Count');
+        if (total !== null) setCounts((prev) => ({ ...prev, [kind]: Number(total) }));
+      }
+    } catch {}
+  };
+
+  const upd = (kind: string, patch: Partial<ExportState>) => {
+    setStates((prev) => ({ ...prev, [kind]: { ...prev[kind], ...patch } }));
+  };
+
+  const rowStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: 8,
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+    padding: '8px 0',
+    borderBottom: '1px solid #eee',
+  };
+  const miniInp: React.CSSProperties = {
+    padding: '6px 8px',
+    border: '2px solid #111',
+    borderRadius: 8,
+    fontSize: 12,
+    fontFamily: 'inherit',
+    boxSizing: 'border-box' as const,
+    width: 160,
+  };
+  const miniLabel: React.CSSProperties = {
+    fontSize: 10,
+    fontWeight: 800,
+    textTransform: 'uppercase' as const,
+    color: '#555',
+    display: 'block',
+    marginBottom: 2,
+  };
+
   return (
     <div style={card}>
       <h3 style={h3}>EXPORT</h3>
-      <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>Every CSV in one place — each button downloads that data straight from the admin-only export endpoint.</div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {EXPORT_KINDS.map(({ kind, label }) => (
-          <a key={kind} href={`/api/admin/export?kind=${kind}`} style={{ background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer', textDecoration: 'none' }}>
-            ⬇ {label}
-          </a>
-        ))}
+      <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+        Every CSV in one place. Optionally filter by keyword, date range, then download. The{' '}
+        <b>X-Total-Count</b> header tells you how many rows match.
       </div>
+      {EXPORT_KINDS.map(({ kind, label }) => {
+        const st = states[kind] || defaultExportState();
+        const isOpen = open === kind;
+        const cnt = counts[kind];
+        return (
+          <div key={kind} style={rowStyle}>
+            <div style={{ minWidth: 100 }}>
+              <b style={{ fontSize: 13 }}>{label}</b>
+              {cnt !== null && cnt !== undefined && (
+                <span style={{ fontSize: 11, color: '#888', marginLeft: 6 }}>
+                  {cnt} rows
+                </span>
+              )}
+            </div>
+            <button
+              style={{ padding: '5px 9px', fontSize: 12, border: '2px solid #111', borderRadius: 8, background: isOpen ? '#eee' : '#fff', cursor: 'pointer', fontWeight: 700 }}
+              onClick={() => setOpen(isOpen ? null : kind)}
+              aria-expanded={isOpen}
+            >
+              {isOpen ? '▲ Filters' : '▼ Filters'}
+            </button>
+            {isOpen && (
+              <>
+                <div>
+                  <span style={miniLabel}>Search</span>
+                  <input
+                    style={miniInp}
+                    placeholder="keyword..."
+                    value={st.search}
+                    onChange={(e) => upd(kind, { search: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <span style={miniLabel}>From date</span>
+                  <input
+                    style={miniInp}
+                    type="date"
+                    value={st.from}
+                    onChange={(e) => upd(kind, { from: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <span style={miniLabel}>To date</span>
+                  <input
+                    style={miniInp}
+                    type="date"
+                    value={st.to}
+                    onChange={(e) => upd(kind, { to: e.target.value })}
+                  />
+                </div>
+                <button
+                  style={{ padding: '5px 9px', fontSize: 12, border: '2px solid #111', borderRadius: 8, background: '#21C7E6', cursor: 'pointer', fontWeight: 700 }}
+                  onClick={() => fetchCount(kind, st)}
+                >
+                  Count
+                </button>
+              </>
+            )}
+            <a
+              href={buildExportUrl(kind, st)}
+              style={{ background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap' }}
+            >
+              ⬇ {label}
+            </a>
+          </div>
+        );
+      })}
       <div style={{ marginTop: 14, paddingTop: 14, borderTop: '2px dashed #ccc' }}>
         <a href="/api/admin/backup" style={{ display: 'inline-block', background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 13, padding: '11px 16px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #FFD400', cursor: 'pointer', textDecoration: 'none' }}>
           ⬇ Download Full Backup
@@ -187,7 +319,125 @@ export default function OpsDashboard() {
         ))}
         {!(d.audit || []).length && <div style={{ fontSize: 13, color: '#666' }}>No ops activity logged yet.</div>}
       </div>
+      <RevenueChartPanel />
       <RecentErrorsPanel />
+    </div>
+  );
+}
+
+// Pure-CSS horizontal bar chart — no external charting library required.
+// Each bar is a div whose width is set as a percentage of the max value.
+function BarChart({
+  data,
+  label,
+  color = '#E6218C',
+}: {
+  data: { label: string; value: number }[];
+  label: string;
+  color?: string;
+}) {
+  const max = Math.max(...data.map((d) => d.value), 1);
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+      <div style={{ display: 'grid', gap: 6 }}>
+        {data.map((d, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '56px 1fr 52px',
+              gap: 8,
+              alignItems: 'center',
+              fontSize: 11,
+            }}
+          >
+            <span
+              style={{
+                color: '#666',
+                textAlign: 'right',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {d.label}
+            </span>
+            <div style={{ background: '#f4f4f4', borderRadius: 4, height: 16, overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${(d.value / max) * 100}%`,
+                  height: '100%',
+                  background: color,
+                  borderRadius: 4,
+                  transition: 'width .3s',
+                }}
+              />
+            </div>
+            <span style={{ fontWeight: 700 }}>{d.value.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Fetches view=revenueChart and renders a weekly revenue bar chart.
+function RevenueChartPanel() {
+  const [rows, setRows] = useState<{ week: string; total: number; count: number }[] | null>(null);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    opsGet('revenueChart').then(({ data }) => {
+      if (data.error) setErr(data.error);
+      else if (Array.isArray(data.rows)) setRows(data.rows);
+    });
+  }, []);
+
+  // Silently hide for crew accounts that don't have the orders perm
+  if (err === 'forbidden') return null;
+
+  return (
+    <div
+      style={{
+        ...card,
+        boxShadow: '5px 5px 0 #111',
+      }}
+    >
+      <h3 style={{ fontFamily: 'Anton', margin: '0 0 14px', fontSize: 18, letterSpacing: '.02em' }}>
+        WEEKLY REVENUE — LAST 8 WEEKS
+      </h3>
+      {err && <div style={{ fontSize: 13, color: '#A11212' }}>Revenue chart unavailable: {err}</div>}
+      {!err && rows === null && <div style={{ fontSize: 13, color: '#666' }}>Loading revenue chart…</div>}
+      {rows !== null && rows.length === 0 && (
+        <div style={{ fontSize: 13, color: '#666' }}>No paid orders in the last 8 weeks.</div>
+      )}
+      {rows !== null && rows.length > 0 && (
+        <>
+          <BarChart
+            label="KES revenue per week (paid orders)"
+            color="#E6218C"
+            data={rows.map((r) => ({ label: r.week, value: r.total }))}
+          />
+          <div style={{ marginTop: 16 }}>
+            <BarChart
+              label="Orders per week"
+              color="#21C7E6"
+              data={rows.map((r) => ({ label: r.week, value: r.count }))}
+            />
+          </div>
+          <div style={{ marginTop: 10, fontSize: 11, color: '#888' }}>
+            Total:{' '}
+            <b>
+              KES{' '}
+              {rows
+                .reduce((sum, r) => sum + r.total, 0)
+                .toLocaleString('en-KE')}
+            </b>{' '}
+            across <b>{rows.reduce((sum, r) => sum + r.count, 0)}</b> paid orders
+          </div>
+        </>
+      )}
     </div>
   );
 }

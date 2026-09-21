@@ -138,7 +138,7 @@ export function BottomTabBar() {
   return (
     <>
       {open && (
-        <div className="ugt-sheet" role="dialog" aria-label="Site menu">
+        <div className="ugt-sheet" id="ugt-sheet" role="dialog" aria-modal="true" aria-label="Site menu">
           <div className="ugt-sheet-head">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
@@ -171,7 +171,7 @@ export function BottomTabBar() {
             <span className="ugt-tab-lb">{t.label}</span>
           </a>
         ))}
-        <button className={'ugt-tab ' + (open ? 'on' : '')} aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button className={'ugt-tab ' + (open ? 'on' : '')} aria-expanded={open} aria-label={open ? 'Close site menu' : 'Open site menu'} aria-controls="ugt-sheet" onClick={() => setOpen(!open)}>
           <span className="ugt-tab-ic"><Icon name="menu" /></span>
           <span className="ugt-tab-lb">Menu</span>
         </button>

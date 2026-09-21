@@ -32,8 +32,14 @@ export default function LoginForm() {
         <h1 style={h1}>Organizer login</h1>
         <div style={card}>
           <div style={{ display: 'grid', gap: 12 }}>
-            <div><span style={label}>Email</span><input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} /></div>
-            <div><span style={label}>Password</span><input style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} /></div>
+            <div>
+              <label htmlFor="org-login-email" style={label}>Email</label>
+              <input id="org-login-email" style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} autoComplete="email" />
+            </div>
+            <div>
+              <label htmlFor="org-login-password" style={label}>Password</label>
+              <input id="org-login-password" style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} autoComplete="current-password" />
+            </div>
             <button style={btnMagenta} disabled={busy} onClick={submit}>{busy ? 'Signing in…' : 'Log in'}</button>
             <div style={{ fontSize: 12, color: '#888' }}>No account yet? <a href="/organizer/signup" style={{ color: '#E6218C', fontWeight: 700 }}>Apply to sell tickets</a></div>
           </div>

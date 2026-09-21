@@ -8,6 +8,21 @@ import { formatEventDate } from '@/lib/server/catalog';
 
 export const revalidate = 300;
 
+// Pre-generate published ticketed events for ISR. An unavailable database at
+// build time yields no pre-generated pages (honest empty list); pages are then
+// rendered on demand and cached for the revalidate window.
+export async function generateStaticParams() {
+  if (!hasDb()) return [];
+  try {
+    const rows = await q<{ id: string }>(
+      `SELECT id FROM tour_events WHERE kind='ticketed' AND status='published'`,
+    );
+    return rows.map((r) => ({ id: r.id }));
+  } catch {
+    return [];
+  }
+}
+
 type Tier = { name: string; price: number };
 type TicketedEvent = {
   id: string;

@@ -13,12 +13,20 @@ import {
 } from './ui';
 
 interface Product {
-  id: string; name: string; price: number; image: string; category: string;
+  id: string; name: string; price: number; costPrice: number; image: string; category: string;
   description: string; active: boolean;
 }
 
-const EMPTY = { id: '', name: '', price: 0, image: '', category: 'Apparel', description: '', active: true };
+const EMPTY = { id: '', name: '', price: 0, costPrice: 0, image: '', category: 'Apparel', description: '', active: true };
 const CATEGORIES = ['Apparel', 'Headwear', 'Accessories'];
+
+// Markup is derived, never stored: (sell - cost) / cost. Zero/blank cost means
+// "not recorded yet" and renders as an em dash rather than a fake 0%.
+function markupOf(p: { price: number; costPrice: number }): string {
+  if (!p.costPrice || p.costPrice <= 0) return '—';
+  const pct = Math.round(((p.price - p.costPrice) / p.costPrice) * 100);
+  return (pct >= 0 ? '+' : '') + pct + '%';
+}
 
 export default function Products() {
   const [rows, setRows] = useState<Product[]>([]);
@@ -31,16 +39,17 @@ export default function Products() {
   const reload = useCallback(async () => {
     const { data } = await opsGet('products');
     if (data.error) say('Load failed: ' + data.error);
-    else setRows((data.rows || []).map((r: any) => ({ ...r, price: Number(r.price) })));
+    else setRows((data.rows || []).map((r: any) => ({ ...r, price: Number(r.price), costPrice: Number(r.cost_price || 0) })));
   }, [say]);
   useEffect(() => { reload(); }, [reload]);
 
   const save = async () => {
     if (!edit || !edit.name.trim()) { say('Name is required'); return; }
     if (edit.price <= 0) { say('Price must be greater than 0'); return; }
+    if (edit.costPrice > edit.price) { say('Cost cannot exceed the sell price'); return; }
     setBusy(true);
     const { data } = await opsPost('product.save', {
-      id: edit.id || undefined, name: edit.name, price: edit.price, image: edit.image,
+      id: edit.id || undefined, name: edit.name, price: edit.price, costPrice: edit.costPrice, image: edit.image,
       category: edit.category, description: edit.description, active: edit.active,
     });
     setBusy(false);
@@ -57,7 +66,7 @@ export default function Products() {
   };
 
   const restore = async (p: Product) => {
-    const { data } = await opsPost('product.save', { id: p.id, name: p.name, price: p.price, image: p.image, category: p.category, description: p.description, active: true });
+    const { data } = await opsPost('product.save', { id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: true });
     if (data.error) say('Failed: ' + data.error); else { say('Restored'); reload(); }
   };
 
@@ -72,6 +81,7 @@ export default function Products() {
         <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
           <div><span style={label}>Name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Magenta Oversized Tee" /></div>
           <div><span style={label}>Price (KES) *</span><input style={inp} type="number" min={0} value={edit.price} onChange={(e) => setEdit({ ...edit, price: Number(e.target.value) || 0 })} /></div>
+          <div><span style={label}>Cost (KES)</span><input style={inp} type="number" min={0} value={edit.costPrice} onChange={(e) => setEdit({ ...edit, costPrice: Math.max(0, Number(e.target.value) || 0) })} placeholder="0" /></div>
           <div><span style={label}>Category</span>
             <select style={inp} value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -82,6 +92,10 @@ export default function Products() {
         <div style={{ marginTop: 10 }}>
           <span style={label}>Description</span>
           <textarea style={{ ...inp, minHeight: 70 }} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
+        </div>
+        <div style={{ marginTop: 10, fontSize: 13, color: '#333' }}>
+          Markup: <b>{markupOf(edit)}</b>
+          {edit.costPrice > 0 && edit.price > 0 && <span style={{ color: '#888' }}> (KES {edit.price.toLocaleString()} − KES {edit.costPrice.toLocaleString()} = KES {(edit.price - edit.costPrice).toLocaleString()} margin)</span>}
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13 }}>
           <input type="checkbox" checked={edit.active} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} /> Active (visible in the shop)
@@ -112,18 +126,20 @@ export default function Products() {
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead><tr>{['id', 'name', 'price', 'category', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
+            <thead><tr>{['id', 'name', 'price', 'cost', 'markup', 'category', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
             <tbody>
               {visible.map((p) => (
                 <tr key={p.id}>
                   <td style={td}><code style={{ fontSize: 11 }}>{p.id}</code></td>
                   <td style={td}><b>{p.name}</b></td>
                   <td style={td}>KES {p.price.toLocaleString()}</td>
+                  <td style={td}>{p.costPrice > 0 ? 'KES ' + p.costPrice.toLocaleString() : '—'}</td>
+                  <td style={td}>{markupOf(p)}</td>
                   <td style={td}>{p.category}</td>
                   <td style={td}>{p.active ? <Chip text="active" bg="#E7F5EE" color={OC.green} /> : <Chip text="retired" bg="#eee" />}</td>
                   <td style={td}>
                     <div style={{ display: 'flex', gap: 5 }}>
-                      <button style={btnSmall} onClick={() => setEdit({ id: p.id, name: p.name, price: p.price, image: p.image, category: p.category, description: p.description, active: p.active })}>Edit</button>
+                      <button style={btnSmall} onClick={() => setEdit({ id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: p.active })}>Edit</button>
                       {p.active
                         ? <button style={{ ...btnSmall, background: '#111', color: '#fff' }} onClick={() => retire(p)}>Retire</button>
                         : <button style={btnSmall} onClick={() => restore(p)}>Restore</button>}
@@ -131,7 +147,7 @@ export default function Products() {
                   </td>
                 </tr>
               ))}
-              {!visible.length && <tr><td style={td} colSpan={6}>{byActive.length ? 'No products match your search.' : 'No products in this filter.'}</td></tr>}
+              {!visible.length && <tr><td style={td} colSpan={8}>{byActive.length ? 'No products match your search.' : 'No products in this filter.'}</td></tr>}
             </tbody>
           </table>
         </div>

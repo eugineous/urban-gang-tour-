@@ -7,6 +7,25 @@
 @font-face{font-family:'Titan One';src:local('Arial Black');font-display:swap}
 @font-face{font-family:'Archivo';src:local('Arial');font-display:swap}
 @font-face{font-family:'Spline Sans Mono';src:local('Consolas');font-display:swap}
+
+/* Skip-to-content link: visually hidden until focused (keyboard-first a11y).
+   CSS-only — no JS event handlers, safe for Server Components. */
+.skip-to-content{
+  position:absolute;
+  top:-9999px;
+  left:0;
+  z-index:99999;
+  padding:10px 18px;
+  background:#FFD400;
+  color:#111;
+  font-weight:800;
+  font-size:14px;
+  text-decoration:none;
+  border-radius:0 0 8px 0;
+  border:2px solid #111;
+  white-space:nowrap;
+}
+.skip-to-content:focus{top:0;}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{margin:0;background:#E6218C;color:#111;font-family:'Space Grotesk',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}

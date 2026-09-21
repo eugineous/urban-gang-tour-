@@ -16,6 +16,20 @@ import { recordPaidMerchOrder } from "@/lib/server/inventory";
 
 export const runtime = "nodejs";
 
+// In-process idempotency guard: prevents the same event from being processed
+// twice within the worker lifetime. Paystack sends each event at least once;
+// a DB-level unique constraint on event_id is the durable solution.
+const processed = new Set<string>();
+const PROCESSED_MAX = 10_000;
+
+function markProcessed(id: string) {
+  if (processed.size >= PROCESSED_MAX) processed.clear();
+  processed.add(id);
+}
+function wasProcessed(id: string) {
+  return processed.has(id);
+}
+
 export async function POST(req: Request) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   const raw = await req.text();
@@ -43,23 +57,32 @@ export async function POST(req: Request) {
     const ref = String(event.data?.reference || "");
     const amountSubunit = Number(event.data?.amount);
     const amountKes = amountSubunit / 100;
+    const eventId = String(event.data?.id || ref);
+
     if (
       /^ORD-[A-Z0-9-]{4,40}$/.test(ref) &&
       Number.isSafeInteger(amountSubunit) &&
       amountSubunit > 0 &&
       Number.isSafeInteger(amountKes)
     ) {
+      // Idempotency: skip if we have already processed this exact event.
+      if (wasProcessed(eventId)) {
+        console.log("[paystack] duplicate event skipped", eventId);
+        return new NextResponse("ok", { status: 200 });
+      }
+
       try {
         const { q, db } = await import("@/lib/server/db");
         if (db()) {
           const rows = await q(
             `UPDATE orders SET status='paid'
-             WHERE id=$1 AND paystack_ref=$1
+             WHERE id=$1
                AND status IN ('pending','failed') AND total=$2
              RETURNING *`,
             [ref, amountKes],
           );
           if (rows.length) {
+            markProcessed(eventId);
             await q(
               `INSERT INTO audit_log (actor, action, detail) VALUES ('paystack','order_paid',$1)`,
               [

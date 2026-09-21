@@ -1,4 +1,5 @@
 import { NextResponse, after } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { q, db } from "@/lib/server/db";
 import {
   isAdmin,
@@ -163,6 +164,7 @@ const VIEW_PERM: Record<string, string[]> = {
   marketplaceOrders: ["marketplace"],
   marketplaceCommission: ["marketplace"],
   checklist_templates: ["ops_checklists"],
+  suppliers: ["ops_contacts"],
 };
 
 export async function GET(req: Request) {
@@ -501,6 +503,12 @@ export async function GET(req: Request) {
         );
         return NextResponse.json({ ok: true, rows });
       }
+      case "suppliers": {
+        const rows = await q(
+          `SELECT * FROM ops_suppliers ORDER BY category, name`,
+        );
+        return NextResponse.json({ ok: true, rows });
+      }
       case "dashboard": {
         // This is a cross-module executive view, not a generic staff landing
         // page. A scoped account must use its explicitly assigned desk.
@@ -577,6 +585,57 @@ export async function GET(req: Request) {
         const rows = await listClientErrors(30);
         return NextResponse.json({ ok: true, rows });
       }
+      case "revenueChart": {
+        // Returns last 8 weeks of paid order revenue grouped by week start.
+        // Requires the 'orders' permission; isSuperAdmin always passes hasPerm.
+        if (!hasPerm(req, "orders")) return bad("forbidden", 403);
+        const rows = await q<{ week: string; total: number; count: number }>(`
+          SELECT
+            to_char(date_trunc('week', created_at), 'Mon DD') AS week,
+            COALESCE(SUM(total),0)::int AS total,
+            COUNT(*)::int AS count
+          FROM orders
+          WHERE status = 'paid'
+            AND created_at >= now() - interval '8 weeks'
+          GROUP BY date_trunc('week', created_at)
+          ORDER BY date_trunc('week', created_at) ASC
+        `);
+        return NextResponse.json({ rows });
+      }
+      case "ticketStats": {
+        // Ticket sales breakdown by event + tier for the last 30 days.
+        if (!hasPerm(req, "orders")) return bad("forbidden", 403);
+        const rows = await q<{ event_id: string; tier_name: string; count: number }>(`
+          SELECT event_id, tier_name, COUNT(*)::int AS count
+          FROM tickets
+          WHERE created_at >= now() - interval '30 days'
+          GROUP BY event_id, tier_name
+          ORDER BY count DESC
+          LIMIT 20
+        `);
+        return NextResponse.json({ rows });
+      }
+      case "quickStats": {
+        // Cross-module summary for the ControlRoomHome dashboard panel.
+        // Super-admin only (combines financial + ticketing + booking data).
+        if (!isAdmin(req)) return bad("forbidden", 403);
+        const [orders, tickets, bookings] = await Promise.all([
+          q<{ count: number; total: number }>(
+            `SELECT COUNT(*)::int AS count, COALESCE(SUM(total),0)::int AS total FROM orders WHERE status='paid' AND created_at >= now() - interval '30 days'`,
+          ),
+          q<{ count: number }>(
+            `SELECT COUNT(*)::int AS count FROM tickets WHERE created_at >= now() - interval '30 days'`,
+          ),
+          q<{ count: number }>(
+            `SELECT COUNT(*)::int AS count FROM bookings WHERE status='pending'`,
+          ),
+        ]);
+        return NextResponse.json({
+          orders: orders[0] || { count: 0, total: 0 },
+          tickets: tickets[0]?.count || 0,
+          bookings: bookings[0]?.count || 0,
+        });
+      }
       default:
         return bad("unknown_view");
     }
@@ -637,6 +696,8 @@ const KIND_PERM: Record<string, string> = {
   "marketplaceEvent.approve": "marketplace",
   "marketplaceEvent.reject": "marketplace",
   "marketplaceEvent.cancel": "marketplace",
+  "supplier.save": "ops_contacts",
+  "supplier.delete": "ops_contacts",
 };
 // CRITICAL EXCEPTIONS: always super_admin-only, whatever perms a
 // crew_admin holds. Approving/rejecting an organizer creates/relies on a
@@ -1534,6 +1595,11 @@ export async function POST(req: Request) {
         const name = s(d.name, 200);
         if (!name) return bad("missing_name");
         const price = Math.max(0, Math.round(Number(d.price) || 0));
+        // Cost is owner-recorded and must never exceed the sell price. It is
+        // never trusted from the browser beyond a non-negative integer clamp;
+        // markup is recomputed server-side for display only.
+        const costPrice = Math.max(0, Math.round(Number(d.costPrice) || 0));
+        if (costPrice > price) return bad("cost_exceeds_price");
         let id = s(d.id, 60);
         const isNew = !id;
         if (isNew) {
@@ -1552,22 +1618,23 @@ export async function POST(req: Request) {
           s(d.category, 100),
           s(d.description, 2000),
           d.active !== false,
+          costPrice,
           id,
         ];
         let row;
         if (isNew) {
           row = await q(
-            `INSERT INTO products (name, price, image, category, description, active, id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+            `INSERT INTO products (name, price, image, category, description, active, cost_price, id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
             fields,
           );
         } else {
           row = await q(
-            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, updated_at=now() WHERE id=$7 RETURNING *`,
+            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, updated_at=now() WHERE id=$8 RETURNING *`,
             fields,
           );
           if (!row.length) return bad("not_found", 404);
         }
-        await opsAudit("ops.product.save", { id: row[0]?.id, name, price });
+        await opsAudit("ops.product.save", { id: row[0]?.id, name, price, costPrice });
         if (d.active !== false) after(() => pingIndexNow(["/shop"]));
         return NextResponse.json({ ok: true, row: row[0] });
       }
@@ -2260,6 +2327,56 @@ export async function POST(req: Request) {
           actor: adminActor(req),
         });
         return NextResponse.json({ ok: true, percent: pct });
+      }
+
+      // ---- Suppliers / vendors ----
+      case "supplier.save": {
+        const id = intOrNull(d.id);
+        const name = s(d.name, 200);
+        if (!name) return bad("missing_name");
+        const SUPPLIER_CATEGORIES = new Set([
+          "PA", "Printing", "Catering", "Staging", "Security", "Other",
+        ]);
+        const category = SUPPLIER_CATEGORIES.has(s(d.category, 30))
+          ? s(d.category, 30)
+          : "Other";
+        const defaultRate = Math.max(0, Math.round(Number(d.defaultRate) || 0));
+        const fields = [
+          name,
+          category,
+          s(d.phone, 40),
+          s(d.email, 200),
+          s(d.address, 300),
+          defaultRate,
+          s(d.notes, 2000),
+          dateOrNull(d.lastUsedAt),
+        ];
+        let row;
+        if (id) {
+          row = await q(
+            `UPDATE ops_suppliers SET name=$1, category=$2, phone=$3, email=$4, address=$5, default_rate=$6, notes=$7, last_used_at=$8 WHERE id=$9 RETURNING *`,
+            [...fields, id],
+          );
+          if (!row.length) return bad("not_found", 404);
+        } else {
+          row = await q(
+            `INSERT INTO ops_suppliers (name, category, phone, email, address, default_rate, notes, last_used_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+            fields,
+          );
+        }
+        await opsAudit("ops.supplier.save", { id: row[0]?.id, name });
+        return NextResponse.json({ ok: true, row: row[0] });
+      }
+      case "supplier.delete": {
+        const id = intOrNull(d.id);
+        if (!id) return bad("missing_id");
+        const deleted = await q(
+          `DELETE FROM ops_suppliers WHERE id=$1 RETURNING id`,
+          [id],
+        );
+        if (!deleted.length) return bad("not_found", 404);
+        await opsAudit("ops.supplier.delete", { id });
+        return NextResponse.json({ ok: true });
       }
 
       default:

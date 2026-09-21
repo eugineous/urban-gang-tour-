@@ -108,6 +108,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" as="script" href="/vendor/react-dom.production.min.js" />
       </head>
       <body>
+        {/* Skip-to-content link — first focusable element on every page.
+            Uses CSS :focus-within to stay visually hidden until focused,
+            implemented via a className toggled by globals.css so no client
+            JS is needed here (layout is a Server Component). */}
+        <a
+          href="#main-content"
+          className="skip-to-content"
+        >
+          Skip to main content
+        </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
         {/* v25 SVG icon sprite — rendered once, referenced by <use href="#i-*"> everywhere */}
@@ -127,6 +137,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             v25's live runtime boots into #v25-host and then hides this. */}
         <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
           <div dangerouslySetInnerHTML={{ __html: HEADER_HTML }} />
+          {/* Skip-to-content target — must appear after the header nav so the
+              skip link jumps past it, but before page content. */}
+          <span id="main-content" tabIndex={-1} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }} aria-hidden="true" />
           {children}
           <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>

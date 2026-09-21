@@ -39,6 +39,10 @@ const Contacts = dynamic(() => import("./ops/Contacts"), {
   ssr: false,
   loading: opsLoading,
 });
+const Suppliers = dynamic(() => import("./ops/Suppliers"), {
+  ssr: false,
+  loading: opsLoading,
+});
 const Payouts = dynamic(() => import("./ops/Payouts"), {
   ssr: false,
   loading: opsLoading,
@@ -188,6 +192,7 @@ const OPS_TABS = [
   "Documents",
   "Payments",
   "Contacts",
+  "Suppliers",
   "Payouts",
   "Expenses",
   "Pipeline",
@@ -217,6 +222,7 @@ const NAV_GROUPS: {
       { tab: "Event Operations", icon: "◍", label: "Event operations" },
       { tab: "Pipeline", icon: "↗", label: "Leads pipeline" },
       { tab: "Contacts", icon: "◌", label: "Contacts" },
+      { tab: "Suppliers", icon: "⊡", label: "Suppliers" },
       { tab: "Promos", icon: "★", label: "Promos" },
       { tab: "Checklists", icon: "✓", label: "Checklists" },
     ],
@@ -284,6 +290,7 @@ const TAB_PERM: Partial<Record<Tab, string | string[]>> = {
   Documents: "documents",
   Payments: "ops_payments",
   Contacts: ["ops_contacts", "ops_school_contacts", "ops_talent_partners"],
+  Suppliers: "ops_contacts",
   Payouts: "ops_payouts",
   Expenses: "ops_expenses",
   Pipeline: "ops_pipeline",
@@ -695,6 +702,7 @@ export default function AdminApp({
       {tab === "Documents" && <DocGen />}
       {tab === "Payments" && <Payments canExportFinancialReport={session?.scope === "super_admin"} />}
       {tab === "Contacts" && <Contacts />}
+      {tab === "Suppliers" && <Suppliers />}
       {tab === "Payouts" && <Payouts />}
       {tab === "Expenses" && <Expenses />}
       {tab === "Pipeline" && <Pipeline />}

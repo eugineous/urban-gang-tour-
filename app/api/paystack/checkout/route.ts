@@ -134,5 +134,5 @@ export async function POST(req: Request) {
   }
 
   console.log('[paystack-checkout]', JSON.stringify({ id, total }));
-  return NextResponse.json({ ok: true, id, total, url: r.url });
+  return NextResponse.json({ authorizationUrl: r.url, orderId: id, total });
 }
