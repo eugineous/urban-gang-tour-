@@ -85,6 +85,22 @@ export default function Events() {
     if (data.error) say('Failed: ' + data.error); else { say('Restored'); reload(); }
   };
 
+  // Recovery of the three real ticketed events that shipped before the DB
+  // cutover (lib/server/verified-events.ts). They come back as DRAFTS — the
+  // recovered dates are months old and cannot be trusted as the current
+  // schedule for an event that takes money, so publishing stays a deliberate
+  // decision here.
+  const restoreVerified = async () => {
+    if (!confirm('Restore the 3 verified pre-migration ticketed events as drafts?\n\nExperience Hub Dance Event, Urban Festival Of Colours, Campus Rave. Real names, venues, tier prices and artwork are recovered exactly as they last shipped. They stay hidden until you confirm the date and publish each one.')) return;
+    setBusy(true);
+    const { data } = await opsPost('tourEvent.restoreVerified', {});
+    setBusy(false);
+    if (data.error) { say('Failed: ' + data.error); return; }
+    const n = (data.inserted || []).length;
+    say(n ? `Restored ${n} event(s) as drafts — confirm the dates, then publish.` : 'Already present — nothing to restore.');
+    reload();
+  };
+
   // "Prioritize / non-prioritize": a one-click pin to the top of its kind, or
   // drop back to 0 — priority is still a plain int under the hood (so an
   // admin who wants finer control can still edit it directly in the form).
@@ -203,6 +219,9 @@ export default function Events() {
           <h3 style={{ ...h3, marginBottom: 0 }}>TOUR EVENTS</h3>
           <div style={{ flex: 1 }} />
           <SearchBox value={qy} onChange={setQy} placeholder="Search events..." />
+          {!rows.some((r) => r.kind === 'ticketed') && (
+            <button style={{ ...btn, background: '#111', color: '#fff' }} disabled={busy} onClick={restoreVerified} title="Recover the 3 verified real ticketed events as drafts">Restore verified events</button>
+          )}
           <button style={btn} onClick={() => openEdit()}>+ New event</button>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -218,6 +237,15 @@ export default function Events() {
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
           Live: this is the only place tour events, school dates, and ticket prices live — the site, the ticket checkout, and Google (event JSON-LD) all read straight from here. Cancel keeps the row (past ticket sales still reference it) but hides it everywhere public.
         </div>
+        {!rows.some((r) => r.kind === 'ticketed') && (
+          <div style={{ fontSize: 12, color: '#7A4F1A', background: '#FDF2D9', border: '1px solid #EBD9A8', padding: '10px 12px', marginBottom: 10 }}>
+            <b>No ticketed events — nothing can be sold and /events/[id] has no live page.</b>{' '}
+            &quot;Restore verified events&quot; recovers the three real ticketed events that shipped before the DB cutover
+            (The Experience Hub Dance Event · KICC, Urban Festival Of Colours · Uhuru Gardens, Campus Rave · Carnivore Grounds)
+            with their real venues, tier prices and artwork. They arrive as drafts: confirm each date below and set it to
+            Published to go live and start selling.
+          </div>
+        )}
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
             <thead><tr>{['kind', 'name', 'date', 'venue / location', 'priority', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>

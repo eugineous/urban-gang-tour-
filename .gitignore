@@ -41,3 +41,14 @@ public/assets/
 *.orig.mp4
 ffmpeg2pass-*
 mobile-check-*.png
+
+# Transient verification screenshots written to the repo root by the render /
+# screenshot checks (scripts/audit-doc-templates.mjs, hydration-check.mjs,
+# mobile-regression.mjs, ticket-shot.mjs, ...) plus the document thumbnail
+# cache. Never served — the site only serves from public/ — and reproduced on
+# every check run, so they stay out of the repo.
+# document-library-*.png is the one exception: it is the actual artwork for
+# document-library.html (the 56-document production library browser).
+/*.png
+!/document-library-*.png
+/document-thumbs/

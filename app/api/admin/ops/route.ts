@@ -28,6 +28,7 @@ import { paystackCreateSubaccount } from "@/lib/server/paystack";
 import { alertCritical } from "@/lib/server/alert";
 import { listClientErrors } from "@/lib/server/client-errors";
 import { pingIndexNow } from "@/lib/server/indexnow";
+import { VERIFIED_EVENTS } from "@/lib/server/verified-events";
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -678,6 +679,7 @@ const KIND_PERM: Record<string, string> = {
   "promo.delete": "ops_promos",
   "tourEvent.save": "events",
   "tourEvent.delete": "events",
+  "tourEvent.restoreVerified": "events",
   "product.save": "products",
   "product.delete": "products",
   "merchSupplier.save": "ops_merch",
@@ -1573,6 +1575,43 @@ export async function POST(req: Request) {
         if (status === "published")
           after(() => pingIndexNow(["/events", "/experience"]));
         return NextResponse.json({ ok: true, row: row[0] });
+      }
+      // One-time recovery of the three verified real ticketed events that
+      // shipped before the DB cutover (see lib/server/verified-events.ts for
+      // provenance). Inserts drafts only: the recovered dates are months old
+      // and cannot be trusted as the current schedule for an event that takes
+      // money, so publishing stays a deliberate staff decision in the Events
+      // tool. ON CONFLICT DO NOTHING means an existing row (including one an
+      // owner already edited or cancelled) is never clobbered.
+      case "tourEvent.restoreVerified": {
+        const inserted: string[] = [];
+        const skipped: string[] = [];
+        for (const ev of VERIFIED_EVENTS) {
+          const row = await q<{ id: string }>(
+            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial)
+             VALUES ($1,$2,$3,'',$4,'',$5,$6,$7,$8,'draft',$9,$10,$11,$12,'','')
+             ON CONFLICT (id) DO NOTHING RETURNING id`,
+            [
+              ev.id,
+              ev.kind,
+              ev.name,
+              ev.eventDate,
+              ev.eventTime,
+              ev.venue,
+              ev.city,
+              ev.accent,
+              0,
+              ev.image,
+              ev.description,
+              JSON.stringify(ev.tiers),
+            ],
+          );
+          if (row.length) inserted.push(ev.id);
+          else skipped.push(ev.id);
+        }
+        if (inserted.length)
+          await opsAudit("ops.tourEvent.restoreVerified", { inserted, skipped });
+        return NextResponse.json({ ok: true, inserted, skipped });
       }
       case "tourEvent.delete": {
         // Soft delete: past ticket sales and the admin ledger reference the
