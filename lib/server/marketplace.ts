@@ -23,6 +23,14 @@ export async function ensureMarketplaceColumns(): Promise<void> {
   await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS commission_amount INT`);
   await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS organizer_amount INT`);
   await q(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS marketplace_event_id TEXT`);
+  await q(`ALTER TABLE marketplace_organizers ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT false`);
+  await q(`ALTER TABLE marketplace_organizers ADD COLUMN IF NOT EXISTS password_version INT DEFAULT 0`);
+  await q(
+    `CREATE TABLE IF NOT EXISTS organizer_email_tokens (
+      token_hash TEXT PRIMARY KEY, organizer_id TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+    )`,
+  );
   columnsReady = true;
 }
 

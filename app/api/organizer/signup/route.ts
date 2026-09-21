@@ -85,6 +85,36 @@ export async function POST(req: Request) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pending')`,
       [id, businessName.trim(), contactName.trim(), em, msisdn, hashPassword(password), settlementBank.trim(), acct]
     );
+    // Email verification token (SHA-256 hash at rest, 24h). Approval later
+    // requires a verified address, so a typo'd or borrowed email can never reach
+    // a live subaccount. Best-effort send, same Resend pattern as below.
+    try {
+      const { createHash, randomBytes } = await import('node:crypto');
+      const { ensureMarketplaceColumns } = await import('@/lib/server/marketplace');
+      await ensureMarketplaceColumns();
+      const raw = randomBytes(32).toString('base64url');
+      const hash = createHash('sha256').update(raw).digest('hex');
+      await q(
+        `INSERT INTO organizer_email_tokens (token_hash, organizer_id, expires_at)
+         VALUES ($1,$2, now() + interval '24 hours')`,
+        [hash, id],
+      );
+      if (process.env.RESEND_API_KEY) {
+        const base = process.env.SITE_URL || 'https://urbangangtour.co.ke';
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: process.env.BOOKINGS_FROM || 'Urban Gang Tour <admin@urbangangtour.co.ke>',
+            to: em,
+            subject: 'Verify your Urban Gang Tour Marketplace email',
+            text: `Hi,\n\nConfirm this address to continue your "${businessName.trim()}" application:\n${base}/api/organizer/verify?token=${raw}\n\nThe link expires in 24 hours.`,
+          }),
+        }).catch(() => {});
+      }
+    } catch (e) {
+      console.error('[organizer-verify-token]', e);
+    }
     await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('organizer','apply',$1)`, [JSON.stringify({ id, businessName, email: em })]);
 
     after(() => sendApplicationEmail(em, businessName.trim()));

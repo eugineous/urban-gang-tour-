@@ -2319,6 +2319,12 @@ export async function POST(req: Request) {
         );
         if (!rows.length) return bad("not_found", 404);
         const org = rows[0];
+        // A live subaccount pays real money to this address. Approval requires
+        // a verified email — a pending applicant who never clicked the link
+        // waits, they do not get a payout target.
+        if (org.email_verified !== true) {
+          return bad("email_not_verified", 409);
+        }
         if (org.status === "approved" && org.paystack_subaccount_code) {
           return NextResponse.json({ ok: true, row: org, already: true });
         }
