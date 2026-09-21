@@ -64,6 +64,33 @@ export function isSellable(status: unknown): boolean {
 }
 
 /**
+ * Whether a checkout may take money for a TICKET to this event right now.
+ *
+ * Three independent conditions, and all three matter:
+ *   1. the lifecycle permits selling (only `published`),
+ *   2. the row is actually a ticketed event — a published school stop carries
+ *      status='published' only because that is what makes it visible, and
+ *      nothing about it is a purchasable ticket,
+ *   3. there is at least one tier to sell — an event with no priced tiers has
+ *      nothing a checkout could charge for.
+ *
+ * Keep this the only implementation: the public site-data route derives its
+ * `sellable` flag from it, and so must any future checkout guard.
+ */
+export function isEventSellable(row: {
+  status: unknown;
+  kind?: unknown;
+  tiers?: unknown;
+}): boolean {
+  return (
+    isSellable(row.status) &&
+    row.kind === 'ticketed' &&
+    Array.isArray(row.tiers) &&
+    row.tiers.length > 0
+  );
+}
+
+/**
  * The structured-data state for an event, per Google's Event schema
  * (eventStatus). Only cancelled/postponed/rescheduled differ from scheduled.
  */

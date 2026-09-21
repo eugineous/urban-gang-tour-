@@ -34,6 +34,7 @@ import {
   validateRecoveredEvents,
 } from "@/lib/server/recovered-legacy-events";
 import { isEventStatus } from "@/lib/server/event-lifecycle";
+import { bumpEventPublicTruth } from "@/lib/server/public-cache";
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -1626,6 +1627,9 @@ export async function POST(req: Request) {
         });
         if (status === "published")
           after(() => pingIndexNow(["/events", "/experience"]));
+        // Commercial mutation: the public list, leaf, sitemap and JSON-LD must
+        // drop what they were serving now, not on the next deploy.
+        bumpEventPublicTruth(row[0]?.id);
         return NextResponse.json({ ok: true, row: row[0] });
       }
       // One-time recovery of the three LEGACY ticketed events that shipped
@@ -1697,6 +1701,7 @@ export async function POST(req: Request) {
             ],
           );
           await client.query("COMMIT");
+          bumpEventPublicTruth(null);
           return NextResponse.json({ ok: true, recovered, skipped });
         } catch (e: any) {
           await client.query("ROLLBACK").catch(() => {});
@@ -1753,6 +1758,8 @@ export async function POST(req: Request) {
         if (!row.length) return bad("not_found", 404);
         await opsAudit("ops.tourEvent.delete", { id });
         after(() => pingIndexNow(["/events", "/experience"]));
+        // A cancelled event must stop being sellable immediately.
+        bumpEventPublicTruth(id);
         return NextResponse.json({ ok: true });
       }
 

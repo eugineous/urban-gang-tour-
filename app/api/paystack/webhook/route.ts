@@ -100,6 +100,12 @@ export async function POST(req: Request) {
             if (paidRow)
               after(async () => {
                 try {
+                  const { consumeReservation } = await import("@/lib/server/ticket-inventory");
+                  await consumeReservation(paidRow.id);
+                } catch (e) {
+                  console.error("[ticket-reservation]", e);
+                }
+                try {
                   await recordPaidMerchOrder(paidRow);
                 } catch (e) {
                   console.error("[merch-inventory]", e);
@@ -142,14 +148,18 @@ export async function POST(req: Request) {
             [ref],
           );
           if (rows[0])
-            after(() =>
-              notifyPaymentFailure({
+            after(async () => {
+              try {
+                const { releaseReservation } = await import("@/lib/server/ticket-inventory");
+                await releaseReservation(rows[0].id);
+              } catch { /* hold expires on its own */ }
+              await notifyPaymentFailure({
                 gateway: "paystack",
                 orderId: rows[0].id,
                 amount: rows[0].total,
                 reason: "charge.failed",
-              }),
-            );
+              });
+            });
         }
       } catch {
         /* logged path only */

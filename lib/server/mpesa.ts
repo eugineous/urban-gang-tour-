@@ -62,3 +62,47 @@ export async function stkPush(phone: string, amount: number, ref: string, desc: 
   });
   return res.json();
 }
+
+// M-Pesa Express Query (stkpushquery) — authoritative recovery when the async
+// callback never arrives or a row is stuck in pending/unknown. Daraja docs:
+// poll with BusinessShortCode + Password/Timestamp + CheckoutRequestID to get
+// the definitive ResultCode (0 = success, 1032 = cancelled by user,
+// 1 = insufficient balance, 2001/1037 = timeout). Callers must already hold
+// a CheckoutRequestID from stkPush; without credentials this reports
+// not_configured rather than inventing a status.
+export async function stkPushQuery(checkoutRequestId: string): Promise<
+  | { ok: false; reason: 'not_configured' | 'invalid_reference' | 'query_failed'; detail?: string }
+  | { ok: true; resultCode: number; resultDesc: string; receipt?: string; amount?: number }
+> {
+  if (!checkoutRequestId || typeof checkoutRequestId !== 'string')
+    return { ok: false, reason: 'invalid_reference' };
+  if (!mpesaConfigured()) return { ok: false, reason: 'not_configured' };
+  try {
+    const token = await accessToken();
+    const ts = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
+    const shortcode = process.env.MPESA_SHORTCODE!;
+    const password = Buffer.from(shortcode + process.env.MPESA_PASSKEY + ts).toString('base64');
+    const res = await fetch(`${BASE()}/mpesa/stkpushquery/v1/query`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        BusinessShortCode: shortcode,
+        Password: password,
+        Timestamp: ts,
+        CheckoutRequestID: checkoutRequestId,
+      }),
+      cache: 'no-store',
+    });
+    if (!res.ok) return { ok: false, reason: 'query_failed', detail: `http ${res.status}` };
+    const j = await res.json();
+    return {
+      ok: true,
+      resultCode: Number(j.ResultCode),
+      resultDesc: String(j.ResultDesc || ''),
+      receipt: j.MpesaReceiptNumber ? String(j.MpesaReceiptNumber) : undefined,
+      amount: j.Amount !== undefined ? Number(j.Amount) : undefined,
+    };
+  } catch (e: any) {
+    return { ok: false, reason: 'query_failed', detail: String(e?.message || e).slice(0, 200) };
+  }
+}

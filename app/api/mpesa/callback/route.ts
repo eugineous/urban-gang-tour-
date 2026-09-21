@@ -8,6 +8,7 @@ import {
   notifyPaymentFailure,
 } from "@/lib/server/notify";
 import { recordPaidMerchOrder } from "@/lib/server/inventory";
+import { consumeReservation, releaseReservation } from "@/lib/server/ticket-inventory";
 
 // Daraja payment result callback: reconcile the order ledger.
 export async function POST(req: Request) {
@@ -55,6 +56,11 @@ export async function POST(req: Request) {
           if (paidRow)
             after(async () => {
               try {
+                await consumeReservation(paidRow.id);
+              } catch (e) {
+                console.error("[ticket-reservation]", e);
+              }
+              try {
                 await recordPaidMerchOrder(paidRow);
               } catch (e) {
                 console.error("[merch-inventory]", e);
@@ -77,14 +83,17 @@ export async function POST(req: Request) {
             [cb.CheckoutRequestID],
           );
           if (failedRows[0])
-            after(() =>
-              notifyPaymentFailure({
+            after(async () => {
+              try {
+                await releaseReservation(failedRows[0].id);
+              } catch { /* hold expires on its own */ }
+              await notifyPaymentFailure({
                 gateway: "mpesa",
                 orderId: failedRows[0].id,
                 amount: failedRows[0].total,
                 reason: cb.ResultDesc,
-              }),
-            );
+              });
+            });
         }
       } catch (e: any) {
         // a real Daraja result failed to reconcile - the ledger is now stale

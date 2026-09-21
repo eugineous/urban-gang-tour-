@@ -6,6 +6,7 @@ import { requireOrigin } from '@/lib/server/origin';
 import { notifyPostPublished } from '@/lib/server/notify';
 import { pingIndexNow } from '@/lib/server/indexnow';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
+import { isOrderStatus, canAdminSetOrderStatus } from '@/lib/server/payment-status';
 import { contentAutomationReady, dispatchArticleAnnouncement, ensureContentAutomationSchema } from '@/lib/server/content-automation';
 
 function slugify(s: string) {
@@ -204,9 +205,27 @@ export async function POST(req: Request) {
         }
         await q(`UPDATE bookings SET status=$2 WHERE id=$1`, [data.id, data.status]);
         return NextResponse.json({ ok: true });
-      case 'orderStatus':
+      case 'orderStatus': {
+        // Closed state machine (lib/server/payment-status.ts). The ledger used
+        // to accept any string here — "refunded" could be typed in with no
+        // ledger row, no ticket revocation and no matching amount. Manual
+        // moves are now limited to allowed transitions and audit-logged; money
+        // movement itself still only happens in provider callbacks.
+        if (!isOrderStatus(data.status)) {
+          return NextResponse.json({ error: 'invalid_order_status' }, { status: 400 });
+        }
+        const cur = await q<{ status: string }>(`SELECT status FROM orders WHERE id=$1`, [data.id]);
+        if (!cur.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+        if (!canAdminSetOrderStatus(cur[0].status, data.status)) {
+          return NextResponse.json({ error: 'illegal_order_transition' }, { status: 409 });
+        }
         await q(`UPDATE orders SET status=$2 WHERE id=$1`, [data.id, data.status]);
+        await q(
+          `INSERT INTO audit_log (actor, action, detail) VALUES ('admin','order_status', $1)`,
+          [JSON.stringify({ id: data.id, from: cur[0].status, to: data.status, by: adminActor(req) })],
+        );
         return NextResponse.json({ ok: true });
+      }
       case 'submissionStatus':
         await q(`UPDATE submissions SET status=$2 WHERE id=$1`, [data.id, data.status]);
         return NextResponse.json({ ok: true });

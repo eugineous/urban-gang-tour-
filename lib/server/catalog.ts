@@ -75,6 +75,13 @@ export function formatEventDate(v: unknown): string {
 
 let ticketedCache: { at: number; data: CatalogEvent[] } | null = null;
 
+// Drop both in-memory catalogs so the next checkout prices from the fresh DB
+// rows. Called by lib/server/public-cache.ts after any commercial mutation.
+export function invalidateCatalogCaches(): void {
+  productsCache = null;
+  ticketedCache = null;
+}
+
 // Cached list of published ticketed events (kind='ticketed', status='published'),
 // ordered priority DESC then event_date — the single source both
 // getTicketTiers()/getTicketTier() (pricing) and lib/server/tickets.ts's

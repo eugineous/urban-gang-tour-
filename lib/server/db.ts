@@ -148,6 +148,15 @@ CREATE TABLE IF NOT EXISTS tickets (
   of_count INT NOT NULL, used_at TIMESTAMPTZ, used_by TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+-- Temporary checkout holds so concurrent buyers cannot oversell a capped
+-- tier. A hold is created with the order and consumed on confirmed payment,
+-- released on failure, or expired by a sweep (see lib/server/ticket-inventory.ts).
+CREATE TABLE IF NOT EXISTS ticket_reservations (
+  id TEXT PRIMARY KEY, event_id TEXT NOT NULL, tier_index INT NOT NULL,
+  qty INT NOT NULL, order_id TEXT NOT NULL, status TEXT DEFAULT 'held',
+  expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_ticket_reservations_event ON ticket_reservations (event_id, tier_index, status, expires_at);
 CREATE TABLE IF NOT EXISTS admin_credentials (
   id TEXT PRIMARY KEY, password_hash TEXT NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now()

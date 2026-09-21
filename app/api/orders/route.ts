@@ -13,6 +13,7 @@ import { alertCritical } from "@/lib/server/alert";
 import { notifyNewOrder } from "@/lib/server/notify";
 import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
 import { assertMerchStockAvailable } from "@/lib/server/inventory";
+import { parseTierInventory, assertTicketAvailable, holdTickets, releaseReservation } from "@/lib/server/ticket-inventory";
 
 const seen = new Map<string, { id: string; ts: number }>(); // short-lived retry guard
 const IDEMPOTENCY_TTL_MS = 10 * 60_000;
@@ -123,6 +124,36 @@ export async function POST(req: Request) {
     }
     const tier = ev.tiers[ticket.tier];
     total = tier.price * ticket.qty;
+    // Capacity guard: a capped tier must not oversell under concurrent
+    // checkout. Capacity is optional — a tier without one sells without a
+    // count check. remaining = capacity - sold(paid) - unexpired holds.
+    try {
+      const { q: qq, hasDb: hasDbQ } = await import("@/lib/server/db");
+      if (hasDbQ()) {
+        const erows = await qq<{ tiers: unknown }>(
+          `SELECT tiers FROM tour_events WHERE id=$1 AND kind='ticketed' AND status='published'`,
+          [ticket.eventId],
+        );
+        if (!erows.length) {
+          return NextResponse.json({ error: "event_not_on_sale" }, { status: 409 });
+        }
+        const inv = parseTierInventory(erows[0].tiers);
+        const invTier = inv[ticket.tier];
+        if (invTier) {
+          await assertTicketAvailable({
+            eventId: ticket.eventId,
+            tierIndex: ticket.tier,
+            tier: invTier,
+            qty: ticket.qty,
+          });
+        }
+      }
+    } catch (e: any) {
+      const msg = String(e?.message || "sold_out");
+      if (["sold_out", "insufficient_inventory", "below_min", "above_min", "above_max", "invalid_qty"].includes(msg))
+        return NextResponse.json({ error: msg }, { status: 409 });
+      return NextResponse.json({ error: "inventory_check_failed" }, { status: 503 });
+    }
     orderItems = [
       {
         id: "ticket:" + ticket.eventId + ":" + ticket.tier,
@@ -248,6 +279,23 @@ export async function POST(req: Request) {
     );
     // Only a durable order can be retried or sent to a payment provider.
     if (seenKey) seen.set(seenKey, { id, ts: now });
+    // Hold capped ticket inventory against this order so a second buyer
+    // cannot take the same seats while STK is pending. Uncapped tiers and
+    // merch skip this. The hold is consumed on paid, released on failure.
+    if (ticket !== undefined) {
+      try {
+        await q(
+          `CREATE TABLE IF NOT EXISTS ticket_reservations (
+            id TEXT PRIMARY KEY, event_id TEXT NOT NULL, tier_index INT NOT NULL,
+            qty INT NOT NULL, order_id TEXT NOT NULL, status TEXT DEFAULT 'held',
+            expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+          )`,
+        );
+        await holdTickets({ eventId: ticket.eventId, tierIndex: ticket.tier, qty: ticket.qty, orderId: id });
+      } catch (e) {
+        console.error("[ticket-hold]", e);
+      }
+    }
     // Order is now durably created — safe to count the code redemption.
     // Never on a failed/aborted attempt, only here.
     if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
@@ -300,6 +348,9 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ ok: true, id, total });
   } catch (e: any) {
+    if (ticket !== undefined) {
+      try { await releaseReservation(id); } catch { /* hold expires on its own */ }
+    }
     return NextResponse.json(
       {
         ok: false,

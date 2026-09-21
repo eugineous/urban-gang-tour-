@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
-import { PUBLIC_EVENT_STATUSES, isSellable } from '@/lib/server/event-lifecycle';
+import { PUBLIC_EVENT_STATUSES, isEventSellable } from '@/lib/server/event-lifecycle';
 
 // Public, read-only view of tour events (ticketed concerts, school tour
 // stops, past-client showcase) — the single DB-backed source
@@ -20,6 +20,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 function publicRow(r: any) {
+  const tiers = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
   return {
     id: r.id,
     kind: r.kind,
@@ -35,16 +36,16 @@ function publicRow(r: any) {
     accent: r.accent || '',
     image: r.image || '',
     description: r.description || '',
-    tiers: typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [],
+    tiers,
     logo: r.logo || '',
     testimonial: r.testimonial || '',
     priority: Number(r.priority) || 0,
     status: r.status,
-    // Whether a checkout may take money for this event right now. Derived
-    // server-side from the lifecycle so no client has to re-implement the
-    // rule — and so a paused/sold-out/postponed/cancelled event can never
-    // render a Buy control. See lib/server/event-lifecycle.ts.
-    sellable: isSellable(r.status),
+    // Whether a checkout may take money for a TICKET to this event right
+    // now — one implementation, in lib/server/event-lifecycle.ts. A published
+    // school stop is deliberately NOT sellable: its status is 'published'
+    // only because that is what makes it visible.
+    sellable: isEventSellable({ status: r.status, kind: r.kind, tiers }),
   };
 }
 

@@ -10,6 +10,7 @@ import {
   PUBLIC_EVENT_STATUSES,
   SELLABLE_EVENT_STATUSES,
   eventSchemaStatus,
+  isEventSellable,
   isEventStatus,
   isPubliclyVisible,
   isSellable,
@@ -144,6 +145,25 @@ describe('event lifecycle: public visibility vs sellability', () => {
     expect(isEventStatus('')).toBe(false);
     expect(isEventStatus(undefined)).toBe(false);
     expect(isEventStatus('published')).toBe(true);
+  });
+
+  it('does not treat a published, non-ticketed event as sellable', () => {
+    // A school stop is status='published' only because that is what makes it
+    // visible. It is not a ticket and has no tiers.
+    expect(isEventSellable({ status: 'published', kind: 'school', tiers: [] })).toBe(false);
+    expect(isEventSellable({ status: 'published', kind: 'past', tiers: [] })).toBe(false);
+  });
+
+  it('does not treat a ticketed event with no priced tiers as sellable', () => {
+    expect(isEventSellable({ status: 'published', kind: 'ticketed', tiers: [] })).toBe(false);
+    expect(isEventSellable({ status: 'published', kind: 'ticketed' })).toBe(false);
+  });
+
+  it('sells only a published ticketed event that actually has tiers', () => {
+    const tiers = [{ name: 'Regular', price: 500 }];
+    expect(isEventSellable({ status: 'published', kind: 'ticketed', tiers })).toBe(true);
+    for (const s of ['draft', 'sales_paused', 'sold_out', 'postponed', 'rescheduled', 'cancelled', 'completed', 'archived'] as const)
+      expect(isEventSellable({ status: s, kind: 'ticketed', tiers })).toBe(false);
   });
 
   it('maps each lifecycle state onto Google Event eventStatus', () => {
