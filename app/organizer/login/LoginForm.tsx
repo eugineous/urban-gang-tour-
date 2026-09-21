@@ -41,7 +41,7 @@ export default function LoginForm() {
               <input id="org-login-password" style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} autoComplete="current-password" />
             </div>
             <button style={btnMagenta} disabled={busy} onClick={submit}>{busy ? 'Signing in…' : 'Log in'}</button>
-            <div style={{ fontSize: 12, color: '#888' }}>No account yet? <a href="/organizer/signup" style={{ color: '#E6218C', fontWeight: 700 }}>Apply to sell tickets</a></div>
+            <div style={{ fontSize: 12, color: '#888' }}>No account yet? <a href="/organizer/signup" style={{ color: '#E6218C', fontWeight: 700 }}>Apply to sell tickets</a> · <a href="/organizer/forgot" style={{ color: '#E6218C', fontWeight: 700 }}>Forgot password?</a></div>
           </div>
         </div>
       </div>

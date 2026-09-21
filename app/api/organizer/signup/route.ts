@@ -108,7 +108,7 @@ export async function POST(req: Request) {
             from: process.env.BOOKINGS_FROM || 'Urban Gang Tour <admin@urbangangtour.co.ke>',
             to: em,
             subject: 'Verify your Urban Gang Tour Marketplace email',
-            text: `Hi,\n\nConfirm this address to continue your "${businessName.trim()}" application:\n${base}/api/organizer/verify?token=${raw}\n\nThe link expires in 24 hours.`,
+            text: `Hi,\n\nConfirm this address to continue your "${businessName.trim()}" application:\n${base}/organizer/verify?token=${raw}\n\nThe link expires in 24 hours.`,
           }),
         }).catch(() => {});
       }
