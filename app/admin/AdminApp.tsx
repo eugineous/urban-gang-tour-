@@ -744,15 +744,29 @@ export default function AdminApp({
                 <select
                   defaultValue={r.status}
                   style={{ ...inp, width: 110, padding: 6 }}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    // Refunds must carry money truth (amount + reason) — the
+                    // backend rejects a bare flip. Prompt inline; cancel aborts.
+                    if (next === "refunded" || next === "partially_refunded") {
+                      const amountRaw = window.prompt(
+                        `Refund amount in KES (order total ${Number(r.total).toLocaleString()}). Full refund records "${next === "refunded" ? "refunded" : "partial"}":`,
+                        String(r.total),
+                      );
+                      if (amountRaw === null) { e.target.value = r.status; return; }
+                      const reason = window.prompt("Refund reason (required, recorded in the ledger):", "");
+                      if (!reason || reason.trim().length < 3) { window.alert("A reason of at least 3 characters is required."); e.target.value = r.status; return; }
+                      save("orderStatus", { id: r.id, status: next, refundAmount: amountRaw, refundReason: reason }, () => {});
+                      return;
+                    }
                     save(
                       "orderStatus",
-                      { id: r.id, status: e.target.value },
+                      { id: r.id, status: next },
                       () => {},
-                    )
-                  }
+                    );
+                  }}
                 >
-                  {["pending", "paid", "failed", "fulfilled", "refunded"].map(
+                  {["pending", "paid", "failed", "fulfilled", "refunded", "partially_refunded"].map(
                     (s) => (
                       <option key={s}>{s}</option>
                     ),
