@@ -16,6 +16,7 @@ vi.mock('../lib/server/db', () => ({
 import { canAdminSetOrderStatus, amountsMatch } from '../lib/server/payment-status';
 import { canSellQty, remainingCapacity, parseTierInventory } from '../lib/server/ticket-inventory';
 import { isEventSellable } from '../lib/server/event-lifecycle';
+import { decideMpesaOutcome } from '../lib/server/reconcile';
 
 describe('admin order transitions', () => {
   it('allows pending -> paid (callback path mirrored by staff)', () => {
@@ -63,6 +64,22 @@ describe('inventory', () => {
   });
 });
 
+describe('Daraja result mapping', () => {
+  it('0 -> paid', () => {
+    expect(decideMpesaOutcome(0)).toBe('paid');
+  });
+  it('1032/1 -> declined', () => {
+    expect(decideMpesaOutcome(1032)).toBe('declined');
+    expect(decideMpesaOutcome(1)).toBe('declined');
+  });
+  it('2001/1037/1025 -> timed_out', () => {
+    expect(decideMpesaOutcome(2001)).toBe('timed_out');
+    expect(decideMpesaOutcome(1037)).toBe('timed_out');
+  });
+  it('anything else -> unknown, never invent success', () => {
+    expect(decideMpesaOutcome(9999)).toBe('unknown');
+  });
+});
 describe('sellable gate', () => {
   it('published ticketed with tiers is sellable', () => {
     expect(isEventSellable({ status: 'published', kind: 'ticketed', tiers: [{ name: 'Regular', price: 500 }] })).toBe(true);

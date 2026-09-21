@@ -19,5 +19,12 @@ export default {
       headers: { 'x-ugt-cron': env.UGT_CRON_SECRET },
     });
     ctx.waitUntil(env.WORKER_SELF_REFERENCE.fetch(sweep));
+    // Recover orders stuck in pending when a provider callback never
+    // arrives (Daraja stkpushquery / Paystack verify, idempotent writes).
+    const recon = new Request('https://urbangangtour.co.ke/api/internal/cron/payment-reconcile', {
+      method: 'POST',
+      headers: { 'x-ugt-cron': env.UGT_CRON_SECRET },
+    });
+    ctx.waitUntil(env.WORKER_SELF_REFERENCE.fetch(recon));
   },
 };
