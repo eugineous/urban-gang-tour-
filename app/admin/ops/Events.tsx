@@ -14,14 +14,30 @@ import {
 } from './ui';
 
 type Kind = 'ticketed' | 'school' | 'past';
-type Status = 'draft' | 'published' | 'cancelled' | 'completed';
+// Full lifecycle — mirrors lib/server/event-lifecycle.ts, which is the single
+// source of truth the server validates against.
+type Status =
+  | 'draft' | 'pending_review' | 'published' | 'sales_paused' | 'sold_out'
+  | 'postponed' | 'rescheduled' | 'cancelled' | 'completed' | 'archived';
 
 interface Tier { name: string; price: number }
+
+// Provenance for a row recovered from source history rather than entered as a
+// live operational record. `unverified` means the values come from an old
+// commit — see lib/server/recovered-legacy-events.ts.
+interface RecoveryInfo {
+  recovered_from_commit: string; recovered_at: string;
+  verification_status: 'unverified' | 'verified' | 'rejected';
+  verified_at: string | null; verified_by: string | null; recovery_notes: string;
+}
+
 interface TourEvent {
   id: string; kind: Kind; name: string; event_date: string | null; date_label: string;
   event_time: string; venue: string; city: string; accent: string; status: Status;
   priority: number; image: string; description: string; tiers: Tier[] | string;
   logo: string; testimonial: string;
+  recovery?: RecoveryInfo | null;
+  previous_start_at?: string | null;
 }
 
 const EMPTY = {
@@ -33,6 +49,10 @@ const EMPTY = {
 
 const KIND_LABEL: Record<Kind, string> = { ticketed: 'Ticketed', school: 'School Tour', past: 'Past Client' };
 const KIND_TABS: (Kind | 'all')[] = ['all', 'ticketed', 'school', 'past'];
+
+function safeJson(v: string): RecoveryInfo | null {
+  try { const p = JSON.parse(v); return p && typeof p === 'object' ? p : null; } catch { return null; }
+}
 
 function parseTiers(v: Tier[] | string): Tier[] {
   try {
@@ -53,7 +73,11 @@ export default function Events() {
   const reload = useCallback(async () => {
     const { data } = await opsGet('tourEvents');
     if (data.error) say('Load failed: ' + data.error);
-    else setRows((data.rows || []).map((r: any) => ({ ...r, tiers: parseTiers(r.tiers) })));
+    else setRows((data.rows || []).map((r: any) => ({
+      ...r,
+      tiers: parseTiers(r.tiers),
+      recovery: typeof r.recovery === 'string' ? safeJson(r.recovery) : (r.recovery || null),
+    })));
   }, [say]);
   useEffect(() => { reload(); }, [reload]);
 
@@ -85,19 +109,23 @@ export default function Events() {
     if (data.error) say('Failed: ' + data.error); else { say('Restored'); reload(); }
   };
 
-  // Recovery of the three real ticketed events that shipped before the DB
-  // cutover (lib/server/verified-events.ts). They come back as DRAFTS — the
-  // recovered dates are months old and cannot be trusted as the current
-  // schedule for an event that takes money, so publishing stays a deliberate
-  // decision here.
-  const restoreVerified = async () => {
-    if (!confirm('Restore the 3 verified pre-migration ticketed events as drafts?\n\nExperience Hub Dance Event, Urban Festival Of Colours, Campus Rave. Real names, venues, tier prices and artwork are recovered exactly as they last shipped. They stay hidden until you confirm the date and publish each one.')) return;
+  // One-time recovery of the three LEGACY ticketed events that shipped before
+  // the DB cutover (lib/server/recovered-legacy-events.ts). These are evidence
+  // recovered from source history, NOT verified commercial facts: a date that
+  // has passed is recorded as `completed` (history, never sellable), and a
+  // future date stays `draft` until a human confirms it. Nothing is published,
+  // nothing is emailed, and a second run cannot duplicate or overwrite.
+  const recoverLegacyEvents = async () => {
+    if (!confirm('Recover the 3 legacy pre-migration ticketed events?\n\nExperience Hub Dance Event · Urban Festival Of Colours · Campus Rave\n\nThese are RECOVERED FROM SOURCE HISTORY, not verified current facts. A past date is recorded as completed (history, not sellable). A future date stays a draft until you confirm it. Each row is marked UNVERIFIED until you publish it.')) return;
     setBusy(true);
-    const { data } = await opsPost('tourEvent.restoreVerified', {});
+    const { data } = await opsPost('tourEvent.recoverLegacyEvents', {});
     setBusy(false);
     if (data.error) { say('Failed: ' + data.error); return; }
-    const n = (data.inserted || []).length;
-    say(n ? `Restored ${n} event(s) as drafts — confirm the dates, then publish.` : 'Already present — nothing to restore.');
+    const recovered: Record<string, string> = data.recovered || {};
+    const ids = Object.keys(recovered);
+    say(ids.length
+      ? `Recovered ${ids.length} (${Array.from(new Set(Object.values(recovered))).join('/')}) — confirm each date before publishing.`
+      : 'Already present — nothing recovered, nothing overwritten.');
     reload();
   };
 
@@ -151,9 +179,15 @@ export default function Events() {
           <div><span style={label}>Status</span>
             <select style={inp} value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as Status })}>
               <option value="draft">Draft (hidden)</option>
-              <option value="published">Published (live)</option>
-              <option value="completed">Completed (past)</option>
-              <option value="cancelled">Cancelled (hidden)</option>
+              <option value="pending_review">Pending review (hidden)</option>
+              <option value="published">Published (live + sellable)</option>
+              <option value="sales_paused">Sales paused (visible, not sellable)</option>
+              <option value="sold_out">Sold out (visible, not sellable)</option>
+              <option value="postponed">Postponed (visible, not sellable)</option>
+              <option value="rescheduled">Rescheduled (visible, not sellable)</option>
+              <option value="completed">Completed (past, not sellable)</option>
+              <option value="cancelled">Cancelled (hidden, not sellable)</option>
+              <option value="archived">Archived (hidden)</option>
             </select>
           </div>
           <div><span style={label}>Priority (higher shows first)</span><input style={inp} type="number" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: Number(e.target.value) || 0 })} /></div>
@@ -220,7 +254,7 @@ export default function Events() {
           <div style={{ flex: 1 }} />
           <SearchBox value={qy} onChange={setQy} placeholder="Search events..." />
           {!rows.some((r) => r.kind === 'ticketed') && (
-            <button style={{ ...btn, background: '#111', color: '#fff' }} disabled={busy} onClick={restoreVerified} title="Recover the 3 verified real ticketed events as drafts">Restore verified events</button>
+            <button style={{ ...btn, background: '#111', color: '#fff' }} disabled={busy} onClick={recoverLegacyEvents} title="One-time recovery of the 3 legacy ticketed events from source history">Recover legacy events</button>
           )}
           <button style={btn} onClick={() => openEdit()}>+ New event</button>
         </div>
@@ -240,10 +274,13 @@ export default function Events() {
         {!rows.some((r) => r.kind === 'ticketed') && (
           <div style={{ fontSize: 12, color: '#7A4F1A', background: '#FDF2D9', border: '1px solid #EBD9A8', padding: '10px 12px', marginBottom: 10 }}>
             <b>No ticketed events — nothing can be sold and /events/[id] has no live page.</b>{' '}
-            &quot;Restore verified events&quot; recovers the three real ticketed events that shipped before the DB cutover
+            &quot;Recover legacy events&quot; copies the three ticketed events that shipped before the DB cutover
             (The Experience Hub Dance Event · KICC, Urban Festival Of Colours · Uhuru Gardens, Campus Rave · Carnivore Grounds)
-            with their real venues, tier prices and artwork. They arrive as drafts: confirm each date below and set it to
-            Published to go live and start selling.
+            out of source history. This is <b>evidence recovery, not verification</b>: names, venues and tier prices come from
+            an old commit that nobody has confirmed against today&apos;s reality. Past dates are recorded as
+            <b> completed</b> (history, never sellable); the future one stays a <b>draft</b>. Each row is tagged
+            <b> UNVERIFIED</b> until a person confirms it and publishes it. Recovery is transactional and repeat-safe —
+            it will never overwrite or duplicate an event you have already edited.
           </div>
         )}
         <div style={{ overflowX: 'auto' }}>
@@ -253,8 +290,8 @@ export default function Events() {
               {visible.map((r) => (
                 <tr key={r.id}>
                   <td style={td}><Chip text={KIND_LABEL[r.kind]} /></td>
-                  <td style={td}><b>{r.name}</b>{r.kind === 'ticketed' ? <div style={{ fontSize: 11, color: '#888' }}>{parseTiers(r.tiers).map((t) => `${t.name} KES ${t.price.toLocaleString()}`).join(' · ')}</div> : null}</td>
-                  <td style={td}>{r.event_date ? fmtDate(r.event_date) : (r.date_label || '—')}{r.event_time ? ` · ${r.event_time}` : ''}</td>
+                  <td style={td}><b>{r.name}</b>{r.recovery && r.recovery.verification_status !== 'verified' ? <Chip text={'recovered · ' + r.recovery.verification_status} bg="#FBE7E7" color={OC.red} /> : null}{r.recovery?.verification_status === 'verified' ? <Chip text="recovered · verified" bg="#E7F5EE" color={OC.green} /> : null}{r.kind === 'ticketed' ? <div style={{ fontSize: 11, color: '#888' }}>{parseTiers(r.tiers).map((t) => `${t.name} KES ${t.price.toLocaleString()}`).join(' · ')}</div> : null}</td>
+                  <td style={td}>{r.event_date ? fmtDate(r.event_date) : (r.date_label || '—')}{r.event_time ? ` · ${r.event_time}` : ''}{r.previous_start_at && r.previous_start_at !== r.event_date ? <div style={{ fontSize: 11, color: '#B26A00' }}>was {fmtDate(r.previous_start_at)}</div> : null}</td>
                   <td style={td}>{r.venue}{r.city ? `, ${r.city}` : ''}</td>
                   <td style={td}>{r.priority}</td>
                   <td style={td}>

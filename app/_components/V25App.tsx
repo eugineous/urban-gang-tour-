@@ -44,7 +44,12 @@ export function V25App({ page }: { page: string }) {
       .then((d) => {
         const rows: any[] = Array.isArray(d?.events) ? d.events : [];
         const today = new Date().toISOString().slice(0, 10);
-        const ticketed = rows.filter((e) => e.kind === 'ticketed').map((e) => {
+        // Only events a checkout may actually sell, using the server-derived
+        // `sellable` flag (lib/server/event-lifecycle.ts). A paused, sold-out,
+        // postponed, rescheduled, cancelled or completed ticketed event is
+        // excluded from MAIN_EVENTS entirely rather than rendered with a dead
+        // Buy control — MAIN_EVENTS is what drives buyTicket().
+        const ticketed = rows.filter((e) => e.kind === 'ticketed' && e.sellable).map((e) => {
           let date = 'TBA';
           if (e.eventDate) {
             const dt = new Date(e.eventDate + 'T00:00:00Z');

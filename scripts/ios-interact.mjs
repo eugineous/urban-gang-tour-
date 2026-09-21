@@ -2,7 +2,7 @@
 import { webkit, devices } from 'playwright';
 
 const BASE = process.env.BASE || 'https://urbangangtour.co.ke';
-const SHOT = process.env.SHOTDIR || '.';
+const SHOT = process.env.SHOTDIR || 'render-checks';
 const browser = await webkit.launch();
 const ctx = await browser.newContext({ ...devices['iPhone 13'] });
 const page = await ctx.newPage();

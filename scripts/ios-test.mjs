@@ -32,7 +32,7 @@ for (const path of pages) {
     console.log('STATE:', JSON.stringify(state, null, 1));
     console.log('ERRORS:', errors.length ? errors.slice(0, 10) : 'none');
     console.log('FAILED REQS:', failedReqs.length ? failedReqs.slice(0, 10) : 'none');
-    await page.screenshot({ path: process.env.SHOTDIR ? `${process.env.SHOTDIR}/ios${path.replace(/\//g, '_') || '_home'}.png` : `ios${path.replace(/\//g, '_') || '_home'}.png` });
+    await page.screenshot({ path: (process.env.SHOTDIR || 'render-checks') ? `${process.env.SHOTDIR}/ios${path.replace(/\//g, '_') || '_home'}.png` : `ios${path.replace(/\//g, '_') || '_home'}.png` });
   } catch (e) {
     console.log(`\n=== ${path} === NAVIGATION FAILED:`, String(e).slice(0, 300));
     console.log('ERRORS:', errors.slice(0, 10));

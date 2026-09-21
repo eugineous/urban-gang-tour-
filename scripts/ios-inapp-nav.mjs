@@ -66,6 +66,6 @@ await page.waitForLoadState('domcontentloaded');
 await page.waitForTimeout(1500);
 report('blog link -> real navigation', page.url().includes('/blog') && docLoads > loadsBefore, page.url());
 
-await page.screenshot({ path: (process.env.SHOTDIR || '.') + '/ios-inapp-final.png' });
+await page.screenshot({ path: (process.env.SHOTDIR || 'render-checks') + '/ios-inapp-final.png' });
 console.log('\nPAGE ERRORS:', errors.length ? errors : 'none');
 await browser.close();

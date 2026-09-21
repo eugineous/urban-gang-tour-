@@ -4,7 +4,7 @@ const page = await (await browser.newContext({ ...devices['iPhone 13'] })).newPa
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e).slice(0, 150)));
 
-const SHOT = process.env.SHOTDIR;
+const SHOT = process.env.SHOTDIR || 'render-checks';
 for (const p of ['/shop', '/events', '/experience']) {
   await page.goto('https://urbangangtour.co.ke' + p, { waitUntil: 'commit', timeout: 90000 });
   await page.waitForTimeout(10000);

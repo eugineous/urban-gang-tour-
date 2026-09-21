@@ -183,6 +183,18 @@ CREATE TABLE IF NOT EXISTS tour_events (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+-- Provenance for rows RECOVERED from source history rather than entered as a
+-- live operational record (lib/server/recovered-legacy-events.ts). NULL means
+-- "created normally". A non-null value carries recovered_from_commit /
+-- recovered_at / verification_status / verified_at / verified_by /
+-- recovery_notes, so a recovered row can always be told apart from a confirmed
+-- one — in the admin UI and on every public read path.
+ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS recovery JSONB;
+-- The date an event USED to be on. Google's Event guidance is to keep the
+-- original identifying information instead of deleting or silently
+-- overwriting a moved event, and buyers who already hold tickets need to be
+-- able to see what changed. Set by tourEvent.save whenever event_date moves.
+ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS previous_start_at DATE;
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

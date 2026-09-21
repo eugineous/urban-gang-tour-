@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
+import { PUBLIC_EVENT_STATUSES, isSellable } from '@/lib/server/event-lifecycle';
 
 // Public, read-only view of tour events (ticketed concerts, school tour
 // stops, past-client showcase) — the single DB-backed source
@@ -39,6 +40,11 @@ function publicRow(r: any) {
     testimonial: r.testimonial || '',
     priority: Number(r.priority) || 0,
     status: r.status,
+    // Whether a checkout may take money for this event right now. Derived
+    // server-side from the lifecycle so no client has to re-implement the
+    // rule — and so a paused/sold-out/postponed/cancelled event can never
+    // render a Buy control. See lib/server/event-lifecycle.ts.
+    sellable: isSellable(r.status),
   };
 }
 
@@ -64,11 +70,11 @@ export async function GET(req: Request) {
       const rows = kind
         ? await q<any>(
             `SELECT ${cols} FROM tour_events WHERE kind=$1 AND status = ANY($2) ORDER BY priority DESC, event_date ASC NULLS LAST`,
-            [kind, ['published', 'completed']]
+            [kind, [...PUBLIC_EVENT_STATUSES]]
           )
         : await q<any>(
             `SELECT ${cols} FROM tour_events WHERE status = ANY($1) ORDER BY priority DESC, event_date ASC NULLS LAST`,
-            [['published', 'completed']]
+            [[...PUBLIC_EVENT_STATUSES]]
           );
       return rows.map(publicRow);
     });

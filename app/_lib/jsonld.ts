@@ -1,5 +1,6 @@
 import data from './jsonld.data.json';
 import { SITE, routeByPath } from '@/lib/site';
+import { eventSchemaStatus } from '@/lib/server/event-lifecycle';
 
 // v25's structured data, split onto the pages it belongs to.
 // Organization + WebSite are site-wide (rendered in the root layout);
@@ -107,11 +108,22 @@ export async function eventsFromDb(): Promise<unknown | null> {
     if (!db()) return null;
     // event_date::text — plain 'YYYY-MM-DD' string, never a local-midnight
     // Date object (see lib/server/db.ts's note on pg's DATE parser).
+    // Statuses from the lifecycle (lib/server/event-lifecycle.ts). A
+    // postponed / rescheduled / cancelled event must KEEP its markup rather
+    // than vanish — Google's guidance is to update the existing event with
+    // its new eventStatus (and previousStartDate) instead of deleting it, so
+    // a crawler and a buyer both see what happened. `completed` is excluded:
+    // a past stop is history, not a discovery surface. Draft, pending_review
+    // and archived rows are never queried here at all.
     const rows = await q<any>(
-      `SELECT id, name, event_date::text AS event_date, event_time, venue, city, image, description, tiers
+      `SELECT id, name, event_date::text AS event_date, previous_start_at::text AS previous_start_at,
+              event_time, venue, city, image, description, tiers, status
        FROM tour_events
-       WHERE kind='ticketed' AND status='published' AND event_date >= CURRENT_DATE
-       ORDER BY priority DESC, event_date ASC`
+       WHERE kind='ticketed'
+         AND status = ANY($1)
+         AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled','cancelled'))
+       ORDER BY priority DESC, event_date ASC`,
+      [["published", "sales_paused", "sold_out", "postponed", "rescheduled", "cancelled"]],
     );
     if (!rows.length) return null;
     const graph = rows.map((r: any) => {
@@ -119,6 +131,19 @@ export async function eventsFromDb(): Promise<unknown | null> {
       const desc = String(r.description || '').replace(/—/g, '-');
       const tiers: { name: string; price: number }[] = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
       const eventUrl = `${SITE.domain}/events/${encodeURIComponent(r.id)}`;
+      // No offers for an event that cannot be bought. Advertising InStock on a
+      // cancelled or paused event is exactly the stale-truth failure this is
+      // meant to prevent — the offer URL must land on a page where the public
+      // can actually buy that event's tickets (Google's requirement), or it
+      // must not be emitted.
+      const status = String(r.status || 'published');
+      const buyable = status === 'published';
+      const soldOut = status === 'sold_out';
+      const prev = r.previous_start_at ? String(r.previous_start_at).slice(0, 10) : null;
+      const startOf = (d: string) =>
+        /^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(String(r.event_time || '').trim())
+          ? `${d}T${timeTo24h(r.event_time)}+03:00`
+          : d;
       return {
         '@type': 'Event',
         '@id': eventUrl,
@@ -127,20 +152,31 @@ export async function eventsFromDb(): Promise<unknown | null> {
         // Never invent a midnight start time when the operator has not
         // confirmed one. A date-only event is valid for an all-day/TBA-time
         // listing and remains truthful until the schedule is set.
-        startDate: /^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(String(r.event_time || '').trim())
-          ? `${dateStr}T${timeTo24h(r.event_time)}+03:00`
-          : dateStr,
-        eventStatus: 'https://schema.org/EventScheduled',
+        startDate: startOf(dateStr),
+        // Google: keep the original identifying information when an event is
+        // rescheduled — previousStartDate carries the old date rather than the
+        // record being deleted or silently overwritten.
+        previousStartDate:
+          status === 'rescheduled' && prev && prev !== dateStr ? startOf(prev) : undefined,
+        eventStatus: eventSchemaStatus(status),
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         location: { '@type': 'Place', name: r.venue || '', address: { '@type': 'PostalAddress', addressLocality: r.city || '', addressCountry: 'KE' } },
         image: r.image ? `${SITE.domain}${r.image}` : undefined,
         organizer: { '@id': `${SITE.domain}/#org` },
         performer: PERFORMER,
         description: desc || r.name,
-        offers: tiers.map((t) => ({
-          '@type': 'Offer', name: t.name, price: String(Math.round(Number(t.price) || 0)),
-          priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: eventUrl,
-        })),
+        offers: !buyable && !soldOut
+          ? undefined
+          : tiers.map((t) => ({
+              '@type': 'Offer',
+              name: t.name,
+              price: String(Math.round(Number(t.price) || 0)),
+              priceCurrency: 'KES',
+              availability: soldOut
+                ? 'https://schema.org/SoldOut'
+                : 'https://schema.org/InStock',
+              url: eventUrl,
+            })),
       };
     });
     return { '@context': 'https://schema.org', '@graph': graph };

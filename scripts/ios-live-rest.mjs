@@ -20,5 +20,5 @@ rep('SSR shell serves real image URLs', shell > 10, `${shell} imgs on /the-gang`
 
 const beacon = await page.evaluate(async () => (await fetch('/api/client-error', { method: 'POST', body: JSON.stringify({ msg: 'beacon-selftest', page: '/selftest' }) })).status);
 rep('error beacon endpoint live', beacon === 204, `status ${beacon}`);
-await page.screenshot({ path: process.env.SHOTDIR + '/ios-live-final.png' });
+await page.screenshot({ path: (process.env.SHOTDIR || 'render-checks') + '/ios-live-final.png' });
 await browser.close();

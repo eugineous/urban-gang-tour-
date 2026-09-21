@@ -28,7 +28,12 @@ import { paystackCreateSubaccount } from "@/lib/server/paystack";
 import { alertCritical } from "@/lib/server/alert";
 import { listClientErrors } from "@/lib/server/client-errors";
 import { pingIndexNow } from "@/lib/server/indexnow";
-import { VERIFIED_EVENTS } from "@/lib/server/verified-events";
+import {
+  RECOVERED_LEGACY_EVENTS,
+  recoveredStatus,
+  validateRecoveredEvents,
+} from "@/lib/server/recovered-legacy-events";
+import { isEventStatus } from "@/lib/server/event-lifecycle";
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -350,7 +355,7 @@ export async function GET(req: Request) {
         // event_date::text — plain 'YYYY-MM-DD' for the admin form's <input
         // type="date">, never a local-midnight Date object that would print
         // wrong (see lib/server/db.ts's note on pg's DATE parser).
-        const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, created_at, updated_at`;
+        const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, recovery, created_at, updated_at`;
         const kindFilter = url.searchParams.get("kind");
         const rows = kindFilter
           ? await q(
@@ -679,7 +684,8 @@ const KIND_PERM: Record<string, string> = {
   "promo.delete": "ops_promos",
   "tourEvent.save": "events",
   "tourEvent.delete": "events",
-  "tourEvent.restoreVerified": "events",
+  "tourEvent.recoverLegacyEvents": "events",
+  "tourEvent.verifyRecovery": "events",
   "product.save": "products",
   "product.delete": "products",
   "merchSupplier.save": "ops_merch",
@@ -1496,14 +1502,11 @@ export async function POST(req: Request) {
         const name = s(d.name, 200);
         if (!kind) return bad("bad_kind");
         if (!name) return bad("missing_name");
-        const status = [
-          "draft",
-          "published",
-          "cancelled",
-          "completed",
-        ].includes(d.status)
-          ? d.status
-          : "published";
+        // Full lifecycle (lib/server/event-lifecycle.ts). An unrecognised
+        // status now falls back to the safest state instead of the most
+        // permissive one: a malformed payload must never be able to publish
+        // an event or make it sellable.
+        const status = isEventStatus(d.status) ? d.status : "draft";
         const tiersIn = Array.isArray(d.tiers) ? d.tiers : [];
         const tiers =
           kind === "ticketed"
@@ -1558,6 +1561,12 @@ export async function POST(req: Request) {
             fields,
           );
         } else {
+          // Read the current date first so a move can be recorded rather than
+          // silently overwritten (previous_start_at, below).
+          const before = await q<{ event_date: string | null }>(
+            `SELECT event_date::text AS event_date FROM tour_events WHERE id=$1`,
+            [id],
+          );
           row = await q(
             `UPDATE tour_events SET kind=$1, name=$2, event_date=$4, date_label=$5, event_time=$6, venue=$7, city=$8, accent=$9,
                status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, updated_at=now()
@@ -1565,6 +1574,49 @@ export async function POST(req: Request) {
             fields,
           );
           if (!row.length) return bad("not_found", 404);
+          const oldDate = before[0]?.event_date
+            ? String(before[0].event_date).slice(0, 10)
+            : null;
+          const newDate = dateOrNull(d.eventDate);
+          if (oldDate && newDate && oldDate !== newDate) {
+            // Preserve the old date for buyers and for Google, and count how
+            // many ticket holders are affected so staff can see who needs to
+            // be told. Nothing is emailed automatically from here.
+            await q(
+              `UPDATE tour_events SET previous_start_at=$1 WHERE id=$2`,
+              [oldDate, id],
+            );
+            const affected = await q<{ n: string }>(
+              `SELECT COUNT(*)::text AS n FROM tickets WHERE event_id=$1`,
+              [id],
+            );
+            row[0].previous_start_at = oldDate;
+            row[0].affected_ticket_holders = Number(affected[0]?.n || 0);
+          }
+        }
+        // A recovered row (lib/server/recovered-legacy-events.ts) starts
+        // `unverified`. Publishing it IS the human verification act, so record
+        // who did it and when — a published recovered event must never still
+        // be labelled unverified. This is the whole point of keeping
+        // "recovered from history" and "confirmed commercially" apart.
+        if (status === "published") {
+          let prior: any = row[0]?.recovery;
+          if (typeof prior === "string") {
+            try { prior = JSON.parse(prior); } catch { prior = null; }
+          }
+          if (prior && typeof prior === "object" && prior.recovered_from_commit) {
+            const merged = {
+              ...prior,
+              verification_status: "verified",
+              verified_at: new Date().toISOString(),
+              verified_by: adminActor(req),
+            };
+            await q(`UPDATE tour_events SET recovery=$1 WHERE id=$2`, [
+              JSON.stringify(merged),
+              row[0].id,
+            ]);
+            row[0].recovery = merged;
+          }
         }
         await opsAudit("ops.tourEvent.save", {
           id: row[0]?.id,
@@ -1576,42 +1628,117 @@ export async function POST(req: Request) {
           after(() => pingIndexNow(["/events", "/experience"]));
         return NextResponse.json({ ok: true, row: row[0] });
       }
-      // One-time recovery of the three verified real ticketed events that
-      // shipped before the DB cutover (see lib/server/verified-events.ts for
-      // provenance). Inserts drafts only: the recovered dates are months old
-      // and cannot be trusted as the current schedule for an event that takes
-      // money, so publishing stays a deliberate staff decision in the Events
-      // tool. ON CONFLICT DO NOTHING means an existing row (including one an
-      // owner already edited or cancelled) is never clobbered.
-      case "tourEvent.restoreVerified": {
-        const inserted: string[] = [];
-        const skipped: string[] = [];
-        for (const ev of VERIFIED_EVENTS) {
-          const row = await q<{ id: string }>(
-            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial)
-             VALUES ($1,$2,$3,'',$4,'',$5,$6,$7,$8,'draft',$9,$10,$11,$12,'','')
-             ON CONFLICT (id) DO NOTHING RETURNING id`,
+      // One-time recovery of the three LEGACY ticketed events that shipped
+      // before the DB cutover. See lib/server/recovered-legacy-events.ts:
+      // these are evidence recovered from source history, NOT verified
+      // commercial facts, so nothing here may publish an event or overwrite
+      // an existing row.
+      //
+      // Atomic: one BEGIN/COMMIT through lib/server/db.ts's Pool (the same
+      // pattern as createNumberedDocument), so a failure part-way through
+      // rolls the whole batch back rather than leaving half the history
+      // restored. Idempotent: ON CONFLICT DO NOTHING means a second run, a
+      // concurrent run, or a row staff have since edited or cancelled is
+      // never touched and can never be duplicated.
+      //
+      // Status is never `published`: a past date is recorded as `completed`
+      // (history, not sellable), a future date stays `draft` until a human
+      // confirms it. See recoveryStatusFor().
+      case "tourEvent.recoverLegacyEvents": {
+        const check = validateRecoveredEvents();
+        if (!check.ok) {
+          console.error("[recoverLegacyEvents] invalid recovery data", check.errors);
+          return bad("recovery_data_invalid", 500);
+        }
+        const pool = db();
+        if (!pool) return bad("db_not_configured", 503);
+        const today = new Date().toISOString().slice(0, 10);
+        const client = await pool.connect();
+        try {
+          await client.query("BEGIN");
+          const recovered: Record<string, string> = {};
+          const skipped: string[] = [];
+          for (const ev of RECOVERED_LEGACY_EVENTS) {
+            const status = recoveredStatus(ev, today);
+            const r = await client.query(
+              `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, recovery)
+               VALUES ($1,$2,$3,'',$4,'',$5,$6,$7,$8,$9,0,$10,$11,$12,'','',$13)
+               ON CONFLICT (id) DO NOTHING RETURNING id`,
+              [
+                ev.id,
+                ev.kind,
+                ev.name,
+                ev.eventDate,
+                ev.eventTime,
+                ev.venue,
+                ev.city,
+                ev.accent,
+                status,
+                ev.image,
+                ev.description,
+                JSON.stringify(ev.tiers),
+                JSON.stringify(ev.provenance),
+              ],
+            );
+            if (r.rowCount) recovered[ev.id] = status;
+            else skipped.push(ev.id);
+          }
+          await client.query(
+            `INSERT INTO audit_log (actor, action, detail) VALUES ($1,$2,$3)`,
             [
-              ev.id,
-              ev.kind,
-              ev.name,
-              ev.eventDate,
-              ev.eventTime,
-              ev.venue,
-              ev.city,
-              ev.accent,
-              0,
-              ev.image,
-              ev.description,
-              JSON.stringify(ev.tiers),
+              adminActor(req),
+              "ops.tourEvent.recoverLegacyEvents",
+              JSON.stringify({
+                recovered,
+                skipped,
+                recovered_from_commit:
+                  RECOVERED_LEGACY_EVENTS[0]?.provenance.recovered_from_commit || "",
+              }),
             ],
           );
-          if (row.length) inserted.push(ev.id);
-          else skipped.push(ev.id);
+          await client.query("COMMIT");
+          return NextResponse.json({ ok: true, recovered, skipped });
+        } catch (e: any) {
+          await client.query("ROLLBACK").catch(() => {});
+          console.error("[tourEvent.recoverLegacyEvents]", e);
+          return bad("recovery_failed", 500);
+        } finally {
+          client.release();
+          await pool.end();
         }
-        if (inserted.length)
-          await opsAudit("ops.tourEvent.restoreVerified", { inserted, skipped });
-        return NextResponse.json({ ok: true, inserted, skipped });
+      }
+      // Records that a human has actually checked a recovered event against
+      // reality. Provenance is only meaningful if a person can mark the result
+      // and is named for it.
+      case "tourEvent.verifyRecovery": {
+        const id = s(d.id, 60);
+        const decision = s(d.decision, 20);
+        if (!id) return bad("missing_id");
+        if (!["verified", "rejected"].includes(decision))
+          return bad("bad_decision");
+        const rows = await q(
+          `SELECT id, recovery FROM tour_events WHERE id=$1`,
+          [id],
+        );
+        if (!rows.length) return bad("not_found", 404);
+        const prior =
+          typeof rows[0].recovery === "string"
+            ? JSON.parse(rows[0].recovery)
+            : rows[0].recovery;
+        if (!prior || typeof prior !== "object" || !prior.recovered_from_commit)
+          return bad("not_a_recovered_event", 409);
+        const next = {
+          ...prior,
+          verification_status: decision,
+          verified_at: new Date().toISOString(),
+          verified_by: adminActor(req),
+        };
+        await q(`UPDATE tour_events SET recovery=$1, updated_at=now() WHERE id=$2`, [
+          JSON.stringify(next),
+          id,
+        ]);
+        await opsAudit("ops.tourEvent.verifyRecovery", { id, decision });
+        return NextResponse.json({ ok: true, recovery: next });
       }
       case "tourEvent.delete": {
         // Soft delete: past ticket sales and the admin ledger reference the
