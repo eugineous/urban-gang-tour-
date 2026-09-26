@@ -1,6 +1,6 @@
 import data from './jsonld.data.json';
 import { SITE, routeByPath } from '@/lib/site';
-import { eventSchemaStatus } from '@/lib/server/event-lifecycle';
+import { INDEXABLE_EVENT_STATUSES, eventSchemaStatus } from '@/lib/server/event-lifecycle';
 
 // v25's structured data, split onto the pages it belongs to.
 // Organization + WebSite are site-wide (rendered in the root layout);
@@ -108,29 +108,28 @@ export async function eventsFromDb(): Promise<unknown | null> {
     if (!db()) return null;
     // event_date::text — plain 'YYYY-MM-DD' string, never a local-midnight
     // Date object (see lib/server/db.ts's note on pg's DATE parser).
-    // Statuses from the lifecycle (lib/server/event-lifecycle.ts). A
-    // postponed / rescheduled / cancelled event must KEEP its markup rather
-    // than vanish — Google's guidance is to update the existing event with
-    // its new eventStatus (and previousStartDate) instead of deleting it, so
-    // a crawler and a buyer both see what happened. `completed` is excluded:
-    // a past stop is history, not a discovery surface. Draft, pending_review
-    // and archived rows are never queried here at all.
+    // Statuses come from the lifecycle (lib/server/event-lifecycle.ts). This
+    // emits only indexable public discovery inventory, so the JSON-LD graph
+    // never points crawlers to rows the detail route intentionally hides.
+    // Draft, pending_review, cancelled, completed and archived rows are never
+    // queried here.
     const rows = await q<any>(
-      `SELECT id, name, event_date::text AS event_date, previous_start_at::text AS previous_start_at,
+      `SELECT slug, name, event_date::text AS event_date, previous_start_at::text AS previous_start_at,
               event_time, venue, city, image, description, tiers, status
        FROM tour_events
        WHERE kind='ticketed'
          AND status = ANY($1)
-         AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled','cancelled'))
+         AND slug != ''
+         AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled'))
        ORDER BY priority DESC, event_date ASC`,
-      [["published", "sales_paused", "sold_out", "postponed", "rescheduled", "cancelled"]],
+      [[...INDEXABLE_EVENT_STATUSES]],
     );
     if (!rows.length) return null;
     const graph = rows.map((r: any) => {
       const dateStr = String(r.event_date).slice(0, 10);
       const desc = String(r.description || '').replace(/—/g, '-');
       const tiers: { name: string; price: number }[] = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
-      const eventUrl = `${SITE.domain}/events/${encodeURIComponent(r.id)}`;
+      const eventUrl = `${SITE.domain}/events/${encodeURIComponent(r.slug)}`;
       // No offers for an event that cannot be bought. Advertising InStock on a
       // cancelled or paused event is exactly the stale-truth failure this is
       // meant to prevent — the offer URL must land on a page where the public

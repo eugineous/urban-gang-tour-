@@ -195,6 +195,16 @@ ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS recovery JSONB;
 -- overwriting a moved event, and buyers who already hold tickets need to be
 -- able to see what changed. Set by tourEvent.save whenever event_date moves.
 ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS previous_start_at DATE;
+-- Expand the status CHECK constraint to support the full event lifecycle
+-- (lib/server/event-lifecycle.ts). The original constraint only allowed 4
+-- values; the lifecycle defines 10. Without this migration the DB rejects
+-- valid statuses like sold_out, postponed, rescheduled.
+ALTER TABLE tour_events DROP CONSTRAINT IF EXISTS tour_events_status_check;
+ALTER TABLE tour_events ADD CONSTRAINT tour_events_status_check
+  CHECK (status IN ('draft','pending_review','published','sales_paused','sold_out','postponed','rescheduled','cancelled','completed','archived'));
+-- Slug is the public URL identifier. Unique where non-empty (legacy rows
+-- may have empty slugs until backfilled).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tour_events_slug ON tour_events (slug) WHERE slug != '';
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

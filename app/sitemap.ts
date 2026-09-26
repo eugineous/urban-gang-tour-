@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { ROUTES, SITE } from '@/lib/site';
 import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';
+import { INDEXABLE_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
 
 // Product and ticket URLs are owner-managed database records. The sitemap
 // must read them at request time instead of capturing a build-time snapshot.
@@ -62,18 +63,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Event rich results need one canonical URL for each real ticketed event.
-  // Only published events with a confirmed upcoming date are exposed here.
+  // Only active, indexable lifecycle states are exposed here; completed
+  // ticket-holder pages can still render by URL without becoming discovery
+  // inventory.
   // A transient DB issue leaves the established sitemap intact.
   let ticketedEvents: MetadataRoute.Sitemap = [];
   if (hasDb()) {
     try {
-      const rows = await q<{ id: string; updated_at: string }>(
-        `SELECT id, updated_at::text AS updated_at FROM tour_events
-         WHERE kind='ticketed' AND status='published' AND event_date >= CURRENT_DATE
-         ORDER BY event_date ASC`
+      const rows = await q<{ slug: string; updated_at: string }>(
+        `SELECT slug, updated_at::text AS updated_at FROM tour_events
+         WHERE kind='ticketed'
+           AND status = ANY($1)
+           AND slug != ''
+           AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled'))
+         ORDER BY event_date ASC`,
+        [[...INDEXABLE_EVENT_STATUSES]]
       );
       ticketedEvents = rows.map((event) => ({
-        url: `${SITE.domain}/events/${encodeURIComponent(event.id)}`,
+        url: `${SITE.domain}/events/${encodeURIComponent(event.slug)}`,
         lastModified: event.updated_at ? new Date(event.updated_at) : undefined,
         changeFrequency: 'weekly' as const,
         priority: 0.8,

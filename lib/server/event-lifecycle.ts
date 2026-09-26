@@ -49,6 +49,24 @@ export const PUBLIC_EVENT_STATUSES: readonly EventStatus[] = [
 ];
 
 /**
+ * Statuses that belong in public search discovery surfaces: sitemap,
+ * canonical event metadata and Event JSON-LD.
+ *
+ * This is narrower than PUBLIC_EVENT_STATUSES. Completed events may remain
+ * readable for ticket holders, but they are not active discovery inventory.
+ * Cancelled events stay out of anonymous public surfaces in this app, so a
+ * crawler should never be handed a cancelled event URL that detail rendering
+ * will reject.
+ */
+export const INDEXABLE_EVENT_STATUSES: readonly EventStatus[] = [
+  'published',
+  'sales_paused',
+  'sold_out',
+  'postponed',
+  'rescheduled',
+];
+
+/**
  * Statuses a checkout may sell against. Exactly one: a ticket can only be sold
  * from a published event. sales_paused, sold_out, postponed, rescheduled,
  * cancelled, completed and archived all mean "do not take money for this".
@@ -57,6 +75,10 @@ export const SELLABLE_EVENT_STATUSES: readonly EventStatus[] = ['published'];
 
 export function isPubliclyVisible(status: unknown): boolean {
   return PUBLIC_EVENT_STATUSES.includes(status as EventStatus);
+}
+
+export function isEventIndexable(status: unknown): boolean {
+  return INDEXABLE_EVENT_STATUSES.includes(status as EventStatus);
 }
 
 export function isSellable(status: unknown): boolean {

@@ -7,10 +7,12 @@ import {
 } from '@/lib/server/recovered-legacy-events';
 import {
   EVENT_STATUSES,
+  INDEXABLE_EVENT_STATUSES,
   PUBLIC_EVENT_STATUSES,
   SELLABLE_EVENT_STATUSES,
   eventSchemaStatus,
   isEventSellable,
+  isEventIndexable,
   isEventStatus,
   isPubliclyVisible,
   isSellable,
@@ -138,6 +140,22 @@ describe('event lifecycle: public visibility vs sellability', () => {
     for (const s of SELLABLE_EVENT_STATUSES)
       expect(isPubliclyVisible(s)).toBe(true);
     expect(SELLABLE_EVENT_STATUSES.length).toBeLessThan(PUBLIC_EVENT_STATUSES.length);
+  });
+
+  it('keeps search-discovery statuses narrower than public holder access', () => {
+    expect([...INDEXABLE_EVENT_STATUSES]).toEqual([
+      'published',
+      'sales_paused',
+      'sold_out',
+      'postponed',
+      'rescheduled',
+    ]);
+    for (const s of INDEXABLE_EVENT_STATUSES) {
+      expect(isPubliclyVisible(s)).toBe(true);
+      expect(isEventIndexable(s)).toBe(true);
+    }
+    for (const s of ['draft', 'pending_review', 'cancelled', 'completed', 'archived'] as const)
+      expect(isEventIndexable(s)).toBe(false);
   });
 
   it('rejects an unknown status string', () => {

@@ -283,7 +283,7 @@ export function V25App({ page }: { page: string }) {
     // taps feel instant on mobile. Crawlers still see real <a href> URLs.
     const PATH_TO_PAGE: Record<string, string> = {
       '/': 'home', '/about': 'about', '/the-gang': 'gang', '/experience': 'exp',
-      '/shop': 'shop', '/urban-news': 'news', '/gallery': 'gallery',
+      '/shop': 'shop', '/blog': 'news', '/urban-news': 'news', '/gallery': 'gallery',
       '/partners': 'partners', '/events': 'events', '/book': 'contact',
       '/contact-us': 'contact',
     };
