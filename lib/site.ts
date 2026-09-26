@@ -79,7 +79,7 @@ export const ROUTES: RouteDef[] = [
     // now that /blog is the real, dynamic Urban News page. Kept out of ROUTES
     // (and therefore the sitemap) since a redirecting URL shouldn't be listed
     // as its own canonical.
-    path: '/blog', page: 'news', nav: 'News',
+    path: '/blog', page: 'news', nav: 'Urban News',
     title: 'Blog — Urban Gang Tour Stories & Recaps',
     description:
       'Longform recaps and student stories from the Urban Gang Tour — school by school, stage by stage. Read the loudest school days of the term.',
@@ -94,6 +94,13 @@ export const ROUTES: RouteDef[] = [
     description:
       'Invest in the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
     changefreq: 'monthly', priority: 0.7,
+  },
+{
+    path: '/press', page: 'legal',
+    title: 'Press — Urban Gang Tour Media Kit',
+    description:
+      'Press and media resources for the Urban Gang Tour: logos, founder bios, and broadcast credits for journalists covering the youth culture tour in Kenya.',
+    changefreq: 'monthly', priority: 0.6,
   },
   {
     path: '/work-with-us', page: 'work',
