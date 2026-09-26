@@ -8,6 +8,7 @@ import { getBlogPosts } from '@/app/_lib/blog';
 import { GhostButton } from '@/app/_components/ugt/GhostButton';
 import { MoneyButton } from '@/app/_components/ugt/MoneyButton';
 import { PathCard } from '@/app/_components/ugt/PathCard';
+import { Marquee } from '@/app/_components/ugt/Marquee';
 import { StatusStamp } from '@/app/_components/ugt/StatusStampChip';
 
 type HomeEvent = {
@@ -108,6 +109,10 @@ export async function HomePage() {
           </aside>
         </div>
       </section>
+
+      <Marquee className="home-chyron">
+        Live culture · Book the tour · Wear the signal · Urban News · Where the culture gets made.
+      </Marquee>
 
       <section className="home-section home-events" aria-labelledby="home-events-title">
         <div className="home-frame">

@@ -20,4 +20,10 @@ describe('Home equal hubs', () => {
   it('keeps fail-closed empty copy when no events', () => {
     expect(src()).toMatch(/no public events|next chapter is loading/i);
   });
+  it('gates loud collage motion with Marquee on Home only surface', () => {
+    const s = src();
+    expect(s).toContain('data-ugt-motion="loud"');
+    expect(s).toContain('Marquee');
+    expect(s).toContain('home-chyron');
+  });
 });
