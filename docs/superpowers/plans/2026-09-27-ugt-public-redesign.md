@@ -106,7 +106,7 @@
   - `export const UGT_TYPE = { display: "'Anton', 'Arial Black', sans-serif", slogan: "'Permanent Marker', cursive", body: "'Space Grotesk', Arial, sans-serif", newsDisplay: "'Titan One', cursive", newsBody: "'Archivo', sans-serif", mono: "'Spline Sans Mono', ui-monospace, monospace" } as const`
   - CSS vars: `--ugt-magenta`, `--ugt-yellow`, `--ugt-cyan`, `--ugt-ink`, `--ugt-cream`, `--ugt-blush`, `--ugt-night`, `--ugt-news-ink`, `--ugt-news-gold`, `--ugt-whatsapp`, `--ugt-shadow-sm|md|lg|money`, `--ugt-type-display|slogan|body|news-display|news-body|mono`, `--ugt-fs-display|h1|h2|h3|body|kicker|micro`, `--ugt-sticker-tilt: -2deg`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // __tests__/ugt-tokens.test.ts
@@ -134,12 +134,12 @@ describe('UGT design tokens', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run --no-cache __tests__/ugt-tokens.test.ts`
 Expected: FAIL — cannot resolve `@/app/_components/ugt/tokens`
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```ts
 // app/_components/ugt/tokens.ts
@@ -217,12 +217,12 @@ At the very top of `app/globals.css` add:
 @import './_components/ugt/tokens.css';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run --no-cache __tests__/ugt-tokens.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Typecheck + commit**
+- [x] **Step 5: Typecheck + commit**
 
 Run: `npx tsc --noEmit`
 Expected: exit 0
@@ -250,7 +250,7 @@ git commit -m "feat(ugt): add public design tokens for redesign foundation"
   - `export const FOOTER_LINKS: NavLink[]` — includes `{ href: '/privacy-policy', label: 'Privacy' }` (never `/privacy`)
   - `export const VOICE = { emotional: 'Where the culture gets made.', institutional: 'From Potential to Purpose' } as const`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // __tests__/ugt-nav.test.ts
@@ -302,12 +302,12 @@ describe('public nav label map', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run --no-cache __tests__/ugt-nav.test.ts`
 Expected: FAIL — module not found / Press missing
 
-- [ ] **Step 3: Implement `nav.ts` and align `lib/site.ts`**
+- [x] **Step 3: Implement `nav.ts` and align `lib/site.ts`**
 
 ```ts
 // app/_components/ugt/nav.ts
@@ -363,12 +363,12 @@ export const FOOTER_LINKS: NavLink[] = [
 
 In `lib/site.ts`, add a Press `RouteDef` after Partners (canonical `/press`, title/description media-kit oriented, **no fabricated coverage stats**), and set blog `nav: 'Urban News'` (not `'News'`) so SEO map matches shell. Keep Partners path `/partners`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npx vitest run --no-cache __tests__/ugt-nav.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/ugt/nav.ts lib/site.ts __tests__/ugt-nav.test.ts
@@ -400,7 +400,7 @@ git commit -m "feat(ugt): unify public nav labels and add Press route config"
   - `GhostButton`, `InkButton`
   - `PathCard({ href, number: '01'|'02'|'03', tone: 'yellow'|'cyan'|'ink', title, copy, label })`
 
-- [ ] **Step 1: Write failing export smoke test**
+- [x] **Step 1: Write failing export smoke test**
 
 ```ts
 // append to __tests__/ugt-tokens.test.ts
@@ -415,11 +415,11 @@ describe('ugt primitives barrel', () => {
 });
 ```
 
-- [ ] **Step 2: Run — expect FAIL** (`index` missing)
+- [x] **Step 2: Run — expect FAIL** (`index` missing)
 
 Run: `npx vitest run --no-cache __tests__/ugt-tokens.test.ts`
 
-- [ ] **Step 3: Implement components**
+- [x] **Step 3: Implement components**
 
 ```tsx
 // app/_components/ugt/MoneyButton.tsx
@@ -524,12 +524,12 @@ export { InkButton } from './InkButton';
 export { PathCard } from './PathCard';
 ```
 
-- [ ] **Step 4: Run tests + tsc**
+- [x] **Step 4: Run tests + tsc**
 
 Run: `npx vitest run --no-cache __tests__/ugt-tokens.test.ts && npx tsc --noEmit`
 Expected: PASS / exit 0
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/ugt __tests__/ugt-tokens.test.ts app/globals.css
@@ -557,7 +557,7 @@ git commit -m "feat(ugt): add poster/sticker/money/path primitives"
   - Fail-closed rules: sellable → `On sale` (yellow) or `From KES…` only when `minPrice !== null`; soldOut → `Sold out`; postponed/rescheduled/cancelled/completed exact labels; else `Event update` — **never** invent On sale when `!isSellable`
   - UI wrappers: `StatusStamp`, `TierBoard`, `NightStage`, `VariantChips`, `LegalCard`, `NewsPoster`
 
-- [ ] **Step 1: Failing tests for fail-closed stamps**
+- [x] **Step 1: Failing tests for fail-closed stamps**
 
 ```ts
 import { stampFromEventTruth } from '@/app/_components/ugt/statusStamp';
@@ -582,11 +582,11 @@ describe('stampFromEventTruth', () => {
 });
 ```
 
-- [ ] **Step 2: Run — FAIL**
+- [x] **Step 2: Run — FAIL**
 
 Run: `npx vitest run --no-cache __tests__/ugt-tokens.test.ts`
 
-- [ ] **Step 3: Implement mapper + thin UI wrappers**
+- [x] **Step 3: Implement mapper + thin UI wrappers**
 
 ```ts
 // app/_components/ugt/statusStamp.ts
@@ -620,11 +620,11 @@ export function stampFromEventTruth(
 
 Export new symbols from `index.ts`.
 
-- [ ] **Step 4: Tests + tsc pass**
+- [x] **Step 4: Tests + tsc pass**
 
 Run: `npx vitest run --no-cache __tests__/ugt-tokens.test.ts && npx tsc --noEmit`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/ugt __tests__/ugt-tokens.test.ts
@@ -646,7 +646,7 @@ git commit -m "feat(ugt): add StatusStamp, TierBoard, NightStage, LegalCard, New
 - Produces: `export function motionPolicy(pathname: string): 'loud' | 'quiet'` — loud iff pathname is `/` or `/experience`
 - `Marquee({ children, className? })` — CSS animation only under `[data-ugt-motion='loud']`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```ts
 import { motionPolicy } from '@/app/_components/ugt/motion';
@@ -662,9 +662,9 @@ describe('motionPolicy', () => {
 });
 ```
 
-- [ ] **Step 2: Run — FAIL**
+- [x] **Step 2: Run — FAIL**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // app/_components/ugt/motion.ts
@@ -695,9 +695,9 @@ export function Marquee({ children, className = '' }: { children: ReactNode; cla
 
 Prefer page-level `<main data-ugt-motion={motionPolicy(PATH)}>` over layout body churn.
 
-- [ ] **Step 4: PASS** — `npx vitest run --no-cache __tests__/ugt-tokens.test.ts && npx tsc --noEmit`
+- [x] **Step 4: PASS** — `npx vitest run --no-cache __tests__/ugt-tokens.test.ts && npx tsc --noEmit`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/ugt __tests__/ugt-tokens.test.ts
@@ -717,7 +717,7 @@ git commit -m "feat(ugt): gate loud motion to Home and Experience"
 - Consumes: `PUBLIC_HEADER_NAV`, `PUBLIC_HEADER_CTA`, `FOOTER_LINKS`, `VOICE`
 - Produces: same `PublicHeader` / `PublicFooter` exports, now map-driven
 
-- [ ] **Step 1: Failing test — shell sources map**
+- [x] **Step 1: Failing test — shell sources map**
 
 ```ts
 import { readFileSync } from 'node:fs';
@@ -733,9 +733,9 @@ it('PublicShell sources header/footer from ugt/nav', () => {
 });
 ```
 
-- [ ] **Step 2: FAIL (still hardcodes `/privacy`)**
+- [x] **Step 2: FAIL (still hardcodes `/privacy`)**
 
-- [ ] **Step 3: Rewrite shell**
+- [x] **Step 3: Rewrite shell**
 
 ```tsx
 // app/_components/PublicShell.tsx
@@ -788,9 +788,9 @@ export function PublicFooter() {
 
 Add `.public-footer__subtitle` micro institutional line (Permanent Marker or small Space Grotesk). Point header/footer colors at `var(--ugt-*)`.
 
-- [ ] **Step 4:** `npx vitest run --no-cache __tests__/ugt-nav.test.ts && npx tsc --noEmit`
+- [x] **Step 4:** `npx vitest run --no-cache __tests__/ugt-nav.test.ts && npx tsc --noEmit`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/PublicShell.tsx app/globals.css __tests__/ugt-nav.test.ts
@@ -809,7 +809,7 @@ git commit -m "refactor(ugt): drive PublicShell from nav map and fix privacy lin
 - Consumes: `BOTTOM_TABS`, `MENU_EXTRAS` from `nav.ts`
 - Produces: unchanged export `BottomTabBar`; menu must not duplicate Work labels; Menu button remains 6th control
 
-- [ ] **Step 1: Failing source test**
+- [x] **Step 1: Failing source test**
 
 ```ts
 it('BottomTabBar uses BOTTOM_TABS and MENU_EXTRAS without duplicate Work labels', () => {
@@ -820,11 +820,11 @@ it('BottomTabBar uses BOTTOM_TABS and MENU_EXTRAS without duplicate Work labels'
 });
 ```
 
-- [ ] **Step 2: FAIL → Step 3:** replace local `TABS`/`MENU_LINKS` with imports; keep Icon + sheet a11y/scroll-lock behavior; use `key={\`${l.href}-${l.label}\`}` for menu rows
+- [x] **Step 2: FAIL → Step 3:** replace local `TABS`/`MENU_LINKS` with imports; keep Icon + sheet a11y/scroll-lock behavior; use `key={\`${l.href}-${l.label}\`}` for menu rows
 
-- [ ] **Step 4:** `npm test && npx tsc --noEmit`
+- [x] **Step 4:** `npm test && npx tsc --noEmit`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/BottomTabBar.tsx __tests__/ugt-nav.test.ts
@@ -845,7 +845,7 @@ git commit -m "refactor(ugt): single-source BottomTabBar labels"
   - `FormField({ id, label, error?, children })` — associates `htmlFor`, renders error in `#${id}-error`, sets `aria-invalid` / `aria-describedby` when error
   - `export function formErrorProps(id: string, error?: string)` → input aria props
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```ts
 // __tests__/ugt-forms-intent.test.ts
@@ -863,9 +863,9 @@ describe('FormField a11y helpers', () => {
 });
 ```
 
-- [ ] **Step 2: FAIL**
+- [x] **Step 2: FAIL**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 import type { ReactNode } from 'react';
@@ -896,9 +896,9 @@ export function FormField({ id, label, error, children }: {
 .ugt-field__error{color:var(--ugt-magenta);font-weight:800;font-size:12px}
 ```
 
-- [ ] **Step 4:** `npx vitest run --no-cache __tests__/ugt-forms-intent.test.ts && npx tsc --noEmit`
+- [x] **Step 4:** `npx vitest run --no-cache __tests__/ugt-forms-intent.test.ts && npx tsc --noEmit`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/ugt __tests__/ugt-forms-intent.test.ts
