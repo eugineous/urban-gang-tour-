@@ -2,7 +2,10 @@
 // at mobile and desktop viewports using Playwright.
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:3100';
+// Default retains the historical local port, while CI/review runs can point at
+// the server they started for this exact checkout. Never silently verify an
+// unrelated process that happened to be listening on 3100.
+const BASE = process.env.EVENT_VERIFY_BASE_URL || 'http://localhost:3100';
 const results = [];
 
 function check(name, ok, detail = '') {

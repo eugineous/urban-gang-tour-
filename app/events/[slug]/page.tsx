@@ -1,14 +1,20 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { JsonLd } from '@/app/_components/JsonLd';
 import EventsAnalytics from '@/app/_components/EventsAnalytics';
 import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
 import { formatEventDate } from '@/lib/server/catalog';
-import { PUBLIC_EVENT_STATUSES, isEventIndexable, isEventSellable, eventSchemaStatus } from '@/lib/server/event-lifecycle';
+import { PUBLIC_EVENT_STATUSES, isEventIndexable, eventSchemaStatus } from '@/lib/server/event-lifecycle';
+import { matchEventRoute } from '@/lib/server/event-route';
+import { resolveEventTruth } from '@/lib/server/event-truth';
 
-export const revalidate = 300;
+// Event pages include sellability and Offer markup, so serve them on demand.
+// This avoids a stale ISR page advertising a show after an authoritative
+// lifecycle, sales-window or capacity change.
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 // Pre-generate published ticketed events for ISR. An unavailable database at
 // build time yields no pre-generated pages (honest empty list); pages are then
@@ -42,7 +48,9 @@ type TicketedEvent = {
   previous_start_at: string | null;
 };
 
-const eventForPage = cache(async (slug: string): Promise<TicketedEvent | null> => {
+type RoutedEvent = { event: TicketedEvent; canonical: boolean };
+
+const eventForPage = cache(async (slug: string): Promise<RoutedEvent | null> => {
   if (!/^[a-z0-9-]{1,80}$/.test(slug) || !hasDb()) return null;
   // Buyers holding tickets must still see what happened to their event, so
   // every PUBLIC lifecycle state renders here with truthful status UI —
@@ -55,7 +63,20 @@ const eventForPage = cache(async (slug: string): Promise<TicketedEvent | null> =
      FROM tour_events WHERE slug=$1 AND kind='ticketed' AND status = ANY($2) LIMIT 1`,
     [slug, [...PUBLIC_EVENT_STATUSES]]
   );
-  return rows[0] || null;
+  const direct = rows[0];
+  if (direct) return { event: direct, canonical: true };
+
+  // Legacy ids are resolved only after canonical slug lookup fails. A blank
+  // legacy slug intentionally remains a 404; inventing a redirect would hide
+  // an operator migration problem and could expose a non-public record.
+  const legacyRows = await q<TicketedEvent>(
+    `SELECT id, slug, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
+            status, previous_start_at::text AS previous_start_at
+     FROM tour_events WHERE id=$1 AND slug != '' AND kind='ticketed' AND status = ANY($2) LIMIT 1`,
+    [slug, [...PUBLIC_EVENT_STATUSES]],
+  );
+  const match = matchEventRoute(slug, null, legacyRows[0]);
+  return match.kind === 'redirect' ? { event: match.event, canonical: false } : null;
 });
 
 function dateTime(event: TicketedEvent): string | null {
@@ -85,8 +106,9 @@ function money(value: number) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const event = await eventForPage(slug);
-  if (!event) return {};
+  const resolved = await eventForPage(slug);
+  if (!resolved) return {};
+  const event = resolved.event;
   const path = `/events/${event.slug}`;
   const description = event.description || `${event.name} at ${event.venue}${event.city ? `, ${event.city}` : ''}.`;
   const indexable = isEventIndexable(event.status);
@@ -101,14 +123,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const event = await eventForPage(slug);
-  if (!event) notFound();
+  const resolved = await eventForPage(slug);
+  if (!resolved) notFound();
+  if (!resolved.canonical) permanentRedirect(`/events/${resolved.event.slug}`);
+  const event = resolved.event;
+  const truth = await resolveEventTruth(event.slug);
+  // A page may render public event information when availability lookup is
+  // unavailable, but it must never claim tickets can be bought in that case.
+  const availabilityKnown = truth !== null;
   const tiers = safeTiers(event.tiers);
   const startDate = dateTime(event);
   const path = `/events/${event.slug}`;
   const status = String(event.status || 'published');
-  const sellable = isEventSellable({ status, kind: 'ticketed', tiers });
-  const soldOut = status === 'sold_out';
+  const sellable = availabilityKnown && truth.isSellable;
+  const soldOut = status === 'sold_out' || truth?.isSoldOut === true;
   const prev = event.previous_start_at ? String(event.previous_start_at).slice(0, 10) : null;
   const statusNote: Record<string, { title: string; body: string }> = {
     sales_paused: { title: 'Sales Paused', body: 'Ticket sales are paused for this event. Check back soon.' },
@@ -119,7 +147,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     completed: { title: 'Event Ended', body: 'This event has already happened. Browse upcoming events for what\'s next.' },
   };
   const currentStatus = statusNote[status] || { title: 'Tickets Available', body: '' };
-  const fromPrice = tiers.length ? Math.min(...tiers.map((t) => t.price)) : null;
+  const fromPrice = truth?.minPrice ?? (tiers.length ? Math.min(...tiers.map((t) => t.price)) : null);
   // Offers only where the public can actually buy (Google's requirement):
   // published lists InStock tiers, sold_out lists SoldOut, every other state
   // carries status markup with no offers at all.
@@ -135,7 +163,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     location: { '@type': 'Place', name: event.venue, address: { '@type': 'PostalAddress', addressLocality: event.city || undefined, addressCountry: 'KE' } },
     image: event.image ? [`${SITE.domain}${event.image}`] : undefined,
     organizer: { '@id': `${SITE.domain}/#org` },
-    offers: (!sellable && !soldOut) ? undefined : tiers.map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
+    offers: !availabilityKnown || (!sellable && !soldOut) ? undefined : truth.tiers
+      .filter((tier) => soldOut || tier.sellable)
+      .map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
   } : null;
   const accent = /^#[0-9A-F]{6}$/i.test(event.accent) ? event.accent : '#E6218C';
   const eventDate = formatEventDate(event.event_date);

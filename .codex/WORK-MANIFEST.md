@@ -181,7 +181,7 @@ Acceptance criteria:
 - A controlled local route-level exercise demonstrates safe reservation state handling without real customer data or provider credentials.
 - The final diff confirms no payment reconciliation, QR issuance/validation, refund, scanning, authority or public-route behavior changed.
 
-Next action: production deployment and real-data verification. All local implementation and browser verification is complete.
+Next action: resolve the inherited-history PR boundary; PR #29 must not be merged while it contains unpublished local-main ancestry.
 
 ## Forensic reconciliation, 2026-09-26 (read-only checkpoint, no commit/deploy)
 
@@ -215,5 +215,40 @@ Next action: production deployment and real-data verification. All local impleme
 - Domain commits are ON HOLD until that bundle lands and verifies: committing now would
   slice a half-finished Events funnel across unrelated boundary commits. Re-run
   tsc + tests + build after the lane settles, then commit per the Q boundaries
-  (Events files become their own 8th boundary: middleware, event-truth, analytics,
-  EventsAnalytics, events/page, events/[slug]).
+(Events files become their own 8th boundary: middleware, event-truth, analytics,
+EventsAnalytics, events/page, events/[slug]).
+
+## Events routing and availability correction, 2026-09-26
+
+- The prior `31/31` claim was re-run against a freshly started production-mode
+  server, not the pre-existing listener on port 3100. `scripts/verify-events.mjs`
+  now accepts `EVENT_VERIFY_BASE_URL` so it cannot silently test another checkout.
+- Removed database-backed middleware. `/events/[slug]` now resolves canonical slug
+  first, resolves a public legacy ID only after that fails, permanently redirects
+  only to a non-empty canonical slug, and returns 404 for unknown/malformed/private
+  or blank-slug legacy records.
+- Availability now uses `lib/server/event-truth.ts` in discovery, detail, public
+  site-data, order creation and event JSON-LD. Sale windows and tracked capacity
+  fail closed; pages render on demand so ISR cannot keep advertising an old offer.
+- Added optional `sales_start_at` and `sales_end_at` schema fields. This is a
+  migration definition only; no database migration or production backfill was run.
+- Slug backfill remains a controlled production migration item. No recovered event
+  was published or modified.
+
+### Evidence for this checkpoint
+
+| Category | State | Evidence |
+| --- | --- | --- |
+| Implemented | Yes | canonical route, availability gate, SEO and order-path changes |
+| Type verified | Yes | `npx tsc --noEmit` |
+| Unit verified | Yes | `npm test`: 11 files, 131 tests |
+| HTTP/SSR verified | Yes, no DB | production-mode `/events` 200 with canonical/JSON-LD; unknown slug 404; sitemap 200 |
+| Browser verified | Yes, empty state only | Playwright 31/31 at 360/375/390/412/1440 against that server |
+| Database / legacy redirect | No | no `DATABASE_URL` or non-production fixture available |
+| Accessibility | Partial | semantic labels checked by the browser script; no screen-reader audit |
+| Production | No | no deploy, no live-data exercise |
+
+`npm run cf:build` is not verified: OpenNext could not remove the existing ignored
+`.open-next` directory on Windows (`EPERM`). The ordinary Next production build
+passed. `npm run lint` invokes deprecated `next lint`; a direct ESLint retry is
+still needed after excluding the intentionally deleted middleware path.

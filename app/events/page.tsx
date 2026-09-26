@@ -7,15 +7,19 @@ import EventsAnalytics from '@/app/_components/EventsAnalytics';
 import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
 import { formatEventDate } from '@/lib/server/catalog';
-import { INDEXABLE_EVENT_STATUSES, isEventSellable } from '@/lib/server/event-lifecycle';
+import { INDEXABLE_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
+import { resolveManyEventTruths, type EventTruth } from '@/lib/server/event-truth';
 
-export const revalidate = 300;
+// Availability is commercial truth, not a five-minute marketing snapshot.
+// Render on demand so a sale-window or capacity change cannot leave an old
+// page confidently advertising tickets during an ISR interval.
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic('/events');
 }
 
-type Tier = { name: string; price: number };
 type EventCard = {
   slug: string;
   name: string;
@@ -26,27 +30,18 @@ type EventCard = {
   accent: string;
   image: string;
   description: string;
-  tiers: Tier[] | string;
+  tiers: unknown;
   status: string;
 };
 
-function safeTiers(value: Tier[] | string): Tier[] {
-  try {
-    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
-    return Array.isArray(parsed)
-      ? parsed.filter((t) => typeof t?.name === 'string' && Number.isFinite(Number(t?.price)))
-        .map((t) => ({ name: t.name, price: Math.max(0, Math.round(Number(t.price))) }))
-      : [];
-  } catch {
-    return [];
-  }
-}
+type ResolvedEventCard = EventCard & { truth: EventTruth };
 
 function money(value: number) {
   return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(value);
 }
 
-function statusLabel(status: string): string {
+function statusLabel(event: ResolvedEventCard): string {
+  if (event.status === 'published' && !event.truth.isSellable) return 'Sales unavailable';
   const labels: Record<string, string> = {
     published: 'On sale',
     sales_paused: 'Paused',
@@ -55,19 +50,18 @@ function statusLabel(status: string): string {
     rescheduled: 'Rescheduled',
     completed: 'Ended',
   };
-  return labels[status] || status;
+  return labels[event.status] || event.status;
 }
 
-function ctaFor(status: string, slug: string, tiers: Tier[]): { label: string; href: string; disabled: boolean } {
-  const sellable = isEventSellable({ status, kind: 'ticketed', tiers });
-  if (sellable) return { label: 'Get tickets', href: `/events/${slug}`, disabled: false };
-  if (status === 'sold_out') return { label: 'Sold out', href: `/events/${slug}`, disabled: true };
-  if (status === 'completed') return { label: 'View recap', href: `/events/${slug}`, disabled: false };
-  if (status === 'postponed' || status === 'rescheduled') return { label: 'Event update', href: `/events/${slug}`, disabled: false };
-  return { label: 'View event', href: `/events/${slug}`, disabled: false };
+function ctaFor(event: ResolvedEventCard): { label: string; href: string; disabled: boolean } {
+  if (event.truth.isSellable) return { label: 'Ticket details', href: `/events/${event.slug}`, disabled: false };
+  if (event.truth.isSoldOut) return { label: 'Sold out', href: `/events/${event.slug}`, disabled: true };
+  if (event.status === 'completed') return { label: 'View recap', href: `/events/${event.slug}`, disabled: false };
+  if (event.status === 'postponed' || event.status === 'rescheduled') return { label: 'Event update', href: `/events/${event.slug}`, disabled: false };
+  return { label: 'View event', href: `/events/${event.slug}`, disabled: false };
 }
 
-async function getEvents(): Promise<EventCard[]> {
+async function getEvents(): Promise<ResolvedEventCard[]> {
   if (!hasDb()) return [];
   try {
     const rows = await q<EventCard>(
@@ -80,7 +74,14 @@ async function getEvents(): Promise<EventCard[]> {
        ORDER BY priority DESC, event_date ASC`,
       [[...INDEXABLE_EVENT_STATUSES]]
     );
-    return rows;
+    const truths = await resolveManyEventTruths(rows.map((row) => row.slug));
+    const bySlug = new Map(truths.map((truth) => [truth.slug, truth]));
+    // A resolver failure is not an invitation to render a possibly stale
+    // commercial card. The empty state is more honest than an invented offer.
+    return rows.flatMap((row) => {
+      const truth = bySlug.get(row.slug);
+      return truth ? [{ ...row, truth }] : [];
+    });
   } catch {
     return [];
   }
@@ -148,9 +149,9 @@ export default async function EventsPage() {
                     {formatEventDate(featured.event_date)} {featured.event_time ? `· ${featured.event_time}` : ''}
                   </p>
                   <p style={{ margin: '4px 0 0', fontSize: 15, fontWeight: 500 }}>{featured.venue}{featured.city ? `, ${featured.city}` : ''}</p>
-                  {safeTiers(featured.tiers).length > 0 ? (
+                  {featured.truth.minPrice !== null ? (
                     <p style={{ margin: '12px 0 0', fontSize: 14, fontWeight: 700 }}>
-                      From {money(Math.min(...safeTiers(featured.tiers).map((t) => t.price)))}
+                      From {money(featured.truth.minPrice)}
                     </p>
                   ) : null}
                   <span style={{ display: 'inline-block', marginTop: 16, background: '#111', color: '#FFD400', borderRadius: 10, padding: '11px 20px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 16, textTransform: 'uppercase' }}>
@@ -170,8 +171,7 @@ export default async function EventsPage() {
           {upcoming.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 20 }}>
               {upcoming.map((event) => {
-                const tiers = safeTiers(event.tiers);
-                const cta = ctaFor(event.status, event.slug, tiers);
+                const cta = ctaFor(event);
                 return (
                   <Link key={event.slug} href={`/events/${event.slug}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                     <div style={{ background: '#fff', border: '2.5px solid #111', borderRadius: 16, overflow: 'hidden', height: '100%', boxShadow: `5px 5px 0 ${event.accent || '#E6218C'}` }}>
@@ -179,7 +179,7 @@ export default async function EventsPage() {
                         {event.image ? <img src={event.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} /> : null}
                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(17,17,17,.5))' }} />
                         <span style={{ position: 'absolute', top: 10, left: 10, background: '#111', color: '#FFD400', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                          {statusLabel(event.status)}
+                          {statusLabel(event)}
                         </span>
                       </div>
                       <div style={{ padding: '16px 18px 18px' }}>
@@ -191,8 +191,8 @@ export default async function EventsPage() {
                           {event.venue}{event.city ? `, ${event.city}` : ''}
                         </p>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-                          {tiers.length > 0 ? (
-                            <span style={{ fontSize: 14, fontWeight: 800 }}>From {money(Math.min(...tiers.map((t) => t.price)))}</span>
+                          {event.truth.minPrice !== null ? (
+                            <span style={{ fontSize: 14, fontWeight: 800 }}>From {money(event.truth.minPrice)}</span>
                           ) : <span />}
                           <span style={{ fontSize: 13, fontWeight: 800, color: cta.disabled ? '#999' : '#E6218C', textTransform: 'uppercase', letterSpacing: '.04em' }}>
                             {cta.label}

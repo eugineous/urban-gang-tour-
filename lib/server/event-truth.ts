@@ -44,10 +44,9 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
     const rows = await q<{
       slug: string; name: string; status: string; tiers: string;
       sales_start_at: string | null; sales_end_at: string | null;
-      capacity: number | null;
     }>(
       `SELECT slug, name, status, tiers, sales_start_at::text AS sales_start_at,
-              sales_end_at::text AS sales_end_at, capacity
+              sales_end_at::text AS sales_end_at
        FROM tour_events WHERE slug=$1 AND kind='ticketed' LIMIT 1`,
       [slug]
     );
@@ -78,7 +77,11 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
         const sold = await soldCount(slug, tier.name);
         const reserved = await reservedCount(slug, index);
         const remaining = Math.max(0, tier.capacity - sold - reserved);
-        return { ...tier, remaining, sellable: sellable && remaining > 0 };
+        return {
+          ...tier,
+          remaining,
+          sellable: sellable && (saleWindowOpen === null || saleWindowOpen) && remaining > 0,
+        };
       })
     );
 
