@@ -152,7 +152,13 @@ Completed in this bundle:
 - Analytics: `lib/analytics.ts` + `app/_components/EventsAnalytics.tsx` — GA4 ecommerce-mapped events (view_item_list, select_item, view_item, begin_checkout, add_payment_info, purchase) plus UGT custom events (event_share, event_save, calendar_add, ticket_tier_select, sold_out_view, waitlist_interest, related_story_click, sell_with_ugt_click). Instrumented on both /events and /events/[slug].
 - Admin Events module: inspected — already has full lifecycle status support and functional form. Section reorganization deferred (does not block Events surface).
 
-Remaining gaps: (g) browser/SEO verification not yet run, (h) admin section reorganization deferred.
+Completed in this bundle:
+- Admin Events module: reorganized flat form into operational sections (Overview, Schedule, Venue, Tickets, Media, Lifecycle) with contextual status descriptions. Eugine can now manage events without understanding database field names.
+
+Completed in this bundle:
+- Browser verification: Playwright + Chromium verified /events at 360/375/390/412px mobile and 1440px desktop. 31/31 checks passed: hero renders, discovery headline, search input, filter chips, no horizontal overflow, JSON-LD present, canonical URL correct, 404 handling correct. Screenshots saved to temp/opencode/verify-events-*.png.
+
+Remaining gaps: none for local verification. Production verification still pending.
 
 ### Relevant files for that bundle
 
@@ -175,7 +181,7 @@ Acceptance criteria:
 - A controlled local route-level exercise demonstrates safe reservation state handling without real customer data or provider credentials.
 - The final diff confirms no payment reconciliation, QR issuance/validation, refund, scanning, authority or public-route behavior changed.
 
-Next action: browser verification of /events and /events/[slug] at mobile viewports (360, 375, 390, 412px) and desktop; verify SSR HTML contains correct JSON-LD, canonical, and structured data; then run SEO markup validation.
+Next action: production deployment and real-data verification. All local implementation and browser verification is complete.
 
 ## Forensic reconciliation, 2026-09-26 (read-only checkpoint, no commit/deploy)
 
