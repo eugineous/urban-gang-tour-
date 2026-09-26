@@ -30,3 +30,24 @@ describe('ugt primitives barrel', () => {
     }
   });
 });
+
+import { stampFromEventTruth } from '@/app/_components/ugt/statusStamp';
+
+describe('stampFromEventTruth', () => {
+  const base = {
+    isSellable: false, isSoldOut: false, isPostponed: false, isRescheduled: false,
+    isCompleted: false, isCancelled: false, minPrice: null as number | null,
+  };
+  it('never paints On sale when not sellable', () => {
+    expect(stampFromEventTruth(base, 'published').label).toBe('Event update');
+  });
+  it('uses sold out / postponed / rescheduled truthfully', () => {
+    expect(stampFromEventTruth({ ...base, isSoldOut: true }, 'sold_out').label).toBe('Sold out');
+    expect(stampFromEventTruth({ ...base, isPostponed: true }, 'postponed').label).toBe('Postponed');
+    expect(stampFromEventTruth({ ...base, isRescheduled: true }, 'rescheduled').label).toBe('Rescheduled');
+  });
+  it('shows From price only when sellable and minPrice known', () => {
+    expect(stampFromEventTruth({ ...base, isSellable: true, minPrice: 500 }, 'published').label).toMatch(/From/);
+    expect(stampFromEventTruth({ ...base, isSellable: true, minPrice: null }, 'published').label).toBe('On sale');
+  });
+});

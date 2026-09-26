@@ -18,3 +18,19 @@
 .ugt-path-card__title{font:var(--ugt-fs-h2)/.95 var(--ugt-type-display);text-transform:uppercase;margin:34px 0 0}
 .ugt-path-card__copy{font-size:14px;font-weight:700;line-height:1.45;margin:17px 0}
 .ugt-path-card__cta{margin-top:auto;font-size:13px;text-decoration:underline;text-underline-offset:4px;text-transform:uppercase}
+
+.ugt-night-stage{background:var(--ugt-night);color:#fff;position:relative;isolation:isolate;min-height:100%;padding:32px 20px}
+.ugt-night-stage::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 20% 10%,rgba(230,33,140,.35),transparent 55%),radial-gradient(ellipse at 80% 90%,rgba(33,199,230,.22),transparent 50%);pointer-events:none}
+.ugt-tier-board{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ugt-tier-board__row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ugt-tier-board__row--muted{opacity:.55}
+.ugt-tier-board__price{font:800 14px/1 var(--ugt-type-body)}
+.ugt-tier-board__note{font:800 11px/1 var(--ugt-type-body);text-transform:uppercase;letter-spacing:.04em}
+.ugt-variant-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ugt-variant-chips__chip{min-height:40px;padding:8px 12px;border:2px solid var(--ugt-ink);background:var(--ugt-cream);font:900 11px/1 var(--ugt-type-body);text-transform:uppercase;transform:rotate(var(--ugt-sticker-tilt))}
+.ugt-variant-chips__chip.is-selected{background:var(--ugt-yellow);box-shadow:var(--ugt-shadow-sm)}
+.ugt-legal-card{background:var(--ugt-cream);border:3px solid var(--ugt-ink);box-shadow:var(--ugt-shadow-md);padding:28px 22px;color:var(--ugt-ink)}
+.ugt-news-poster{display:block;background:var(--ugt-news-ink);color:#fff;border:3px solid var(--ugt-ink);box-shadow:var(--ugt-shadow-md);padding:22px;text-decoration:none;position:relative}
+.ugt-news-poster__tape{position:absolute;top:-8px;left:18px;width:54px;height:14px;background:var(--ugt-news-gold);transform:rotate(-3deg)}
+.ugt-news-poster__title{font:var(--ugt-fs-h3)/1.05 var(--ugt-type-news-display);color:var(--ugt-news-gold);margin:12px 0 8px}
+.ugt-news-poster__body{font:600 14px/1.4 var(--ugt-type-news-body);color:#f5e9ef}
