@@ -16,3 +16,4 @@ export { NewsPoster } from './NewsPoster';
 
 export { motionPolicy } from './motion';
 export { Marquee } from './Marquee';
+export { FormField, formErrorProps } from './FormField';
