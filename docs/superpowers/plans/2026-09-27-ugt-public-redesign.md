@@ -923,7 +923,7 @@ git commit -m "feat(ugt): add shared FormField with a11y error wiring"
 - Consumes: `PathCard`, `MoneyButton`, `GhostButton`, `StickerChip`, `stampFromEventTruth`, existing `homeEvents`/`homeProducts`/`homePhotos`/`getBlogPosts` loaders (preserve `hasDb()` fail-closed)
 - Produces: Home sections — hero, live culture strip, **equal** PathCards `01 Tickets → /events`, `02 Book → /book`, `03 Shop → /shop`, gallery/merch/news teasers, founders. Work With Us and Urban News remain reachable via nav, not the monument.
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 ```ts
 // __tests__/ugt-home-paths.test.ts
@@ -967,11 +967,11 @@ describe('MobileApp route shrinkage', () => {
 });
 ```
 
-- [ ] **Step 2: Run — FAIL on PathCard hubs**
+- [x] **Step 2: Run — FAIL on PathCard hubs**
 
 Run: `npx vitest run --no-cache __tests__/ugt-home-paths.test.ts __tests__/ugt-mobile-app-routes.test.ts`
 
-- [ ] **Step 3: Implement Home collision**
+- [x] **Step 3: Implement Home collision**
 
 Replace path section with:
 
@@ -1008,9 +1008,9 @@ Replace path section with:
 
 Hero CTAs: primary `MoneyButton href="/events"` "Explore events"; secondary `GhostButton href="/book"` "Book the tour". Event cards: replace ad-hoc `eventState` chip with `stampFromEventTruth(event.truth, event.status)` + `StickerChip` / `StatusStamp`. Keep DB helpers unchanged. Wrap `<main className="home-page" data-ugt-motion="loud">`.
 
-- [ ] **Step 4:** `npx vitest run --no-cache __tests__/ugt-home-paths.test.ts __tests__/ugt-mobile-app-routes.test.ts && npx tsc --noEmit`
+- [x] **Step 4:** `npx vitest run --no-cache __tests__/ugt-home-paths.test.ts __tests__/ugt-mobile-app-routes.test.ts && npx tsc --noEmit`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/_components/HomePage.tsx app/globals.css __tests__/ugt-home-paths.test.ts __tests__/ugt-mobile-app-routes.test.ts
@@ -1026,7 +1026,7 @@ git commit -m "feat(home): three-world collision with equal Tickets/Book/Shop hu
 - Modify: `app/globals.css` `.home-*` block to consume `var(--ugt-*)` instead of local hex duplicates
 - Test: motion policy assertions already in Task 5; extend if needed
 
-- [ ] **Step 1: Add marquee under hero**
+- [x] **Step 1: Add marquee under hero**
 
 ```tsx
 import { Marquee } from '@/app/_components/ugt/Marquee';
@@ -1036,7 +1036,7 @@ import { Marquee } from '@/app/_components/ugt/Marquee';
 </Marquee>
 ```
 
-- [ ] **Step 2: Alias home CSS vars to design tokens**
+- [x] **Step 2: Alias home CSS vars to design tokens**
 
 ```css
 .home-page{
@@ -1050,12 +1050,12 @@ import { Marquee } from '@/app/_components/ugt/Marquee';
 }
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `npx tsc --noEmit && npm test && npm run build`
 Expected: compile success; Home shows marquee under loud policy; Shop/Events stay quiet policy via `motionPolicy`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/_components/HomePage.tsx app/globals.css
