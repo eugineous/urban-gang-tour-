@@ -174,9 +174,14 @@ const VIEW_PERM: Record<string, string[]> = {
   suppliers: ["ops_contacts"],
 };
 
+// These views combine data that must not be unlocked by accumulating crew
+// module permissions. Check them before the database availability response so
+// a scoped caller is rejected consistently, even while the Control Room is
+// recovering from a database outage.
+const SUPER_ADMIN_ONLY_VIEWS = new Set(["dashboard", "clientErrors", "quickStats"]);
+
 export async function GET(req: Request) {
   if (!(await verifyAdminSession(req))) return bad("unauthorized", 401);
-  if (!db()) return bad("db_not_configured", 503);
   const url = new URL(req.url);
   const view = url.searchParams.get("view") || "";
   const id = intOrNull(url.searchParams.get("id"));
@@ -184,6 +189,9 @@ export async function GET(req: Request) {
   const requiredPerms = VIEW_PERM[view];
   if (requiredPerms && !hasAnyPerm(req, requiredPerms))
     return bad("forbidden", 403);
+  if (SUPER_ADMIN_ONLY_VIEWS.has(view) && !isSuperAdmin(req))
+    return bad("forbidden", 403);
+  if (!db()) return bad("db_not_configured", 503);
   try {
     await ensureOpsSchema();
     switch (view) {
@@ -625,7 +633,7 @@ export async function GET(req: Request) {
       case "quickStats": {
         // Cross-module summary for the ControlRoomHome dashboard panel.
         // Super-admin only (combines financial + ticketing + booking data).
-        if (!isAdmin(req)) return bad("forbidden", 403);
+        if (!isSuperAdmin(req)) return bad("forbidden", 403);
         const [orders, tickets, bookings] = await Promise.all([
           q<{ count: number; total: number }>(
             `SELECT COUNT(*)::int AS count, COALESCE(SUM(total),0)::int AS total FROM orders WHERE status='paid' AND created_at >= now() - interval '30 days'`,
@@ -700,28 +708,30 @@ const KIND_PERM: Record<string, string> = {
   "merchPurchaseOrder.save": "ops_merch",
   "merchPurchaseOrder.cancel": "ops_merch",
   "eventOps.save": "events",
-  "marketplaceOrganizer.suspend": "marketplace",
-  "marketplaceOrganizer.reinstate": "marketplace",
-  "marketplaceEvent.approve": "marketplace",
-  "marketplaceEvent.reject": "marketplace",
-  "marketplaceEvent.cancel": "marketplace",
   "supplier.save": "ops_contacts",
   "supplier.delete": "ops_contacts",
 };
 // CRITICAL EXCEPTIONS: always super_admin-only, whatever perms a
 // crew_admin holds. Approving/rejecting an organizer creates/relies on a
 // live Paystack payout subaccount (real money routing); the commission
-// percent changes UGT's cut of every future marketplace sale.
+// percent changes UGT's cut of every future marketplace sale. Suspending an
+// organizer, reinstating one, or approving/rejecting/cancelling a marketplace
+// event changes public sellability and partner trust, so those also stay with
+// the owner until a separate reviewed approval workflow exists.
 const SUPER_ADMIN_ONLY_KINDS = new Set([
   "marketplaceOrganizer.approve",
   "marketplaceOrganizer.reject",
+  "marketplaceOrganizer.suspend",
+  "marketplaceOrganizer.reinstate",
   "marketplaceCommission.save",
+  "marketplaceEvent.approve",
+  "marketplaceEvent.reject",
+  "marketplaceEvent.cancel",
 ]);
 
 export async function POST(req: Request) {
   if (!(await verifyAdminSession(req))) return bad("unauthorized", 401);
   if (!requireOrigin(req)) return bad("bad_origin", 403);
-  if (!db()) return bad("db_not_configured", 503);
   let body: any;
   try {
     body = await req.json();
@@ -778,6 +788,7 @@ export async function POST(req: Request) {
   // Unknown kinds fall through unscoped and 400 in the switch below, same
   // as before this change - there is nothing sensitive to gate for a kind
   // that doesn't exist.
+  if (!db()) return bad("db_not_configured", 503);
 
   try {
     await ensureOpsSchema();
