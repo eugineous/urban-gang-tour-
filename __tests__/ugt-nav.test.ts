@@ -53,4 +53,10 @@ it('PublicShell sources header/footer from ugt/nav', () => {
     expect(src).toContain('VOICE');
     expect(src).not.toContain('href="/privacy"');
   });
+it('BottomTabBar uses BOTTOM_TABS and MENU_EXTRAS without duplicate Work labels', () => {
+    const src = readFileSync(resolve(__dirname, '../app/_components/BottomTabBar.tsx'), 'utf8');
+    expect(src).toMatch(/BOTTOM_TABS/);
+    expect(src).toMatch(/MENU_EXTRAS/);
+    expect(src).not.toMatch(/Work with UGT/);
+  });
 });
