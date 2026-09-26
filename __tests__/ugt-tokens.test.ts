@@ -51,3 +51,15 @@ describe('stampFromEventTruth', () => {
     expect(stampFromEventTruth({ ...base, isSellable: true, minPrice: null }, 'published').label).toBe('On sale');
   });
 });
+
+import { motionPolicy } from '@/app/_components/ugt/motion';
+describe('motionPolicy', () => {
+  it('is loud only on Home and Experience', () => {
+    expect(motionPolicy('/')).toBe('loud');
+    expect(motionPolicy('/experience')).toBe('loud');
+    expect(motionPolicy('/events')).toBe('quiet');
+    expect(motionPolicy('/shop')).toBe('quiet');
+    expect(motionPolicy('/book')).toBe('quiet');
+    expect(motionPolicy('/privacy-policy')).toBe('quiet');
+  });
+});

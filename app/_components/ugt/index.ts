@@ -13,3 +13,6 @@ export { NightStage } from './NightStage';
 export { VariantChips } from './VariantChips';
 export { LegalCard } from './LegalCard';
 export { NewsPoster } from './NewsPoster';
+
+export { motionPolicy } from './motion';
+export { Marquee } from './Marquee';
