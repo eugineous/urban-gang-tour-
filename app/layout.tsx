@@ -63,6 +63,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
+        {/* AdSense ownership verification. This does not load ads or tracking. */}
+        <meta name="google-adsense-account" content="ca-pub-2984077949396522" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
