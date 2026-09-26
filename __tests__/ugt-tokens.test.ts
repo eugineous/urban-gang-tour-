@@ -20,3 +20,13 @@ describe('UGT design tokens', () => {
     expect(UGT_TYPE.body.toLowerCase()).toContain('space grotesk');
   });
 });
+
+import * as primitives from '@/app/_components/ugt/index';
+
+describe('ugt primitives barrel', () => {
+  it('exports sticker system components', () => {
+    for (const name of ['PosterCard', 'StickerChip', 'MoneyButton', 'GhostButton', 'InkButton', 'PathCard']) {
+      expect(typeof (primitives as Record<string, unknown>)[name]).toBe('function');
+    }
+  });
+});

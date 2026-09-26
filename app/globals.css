@@ -1,4 +1,5 @@
 @import './_components/ugt/tokens.css';
+@import './_components/ugt/ugt-primitives.css';
 
 /* Immediate local faces prevent FOIT when Google Fonts is slow or blocked.
    The remote stylesheet can still replace these with the branded faces. */
