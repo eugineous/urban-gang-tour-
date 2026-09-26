@@ -131,7 +131,9 @@ async function ensureTable(): Promise<void> {
   tableReady = true;
 }
 
-function ticketLinesOf(order: any): { id: string; qty: number; name?: string }[] {
+type TicketLine = { id: string; qty: number; name?: string };
+
+function ticketLinesOf(order: any): TicketLine[] | null {
   let items: any;
   try {
     items = typeof order?.items === 'string' ? JSON.parse(order.items) : order?.items;
@@ -139,9 +141,25 @@ function ticketLinesOf(order: any): { id: string; qty: number; name?: string }[]
     return [];
   }
   if (!Array.isArray(items)) return [];
-  return items.filter(
-    (it) => it && typeof it.id === 'string' && it.id.startsWith('ticket:') && Number(it.qty) > 0
-  );
+  const ticketItems = items.filter((it) => it && typeof it.id === 'string' && it.id.startsWith('ticket:'));
+  const lines: TicketLine[] = [];
+  for (const item of ticketItems) {
+    const [prefix, eventId, tierIndex, ...extra] = item.id.split(':');
+    const qty = Number(item.qty);
+    // A paid order must never mint a partial or rounded ticket entitlement.
+    // Non-ticket merchandise remains irrelevant here, but every ticket line
+    // must have the exact server-created `ticket:<event>:<tier>` shape.
+    if (
+      prefix !== 'ticket' ||
+      !eventId ||
+      !/^\d+$/.test(tierIndex || '') ||
+      extra.length ||
+      !Number.isSafeInteger(qty) ||
+      qty < 1
+    ) return null;
+    lines.push({ id: item.id, qty, name: typeof item.name === 'string' ? item.name : undefined });
+  }
+  return lines;
 }
 
 // Idempotent mint: if the order is paid, contains ticket lines, and has no
@@ -154,7 +172,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   const status = String(order.status || '');
   if (status !== 'paid' && status !== 'fulfilled') return [];
   const lines = ticketLinesOf(order);
-  if (!lines.length) return [];
+  if (!lines?.length) return [];
   await ensureTable();
   const marketplaceEventId: string | null = order.marketplace_event_id || null;
   // Marketplace orders resolve tier names from marketplace_events.tiers
@@ -273,7 +291,21 @@ export function verifyTicketBlob(blob: string): TicketBlobPayload | null {
   const expect = createHmac('sha256', SECRET()).update('tktsig:' + body).digest('base64url');
   if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
   try {
-    return JSON.parse(Buffer.from(body, 'base64url').toString()) as TicketBlobPayload;
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString());
+    if (
+      !payload ||
+      typeof payload.c !== 'string' ||
+      !codeAuthentic(payload.c) ||
+      typeof payload.o !== 'string' ||
+      !payload.o ||
+      typeof payload.e !== 'string' ||
+      !payload.e ||
+      typeof payload.t !== 'string' ||
+      !payload.t ||
+      typeof payload.i !== 'string' ||
+      !Number.isFinite(Date.parse(payload.i))
+    ) return null;
+    return payload as TicketBlobPayload;
   } catch {
     return null;
   }
