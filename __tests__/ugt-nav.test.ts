@@ -3,6 +3,8 @@ import {
   PUBLIC_HEADER_NAV, PUBLIC_HEADER_CTA, BOTTOM_TABS, MENU_EXTRAS, FOOTER_LINKS, VOICE,
 } from '@/app/_components/ugt/nav';
 import { ROUTES } from '@/lib/site';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('public nav label map', () => {
   it('matches approved desktop header labels and yellow Book CTA', () => {
@@ -42,5 +44,13 @@ describe('public nav label map', () => {
     expect(press).toBeTruthy();
     expect(partners?.path).toBe('/partners');
     expect(press?.path).not.toBe('/partners');
+  });
+it('PublicShell sources header/footer from ugt/nav', () => {
+    const src = readFileSync(resolve(__dirname, '../app/_components/PublicShell.tsx'), 'utf8');
+    expect(src).toMatch(/from '\.\/ugt\/nav'|from '@\/app\/_components\/ugt\/nav'/);
+    expect(src).toContain('PUBLIC_HEADER_NAV');
+    expect(src).toContain('FOOTER_LINKS');
+    expect(src).toContain('VOICE');
+    expect(src).not.toContain('href="/privacy"');
   });
 });
