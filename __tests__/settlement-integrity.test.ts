@@ -13,7 +13,12 @@ vi.mock('../lib/server/db', () => ({
   q: vi.fn(async () => []),
 }));
 
-import { canAdminSetOrderStatus, amountsMatch } from '../lib/server/payment-status';
+import {
+  canAdminSetOrderStatus,
+  amountsMatch,
+  canProviderConfirmPayment,
+  RECOVERABLE_PAYMENT_STATUSES,
+} from '../lib/server/payment-status';
 import { canSellQty, remainingCapacity, parseTierInventory } from '../lib/server/ticket-inventory';
 import { isEventSellable } from '../lib/server/event-lifecycle';
 import { decideMpesaOutcome } from '../lib/server/reconcile';
@@ -42,6 +47,19 @@ describe('amount matching', () => {
   });
   it('rejects non-positive', () => {
     expect(amountsMatch(0, 0)).toBe(false);
+  });
+});
+
+describe('provider settlement boundary', () => {
+  it('permits only genuinely recoverable payment states to become paid', () => {
+    expect(RECOVERABLE_PAYMENT_STATUSES).toEqual(['pending', 'unknown', 'reconciling']);
+    for (const status of RECOVERABLE_PAYMENT_STATUSES)
+      expect(canProviderConfirmPayment(status)).toBe(true);
+  });
+
+  it('never reopens failed, fulfilled or refunded money on a delayed success callback', () => {
+    for (const status of ['failed', 'declined', 'timed_out', 'paid', 'fulfilled', 'refunded', 'partially_refunded'])
+      expect(canProviderConfirmPayment(status)).toBe(false);
   });
 });
 

@@ -8,6 +8,7 @@ import {
   notifyPaymentFailure,
 } from "@/lib/server/notify";
 import { recordPaidMerchOrder } from "@/lib/server/inventory";
+import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 
 // Paystack webhook. Signature: x-paystack-signature = HMAC-SHA512(raw body)
 // keyed with the secret key. charge.success flips the ledger row (order id
@@ -77,9 +78,9 @@ export async function POST(req: Request) {
           const rows = await q(
             `UPDATE orders SET status='paid'
              WHERE id=$1
-               AND status IN ('pending','failed') AND total=$2
+               AND status = ANY($3) AND total=$2
              RETURNING *`,
-            [ref, amountKes],
+            [ref, amountKes, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (rows.length) {
             markProcessed(eventId);
@@ -144,8 +145,8 @@ export async function POST(req: Request) {
         const { q, db } = await import("@/lib/server/db");
         if (db()) {
           const rows = await q(
-            `UPDATE orders SET status='failed' WHERE id=$1 AND status='pending' RETURNING id, total`,
-            [ref],
+            `UPDATE orders SET status='failed' WHERE id=$1 AND status = ANY($2) RETURNING id, total`,
+            [ref, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (rows[0])
             after(async () => {

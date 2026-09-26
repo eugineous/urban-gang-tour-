@@ -8,7 +8,7 @@ import { q, hasDb } from './db';
 import { stkPushQuery } from './mpesa';
 import { paystackVerify, paystackConfigured } from './paystack';
 import { consumeReservation, releaseReservation } from './ticket-inventory';
-import { amountsMatch } from './payment-status';
+import { amountsMatch, RECOVERABLE_PAYMENT_STATUSES } from './payment-status';
 
 /** Pure mapping: Daraja ResultCode -> ledger status. Unit-testable. */
 export function decideMpesaOutcome(resultCode: number): 'paid' | 'declined' | 'timed_out' | 'unknown' {
@@ -37,10 +37,10 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
             NULLIF(paystack_ref,'') AS paystack_ref,
             NULLIF(pay_method,'') AS pay_method
        FROM orders
-      WHERE status IN ('pending','unknown','reconciling')
+      WHERE status = ANY($2)
         AND created_at < now() - interval '20 minutes'
       ORDER BY created_at ASC LIMIT $1`,
-    [limit],
+    [limit, RECOVERABLE_PAYMENT_STATUSES],
   ).catch(() => [] as any[]);
   for (const o of rows) {
     out.checked++;
@@ -61,8 +61,8 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
           }
           const paid = await q(
             `UPDATE orders SET status='paid', mpesa_receipt=COALESCE(mpesa_receipt,$2)
-              WHERE id=$1 AND status IN ('pending','unknown','reconciling') RETURNING *`,
-            [o.id, qr.receipt || ''],
+              WHERE id=$1 AND status = ANY($3) RETURNING *`,
+            [o.id, qr.receipt || '', RECOVERABLE_PAYMENT_STATUSES],
           );
           if (paid.length) {
             const { ensureTickets } = await import('./tickets');
@@ -77,8 +77,8 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
           const target = next === 'declined' ? 'declined' : 'timed_out';
           const failed = await q(
             `UPDATE orders SET status=$2
-              WHERE id=$1 AND status IN ('pending','unknown','reconciling') RETURNING id`,
-            [o.id, target],
+              WHERE id=$1 AND status = ANY($3) RETURNING id`,
+            [o.id, target, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (failed.length) {
             await releaseReservation(o.id).catch(() => {});
@@ -93,8 +93,8 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
         if (!v.ok) { out.stillPending.push(o.id); continue; }
         if (v.paid && amountsMatch(o.total, v.amountKes)) {
           const paid = await q(
-            `UPDATE orders SET status='paid' WHERE id=$1 AND status IN ('pending','unknown','reconciling') RETURNING *`,
-            [o.id],
+            `UPDATE orders SET status='paid' WHERE id=$1 AND status = ANY($2) RETURNING *`,
+            [o.id, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (paid.length) {
             const { ensureTickets } = await import('./tickets');

@@ -9,6 +9,7 @@ import {
 } from "@/lib/server/notify";
 import { recordPaidMerchOrder } from "@/lib/server/inventory";
 import { consumeReservation, releaseReservation } from "@/lib/server/ticket-inventory";
+import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 
 // Daraja payment result callback: reconcile the order ledger.
 export async function POST(req: Request) {
@@ -46,9 +47,9 @@ export async function POST(req: Request) {
           }
           const rows = await q(
             `UPDATE orders SET status='paid', mpesa_receipt=$2
-             WHERE mpesa_ref=$1 AND status='pending' AND total=$3
+             WHERE mpesa_ref=$1 AND status = ANY($3) AND total=$4
              RETURNING *`,
-            [cb.CheckoutRequestID, String(receipt), callbackAmount],
+            [cb.CheckoutRequestID, String(receipt), RECOVERABLE_PAYMENT_STATUSES, callbackAmount],
           );
           // mint e-tickets, then the branded receipt email (which links them) -
           // fire-and-forget after the ack, never blocking Daraja's timeout
@@ -79,8 +80,8 @@ export async function POST(req: Request) {
             });
         } else {
           const failedRows = await q(
-            `UPDATE orders SET status='failed' WHERE mpesa_ref=$1 AND status='pending' RETURNING id, total`,
-            [cb.CheckoutRequestID],
+            `UPDATE orders SET status='failed' WHERE mpesa_ref=$1 AND status = ANY($2) RETURNING id, total`,
+            [cb.CheckoutRequestID, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (failedRows[0])
             after(async () => {

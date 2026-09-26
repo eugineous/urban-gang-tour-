@@ -9,6 +9,7 @@ import {
   notifyPaymentFailure,
 } from "@/lib/server/notify";
 import { recordPaidMerchOrder } from "@/lib/server/inventory";
+import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 
 // Stripe webhook (server-to-server; signature-verified, so no Origin check —
 // same exemption class as /api/mpesa/callback). Registered in the Stripe
@@ -90,9 +91,9 @@ export async function POST(req: Request) {
             `UPDATE orders SET status='paid', stripe_payment_intent=$2,
                  stripe_session=COALESCE(NULLIF(stripe_session,''), $3)
                WHERE id=$1 AND stripe_session=$3
-                 AND status IN ('pending','failed') AND total=$4
+                 AND status = ANY($4) AND total=$5
                RETURNING *`,
-              [orderId, pi, session.id, amountKes],
+              [orderId, pi, session.id, RECOVERABLE_PAYMENT_STATUSES, amountKes],
             );
             if (rows.length === 0) {
               await alertCritical(
@@ -164,8 +165,8 @@ export async function POST(req: Request) {
           if (db()) {
             await ensureColumns(q);
             const rows = await q(
-              `UPDATE orders SET status='failed' WHERE id=$1 AND status='pending' RETURNING id, total`,
-              [orderId],
+              `UPDATE orders SET status='failed' WHERE id=$1 AND status = ANY($2) RETURNING id, total`,
+              [orderId, RECOVERABLE_PAYMENT_STATUSES],
             );
             if (rows[0])
               after(async () => {

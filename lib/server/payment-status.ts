@@ -46,6 +46,20 @@ export function isFailedPayment(status: unknown): boolean {
   return FAILED_PAYMENT_STATUSES.includes(status as OrderStatus);
 }
 
+// Provider callbacks and the reconciliation sweep may only settle a row that
+// is still awaiting an authoritative provider outcome. In particular, a
+// terminal failed/refunded/fulfilled row must never be reopened by a delayed
+// or replayed success webhook.
+export const RECOVERABLE_PAYMENT_STATUSES: readonly OrderStatus[] = [
+  'pending',
+  'unknown',
+  'reconciling',
+];
+
+export function canProviderConfirmPayment(status: unknown): boolean {
+  return RECOVERABLE_PAYMENT_STATUSES.includes(status as OrderStatus);
+}
+
 /**
  * Allowed admin/manual transitions. Provider callbacks use their own
  * fail-closed UPDATE ... WHERE status IN (...) rather than this map, so a
