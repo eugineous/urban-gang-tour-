@@ -10,8 +10,8 @@
 // Two corrections, both requested directly:
 //   1. MC Paps and Sauti Moto are off the tour. They come out of the crew wall,
 //      the partner wall, and any prose that names them.
-//   2. PPP TV Kenya is the only partner. Everyone else on that wall is an
-//      investor, and the labels have to say so.
+//   2. No public entity is described as a partner. Support relationships are
+//      presented as sponsors/supporters or by their specific functional role.
 //
 // When these pages are eventually rebuilt as real React components reading
 // app/_data, this module and the snapshots go away together.
@@ -108,31 +108,31 @@ function correctProse(html: string): string {
   return (
     html
       // Crew and partner bios addressed the reader as a partner.
-      .replace(/For partners,/g, 'For investors,')
-      .replace(/(brands and|institutional|event|youth-focused|lifestyle|county) partners/g, '$1 investors')
-      .replace(/We put partners on stage/g, 'We put investors on stage')
-      .replace(/the partner that makes sure/g, 'the investor that makes sure')
+      .replace(/For partners,/g, 'For supporters,')
+      .replace(/(brands and|institutional|event|youth-focused|lifestyle|county) partners/g, '$1 supporters')
+      .replace(/We put partners on stage/g, 'We put sponsors on stage')
+      .replace(/the partner that makes sure/g, 'the supporter that makes sure')
       // Role labels on the wall and in the crew list. PPP TV keeps "Broadcast
       // Partner"; it is restored explicitly in correctShellContent().
-      .replace(/\bExperience Partner\b/g, 'Experience Investor')
-      .replace(/\bPhotography Partner\b/g, 'Photography Investor')
-      .replace(/\bEnvironmental Partner\b/g, 'Environmental Investor')
-      .replace(/\bSound Production Partner\b/g, 'Sound Production Investor')
-      .replace(/\bPartner (&amp;|&) Hypeman\b/g, 'Investor $1 Hypeman')
-      .replace(/official photography partner/gi, 'official photography investor')
+      .replace(/\bExperience Partner\b/g, 'Experience Support')
+      .replace(/\bPhotography Partner\b/g, 'Photography Support')
+      .replace(/\bEnvironmental Partner\b/g, 'Environmental Support')
+      .replace(/\bSound Production Partner\b/g, 'Sound Production Support')
+      .replace(/\bPartner (&amp;|&) Hypeman\b/g, 'Support $1 Hypeman')
+      .replace(/official photography partner/gi, 'official photography supporter')
       .replace(
         /network of media, government, education, creative, and safety partners/gi,
-        'network of media, government, education, creative, and safety investors',
+        'network of media, government, education, creative, and safety supporters',
       )
       // Section and nav headings, and the calls to action that invited people
       // into a partnership that is no longer on offer.
-      .replace(/Our Partners/g, 'Partners &amp; Investors')
-      .replace(/>Partner With Us</g, '>Invest With Us<')
-      .replace(/>Start a Partnership</g, '>Become an Investor<')
+      .replace(/Our Partners/g, 'Sponsors &amp; Supporters')
+      .replace(/>Partner With Us</g, '>Support the Tour<')
+      .replace(/>Start a Partnership</g, '>Sponsor the Tour<')
       // Contact form: the enquiry list offered a partnership that is no longer
       // available to anyone new.
-      .replace(/>Partnership</g, '>Investment<')
-      .replace(/Bookings, partnerships, media/g, 'Bookings, investment, media')
+      .replace(/>Partnership</g, '>Sponsorship<')
+      .replace(/Bookings, partnerships, media/g, 'Bookings, sponsorships, media')
       // Prose that named a departed act.
       .replace(
         /MC Paps warmed up the hall before the first performances,\s*and the crowd/gi,
@@ -217,13 +217,30 @@ function injectGalleryPhotos(html: string): string {
  * is entitled to it. Each badge sits just above its card's logo, so the logo
  * filename that follows within the same card decides which label it gets.
  */
+function keepLeadCrewOnly(html: string): string {
+  let out = html;
+  const opens: { start: number; end: number }[] = [];
+  const re = /<button\\b[^>]*class=["'][^"']*\\bscpr\\b[^"']*["'][^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(out))) {
+    const end = matchingClose(out, m.index, 'button');
+    if (end < 0) continue;
+    const card = out.slice(m.index, end);
+    if (!/eugine-micah|lucy-ogunde/i.test(card)) opens.push({ start: m.index, end });
+  }
+  for (let i = opens.length - 1; i >= 0; i--) out = out.slice(0, opens[i].start) + out.slice(opens[i].end);
+  return out
+    .replace(/Around thirty people build, run, and film every event\. These are the leads\./g, 'Urban Gang Tour is led by Eugine Micah and Lucy Ogunde — the two faces driving the vision, stage and story.')
+    .replace(/THE WHOLE 30-PERSON CREW/g, 'MEET EUGINE & LUCY');
+}
+
 function correctPartnerBadges(html: string): string {
   return html.replace(/PARTNER FILE(<\/div>)/g, (whole, close: string, at: number) => {
     // Look ahead only as far as this card's logo - far enough to reach the
     // <img>, short enough not to run into the next card.
     const ahead = html.slice(at, at + 600);
     const isPppTv = /\/assets\/partners\/ppp-tv\./i.test(ahead);
-    return `${isPppTv ? 'PARTNER FILE' : 'INVESTOR FILE'}${close}`;
+    return `SUPPORTER FILE${close}`;
   });
 }
 
@@ -247,12 +264,13 @@ export function correctShellContent(html: string): string {
   out = removeEnclosing(out, '/assets/partners/sauti-moto.jpg', { alsoContains: 'PARTNER FILE' });
   out = removeEnclosing(out, '/assets/partners/sauti-moto.jpg', { tag: 'div' });
 
+  out = keepLeadCrewOnly(out);
   out = correctPartnerBadges(out);
   out = injectGalleryPhotos(out);
   out = correctProse(out);
 
   // Restore the one real partner, in case a broad replace above caught it.
-  out = out.replace(/PPP TV Kenya([\s\S]{0,400}?)Broadcast Investor/g, 'PPP TV Kenya$1Broadcast Partner');
+  out = out.replace(/PPP TV Kenya([\s\S]{0,400}?)Broadcast (Investor|Partner)/g, 'PPP TV Kenya$1Broadcast Network');
 
   return out;
 }

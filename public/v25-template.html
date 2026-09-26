@@ -681,7 +681,7 @@
 </button>
 </sc-for>
 </div>
-<div style="text-align:center;margin-top:24px"><button onClick="{{ nav.gang }}" style="background:transparent;color:#FFD400;font-family:'Bungee';font-size:14px;border:2px dashed #FFD400;border-radius:100px;padding:12px 26px" style-hover="background:#FFD400;color:#111">+ THE WHOLE 30-PERSON CREW →</button></div>
+<div style="text-align:center;margin-top:24px"><button onClick="{{ nav.gang }}" style="background:transparent;color:#FFD400;font-family:'Bungee';font-size:14px;border:2px dashed #FFD400;border-radius:100px;padding:12px 26px" style-hover="background:#FFD400;color:#111">+ MEET EUGINE & LUCY →</button></div>
 </div>
 </div>
 <div style="background:#fff;border-bottom:4px solid #111;padding:50px 24px">
@@ -953,7 +953,7 @@
 <div style="max-width:1200px;margin:0 auto;position:relative">
 <div style="display:inline-block;background:#111;color:#FFD400;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">THE CREW BEHIND THE CULTURE</div>
 <h1 style="font-family:'Anton';font-size:clamp(44px,7vw,92px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#111;text-shadow:4px 4px 0 #fff">Meet <span style="background:#21C7E6;color:#111;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">The Gang</span></h1>
-<p style="color:#fff;font-size:18px;line-height:1.6;max-width:640px;margin:18px 0 0;font-weight:500">Around thirty people build, run, and film every event. These are the leads.</p>
+<p style="color:#fff;font-size:18px;line-height:1.6;max-width:640px;margin:18px 0 0;font-weight:500">Urban Gang Tour is led by Eugine Micah and Lucy Ogunde — the two faces driving the vision, stage and story.</p>
 </div>
 </div>
 <div style="background:#FFD400;padding:44px 24px 60px">
@@ -1591,7 +1591,7 @@ class Component extends DCLogic {
       newAdmin:{name:'',perms:{blog:false,gallery:false,bookings:false,orders:false,stops:false},made:null},
       bookings:[
         {id:'B-2041',name:'Grace Wanjiru',org:'Ngeya Girls Senior School',type:'School Booking',date:'2026-07-02',status:'new',email:'principal@ngeya.ac.ke',msg:'We would love the tour for our second term. About 900 students.'},
-        {id:'B-2040',name:'Brand Team',org:'Norda Industries',type:'Sponsorship',date:'2026-07-01',status:'review',email:'partnerships@norda.co.ke',msg:'Interested in official snacking partner across the tour.'},
+        {id:'B-2040',name:'Brand Team',org:'Norda Industries',type:'Sponsorship',date:'2026-07-01',status:'review',email:'sponsorships@norda.co.ke',msg:'Interested in official snacking partner across the tour.'},
         {id:'B-2039',name:'Dean of Students',org:'Zetech University',type:'Campus Rave',date:'2026-06-28',status:'confirmed',email:'dos@zetech.ac.ke',msg:'Campus Rave edition for orientation week.'},
         {id:'B-2038',name:'Events Office',org:'Nakuru County',type:'Mega Event',date:'2026-06-25',status:'new',email:'events@nakuru.go.ke',msg:'Youth day main stage takeover.'},
         {id:'B-2037',name:'Madam Divina',org:'Gituamba Girls High School',type:'Media',date:'2026-06-20',status:'confirmed',email:'talent@gituamba.ac.ke',msg:'Requesting the Urban News feature link and photos.'},
@@ -1686,89 +1686,13 @@ class Component extends DCLogic {
       {id:'lucy',img:'/assets/crew/lucy-ogunde.jpg',name:'Lucy Ogunde',role:'Co-Founder & Co-Host',tag:'The Voice They Trust',hype:true,bio:[
         'Lucy Ogunde is co-founder of the Urban Gang Tour and its co-host: the warmth and the sharp wit that balances every show. She is the reason first-time performers feel safe enough to give their very best on a national stage.',
         'On camera for Urban News, Lucy leads interviews, mentors young women through the pageant and modelling categories, and anchors the parts of the day that stay with students long after the crew packs up. Her presence is a large part of why institutions trust the tour with their halls.',
-        'For brands and investors, Lucy is a powerful, credible voice to young Kenyan audiences, and especially to young women. She makes a message land because she has already earned the room\u2019s trust. Book the tour and Lucy is front and centre, representing your name.']},
-      {id:'okiyo',img:'/assets/crew/mark-davinci.jpg',name:'Okiyo DaVinci',role:'Overseer, Urban Gang Structure',tag:'The Architect',hype:false,bio:[
-        'Okiyo DaVinci is the overseer of the Urban Gang structure, the strategic mind that keeps the movement organised as it scales from school to campus to mega event.',
-        'With a background in youth-programme design and operations, he built the systems that let the tour run the same high standard whether the crowd is three hundred or three thousand. Categories, judging, pods, and logistics all run on frameworks he set.',
-        'For institutional investors, Okiyo is the person who makes ambitious plans real. He is meticulous, calm under pressure, and relentless about turning creative ideas into a schedule that actually delivers on the day.']},
-      {id:'esther',img:'/assets/crew/wambui-gakunju.webp',name:'Esther Wambui Gakunju',role:'Head of Modelling \u00b7 CEO, Synapse Models & Moyo Response',tag:'Runway Director',hype:false,bio:[
-        'Esther Wambui Gakunju leads modelling and pageantry for the Urban Gang Tour, directing the runway and the Miss/Mrs of the Institution crowning at every stop.',
-        'A seasoned runway director working alongside Synapse Models, she coaches first-time models through the cultural, creative, cosplay, and professional categories, staging a full T-shaped runway to broadcast standard.',
-        'For sponsors in beauty, fashion, and lifestyle, Esther is the gateway to a captivated audience. She builds the runway moments that dominate the highlight reels and give brands a premium, camera-ready stage.']},
-      {id:'kalamu',img:'/assets/crew/kalamu-nyeusi.jpg',name:'Kalamu Nyeusi',role:'Stage Manager & Spoken Word Lead',tag:'The Wordsmith',hype:false,bio:[
-        'Kalamu Nyeusi is a stage manager and the spoken-word lead for the tour, holding the show together backstage while championing poetry and bars on stage.',
-        'A respected spoken-word artist in his own right, he curates and judges the spoken-word and poetry showcases, and mentors young writers to perform with confidence and meaning.',
-        'For investors, Kalamu represents depth and substance. He is the crew member who ensures the tour is not only loud but says something, giving brands association with real cultural credibility.']},
-      {id:'carian',img:'/assets/crew/dj-carian.jpg',name:'DJ Carian',role:'Resident DJ \u00b7 XP Hub',tag:'The Soundtrack',hype:false,bio:[
-        'DJ Carian is a resident DJ of the Urban Gang Tour, the soundtrack to every showcase, runway, and crowning.',
-        'With years spinning at clubs, campuses, and live events across Kenya, he reads the floor and matches the energy of every segment, from a tense dance final to a celebratory finale.',
-        'For event investors, DJ Carian guarantees professional, seamless live sound that keeps the crowd moving all day. The music never drops, and neither does the energy.']},
-      {id:'xavi',img:'/assets/crew/dj-xavi.jpg',name:'DJ Xavi',role:'Resident DJ',tag:'The Selector',hype:false,bio:[
-        'DJ Xavi is a resident DJ of the Urban Gang Tour, sharing the decks and keeping the sound alive from load-in to final act.',
-        'A versatile selector comfortable across genres, he brings the current sound of young Kenya to every stage and knows how to keep a set fresh across a long event day.',
-        'For sponsors, DJ Xavi is part of the reason the tour feels like a festival, not an assembly. He sets the tone that makes every brand moment feel like a celebration.']},
-      {id:'hypeola',img:'/assets/crew/hype-ola.jpg',name:'Hype Ola',role:'Investor & Hypeman \u00b7 CEO, The Experience Hub',tag:'The Hypeman',hype:false,bio:[
-        'Hype Ola facilitates the performance pod, coaching young talent in music, stage presence, and delivery before they take the stage.',
-        'A performer and trainer, he runs the pod that transforms raw ability into a confident stage act, giving students practical skills they keep long after the tour leaves.',
-        'For education and youth-focused investors, Hype Ola embodies the mentorship promise of the tour. He is living proof that the day is about growth, not just spectacle.']},
-      {id:'nyarangi',img:'/assets/crew2/nyarangi.png',name:'Khloe Nyarangi',role:'Head of Dance \u00b7 XP Hub',tag:'Head of Dance',hype:false,bio:[
-        'Khloe Nyarangi is the Head of Dance for the Urban Gang Tour, leading the choreography and dance programme at every stop with The Experience Hub.',
-        'With experience in performance and youth engagement, she creates a safe, high-energy space where students discover and sharpen their talent under real coaching.',
-        'For investors, Khloe is a relatable role model to the exact audience they want to reach. Her sessions are where potential visibly turns into purpose.']},
-      {id:'fred',img:'/assets/crew/fred-oduor.jpeg',name:'Fred (Baba Harshna)',role:'Stage Manager',tag:'The Backbone',hype:false,bio:[
-        'Fred, known on the road as Baba Harshna, is a stage manager who keeps the entire production running to time.',
-        'He coordinates acts, transitions, and crew backstage so the audience only ever sees a seamless show. Nothing reaches the stage without passing through his checklist.',
-        'For investors, Fred is the invisible reason the day feels professional. His discipline is what lets a thirty-person crew deliver broadcast-quality events again and again.']},
-      {id:'george',img:'/assets/crew/george-morgan.jpg',name:'George',role:'Lead Videographer',tag:'The Eye',hype:true,bio:[
-        'George is the lead videographer of the Urban Gang Tour, the eye behind the footage that carries every stop to the nation.',
-        'He shoots, directs, and oversees the field camera team, capturing the showcases, interviews, and crowd moments that become Urban News features and short-form content.',
-        'For brands, George is where reach is made. His footage is the asset that lives on long after the event, putting sponsors in front of audiences far beyond the room.']},
-      {id:'jayjey',img:'/assets/crew/jayjey.jpg',name:'Jayjey',role:'Field Content Creator',tag:'Social-First',hype:false,bio:[
-        'Jayjey is a field content creator for the tour, capturing the fast, vertical, social-first moments as they happen.',
-        'He lives in the crowd with a camera, turning raw energy into reels and stories that publish while the event is still live and rack up views overnight.',
-        'For investors, Jayjey delivers the always-on social presence that keeps a campaign trending. He is the reason the tour is felt online, not just on the ground.']},
-      {id:'tony',img:'/assets/crew/tony-lallez.webp',name:'Tony',role:'Photographer',tag:'The Still Frame',hype:false,bio:[
-        'Tony is the tour photographer, freezing the crowns, the runway walks, and the winning moments into images that last.',
-        'With a strong editorial eye, he produces the stills that fill galleries, press features, and partner decks, giving every event a professional visual record.',
-        'For sponsors, Tony\u2019s photography is premium brand collateral. His images are the ones that end up on posters, recaps, and the timelines of everyone who was there.']},
-      {id:'rania',img:'/assets/crew/rania-martin.webp',name:'Rania',role:'Head of Social Media',tag:'The Timeline',hype:false,bio:[
-        'Rania is the Head of Social Media for the Urban Gang Tour \u2014 the person who decides what the timeline sees, and when.',
-        'She runs the tour\u2019s accounts across every platform, turning each stop into reels, stories and posts that trend while the event is still live.',
-        'For brands, Rania is the always-on channel: the reason a partnership is felt online long after the convoy leaves the school gate.']},
-      {id:'pauline',img:'/assets/crew/pauline-masika.png',name:'Pauline Masika',role:'Sound Engineer',tag:'The Sound',hype:false,bio:[
-        'Pauline Masika is the tour\u2019s sound engineer \u2014 the ears behind every mic, monitor and mix on the road.',
-        'Working hand-in-hand with Ashton Sounds, she tunes each venue so a school field sounds like a broadcast studio.',
-        'For institutions, Pauline is the reassurance that their students are looked after. Her care and organisation are why schools invite the tour back year after year.']},
-      {id:'karembo',img:'/assets/crew2/karembo.webp',name:'Karembo',role:'Dancer & Entertainer',tag:'Pure Energy',hype:true,bio:[
-        'Karembo is a dancer and entertainer on the Urban Gang Tour \u2014 the performer who can pull a shy crowd onto its feet in one song.',
-        'From hype sets to featured routines, she moves between choreographed showcases and freestyle crowd moments without dropping the energy once.',
-        'For audiences, Karembo is the show inside the show \u2014 the reason phone lights come out.']},
-      {id:'dropjunior',img:'/assets/crew2/drop-junior.png',name:'Drop Junior',role:'Dancer \u00b7 Content Creator \u00b7 Spoken Word',tag:'Triple Threat',hype:false,bio:[
-        'Drop Junior is the tour\u2019s triple threat with The Experience Hub: dancer, content creator, and spoken word artiste.',
-        'One hour he is battling on the main stage, the next he is publishing the reel of it, and by evening he is closing a pod with a poem.',
-        'He is proof of the tour\u2019s whole message: talent does not come in one lane.']},
-      {id:'mercie',img:'/assets/crew2/mercie-smalls.png',name:'Mercie Smalls',role:'Dancer \u00b7 XP Hub',tag:'The Move',hype:false,bio:[
-        'Mercie Smalls is a dancer with The Experience Hub crew, performing featured routines and leading student dance moments at every stop.',
-        'Her sets during the hype blocks are a masterclass \u2014 precise, playful, and impossible to look away from.',
-        'For young dancers in the crowd, Mercie is the mirror: proof that the stage has space for them.']},
-      {id:'jeffdancer',img:'/assets/crew2/jeff-dancer.png',name:'Jeff Dancer',role:'Dancer \u00b7 XP Hub',tag:'Footwork',hype:false,bio:[
-        'Jeff Dancer brings the footwork \u2014 an Experience Hub dancer whose showcases are a guaranteed highlight-reel moment.',
-        'He performs, he showcases students, and he coaches the brave ones who step up mid-set.',
-        'Cameras love him because crowds love him \u2014 his clips travel far beyond the school gate.']},
-      {id:'khalif',img:'/assets/crew2/khalif-arts.png',name:'Khalif Arts',role:'Videographer \u2014 Reels',tag:'The Reel One',hype:false,bio:[
-        'Khalif Arts is a tour videographer in charge of reels \u2014 the fast, vertical cuts that put every stop on the timeline before the day even ends.',
-        'He lives in the crowd with a gimbal, hunting the three seconds that make a million people wish they were there.',
-        'If you saw the tour on your feed before you saw it in person, that was probably Khalif\u2019s work.']},
-      {id:'chiwa',img:'/assets/crew2/chiwaculture.png',name:'Chiwaculture',role:'Social Media Content',tag:'The Feed',hype:false,bio:[
-        'Chiwaculture runs social media content for the tour, working with Head of Social Media Rania to keep every platform fed and every moment posted.',
-        'Captions, cutdowns, trends, replies \u2014 the whole conversation around the tour runs through this desk.',
-        'The tour feels alive online because Chiwaculture never lets it sleep.']}
+        'For brands and investors, Lucy is a powerful, credible voice to young Kenyan audiences, and especially to young women. She makes a message land because she has already earned the room\u2019s trust. Book the tour and Lucy is front and centre, representing your name.']}
     ];
     this.PARTNERS = [
       // PPP TV Kenya is the one true partner. Everyone else on this wall is an
       // investor, and `badge` is what the card header prints so the two are
       // never presented as the same thing.
-      {name:'PPP TV Kenya',role:'Broadcast Partner',badge:'PARTNER FILE',logo:'/assets/partners/ppp-tv.png',textOnly:false,blurb:'Home of Urban News, the show that carries every tour stop to a national audience.'},
+      {name:'PPP TV Kenya',role:'Broadcast Network',badge:'SUPPORTER FILE',logo:'/assets/partners/ppp-tv.png',textOnly:false,blurb:'Home of Urban News, the show that carries every tour stop to a national audience.'},
       {name:'The Experience Hub',role:'Experience Investor',badge:'INVESTOR FILE',logo:'/assets/partners/xp-hub.png',textOnly:false,blurb:'Creative experiences, hype sets and engagement design across the tour.'},
       {name:'Synapse Models',role:'Modelling & Pageantry Investor',badge:'INVESTOR FILE',logo:'/assets/partners/synapse.png',textOnly:false,blurb:'Directs the modelling runway and the Mr & Miss of the Institution crowning at every stop.'},
       {name:'Moyo Response',role:'Safety & First Aid Investor',badge:'INVESTOR FILE',logo:'/assets/partners/moyo.png',textOnly:false,blurb:'On-site emergency response and first aid coverage at every event.'},
@@ -2221,7 +2145,7 @@ class Component extends DCLogic {
       shopWindow:this.PRODUCTS.slice(0,4).map((p,i)=>{ const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,badge:pi.badge,tilt:['-2deg','1.5deg','-1deg','2deg'][i%4],add:()=>this.addToCart(p.id)}; }),
       cd:(()=>{ const t=new Date('2026-07-19T09:00:00+03:00').getTime()-(s.nowTs||Date.now()); if(t<=0) return {live:true,d:'00',h:'00',m:'00',sec:'00'}; const p=(n)=>String(n).padStart(2,'0'); return {live:false, d:p(Math.floor(t/86400000)), h:p(Math.floor(t/3600000)%24), m:p(Math.floor(t/60000)%60), sec:p(Math.floor(t/1000)%60)}; })(),
       subnav:(()=>{ const tab=(p,label)=>({label, go:()=>this.go(p), on:s.page===p, bg:(s.page===p?'#E6218C':'#fff'), fg:(s.page===p?'#fff':'#111'), bd:'#111'});
-        if(['about','gang','partners'].includes(s.page)) return {title:'About & The Gang', items:[tab('about','Who We Are'),tab('gang','Meet The Gang'),tab('partners','Partners & Investors')]};
+        if(['about','gang','partners'].includes(s.page)) return {title:'About & The Gang', items:[tab('about','Who We Are'),tab('gang','Meet The Gang'),tab('partners','Sponsors & Supporters')]};
         if(['exp','stops'].includes(s.page)) return {title:'The Tour', items:[tab('exp','The Experience'),tab('stops','Tour Stops & Calendar')]};
         if(['work','contact'].includes(s.page)) return {title:'Work With Us', items:[tab('work','Why Work With Us'),tab('contact','Book / Contact')]};
         return null; })(),

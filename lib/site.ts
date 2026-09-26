@@ -41,9 +41,9 @@ export const ROUTES: RouteDef[] = [
   },
   {
     path: '/the-gang', page: 'gang', nav: 'The Gang',
-    title: 'The Gang — Hosts, DJs, Crew & Talent Team',
+    title: 'Eugine Micah & Lucy Ogunde — Urban Gang Tour',
     description:
-      'Meet the Urban Gang: hosts Eugine Micah and Lucy Ogunde, resident DJs, stage managers, videographers, models and facilitators who bring the tour to life.',
+      'Meet Eugine Micah and Lucy Ogunde, the two lead faces behind Urban Gang Tour, its live experiences, media and youth platform.',
     changefreq: 'monthly', priority: 0.7,
   },
   {
@@ -89,10 +89,10 @@ export const ROUTES: RouteDef[] = [
     // URL stays /partners - it is indexed and linked. Only the labels change:
     // PPP TV Kenya is the sole partner, everyone else on this page is an
     // investor.
-    path: '/partners', page: 'partners', nav: 'Partners & Investors',
-    title: 'Partners & Investors — Get Your Brand in the Moment',
+    path: '/partners', page: 'partners', nav: 'Sponsors & Supporters',
+    title: 'Sponsors & Supporters — Back the Urban Gang Tour',
     description:
-      'Invest in the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
+      'Support or sponsor the Urban Gang Tour. Brands, institutions, campuses and schools can back youth talent, events, media and culture across Kenya.',
     changefreq: 'monthly', priority: 0.7,
   },
   {
