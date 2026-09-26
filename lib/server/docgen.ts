@@ -483,7 +483,7 @@ export const PROMO_FIELDS: Record<string, string[]> = {
 // Those masters are useful for proofing but must never quietly become a final
 // event asset. This map lets the server identify every slot that would remain
 // inherited when the owner has not supplied current material.
-const PROMO_HERO_SLOT_COUNTS: Partial<Record<DocType, number>> = {
+export const PROMO_HERO_SLOT_COUNTS: Partial<Record<DocType, number>> = {
   newsletter: 3,
   emailSig: 1,
   stageBack: 2,
@@ -498,8 +498,8 @@ const PROMO_HERO_SLOT_COUNTS: Partial<Record<DocType, number>> = {
   posFestival: 3,
   posFinale: 3,
 };
-const PROMO_PARTNER_SLOT_TYPES = new Set<DocType>([
-  "mediaWall", "stageBack", "posTakeover", "posFestival", "posFinale", "posMaster",
+export const PROMO_PARTNER_SLOT_TYPES = new Set<DocType>([
+  "mediaWall", "stageBack", "posTakeover", "posFestival", "posFinale",
 ]);
 
 // Physical artwork has deliberately smaller safe areas than social cards.

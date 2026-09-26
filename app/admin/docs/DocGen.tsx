@@ -569,7 +569,6 @@ const PROMO_SPEC: Record<string, PSpec> = {
       },
     ],
     heroSlots: [],
-    partners: true,
   },
 };
 const PROMO_KEYS = Object.keys(PROMO_SPEC) as DocType[];
