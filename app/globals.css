@@ -1,3 +1,5 @@
+@import './_components/ugt/tokens.css';
+
 /* Immediate local faces prevent FOIT when Google Fonts is slow or blocked.
    The remote stylesheet can still replace these with the branded faces. */
 @font-face{font-family:'Space Grotesk';src:local('Arial');font-display:swap}
