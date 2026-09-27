@@ -12,7 +12,7 @@ type Product = { id: string; name: string; price: number; image?: string; catego
 type BagLine = { id: string; name: string; price: number; qty: number; variant?: string };
 type Photo = { id: string; url: string; category?: string; caption?: string; altText?: string };
 
-const routes: Record<string, 'home' | 'events' | 'gallery' | 'shop' | 'book'> = { '/': 'home', '/events': 'events', '/gallery': 'gallery', '/shop': 'shop', '/book': 'book', '/contact-us': 'book' };
+const routes: Record<string, 'home' | 'events' | 'gallery' | 'shop' | 'book'> = { '/': 'home', '/events': 'events', '/gallery': 'gallery', '/shop': 'shop' };
 const price = (n: number) => `KES ${n.toLocaleString('en-KE')}`;
 const showDate = (d?: string) => d ? new Intl.DateTimeFormat('en-KE', { day: 'numeric', month: 'short' }).format(new Date(`${d}T00:00:00`)) : 'Coming soon';
 

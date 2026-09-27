@@ -1,0 +1,6 @@
+import Link from 'next/link';
+import { PathCard, StickerChip } from '@/app/_components/ugt';
+
+export function ContactPage() {
+  return <main className="ugt-contact-page" data-ugt-motion="quiet"><section className="ugt-contact-page__hero"><div className="ugt-page-frame"><p className="ugt-kicker ugt-kicker--yellow">General contact</p><h1>Send a<br />signal.</h1><p>Choose the door that matches what you need. That keeps a general question from becoming an institutional booking request.</p></div></section><section className="ugt-contact-page__body"><div className="ugt-page-frame"><div className="ugt-contact-page__grid"><PathCard href="/book" number="01" tone="yellow" title="Book the tour." copy="For schools, campuses and institutions planning a stop." label="Start booking" /><PathCard href="/press" number="02" tone="cyan" title="Press and media." copy="Official context, public bios and media basics." label="Open press room" /><PathCard href="mailto:admin@urbangangtour.co.ke" number="03" tone="ink" title="General enquiry." copy="For a question that does not belong in either door." label="Email the team" /></div><p className="ugt-contact-page__note"><StickerChip tone="magenta">Direct routes only</StickerChip> For collaboration, visit <Link href="/work-with-us">Work With Us</Link>.</p></div></section></main>;
+}
