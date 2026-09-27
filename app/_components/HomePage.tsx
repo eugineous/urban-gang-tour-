@@ -78,9 +78,16 @@ export async function HomePage() {
   return (
     <main className="home-page" data-ugt-motion="loud">
       <section className="home-hero" aria-labelledby="home-title">
+        <div className="home-hero__night" aria-hidden="true">
+          <span className="home-hero__sun" />
+          <span className="home-hero__tower home-hero__tower--one" />
+          <span className="home-hero__tower home-hero__tower--two" />
+          <span className="home-hero__ticket">UGT<br />001</span>
+        </div>
         <div className="home-frame home-hero__grid">
-          <div>
+          <div className="home-hero__copyblock">
             <p className="home-kicker">Urban Gang Tour · Kenya</p>
+            <p className="home-hero__eyebrow">Where the culture gets made</p>
             <h1 id="home-title">
               The culture
               <br />
@@ -95,7 +102,7 @@ export async function HomePage() {
             </div>
           </div>
           <aside className="home-hero__signal" aria-label="Live event status">
-            <p>Right now</p>
+            <p>Signal / live</p>
             <strong>
               {events.length
                 ? `${events.length} public event${events.length === 1 ? '' : 's'} to explore`
@@ -106,6 +113,7 @@ export async function HomePage() {
                 ? `${ticketed.length} event${ticketed.length === 1 ? '' : 's'} with tickets available`
                 : 'Follow Urban Gang for the next live announcement.'}
             </span>
+            <b>NAIROBI ↗ KENYA</b>
           </aside>
         </div>
       </section>
@@ -113,6 +121,20 @@ export async function HomePage() {
       <Marquee className="home-chyron">
         Live culture · Book the tour · Wear the signal · Urban News · Where the culture gets made.
       </Marquee>
+
+      <section className="home-section home-paths" aria-label="Three ways in">
+        <div className="home-frame">
+          <div className="home-paths__masthead">
+            <p className="home-kicker">Pick a door</p>
+            <p>Three ways into the world of UGT.</p>
+          </div>
+          <div className="home-paths__grid">
+            <PathCard href="/events" number="01" tone="yellow" title="Catch the live culture." copy="Explore UGT events and get tickets when they're on sale." label="Explore events" />
+            <PathCard href="/book" number="02" tone="cyan" title="Bring the tour to your school." copy="Book a campus or school experience made for your community." label="Book the tour" />
+            <PathCard href="/shop" number="03" tone="ink" title="Wear the signal." copy="Merch that carries the culture — not a catalog dump." label="Shop merch" />
+          </div>
+        </div>
+      </section>
 
       <section className="home-section home-events" aria-labelledby="home-events-title">
         <div className="home-frame">
@@ -153,35 +175,6 @@ export async function HomePage() {
               <Link href="/events">Visit the events board</Link>
             </div>
           )}
-        </div>
-      </section>
-
-      <section className="home-section home-paths" aria-label="Three ways in">
-        <div className="home-frame home-paths__grid">
-          <PathCard
-            href="/events"
-            number="01"
-            tone="yellow"
-            title="Catch the live culture."
-            copy="Explore UGT events and get tickets when they're on sale."
-            label="Explore events"
-          />
-          <PathCard
-            href="/book"
-            number="02"
-            tone="cyan"
-            title="Bring the tour to your school."
-            copy="Book a campus or school experience made for your community."
-            label="Book the tour"
-          />
-          <PathCard
-            href="/shop"
-            number="03"
-            tone="ink"
-            title="Wear the signal."
-            copy="Merch that carries the culture — not a catalog dump."
-            label="Shop merch"
-          />
         </div>
       </section>
 
