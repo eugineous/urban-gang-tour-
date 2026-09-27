@@ -51,7 +51,15 @@ function useOverlayDialog(open: boolean, close: () => void) {
 }
 
 export function MobileApp() {
-  const page = routes[usePathname() || '/'];
+  const pathname = usePathname() || '/';
+  const page = routes[pathname];
+  // The native homepage owns every breakpoint. Other legacy mobile routes
+  // keep their existing app until their route-by-route reconstruction.
+  if (pathname === '/') return null;
+  return <MobileAppRuntime page={page} />;
+}
+
+function MobileAppRuntime({ page }: { page: 'home' | 'events' | 'gallery' | 'shop' | 'book' | undefined }) {
   const [lang, setLang] = useState<Lang>('en');
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);

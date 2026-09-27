@@ -140,11 +140,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return <main style={{ minHeight: '100vh', background: '#fffafc', color: '#111', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
     <JsonLd data={productJsonLd} />
-    <header style={{ background: '#111', borderBottom: '4px solid #111', padding: '14px 20px' }}>
-      <a href="/" aria-label="Urban Gang Tour home" style={{ display: 'inline-flex' }}>
-        <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ display: 'block', height: 46, maxWidth: 'min(260px, 70vw)', objectFit: 'contain' }} />
-      </a>
-    </header>
     <section style={{ maxWidth: 1120, margin: '0 auto', padding: 'clamp(28px,6vw,72px) 20px 84px' }}>
       <a href="/shop" style={{ color: '#111', fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.08em' }}>← Back to merch</a>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(290px,440px)', gap: 'clamp(28px,6vw,72px)', marginTop: 26, alignItems: 'start' }}>

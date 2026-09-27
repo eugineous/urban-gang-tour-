@@ -1,6 +1,7 @@
 import data from './jsonld.data.json';
 import { SITE, routeByPath } from '@/lib/site';
 import { INDEXABLE_EVENT_STATUSES, eventSchemaStatus } from '@/lib/server/event-lifecycle';
+import { resolveManyEventTruths } from '@/lib/server/event-truth';
 
 // v25's structured data, split onto the pages it belongs to.
 // Organization + WebSite are site-wide (rendered in the root layout);
@@ -125,10 +126,16 @@ export async function eventsFromDb(): Promise<unknown | null> {
       [[...INDEXABLE_EVENT_STATUSES]],
     );
     if (!rows.length) return null;
-    const graph = rows.map((r: any) => {
+    const truths = await resolveManyEventTruths(rows.map((row: { slug: string }) => row.slug));
+    const truthBySlug = new Map(truths.map((truth) => [truth.slug, truth]));
+    const graph = rows.flatMap((r: any) => {
+      const truth = truthBySlug.get(r.slug);
+      // A rich-result offer must be backed by current commercial truth. If
+      // availability cannot be resolved, omit this event rather than assert
+      // that a ticket is InStock from its lifecycle label alone.
+      if (!truth) return [];
       const dateStr = String(r.event_date).slice(0, 10);
       const desc = String(r.description || '').replace(/—/g, '-');
-      const tiers: { name: string; price: number }[] = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
       const eventUrl = `${SITE.domain}/events/${encodeURIComponent(r.slug)}`;
       // No offers for an event that cannot be bought. Advertising InStock on a
       // cancelled or paused event is exactly the stale-truth failure this is
@@ -136,14 +143,14 @@ export async function eventsFromDb(): Promise<unknown | null> {
       // can actually buy that event's tickets (Google's requirement), or it
       // must not be emitted.
       const status = String(r.status || 'published');
-      const buyable = status === 'published';
-      const soldOut = status === 'sold_out';
+      const buyable = truth.isSellable;
+      const soldOut = truth.isSoldOut;
       const prev = r.previous_start_at ? String(r.previous_start_at).slice(0, 10) : null;
       const startOf = (d: string) =>
         /^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(String(r.event_time || '').trim())
           ? `${d}T${timeTo24h(r.event_time)}+03:00`
           : d;
-      return {
+      return [{
         '@type': 'Event',
         '@id': eventUrl,
         url: eventUrl,
@@ -166,17 +173,17 @@ export async function eventsFromDb(): Promise<unknown | null> {
         description: desc || r.name,
         offers: !buyable && !soldOut
           ? undefined
-          : tiers.map((t) => ({
+          : truth.tiers.filter((tier) => soldOut || tier.sellable).map((tier) => ({
               '@type': 'Offer',
-              name: t.name,
-              price: String(Math.round(Number(t.price) || 0)),
+              name: tier.name,
+              price: String(tier.price),
               priceCurrency: 'KES',
               availability: soldOut
                 ? 'https://schema.org/SoldOut'
                 : 'https://schema.org/InStock',
               url: eventUrl,
             })),
-      };
+      }];
     });
     return { '@context': 'https://schema.org', '@graph': graph };
   } catch {

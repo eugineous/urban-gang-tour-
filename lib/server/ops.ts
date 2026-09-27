@@ -195,6 +195,10 @@ ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS recovery JSONB;
 -- overwriting a moved event, and buyers who already hold tickets need to be
 -- able to see what changed. Set by tourEvent.save whenever event_date moves.
 ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS previous_start_at DATE;
+-- Optional sales-window bounds. NULL means the operator has not configured
+-- that bound; it must not be mistaken for an expired or future window.
+ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS sales_start_at TIMESTAMPTZ;
+ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS sales_end_at TIMESTAMPTZ;
 -- Expand the status CHECK constraint to support the full event lifecycle
 -- (lib/server/event-lifecycle.ts). The original constraint only allowed 4
 -- values; the lifecycle defines 10. Without this migration the DB rejects

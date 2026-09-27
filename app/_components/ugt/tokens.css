@@ -1,0 +1,32 @@
+:root {
+  --ugt-magenta: #E6218C;
+  --ugt-yellow: #FFD400;
+  --ugt-cyan: #21C7E6;
+  --ugt-ink: #111111;
+  --ugt-cream: #fffafc;
+  --ugt-blush: #f8f4ec;
+  --ugt-blush-alt: #f1ede5;
+  --ugt-blush-warm: #f7f2e9;
+  --ugt-night: #0c0c0c;
+  --ugt-news-ink: #1A0E14;
+  --ugt-news-gold: #F7A81B;
+  --ugt-whatsapp: #25D366;
+  --ugt-shadow-sm: 3px 3px 0 var(--ugt-ink);
+  --ugt-shadow-md: 5px 6px 0 var(--ugt-ink);
+  --ugt-shadow-lg: 8px 8px 0 var(--ugt-ink);
+  --ugt-shadow-money: 3px 3px 0 var(--ugt-magenta);
+  --ugt-type-display: 'Anton', 'Arial Black', sans-serif;
+  --ugt-type-slogan: 'Permanent Marker', cursive;
+  --ugt-type-body: 'Space Grotesk', Arial, sans-serif;
+  --ugt-type-news-display: 'Titan One', cursive;
+  --ugt-type-news-body: 'Archivo', sans-serif;
+  --ugt-type-mono: 'Spline Sans Mono', ui-monospace, monospace;
+  --ugt-fs-display: clamp(50px, 7vw, 92px);
+  --ugt-fs-h1: clamp(38px, 5vw, 64px);
+  --ugt-fs-h2: clamp(31px, 3.2vw, 47px);
+  --ugt-fs-h3: 25px;
+  --ugt-fs-body: 16px;
+  --ugt-fs-kicker: 11px;
+  --ugt-fs-micro: 10px;
+  --ugt-sticker-tilt: -2deg;
+}

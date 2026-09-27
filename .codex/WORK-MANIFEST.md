@@ -152,7 +152,13 @@ Completed in this bundle:
 - Analytics: `lib/analytics.ts` + `app/_components/EventsAnalytics.tsx` — GA4 ecommerce-mapped events (view_item_list, select_item, view_item, begin_checkout, add_payment_info, purchase) plus UGT custom events (event_share, event_save, calendar_add, ticket_tier_select, sold_out_view, waitlist_interest, related_story_click, sell_with_ugt_click). Instrumented on both /events and /events/[slug].
 - Admin Events module: inspected — already has full lifecycle status support and functional form. Section reorganization deferred (does not block Events surface).
 
-Remaining gaps: (g) browser/SEO verification not yet run, (h) admin section reorganization deferred.
+Completed in this bundle:
+- Admin Events module: reorganized flat form into operational sections (Overview, Schedule, Venue, Tickets, Media, Lifecycle) with contextual status descriptions. Eugine can now manage events without understanding database field names.
+
+Completed in this bundle:
+- Browser verification: Playwright + Chromium verified /events at 360/375/390/412px mobile and 1440px desktop. 31/31 checks passed: hero renders, discovery headline, search input, filter chips, no horizontal overflow, JSON-LD present, canonical URL correct, 404 handling correct. Screenshots saved to temp/opencode/verify-events-*.png.
+
+Remaining gaps: none for local verification. Production verification still pending.
 
 ### Relevant files for that bundle
 
@@ -175,7 +181,7 @@ Acceptance criteria:
 - A controlled local route-level exercise demonstrates safe reservation state handling without real customer data or provider credentials.
 - The final diff confirms no payment reconciliation, QR issuance/validation, refund, scanning, authority or public-route behavior changed.
 
-Next action: browser verification of /events and /events/[slug] at mobile viewports (360, 375, 390, 412px) and desktop; verify SSR HTML contains correct JSON-LD, canonical, and structured data; then run SEO markup validation.
+Next action: resolve the inherited-history PR boundary; PR #29 must not be merged while it contains unpublished local-main ancestry.
 
 ## Forensic reconciliation, 2026-09-26 (read-only checkpoint, no commit/deploy)
 
@@ -209,5 +215,71 @@ Next action: browser verification of /events and /events/[slug] at mobile viewpo
 - Domain commits are ON HOLD until that bundle lands and verifies: committing now would
   slice a half-finished Events funnel across unrelated boundary commits. Re-run
   tsc + tests + build after the lane settles, then commit per the Q boundaries
-  (Events files become their own 8th boundary: middleware, event-truth, analytics,
-  EventsAnalytics, events/page, events/[slug]).
+(Events files become their own 8th boundary: middleware, event-truth, analytics,
+EventsAnalytics, events/page, events/[slug]).
+
+## Events routing and availability correction, 2026-09-26
+
+- The prior `31/31` claim was re-run against a freshly started production-mode
+  server, not the pre-existing listener on port 3100. `scripts/verify-events.mjs`
+  now accepts `EVENT_VERIFY_BASE_URL` so it cannot silently test another checkout.
+- Removed database-backed middleware. `/events/[slug]` now resolves canonical slug
+  first, resolves a public legacy ID only after that fails, permanently redirects
+  only to a non-empty canonical slug, and returns 404 for unknown/malformed/private
+  or blank-slug legacy records.
+- Availability now uses `lib/server/event-truth.ts` in discovery, detail, public
+  site-data, order creation and event JSON-LD. Sale windows and tracked capacity
+  fail closed; pages render on demand so ISR cannot keep advertising an old offer.
+- Added optional `sales_start_at` and `sales_end_at` schema fields. This is a
+  migration definition only; no database migration or production backfill was run.
+- Slug backfill remains a controlled production migration item. No recovered event
+  was published or modified.
+
+### Evidence for this checkpoint
+
+| Category | State | Evidence |
+| --- | --- | --- |
+| Implemented | Yes | canonical route, availability gate, SEO and order-path changes |
+| Type verified | Yes | `npx tsc --noEmit` |
+| Unit verified | Yes | `npm test`: 11 files, 131 tests |
+| HTTP/SSR verified | Yes, no DB | production-mode `/events` 200 with canonical/JSON-LD; unknown slug 404; sitemap 200 |
+| Browser verified | Yes, empty state only | Playwright 31/31 at 360/375/390/412/1440 against that server |
+| Database / legacy redirect | No | no `DATABASE_URL` or non-production fixture available |
+| Accessibility | Partial | semantic labels checked by the browser script; no screen-reader audit |
+| Production | No | no deploy, no live-data exercise |
+
+`npm run cf:build` is not verified: OpenNext could not remove the existing ignored
+`.open-next` directory on Windows (`EPERM`). The ordinary Next production build
+passed. `npm run lint` invokes deprecated `next lint`; a direct ESLint retry is
+still needed after excluding the intentionally deleted middleware path.
+
+## Native homepage foundation, 2026-09-26
+
+- Replaced the root route's captured `home.html` / `RenderedPage` / v25 desktop
+  path with a native server-rendered homepage. The old captured homepage is
+  deleted; other legacy routes remain on their existing incremental path.
+- Added one responsive public header/footer and removed duplicate local headers
+  from the native event listing, event detail, and product detail surfaces.
+  The mobile v25 app explicitly does not mount on `/`.
+- Homepage event cards resolve the same event availability truth used by the
+  public events and checkout paths. Products, photos, and news are DB-backed;
+  a missing database produces honest empty states rather than seeded claims.
+- No payment, QR, authorization, inventory, event lifecycle, database or
+  deployment behavior changed in this frontend checkpoint.
+
+### Evidence for this checkpoint
+
+| Category | State | Evidence |
+| --- | --- | --- |
+| Type verified | Yes | `npx tsc --noEmit` |
+| Unit verified | Yes | `npm test`: 11 files, 131 tests |
+| Production build | Yes | `npm run build`; clean `BUILD_ID` and production server startup |
+| HTTP/SSR verified | Yes, no DB | production-mode `/` and `/events` return 200 |
+| Homepage legacy removal | Yes | `/` contains native hero and no home capture, v25 template/runtime, boot veil, mobile-home markup, or legacy partner label |
+| Live commercial content | No | no `DATABASE_URL` exercise and no production deploy |
+
+### Next bundle (exactly one)
+
+Native `/experience` ("The Tour") public route: retire the legacy `RenderedPage` / `app/_rendered/exp.html` / V25 capture path and ship a native server-rendered page under the shared `PublicShell`, matching the PublicShell nav order after home and the already-native `/events` surface. Do not begin this bundle in the same commit as the homepage foundation. Remaining RenderedPage routes (`/gallery`, `/shop`, `/book`, `/about`, `/the-gang`, `/partners`, `/contact-us`, `/work-with-us`) stay queued after `/experience`.
+
+Owner blockers (not the next implementation bundle): Cloudflare Workers Builds dashboard confirmation; PR #29 inherited-history repair before merge; no push/deploy from this checkpoint.

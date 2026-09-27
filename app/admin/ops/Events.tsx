@@ -167,32 +167,38 @@ export default function Events() {
       <div style={card}>
         <Toast msg={toast} />
         <h3 style={h3}>{edit.id ? 'EDIT EVENT' : 'NEW EVENT'}</h3>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-          <div><span style={label}>Kind *</span>
-            <select style={inp} value={edit.kind} disabled={!!edit.id} onChange={(e) => setEdit({ ...edit, kind: e.target.value as Kind })}>
-              <option value="ticketed">Ticketed concert</option>
-              <option value="school">School tour stop</option>
-              <option value="past">Past client</option>
-            </select>
+
+        {/* Overview */}
+        <div style={{ marginBottom: 18 }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Overview</p>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div><span style={label}>Kind *</span>
+              <select style={inp} value={edit.kind} disabled={!!edit.id} onChange={(e) => setEdit({ ...edit, kind: e.target.value as Kind })}>
+                <option value="ticketed">Ticketed concert</option>
+                <option value="school">School tour stop</option>
+                <option value="past">Past client</option>
+              </select>
+            </div>
+            <div><span style={label}>Name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Lari Boys High School" /></div>
+            <div><span style={label}>Priority (higher shows first)</span><input style={inp} type="number" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: Number(e.target.value) || 0 })} /></div>
           </div>
-          <div><span style={label}>Name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Lari Boys High School" /></div>
-          <div><span style={label}>Status</span>
-            <select style={inp} value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as Status })}>
-              <option value="draft">Draft (hidden)</option>
-              <option value="pending_review">Pending review (hidden)</option>
-              <option value="published">Published (live + sellable)</option>
-              <option value="sales_paused">Sales paused (visible, not sellable)</option>
-              <option value="sold_out">Sold out (visible, not sellable)</option>
-              <option value="postponed">Postponed (visible, not sellable)</option>
-              <option value="rescheduled">Rescheduled (visible, not sellable)</option>
-              <option value="completed">Completed (past, not sellable)</option>
-              <option value="cancelled">Cancelled (hidden, not sellable)</option>
-              <option value="archived">Archived (hidden)</option>
-            </select>
+          <div style={{ marginTop: 10 }}>
+            <span style={label}>{edit.kind === 'ticketed' ? 'Tagline' : 'Description'}</span>
+            <input style={inp} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
           </div>
-          <div><span style={label}>Priority (higher shows first)</span><input style={inp} type="number" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: Number(e.target.value) || 0 })} /></div>
-          {edit.kind !== 'past' && (
-            <>
+          {edit.kind === 'past' && (
+            <div style={{ marginTop: 10 }}>
+              <span style={label}>Testimonial</span>
+              <textarea style={{ ...inp, minHeight: 70 }} value={edit.testimonial} onChange={(e) => setEdit({ ...edit, testimonial: e.target.value })} />
+            </div>
+          )}
+        </div>
+
+        {/* Schedule */}
+        {edit.kind !== 'past' && (
+          <div style={{ marginBottom: 18 }}>
+            <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Schedule</p>
+            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
               <div><span style={label}>Date {edit.kind === 'school' ? '(leave blank if TBA)' : '*'}</span><input style={inp} type="date" value={edit.eventDate} onChange={(e) => setEdit({ ...edit, eventDate: e.target.value })} /></div>
               {edit.kind === 'school' && !edit.eventDate && (
                 <div><span style={label}>Date label (shown instead, e.g. &quot;TBA · AUG 2026&quot;)</span><input style={inp} value={edit.dateLabel} onChange={(e) => setEdit({ ...edit, dateLabel: e.target.value })} placeholder="TBA · AUG 2026" /></div>
@@ -200,32 +206,25 @@ export default function Events() {
               {edit.kind === 'ticketed' && (
                 <div><span style={label}>Time</span><input style={inp} value={edit.eventTime} onChange={(e) => setEdit({ ...edit, eventTime: e.target.value })} placeholder="2:00 PM" /></div>
               )}
-            </>
-          )}
-          <div><span style={label}>{edit.kind === 'ticketed' ? 'Venue' : 'Location line'}</span><input style={inp} value={edit.venue} onChange={(e) => setEdit({ ...edit, venue: e.target.value })} placeholder={edit.kind === 'ticketed' ? 'KICC Grounds' : 'Kimende, Lari, Kiambu County'} /></div>
-          {edit.kind === 'ticketed' && (
-            <>
-              <div><span style={label}>City</span><input style={inp} value={edit.city} onChange={(e) => setEdit({ ...edit, city: e.target.value })} placeholder="Nairobi" /></div>
-              <div><span style={label}>Accent colour (hex)</span><input style={inp} value={edit.accent} onChange={(e) => setEdit({ ...edit, accent: e.target.value })} placeholder="#E6218C" /></div>
-            </>
-          )}
-          <div><span style={label}>Image path</span><input style={inp} value={edit.image} onChange={(e) => setEdit({ ...edit, image: e.target.value })} placeholder="/assets/gal/lari.jpg" /></div>
-          {edit.kind === 'past' && (
-            <div><span style={label}>Logo path</span><input style={inp} value={edit.logo} onChange={(e) => setEdit({ ...edit, logo: e.target.value })} placeholder="/assets/partners/logo.png" /></div>
-          )}
-        </div>
-        <div style={{ marginTop: 10 }}>
-          <span style={label}>{edit.kind === 'ticketed' ? 'Tagline' : 'Description'}</span>
-          <input style={inp} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
-        </div>
-        {edit.kind === 'past' && (
-          <div style={{ marginTop: 10 }}>
-            <span style={label}>Testimonial</span>
-            <textarea style={{ ...inp, minHeight: 70 }} value={edit.testimonial} onChange={(e) => setEdit({ ...edit, testimonial: e.target.value })} />
+            </div>
           </div>
         )}
+
+        {/* Venue */}
+        <div style={{ marginBottom: 18 }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Venue</p>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div><span style={label}>{edit.kind === 'ticketed' ? 'Venue' : 'Location line'}</span><input style={inp} value={edit.venue} onChange={(e) => setEdit({ ...edit, venue: e.target.value })} placeholder={edit.kind === 'ticketed' ? 'KICC Grounds' : 'Kimende, Lari, Kiambu County'} /></div>
+            {edit.kind === 'ticketed' && (
+              <div><span style={label}>City</span><input style={inp} value={edit.city} onChange={(e) => setEdit({ ...edit, city: e.target.value })} placeholder="Nairobi" /></div>
+            )}
+          </div>
+        </div>
+
+        {/* Tickets */}
         {edit.kind === 'ticketed' && (
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginBottom: 18 }}>
+            <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Tickets</p>
             <span style={label}>Ticket tiers (real prices — checkout charges exactly this)</span>
             {edit.tiers.map((t, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}>
@@ -237,6 +236,54 @@ export default function Events() {
             <button style={btnSmall} onClick={() => setEdit({ ...edit, tiers: [...edit.tiers, { name: '', price: 0 }] })}>+ Add tier</button>
           </div>
         )}
+
+        {/* Media */}
+        <div style={{ marginBottom: 18 }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Media</p>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div><span style={label}>Image path</span><input style={inp} value={edit.image} onChange={(e) => setEdit({ ...edit, image: e.target.value })} placeholder="/assets/gal/lari.jpg" /></div>
+            {edit.kind === 'ticketed' && (
+              <div><span style={label}>Accent colour (hex)</span><input style={inp} value={edit.accent} onChange={(e) => setEdit({ ...edit, accent: e.target.value })} placeholder="#E6218C" /></div>
+            )}
+            {edit.kind === 'past' && (
+              <div><span style={label}>Logo path</span><input style={inp} value={edit.logo} onChange={(e) => setEdit({ ...edit, logo: e.target.value })} placeholder="/assets/partners/logo.png" /></div>
+            )}
+          </div>
+        </div>
+
+        {/* Lifecycle */}
+        <div style={{ marginBottom: 18 }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Lifecycle</p>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div><span style={label}>Status</span>
+              <select style={inp} value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as Status })}>
+                <option value="draft">Draft (hidden)</option>
+                <option value="pending_review">Pending review (hidden)</option>
+                <option value="published">Published (live + sellable)</option>
+                <option value="sales_paused">Sales paused (visible, not sellable)</option>
+                <option value="sold_out">Sold out (visible, not sellable)</option>
+                <option value="postponed">Postponed (visible, not sellable)</option>
+                <option value="rescheduled">Rescheduled (visible, not sellable)</option>
+                <option value="completed">Completed (past, not sellable)</option>
+                <option value="cancelled">Cancelled (hidden, not sellable)</option>
+                <option value="archived">Archived (hidden)</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+            {edit.status === 'published' && 'Live and sellable. Tickets can be purchased.'}
+            {edit.status === 'draft' && 'Hidden from the public site and search engines.'}
+            {edit.status === 'pending_review' && 'Hidden. Awaiting review before publishing.'}
+            {edit.status === 'sales_paused' && 'Visible but not sellable. Check back soon.'}
+            {edit.status === 'sold_out' && 'Visible but not sellable. All tiers sold out.'}
+            {edit.status === 'postponed' && 'Visible. New date to be announced.'}
+            {edit.status === 'rescheduled' && 'Visible. Date has changed.'}
+            {edit.status === 'completed' && 'Past event. Not sellable.'}
+            {edit.status === 'cancelled' && 'Hidden. Ticket holders will be contacted about refunds.'}
+            {edit.status === 'archived' && 'Hidden. Retained for historical records.'}
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button style={btnMagenta} disabled={busy} onClick={save}>Save event</button>
           <button style={btnDark} onClick={() => setEdit(null)}>Cancel</button>

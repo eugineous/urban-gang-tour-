@@ -1,6 +1,6 @@
 import { NextResponse, after } from "next/server";
 import { randomUUID } from "crypto";
-import { serverTotalWithPromos, getTicketTiers } from "@/lib/server/catalog";
+import { serverTotalWithPromos } from "@/lib/server/catalog";
 import { recordPromoCodeUse } from "@/lib/server/promos";
 import {
   rateLimit,
@@ -14,6 +14,8 @@ import { notifyNewOrder } from "@/lib/server/notify";
 import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
 import { assertMerchStockAvailable } from "@/lib/server/inventory";
 import { parseTierInventory, assertTicketAvailable, holdTickets, releaseReservation } from "@/lib/server/ticket-inventory";
+import { q, hasDb } from "@/lib/server/db";
+import { resolveEventTruth } from "@/lib/server/event-truth";
 
 const seen = new Map<string, { id: string; ts: number }>(); // short-lived retry guard
 const IDEMPOTENCY_TTL_MS = 10 * 60_000;
@@ -105,11 +107,25 @@ export async function POST(req: Request) {
         );
       }
     }
-    const ticketTiers = await getTicketTiers();
-    const ev =
-      typeof ticket.eventId === "string"
-        ? ticketTiers[ticket.eventId]
-        : undefined;
+    const eventId = typeof ticket.eventId === "string" ? ticket.eventId : "";
+    let event: { id: string; slug: string; name: string; tiers: unknown } | undefined;
+    let truth: Awaited<ReturnType<typeof resolveEventTruth>>;
+    try {
+      const events = hasDb()
+        ? await q<{ id: string; slug: string; name: string; tiers: unknown }>(
+            `SELECT id, slug, name, tiers FROM tour_events
+             WHERE id=$1 AND kind='ticketed' AND slug != '' LIMIT 1`,
+            [eventId],
+          )
+        : [];
+      event = events[0];
+      truth = event ? await resolveEventTruth(event.slug) : null;
+    } catch {
+      return NextResponse.json({ error: "inventory_check_failed" }, { status: 503 });
+    }
+    const ev = event && truth?.isSellable
+      ? { name: event.name, tiers: parseTierInventory(event.tiers) }
+      : undefined;
     if (!ev)
       return NextResponse.json({ error: "unknown_event" }, { status: 400 });
     if (
@@ -128,25 +144,13 @@ export async function POST(req: Request) {
     // checkout. Capacity is optional — a tier without one sells without a
     // count check. remaining = capacity - sold(paid) - unexpired holds.
     try {
-      const { q: qq, hasDb: hasDbQ } = await import("@/lib/server/db");
-      if (hasDbQ()) {
-        const erows = await qq<{ tiers: unknown }>(
-          `SELECT tiers FROM tour_events WHERE id=$1 AND kind='ticketed' AND status='published'`,
-          [ticket.eventId],
-        );
-        if (!erows.length) {
-          return NextResponse.json({ error: "event_not_on_sale" }, { status: 409 });
-        }
-        const inv = parseTierInventory(erows[0].tiers);
-        const invTier = inv[ticket.tier];
-        if (invTier) {
-          await assertTicketAvailable({
-            eventId: ticket.eventId,
-            tierIndex: ticket.tier,
-            tier: invTier,
-            qty: ticket.qty,
-          });
-        }
+      if (hasDb()) {
+        await assertTicketAvailable({
+          eventId,
+          tierIndex: ticket.tier,
+          tier,
+          qty: ticket.qty,
+        });
       }
     } catch (e: any) {
       const msg = String(e?.message || "sold_out");
@@ -156,7 +160,7 @@ export async function POST(req: Request) {
     }
     orderItems = [
       {
-        id: "ticket:" + ticket.eventId + ":" + ticket.tier,
+        id: "ticket:" + eventId + ":" + ticket.tier,
         qty: ticket.qty,
         name: ev.name + " - " + tier.name,
         unit: tier.price,

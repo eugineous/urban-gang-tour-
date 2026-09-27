@@ -3,6 +3,7 @@ import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
 import { PUBLIC_EVENT_STATUSES, isEventSellable } from '@/lib/server/event-lifecycle';
+import { resolveManyEventTruths, type EventTruth } from '@/lib/server/event-truth';
 
 // Public, read-only view of tour events (ticketed concerts, school tour
 // stops, past-client showcase) — the single DB-backed source
@@ -19,7 +20,7 @@ import { PUBLIC_EVENT_STATUSES, isEventSellable } from '@/lib/server/event-lifec
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function publicRow(r: any) {
+function publicRow(r: any, truth?: EventTruth) {
   const tiers = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
   return {
     id: r.id,
@@ -45,7 +46,11 @@ function publicRow(r: any) {
     // now — one implementation, in lib/server/event-lifecycle.ts. A published
     // school stop is deliberately NOT sellable: its status is 'published'
     // only because that is what makes it visible.
-    sellable: isEventSellable({ status: r.status, kind: r.kind, tiers }),
+    // Ticketed rows use the availability resolver (status, sale window and
+    // tracked capacity). Non-ticketed rows are never purchasable.
+    sellable: r.kind === 'ticketed'
+      ? truth?.isSellable === true
+      : isEventSellable({ status: r.status, kind: r.kind, tiers }),
   };
 }
 
@@ -77,7 +82,11 @@ export async function GET(req: Request) {
             `SELECT ${cols} FROM tour_events WHERE status = ANY($1) ORDER BY priority DESC, event_date ASC NULLS LAST`,
             [[...PUBLIC_EVENT_STATUSES]]
           );
-      return rows.map(publicRow);
+      const truths = await resolveManyEventTruths(
+        rows.filter((row: { kind: string }) => row.kind === 'ticketed').map((row: { slug?: string }) => row.slug || ''),
+      );
+      const truthBySlug = new Map(truths.map((truth) => [truth.slug, truth]));
+      return rows.map((row) => publicRow(row, truthBySlug.get(row.slug)));
     });
     return NextResponse.json({ ok: true, events }, { headers: CACHE_HEADERS });
   } catch {
