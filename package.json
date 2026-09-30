@@ -12,7 +12,8 @@
     "lint": "next lint",
     "test": "vitest run --no-cache",
     "cf:build": "opennextjs-cloudflare build",
-    "cf:preview": "opennextjs-cloudflare preview"
+    "cf:preview": "opennextjs-cloudflare preview",
+    "deploy": "npm run cf:build && wrangler deploy"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
