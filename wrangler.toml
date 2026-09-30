@@ -3,11 +3,6 @@ main = "worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
-# Cloudflare Git Builds runs `wrangler deploy`. Generate the OpenNext bundle
-# first so worker.js can import the current `.open-next/worker.js` artifact.
-[build]
-command = "npm run cf:build"
-
 # Persists invocation logs + traces to the dashboard for debugging.
 [observability]
 enabled = true
