@@ -1,6 +1,0 @@
-import Link from 'next/link';
-import { MoneyButton, PosterCard, StickerChip } from '@/app/_components/ugt';
-
-export function AboutPage() {
-  return <main className="ugt-trust-page" data-ugt-motion="quiet"><section className="ugt-trust-page__hero"><div className="ugt-page-frame"><p className="ugt-kicker">From Potential to Purpose</p><h1>Culture needs<br />a place to grow.</h1><p>Urban Gang Tour creates room for young people, ideas and expression to meet in public.</p></div></section><section className="ugt-trust-page__body"><div className="ugt-page-frame"><div className="ugt-section-heading"><div><p className="ugt-kicker">The why</p><h2>Built for the people making the next thing.</h2></div><StickerChip tone="yellow">Kenya</StickerChip></div><div className="ugt-trust-page__cards"><PosterCard><h3>Make space</h3><p>A tour day can be a stage, a conversation, a first performance or a new connection.</p></PosterCard><PosterCard><h3>Move together</h3><p>Every public route is an invitation to show up, create, learn and carry the energy forward.</p></PosterCard><PosterCard><h3>Keep it human</h3><p>One platform, built around real moments rather than empty claims.</p></PosterCard></div><div className="ugt-trust-page__cta"><p>Where the culture gets made.</p><MoneyButton href="/book">Book the tour</MoneyButton></div></div></section></main>;
-}

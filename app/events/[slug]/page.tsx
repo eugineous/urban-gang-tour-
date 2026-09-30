@@ -181,6 +181,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   return <main style={{ minHeight: '100vh', color: '#111', background: '#fffafc', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
     {eventJsonLd ? <JsonLd data={eventJsonLd} /> : null}
     <EventsAnalytics eventSlug={event.slug} eventNames={[{ slug: event.slug, name: event.name }]} />
+    <div style={{ borderBottom: '4px solid #111', background: '#111', padding: '14px 20px' }}>
+      <a href="/" aria-label="Urban Gang Tour home" style={{ display: 'inline-flex', alignItems: 'center' }}>
+        <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ display: 'block', height: 48, width: 'auto', maxWidth: 'min(280px, 76vw)', objectFit: 'contain' }} />
+      </a>
+    </div>
     <section style={{ position: 'relative', overflow: 'hidden', background: accent, borderBottom: '4px solid #111' }}>
       {event.image ? <img src={event.image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.26 }} /> : null}
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(110deg, rgba(17,17,17,.92), rgba(17,17,17,.52))' }} />

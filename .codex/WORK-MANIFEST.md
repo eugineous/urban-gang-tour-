@@ -252,34 +252,3 @@ EventsAnalytics, events/page, events/[slug]).
 `.open-next` directory on Windows (`EPERM`). The ordinary Next production build
 passed. `npm run lint` invokes deprecated `next lint`; a direct ESLint retry is
 still needed after excluding the intentionally deleted middleware path.
-
-## Native homepage foundation, 2026-09-26
-
-- Replaced the root route's captured `home.html` / `RenderedPage` / v25 desktop
-  path with a native server-rendered homepage. The old captured homepage is
-  deleted; other legacy routes remain on their existing incremental path.
-- Added one responsive public header/footer and removed duplicate local headers
-  from the native event listing, event detail, and product detail surfaces.
-  The mobile v25 app explicitly does not mount on `/`.
-- Homepage event cards resolve the same event availability truth used by the
-  public events and checkout paths. Products, photos, and news are DB-backed;
-  a missing database produces honest empty states rather than seeded claims.
-- No payment, QR, authorization, inventory, event lifecycle, database or
-  deployment behavior changed in this frontend checkpoint.
-
-### Evidence for this checkpoint
-
-| Category | State | Evidence |
-| --- | --- | --- |
-| Type verified | Yes | `npx tsc --noEmit` |
-| Unit verified | Yes | `npm test`: 11 files, 131 tests |
-| Production build | Yes | `npm run build`; clean `BUILD_ID` and production server startup |
-| HTTP/SSR verified | Yes, no DB | production-mode `/` and `/events` return 200 |
-| Homepage legacy removal | Yes | `/` contains native hero and no home capture, v25 template/runtime, boot veil, mobile-home markup, or legacy partner label |
-| Live commercial content | No | no `DATABASE_URL` exercise and no production deploy |
-
-### Next bundle (exactly one)
-
-Native `/experience` ("The Tour") public route: retire the legacy `RenderedPage` / `app/_rendered/exp.html` / V25 capture path and ship a native server-rendered page under the shared `PublicShell`, matching the PublicShell nav order after home and the already-native `/events` surface. Do not begin this bundle in the same commit as the homepage foundation. Remaining RenderedPage routes (`/gallery`, `/shop`, `/book`, `/about`, `/the-gang`, `/partners`, `/contact-us`, `/work-with-us`) stay queued after `/experience`.
-
-Owner blockers (not the next implementation bundle): Cloudflare Workers Builds dashboard confirmation; PR #29 inherited-history repair before merge; no push/deploy from this checkpoint.
