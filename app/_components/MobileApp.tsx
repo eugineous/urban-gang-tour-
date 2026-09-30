@@ -12,7 +12,7 @@ type Product = { id: string; name: string; price: number; image?: string; catego
 type BagLine = { id: string; name: string; price: number; qty: number; variant?: string };
 type Photo = { id: string; url: string; category?: string; caption?: string; altText?: string };
 
-const routes: Record<string, 'home' | 'events' | 'gallery' | 'shop' | 'book'> = { '/': 'home', '/events': 'events', '/gallery': 'gallery', '/shop': 'shop' };
+const routes: Record<string, 'home' | 'events' | 'gallery' | 'shop' | 'book'> = { '/': 'home', '/events': 'events', '/gallery': 'gallery', '/shop': 'shop', '/book': 'book', '/contact-us': 'book' };
 const price = (n: number) => `KES ${n.toLocaleString('en-KE')}`;
 const showDate = (d?: string) => d ? new Intl.DateTimeFormat('en-KE', { day: 'numeric', month: 'short' }).format(new Date(`${d}T00:00:00`)) : 'Coming soon';
 
@@ -51,15 +51,7 @@ function useOverlayDialog(open: boolean, close: () => void) {
 }
 
 export function MobileApp() {
-  const pathname = usePathname() || '/';
-  const page = routes[pathname];
-  // The native homepage owns every breakpoint. Other legacy mobile routes
-  // keep their existing app until their route-by-route reconstruction.
-  if (pathname === '/') return null;
-  return <MobileAppRuntime page={page} />;
-}
-
-function MobileAppRuntime({ page }: { page: 'home' | 'events' | 'gallery' | 'shop' | 'book' | undefined }) {
+  const page = routes[usePathname() || '/'];
   const [lang, setLang] = useState<Lang>('en');
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);

@@ -3,7 +3,7 @@ import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { PEOPLE } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
-import { TheGangPage } from '@/app/_components/TheGangPage';
+import { RenderedPage } from '@/app/_components/RenderedPage';
 import { SITE } from '@/lib/site';
 
 const PATH = '/the-gang';
@@ -108,7 +108,34 @@ export default function Page() {
   return (
     <>
       <JsonLd data={[PEOPLE, ...structured]} />
-      <TheGangPage />
+      {/* Rich SSR shell — visible to crawlers, hidden once v25 boots */}
+      <div
+        id="ssr-shell"
+        aria-hidden="true"
+        style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
+      >
+        <h1>The Gang — Hosts, DJs, Crew &amp; Talent Team</h1>
+        <p>
+          Urban Gang Tour runs on a tightly-knit professional crew of hosts, DJs, stage managers,
+          videographers, models and performance facilitators. Every person on this list travels to
+          each school and campus stop to deliver a broadcast-quality production.
+        </p>
+        <h2>Meet the Crew</h2>
+        <ul>
+          {CREW.map((member) => (
+            <li key={member.name}>
+              <strong>{member.name}</strong> — {member.role}: {member.description}
+            </li>
+          ))}
+        </ul>
+        <h2>Join the Crew</h2>
+        <p>
+          Interested in working with the Urban Gang Tour as a performer, facilitator, photographer,
+          DJ or crew member?{' '}
+          <a href="/work-with-us">See open opportunities on our Work With Us page.</a>
+        </p>
+      </div>
+      <RenderedPage pathName={PATH} />
     </>
   );
 }

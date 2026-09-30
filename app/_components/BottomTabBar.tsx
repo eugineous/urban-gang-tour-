@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { BOTTOM_TABS, MENU_EXTRAS } from './ugt/nav';
 
 // App-style bottom tab bar — the primary mobile navigation. Always visible on
 // small screens (≤900px), so nobody has to discover a burger icon. Rendered
@@ -11,7 +10,28 @@ import { BOTTOM_TABS, MENU_EXTRAS } from './ugt/nav';
 // z-index sits below v25's own overlays (menu 130 / cart 150 / modals 160+)
 // so the cart drawer and checkout are never blocked.
 
+const TABS: { href: string; label: string; icon: string; cta?: boolean }[] = [
+  { href: '/', label: 'Home', icon: 'home' },
+  { href: '/events', label: 'Tickets', icon: 'ticket' },
+  { href: '/book', label: 'Book', icon: 'book', cta: true },
+  { href: '/shop', label: 'Shop', icon: 'bag' },
+  { href: '/gallery', label: 'Gallery', icon: 'gallery' },
+];
 
+const MENU_LINKS: { href: string; label: string; big?: boolean }[] = [
+  { href: '/book', label: 'Book the Tour', big: true },
+  { href: '/about', label: 'About Us' },
+  { href: '/the-gang', label: 'The Gang' },
+  { href: '/experience', label: 'The Tour' },
+  { href: '/events', label: 'Events & Tickets' },
+  { href: '/shop', label: 'Shop Merch' },
+  { href: '/gallery', label: 'Gallery' },
+  { href: '/blog', label: 'Urban News' },
+  { href: '/partners', label: 'Partners & Investors' },
+  { href: '/work-with-us', label: 'Work With Us' },
+  { href: '/contact-us', label: 'Contact Us' },
+  { href: '/account', label: 'My Account' },
+];
 
 // Official profiles — shown as a compact icon row in the menu sheet footer.
 const SOCIALS: { href: string; label: string; icon: string }[] = [
@@ -122,11 +142,11 @@ export function BottomTabBar() {
           <div className="ugt-sheet-head">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
-            <button className="ugt-sheet-close" aria-label="Close menu" onClick={() => setOpen(false)}>×</button>
+            <button className="ugt-sheet-close" aria-label="Close menu" onClick={() => setOpen(false)}>✕</button>
           </div>
           <nav className="ugt-sheet-links">
-            {MENU_EXTRAS.map((l) => (
-              <a key={`${l.href}-${l.label}`} href={l.href} className={active(l.href) ? 'on' : ''}>
+            {MENU_LINKS.map((l) => (
+              <a key={l.href} href={l.href} className={(l.big ? 'big ' : '') + (active(l.href) ? 'on' : '')}>
                 {l.label}
               </a>
             ))}
@@ -145,7 +165,7 @@ export function BottomTabBar() {
         </div>
       )}
       <nav className="ugt-tabbar" aria-label="Primary">
-        {BOTTOM_TABS.map((t) => (
+        {TABS.map((t) => (
           <a key={t.href} href={t.href} className={(t.cta ? 'ugt-tab-cta ' : 'ugt-tab ') + (active(t.href) ? 'on' : '')} aria-current={active(t.href) ? 'page' : undefined}>
             <span className="ugt-tab-ic"><Icon name={t.icon} /></span>
             <span className="ugt-tab-lb">{t.label}</span>

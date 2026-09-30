@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
-import { ContactPage } from '@/app/_components/ContactPage';
+import { RenderedPage } from '@/app/_components/RenderedPage';
 
 const PATH = '/contact-us';
 
@@ -16,7 +16,7 @@ export default function Page() {
   return (
     <>
       <JsonLd data={structuredDataForPath(PATH)} />
-      <ContactPage />
+      <RenderedPage pathName={PATH} />
     </>
   );
 }

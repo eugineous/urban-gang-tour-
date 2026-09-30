@@ -4,6 +4,7 @@ import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { eventsFromDb, breadcrumbFor } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import EventsAnalytics from '@/app/_components/EventsAnalytics';
+import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
 import { formatEventDate } from '@/lib/server/catalog';
 import { INDEXABLE_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
@@ -92,11 +93,20 @@ export default async function EventsPage() {
 
   const featured = events[0] || null;
   const upcoming = events.slice(1);
+  const cities = [...new Set(events.map((e) => e.city).filter(Boolean))].sort();
+
   return (
     <>
       {jsonLd ? <JsonLd data={[jsonLd, breadcrumbFor('/events')].filter(Boolean)} /> : null}
       <EventsAnalytics eventNames={events.map((e) => ({ slug: e.slug, name: e.name }))} />
       <main style={{ minHeight: '100vh', color: '#111', background: '#fffafc', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
+        {/* Header */}
+        <div style={{ borderBottom: '4px solid #111', background: '#111', padding: '14px 20px' }}>
+          <a href="/" aria-label="Urban Gang Tour home" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ display: 'block', height: 48, width: 'auto', maxWidth: 'min(280px, 76vw)', objectFit: 'contain' }} />
+          </a>
+        </div>
+
         {/* Hero */}
         <section style={{ background: '#111', color: '#fff', padding: 'clamp(36px,7vw,72px) 20px', borderBottom: '4px solid #111' }}>
           <div style={{ maxWidth: 1080, margin: '0 auto' }}>
