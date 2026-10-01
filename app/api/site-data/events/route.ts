@@ -72,7 +72,7 @@ export async function GET(req: Request) {
     // heaviest of the four per-page-load reads and the answer is the same for
     // everyone. See lib/server/microcache.ts.
     const events = await cached(`site-events:${kind || 'all'}`, 60_000, async () => {
-      const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
+      const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
       const rows = kind
         ? await q<any>(
             `SELECT ${cols} FROM tour_events WHERE kind=$1 AND status = ANY($2) ORDER BY priority DESC, event_date ASC NULLS LAST`,

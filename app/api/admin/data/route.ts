@@ -3,6 +3,7 @@ import { q, db } from '@/lib/server/db';
 import { isAdmin, isSuperAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { getTicketTiers } from '@/lib/server/catalog';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
+import { ensureBookingsSchema } from '@/lib/server/bookings-schema';
 
 const VIEWS: Record<string, string> = {
   bookings: `SELECT * FROM bookings ORDER BY created_at DESC LIMIT 500`,
@@ -153,6 +154,13 @@ export async function GET(req: Request) {
   if (view === 'posts') {
     try {
       await ensureContentWorkflowSchema();
+    } catch (e: any) {
+      return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
+    }
+  }
+  if (view === 'bookings') {
+    try {
+      await ensureBookingsSchema();
     } catch (e: any) {
       return NextResponse.json({ error: String(e.message).slice(0, 200) }, { status: 500 });
     }

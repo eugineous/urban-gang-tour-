@@ -205,9 +205,31 @@ export default async function EventsPage() {
               })}
             </div>
           ) : (
-            <p style={{ color: '#777', fontSize: 15, lineHeight: 1.6 }}>
-              There are no upcoming events right now. Check back soon or follow us on socials for announcements.
-            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 16 }}>
+              <div style={{ background: '#fff', border: '3px solid #111', borderRadius: 12, padding: 18, boxShadow: '5px 5px 0 #21C7E6' }}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', color: '#E6218C' }}>Public tickets</div>
+                <h2 style={{ margin: '8px 0 8px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 30, lineHeight: 1, textTransform: 'uppercase' }}>Nothing public is on sale right now.</h2>
+                <p style={{ color: '#555', fontSize: 15, lineHeight: 1.6, fontWeight: 600, margin: 0 }}>
+                  When a ticketed Urban Gang event is released, the real date, venue, ticket options and checkout link will appear here.
+                </p>
+              </div>
+              <div style={{ background: '#FFD400', border: '3px solid #111', borderRadius: 12, padding: 18, boxShadow: '5px 5px 0 #111' }}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>School and campus stops</div>
+                <h2 style={{ margin: '8px 0 8px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 30, lineHeight: 1, textTransform: 'uppercase' }}>Private bookings still move.</h2>
+                <p style={{ color: '#332700', fontSize: 15, lineHeight: 1.6, fontWeight: 700, margin: 0 }}>
+                  School and institution tour stops are handled through the booking desk because dates, safeguarding and production needs are confirmed in writing.
+                </p>
+                <a href="/book" style={{ display: 'inline-block', marginTop: 14, background: '#111', color: '#FFD400', borderRadius: 10, padding: '11px 16px', fontWeight: 900, textTransform: 'uppercase' }}>Book the tour</a>
+              </div>
+              <div style={{ background: '#111', color: '#fff', border: '3px solid #111', borderRadius: 12, padding: 18, boxShadow: '5px 5px 0 #E6218C' }}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', color: '#FFD400' }}>Proof</div>
+                <h2 style={{ margin: '8px 0 8px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 30, lineHeight: 1, textTransform: 'uppercase' }}>See the road.</h2>
+                <p style={{ color: '#ddd', fontSize: 15, lineHeight: 1.6, fontWeight: 600, margin: 0 }}>
+                  Browse recaps, galleries and Urban News stories while the next public ticket drop is being prepared.
+                </p>
+                <a href="/blog" style={{ display: 'inline-block', marginTop: 14, background: '#fff', color: '#111', borderRadius: 10, padding: '11px 16px', fontWeight: 900, textTransform: 'uppercase' }}>Read Urban News</a>
+              </div>
+            </div>
           )}
         </section>
       </main>

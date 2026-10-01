@@ -1,6 +1,7 @@
 import { q, db } from '@/lib/server/db';
 import { hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { ensureOpsSchema } from '@/lib/server/ops';
+import { ensureBookingsSchema } from '@/lib/server/bookings-schema';
 
 const OPS_KINDS = new Set(['invoices', 'payments', 'contacts', 'expenses', 'payouts']);
 
@@ -58,7 +59,7 @@ function buildKindQuery(kind: string, search: string | null, from: string | null
       if (from) w.push(`created_at >= ${push(from)}`);
       if (to)   w.push(`created_at < (${push(to)}::date + interval '1 day')`);
       return {
-        cols: 'id, name, org, email, phone, type, status, created_at',
+        cols: 'id, name, org, email, phone, type, preferred_date, expected_attendance, event_brief, status, created_at',
         from: 'bookings',
         where: w,
         orderBy: 'created_at DESC',
@@ -226,6 +227,7 @@ export async function GET(req: Request) {
   let totalCount: number;
   try {
     if (OPS_KINDS.has(kind)) await ensureOpsSchema();
+    if (kind === 'bookings') await ensureBookingsSchema();
     if (kind === 'orders') {
       // The refunds ledger is created on first refund; the export must not
       // fail on a database that has never recorded one.
