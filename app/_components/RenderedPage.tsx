@@ -1,10 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { routeByPath, SITE } from '@/lib/site';
 import { rewriteHtmlMedia } from '@/lib/img';
 import { correctShellContent } from '@/lib/content-rules';
 import { V25App } from './V25App';
 import { FastImages } from './FastImages';
+import { getRawCapturedPage } from './captured-pages';
 
 // Renders the faithful v25 markup for a page. When a captured fragment exists at
 // app/_rendered/<page>.html it is emitted verbatim (server-rendered — a crawler
@@ -12,9 +11,8 @@ import { FastImages } from './FastImages';
 // fallback keeps every URL live, unique and indexable.
 function readCaptured(page: string): string | null {
   try {
-    const p = path.join(process.cwd(), 'app', '_rendered', `${page}.html`);
-    if (fs.existsSync(p)) {
-      const html = fs.readFileSync(p, 'utf8').trim();
+    const html = getRawCapturedPage(page)?.trim();
+    if (html) {
       // Two passes before this markup ever reaches a browser:
       //  - correctShellContent: drops departed acts and relabels the partner
       //    wall (these snapshots can no longer be regenerated - see
@@ -22,7 +20,7 @@ function readCaptured(page: string): string | null {
       //  - rewriteHtmlMedia: routes images through the edge resizer and repairs
       //    the video attributes (25.6MB page, ~97MB decoded, dead iOS autoplay
       //    - see lib/img.ts).
-      if (html.length > 0) return rewriteHtmlMedia(correctShellContent(html));
+      return rewriteHtmlMedia(correctShellContent(html));
     }
   } catch {
     /* fall through to fallback */

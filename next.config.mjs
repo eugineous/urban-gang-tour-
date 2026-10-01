@@ -10,6 +10,17 @@ initOpenNextCloudflareForDev();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Captured v25 shells must be part of the server bundle: Workers do not have
+  // the repository filesystem at runtime. The explicit query keeps this rule
+  // scoped to imports in app/_components/captured-pages.ts.
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.html$/i,
+      resourceQuery: /rendered-page/,
+      type: 'asset/source',
+    });
+    return config;
+  },
   // Legacy eslint config in the repo isn't for this app; don't let it block builds.
   eslint: { ignoreDuringBuilds: true },
   // @react-pdf/renderer (pdfkit inside) ships font data that breaks if webpack
