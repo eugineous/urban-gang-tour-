@@ -291,3 +291,27 @@ body:has(.takeover-home) .public-header__cta{background:#e6218c;color:#fff!impor
   .takeover-school-stops .takeover-event-card__media{height:250px}
 }
 @media(max-width:560px){.takeover-stop-art{min-height:220px;padding:18px}.takeover-school-stops .takeover-event-card__media{height:220px}}
+.takeover-event-card__media .ugt-sticker{position:absolute;right:10px;top:10px;z-index:2}
+.takeover-founders__mark{font:400 clamp(52px,6vw,90px)/.75 var(--ugt-type-display,Impact,sans-serif)}
+.takeover-hero h1 em{transform:translateX(.08em)}
+body:has(.takeover-home) .public-header{background:#101014;border-bottom-color:#ffd400}
+body:has(.takeover-home) .public-header__cta{background:#e6218c;color:#fff!important;border-color:#fff;box-shadow:3px 3px 0 #ffd400}
+.takeover-school-stops{background:var(--takeover-cyan);border-block:3px solid var(--takeover-ink)}
+.takeover-school-stops .takeover-kicker{color:var(--takeover-ink)}
+.takeover-school-stops .takeover-events__grid{grid-template-columns:minmax(0,1fr)}
+.takeover-school-stops .takeover-event-card--featured{display:grid;grid-template-columns:.95fr 1.05fr;min-height:350px}
+.takeover-school-stops .takeover-event-card__media{height:auto}
+.takeover-stop-art{height:100%;min-height:300px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;gap:20px;background:var(--event-accent,#e6218c);color:#fff}
+.takeover-stop-art span{font:900 10px/1.2 var(--ugt-type-ui,Arial,sans-serif);letter-spacing:.12em}
+.takeover-stop-art b{font:400 clamp(40px,6vw,82px)/.82 var(--ugt-type-display,Impact,sans-serif);letter-spacing:-.05em;text-transform:uppercase}
+@media(max-width:900px){
+  body:has(.takeover-home) .public-header__inner{min-height:auto;display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px}
+  body:has(.takeover-home) .public-header__brand img{height:38px;max-width:160px}
+  body:has(.takeover-home) .public-header__nav{display:flex!important;order:3;flex-basis:100%;margin:4px 0 0;gap:20px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;padding:5px 0}
+  body:has(.takeover-home) .public-header__nav::-webkit-scrollbar{display:none}
+  body:has(.takeover-home) .public-header__nav a{font-size:11px}
+  body:has(.takeover-home) .public-footer{padding-bottom:24px}
+  .takeover-school-stops .takeover-event-card--featured{grid-template-columns:1fr}
+  .takeover-school-stops .takeover-event-card__media{height:250px}
+}
+@media(max-width:560px){.takeover-stop-art{min-height:220px;padding:18px}.takeover-school-stops .takeover-event-card__media{height:220px}}
