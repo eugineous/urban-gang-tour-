@@ -100,7 +100,7 @@ async function readSchoolStops(): Promise<HomepageStop[]> {
      FROM tour_events
      WHERE kind = 'school'
        AND status = 'published'
-       AND (event_date >= CURRENT_DATE OR (event_date IS NULL AND date_label != ''))
+       AND event_date >= CURRENT_DATE
      ORDER BY event_date ASC NULLS LAST, priority DESC
      LIMIT 3`,
   );
