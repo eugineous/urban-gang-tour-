@@ -48,9 +48,14 @@ const doors = [
   },
 ] as const;
 
-function LiveLine({ events }: { events: { status: string }[] }) {
-  if (events.length) {
-    return <span className="takeover-live-line"><i /> The next moment is loading from the events board.</span>;
+function LiveLine({ events }: { events: HomepageEvent[] }) {
+  const next = events[0];
+  if (next) {
+    return (
+      <span className="takeover-live-line">
+        <i /> Next event: {next.name} · {eventDateLabel(next)}
+      </span>
+    );
   }
   return <span className="takeover-live-line"><i /> No public event is live right now.</span>;
 }
@@ -60,7 +65,7 @@ function EventCard({ event, featured = false }: { event: HomepageEvent; featured
     <Link
       href={`/events/${event.slug}`}
       className={`takeover-event-card${featured ? ' takeover-event-card--featured' : ''}`}
-      style={{ '--event-accent': event.accent || '#e6218c' } as CSSProperties}
+      style={{ '--event-accent': event.accent || '#e6218c' } as CSSProperties & { '--event-accent': string }}
     >
       <div className="takeover-event-card__media">
         {event.image ? <img src={event.image} alt="" loading={featured ? 'eager' : 'lazy'} /> : null}
@@ -97,7 +102,7 @@ function MerchStrip({ products }: { products: HomepageProduct[] }) {
   return (
     <div className="takeover-merch-grid">
       {products.map((product) => (
-        <Link href={`/shop/${product.id}`} key={product.id} className="takeover-merch-card">
+        <Link href={`/shop?item=${encodeURIComponent(product.id)}`} key={product.id} className="takeover-merch-card">
           <div className="takeover-merch-card__image">
             {product.image ? <img src={product.image} alt="" loading="lazy" /> : <span>UGT</span>}
           </div>
