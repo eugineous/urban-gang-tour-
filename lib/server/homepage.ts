@@ -25,6 +25,16 @@ export type HomepageProduct = {
   category: string;
 };
 
+export type HomepageStop = {
+  id: string;
+  name: string;
+  event_date: string | null;
+  date_label: string;
+  venue: string;
+  city: string;
+  image: string;
+};
+
 export type HomepagePhoto = {
   id: number;
   url: string;
@@ -39,6 +49,7 @@ export type HomepageSection<T> = {
 
 export type HomepageView = {
   events: HomepageSection<HomepageEvent>;
+  stops: HomepageSection<HomepageStop>;
   products: HomepageSection<HomepageProduct>;
   photos: HomepageSection<HomepagePhoto>;
   posts: HomepageSection<BlogPost>;
@@ -83,6 +94,18 @@ async function readProducts(): Promise<HomepageProduct[]> {
   );
 }
 
+async function readSchoolStops(): Promise<HomepageStop[]> {
+  return q<HomepageStop>(
+    `SELECT id, name, event_date::text AS event_date, date_label, venue, city, image
+     FROM tour_events
+     WHERE kind = 'school'
+       AND status = 'published'
+       AND (event_date >= CURRENT_DATE OR (event_date IS NULL AND date_label != ''))
+     ORDER BY event_date ASC NULLS LAST, priority DESC
+     LIMIT 3`,
+  );
+}
+
 async function readPhotos(): Promise<HomepagePhoto[]> {
   return q<HomepagePhoto>(
     `SELECT id, url, caption, alt_text
@@ -104,22 +127,28 @@ export async function getHomepageView(): Promise<HomepageView> {
   if (!hasDb()) {
     return {
       events: { status: 'degraded', items: [] },
+      stops: { status: 'degraded', items: [] },
       products: { status: 'degraded', items: [] },
       photos: { status: 'degraded', items: [] },
       posts: { status: 'degraded', items: [] },
     };
   }
 
-  const [events, products, photos, posts] = await Promise.all([
+  const [events, stops, products, photos, posts] = await Promise.all([
     readSection(readEvents),
+    readSection(readSchoolStops),
     readSection(readProducts),
     readSection(readPhotos),
     readSection(readPosts),
   ]);
 
-  return { events, products, photos, posts };
+  return { events, stops, products, photos, posts };
 }
 
 export function eventDateLabel(event: HomepageEvent): string {
   return formatEventDate(event.event_date);
+}
+
+export function stopDateLabel(stop: HomepageStop): string {
+  return stop.event_date ? formatEventDate(stop.event_date) : stop.date_label || 'Date to be announced';
 }
