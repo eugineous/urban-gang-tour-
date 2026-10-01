@@ -55,9 +55,10 @@ async function readSection<T>(read: () => Promise<T[]>): Promise<HomepageSection
 
 async function readEvents(): Promise<HomepageEvent[]> {
   const rows = await q<Omit<HomepageEvent, 'truth'>>(
-    `SELECT slug, name, event_date::text, event_time, venue, city, accent, image, status
+    `SELECT slug, name, event_date::text AS event_date, event_time, venue, city, accent, image, status
      FROM tour_events
-     WHERE status = ANY($1)
+     WHERE kind = 'ticketed'
+       AND status = ANY($1)
        AND slug != ''
        AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled'))
      ORDER BY priority DESC, event_date ASC NULLS LAST
