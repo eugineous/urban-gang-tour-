@@ -145,7 +145,7 @@ export async function HomePage() {
           <div className="takeover-hero__poster">
             <div className="takeover-hero__poster-top"><span>UGT / 001</span><span>Live signal</span></div>
             <video autoPlay muted loop playsInline preload="metadata" poster="/assets/poster.png" aria-label="Urban Gang Tour event atmosphere">
-              <source src="/video/hero-main.mp4" type="video/mp4" />
+              <source src="/assets/video/hero-main.mp4" type="video/mp4" />
             </video>
             <div className="takeover-hero__poster-stamp">THE<br />CULTURE<br /><b>GETS MADE</b></div>
             <div className="takeover-hero__poster-bottom"><span>Nairobi → Kenya → Everywhere</span><span>Est. 2019</span></div>
