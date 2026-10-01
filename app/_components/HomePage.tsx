@@ -8,6 +8,8 @@ import {
   type HomepageEvent,
   type HomepagePhoto,
   type HomepageProduct,
+  type HomepageStop,
+  stopDateLabel,
 } from '@/lib/server/homepage';
 
 const money = (value: number) =>
@@ -48,12 +50,20 @@ const doors = [
   },
 ] as const;
 
-function LiveLine({ events }: { events: HomepageEvent[] }) {
+function LiveLine({ events, stops }: { events: HomepageEvent[]; stops: HomepageStop[] }) {
   const next = events[0];
   if (next) {
     return (
       <span className="takeover-live-line">
         <i /> Next event: {next.name} · {eventDateLabel(next)}
+      </span>
+    );
+  }
+  const nextStop = stops[0];
+  if (nextStop) {
+    return (
+      <span className="takeover-live-line">
+        <i /> Next school stop: {nextStop.name} · {stopDateLabel(nextStop)}
       </span>
     );
   }
@@ -80,6 +90,32 @@ function EventCard({ event, featured = false }: { event: HomepageEvent; featured
         <h3>{event.name}</h3>
         <p>{event.venue || 'Venue details follow the published event record.'}</p>
         <span className="takeover-event-card__link">See event <b>↗</b></span>
+      </div>
+    </Link>
+  );
+}
+
+function SchoolStopCard({ stop }: { stop: HomepageStop }) {
+  return (
+    <Link href="/experience" className="takeover-event-card takeover-event-card--featured takeover-stop-card">
+      <div className="takeover-event-card__media">
+        {stop.image ? <img src={stop.image} alt="" loading="lazy" /> : (
+          <div className="takeover-stop-art">
+            <span>URBAN GANG TOUR / SCHOOL RUN</span>
+            <b>{stop.name}</b>
+            <span>FROM POTENTIAL TO PURPOSE</span>
+          </div>
+        )}
+        <span className="ugt-sticker ugt-sticker--cyan">School tour stop</span>
+      </div>
+      <div className="takeover-event-card__body">
+        <div className="takeover-event-card__meta">
+          <span>{stopDateLabel(stop)}</span>
+          <span>{stop.city || stop.venue || 'Kenya'}</span>
+        </div>
+        <h3>{stop.name}</h3>
+        <p>{stop.venue || 'School experience'}</p>
+        <span className="takeover-event-card__link">Discover the tour <b>↗</b></span>
       </div>
     </Link>
   );
@@ -139,7 +175,7 @@ export async function HomePage() {
             <Link href="/events" className="takeover-button takeover-button--solid">Explore events <span>↗</span></Link>
             <Link href="/book" className="takeover-button takeover-button--outline">Book the tour</Link>
           </div>
-          <LiveLine events={events} />
+          <LiveLine events={events} stops={view.stops.items} />
         </div>
         <div className="takeover-hero__visual">
           <div className="takeover-hero__poster">
@@ -203,12 +239,28 @@ export async function HomePage() {
           </div>
         ) : (
           <div className="takeover-state">
-            <b>New dates are on the way.</b>
-            <span>There is no public ticket live right now, but the tour is still moving.</span>
+            <b>No public ticket date right now.</b>
+            <span>{view.stops.items.length ? 'Upcoming school tour stops are listed below.' : 'Watch this board for the next public ticket release.'}</span>
             <Link href="/book">Bring the tour to you ↗</Link>
           </div>
         )}
       </section>
+
+      {view.stops.status === 'ready' ? (
+        <section className="takeover-section takeover-school-stops" aria-labelledby="takeover-school-stops-title">
+          <div className="takeover-section__head takeover-section__head--split">
+            <div><p className="takeover-kicker">The school run</p><h2 id="takeover-school-stops-title">Coming up<br /><em>on tour.</em></h2></div>
+            <Link href="/experience" className="takeover-text-link">Explore the tour ↗</Link>
+          </div>
+          <div className="takeover-events__grid">
+            {view.stops.items.map((stop) => <SchoolStopCard stop={stop} key={stop.id} />)}
+          </div>
+        </section>
+      ) : view.stops.status === 'degraded' ? (
+        <section className="takeover-section takeover-school-stops" aria-label="School tour dates">
+          <div className="takeover-state takeover-state--degraded"><b>School tour dates are temporarily unavailable.</b></div>
+        </section>
+      ) : null}
 
       <section className="takeover-section takeover-proof" aria-labelledby="takeover-proof-title">
         <div className="takeover-proof__intro">
