@@ -42,6 +42,7 @@ const nextConfig = {
       { source: '/tour', destination: '/experience', permanent: true },
       { source: '/gang', destination: '/the-gang', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },
+      { source: '/v25-template', destination: '/', permanent: true },
       // /v25-template.html is a raw client-side template fragment (unrendered
       // {{ mustache }} placeholders), fetched internally by V25App.tsx via
       // `fetch('/v25-template.html')` — that request never sets

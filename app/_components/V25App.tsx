@@ -237,10 +237,8 @@ export function V25App({ page }: { page: string }) {
       if (cancelled) return;
       attempts += 1;
       // the layout preloads this, so it resolves from cache almost instantly
-      // Cloudflare normalises this public asset to the extensionless URL. Use
-      // that canonical path directly, rather than paying for a redirect during
-      // the first interactive paint.
-      fetch('/v25-template', { cache: 'no-cache', signal: controller.signal })
+      // This fragment is an internal asset, never a public page.
+      fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal })
         .then((r) => { if (!r.ok) throw new Error('Template unavailable'); return r.text(); })
         .then((raw) => {
           if (cancelled) return;

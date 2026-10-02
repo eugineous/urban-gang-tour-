@@ -1,7 +1,13 @@
 import app from './.open-next/worker.js';
 
 export default {
-  fetch: app.fetch,
+  fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if ((url.pathname === '/v25-template' || url.pathname === '/v25-template.html') && request.headers.get('sec-fetch-dest') === 'document') {
+      return Response.redirect(new URL('/', url).href, 302);
+    }
+    return app.fetch(request, env, ctx);
+  },
   async scheduled(_controller, env, ctx) {
     // Use the existing self-service binding. No public bearer token travels
     // through a browser, URL, log line, or third-party scheduler.
