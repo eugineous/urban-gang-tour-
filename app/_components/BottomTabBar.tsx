@@ -42,7 +42,7 @@ const SOCIALS: { href: string; label: string; icon: string }[] = [
   { href: 'https://x.com/urban_newsgang', label: 'Urban Gang on X', icon: 'x' },
 ];
 
-function Icon({ name }: { name: string }) {
+export function Icon({ name }: { name: string }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   switch (name) {
     case 'gallery':

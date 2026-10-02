@@ -17,6 +17,8 @@ enabled = true
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
+html_handling = "none"
+run_worker_first = ["/v25-template", "/v25-template.html"]
 
 # Runs a guarded, idempotent content-announcement check. Times are UTC.
 [triggers]

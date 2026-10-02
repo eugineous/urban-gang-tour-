@@ -117,6 +117,13 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'monthly', priority: 0.6,
   },
   {
+    path: '/press', page: 'legal',
+    title: 'Press & Media Kit — Urban Gang Tour',
+    description:
+      'Official Urban Gang Tour press notes, founder bios, media contacts and approved facts for journalists, schools, sponsors and partners.',
+    changefreq: 'monthly', priority: 0.5,
+  },
+  {
     path: '/account', page: 'legal',
     title: 'My Account — Urban Gang Tour',
     description: 'Log in or create your Urban Gang account to pitch stories, track orders and stay close to the tour.',

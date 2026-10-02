@@ -104,6 +104,8 @@ export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS bookings (
   id TEXT PRIMARY KEY, name TEXT NOT NULL, org TEXT DEFAULT '', email TEXT NOT NULL,
   phone TEXT DEFAULT '', type TEXT NOT NULL, message TEXT DEFAULT '',
+  preferred_date DATE, expected_attendance INT, event_brief TEXT DEFAULT '',
+  source TEXT DEFAULT 'site', calendly_event_uri TEXT DEFAULT '',
   status TEXT DEFAULT 'new', created_at TIMESTAMPTZ DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS orders (

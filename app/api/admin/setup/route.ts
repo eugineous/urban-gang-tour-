@@ -3,6 +3,7 @@ import { q, db, qSchema, SCHEMA } from '@/lib/server/db';
 import { isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
+import { ensureBookingsSchema } from '@/lib/server/bookings-schema';
 
 // One-time (idempotent) setup: create tables and safe site defaults. Newsroom
 // content must be authored and published in the Control Room, never seeded
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   await qSchema(SCHEMA);
+  await ensureBookingsSchema();
   await ensureContentWorkflowSchema();
   const seeded = 0;
   await q(

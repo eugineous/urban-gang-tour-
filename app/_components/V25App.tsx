@@ -14,7 +14,7 @@ export function V25App({ page }: { page: string }) {
   useEffect(() => {
     // Phones have their own purpose-built app shell. Do not boot the desktop
     // runtime behind it: that was both visually wrong and expensive on mobile.
-    if (window.matchMedia('(max-width: 900px)').matches) return;
+    if (window.matchMedia('(max-width:1024px)').matches) return;
     const w = window as any;
     w.__UGT_PAGE = page;
     // Promo overlay bridge: fetch the public active-promos list once and
@@ -58,7 +58,7 @@ export function V25App({ page }: { page: string }) {
             date = `${weekday} ${dt.getUTCDate()} ${month} ${dt.getUTCFullYear()}`;
           }
           return {
-            id: e.id, name: e.name, tagline: e.description, date, time: e.eventTime,
+            id: e.id, slug: e.slug || e.id, name: e.name, tagline: e.description, date, time: e.eventTime,
             venue: e.venue, city: e.city, img: e.image, accent: e.accent, tiers: e.tiers,
           };
         });
@@ -80,7 +80,10 @@ export function V25App({ page }: { page: string }) {
             if (parts[1]) mon = parts[1];
             if (parts[2]) year = parts[2];
           }
-          return { day, mon, year, name: e.name, loc: e.venue, status, img: e.image };
+          const dateText = e.eventDate
+            ? new Date(e.eventDate + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long', timeZone: 'UTC' })
+            : (e.dateLabel || 'Date TBA');
+          return { day, mon, year, name: e.name, loc: e.venue, status, img: e.image, eventDate: e.eventDate || '', time: e.eventTime || '', dateText };
         });
         const past = rows.filter((e) => e.kind === 'past').map((e) => ({ name: e.name, loc: e.venue, logo: e.logo, testimonial: e.testimonial }));
         w.__UGT_EVENTS = { ticketed, school, past };
@@ -226,18 +229,16 @@ export function V25App({ page }: { page: string }) {
         if (poll) clearInterval(poll);
       }
     };
-    // slow-connection fallback: never hold the veil longer than 7s — the SSR
+    // slow-connection fallback: never hold the veil longer than 3s — the SSR
     // shell underneath is real content and the app keeps booting behind it
-    const veilCap = setTimeout(dropVeil, 7000);
+    const veilCap = setTimeout(dropVeil, 3000);
 
     const attempt = () => {
       if (cancelled) return;
       attempts += 1;
       // the layout preloads this, so it resolves from cache almost instantly
-      // Cloudflare normalises this public asset to the extensionless URL. Use
-      // that canonical path directly, rather than paying for a redirect during
-      // the first interactive paint.
-      fetch('/v25-template', { cache: 'no-cache', signal: controller.signal })
+      // This fragment is an internal asset, never a public page.
+      fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal })
         .then((r) => { if (!r.ok) throw new Error('Template unavailable'); return r.text(); })
         .then((raw) => {
           if (cancelled) return;

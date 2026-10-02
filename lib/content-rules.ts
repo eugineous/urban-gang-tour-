@@ -133,6 +133,7 @@ function correctProse(html: string): string {
       // available to anyone new.
       .replace(/>Partnership</g, '>Investment<')
       .replace(/Bookings, partnerships, media/g, 'Bookings, investment, media')
+      .replace(/placeholder="admin@urbangangtour\.co\.ke"/g, 'placeholder="you@example.com"')
       // Prose that named a departed act.
       .replace(
         /MC Paps warmed up the hall before the first performances,\s*and the crowd/gi,

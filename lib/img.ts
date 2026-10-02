@@ -95,32 +95,35 @@ export function rewriteHtmlImages(html: string): string {
  * paints, and the element's own `background:#E6218C` fills the screen. That is
  * the "orange screen" people were reporting.
  *
- * This also drops preload from "auto" to "none": a 3.5MB hero video was being
- * pulled down before anything else could render.
+ * The visible homepage hero is the exception: it must start immediately, so it
+ * keeps a real src + autoplay + preload=auto. Other decorative videos stay
+ * inert until FastImages sees them on screen.
  */
 export function rewriteHtmlVideos(html: string): string {
   return html.replace(/<video\b([^>]*)>/gi, (tag, attrs: string) => {
+    const rawSrc = attrs.match(/\ssrc=(["'])(.*?)\1/i)?.[2] ?? '';
+    const isHomeHero = /\/assets\/video\/hero-main\.mp4/i.test(rawSrc);
     let out = attrs
       // Strip both forms before re-adding: the broken pseudo-attributes
       // (playsInline="{{ true }}") and any already-correct bare booleans the
       // captured shells carry, so the result has exactly one of each rather
       // than `muted autoplay ... autoplay muted loop playsinline`.
       .replace(/\s(?:autoPlay|autoplay|muted|loop|playsInline|playsinline|disablePictureInPicture|disablepictureinpicture)(?:=["'][^"']*["'])?(?=\s|$)/gi, '')
-      .replace(/\spreload=["'][^"']*["']/gi, '');
+      .replace(/\spreload=["'][^"']*["']/gi, '')
+      .replace(/\sposter=["'][^"']+["']/gi, '');
 
     // Real HTML boolean attributes. muted + playsinline are what make iOS allow
     // inline autoplay at all; without both, nothing plays on an iPhone.
-    // Keep the source inert until FastImages sees the video in the viewport.
-    // autoplay otherwise overrides preload=none, including in the hidden shell.
-    out = out.replace(/\ssrc=(["'])(.*?)\1/i, ' data-ugt-video="$2"');
-    out = out.replace(/\/assets\/video\/(hero-main|hero-1)\.mp4/g, '/assets/light-v1/video/$1.mp4');
-    out += ' muted loop playsinline preload="none" disablepictureinpicture';
-
-    // Point the poster at a resized still instead of the 9.3MB PNG.
-    const poster = out.match(/\sposter=["']([^"']+)["']/i)?.[1];
-    if (poster && isResizable(poster)) {
-      out = out.replace(/\sposter=["'][^"']+["']/i, ` poster="${cfImage(poster, 960, 62)}"`);
+    // Keep non-hero videos inert until FastImages sees them in the viewport.
+    // The homepage hero keeps src/autoplay so the browser can fetch it during
+    // first paint instead of waiting for the runtime boot.
+    if (!isHomeHero) {
+      out = out.replace(/\ssrc=(["'])(.*?)\1/i, ' data-ugt-video="$2"');
     }
+    out = out.replace(/\/assets\/video\/(hero-main|hero-1)\.mp4/g, '/assets/light-v1/video/$1.mp4');
+    out += isHomeHero
+      ? ' autoplay muted loop playsinline preload="auto" disablepictureinpicture'
+      : ' muted loop playsinline preload="none" disablepictureinpicture';
 
     return `<video${out}>`;
   });

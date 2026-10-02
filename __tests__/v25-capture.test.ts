@@ -14,6 +14,11 @@ describe('bundled v25 page captures', () => {
 
     expect(markup).toContain('You Already');
     expect(markup).toContain(
+      'src="/assets/light-v1/video/hero-main.mp4"',
+    );
+    expect(markup).toContain('preload="auto"');
+    expect(markup).not.toContain('poster="/assets/poster.png"');
+    expect(markup).not.toContain(
       'data-ugt-video="/assets/light-v1/video/hero-main.mp4"',
     );
     expect(markup).not.toContain('src="/assets/video/hero-main.mp4"');

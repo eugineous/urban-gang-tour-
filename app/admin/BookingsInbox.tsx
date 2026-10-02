@@ -19,6 +19,18 @@ function whatsapp(phone: string) {
   return digits.startsWith('254') ? digits : digits.startsWith('0') ? `254${digits.slice(1)}` : digits;
 }
 
+function formatPlainDate(value: string) {
+  if (!value) return '';
+  const raw = String(value).slice(0, 10);
+  const date = new Date(`${raw}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleDateString('en-KE', { dateStyle: 'medium', timeZone: 'UTC' });
+}
+
+function formatAttendance(value: unknown) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n.toLocaleString('en-KE') : '';
+}
+
 export default function BookingsInbox({
   rows,
   googleClientId,
@@ -60,7 +72,12 @@ export default function BookingsInbox({
   useEffect(() => {
     if (!selected) return;
     setSubject(`Re: ${selected.type || 'Your booking'} — Urban Gang Tour`);
-    setBody(`Hi ${String(selected.name || '').split(' ')[0] || 'there'},\n\nThanks for reaching out about ${selected.type || 'working with Urban Gang Tour'}. We have received your request and would love to learn more about the date, venue, audience size and the experience you have in mind.\n\nShare those details when you can and we will take it from there.\n\nBest,\nUrban Gang Tour`);
+    const details = [
+      selected.preferred_date ? `Preferred date: ${formatPlainDate(selected.preferred_date)}` : '',
+      selected.expected_attendance ? `Expected attendance: ${formatAttendance(selected.expected_attendance)}` : '',
+      selected.event_brief ? `Brief: ${selected.event_brief}` : '',
+    ].filter(Boolean).join('\n');
+    setBody(`Hi ${String(selected.name || '').split(' ')[0] || 'there'},\n\nThanks for reaching out about ${selected.type || 'working with Urban Gang Tour'}. We have received your request${details ? ` with these details:\n\n${details}` : ''}.\n\nWe will review the date, venue, audience size and production needs before confirming anything in writing.\n\nBest,\nUrban Gang Tour`);
     fetch(`/api/admin/bookings/reply?id=${encodeURIComponent(selected.id)}`)
       .then((r) => r.json()).then((data) => setReplies(data.replies || []));
   }, [selected?.id]);
@@ -95,6 +112,13 @@ export default function BookingsInbox({
     onChanged();
   };
 
+  const selectedDetails = selected ? [
+    ['Preferred date', formatPlainDate(selected.preferred_date)],
+    ['Expected attendance', formatAttendance(selected.expected_attendance)],
+    ['Event brief', selected.event_brief],
+    ['Source', selected.source],
+  ].filter(([, value]) => String(value || '').trim()) : [];
+
   return (
     <div>
       <div style={{ ...card, padding: 16, marginBottom: 14, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -126,6 +150,11 @@ export default function BookingsInbox({
                   <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', background: row.status === 'new' ? C.yellow : '#eee', borderRadius: 999, padding: '3px 7px' }}>{row.status}</span>
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: C.pink, marginTop: 3 }}>{row.type}{row.org ? ` · ${row.org}` : ''}</div>
+                {(row.preferred_date || row.expected_attendance) && (
+                  <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>
+                    {[formatPlainDate(row.preferred_date), formatAttendance(row.expected_attendance) ? `${formatAttendance(row.expected_attendance)} expected` : ''].filter(Boolean).join(' · ')}
+                  </div>
+                )}
                 <div style={{ fontSize: 11, color: '#777', marginTop: 4 }}>{formatDate(row.created_at)}</div>
                 <div style={{ fontSize: 12, color: '#444', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.message}</div>
               </button>
@@ -151,6 +180,17 @@ export default function BookingsInbox({
               <a href={`mailto:${selected.email}`} style={{ ...button, textDecoration: 'none' }}>Email {selected.email}</a>
               {selected.phone && <a href={`https://wa.me/${whatsapp(selected.phone)}`} target="_blank" rel="noopener" style={{ ...button, textDecoration: 'none', background: '#DDF6E8' }}>WhatsApp {selected.phone}</a>}
             </div>
+
+            {selectedDetails.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, margin: '8px 0 16px' }}>
+                {selectedDetails.map(([label, value]) => (
+                  <div key={label} style={{ border: '2px solid #111', borderRadius: 10, padding: 10, background: '#FFF8D8' }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.06em', color: '#666' }}>{label}</div>
+                    <div style={{ marginTop: 4, fontSize: 14, fontWeight: 800, lineHeight: 1.35 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div style={{ border: '2px solid #111', borderRadius: 12, padding: 14, background: '#F8F8F8', whiteSpace: 'pre-wrap', lineHeight: 1.55, fontSize: 14 }}>{selected.message || 'No message supplied.'}</div>
 
@@ -180,4 +220,3 @@ export default function BookingsInbox({
     </div>
   );
 }
-
