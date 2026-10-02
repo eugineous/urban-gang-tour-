@@ -1,12 +1,18 @@
 import app from './.open-next/worker.js';
 
 export default {
-  fetch(request, env, ctx) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if ((url.pathname === '/v25-template' || url.pathname === '/v25-template.html') && request.headers.get('sec-fetch-dest') === 'document') {
       return Response.redirect(new URL('/', url).href, 302);
     }
-    return app.fetch(request, env, ctx);
+    const response = await app.fetch(request, env, ctx);
+    if (url.pathname === '/v25-template.html') {
+      const headers = new Headers(response.headers);
+      headers.set('X-Robots-Tag', 'noindex, nofollow');
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    }
+    return response;
   },
   async scheduled(_controller, env, ctx) {
     // Use the existing self-service binding. No public bearer token travels

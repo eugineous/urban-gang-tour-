@@ -1,4 +1,4 @@
-import { q, db } from '@/lib/server/db';
+import { q, hasDb } from '@/lib/server/db';
 import { getGa4BlogViews } from '@/lib/server/ga4';
 import { getTopSearchQueries } from '@/lib/server/search-console';
 import type { BlogPost } from './blog';
@@ -18,7 +18,7 @@ export type RouteRow = {
 };
 
 export async function getUpcomingStops(): Promise<RouteRow[]> {
-  if (!db()) return [];
+  if (!hasDb()) return [];
   try {
     const rows = await q<any>(
       `SELECT name, event_date::text AS event_date, date_label, venue, description
@@ -118,7 +118,7 @@ async function trendingFromGa4(posts: BlogPost[]): Promise<TrendingMostRead | nu
 }
 
 async function trendingFromTrafficTable(posts: BlogPost[]): Promise<TrendingMostRead> {
-  if (!db()) return { trending: [], mostRead: [] };
+  if (!hasDb()) return { trending: [], mostRead: [] };
   try {
     const rows = await q<{ path: string; hits7: string; hits_prev7: string; hits30: string }>(
       `SELECT path,

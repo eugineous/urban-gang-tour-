@@ -225,6 +225,10 @@ function correctPartnerBadges(html: string): string {
 export function correctShellContent(html: string): string {
   let out = html;
 
+  // The frozen homepage capture contains a July countdown. The live runtime
+  // replaces this with admin data; first paint must not advertise an old stop.
+  out = out.replace(/<div data-dc-tpl="522"[\s\S]*?(?=<div data-dc-tpl="543")/, '<section style="background:#FFD400;padding:20px 24px;border-bottom:4px solid #111"><div style="max-width:1320px;margin:auto;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap"><strong>Tour Calendar</strong><a href="/tour-stops" style="color:#111;font-weight:700;text-decoration:underline">Published dates and recent stops</a></div></section>');
+
   // Crew wall: each member is one <button class="scpr"> holding photo, name,
   // role and bio. The photo filename is the stable marker - the display name is
   // split across spans by the capture, so it is not reliable to match on.

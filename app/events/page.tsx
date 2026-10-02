@@ -87,51 +87,38 @@ async function getEvents(): Promise<ResolvedEventCard[]> {
   }
 }
 
-export default async function EventsPage() {
-  const events = await getEvents();
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ q?: string; city?: string }> }) {
+  const filters = await searchParams;
+  const allEvents = await getEvents();
+  const needle = (filters.q || '').trim().toLowerCase();
+  const events = allEvents.filter(event => (!needle || `${event.name} ${event.venue} ${event.city}`.toLowerCase().includes(needle)) && (!filters.city || event.city === filters.city));
   const jsonLd = await eventsFromDb();
 
   const featured = events[0] || null;
   const upcoming = events.slice(1);
-  const cities = [...new Set(events.map((e) => e.city).filter(Boolean))].sort();
+  const cities = [...new Set(allEvents.map((e) => e.city).filter(Boolean))].sort();
 
   return (
     <>
       {jsonLd ? <JsonLd data={[jsonLd, breadcrumbFor('/events')].filter(Boolean)} /> : null}
       <EventsAnalytics eventNames={events.map((e) => ({ slug: e.slug, name: e.name }))} />
       <main style={{ minHeight: '100vh', color: '#111', background: '#fffafc', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
-        {/* Header */}
-        <div style={{ borderBottom: '4px solid #111', background: '#111', padding: '14px 20px' }}>
-          <a href="/" aria-label="Urban Gang Tour home" style={{ display: 'inline-flex', alignItems: 'center' }}>
-            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ display: 'block', height: 48, width: 'auto', maxWidth: 'min(280px, 76vw)', objectFit: 'contain' }} />
-          </a>
-        </div>
 
         {/* Hero */}
         <section style={{ background: '#111', color: '#fff', padding: 'clamp(36px,7vw,72px) 20px', borderBottom: '4px solid #111' }}>
           <div style={{ maxWidth: 1080, margin: '0 auto' }}>
             <p style={{ margin: '0 0 8px', fontWeight: 800, letterSpacing: '.12em', fontSize: 12, textTransform: 'uppercase', color: '#FFD400' }}>Urban Gang Live</p>
-            <h1 style={{ margin: 0, fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 'clamp(36px,7vw,72px)', lineHeight: .95, textTransform: 'uppercase' }}>Find your next plot.</h1>
+            <h1 style={{ margin: 0, fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 48, lineHeight: 1.1, textTransform: 'uppercase' }}>Events</h1>
             <p style={{ maxWidth: 560, fontSize: 'clamp(15px,2vw,18px)', fontWeight: 500, lineHeight: 1.5, margin: '16px 0 0', color: '#ccc' }}>
               Concerts, festivals, campus raves and cultural experiences across Kenya.
             </p>
-            {/* Search */}
-            <div style={{ marginTop: 24, maxWidth: 480 }}>
-              <input
-                type="search"
-                placeholder="Search events, places, campuses…"
-                aria-label="Search events"
-                style={{ width: '100%', padding: '13px 16px', borderRadius: 10, border: '2px solid #333', background: '#1a1a1a', color: '#fff', fontSize: 15, fontFamily: 'inherit', outline: 'none' }}
-              />
-            </div>
-            {/* Filter chips */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
-              {['This Weekend', 'Nairobi', 'Campus', 'Festivals', 'Free', 'Under KSh 1K'].map((chip) => (
-                <button key={chip} type="button" style={{ padding: '8px 14px', borderRadius: 20, border: '1.5px solid #444', background: 'transparent', color: '#ccc', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  {chip}
-                </button>
-              ))}
-            </div>
+            <form action="/events" method="get" style={{ marginTop: 24, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input name="q" type="search" defaultValue={filters.q || ''} aria-label="Search events" placeholder="Search events, places, campuses" style={{ flex: '1 1 220px', minWidth: 0, padding: 13, borderRadius: 8, border: '1px solid #777', background: '#fff', color: '#111', fontSize: 16 }} />
+              <select name="city" defaultValue={filters.city || ''} aria-label="Filter by city" style={{ padding: 13, fontSize: 16, borderRadius: 8 }}><option value="">All cities</option>{cities.map(city => <option key={city}>{city}</option>)}</select>
+              <button type="submit" style={{ background: '#FFD400', color: '#111', padding: '12px 18px', borderRadius: 8, fontWeight: 700 }}>Search</button>
+              {(filters.q || filters.city) && <Link href="/events" style={{ padding: 13 }}>Clear filters</Link>}
+            </form>
+            <Link href="/tour-stops" style={{ display: 'inline-block', marginTop: 20, color: '#FFD400' }}>School and campus stops →</Link>
           </div>
         </section>
 

@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 
 const TABS: { href: string; label: string; icon: string; cta?: boolean }[] = [
   { href: '/', label: 'Home', icon: 'home' },
-  { href: '/events', label: 'Tickets', icon: 'ticket' },
+  { href: '/events', label: 'Events', icon: 'ticket' },
   { href: '/book', label: 'Book', icon: 'book', cta: true },
   { href: '/shop', label: 'Shop', icon: 'bag' },
   { href: '/gallery', label: 'Gallery', icon: 'gallery' },
@@ -22,7 +22,8 @@ const MENU_LINKS: { href: string; label: string; big?: boolean }[] = [
   { href: '/book', label: 'Book the Tour', big: true },
   { href: '/about', label: 'About Us' },
   { href: '/the-gang', label: 'The Gang' },
-  { href: '/experience', label: 'The Tour' },
+  { href: '/experience', label: 'Experience' },
+  { href: '/tour-stops', label: 'Tour Stops' },
   { href: '/events', label: 'Events & Tickets' },
   { href: '/shop', label: 'Shop Merch' },
   { href: '/gallery', label: 'Gallery' },
