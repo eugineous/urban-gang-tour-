@@ -86,12 +86,21 @@ function installImageFallback(): () => void {
 function fixVideo(el: HTMLVideoElement) {
   if (el.dataset.ugtFast === '1') return;
   el.dataset.ugtFast = '1';
+  const src = el.getAttribute('src') || el.getAttribute('data-ugt-video') || '';
+  const isHomeHero = /\/assets\/(?:light-v1\/)?video\/hero-main\.mp4/i.test(src);
   el.muted = el.defaultMuted = true;
   el.playsInline = true;
   el.loop = true;
   el.setAttribute('muted', '');
   el.setAttribute('playsinline', '');
-  el.preload = 'none';
+  el.removeAttribute('poster');
+  if (isHomeHero) {
+    el.autoplay = true;
+    el.setAttribute('autoplay', '');
+    el.preload = 'auto';
+  } else {
+    el.preload = 'none';
+  }
 }
 
 function sweep(root: ParentNode) {

@@ -24,6 +24,7 @@ function publicRow(r: any, truth?: EventTruth) {
   const tiers = typeof r.tiers === 'string' ? JSON.parse(r.tiers) : r.tiers || [];
   return {
     id: r.id,
+    slug: r.slug || '',
     kind: r.kind,
     name: r.name,
     // r.event_date is already a plain 'YYYY-MM-DD' string — the query below

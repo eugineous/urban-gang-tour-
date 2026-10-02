@@ -1,4 +1,4 @@
-const CACHE = 'ugt-v1';
+const CACHE = 'ugt-v2';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
@@ -19,6 +19,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || /^\/(admin|organizer|account)(\/|$)/.test(url.pathname)) return;
   // Static assets: cache-first
   if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/assets/') || url.pathname.match(/\.(png|jpg|jpeg|webp|svg|ico|woff2?|css|js)$/)) {
     event.respondWith(

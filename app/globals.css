@@ -47,7 +47,7 @@ input,textarea,select{font-family:inherit}
 [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
 [data-reveal].seen{opacity:1;transform:none}
 @keyframes dashmove{to{background-position:40px 0}}
-@media (max-width:900px){
+@media (max-width:1024px){
  [data-desktop-nav],[data-book-btn]{display:none !important}
  [data-burger]{display:flex !important}
  [data-hero]{grid-template-columns:1fr !important}
@@ -73,7 +73,8 @@ input,textarea,select{font-family:inherit}
 .ugt-tabbar{display:none}
 .ugt-sheet{display:none}
 .ugt-mobile-app{display:none}
-@media (max-width:900px){
+.ugt-mobile-secondary{display:none}
+@media (max-width:1024px){
   #ssr-shell,#v25-host,.ugt-tabbar,.ugt-sheet{display:none !important}
   body{background:#f8f4ec;padding-bottom:84px}
   .ugt-mobile-app{display:block;min-height:100dvh;background:#f8f4ec;padding-bottom:32px}
@@ -156,7 +157,7 @@ input,textarea,select{font-family:inherit}
    page comfortably readable on a phone. !important is required to
    beat inline styles; scoped to the two content roots only.
    ============================================================ */
-@media (max-width:900px){
+@media (max-width:1024px){
   #dc-root h1,#ssr-shell h1{font-size:clamp(34px,9.5vw,60px) !important;line-height:1.04 !important;overflow-wrap:break-word}
   #dc-root h2,#ssr-shell h2{font-size:clamp(26px,7.5vw,42px) !important;line-height:1.08 !important;overflow-wrap:break-word}
   #dc-root h3,#ssr-shell h3{font-size:clamp(19px,5.5vw,26px) !important;line-height:1.2 !important}
@@ -189,7 +190,7 @@ input,textarea,select{font-family:inherit}
 @keyframes veilslide{from{transform:translateX(-10%)}to{transform:translateX(160%)}}
 
 /* Phone app: real task flows, real data, no desktop runtime behind it. */
-@media (max-width:900px){
+@media (max-width:1024px){
  body:not(:has(.ugt-mobile-app)) #ssr-shell{display:block !important}body:not(:has(.ugt-mobile-app)) #v25-host{display:block !important}
  .ugt-mobile-app{display:block;min-height:100dvh;background:#f7f2e9;color:#111;padding:0 0 104px;font-family:'Space Grotesk',system-ui,sans-serif}.ugt-mobile-app *{box-sizing:border-box}.ugt-mobile-top{height:72px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}.ugt-mobile-top img{height:50px;width:auto}.ugt-mobile-top-actions{display:flex;align-items:center;gap:7px}.ugt-mobile-explore,.ugt-mobile-bag{border:2px solid #111;background:#fff;border-radius:99px;padding:9px 12px;font-weight:800;font-size:12px}.ugt-mobile-explore{background:transparent}.ugt-mobile-explore:focus-visible,.ugt-mobile-bag:focus-visible,.ugt-mobile-text-button:focus-visible{outline:3px solid #21c7e6;outline-offset:2px}.ugt-mobile-bag b{display:inline-grid;place-items:center;margin-left:4px;border-radius:50%;background:#e6218c;color:#fff;width:18px;height:18px}
  .ugt-mobile-app :is(a,button,input,select,textarea):focus-visible{outline:3px solid #111;outline-offset:3px;box-shadow:0 0 0 3px #fff}.ugt-mobile-app button{cursor:pointer}.ugt-mobile-overlay,.ugt-mobile-explore-panel{overscroll-behavior:contain}
@@ -206,7 +207,7 @@ input,textarea,select{font-family:inherit}
 /* Secondary public routes retain the durable tab navigation even when their
    server-rendered content is used on a phone.  Primary routes use their own
    app navigation above, so this only appears where the mobile app is absent. */
-@media (max-width:900px){
+@media (max-width:1024px){
   body:not(:has(.ugt-mobile-app)) .ugt-tabbar{display:grid !important}
 }
 
@@ -222,6 +223,52 @@ input,textarea,select{font-family:inherit}
 @media (max-width:480px){
   [data-ops-tabs-btns]{display:none !important}
   [data-ops-tabs-select]{display:block !important}
+}
+
+/* Shared phone and tablet ergonomics. */
+@media (max-width:1024px){
+  body{padding-bottom:0}
+  .ugt-cookie-consent{bottom:calc(84px + env(safe-area-inset-bottom))!important;border-radius:8px!important}
+  .ugt-mobile-app :is(p,span,a,button,label,input,textarea,select){font-family:Arial,system-ui,sans-serif}
+  .ugt-mobile-app{background:#fff;padding-bottom:calc(88px + env(safe-area-inset-bottom));font-family:Arial,system-ui,sans-serif}
+  .ugt-mobile-secondary{display:block}
+  body:has(.ugt-mobile-secondary) #ssr-shell{padding-top:calc(72px + env(safe-area-inset-top));padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  .ugt-mobile-secondary .ugt-mobile-top{position:absolute;top:0;left:0;right:0;z-index:210}
+  body:has(.ugt-mobile-secondary) #ssr-shell>div:first-child{display:none}
+  .ugt-mobile-top{padding-top:calc(10px + env(safe-area-inset-top));height:calc(72px + env(safe-area-inset-top));background:#fff}
+  .ugt-mobile-menu-icon,.ugt-mobile-explore{width:44px;height:44px;padding:10px;border:0;border-radius:8px;background:transparent}
+  .ugt-mobile-top svg,.ugt-mobile-nav svg{width:24px;height:24px}
+  .ugt-mobile-nav{left:0;right:0;bottom:0;height:calc(72px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);border:0;border-top:1px solid #ddd;border-radius:0;box-shadow:none}
+  .ugt-mobile-nav a{gap:5px;align-content:center;height:64px}
+  .ugt-mobile-nav span{font-size:12px;text-transform:none}
+  .ugt-mobile-nav-main{border:0;border-radius:8px;box-shadow:none;background:#ffd400}
+  .ugt-mobile-hero{margin:0;border:0;border-radius:0;box-shadow:none;background:#111;min-height:420px;padding:32px 24px}
+  .ugt-mobile-hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+  .ugt-mobile-hero:before{background:rgba(0,0,0,.45)}
+  .ugt-mobile-hero h1,.ugt-mobile-intro h1{font-size:64px;letter-spacing:0;line-height:1}
+  .ugt-mobile-hero>span,.ugt-mobile-intro span{font-size:16px;line-height:1.5;max-width:360px}
+  .ugt-mobile-app :is(p,small,span,label){letter-spacing:0}
+  .ugt-mobile-event-card p,.ugt-mobile-event-card span{font-size:14px;line-height:1.4}
+  .ugt-mobile-event-card h3{line-height:1.1}
+  .ugt-mobile-event-card :is(a,button){font-size:15px;min-height:44px;display:flex;align-items:center}
+  .ugt-mobile-empty span,.ugt-mobile-paths small{font-size:15px;line-height:1.5}
+  .ugt-mobile-heading a,.ugt-mobile-text-button{font-size:15px;min-height:44px;display:flex;align-items:center}
+  .ugt-mobile-form label,.ugt-mobile-overlay label{font-size:14px;text-transform:none}
+  .ugt-mobile-form input[type=checkbox]{width:22px;height:22px}
+  .ugt-mobile-explore-panel{background:#fff;padding-top:calc(20px + env(safe-area-inset-top))}
+  .ugt-mobile-explore-panel h2{font-size:40px;line-height:1.1;letter-spacing:0;margin:24px 0}
+  .ugt-mobile-explore-panel nav a{grid-template-columns:1fr auto;border:0;border-bottom:1px solid #ddd;border-radius:0;box-shadow:none;min-height:56px}
+  .ugt-mobile-explore-panel nav span{display:none}
+  .ugt-mobile-explore-panel nav strong{font-size:16px;text-transform:none}
+  .ugt-mobile-close{width:44px;height:44px}
+  .ugt-sheet{display:block!important}
+  body:has(.ugt-mobile-secondary) .ugt-tabbar{grid-template-columns:repeat(6,minmax(0,1fr));bottom:0;left:0;right:0;border-radius:0;padding-bottom:env(safe-area-inset-bottom)}
+}
+@media (min-width:600px) and (max-width:1024px){
+  .ugt-mobile-section,.ugt-mobile-form{max-width:760px;margin-inline:auto;padding-inline:28px}
+  .ugt-mobile-hero{min-height:460px;padding:40px}
+  .ugt-mobile-stack{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ugt-mobile-products-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
 /* /admin is an internal workspace. The root layout also powers the public v25

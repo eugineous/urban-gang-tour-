@@ -38,7 +38,7 @@ export function CookieConsent() {
 
   if (pathname?.startsWith('/admin') || !show) return null;
   return (
-    <div style={{ position: 'fixed', bottom: 14, left: 14, right: 14, zIndex: 10000, maxWidth: 560, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', padding: '16px 18px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
+    <div className="ugt-cookie-consent" role="region" aria-label="Privacy preferences" style={{ position: 'fixed', bottom: 14, left: 14, right: 14, zIndex: 10000, maxWidth: 560, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', padding: '16px 18px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>🍪 Quick one about your data</div>
       <div style={{ fontSize: 12.5, color: '#444', lineHeight: 1.5 }}>
         We use a private page-view counter and only store the personal details you give us for bookings, orders and accounts.{' '}

@@ -446,7 +446,7 @@
 <sc-if value="{{ isEvents }}" hint-placeholder-val="{{ false }}">
 <section data-screen-label="Tickets" style="animation:pop .4s both">
 <div style="background:#111;border-bottom:4px solid #FFD400;padding:56px 24px;position:relative;overflow:hidden">
-<video poster="/assets/poster.png" src="/assets/video/hero-1.mp4" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35"></video>
+<video src="/assets/video/hero-1.mp4" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35"></video>
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,17,17,.55),rgba(17,17,17,.85))"></div>
 <div style="max-width:1100px;margin:0 auto;position:relative">
 <div style="display:inline-block;background:#FFD400;color:#111;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">MAIN EVENTS</div>
@@ -482,7 +482,7 @@
 <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
 <section data-screen-label="Home">
 <div style="position:relative;overflow:hidden;background:#E6218C;padding:20px 20px 0">
-<video poster="/assets/poster.png" src="/assets/video/hero-main.mp4" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#E6218C"></video>
+<video src="/assets/video/hero-main.mp4" autoPlay="{{ true }}" muted="{{ true }}" loop="{{ true }}" playsInline="{{ true }}" preload="auto" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#E6218C"></video>
 <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(230,33,140,.72) 20%,rgba(230,33,140,.34) 70%,rgba(230,33,140,.2))"></div>
 <div style="position:absolute;top:8%;left:6%;width:120px;height:60px;background:#fff;border-radius:50%;filter:blur(2px);opacity:.9;transform:rotate(-18deg)"></div>
 <div style="position:absolute;top:40%;right:4%;width:160px;height:50px;background:#fff;border-radius:50%;filter:blur(2px);opacity:.85;transform:rotate(24deg)"></div>
@@ -519,7 +519,7 @@
 <div style="max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <span style="background:#111;color:#FFD400;font-family:'Bungee';font-size:12px;padding:7px 14px;border-radius:100px;transform:rotate(-2deg);flex:none">NEXT STOP</span>
-<div style="font-family:'Anton';font-size:clamp(18px,2.6vw,28px);text-transform:uppercase;line-height:1">Lari Boys High School · Kimende <span style="color:#E6218C">· Sun 19 July</span></div>
+<div style="font-family:'Anton';font-size:clamp(18px,2.6vw,28px);text-transform:uppercase;line-height:1">{{ homeNextStopLine }} <span style="color:#E6218C">· {{ homeNextStopDateLine }}</span></div>
 </div>
 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
 <div style="display:flex;gap:6px">
@@ -2079,7 +2079,7 @@ class Component extends DCLogic {
     window.addEventListener('scroll',this._onScroll,{passive:true});
     requestAnimationFrame(()=>this.scanReveal());
     try{ if(/\/admin(\/|$)/.test(location.pathname||'')||/#\/?admin/.test(location.hash||'')){ window.location.replace('/admin'); return; } }catch(e){}
-    if('serviceWorker' in navigator){ try{ navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{}); if(window.caches&&caches.keys){ caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{}); } }catch(e){} }
+    // Service worker registration is owned by the shared application layout.
     window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); this._installEvt=e; this.setState({canInstall:true}); });
     window.addEventListener('appinstalled',()=>{ this._installEvt=null; this.setState({canInstall:false}); this.flash('App installed \u2014 find Urban Gang Tour on your home screen.'); });
 
@@ -2128,6 +2128,10 @@ class Component extends DCLogic {
     const workTabs = Object.keys(this.WORKTABS).map(k=>{const on=k===s.workTab;const p=pill(on);return {key:k,label:this.WORKTABS[k].label,active:on,go:()=>this.goWork(k),border:p.border,bg:p.bg,color:p.color};});
     const stops = [...this.STOPS,...s.extraStops].map((x,i)=>{const done=x.status==='done';const next=x.status==='next';return {...x,tilt:this.TILTS[i%this.TILTS.length],accent:done?'#E6218C':'#0E9BD6',badge:done?'Completed':(next?'Next Stop':'Upcoming'),badgeBg:done?'#FFD400':'#21C7E6',isDone:done,isNext:next,isUp:(!done&&!next),stamp:done?'TOURED ✓':(next?'NEXT UP':'BOOKED'),stampBg:done?'#1F8A5B':(next?'#E6218C':'#21C7E6'),stampFg:done?'#fff':(next?'#fff':'#111'),nodeBorder:next?'#E6218C':(done?'#111':'#999')};});
     const nextStop = stops.find(x=>x.status==='next')||stops[0];
+    const homeNextStopLine = nextStop ? [nextStop.name,nextStop.loc].filter(Boolean).join(' · ') : 'Next stop not published yet';
+    const homeNextStopDateLine = nextStop ? (nextStop.dateText || 'Date TBA') : 'Talk to bookings';
+    const nextStopStart = (()=>{ if(!nextStop||!nextStop.eventDate)return 0; let h=9,mn=0; const raw=String(nextStop.time||'').trim(); let mt=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i); if(mt){ h=Number(mt[1])%12; if(/PM/i.test(mt[3]))h+=12; mn=Number(mt[2])||0; } else { mt=raw.match(/^(\d{1,2})(?::(\d{2}))?/); if(mt){ h=Math.max(0,Math.min(23,Number(mt[1])||9)); mn=Math.max(0,Math.min(59,Number(mt[2])||0)); } } return new Date(nextStop.eventDate+'T'+String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0')+':00+03:00').getTime(); })();
+    const cd = (()=>{ if(!nextStopStart)return {live:false,d:'--',h:'--',m:'--',sec:'--'}; const t=nextStopStart-(s.nowTs||Date.now()); if(t<=0)return {live:true,d:'00',h:'00',m:'00',sec:'00'}; const p=(n)=>String(n).padStart(2,'0'); return {live:false,d:p(Math.floor(t/86400000)),h:p(Math.floor(t/3600000)%24),m:p(Math.floor(t/60000)%60),sec:p(Math.floor(t/1000)%60)}; })();
     const workBullets = wt.bullets;
     // Gallery: build the school catalogues once, here, so the chips and the
     // photo grid share one source. The page used to render nothing at all until
@@ -2168,7 +2172,7 @@ class Component extends DCLogic {
     const tk=s.ticket; const tev=this.MAIN_EVENTS.find(x=>x.id===tk.eventId)||null; const tSub=tev?tev.tiers[tk.tier].price*tk.qty:0;
     const sw=s.swipe; const swProd=this.PRODUCTS[sw.i]||null; const swSizes=(swProd&&Array.isArray(swProd.variants)&&swProd.variants.length)?swProd.variants.map(v=>v.label):['One Size'];
     return {
-      mainEvents:this.MAIN_EVENTS.map(ev=>({...ev,fromFmt:this.fmt(ev.tiers[0].price),detailHref:'/events/'+encodeURIComponent(ev.id),buy:()=>this.buyTicket(ev.id)})),
+      mainEvents:this.MAIN_EVENTS.map(ev=>({...ev,fromFmt:this.fmt(ev.tiers[0].price),detailHref:'/events/'+encodeURIComponent(ev.slug||ev.id),buy:()=>this.buyTicket(ev.id)})),
       ticketOpen:!!tk.eventId, ticketEvent:(tev||{name:''}), ticketTiers:(tev?tev.tiers.map((tr,i)=>({name:tr.name,priceFmt:this.fmt(tr.price),bg:(i===tk.tier?'#FFD400':'#fff'),pick:()=>this.setTier(i)})):[]),
       closeTicket:this.closeTicket, closeTicketBg:this.closeTicketBg, ticQtyUp:()=>this.ticQty(1), ticQtyDown:()=>this.ticQty(-1), ticketQty:tk.qty,
       onTName:this.onTName, onTEmail:this.onTEmail, onTPhone:this.onTPhone, ticketName:tk.name, ticketEmail:tk.email, ticketPhone:tk.phone,
@@ -2209,7 +2213,7 @@ class Component extends DCLogic {
       railPrev:()=>{ const el=document.getElementById('vid-rail'); if(el) el.scrollBy({left:-el.clientWidth*0.86,behavior:'smooth'}); },
       railNext:()=>{ const el=document.getElementById('vid-rail'); if(el) el.scrollBy({left:el.clientWidth*0.86,behavior:'smooth'}); },
       shopWindow:this.PRODUCTS.slice(0,4).map((p,i)=>{ const pi=this.priceInfo(p); return {...p,priceFmt:pi.priceFmt,hasPromo:pi.hasPromo,badge:pi.badge,tilt:['-2deg','1.5deg','-1deg','2deg'][i%4],add:()=>this.addToCart(p.id)}; }),
-      cd:(()=>{ const t=new Date('2026-07-19T09:00:00+03:00').getTime()-(s.nowTs||Date.now()); if(t<=0) return {live:true,d:'00',h:'00',m:'00',sec:'00'}; const p=(n)=>String(n).padStart(2,'0'); return {live:false, d:p(Math.floor(t/86400000)), h:p(Math.floor(t/3600000)%24), m:p(Math.floor(t/60000)%60), sec:p(Math.floor(t/1000)%60)}; })(),
+      cd, homeNextStopLine, homeNextStopDateLine,
       subnav:(()=>{ const tab=(p,label)=>({label, go:()=>this.go(p), on:s.page===p, bg:(s.page===p?'#E6218C':'#fff'), fg:(s.page===p?'#fff':'#111'), bd:'#111'});
         if(['about','gang','partners'].includes(s.page)) return {title:'About & The Gang', items:[tab('about','Who We Are'),tab('gang','Meet The Gang'),tab('partners','Partners & Investors')]};
         if(['exp','stops'].includes(s.page)) return {title:'The Tour', items:[tab('exp','The Experience'),tab('stops','Tour Stops & Calendar')]};

@@ -12,6 +12,7 @@ import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { MobileApp } from './_components/MobileApp';
+import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
 export const metadata: Metadata = {
@@ -55,6 +56,7 @@ export const viewport: Viewport = {
   themeColor: '#E6218C',
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -144,6 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
         <MobileApp />
+        <InstallableApp />
         {/* mount point for the live interactive v25 app (client-only) */}
         <div id="v25-host" />
         {/* Mobile bottom tab bar — outside #ssr-shell so it survives the
@@ -172,7 +175,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
-            where we can't attach a debugger) in the Vercel function logs */}
+            where we can't attach a debugger) in the server logs */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var n=0;function send(m,s,l){if(n++>4)return;try{var b=JSON.stringify({msg:String(m).slice(0,500),src:String(s||'').slice(0,200),line:l||0,page:location.pathname,ua:navigator.userAgent});navigator.sendBeacon?navigator.sendBeacon('/api/client-error',b):fetch('/api/client-error',{method:'POST',body:b,keepalive:true});}catch(e){}}window.addEventListener('error',function(e){send(e.message,e.filename,e.lineno);});window.addEventListener('unhandledrejection',function(e){send('unhandledrejection: '+(e.reason&&e.reason.message||e.reason),'',0);});})();`,
