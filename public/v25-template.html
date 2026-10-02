@@ -39,39 +39,14 @@
 <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.6-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 8c-.3 0-.6.1-.8.4-.3.4-.9 1-.9 2.1s.9 2.4 1 2.6c.2.2 1.8 2.9 4.4 3.9 2 .8 2.5.7 2.9.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.1-.3-.2-.6-.4-.3-.1-1.5-.8-1.7-.9-.2-.1-.4-.1-.6.2-.2.2-.6.8-.8 1-.1.1-.3.2-.5 0-.3-.1-1.1-.4-2-1.2-.7-.7-1.2-1.5-1.4-1.8-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.2-.5.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2C9.5 8.1 9.3 8 9.1 8z" fill="currentColor"/></symbol>
 </defs></svg>
 
-<header style="position:sticky;top:0;z-index:120;background:#fff;border-bottom:4px solid #111">
-<nav style="max-width:1320px;margin:0 auto;height:70px;padding:0 18px;display:flex;align-items:center;gap:18px">
-<button onClick="{{ nav.home }}" style="display:flex;flex:none;align-items:center;gap:8px;padding:0"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style="height:52px;width:87px;object-fit:contain"></button>
-<div style="flex:1"></div>
-<div style="display:flex;align-items:center;gap:22px;font-family:'Space Grotesk';font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.02em" data-desktop-nav>
-<button onClick="{{ nav.home }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">Home</button>
-<button onClick="{{ nav.about }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">About &amp; The Gang</button>
-<button onClick="{{ nav.exp }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">The Tour</button>
-<div style="position:relative">
-<button onClick="{{ toggleBook }}" style="color:#111;padding:6px 0;display:flex;align-items:center;gap:5px" style-hover="color:#E6218C">Work With Us <span style="font-size:10px">▼</span></button>
-<sc-if value="{{ bookOpen }}" hint-placeholder-val="{{ false }}">
-<div style="position:absolute;top:40px;left:-14px;width:250px;background:#fff;border:3px solid #111;border-radius:16px;padding:8px;box-shadow:7px 7px 0 #111;z-index:5">
-<button onClick="{{ work.brands }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Brands</button>
-<button onClick="{{ work.institutions }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Institutions</button>
-<button onClick="{{ work.campuses }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Campuses</button>
-<button onClick="{{ work.schools }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Schools</button>
-<button onClick="{{ work.mega }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px" style-hover="background:#FFD400">For Mega Events</button>
-<button onClick="{{ nav.partners }}" style="display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;color:#111;font-weight:700;text-transform:uppercase;font-size:13px;border-top:2px dashed #ddd" style-hover="background:#FFD400">Partners &amp; Investors</button>
-</div>
-</sc-if>
-</div>
-<button onClick="{{ nav.news }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">News</button>
-<button onClick="{{ nav.gallery }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">Gallery</button>
-<button onClick="{{ nav.events }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">Tickets</button>
-<button onClick="{{ nav.shop }}" style="color:#111;padding:6px 0" style-hover="color:#E6218C">Shop</button>
-</div>
-<button onClick="{{ toggleCart }}" style="position:relative;width:46px;height:46px;border-radius:12px;background:#21C7E6;border:3px solid #111;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111"><svg width="22" height="22" viewBox="0 0 24 24" style="color:#111"><use href="#i-bag"></use></svg>
-<sc-if value="{{ cartCount }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#111;color:#FFD400;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff">{{ cartCount }}</span></sc-if>
-</button>
-<button onClick="{{ nav.contact }}" data-book-btn style="background:#FFD400;color:#111;font-family:'Space Grotesk';font-weight:700;font-size:13px;letter-spacing:.02em;text-transform:uppercase;padding:13px 20px;border:3px solid #111;border-radius:12px;box-shadow:4px 4px 0 #111;transform:rotate(-2deg)" style-hover="transform:rotate(-2deg) translate(2px,2px);box-shadow:2px 2px 0 #111">Book the Tour</button>
-<button onClick="{{ toggleMobile }}" data-burger style="display:none;width:46px;height:46px;border-radius:12px;background:#111;color:#fff;font-size:22px;align-items:center;justify-content:center">☰</button>
-</nav>
-</header>
+<header class="ugt-site-header" style="position:sticky;top:0;z-index:120;background:#fff;border-bottom:4px solid #111">
+<nav aria-label="Main navigation" style="max-width:1320px;margin:0 auto;min-height:78px;padding:8px 18px;display:flex;align-items:center;gap:16px">
+<a href="/" aria-label="Urban Gang Tour home"><img class="ugt-brand-logo" src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style="height:64px;width:120px;object-fit:contain"></a><div style="flex:1"></div>
+<div data-desktop-nav style="display:flex;align-items:center;gap:16px;font:700 13px Arial,sans-serif">
+<a href="/">Home</a><details class="ugt-nav-more"><summary>About</summary><div><a href="/about">Our Story</a><a href="/the-gang">Team</a><a href="/partners">Partners &amp; Investors</a><a href="/press">Press Room</a></div></details>
+<a href="/experience">Experience</a><a href="/tour-stops">Tour Stops</a><a href="/work-with-us">Work With Us</a><a href="/blog">Urban News</a><a href="/gallery">Gallery</a><a href="/events">Events</a><a href="/shop">Shop</a></div>
+<a href="/book" data-book-btn style="background:#FFD400;color:#111;font:700 13px Arial,sans-serif;padding:13px 16px;border:3px solid #111;border-radius:8px;box-shadow:3px 3px 0 #111;white-space:nowrap">Book the Tour</a>
+</nav></header>
 
 <sc-if value="{{ mobileOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;inset:0;z-index:130;background:#E6218C;padding:26px 24px 40px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
@@ -1852,7 +1827,7 @@ class Component extends DCLogic {
   }
 
   scrollTop(){ try{ window.scrollTo({top:0,left:0,behavior:'auto'}); }catch(e){} }
-  go = window.__UGT_GO = (page) => { if(page==='admin'){ window.location.assign('/admin'); return; } try{const __m={home:'/',about:'/about',gang:'/the-gang',exp:'/experience',stops:'/experience',work:'/work-with-us',shop:'/shop',news:'/blog',gallery:'/gallery',partners:'/partners',events:'/events',contact:'/book'};const __u=__m[page];if(__u&&location.pathname!==__u)history.pushState({ugt:page},'',__u);}catch(e){} this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
+  go = window.__UGT_GO = (page) => { if(page==='stops'){ window.location.assign('/tour-stops'); return; } if(page==='admin'){ window.location.assign('/admin'); return; } try{const __m={home:'/',about:'/about',gang:'/the-gang',exp:'/experience',stops:'/experience',work:'/work-with-us',shop:'/shop',news:'/blog',gallery:'/gallery',partners:'/partners',events:'/events',contact:'/book'};const __u=__m[page];if(__u&&location.pathname!==__u){window.location.assign(__u);return;}}catch(e){} this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
   goWork = window.__UGT_GO_WORK = (tab) => { try{if(location.pathname!=='/work-with-us')history.pushState({ugt:'work'},'','/work-with-us');}catch(e){} this.setState({page:'work', workTab:tab, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
   toggleBook = () => this.setState(s=>({bookOpen:!s.bookOpen}));
   toggleMobile = () => this.setState(s=>({mobileOpen:!s.mobileOpen}));
@@ -2127,7 +2102,7 @@ class Component extends DCLogic {
     const pill = (on)=>on?{border:'#111',bg:'#FFD400',color:'#111'}:{border:'#111',bg:'#fff',color:'#111'};
     const workTabs = Object.keys(this.WORKTABS).map(k=>{const on=k===s.workTab;const p=pill(on);return {key:k,label:this.WORKTABS[k].label,active:on,go:()=>this.goWork(k),border:p.border,bg:p.bg,color:p.color};});
     const stops = [...this.STOPS,...s.extraStops].map((x,i)=>{const done=x.status==='done';const next=x.status==='next';return {...x,tilt:this.TILTS[i%this.TILTS.length],accent:done?'#E6218C':'#0E9BD6',badge:done?'Completed':(next?'Next Stop':'Upcoming'),badgeBg:done?'#FFD400':'#21C7E6',isDone:done,isNext:next,isUp:(!done&&!next),stamp:done?'TOURED ✓':(next?'NEXT UP':'BOOKED'),stampBg:done?'#1F8A5B':(next?'#E6218C':'#21C7E6'),stampFg:done?'#fff':(next?'#fff':'#111'),nodeBorder:next?'#E6218C':(done?'#111':'#999')};});
-    const nextStop = stops.find(x=>x.status==='next')||stops[0];
+    const nextStop = stops.find(x=>x.status==='next')||stops.find(x=>x.status!=='done');
     const homeNextStopLine = nextStop ? [nextStop.name,nextStop.loc].filter(Boolean).join(' · ') : 'Next stop not published yet';
     const homeNextStopDateLine = nextStop ? (nextStop.dateText || 'Date TBA') : 'Talk to bookings';
     const nextStopStart = (()=>{ if(!nextStop||!nextStop.eventDate)return 0; let h=9,mn=0; const raw=String(nextStop.time||'').trim(); let mt=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i); if(mt){ h=Number(mt[1])%12; if(/PM/i.test(mt[3]))h+=12; mn=Number(mt[2])||0; } else { mt=raw.match(/^(\d{1,2})(?::(\d{2}))?/); if(mt){ h=Math.max(0,Math.min(23,Number(mt[1])||9)); mn=Math.max(0,Math.min(59,Number(mt[2])||0)); } } return new Date(nextStop.eventDate+'T'+String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0')+':00+03:00').getTime(); })();

@@ -98,7 +98,8 @@ export function NewsClient({
 
   useEffect(() => {
     const h = new URLSearchParams(location.hash.slice(1));
-    if (h.get('desk')) setDesk(h.get('desk') as any);
+    const savedDesk = h.get('desk');
+    if (DESKS.some(item => item.id === savedDesk)) setDesk(savedDesk as typeof desk);
     if (h.get('q')) setQuery(h.get('q')!);
 
     const onKey = (e: KeyboardEvent) => {
@@ -130,8 +131,8 @@ export function NewsClient({
 
   const q = query.trim().toLowerCase();
   const filteredStories = useMemo(
-    () => stories.filter((s) => match(q, s.title + ' ' + s.dek)),
-    [stories, q]
+    () => [...(hero && (q || desk !== 'all') ? [hero] : []), ...stories].filter((s) => match(q, s.title + ' ' + s.dek)),
+    [stories, hero, q, desk]
   );
   const filteredRoute = useMemo(
     () => routeRows.filter((r) => match(q, r.school + ' ' + r.county + ' ' + r.note + ' ' + r.status)),
@@ -161,7 +162,7 @@ export function NewsClient({
         @keyframes un-wiggle { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(3deg)} }
         input::placeholder { color:#9a8f83; }
         .un-search:focus { outline:3px solid #F7A81B; outline-offset:-3px; }
-        @media (max-width:900px) { .un-main { grid-template-columns: 1fr !important; } .un-aside { position:static !important; } }
+        @media (max-width:1024px) { .un-main { grid-template-columns: 1fr !important; } .un-aside { position:static !important; } }
       `}</style>
 
       {/* masthead */}
@@ -215,6 +216,8 @@ export function NewsClient({
               value={query}
               onChange={onSearch}
               placeholder="Find a school, a story, a name…"
+              type="search"
+              aria-label="Search Urban News"
               className="un-search"
               style={{ width: '100%', padding: '10px 40px 10px 16px', border: '3px solid #F7A81B', borderRadius: 999, background: '#fff', fontFamily: "'Archivo',sans-serif", fontSize: 13, fontWeight: 600, color: '#1A0E14', boxSizing: 'border-box' }}
             />
@@ -366,6 +369,11 @@ export function NewsClient({
 
         {/* SIDEBAR */}
         <aside className="un-aside" style={{ position: 'sticky', top: 78, display: 'flex', flexDirection: 'column', gap: 22 }}>
+          <section className="un-latest" style={{ background: '#fff', border: '3px solid #111', borderRadius: 8, padding: 16 }}>
+            <h2 style={{ margin: '0 0 12px', fontSize: 20 }}>Latest stories</h2>
+            {[...(hero ? [hero] : []), ...stories].slice(0, 5).map(story => <a key={story.slug} href={`/blog/${story.slug}`} style={{ display: 'block', padding: '12px 0', borderBottom: '1px solid #ddd', color: '#111', fontSize: 15, lineHeight: 1.4 }}><strong>{story.title}</strong><time style={{ display: 'block', marginTop: 4, color: '#555', fontSize: 13 }}>{story.date}</time></a>)}
+            {!hero && !stories.length && <p>Stories appear here when the newsroom publishes them.</p>}
+          </section>
           {trending.length > 0 && (
             <section style={{ border: '3px solid #1A0E14', borderRadius: 20, background: '#fff', overflow: 'hidden', boxShadow: '6px 6px 0 rgba(26,14,20,.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 16px', background: '#1A0E14' }}>

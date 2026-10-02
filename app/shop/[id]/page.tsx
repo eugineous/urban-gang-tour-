@@ -3,6 +3,7 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { SITE } from '@/lib/site';
+import { PhotoGallery } from '@/app/_components/PhotoGallery';
 import { hasDb, q } from '@/lib/server/db';
 
 export const revalidate = 300;
@@ -140,16 +141,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return <main style={{ minHeight: '100vh', background: '#fffafc', color: '#111', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
     <JsonLd data={productJsonLd} />
-    <header style={{ background: '#111', borderBottom: '4px solid #111', padding: '14px 20px' }}>
-      <a href="/" aria-label="Urban Gang Tour home" style={{ display: 'inline-flex' }}>
-        <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ display: 'block', height: 46, maxWidth: 'min(260px, 70vw)', objectFit: 'contain' }} />
-      </a>
-    </header>
     <section style={{ maxWidth: 1120, margin: '0 auto', padding: 'clamp(28px,6vw,72px) 20px 84px' }}>
       <a href="/shop" style={{ color: '#111', fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.08em' }}>← Back to merch</a>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(290px,440px)', gap: 'clamp(28px,6vw,72px)', marginTop: 26, alignItems: 'start' }}>
+      <div className="ugt-product-detail" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(290px,440px)', gap: 'clamp(28px,6vw,72px)', marginTop: 26, alignItems: 'start' }}>
         <div style={{ background: '#fff', border: '3px solid #111', borderRadius: 24, minHeight: 360, padding: 'clamp(18px,4vw,42px)', boxShadow: '8px 8px 0 #21C7E6', display: 'grid', placeItems: 'center' }}>
-          {product.image ? <img src={product.image} alt={product.name} style={{ display: 'block', width: '100%', maxHeight: 570, objectFit: 'contain' }} /> : <div style={{ fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 48, textTransform: 'uppercase' }}>Urban<br />Gang</div>}
+          {product.image ? <div className="ugt-product-photo"><PhotoGallery photos={[{ id: product.id, url: product.image, altText: product.name }]} /></div> : <div style={{ fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 48, textTransform: 'uppercase' }}>Urban<br />Gang</div>}
         </div>
         <div>
           <p style={{ display: 'inline-block', margin: 0, padding: '5px 9px', background: '#FFD400', border: '2px solid #111', borderRadius: 7, fontWeight: 900, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase' }}>{product.category || 'Official merch'}</p>

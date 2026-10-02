@@ -64,7 +64,7 @@ export function V25App({ page }: { page: string }) {
         });
         const schoolRows = rows.filter((e) => e.kind === 'school');
         const withDate = schoolRows.filter((e) => e.eventDate).slice().sort((a, b) => a.eventDate.localeCompare(b.eventDate));
-        const nextRow = withDate.find((e) => e.eventDate >= today);
+        const nextRow = withDate.find((e) => e.eventDate >= today && e.status !== 'completed' && e.status !== 'postponed');
         const school = schoolRows.map((e) => {
           let day = 'TBA', mon = '', year = '2026', status = 'upcoming';
           if (e.eventDate) {
@@ -72,7 +72,7 @@ export function V25App({ page }: { page: string }) {
             day = String(dt.getUTCDate()).padStart(2, '0');
             mon = dt.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
             year = String(dt.getUTCFullYear());
-            status = e.eventDate < today ? 'done' : (nextRow && e.id === nextRow.id ? 'next' : 'upcoming');
+            status = e.status === 'completed' || e.eventDate < today ? 'done' : (nextRow && e.id === nextRow.id ? 'next' : 'upcoming');
           } else if (e.dateLabel) {
             const parts = e.dateLabel.split(String.fromCharCode(183)).join('').split(' ').filter(Boolean);
             // dateLabel is "TBA · JUL 2026" -> ['TBA','JUL','2026']
@@ -278,44 +278,7 @@ export function V25App({ page }: { page: string }) {
     };
     void Promise.allSettled([eventsReady, productsReady, galleryReady, postsReady]).then(start);
     readinessCap = setTimeout(start, 1800);
-    // Instant in-app navigation. Once the runtime is booted it exposes
-    // window.__UGT_GO (patched go() in the template). Internal links then
-    // switch pages in-app — no full reload, no re-boot — which is what makes
-    // taps feel instant on mobile. Crawlers still see real <a href> URLs.
-    const PATH_TO_PAGE: Record<string, string> = {
-      '/': 'home', '/about': 'about', '/the-gang': 'gang', '/experience': 'exp',
-      '/shop': 'shop', '/blog': 'news', '/urban-news': 'news', '/gallery': 'gallery',
-      '/partners': 'partners', '/events': 'events', '/book': 'contact',
-      '/contact-us': 'contact',
-    };
-    const onLinkClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
-      if (!a || a.target === '_blank' || a.origin !== location.origin) return;
-      const w2 = window as any;
-      const p = a.pathname.replace(/\/+$/, '') || '/';
-      if (p === '/work-with-us' && typeof w2.__UGT_GO_WORK === 'function') {
-        e.preventDefault();
-        w2.__UGT_GO_WORK('brands');
-      } else if (PATH_TO_PAGE[p] && typeof w2.__UGT_GO === 'function') {
-        e.preventDefault();
-        w2.__UGT_GO(PATH_TO_PAGE[p]);
-      } else {
-        return;
-      }
-      // notify chrome UI (tab bar / menu sheet) even when the URL didn't change
-      window.dispatchEvent(new Event('ugt:nav'));
-    };
-    document.addEventListener('click', onLinkClick);
-    // browser back/forward: switch in-app when possible, else full reload
-    const onPop = () => {
-      const w2 = window as any;
-      const p = location.pathname.replace(/\/+$/, '') || '/';
-      if (p === '/work-with-us' && typeof w2.__UGT_GO_WORK === 'function') w2.__UGT_GO_WORK('brands');
-      else if (PATH_TO_PAGE[p] && typeof w2.__UGT_GO === 'function') w2.__UGT_GO(PATH_TO_PAGE[p]);
-      else window.location.reload();
-    };
-    window.addEventListener('popstate', onPop);
+    // Real route navigation preserves each page's data, metadata and history.
     // news/blog cards: any rendered <article id="<slug>"> opens its full story
     const onCardClick = (e: MouseEvent) => {
       const el = (e.target as Element | null)?.closest?.('article[id]') as HTMLElement | null;
@@ -335,8 +298,6 @@ export function V25App({ page }: { page: string }) {
       if (!done) host.removeAttribute('data-booted');
       if (poll) clearInterval(poll);
       clearTimeout(veilCap);
-      window.removeEventListener('popstate', onPop);
-      document.removeEventListener('click', onLinkClick);
       document.removeEventListener('click', onCardClick);
     };
   }, [page]);

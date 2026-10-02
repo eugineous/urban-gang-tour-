@@ -17,8 +17,8 @@ export type BlogPost = {
 // article presented as a current report.
 export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (db()) {
+    const { q, hasDb } = await import('@/lib/server/db');
+    if (hasDb()) {
       // AND date <= CURRENT_DATE: a future-dated post is "scheduled", not yet
       // live. Without this, setting published=true made a post public the
       // instant it was saved regardless of its date field.

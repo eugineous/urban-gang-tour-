@@ -110,7 +110,7 @@ export default function Page() {
       <JsonLd data={[PEOPLE, ...structured]} />
       {/* Rich SSR shell — visible to crawlers, hidden once v25 boots */}
       <div
-        id="ssr-shell"
+        id="team-summary"
         aria-hidden="true"
         style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
       >

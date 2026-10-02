@@ -25,6 +25,7 @@ export type RouteDef = {
 
 // Every distinct, crawlable URL. Order here drives the sitemap.
 export const ROUTES: RouteDef[] = [
+  { path: '/tour-stops', page: 'stops', nav: 'Tour Stops', title: 'Tour Stops — Upcoming Visits & Tour History', description: 'Explore published Urban Gang Tour school and campus stops, upcoming dates and tour history across Kenya.', changefreq: 'daily', priority: 0.8 },
   {
     path: '/', page: 'home', nav: 'Home',
     title: 'Urban Gang Tour — Where the Culture Gets Made',
@@ -47,14 +48,14 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'monthly', priority: 0.7,
   },
   {
-    path: '/experience', page: 'exp', nav: 'The Tour',
+    path: '/experience', page: 'exp', nav: 'Experience',
     title: 'The Tour Experience — Run of Show, Pods & Talent Stage',
     description:
       'Inside an Urban Gang Tour day: morning mentorship pods, tree planting, talent competitions, awards and crowning, and hype sets — built to broadcast standard.',
     changefreq: 'monthly', priority: 0.8,
   },
   {
-    path: '/events', page: 'events', nav: 'Tickets',
+    path: '/events', page: 'events', nav: 'Events',
     title: 'Events & Tickets — Upcoming Urban Gang Tour Stops',
     description:
       'Upcoming Urban Gang Tour stops and ticketed events across Kenya. See dates, venues and secure your place at the next school, campus or mega event.',
