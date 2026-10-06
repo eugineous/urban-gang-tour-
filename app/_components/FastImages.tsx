@@ -98,6 +98,16 @@ function fixVideo(el: HTMLVideoElement) {
     el.autoplay = true;
     el.setAttribute('autoplay', '');
     el.preload = 'auto';
+    // Do not make a returning visitor wait through the same intro every time.
+    // Seeking only after metadata is available avoids an invalid seek on slow
+    // connections; the compact hero rendition is already preloaded by /.
+    const startInMotion = () => {
+      if (el.dataset.ugtMidpoint === '1' || !Number.isFinite(el.duration) || el.duration < 2) return;
+      el.dataset.ugtMidpoint = '1';
+      try { el.currentTime = Math.min(el.duration - 0.35, Math.max(0.5, el.duration * 0.42)); } catch {}
+    };
+    if (el.readyState >= 1) startInMotion();
+    else el.addEventListener('loadedmetadata', startInMotion, { once: true });
   } else {
     el.preload = 'none';
   }

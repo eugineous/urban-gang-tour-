@@ -43,15 +43,11 @@ const nextConfig = {
       { source: '/gang', destination: '/the-gang', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },
       { source: '/v25-template', destination: '/', permanent: true },
-      // /v25-template.html is a raw client-side template fragment (unrendered
-      // {{ mustache }} placeholders), fetched internally by V25App.tsx via
-      // `fetch('/v25-template.html')` — that request never sets
-      // sec-fetch-dest: document, only a real browser navigation does. Google
-      // had indexed it directly as a broken-looking page; 301 real visitors
-      // away from it while leaving the internal fetch() untouched.
+      // /v25-template.html is source code, not a previewable document.
+      // Redirect all access to the working public homepage. V25App loads the
+      // same source through /api/runtime-template instead.
       {
         source: '/v25-template.html',
-        has: [{ type: 'header', key: 'sec-fetch-dest', value: 'document' }],
         destination: '/',
         permanent: true,
       },

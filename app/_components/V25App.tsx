@@ -15,6 +15,14 @@ export function V25App({ page }: { page: string }) {
     // Phones have their own purpose-built app shell. Do not boot the desktop
     // runtime behind it: that was both visually wrong and expensive on mobile.
     if (window.matchMedia('(max-width:1024px)').matches) return;
+
+    // The captured SSR pages are the reliable public surface for every route.
+    // At the moment the legacy runtime only completes the home and events
+    // screens consistently; on secondary routes it marks itself booted and
+    // hides the real page even when it renders no screen. Keep progressive
+    // enhancement where it demonstrably works and leave the rich, crawlable
+    // route shell visible everywhere else.
+    if (!['home', 'events'].includes(page)) return;
     const w = window as any;
     w.__UGT_PAGE = page;
     // Promo overlay bridge: fetch the public active-promos list once and
@@ -238,7 +246,10 @@ export function V25App({ page }: { page: string }) {
       attempts += 1;
       // the layout preloads this, so it resolves from cache almost instantly
       // This fragment is an internal asset, never a public page.
-      fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal })
+      // Keep the raw dc source behind an application endpoint. The public
+      // template filename is deliberately redirected because a file preview
+      // cannot provide the React state required by its checkout bindings.
+      fetch('/api/runtime-template', { cache: 'no-cache', signal: controller.signal })
         .then((r) => { if (!r.ok) throw new Error('Template unavailable'); return r.text(); })
         .then((raw) => {
           if (cancelled) return;

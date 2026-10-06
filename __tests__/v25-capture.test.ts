@@ -6,21 +6,22 @@ import { describe, expect, it } from 'vitest';
 import { RenderedPage } from '@/app/_components/RenderedPage';
 import { getRawCapturedPage } from '@/app/_components/captured-pages';
 
-describe('bundled v25 page captures', () => {
-  it('renders the real homepage capture with its rewritten hero video', () => {
+describe('retired bundled V25 captures', () => {
+  it('renders the React homepage and keeps V25 bindings out of the response', () => {
     const markup = renderToStaticMarkup(
       createElement(RenderedPage, { pathName: '/' }),
     );
 
-    expect(markup).toContain('You Already');
+    expect(markup).toContain('Make culture move.');
     expect(markup).toContain(
       'src="/assets/light-v1/video/hero-main.mp4"',
     );
-    expect(markup).toContain('preload="auto"');
+    expect(markup).toContain('preload="metadata"');
     expect(markup).not.toContain('poster="/assets/poster.png"');
     expect(markup).not.toContain(
       'data-ugt-video="/assets/light-v1/video/hero-main.mp4"',
     );
+    expect(markup).not.toContain('{{');
     expect(markup).not.toContain('src="/assets/video/hero-main.mp4"');
   });
 
