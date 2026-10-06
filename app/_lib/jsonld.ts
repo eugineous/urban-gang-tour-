@@ -9,12 +9,7 @@ import { resolveManyEventTruths } from '@/lib/server/event-truth';
 export const ORG = data.org;
 export const WEBSITE = data.website;
 export const EVENTS = data.events;      // @graph of Event / EducationEvent  -> /events
-// Public founder profile schema deliberately names the two founders only.
-// Operational collaborators are not a public people directory.
-export const PEOPLE = {
-  ...data.people,
-  '@graph': data.people['@graph'].filter((person: { name?: string }) => person.name === 'Eugine Micah' || person.name === 'Lucy Ogunde'),
-};
+export const PEOPLE = data.people;      // @graph of Person (crew)           -> /the-gang
 // Keep both the publisher identifier and URL on the live /blog route. Article
 // pages import this identifier too, so all newsroom markup resolves to one
 // canonical publisher instead of the retired /news URL.

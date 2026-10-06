@@ -2,12 +2,16 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { SITE } from '@/lib/site';
 import { ICON_SPRITE } from './_components/iconSprite';
+import { HEADER_HTML } from './_components/headerHtml';
+import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
 import { AdSenseLoader } from './_components/Ads';
+import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
+import { MobileApp } from './_components/MobileApp';
 import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
@@ -61,6 +65,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&family=Titan+One&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
         {/* Device id for rate limiting (lib/server/ratelimit.ts).
@@ -92,6 +102,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG')return;var o=t.getAttribute('data-ugt-src');if(!o||t.getAttribute('data-ugt-fellback'))return;t.setAttribute('data-ugt-fellback','1');t.removeAttribute('srcset');t.removeAttribute('sizes');t.setAttribute('src',o);},true);`,
           }}
         />
+        {/* Load the v25 runtime + template with priority so boot never gets
+            starved behind the static shell's images/video on media-heavy pages. */}
+        <link rel="preload" as="fetch" href="/v25-template.html" crossOrigin="anonymous" />
+        <link rel="preload" as="script" href="/support.js" />
+        <link rel="preload" as="script" href="/vendor/react.production.min.js" />
+        <link rel="preload" as="script" href="/vendor/react-dom.production.min.js" />
       </head>
       <body>
         {/* Skip-to-content link — first focusable element on every page.
@@ -119,16 +135,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             height with zero z-index fighting. Renders nothing when there is
             no active promo. */}
         <PromoBanner />
-        {/* Server-rendered application shell. Public pages own their navigation
-            so the retired V25 header/footer cannot create duplicate chrome. */}
+        {/* SSR shell: full server-rendered page for crawlers + first paint.
+            v25's live runtime boots into #v25-host and then hides this. */}
         <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
+          <div dangerouslySetInnerHTML={{ __html: HEADER_HTML }} />
           {/* Skip-to-content target — must appear after the header nav so the
               skip link jumps past it, but before page content. */}
           <span id="main-content" tabIndex={-1} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }} aria-hidden="true" />
           {children}
+          <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
+        <MobileApp />
         <InstallableApp />
+        {/* mount point for the live interactive v25 app (client-only) */}
+        <div id="v25-host" />
+        {/* Mobile bottom tab bar — outside #ssr-shell so it survives the
+            runtime boot (the old menu vanished with the shell). */}
+        <BottomTabBar />
         <WhatsAppWidget />
+        {/* Boot veil: hides the pre-boot shell flash; removed the instant the
+            live app renders (or by fallback timer). Hidden entirely for no-JS
+            visitors and crawlers via noscript. */}
+        {/* suppressHydrationWarning + hide-only (never .remove()): the veil
+            scripts race React hydration, and deleting the node made React
+            regenerate the whole tree (error 418) on slow loads. */}
+        <div id="boot-veil" aria-hidden="true" suppressHydrationWarning>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 84, width: 'auto' }} />
+          <div className="boot-veil-bar"><span /></div>
+        </div>
+        <noscript>
+          <style>{`#boot-veil{display:none !important}`}</style>
+        </noscript>
+        {/* pages without the v25 booter (admin, account, blog, legal) never set
+            data-booted on the host — drop the veil for them immediately */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `setTimeout(function(){var h=document.getElementById('v25-host');var v=document.getElementById('boot-veil');if(v&&(!h||!h.getAttribute('data-booted'))){v.classList.add('gone');}},1200);`,
+          }}
+        />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
             where we can't attach a debugger) in the server logs */}
         <script
