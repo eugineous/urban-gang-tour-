@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { SITE } from '@/lib/site';
 import { ICON_SPRITE } from './_components/iconSprite';
-import { HEADER_HTML } from './_components/headerHtml';
-import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
 import { AdSenseLoader } from './_components/Ads';
@@ -63,12 +61,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Titan+One&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
         {/* Device id for rate limiting (lib/server/ratelimit.ts).
@@ -127,15 +119,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             height with zero z-index fighting. Renders nothing when there is
             no active promo. */}
         <PromoBanner />
-        {/* SSR shell: full server-rendered page for crawlers + first paint.
-            v25's live runtime boots into #v25-host and then hides this. */}
+        {/* Server-rendered application shell. Public pages own their navigation
+            so the retired V25 header/footer cannot create duplicate chrome. */}
         <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
-          <div dangerouslySetInnerHTML={{ __html: HEADER_HTML }} />
           {/* Skip-to-content target — must appear after the header nav so the
               skip link jumps past it, but before page content. */}
           <span id="main-content" tabIndex={-1} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }} aria-hidden="true" />
           {children}
-          <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
         <InstallableApp />
         <WhatsAppWidget />
