@@ -11,17 +11,31 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./*"] }
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "include": [
     "next-env.d.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
     "lib/site.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next", "components", "content", "cloudflare", "supabase"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "components",
+    "content",
+    "cloudflare",
+    "supabase"
+  ]
 }

@@ -1,6 +1,6 @@
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { invalidate } from '@/lib/server/microcache';
-import { invalidateCatalogCaches } from '@/lib/server/catalog';
+import { revalidatePath, revalidateTag } from "next/cache";
+import { invalidate } from "@/lib/server/microcache";
+import { invalidateCatalogCaches } from "@/lib/server/catalog";
 
 /**
  * After any commercial mutation the public surfaces have to drop what they
@@ -11,16 +11,16 @@ import { invalidateCatalogCaches } from '@/lib/server/catalog';
  */
 export function bumpEventPublicTruth(eventId?: string | null): void {
   invalidateCatalogCaches();
-  invalidate('site-events:all');
-  invalidate('site-events:ticketed');
-  invalidate('site-events:school');
-  invalidate('site-events:past');
+  invalidate("site-events:all");
+  invalidate("site-events:ticketed");
+  invalidate("site-events:school");
+  invalidate("site-events:past");
   try {
-    revalidatePath('/events');
-    revalidatePath('/experience');
-    revalidatePath('/sitemap.xml');
-    revalidateTag('sitemap');
-    revalidateTag('events');
+    revalidatePath("/events");
+    revalidatePath("/experience");
+    revalidatePath("/sitemap.xml");
+    revalidateTag("sitemap", "max");
+    revalidateTag("events", "max");
     if (eventId && /^[a-z0-9-]{1,80}$/.test(eventId)) {
       revalidatePath(`/events/${eventId}`);
     }

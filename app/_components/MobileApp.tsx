@@ -144,7 +144,20 @@ export function MobileApp() {
   useEffect(() => { if (!cartRestored) return; try { localStorage.setItem('ugt_cart', JSON.stringify(bag.map(item => ({ id: item.id, qty: item.qty, ...(item.variant ? { size: item.variant } : {}) })))); } catch {} }, [bag, cartRestored]);
   if (!page) {
     if (/^\/(admin|organizer|offline)(\/|$)/.test(pathname)) return null;
-    return <div className="ugt-mobile-secondary"><header className="ugt-mobile-top"><Link href="/" aria-label="Urban Gang Tour home"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /></Link><button className="ugt-mobile-menu-icon" aria-label="Open site menu" onClick={() => setExploreOpen(true)}><Icon name="menu" /></button></header>{exploreOpen && <ExplorePanel close={() => setExploreOpen(false)} />}</div>;
+    return <div className="ugt-mobile-secondary">
+      <header className="ugt-mobile-top">
+        <Link href="/" aria-label="Urban Gang Tour home"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /></Link>
+        <button className="ugt-mobile-menu-icon" aria-label="Open site menu" onClick={() => setExploreOpen(true)}><Icon name="menu" /></button>
+      </header>
+      <nav className="ugt-mobile-nav" aria-label="Primary navigation">
+        <Tab href="/" text={t('Home', lang)} active={pathname === '/'} />
+        <Tab href="/events" text={t('Events', lang)} active={pathname.startsWith('/events')} />
+        <Tab href="/book" text={t('Book Us', lang)} active={pathname === '/book'} cta />
+        <Tab href="/gallery" text={t('Gallery', lang)} active={pathname.startsWith('/gallery')} />
+        <Tab href="/shop" text={t('Shop', lang)} active={pathname.startsWith('/shop')} />
+      </nav>
+      {exploreOpen && <ExplorePanel close={() => setExploreOpen(false)} />}
+    </div>;
   }
   const today = new Date().toISOString().slice(0, 10);
   const matchesEvent = (event: Event) => `${event.name} ${event.venue || ''} ${event.city || ''}`.toLowerCase().includes(eventQuery.trim().toLowerCase());
@@ -204,12 +217,47 @@ export function MobileApp() {
   };
   return <main className="ugt-mobile-app">
     <header className="ugt-mobile-top"><Link href="/" aria-label="Urban Gang Tour home"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" /></Link><div className="ugt-mobile-top-actions"><button className="ugt-mobile-explore" aria-expanded={exploreOpen} aria-controls="ugt-mobile-explore" onClick={() => setExploreOpen(true)} aria-label="Open site menu"><Icon name="menu" /></button><button className="ugt-mobile-lang" aria-label={lang === 'en' ? 'Switch to Swahili' : 'Switch to English'} onClick={toggleLang} style={{ background: 'transparent', border: '2px solid currentColor', borderRadius: 6, padding: '4px 8px', fontSize: 12, fontWeight: 800, cursor: 'pointer', lineHeight: 1 }}>{lang === 'en' ? 'SW' : 'EN'}</button><button className="ugt-mobile-bag" aria-label={`Open bag, ${bag.reduce((sum, item) => sum + item.qty, 0)} items`} onClick={() => setBagOpen(true)}>Bag <b>{bag.reduce((sum, item) => sum + item.qty, 0)}</b></button></div></header>
-    {page === 'home' && <><section className="ugt-mobile-hero"><video className="ugt-mobile-hero-video" src="/assets/light-v1/video/hero-main.mp4" autoPlay muted loop playsInline preload="auto" aria-hidden="true" /><p>URBAN GANG TOUR · KENYA</p><h1>Make the<br />moment.</h1><span>Live shows, talent and culture moving across Kenya.</span><Link className="ugt-mobile-primary" href="/events">Find an event <b>→</b></Link></section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>Next up</h2><Link href="/events">See all</Link></div>{ticketedEvents[0] ? <EventCard event={ticketedEvents[0]} onPick={setTicket} featured lang={lang} /> : upcomingStops[0] ? <SchoolStopCard event={upcomingStops[0]} featured lang={lang} /> : <EmptyEvents lang={lang} />}</section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>{t('Choose your lane', lang)}</h2><button className="ugt-mobile-text-button" onClick={() => setExploreOpen(true)}>{t('Explore', lang)}</button></div><div className="ugt-mobile-paths"><Link href="/book"><span>01</span><strong>Bring the tour</strong><small>Schools and institutions</small><b>→</b></Link><Link href="/partners"><span>02</span><strong>Build with us</strong><small>Brands and partners</small><b>→</b></Link><Link href="/blog"><span>03</span><strong>Read the road</strong><small>{t('Urban News', lang)} and recaps</small><b>→</b></Link></div></section><section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>On the road</h2><Link href="/gallery">{t('Gallery', lang)}</Link></div>{photos.length ? <PhotoStrip photos={photos.slice(0, 4)} /> : <EmptyGallery />}</section><section className="ugt-mobile-cta"><p>Bring the tour to your school</p><Link href="/book">{t('Book now', lang)} <b>→</b></Link></section></>}
+    {page === 'home' && <>
+      <section className="ugt-mobile-hero">
+        <video className="ugt-mobile-hero-video" src="/assets/light-v1/video/hero-main.mp4" autoPlay muted loop playsInline preload="auto" aria-hidden="true" />
+        <p>KENYA → THE WORLD · LIVE CULTURE</p>
+        <h1>Make culture<br />move.</h1>
+        <span>Broadcast-ready school tours, cultural festivals, talent stages and brand moments built to fill the room—and travel beyond it.</span>
+        <div className="ugt-mobile-hero-actions">
+          <Link className="ugt-mobile-primary" href="/book">Host a mega event <b>→</b></Link>
+          <a className="ugt-mobile-hero-watch" href="https://www.youtube.com/@urban_newsgang" target="_blank" rel="noopener">Watch Urban News ↗</a>
+        </div>
+      </section>
+      <section className="ugt-mobile-home-signal" aria-label="Urban Gang Tour capabilities">
+        <span>LIVE PRODUCTION</span><span>YOUTH CULTURE</span><span>MEDIA + MERCH</span>
+      </section>
+      <section className="ugt-mobile-section">
+        <div className="ugt-mobile-heading"><h2>Next up</h2><Link href="/events">See all</Link></div>
+        {ticketedEvents[0] ? <EventCard event={ticketedEvents[0]} onPick={setTicket} featured lang={lang} /> : upcomingStops[0] ? <SchoolStopCard event={upcomingStops[0]} featured lang={lang} /> : <EmptyEvents lang={lang} />}
+      </section>
+      <section className="ugt-mobile-section">
+        <div className="ugt-mobile-heading"><h2>Built to headline</h2><button className="ugt-mobile-text-button" onClick={() => setExploreOpen(true)}>{t('Explore', lang)}</button></div>
+        <div className="ugt-mobile-paths">
+          <Link href="/book"><span>01</span><strong>Bring the full tour</strong><small>School, campus and cultural-day takeovers</small><b>→</b></Link>
+          <Link href="/book?service=hosts"><span>02</span><strong>Book Eugine + Lucy</strong><small>Exclusive hosts, appearances and media moments</small><b>→</b></Link>
+          <Link href="/partners"><span>03</span><strong>Build a brand moment</strong><small>Partnerships, activations and audience access</small><b>→</b></Link>
+        </div>
+      </section>
+      <section className="ugt-mobile-section ugt-mobile-video-section">
+        <div className="ugt-mobile-heading"><h2>Urban News, on tap</h2><a href="https://www.youtube.com/playlist?list=PLWRdLORbKcqU" target="_blank" rel="noopener">Full playlist ↗</a></div>
+        <div className="ugt-mobile-video-reel" aria-label="Urban News video playlist">
+          <iframe src="https://www.youtube.com/embed/videoseries?list=PLWRdLORbKcqU&autoplay=1&mute=1&playsinline=1" title="Urban News playlist" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+          <iframe src="https://www.youtube.com/embed/P7a9iFNE33g?autoplay=1&mute=1&playsinline=1" title="Urban News on the road" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+        </div>
+      </section>
+      <section className="ugt-mobile-section"><div className="ugt-mobile-heading"><h2>On the road</h2><Link href="/gallery">{t('Gallery', lang)}</Link></div>{photos.length ? <PhotoStrip photos={photos.slice(0, 4)} /> : <EmptyGallery />}</section>
+      <section className="ugt-mobile-cta"><p>Bring the show.<br />Own the moment.</p><span>Tell us what you are planning and the team will shape the right tour, host or activation.</span><Link href="/book">Start a booking <b>→</b></Link></section>
+    </>}
     {page === 'events' && <><section className="ugt-mobile-intro pink"><p>WHAT’S NEXT</p><h1>Find your<br />moment.</h1><span>Public tickets appear here when they are released. School stops are listed separately.</span></section><section className="ugt-mobile-section"><input type="search" aria-label="Search events" placeholder="Search events, schools, places" value={eventQuery} onChange={event => setEventQuery(event.target.value)} style={{ width: '100%', padding: 14, fontSize: 16, border: '1px solid #aaa', borderRadius: 8 }} /><Link href="/tour-stops" style={{ display: 'block', padding: '16px 0' }}>Tour stops and past visits</Link>{eventQuery && !ticketedEvents.length && !upcomingStops.length && <p role="status">No events match your search.</p>}</section>{ticketedEvents.length ? <section className="ugt-mobile-section ugt-mobile-stack">{ticketedEvents.map(event => <EventCard event={event} onPick={setTicket} key={event.id} lang={lang} />)}</section> : <section className="ugt-mobile-section"><EmptyEvents lang={lang} /></section>}{upcomingStops.length ? <section className="ugt-mobile-section ugt-mobile-stack"><div className="ugt-mobile-heading"><h2>On the school run</h2></div>{upcomingStops.map(event => <SchoolStopCard event={event} key={event.id} lang={lang} />)}</section> : null}</>}
     {page === 'gallery' && <><section className="ugt-mobile-intro blue"><p>PHOTO WALL</p><h1>You had to<br />be there.</h1><span>The faces, fits and full-volume moments from the road.</span></section>{photos.length ? <PhotoGallery photos={photos} /> : <section className="ugt-mobile-section"><EmptyGallery /></section>}</>}
     {page === 'shop' && <><section className="ugt-mobile-intro yellow"><p>THE DROP</p><h1>Wear the<br />movement.</h1><span>Tour pieces made for the way you show up.</span></section>{products.length ? <section className="ugt-mobile-products-grid">{products.map(item => <article key={item.id}><div className="ugt-mobile-product-art">{item.image && <img src={item.image} alt={item.name} />}</div><p>{item.category || 'Urban Gang'}</p><h2>{item.name}</h2><div><strong>{price(item.price)}</strong><button type="button" aria-label={`Choose options for ${item.name}`} onClick={() => setPicking(item)}>Choose +</button></div><Link aria-label={`View details for ${item.name}`} href={`/shop/${encodeURIComponent(item.id)}`}>Details</Link></article>)}</section> : <section className="ugt-mobile-section"><EmptyShop /></section>}</>}
     {page === 'book' && <><section className="ugt-mobile-intro dark"><p>BRING THE TOUR</p><h1>Let’s make<br />your stop.</h1><span>Tell us where the culture needs to land next.</span></section><form className="ugt-mobile-form" onSubmit={sendBooking}><label>Your name<input name="name" autoComplete="name" required minLength={2} /></label><label>School or organisation<input name="org" autoComplete="organization" required /></label><label>Email<input name="email" type="email" autoComplete="email" required /></label><label>Phone<input name="phone" type="tel" autoComplete="tel" /></label><label>Preferred date<input name="preferredDate" type="date" /></label><label>Expected attendance<input name="expectedAttendance" type="number" min="1" max="500000" inputMode="numeric" placeholder="e.g. 900" /></label><label>Event brief<textarea name="eventBrief" rows={3} placeholder="Talent show, mentorship pods, runway, sponsor activation..." /></label><label>What are you planning?<textarea name="message" rows={4} required minLength={10} /></label><label><input name="schoolContactConfirmed" type="checkbox" required /> I am an authorised adult or school contact. I will not submit student names, health information or other sensitive personal details here.</label><button disabled={booking === 'sending'}>{booking === 'sending' ? 'Sending…' : `${t('Submit', lang)} booking request →`}</button>{booking === 'sent' && <p className="ugt-mobile-success" role="status">Request received. We will review the details before confirming anything in writing.</p>}{booking === 'error' && <p className="ugt-mobile-error" role="alert">Could not send that yet. Please try again.</p>}</form></>}
-    <nav className="ugt-mobile-nav" aria-label="Primary navigation"><Tab href="/" text={t('Home', lang)} glyph="⌂" active={page === 'home'} /><Tab href="/events" text={t('Events', lang)} glyph="◉" active={page === 'events'} /><Tab href="/book" text={t('Book Us', lang)} glyph="＋" active={page === 'book'} cta /><Tab href="/gallery" text={t('Gallery', lang)} glyph="▧" active={page === 'gallery'} /><Tab href="/shop" text={t('Shop', lang)} glyph="□" active={page === 'shop'} /></nav>
+    <nav className="ugt-mobile-nav" aria-label="Primary navigation"><Tab href="/" text={t('Home', lang)} active={page === 'home'} /><Tab href="/events" text={t('Events', lang)} active={page === 'events'} /><Tab href="/book" text={t('Book Us', lang)} active={page === 'book'} cta /><Tab href="/gallery" text={t('Gallery', lang)} active={page === 'gallery'} /><Tab href="/shop" text={t('Shop', lang)} active={page === 'shop'} /></nav>
     {ticket && <Ticket event={ticket} close={() => setTicket(null)} />}
     {picking && <ProductPicker product={picking} close={() => setPicking(null)} add={add} />}
     {exploreOpen && <ExplorePanel close={() => setExploreOpen(false)} />}
@@ -217,7 +265,7 @@ export function MobileApp() {
   </main>;
 }
 
-function Tab({ href, text, glyph, active, cta = false }: { href: string; text: string; glyph: string; active: boolean; cta?: boolean }) { return <Link href={href} aria-current={active ? 'page' : undefined} className={`${active ? 'active ' : ''}${cta ? 'ugt-mobile-nav-main' : ''}`}><Icon name={href === '/' ? 'home' : href === '/events' ? 'ticket' : href === '/book' ? 'book' : href === '/gallery' ? 'gallery' : 'bag'} /><span>{text}</span></Link>; }
+function Tab({ href, text, active, cta = false }: { href: string; text: string; active: boolean; cta?: boolean }) { return <Link href={href} aria-current={active ? 'page' : undefined} className={`${active ? 'active ' : ''}${cta ? 'ugt-mobile-nav-main' : ''}`}><Icon name={href === '/' ? 'home' : href === '/events' ? 'ticket' : href === '/book' ? 'book' : href === '/gallery' ? 'gallery' : 'bag'} /><span>{text}</span></Link>; }
 function PhotoStrip({ photos }: { photos: Photo[] }) { return <div className="ugt-mobile-photo-strip">{photos.map(photo => <img key={photo.id} src={photo.url} alt={photo.altText || photo.caption || photo.category || 'Urban Gang Tour'} />)}</div>; }
 function EventCard({ event, onPick, featured = false, lang = 'en' }: { event?: Event; onPick: (event: Event) => void; featured?: boolean; lang?: Lang }) { if (!event) return null; return <article className={`ugt-mobile-event-card ${featured ? 'featured' : ''}`}><img src={event.image || '/assets/gal/xp-dance.jpg'} alt="" /><div><p>{showDate(event.eventDate)} · {event.eventTime || 'TBA'}</p><h3>{event.name}</h3><span>{event.venue || event.city || 'Kenya'}</span><Link href={`/events/${encodeURIComponent(event.slug || event.id)}`} aria-label={`View ${event.name}`}>View event <b>→</b></Link></div></article>; }
 function SchoolStopCard({ event, featured = false, lang = 'en' }: { event: Event; featured?: boolean; lang?: Lang }) { return <article className={`ugt-mobile-event-card ${featured ? 'featured' : ''}`}><img src={event.image || '/assets/gal/g-street.jpg'} alt="" /><div><p>Institutional stop · {showDate(event.eventDate)}</p><h3>{event.name}</h3><span>{event.venue || event.city || 'Kenya'}</span><Link href="/book">{t('Book now', lang)} <b>→</b></Link></div></article>; }

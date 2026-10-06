@@ -1,40 +1,41 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
-import { RenderedPage } from '@/app/_components/RenderedPage';
-import { getRawCapturedPage } from '@/app/_components/captured-pages';
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import { RenderedPage } from "@/app/_components/RenderedPage";
+import { getRawCapturedPage } from "@/app/_components/captured-pages";
 
-describe('bundled v25 page captures', () => {
-  it('renders the real homepage capture with its rewritten hero video', () => {
+describe("retired bundled V25 captures", () => {
+  it("renders the React homepage and keeps V25 bindings out of the response", () => {
     const markup = renderToStaticMarkup(
-      createElement(RenderedPage, { pathName: '/' }),
+      createElement(RenderedPage, { pathName: "/" }),
     );
 
-    expect(markup).toContain('You Already');
     expect(markup).toContain(
-      'src="/assets/light-v1/video/hero-main.mp4"',
+      "Looking for a school event students will remember?",
     );
-    expect(markup).toContain('preload="auto"');
+    expect(markup).toContain('src="/assets/light-v1/video/hero-main.mp4"');
+    expect(markup).toContain('preload="metadata"');
     expect(markup).not.toContain('poster="/assets/poster.png"');
     expect(markup).not.toContain(
       'data-ugt-video="/assets/light-v1/video/hero-main.mp4"',
     );
+    expect(markup).not.toContain("{{");
     expect(markup).not.toContain('src="/assets/video/hero-main.mp4"');
   });
 
-  it('returns bundled capture source and rejects an unknown page key', () => {
-    expect(getRawCapturedPage('home')).toContain('You Already');
-    expect(getRawCapturedPage('not-a-real-page')).toBeNull();
+  it("returns bundled capture source and rejects an unknown page key", () => {
+    expect(getRawCapturedPage("home")).toContain("You Already");
+    expect(getRawCapturedPage("not-a-real-page")).toBeNull();
   });
 
-  it('keeps the production capture path independent of the Node filesystem', () => {
+  it("keeps the production capture path independent of the Node filesystem", () => {
     const root = process.cwd();
     const sources = [
-      path.join(root, 'app', '_components', 'RenderedPage.tsx'),
-      path.join(root, 'app', '_components', 'captured-pages.ts'),
-    ].map((file) => readFileSync(file, 'utf8'));
+      path.join(root, "app", "_components", "RenderedPage.tsx"),
+      path.join(root, "app", "_components", "captured-pages.ts"),
+    ].map((file) => readFileSync(file, "utf8"));
 
     for (const source of sources) {
       expect(source).not.toMatch(/(?:node:fs|\bexistsSync\b|\breadFileSync\b)/);
