@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default function AccountPage() {
   return (
-    <main style={{ background: '#101011', minHeight: '70vh', padding: '56px 20px 110px' }}>
+    <main style={{ background: '#E6218C', minHeight: '70vh', padding: '56px 20px 90px' }}>
       <h1 style={{ fontFamily: "'Anton'", color: '#fff', textAlign: 'center', fontSize: 'clamp(36px,6vw,64px)', WebkitTextStroke: '2px #111', margin: '0 0 26px', textTransform: 'uppercase' }}>
-        Your Urban Gang account
+        Gang Account
       </h1>
       <AccountApp />
     </main>
