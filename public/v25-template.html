@@ -650,7 +650,7 @@
 </div>
 <div style="background:#111;border-bottom:4px solid #111;padding:56px 24px">
 <div style="max-width:1320px;margin:0 auto">
-<div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg);margin-bottom:4px">tonight's line-up — every single stop</div>
+<div style="font-family:'Permanent Marker';color:#FFD400;font-size:18px;transform:rotate(-2deg);margin-bottom:4px">the founders — on every single stop</div>
 <h2 style="font-family:'Anton';font-size:clamp(34px,5vw,64px);margin:0 0 26px;text-transform:uppercase;color:#fff;line-height:.9">The <span style="color:#E6218C">Headliners</span></h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:20px;align-items:end">
 <sc-for list="{{ hypeTeam }}" as="m" hint-placeholder-count="4">
@@ -660,7 +660,7 @@
 </button>
 </sc-for>
 </div>
-<div style="text-align:center;margin-top:24px"><button onClick="{{ nav.gang }}" style="background:transparent;color:#FFD400;font-family:'Bungee';font-size:14px;border:2px dashed #FFD400;border-radius:100px;padding:12px 26px" style-hover="background:#FFD400;color:#111">+ THE WHOLE 30-PERSON CREW →</button></div>
+<div style="text-align:center;margin-top:24px"><button onClick="{{ nav.gang }}" style="background:transparent;color:#FFD400;font-family:'Bungee';font-size:14px;border:2px dashed #FFD400;border-radius:100px;padding:12px 26px" style-hover="background:#FFD400;color:#111">MEET EUGINE &amp; LUCY →</button></div>
 </div>
 </div>
 <div style="background:#fff;border-bottom:4px solid #111;padding:50px 24px">
@@ -2204,7 +2204,7 @@ class Component extends DCLogic {
       quick, quickClose:this.quickClose, quickCloseBg:this.quickCloseBg,
       products, divisions:this.DIVISIONS.map((d,i)=>({...d,tilt:['-2.5deg','1.8deg','-1.2deg','2.4deg','-1.8deg','1.2deg'][i%6],radius:['46% 22px 46% 22px / 40px 46% 22px 46%','22px','120px 22px 120px 22px','22px 90px 22px 90px','999px 999px 26px 26px','22px'][i%6]})), categories:this.CATEGORIES.map((c,i)=>({...c,card:['#FFD400','#21C7E6','#fff'][i%3]})), pods:this.PODS, audiences, differentiators:this.DIFF, runOfShow:this.RUNOFSHOW.map((r,i)=>({...r,time:['8:00 AM','10:00 AM','11:00 AM','2:00 PM','3:00 PM','3:30 PM','4:30 PM','5:00 PM','5:30 PM'][i]||'',img:['/assets/gal/crew.jpg','/assets/gal/g-trees.jpg','/assets/gal/g-winning.jpg','/assets/gal/g-crowning.jpg','/assets/gal/xp-dance.jpg','/assets/gal/campus-rave.jpg','/assets/gal/festival-colours.jpg','/assets/gal/news-bg.jpg','/assets/gal/g-street.jpg'][i]||'/assets/gal/g-street.jpg',flip:i%2===1})), extras:this.EXTRAS, typedWord:(s.tw||'CULTURE'),
       team:this.TEAM.map((m,i)=>({...m,tilt:this.TILTS[i%this.TILTS.length],open:()=>this.openMember(m.id),roleShort:m.role})),
-      hypeTeam:this.TEAM.filter(m=>m.hype).map((m,i)=>({...m,open:()=>this.openMember(m.id),tilt:['-2deg','1.6deg','-1.2deg','2deg','-1.6deg'][i%5],ring:['#FFD400','#21C7E6','#E6218C'][i%3]})),
+      hypeTeam:this.TEAM.filter(m=>m.id==='eugine'||m.id==='lucy').map((m,i)=>({...m,open:()=>this.openMember(m.id),tilt:['-2deg','1.6deg'][i%2],ring:['#FFD400','#21C7E6'][i%2]})),
       partnersLoop:[...this.PARTNERS,...this.PARTNERS],
       partners:this.PARTNERS.map(p=>({...p,open:()=>this.openPartner(p.name)})), stops, works:this.WORKS, gallery:this.GALLERY, news:this.NEWS,
       selectedPartner:(()=>{ const p=this.PARTNERS.find(x=>x.name===s.partnerId); if(!p) return null; const d=this.PARTNER_FILES[p.name]||{}; return {...p,...d,partner:()=>{this.closePartner();this.goWork('brands');}}; })(),

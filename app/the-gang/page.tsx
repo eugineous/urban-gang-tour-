@@ -3,7 +3,6 @@ import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { PEOPLE } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
-import { RenderedPage } from '@/app/_components/RenderedPage';
 import { SITE } from '@/lib/site';
 
 const PATH = '/the-gang';
@@ -14,7 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);
 }
 
-// Crew list sourced from the same data used by PEOPLE JSON-LD
+// The public founders page is intentionally limited to the two permanent
+// principals. Event contractors and collaborators are credited on the work
+// they actually join, not presented as standing crew.
 const CREW: { name: string; role: string; description: string }[] = [
   {
     name: 'Eugine Micah',
@@ -28,79 +29,6 @@ const CREW: { name: string; role: string; description: string }[] = [
     description:
       'Co-founder and co-host of the Urban Gang Tour and Urban News on PPP TV Kenya.',
   },
-  {
-    name: 'Okiyo DaVinci',
-    role: 'Overseer, Urban Gang Structure',
-    description:
-      'Strategic overseer of the Urban Gang structure, operations and programme design.',
-  },
-  {
-    name: 'Esther Wambui Gakunju',
-    role: 'Head of Modelling & Pageantry',
-    description:
-      'Runway director leading modelling and pageantry across the tour with Synapse Models.',
-  },
-  {
-    name: 'Kalamu Nyeusi',
-    role: 'Stage Manager & Spoken Word Lead',
-    description:
-      'Stage manager and spoken-word lead curating and judging the poetry and spoken-word showcases.',
-  },
-  {
-    name: 'DJ Carian',
-    role: 'Resident DJ',
-    description: 'Resident DJ providing professional live sound across every tour event.',
-  },
-  {
-    name: 'DJ Xavi',
-    role: 'Resident DJ',
-    description:
-      'Resident DJ and versatile selector keeping the festival energy across long event days.',
-  },
-  {
-    name: 'Hype Ola',
-    role: 'Performance Pod Facilitator',
-    description: 'Performance pod facilitator coaching young talent in stage presence and delivery.',
-  },
-  {
-    name: 'Khloe Nyarangi',
-    role: 'Performance Pod Facilitator',
-    description: 'Performance pod facilitator mentoring young performers, especially young women.',
-  },
-  {
-    name: 'Fred (Baba Harshna)',
-    role: 'Stage Manager',
-    description: 'Stage manager keeping the full production running seamlessly and on time.',
-  },
-  {
-    name: 'George',
-    role: 'Lead Videographer',
-    description: 'Lead videographer directing the footage that carries every tour stop to the nation.',
-  },
-  {
-    name: 'Jayjey',
-    role: 'Field Content Creator',
-    description:
-      'Field content creator producing social-first reels and stories live from every event.',
-  },
-  {
-    name: 'Tony',
-    role: 'Photographer',
-    description:
-      'Tour photographer producing premium editorial stills for galleries and partners.',
-  },
-  {
-    name: 'Rania',
-    role: 'Runway Lead Model',
-    description:
-      'Runway lead model setting the standard and mentoring student models with Synapse Models.',
-  },
-  {
-    name: 'Pauline Masika',
-    role: 'Talent Coordinator',
-    description:
-      'Talent coordinator managing registrations and the flow of talent across all kinds of talent.',
-  },
 ];
 
 export default function Page() {
@@ -108,34 +36,36 @@ export default function Page() {
   return (
     <>
       <JsonLd data={[PEOPLE, ...structured]} />
-      {/* Rich SSR shell — visible to crawlers, hidden once v25 boots */}
-      <div
-        id="team-summary"
-        aria-hidden="true"
-        style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
-      >
-        <h1>The Gang — Hosts, DJs, Crew &amp; Talent Team</h1>
-        <p>
-          Urban Gang Tour runs on a tightly-knit professional crew of hosts, DJs, stage managers,
-          videographers, models and performance facilitators. Every person on this list travels to
-          each school and campus stop to deliver a broadcast-quality production.
-        </p>
-        <h2>Meet the Crew</h2>
-        <ul>
-          {CREW.map((member) => (
-            <li key={member.name}>
-              <strong>{member.name}</strong> — {member.role}: {member.description}
-            </li>
-          ))}
-        </ul>
-        <h2>Join the Crew</h2>
-        <p>
-          Interested in working with the Urban Gang Tour as a performer, facilitator, photographer,
-          DJ or crew member?{' '}
-          <a href="/work-with-us">See open opportunities on our Work With Us page.</a>
-        </p>
-      </div>
-      <RenderedPage pathName={PATH} />
+      <main className="ugt-founders">
+        <section className="ugt-founders-hero">
+          <p>THE TWO BEHIND THE CULTURE</p>
+          <h1>Meet <span>The Gang</span></h1>
+          <div className="ugt-founders-intro">Urban Gang Tour is led by Eugine Micah and Lucy Ogunde. Specialist performers, technicians and facilitators join individual productions when the event calls for them.</div>
+        </section>
+        <section className="ugt-founders-grid" aria-label="Urban Gang Tour founders">
+          <article>
+            <div className="ugt-founder-photo"><img src="/assets/crew/eugine-micah.png" alt="Eugine Micah, co-founder of Urban Gang Tour" /></div>
+            <p>THE FACE · THE MIC · THE BUILD</p>
+            <h2>Eugine Micah</h2>
+            <h3>Co-Founder, Creative Director &amp; Lead Host</h3>
+            <div>{CREW[0].description}</div>
+            <a href="/author/eugine-micah">View Eugine&apos;s profile →</a>
+          </article>
+          <article>
+            <div className="ugt-founder-photo cyan"><img src="/assets/crew/lucy-ogunde.jpg" alt="Lucy Ogunde, co-founder of Urban Gang Tour" /></div>
+            <p>THE VOICE · THE ROOM · THE ENERGY</p>
+            <h2>Lucy Ogunde</h2>
+            <h3>Co-Founder &amp; Co-Host</h3>
+            <div>{CREW[1].description}</div>
+            <a href="/author/lucy-ogunde">View Lucy&apos;s profile →</a>
+          </article>
+        </section>
+        <section className="ugt-founders-note">
+          <div><p>HOW THE TEAM WORKS</p><h2>Two permanent principals. The right specialists for every show.</h2><div>Urban Gang Tour does not present occasional collaborators as permanent crew. Production teams are assembled for each event and credited for the work they perform.</div></div>
+          <a href="/work-with-us">Work with us →</a>
+        </section>
+        <section className="ugt-founders-cta"><p>Want Eugine and Lucy at your school or event?</p><a href="/book">Start a booking request →</a></section>
+      </main>
     </>
   );
 }

@@ -42,9 +42,9 @@ export const ROUTES: RouteDef[] = [
   },
   {
     path: '/the-gang', page: 'gang', nav: 'The Gang',
-    title: 'The Gang — Hosts, DJs, Crew & Talent Team',
+    title: 'Eugine Micah & Lucy Ogunde — Urban Gang Tour Founders',
     description:
-      'Meet the Urban Gang: hosts Eugine Micah and Lucy Ogunde, resident DJs, stage managers, videographers, models and facilitators who bring the tour to life.',
+      'Meet Urban Gang Tour co-founders and hosts Eugine Micah and Lucy Ogunde, with links to their individual profiles.',
     changefreq: 'monthly', priority: 0.7,
   },
   {

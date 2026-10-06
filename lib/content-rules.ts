@@ -233,6 +233,13 @@ export function correctShellContent(html: string): string {
   // role and bio. The photo filename is the stable marker - the display name is
   // split across spans by the capture, so it is not reliable to match on.
   out = removeEnclosing(out, '/assets/crew/mc-paps.webp', { tag: 'button' });
+  // Eugine and Lucy are the only permanent public principals. The homepage
+  // headliner strip must not present occasional collaborators as crew.
+  out = removeEnclosing(out, '/assets/crew/george-morgan.jpg', { tag: 'button' });
+  out = removeEnclosing(out, '/assets/crew2/karembo.webp', { tag: 'button' });
+  out = out
+    .replace(/tonight's line-up — every single stop/gi, 'the founders — on every single stop')
+    .replace(/\+ THE WHOLE 30-PERSON CREW →/gi, 'MEET EUGINE &amp; LUCY →');
 
   // Partner wall, two different layouts:
   //  - partners.html renders full cards carrying a "PARTNER FILE" badge

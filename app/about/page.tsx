@@ -24,9 +24,8 @@ const ORG_JSONLD = {
   image: `${SITE.domain}/assets/poster.png`,
   slogan: 'From Potential to Purpose',
   foundingDate: '2019',
-  numberOfEmployees: { '@type': 'QuantitativeValue', value: 15 },
   description:
-    "Kenya's premier campus entertainment and youth talent tour since 2019 — visiting 50+ schools, reaching 100,000+ students, and broadcasting every stop nationally on Urban News via PPP TV Kenya.",
+    'A Kenyan youth culture and live-events company creating school experiences, public shows, original media, merchandise and ticketing.',
   email: 'admin@urbangangtour.co.ke',
   telephone: '+254799886247',
   areaServed: 'KE',
@@ -75,12 +74,11 @@ export default function Page() {
         aria-hidden="true"
         style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
       >
-        <h1>About the Urban Gang Tour — Our Story &amp; Mission</h1>
+        <p>About the Urban Gang Tour — Our Story &amp; Mission</p>
         <p>
           Urban Gang Tour (UGT) is Kenya&rsquo;s premier campus and school entertainment tour, founded
-          in 2019 by Eugine Micah and Lucy Ogunde. Since its first stop, UGT has visited over 50
-          schools and reached more than 100,000 students across Kenya — bringing a full
-          broadcast-ready production to every institution free of charge.
+          by Eugine Micah and Lucy Ogunde. It creates school experiences, public shows, original
+          media, merchandise and ticketing around youth talent and culture.
         </p>
         <h2>Our Mission: From Potential to Purpose</h2>
         <p>
@@ -92,8 +90,6 @@ export default function Page() {
         <h2>Key Facts</h2>
         <ul>
           <li>Founded: 2019</li>
-          <li>Schools visited: 50+</li>
-          <li>Students reached: 100,000+</li>
           <li>Broadcast partner: PPP TV Kenya (Urban News)</li>
           <li>Headquarters: Kilimani, Nairobi, Kenya</li>
           <li>Founders: Eugine Micah &amp; Lucy Ogunde</li>
