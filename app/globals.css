@@ -412,6 +412,8 @@ footer img[alt="Urban Gang Tour"]{width:140px!important;height:76px!important;ob
 /* The new public surface replaces captured V25 DOM only on routes rendering
    .public-site. Admin, organizer and legal pages retain their own shells. */
 #ssr-shell:has(.public-site) { display:block !important; background: transparent !important; }
+#ssr-shell:has(.public-site) > div:first-child,
+#ssr-shell:has(.public-site) > div:last-child { display:none !important; }
 body:has(.public-site) #v25-host,
 body:has(.public-site) #boot-veil,
 body:has(.public-site) .ugt-mobile-app,
