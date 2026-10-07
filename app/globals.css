@@ -213,6 +213,7 @@ input,textarea,select{font-family:inherit}
   :is(#dc-root,#ssr-shell) [data-screen-label="Home"]>div:first-child>div[style*="filter:blur"],
   :is(#dc-root,#ssr-shell) [data-screen-label="Home"]>div:first-child>div[style*="filter: blur"]{display:none}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"]>div:first-child{padding:28px 20px!important}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] h1 span{text-shadow:none}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"]>div:nth-child(2){padding:24px 16px 44px!important}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] button[style*="aspect-ratio"]{aspect-ratio:3/2!important}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] a[href^="/shop/"]{display:flex;align-items:center;min-height:44px}
