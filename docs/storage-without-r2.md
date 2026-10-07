@@ -68,6 +68,14 @@ not a reason to reactivate R2 or block an R2-free Worker deployment.
 
 ## Verification
 
+UGT's existing `*/15 * * * *` cron remains installed. Routine deployments omit
+the `triggers` block, which tells Wrangler to leave schedules untouched. The
+account's cron limit rejects even a PUT of the identical existing schedule;
+omitting that redundant PUT preserves payment reconciliation, ticket hold
+cleanup and content-announcement jobs without deleting other projects' jobs.
+If provisioning this Worker in a new account, install that single schedule
+separately. The scheduled handler remains in `worker.js`.
+
 See the task's deployment report for the final test counts, desktop/mobile
 browser results, production inventory and active Worker version. OpenNext's
 upstream dependency still contains optional adapters for multiple providers;
