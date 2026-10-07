@@ -246,6 +246,25 @@ repository's neutral archive photos. An empty configured gallery or a database
 failure remains empty; unpublished images never become a fallback. Photos expose
 `id`, `url`, `caption`, `category`, `altText`, and `sortOrder` only.
 
+## Uploaded media
+
+Uploads use the native `UGT_MEDIA` Workers KV binding, without S3 keys or a
+public bucket URL. Existing upload endpoints keep their request formats,
+limits, permission checks and `{url}` responses. Returned URLs are immutable
+same-origin `/media/<scope>/<content-hash>/<filename>` paths. Bundled media
+continues through `public/assets`, `public/uploads` and the ASSETS binding.
+
+`GET/HEAD /media/[...path]`: published gallery and organizer event images
+are public. Gallery drafts require gallery-admin permission; organizer drafts
+require their owning approved organizer or marketplace-admin permission.
+Documents require documents-admin permission and return `private, no-store`.
+Promotion artwork is public. Invalid paths return 404; missing storage returns
+503. ETags and MIME headers are enforced without exposing executable uploads.
+
+`GET /api/health/media`: rate-limited, coalesced operational aggregate counts
+and binding readiness. Never returns saved URLs, customer data, document
+payloads or credentials. Unavailable inventory returns 503, never a false zero.
+
 ## Env vars (server-side only — never client-exposed)
 `DATABASE_URL, SESSION_SECRET, ADMIN_ACCESS_CODE, RESEND_API_KEY, BOOKINGS_FROM,
 BOOKINGS_TO, MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,

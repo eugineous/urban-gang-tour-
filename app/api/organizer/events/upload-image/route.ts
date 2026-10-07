@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { r2Put, r2Configured } from '@/lib/server/r2';
+import { mediaPut, mediaConfigured } from '@/lib/server/media';
 import { currentApprovedOrganizer } from '@/lib/server/organizer-session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 
 // Proxy upload for organizer event images. The browser POSTs the file bytes
 // as the raw request body (Content-Type = file mime type) to this route,
-// which writes it to R2 at organizer-events/{organizerId}/{filename} and
+// which stores it in Workers KV under the organizer scope and
 // returns { ok: true, url }. Max 4 MB, images only. Rate limited to 5 per minute.
 
 export const runtime = 'nodejs';
@@ -52,8 +52,8 @@ export async function POST(req: Request): Promise<NextResponse> {
   if (!access.organizer)
     return NextResponse.json({ error: access.error }, { status: access.status });
 
-  if (!r2Configured())
-    return NextResponse.json({ error: 'r2_not_configured' }, { status: 503 });
+  if (!mediaConfigured())
+    return NextResponse.json({ error: 'media_not_configured' }, { status: 503 });
 
   // Filename comes in via ?filename= query param (set by client-side uploader)
   const rawFilename =
@@ -78,7 +78,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   try {
     const key = `organizer-events/${access.organizer.id}/${filename}`;
-    const { url } = await r2Put(key, buf, { contentType });
+    const { url } = await mediaPut(key, buf, { contentType });
     return NextResponse.json({ ok: true, url });
   } catch (err) {
     return NextResponse.json(

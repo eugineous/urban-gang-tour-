@@ -1,22 +1,10 @@
 import { NextResponse } from 'next/server';
-import { r2Put, r2Configured } from '@/lib/server/r2';
-import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
+import { mediaPut, mediaConfigured } from '@/lib/server/media';
+import { hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
-// Proxy upload for gallery photos: the browser POSTs the file straight to
-// this route (see lib/client/r2-upload.ts's upload()), which writes it to R2
-// via the native binding (env.UGT_UPLOADS, see lib/server/r2.ts) and returns
-// the public URL. Replaces the old @vercel/blob/client handleUpload() token
-// handshake (Vercel-only) and, before that, an R2 S3-API presigned-URL
-// version — presigning turned out to require R2 API credentials
-// (accessKeyId/secretAccessKey) even from inside a Worker, which this app
-// deliberately never holds; the binding has zero credentials but also no
-// presign capability, so the file now takes one extra hop through this
-// Worker instead of going straight from the browser to storage. Fine for an
-// admin-only, low-traffic upload path.
-//
-// Roles: admin only. Gated the same way as every other admin mutation
-// (isAdmin cookie session + same-origin), checked before any bytes are read.
+// Authenticated image upload to durable KV. Scope and origin checks precede
+// reading bytes. Clients retain progress and the same URL response contract.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +24,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!(await verifyAdminSession(request))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(request, 'gallery')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(request)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!r2Configured()) return NextResponse.json({ error: 'r2_not_configured' }, { status: 503 });
+  if (!mediaConfigured()) return NextResponse.json({ error: 'media_not_configured' }, { status: 503 });
 
   const pathname = new URL(request.url).searchParams.get('pathname') || '';
   if (!pathname.startsWith('gallery/')) {
@@ -62,7 +50,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const { url } = await r2Put(pathname, buf, { contentType });
+    const { url } = await mediaPut(pathname, buf, { contentType });
     return NextResponse.json({ url });
   } catch (error) {
     return NextResponse.json({ error: (error as Error)?.message || 'upload_failed' }, { status: 502 });

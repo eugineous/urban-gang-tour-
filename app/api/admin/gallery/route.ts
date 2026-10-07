@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import { q, db } from '@/lib/server/db';
-import { r2Del, isR2Url } from '@/lib/server/r2';
+import { mediaDel, mediaGet, isMediaUrl } from '@/lib/server/media';
 import { hasPerm, isSuperAdmin, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
 
-// Admin gallery photo CRUD: list, finalize an upload (the file itself is
-// already in Vercel Blob by the time this is called — see
-// app/api/admin/gallery/upload/route.ts for the client-token handshake),
-// reorder, caption/category edit, delete. Roles: admin only (isAdmin cookie
-// session) + same-origin (requireOrigin) on every mutation, matching
-// app/api/admin/ops/route.ts's conventions exactly.
+// Authenticated gallery management. Upload bytes are stored before captions
+// and publication state are registered here.
 //
 // gallery_photos.id is a plain integer SERIAL (matches the table's
 // pre-existing production shape — see lib/server/ops.ts's note above the
@@ -67,17 +63,10 @@ export async function POST(req: Request) {
   try {
     await ensureOpsSchema();
     switch (kind) {
-      // Finalize a photo already uploaded straight to R2 from the browser
-      // (see the admin Gallery UI's use of lib/client/r2-upload.ts's
-      // upload()). We only ever write the resulting R2 URL, never accept
-      // raw file bytes on this route. Only accept URLs that actually live in
-      // our configured R2 public bucket as an "upload" — never let the
-      // browser hand us an arbitrary URL to store as if it were an uploaded
-      // file (CLAUDE.md: schema-based input validation, never trust the
-      // browser).
+      // Only register an existing owned gallery upload.
       case 'upload': {
         const url = s(d.url, 600);
-        if (!url || !isR2Url(url)) return bad('invalid_url');
+        if (!url || !isMediaUrl(url) || !url.startsWith('/media/gallery/') || !(await mediaGet(url))) return bad('invalid_url');
         const caption = s(d.caption, 300);
         const category = s(d.category, 120);
         const width = imageDimension(d.width);
@@ -138,11 +127,10 @@ export async function POST(req: Request) {
         const existing = await q<{ url: string }>(`SELECT url FROM gallery_photos WHERE id=$1`, [id]);
         if (!existing.length) return bad('not_found', 404);
         const url = existing[0].url || '';
-        // Only call r2Del() on rows stored in the owned R2 bucket. If the R2
-        // delete fails, bail before touching the DB row so retrying stays safe.
-        if (isR2Url(url)) {
+        // Remove owned media first; failure leaves the record retryable.
+        if (isMediaUrl(url)) {
           try {
-            await r2Del(url);
+            await mediaDel(url);
           } catch {
             return bad('blob_delete_failed', 502);
           }

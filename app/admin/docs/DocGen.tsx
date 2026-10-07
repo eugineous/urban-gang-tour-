@@ -19,7 +19,7 @@
 // preview/generate/list/void plumbing is type-agnostic.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { upload } from "@/lib/client/r2-upload";
+import { upload } from "@/lib/client/media-upload";
 import {
   card,
   btn,
@@ -1522,7 +1522,7 @@ export default function DocGen() {
           spec.png,
           !!spec.pdf,
         );
-        const r2 = await api("/api/admin/docs/generate", {
+        const attached = await api("/api/admin/docs/generate", {
           method: "POST",
           body: JSON.stringify({
             id,
@@ -1530,15 +1530,15 @@ export default function DocGen() {
             pdfBase64: pdfDataUrl,
           }),
         });
-        if (r2.status !== 200 || !r2.data?.png_url) {
-          say("Upload failed: " + (r2.data?.error || r2.status));
+        if (attached.status !== 200 || !attached.data?.png_url) {
+          say("Upload failed: " + (attached.data?.error || attached.status));
           setGen(false);
           return;
         }
         setResult({
           serial,
-          png_url: r2.data.png_url,
-          pdf_url: r2.data.pdf_url || "",
+          png_url: attached.data.png_url,
+          pdf_url: attached.data.pdf_url || "",
           filename,
           isPromo: true,
         });
@@ -1555,7 +1555,7 @@ export default function DocGen() {
         : await rasterise(html);
 
       // Phase 2: attach the rendered pdf/png to the reserved record.
-      const r2 = await api("/api/admin/docs/generate", {
+      const attached = await api("/api/admin/docs/generate", {
         method: "POST",
         body: JSON.stringify({
           id,
@@ -1563,16 +1563,16 @@ export default function DocGen() {
           pngBase64: pngDataUrl,
         }),
       });
-      if (r2.status !== 200 || !r2.data?.pdf_url) {
-        say("Upload failed: " + (r2.data?.error || r2.status));
+      if (attached.status !== 200 || !attached.data?.pdf_url) {
+        say("Upload failed: " + (attached.data?.error || attached.status));
         setGen(false);
         return;
       }
 
       setResult({
         serial,
-        pdf_url: r2.data.pdf_url,
-        png_url: r2.data.png_url || "",
+        pdf_url: attached.data.pdf_url,
+        png_url: attached.data.png_url || "",
         filename,
       });
       say("Generated " + serial);

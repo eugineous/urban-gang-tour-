@@ -367,8 +367,7 @@ CREATE TABLE IF NOT EXISTS marketplace_events (
 );
 -- Gallery / photo wall admin uploads. This is the sole source for published
 -- public gallery photos, following the same admin-editable pattern as events
--- and products above. New uploads use the owned R2 bucket, see
--- lib/server/r2.ts and app/api/admin/gallery/route.ts.
+-- and products above. Uploads use Workers KV through lib/server/media.ts.
 --
 -- NOTE: this table already existed in production (id SERIAL, url, caption,
 -- category, width, height, created_at, all NOT NULL — an orphaned column set

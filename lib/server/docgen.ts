@@ -18,7 +18,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import QRCode from "qrcode";
 import { db, q, qSchema } from "./db";
-import { isR2Url } from "./r2";
+import { isMediaUrl } from "./media";
 
 // ---------------------------------------------------------------------------
 // Schema (self-healing, mirrors lib/server/ops.ts's ensureOpsSchema pattern).
@@ -536,17 +536,14 @@ const PROMO_FIELD_LIMITS: Record<string, Record<string, number>> = {
   },
 };
 
-// A hero-image / partner URL is only ever injected if it is one of ours: an
-// uploaded R2 URL (our configured bucket, see lib/server/r2.ts's isR2Url) or
-// a same-origin /assets or /uploads path. This blocks an arbitrary external
-// URL from being baked into the artwork.
+// Artwork accepts owned media URLs and bundled static asset paths only.
 function isSafeAssetUrl(u: string): boolean {
-  return isR2Url(u) || /^\/(assets|uploads)\//.test(u);
+  return isMediaUrl(u) || /^\/(assets|uploads)\//.test(u);
 }
 export function resolvePartnerUrl(v: string): string {
   const known = PROMO_PARTNERS.find((pp) => pp.key === v);
   if (known) return known.url;
-  if (isR2Url(v)) return v;
+  if (isMediaUrl(v)) return v;
   if (/^\/assets\/partners\//.test(v)) return v;
   return "";
 }
