@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ admin: false, perm: true, rows: [] as any[], organizer: null as any }));
+const mocks = vi.hoisted(() => ({ admin: false, perm: true, rows: [] as any[], organizer: null as any, queryFailure: false }));
 vi.mock('../lib/server/session', () => ({ verifyAdminSession: async () => mocks.admin, hasPerm: () => mocks.perm }));
 vi.mock('../lib/server/organizer-session', () => ({ currentApprovedOrganizer: async () => ({ organizer: mocks.organizer }) }));
-vi.mock('../lib/server/db', () => ({ hasDb: () => true, q: async () => mocks.rows }));
+vi.mock('../lib/server/db', () => ({ hasDb: () => true, q: async () => { if (mocks.queryFailure) throw new Error('unavailable'); return mocks.rows; } }));
 vi.mock('../lib/server/microcache', () => ({ cached: (_key: string, _ttl: number, fn: () => unknown) => fn() }));
 vi.mock('../lib/server/ratelimit', () => ({ rateLimit: () => true, clientIp: () => 'local' }));
 vi.mock('../lib/server/media', async original => ({ ...await original<any>(), mediaGet: async () => ({ value: new Uint8Array([1, 2, 3]).buffer, metadata: { contentType: 'image/png', size: 3 } }) }));
@@ -12,7 +12,12 @@ const request = (scope: string, headers: Record<string, string> = {}) => {
   const path = `${scope}/${hash}/image.png`;
   return [new Request('https://urbangangtour.co.ke/media/' + path, { headers }), { params: Promise.resolve({ path: path.split('/') }) }] as const;
 };
-beforeEach(() => { mocks.admin = false; mocks.perm = true; mocks.rows = []; mocks.organizer = null; });
+beforeEach(() => { mocks.admin = false; mocks.perm = true; mocks.rows = []; mocks.organizer = null; mocks.queryFailure = false; });
+it('fails closed for anonymous images when publication cannot be verified', async () => {
+  mocks.rows = [{}]; mocks.queryFailure = true;
+  expect((await GET(...request('gallery'))).status).toBe(404);
+  expect((await GET(...request('organizer-events/owner'))).status).toBe(404);
+});
 it('keeps private documents behind the existing documents permission', async () => {
   expect((await GET(...request('documents'))).status).toBe(401);
   mocks.admin = true; mocks.perm = false;
