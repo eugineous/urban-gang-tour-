@@ -20,9 +20,9 @@ binding = "ASSETS"
 html_handling = "none"
 run_worker_first = ["/v25-template", "/v25-template.html"]
 
-# Runs a guarded, idempotent content-announcement check. Times are UTC.
-[triggers]
-crons = ["*/15 * * * *"]
+# The existing dashboard-managed cron is */15 * * * * (UTC). Omitting
+# [triggers] preserves it. Re-PUTting the identical schedule fails when the
+# account is at its cron limit; routine deployments must not recreate it.
 
 # Self-reference, used by OpenNext's queue/revalidation plumbing (ISR) to
 # invoke this same Worker internally. Standard OpenNext Cloudflare
