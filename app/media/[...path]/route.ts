@@ -25,13 +25,13 @@ async function serve(req: Request, context: Context, head = false): Promise<Resp
       if (admin && hasPerm(req, 'gallery')) privateAsset = true;
       else {
         if (!hasDb()) return new Response('Not found', { status: 404 });
-        const rows = await cached('media-gallery:' + url, 1000, () => q(`SELECT 1 FROM gallery_photos WHERE url=$1 AND published=true LIMIT 1`, [url]));
+        const rows = await cached('media-gallery:' + url, 1000, () => q(`SELECT 1 FROM gallery_photos WHERE url=$1 AND published=true LIMIT 1`, [url]).catch(() => []));
         if (!rows.length) return new Response('Not found', { status: 404 });
       }
     } else if (scope === 'organizer-events') {
       let published = false;
       if (hasDb()) {
-        const rows = await cached('media-event:' + url, 1000, () => q(`SELECT 1 FROM marketplace_events WHERE image=$1 AND status IN ('published','completed') LIMIT 1`, [url]));
+        const rows = await cached('media-event:' + url, 1000, () => q(`SELECT 1 FROM marketplace_events WHERE image=$1 AND status IN ('published','completed') LIMIT 1`, [url]).catch(() => []));
         published = rows.length > 0;
       }
       if (!published) {
