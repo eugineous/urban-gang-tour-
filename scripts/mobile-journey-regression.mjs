@@ -32,6 +32,9 @@ try {
     await tabs.getByRole('link', { name: 'Shop', exact: true }).click(); await ready(page);
     assert.equal(await tabs.getByRole('link', { name: 'Shop', exact: true }).getAttribute('aria-current'), 'page');
     assert.equal(await page.locator('#dc-root [data-screen-label="Shop"]').evaluate(el => getComputedStyle(el).animationName), 'none');
+    const buy = await page.getByRole('button', { name: /^add to bag$/i }).first().boundingBox();
+    assert.ok(buy.y + buy.height < (await tabs.boundingBox()).y, 'First merchandise action clears the bottom navigation');
+    assert.equal(await page.locator('.wa-fab').isVisible(), false, 'WhatsApp cannot obscure merchandise controls');
     await page.getByRole('button', { name: /^add to bag$/i }).first().scrollIntoViewIfNeeded();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await tabs.getByRole('link', { name: 'Events', exact: true }).click(); await ready(page);
