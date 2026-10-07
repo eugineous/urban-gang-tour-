@@ -18,11 +18,13 @@ export default function LoginForm() {
   const [toast, say] = useToast();
 
   const submit = async () => {
+    if (busy) return;
     setBusy(true);
-    const { data } = await api('/api/organizer/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-    setBusy(false);
-    if (data.ok) window.location.href = '/organizer/dashboard';
-    else say(ERR[data.error] || 'Login failed: ' + (data.error || 'unknown error'));
+    try {
+      const { data } = await api('/api/organizer/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      if (data.ok) window.location.href = '/organizer/dashboard';
+      else say(ERR[data.error] || 'Login failed: ' + (data.error || 'unknown error'));
+    } finally { setBusy(false); }
   };
 
   return (

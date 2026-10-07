@@ -11,7 +11,6 @@ import { BottomTabBar } from './_components/BottomTabBar';
 import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
-import { MobileApp } from './_components/MobileApp';
 import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
 
@@ -65,12 +64,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&family=Titan+One&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
+        <link href="/fonts/v25-fonts.css" rel="stylesheet" />
+        <link href="/fonts/v25-1.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
         <script src="https://accounts.google.com/gsi/client" async defer />
         {/* Device id for rate limiting (lib/server/ratelimit.ts).
@@ -145,7 +140,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
         </div>
-        <MobileApp />
         <InstallableApp />
         {/* mount point for the live interactive v25 app (client-only) */}
         <div id="v25-host" />
@@ -161,7 +155,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             regenerate the whole tree (error 418) on slow loads. */}
         <div id="boot-veil" aria-hidden="true" suppressHydrationWarning>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 84, width: 'auto' }} />
+          <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style={{ height: 84, width: 'auto' }} />
+          <p>Loading Urban Gang Tour</p>
           <div className="boot-veil-bar"><span /></div>
         </div>
         <noscript>
@@ -171,7 +166,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             data-booted on the host — drop the veil for them immediately */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `setTimeout(function(){var h=document.getElementById('v25-host');var v=document.getElementById('boot-veil');if(v&&(!h||!h.getAttribute('data-booted'))){v.classList.add('gone');}},1200);`,
+            __html: `setTimeout(function(){var v=document.getElementById('boot-veil');if(v)v.classList.add('gone');},3000);`,
           }}
         />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,

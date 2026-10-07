@@ -3,6 +3,7 @@ import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
 import { ensureOpsSchema } from '@/lib/server/ops';
+import { GALLERY_ARCHIVE } from '@/lib/gallery-archive';
 
 // Public, read-only view of the gallery photo wall — the single DB-backed
 // source app/_components/V25App.tsx bridges into window.__UGT_GALLERY for
@@ -25,7 +26,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   if (!hasDb()) {
-    return NextResponse.json({ ok: true, photos: [] }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ ok: true, source: 'archive', photos: GALLERY_ARCHIVE }, { headers: CACHE_HEADERS });
   }
   try {
     const photos = await cached('site-gallery', 60_000, async () => {
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
         sortOrder: Number(r.sort_order) || 0,
       }));
     });
-    return NextResponse.json({ ok: true, photos }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ ok: true, source: 'published', photos }, { headers: CACHE_HEADERS });
   } catch {
     // DB hiccup: the desktop and mobile clients render their explicit empty
     // gallery state. Do not revive retired photos from a static fallback.

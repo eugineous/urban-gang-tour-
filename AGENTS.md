@@ -9,8 +9,10 @@ Apply these by default in every session. See `HANDOFF.md` for the full roadmap.
   pages share a canonical.**
 - Keep v25's markup + CSS verbatim. Engine/routing/data changes only — never a visual redesign.
 - The live v25 experience is restored by booting the dc-runtime (`app/_components/V25App.tsx`)
-  over an SEO shell. If you change v25's markup, re-run `scratchpad/cap/capture.mjs` and
-  `scratchpad/cap/build-runtime.py`.
+  over the same V25 SSR shell on desktop and mobile. After changing markup, use
+  `scripts/capture-v25.mjs` against the running local server to regenerate captures.
+  `PUBLIC_SOURCE=https://urbangangtour.co.ke` optionally uses published public feeds.
+  Do not bring back the removed MobileApp renderer or the rejected PublicSite redesign.
 
 ## Security (non-negotiable)
 - **No hardcoded secrets** anywhere. Env vars, server-side only, never exposed client-side.
@@ -60,7 +62,7 @@ context on expected behaviour, not bad code):
 Any new endpoint must state which roles may call it and enforce it server-side.
 
 ## Git workflow
-- No direct pushes to `main`. Feature branch per change → Vercel preview → review → merge.
+- No direct pushes to `main`. Feature branch → tested Cloudflare build → review → merge → Cloudflare deployment. Never use Vercel.
 - A broken build must never reach `main` (CI typecheck + lint + tests gate).
 
 ## Scale & ops

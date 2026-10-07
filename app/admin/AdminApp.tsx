@@ -326,11 +326,15 @@ function startingTab(scope: AdminSession["scope"], perms: string[]): Tab {
 }
 
 async function api(path: string, opts?: RequestInit) {
-  const r = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...opts,
-  });
-  return { status: r.status, data: await r.json().catch(() => ({})) };
+  try {
+    const r = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    return { status: r.status, data: await r.json().catch(() => ({})) };
+  } catch {
+    return { status: 0, data: { error: "Connection failed. Please try again." } };
+  }
 }
 
 export default function AdminApp({
@@ -355,6 +359,7 @@ export default function AdminApp({
     { id: string; name: string; tiers: string[] }[]
   >([]);
   const [session, setSession] = useState<AdminSession | null>(null);
+  const [probeError, setProbeError] = useState("");
 
   const say = (m: string) => {
     setToast(m);
@@ -405,19 +410,28 @@ export default function AdminApp({
   // initial auth probe - /api/admin/me is a lightweight role/perms check
   // (no ledger data in the response), used here and by the gate scanner
   // instead of pulling the full dashboard stats just to test "am I logged in".
-  useEffect(() => {
-    api("/api/admin/me").then(async ({ status, data }) => {
-      if (status === 401) {
-        setAuthed(false);
-        return;
-      }
-      setSession({ scope: data.scope, perms: data.perms || [] });
-      setTab(startingTab(data.scope, data.perms || []));
-      setAuthed(true);
-      const s = await load("stats");
-      setStats(s[0] || null);
-    });
+  const probeSession = useCallback(async () => {
+    setProbeError("");
+    setAuthed(null);
+    const { status, data } = await api("/api/admin/me");
+    if (status === 401) {
+      setSession(null);
+      setAuthed(false);
+      return;
+    }
+    if (status !== 200 || !data.ok || !["super_admin", "crew_admin"].includes(data.scope) || !Array.isArray(data.perms)) {
+      setProbeError("Could not check your session. Please try again.");
+      return;
+    }
+    setSession({ scope: data.scope, perms: data.perms });
+    setTab(startingTab(data.scope, data.perms));
+    setAuthed(true);
+    const s = await load("stats");
+    setStats(s[0] || null);
   }, [load]);
+  useEffect(() => {
+    void probeSession();
+  }, [probeSession]);
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
@@ -560,7 +574,9 @@ export default function AdminApp({
   if (authed === null)
     return (
       <LoginShell>
-        <div style={{ ...card, textAlign: "center" }}>Loading…</div>
+        <div style={{ ...card, textAlign: "center" }}>
+          {probeError ? <><p role="alert">{probeError}</p><button style={btnDark} onClick={probeSession}>Try again</button></> : "Loading…"}
+        </div>
       </LoginShell>
     );
 
@@ -662,7 +678,11 @@ export default function AdminApp({
       setTab={setTab}
       canSee={canSee}
       onLogout={async () => {
-        await api("/api/admin/login", { method: "DELETE" });
+        const { status, data } = await api("/api/admin/login", { method: "DELETE" });
+        if (status !== 200 || !data.ok) {
+          say("Could not sign out. Please try again.");
+          return;
+        }
         setAuthed(false);
         setSession(null);
       }}

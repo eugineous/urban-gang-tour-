@@ -37,8 +37,13 @@ export const STATUS_CHIP: Record<string, { bg: string; color: string }> = {
 };
 
 export async function api(path: string, opts?: RequestInit) {
-  const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  return { status: r.status, data: await r.json().catch(() => ({})) };
+  try {
+    const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+    const data = await r.json().catch(() => ({ error: 'Invalid server response. Please try again.' }));
+    return { status: r.status, data: r.ok ? data : { ...data, ok: false, error: data.error || 'Service unavailable. Please try again.' } };
+  } catch {
+    return { status: 0, data: { ok: false, error: 'Connection failed. Please try again.' } };
+  }
 }
 
 export function useToast(): [string, (m: string) => void] {
@@ -49,7 +54,7 @@ export function useToast(): [string, (m: string) => void] {
 
 export function Toast({ msg }: { msg: string }) {
   if (!msg) return null;
-  return <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 60, ...card, padding: '10px 16px', background: OC.gold, maxWidth: 320 }}>{msg}</div>;
+  return <div role="alert" style={{ position: 'fixed', top: 16, right: 16, zIndex: 60, ...card, padding: '10px 16px', background: OC.gold, maxWidth: 320 }}>{msg}</div>;
 }
 
 export function organizerAccessMessage(error: unknown): string {

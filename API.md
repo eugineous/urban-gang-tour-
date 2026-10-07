@@ -147,6 +147,8 @@ Body: `{email}`. Newsletter list. 200 · 400 · 429 (5/min/IP) · 503 no DB.
 
 ### POST /api/submissions
 Body: `{name, school, title, pitch}` + logged-in session → Newsroom queue.
+Anonymous requests return 401. Contact email comes only from the signed user
+session; a client-provided email never establishes identity or receives replies.
 
 ### GET /api/site-info
 Public config only (business WhatsApp number). Never user data. Cached 5 min.
@@ -234,6 +236,15 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
 - Publishing an article via `/api/admin/save` `{kind:'post'}` auto-posts it
   ONCE to connected Facebook/Instagram (first publish only, tracked by
   `posts.social_posted_at`; fire-and-forget via `after()`, logged `[social]`).
+
+## Public gallery feed
+
+`GET /api/site-data/gallery` is a public, rate-limited read. Returns
+`{ ok: true, source: 'published', photos }` from published Gallery desk rows.
+Only when no database is configured, it returns `source: 'archive'` and the
+repository's neutral archive photos. An empty configured gallery or a database
+failure remains empty; unpublished images never become a fallback. Photos expose
+`id`, `url`, `caption`, `category`, `altText`, and `sortOrder` only.
 
 ## Env vars (server-side only — never client-exposed)
 `DATABASE_URL, SESSION_SECRET, ADMIN_ACCESS_CODE, RESEND_API_KEY, BOOKINGS_FROM,

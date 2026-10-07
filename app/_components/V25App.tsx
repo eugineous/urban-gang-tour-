@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import SLUGS from '@/app/_lib/slugs.json';
 import { rewriteHtmlMedia } from '@/lib/img';
+import { correctShellContent } from '@/lib/content-rules';
+import { installV25Dialogs } from '@/lib/client/v25-dialogs';
 
 // Progressive enhancement: after the SSR shell paints (great for crawlers +
 // first paint), boot v25's real dc-runtime into #v25-host, booted to THIS
@@ -12,10 +14,22 @@ import { rewriteHtmlMedia } from '@/lib/img';
 // rendered, the static shell is hidden.
 export function V25App({ page }: { page: string }) {
   useEffect(() => {
-    // Phones have their own purpose-built app shell. Do not boot the desktop
-    // runtime behind it: that was both visually wrong and expensive on mobile.
-    if (window.matchMedia('(max-width:1024px)').matches) return;
     const w = window as any;
+    // V25 routes use normal document links. If a framework link enters a
+    // different V25 route, discard the previous runtime with a real reload
+    // rather than retaining its timers, page state and stale DOM.
+    if (w.__UGT_RUNTIME_PAGE && w.__UGT_RUNTIME_PAGE !== page) {
+      window.location.replace(window.location.href);
+      return;
+    }
+    const host = document.getElementById('v25-host');
+    if (!host || host.getAttribute('data-booted') === '1') return;
+    const controller = new AbortController();
+    let cancelled = false;
+    const read = (url: string) => fetch(url, { signal: controller.signal }).then((r) => {
+      if (!r.ok) throw new Error('Public content unavailable');
+      return r.json();
+    });
     w.__UGT_PAGE = page;
     // Promo overlay bridge: fetch the public active-promos list once and
     // expose it for the v25 template's client-side price display (shop grid,
@@ -24,8 +38,7 @@ export function V25App({ page }: { page: string }) {
     // lib/server/catalog.ts + lib/server/promos.ts, so a stale or failed
     // fetch here only skips the visual "was/now" hint, it never blocks or
     // changes checkout.
-    fetch('/api/promos')
-      .then((r) => r.json())
+    read('/api/promos')
       .then((d) => { w.__UGT_ACTIVE_PROMOS = Array.isArray(d?.promos) ? d.promos : []; })
       .catch(() => { w.__UGT_ACTIVE_PROMOS = w.__UGT_ACTIVE_PROMOS || []; });
     // Catalog bridge: tour events (ticketed concerts, school stops, past
@@ -39,8 +52,7 @@ export function V25App({ page }: { page: string }) {
     // recomputed server-side (lib/server/catalog.ts), so a stale or failed
     // fetch here only leaves the relevant public section empty. It never
     // blocks checkout or substitutes a fabricated catalogue.
-    const eventsReady = fetch('/api/site-data/events')
-      .then((r) => r.json())
+    const eventsReady = read('/api/site-data/events')
       .then((d) => {
         const rows: any[] = Array.isArray(d?.events) ? d.events : [];
         const today = new Date().toISOString().slice(0, 10);
@@ -87,13 +99,15 @@ export function V25App({ page }: { page: string }) {
         });
         const past = rows.filter((e) => e.kind === 'past').map((e) => ({ name: e.name, loc: e.venue, logo: e.logo, testimonial: e.testimonial }));
         w.__UGT_EVENTS = { ticketed, school, past };
+        window.dispatchEvent(new Event('ugt:catalog'));
       })
       .catch(() => { w.__UGT_EVENTS = w.__UGT_EVENTS || { ticketed: [], school: [], past: [] }; });
-    const productsReady = fetch('/api/site-data/products')
-      .then((r) => r.json())
+    const productsReady = read('/api/site-data/products')
       .then((d) => {
         const rows: any[] = Array.isArray(d?.products) ? d.products : [];
         w.__UGT_PRODUCTS = rows.map((p) => ({ id: p.id, name: p.name, price: p.price, img: p.image, cat: p.category, desc: p.description, variants: Array.isArray(p.variants) ? p.variants : [] }));
+        w.__UGT_PRODUCTS_LOADED = true;
+        window.dispatchEvent(new Event('ugt:catalog'));
       })
       .catch(() => { w.__UGT_PRODUCTS = w.__UGT_PRODUCTS || []; });
     // Gallery bridge: the photo wall's this.GALLERY used to be a hardcoded
@@ -105,8 +119,7 @@ export function V25App({ page }: { page: string }) {
     // template's existing render code needs zero changes. DISPLAY ONLY —
     // same fire-and-forget/safe-empty pattern as the events/products bridges:
     // a stale or failed fetch leaves that gallery section empty, never broken.
-    const galleryReady = fetch('/api/site-data/gallery')
-      .then((r) => r.json())
+    const galleryReady = read('/api/site-data/gallery')
       .then((d) => {
         const rows: any[] = Array.isArray(d?.photos) ? d.photos : [];
         w.__UGT_GALLERY = rows.map((p) => p.url).filter(Boolean);
@@ -117,8 +130,7 @@ export function V25App({ page }: { page: string }) {
     // News bridge: current published articles belong to the Content desk.
     // Do not let the desktop rail render old, bundled story copy while the
     // newsroom is unavailable. The template has an explicit empty-news state.
-    const postsReady = fetch('/api/site-data/posts')
-      .then((r) => r.json())
+    const postsReady = read('/api/site-data/posts')
       .then((d) => {
         const rows: any[] = Array.isArray(d?.posts) ? d.posts : [];
         w.__UGT_ARTICLES = rows.map((post) => ({
@@ -126,6 +138,7 @@ export function V25App({ page }: { page: string }) {
           section: post.section, img: post.img, dek: post.dek,
           body: Array.isArray(post.body) ? post.body : [],
         }));
+        window.dispatchEvent(new Event('ugt:catalog'));
       })
       .catch(() => { w.__UGT_ARTICLES = w.__UGT_ARTICLES || []; });
     // Card checkout bridge: the v25 template's "Pay with Card" button calls
@@ -191,18 +204,18 @@ export function V25App({ page }: { page: string }) {
       ...(w.__resources || {}),
     };
 
-    const host = document.getElementById('v25-host');
-    if (!host || host.getAttribute('data-booted') === '1') return;
     host.setAttribute('data-booted', '1');
+    host.setAttribute('aria-hidden', 'true');
+    host.inert = true;
 
     let poll: ReturnType<typeof setInterval> | undefined;
     let done = false;
     let attempts = 0;
-    let cancelled = false;
-    const controller = new AbortController();
     let retry: ReturnType<typeof setTimeout> | undefined;
     let readinessCap: ReturnType<typeof setTimeout> | undefined;
     let started = false;
+    let runtimeScript: HTMLScriptElement | undefined;
+    let removeDialogs: (() => void) | undefined;
 
     const dropVeil = () => {
       // hide only - removing the node raced React hydration (error 418)
@@ -212,13 +225,27 @@ export function V25App({ page }: { page: string }) {
 
     const reveal = () => {
       if (done) return;
-      const root = document.getElementById('dc-root');
-      if (root && root.childElementCount > 0) {
+      const root = host.querySelector('#dc-root');
+      // A populated error placeholder is not a ready application. Keep the
+      // valid SSR page if the template cannot actually render its main.
+      const main = root?.querySelector('main');
+      if (main && !root?.querySelector('.sc-logic-error') && main.querySelector('h1')) {
         done = true;
-        host.style.position = 'static';
-        host.style.height = 'auto';
+        w.__UGT_RUNTIME_PAGE = page;
+        host.setAttribute('data-ready', '1');
+        host.removeAttribute('aria-hidden');
+        host.inert = false;
         const shell = document.getElementById('ssr-shell');
-        if (shell) shell.style.display = 'none';
+        if (shell) {
+          shell.setAttribute('data-enhanced', 'true');
+          shell.setAttribute('aria-hidden', 'true');
+          shell.inert = true;
+        }
+        const target = document.getElementById('main-content');
+        if (target) target.id = 'ssr-main-content';
+        main.id = 'main-content';
+        (main as HTMLElement).tabIndex = -1;
+        removeDialogs = installV25Dialogs(host);
         shell?.querySelectorAll('video').forEach((video) => {
           video.pause();
           video.removeAttribute('src');
@@ -247,11 +274,13 @@ export function V25App({ page }: { page: string }) {
           // and the <video> tags get real boolean muted/playsinline attributes
           // instead of the never-interpolated playsInline="{{ true }}" that
           // left iOS showing a flat magenta rectangle. See lib/img.ts.
-          const html = rewriteHtmlMedia(raw);
+          const html = rewriteHtmlMedia(correctShellContent(raw));
           host.innerHTML = html; // injects <x-dc> + <script data-dc-script>
           const s = document.createElement('script');
-          s.src = '/support.js';
+          runtimeScript = s;
+          s.src = '/support.js?v=20261007';
           s.async = false;
+          s.onerror = dropVeil;
           document.body.appendChild(s); // support.js auto-boots on load
           if (poll) clearInterval(poll);
           poll = setInterval(reveal, 100);
@@ -296,8 +325,13 @@ export function V25App({ page }: { page: string }) {
       if (retry) clearTimeout(retry);
       if (readinessCap) clearTimeout(readinessCap);
       if (!done) host.removeAttribute('data-booted');
+      if (!done) {
+        host.replaceChildren();
+        runtimeScript?.remove();
+      }
       if (poll) clearInterval(poll);
       clearTimeout(veilCap);
+      removeDialogs?.();
       document.removeEventListener('click', onCardClick);
     };
   }, [page]);

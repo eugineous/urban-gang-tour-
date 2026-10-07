@@ -20,6 +20,8 @@ export default function Dashboard() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [accessError, setAccessError] = useState('');
   const [eventsError, setEventsError] = useState('');
+  const [logoutError, setLogoutError] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     api('/api/organizer/me').then(({ data }) => {
@@ -39,7 +41,16 @@ export default function Dashboard() {
     });
   }, [organizer]);
 
-  const logout = async () => { await api('/api/organizer/logout', { method: 'POST' }); window.location.href = '/organizer/login'; };
+  const logout = async () => {
+    if (loggingOut) return;
+    setLogoutError('');
+    setLoggingOut(true);
+    try {
+      const { status, data } = await api('/api/organizer/logout', { method: 'POST' });
+      if (status === 200 && data.ok) window.location.href = '/organizer/login';
+      else setLogoutError('Could not sign out. Please try again.');
+    } finally { setLoggingOut(false); }
+  };
 
   if (organizer === undefined) return <div style={shell}><div style={wrap}><div style={{ ...card, background: '#fff' }}>Loading…</div></div></div>;
   if (!organizer) return <div style={shell}><div style={wrap}><div style={card}>{accessError || 'Your session has ended. Please log in again.'}<div style={{ marginTop: 14 }}><a href="/organizer/login" style={{ ...btnMagenta, textDecoration: 'none', display: 'inline-block' }}>Organizer login</a></div></div></div></div>;
@@ -54,8 +65,9 @@ export default function Dashboard() {
           <h1 style={{ ...h1, marginBottom: 0 }}>{organizer.businessName}</h1>
           <div style={{ flex: 1 }} />
           <a style={{ ...btn, textDecoration: 'none' }} href="/organizer/events/new">+ New event</a>
-          <button style={btnDark} onClick={logout}>Log out</button>
+          <button style={btnDark} onClick={logout} disabled={loggingOut}>{loggingOut ? 'Signing out…' : 'Log out'}</button>
         </div>
+        {logoutError && <p role="alert">{logoutError}</p>}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 12, marginBottom: 18 }}>
           <div style={{ ...card, textAlign: 'center' }}>
