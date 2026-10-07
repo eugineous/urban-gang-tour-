@@ -10,6 +10,10 @@ initOpenNextCloudflareForDev();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Send complete metadata and page HTML in the initial document to every
+  // visitor. A streamed Suspense placeholder needs JavaScript to become the
+  // real page, which made otherwise server-rendered routes look blank.
+  htmlLimitedBots: /.*/,
   // Captured v25 shells must be part of the server bundle: Workers do not have
   // the repository filesystem at runtime. The explicit query keeps this rule
   // scoped to imports in app/_components/captured-pages.ts.
@@ -109,6 +113,18 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
+      },
+      {
+        source: '/support.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],
+      },
+      {
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],
+      },
+      {
+        source: '/v25-template.html',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],
       },
       {
         source: '/assets/:path*',

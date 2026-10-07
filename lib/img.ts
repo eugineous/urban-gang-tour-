@@ -102,7 +102,7 @@ export function rewriteHtmlImages(html: string): string {
 export function rewriteHtmlVideos(html: string): string {
   return html.replace(/<video\b([^>]*)>/gi, (tag, attrs: string) => {
     const rawSrc = attrs.match(/\ssrc=(["'])(.*?)\1/i)?.[2] ?? '';
-    const isHomeHero = /\/assets\/video\/hero-main\.mp4/i.test(rawSrc);
+    const isHomeHero = /\/assets\/(?:light-v1\/)?video\/hero-main\.mp4/i.test(rawSrc);
     let out = attrs
       // Strip both forms before re-adding: the broken pseudo-attributes
       // (playsInline="{{ true }}") and any already-correct bare booleans the

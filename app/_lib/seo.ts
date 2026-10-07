@@ -44,9 +44,10 @@ export const ALL_PATHS = ROUTES.map((r) => r.path);
 export async function metadataForPathDynamic(path: string): Promise<Metadata> {
   const base = metadataForPath(path);
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (db()) {
-      const rows = await q(`SELECT value FROM settings WHERE key=$1`, ['seo:' + path]);
+    const { q, hasDb } = await import('@/lib/server/db');
+    const { cached } = await import('@/lib/server/microcache');
+    if (hasDb()) {
+      const rows = await cached('seo:' + path, 60_000, () => q(`SELECT value FROM settings WHERE key=$1`, ['seo:' + path]));
       const o = rows[0]?.value || {};
       // Settings are editable in the Control Room. Only accept strings here:
       // a malformed saved JSON value should never turn into an object in an

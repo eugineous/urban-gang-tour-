@@ -41,16 +41,17 @@
 
 <header class="ugt-site-header" style="position:sticky;top:0;z-index:120;background:#fff;border-bottom:4px solid #111">
 <nav aria-label="Main navigation" style="max-width:1320px;margin:0 auto;min-height:78px;padding:8px 18px;display:flex;align-items:center;gap:16px">
-<a href="/" aria-label="Urban Gang Tour home"><img class="ugt-brand-logo" src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style="height:64px;width:120px;object-fit:contain"></a><div style="flex:1"></div>
+<a href="/" aria-label="Urban Gang Tour home"><img class="ugt-brand-logo" src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style="height:64px;width:120px;object-fit:contain"></a><div style="flex:1"></div>
 <div data-desktop-nav style="display:flex;align-items:center;gap:16px;font:700 13px Arial,sans-serif">
 <a href="/">Home</a><details class="ugt-nav-more"><summary>About</summary><div><a href="/about">Our Story</a><a href="/the-gang">Team</a><a href="/partners">Partners &amp; Investors</a><a href="/press">Press Room</a></div></details>
 <a href="/experience">Experience</a><a href="/tour-stops">Tour Stops</a><a href="/work-with-us">Work With Us</a><a href="/blog">Urban News</a><a href="/gallery">Gallery</a><a href="/events">Events</a><a href="/shop">Shop</a></div>
 <a href="/book" data-book-btn style="background:#FFD400;color:#111;font:700 13px Arial,sans-serif;padding:13px 16px;border:3px solid #111;border-radius:8px;box-shadow:3px 3px 0 #111;white-space:nowrap">Book the Tour</a>
+<button onClick="{{ toggleCart }}" aria-label="Open shopping bag" style="display:flex;align-items:center;gap:6px;min-height:44px;padding:8px 10px;border:3px solid #111;border-radius:8px;background:#21C7E6;font-weight:700"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-bag"></use></svg><span>{{ cartCount }}</span></button>
 </nav></header>
 
 <sc-if value="{{ mobileOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;inset:0;z-index:130;background:#E6218C;padding:26px 24px 40px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="UGT" style="height:48px"><button onClick="{{ toggleMobile }}" style="width:46px;height:46px;border:3px solid #111;border-radius:12px;background:#fff;font-size:24px;box-shadow:3px 3px 0 #111">×</button></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:48px"><button onClick="{{ toggleMobile }}" style="width:46px;height:46px;border:3px solid #111;border-radius:12px;background:#fff;font-size:24px;box-shadow:3px 3px 0 #111">×</button></div>
 <div style="display:flex;flex-direction:column;gap:12px;font-family:'Anton';font-size:30px">
 <button onClick="{{ nav.home }}" style="text-align:left;background:#fff;border:3px solid #111;border-radius:14px;padding:10px 18px;box-shadow:4px 4px 0 #111">HOME</button>
 <button onClick="{{ nav.about }}" style="text-align:left;background:#fff;border:3px solid #111;border-radius:14px;padding:10px 18px;box-shadow:4px 4px 0 #111">ABOUT &amp; THE GANG</button>
@@ -68,10 +69,10 @@
 
 <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;inset:0;z-index:140;background:rgba(17,17,17,.5)" onClick="{{ toggleCart }}"></div>
-<aside style="position:fixed;top:0;right:0;bottom:0;z-index:150;width:400px;max-width:92vw;background:#fff;border-left:4px solid #111;display:flex;flex-direction:column">
+<aside role="dialog" aria-modal="true" aria-label="Your bag" data-v25-dialog style="position:fixed;top:0;right:0;bottom:0;z-index:150;width:400px;max-width:92vw;background:#fff;border-left:4px solid #111;display:flex;flex-direction:column">
 <div style="padding:20px;border-bottom:4px solid #111;display:flex;align-items:center;justify-content:space-between;background:#FFD400">
 <div style="font-family:'Anton';font-size:26px">YOUR BAG</div>
-<button onClick="{{ toggleCart }}" style="width:38px;height:38px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
+<button data-dialog-close aria-label="Close bag" onClick="{{ toggleCart }}" style="width:38px;height:38px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
 </div>
 <div style="flex:1;overflow-y:auto;padding:16px 18px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ true }}">
@@ -109,11 +110,11 @@
 </sc-if>
 
 <sc-if value="{{ quick }}" hint-placeholder-val="{{ false }}">
-<div style="position:fixed;inset:0;z-index:160;background:rgba(17,17,17,.7);display:flex;align-items:center;justify-content:center;padding:20px" onClick="{{ quickCloseBg }}">
+<div role="dialog" aria-modal="true" aria-label="Product options" data-v25-dialog style="position:fixed;inset:0;z-index:160;background:rgba(17,17,17,.7);display:flex;align-items:center;justify-content:center;padding:20px" onClick="{{ quickCloseBg }}">
 <div style="width:820px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;box-shadow:10px 10px 0 #111" data-quick>
 <div style="background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;border-right:4px solid #111"><img src="{{ quick.img }}" alt="{{ quick.name }}" style="max-height:340px;width:auto"></div>
 <div style="padding:30px 28px;position:relative">
-<button onClick="{{ quickClose }}" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
+<button aria-label="Close" data-dialog-close onClick="{{ quickClose }}" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:3px solid #111;border-radius:10px;background:#fff;font-size:20px">×</button>
 <div style="display:inline-block;background:#FFD400;border:2px solid #111;border-radius:6px;padding:2px 8px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.08em">{{ quick.cat }}</div>
 <h3 style="font-family:'Anton';font-size:32px;margin:10px 0 6px;line-height:1">{{ quick.name }}</h3>
 <sc-if value="{{ quick.hasPromo }}" hint-placeholder-val="{{ false }}">
@@ -148,7 +149,7 @@
 </sc-if>
 
 <sc-if value="{{ hasPartner }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closePartnerBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.78);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+<div role="dialog" aria-modal="true" aria-label="Investor profile" data-v25-dialog onClick="{{ closePartnerBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.78);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="width:760px;max-width:100%;background:#F7F1E4;border:4px solid #111;border-radius:8px 26px 22px 22px;overflow:hidden;box-shadow:12px 12px 0 #21C7E6;margin:16px 0;position:relative">
 <div style="background:#111;padding:18px 26px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
 <div style="display:flex;align-items:center;gap:14px">
@@ -159,7 +160,7 @@
 <div><div style="font-family:'Anton';font-size:clamp(20px,3vw,30px);text-transform:uppercase;color:#fff;line-height:.95">{{ selectedPartner.name }}</div>
 <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="background:#FFD400;border-radius:100px;padding:3px 11px;font-size:10.5px;font-weight:800;text-transform:uppercase">{{ selectedPartner.role }}</span><span style="background:transparent;border:1px dashed #FFD400;color:#FFD400;border-radius:100px;padding:3px 11px;font-size:10.5px;font-weight:700;text-transform:uppercase">On the road since {{ selectedPartner.since }}</span></div></div>
 </div>
-<button onClick="{{ closePartner }}" aria-label="Close" style="flex:none;width:38px;height:38px;border:2px solid #fff;border-radius:11px;background:transparent;color:#fff;font-size:20px;line-height:1">×</button>
+<button data-dialog-close onClick="{{ closePartner }}" aria-label="Close" style="flex:none;width:38px;height:38px;border:2px solid #fff;border-radius:11px;background:transparent;color:#fff;font-size:20px;line-height:1">×</button>
 </div>
 <div style="padding:26px 28px">
 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
@@ -190,14 +191,14 @@
 </sc-if>
 
 <sc-if value="{{ hasMember }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeMemberBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.74);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+<div role="dialog" aria-modal="true" aria-label="Founder profile" data-v25-dialog onClick="{{ closeMemberBg }}" style="position:fixed;inset:0;z-index:170;background:rgba(17,17,17,.74);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div data-col2 style="width:800px;max-width:100%;background:#fff;border:4px solid #111;border-radius:24px;overflow:hidden;box-shadow:12px 12px 0 #FFD400;margin:16px 0;display:grid;grid-template-columns:.85fr 1.15fr">
 <div style="background:#E6218C;border-right:4px solid #111;position:relative;min-height:280px">
 <img src="{{ selectedMember.img }}" alt="{{ selectedMember.name }} — {{ selectedMember.role }}, Urban Gang Tour" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
 <span style="position:absolute;top:14px;left:14px;background:#FFD400;border:2px solid #111;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em">{{ selectedMember.tag }}</span>
 </div>
 <div style="padding:30px 28px;position:relative">
-<button onClick="{{ closeMember }}" aria-label="Close" style="position:absolute;top:16px;right:16px;width:38px;height:38px;border:3px solid #111;border-radius:11px;background:#fff;font-size:20px;line-height:1">×</button>
+<button data-dialog-close onClick="{{ closeMember }}" aria-label="Close" style="position:absolute;top:16px;right:16px;width:38px;height:38px;border:3px solid #111;border-radius:11px;background:#fff;font-size:20px;line-height:1">×</button>
 <div style="font-family:'Anton';font-size:clamp(28px,4vw,40px);text-transform:uppercase;line-height:.92;padding-right:44px">{{ selectedMember.name }}</div>
 <div style="display:inline-block;background:#21C7E6;border:2px solid #111;border-radius:7px;padding:3px 10px;font-size:12px;font-weight:700;margin-top:10px">{{ selectedMember.role }}</div>
 <div style="display:flex;flex-direction:column;gap:12px;margin:18px 0 0">
@@ -212,11 +213,11 @@
 </sc-if>
 
 <sc-if value="{{ ticketOpen }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeTicketBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+<div role="dialog" aria-modal="true" aria-label="Event tickets" data-v25-dialog onClick="{{ closeTicketBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="width:560px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;box-shadow:12px 12px 0 #FFD400;margin:16px 0">
 <div style="background:#111;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px">
 <div style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400;line-height:1">{{ ticketEvent.name }}</div>
-<button onClick="{{ closeTicket }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
+<button data-dialog-close onClick="{{ closeTicket }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
 </div>
 <div style="padding:24px">
 <!-- One screen, not two. Buying a ticket used to be: open, pick a tier,
@@ -270,7 +271,7 @@
 <sc-if value="{{ ticketStageFailed }}" hint-placeholder-val="{{ false }}">
 <div style="text-align:center;padding:10px 0 4px">
 <div style="display:inline-flex;align-items:center;gap:8px;background:#C62828;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px">Payment was cancelled or failed</div>
-<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">The M-Pesa payment did not go through and nothing was charged.<br>Order {{ ticketOrderId }}</div>
+<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">Payment was not confirmed. Check your M-Pesa messages before trying again. If money was deducted, contact us with your order reference.<br>Order {{ ticketOrderId }}</div>
 <button onClick="{{ ticketTryAgain }}" style="margin-top:16px;width:100%;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Try again</button>
 </div>
 </sc-if>
@@ -283,7 +284,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ ticketStageDone }}" hint-placeholder-val="{{ false }}">
-<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Receipt &amp; e-ticket emailed to {{ ticketOrder.email }}</div></div>
+<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Your receipt and e-ticket are ready below. Keep your order reference.</div></div>
 <a href="/tickets/{{ ticketOrderId }}" target="_blank" style="display:block;text-decoration:none;color:#111;border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111" style-hover="transform:translateY(-1px)">
 <div style="background:{{ ticketOrder.accent }};padding:14px 18px;border-bottom:3px dashed #111"><div style="font-family:'Bungee';font-size:11px;color:#111">URBAN GANG TOUR · E-TICKETS</div><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;line-height:1;margin-top:3px">{{ ticketOrder.eventName }}</div></div>
 <div style="background:#FFD400;padding:16px 18px;text-align:center">
@@ -293,7 +294,7 @@
 </a>
 <div style="border:3px solid #111;border-radius:16px;margin-top:14px;overflow:hidden;box-shadow:6px 6px 0 #111;background:#fff">
 <div style="background:#111;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px">
-<div style="display:flex;align-items:center;gap:10px"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>
+<div style="display:flex;align-items:center;gap:10px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>
 <div style="text-align:right;font-size:10.5px;color:#bbb;line-height:1.5"><div>{{ ticketOrder.ref }}</div><div>{{ ticketOrder.date }}</div><div>{{ ticketOrder.time }}</div></div>
 </div>
 <div style="height:4px;background:#E6218C"></div>
@@ -313,7 +314,7 @@
 <button onClick="{{ printTicket }}" style="flex:1;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px" style-hover="transform:translateY(-1px)">Download / Print</button>
 <a href="{{ ticketMailtoHref }}" style="flex:1;text-align:center;padding:13px;border:3px solid #111;border-radius:12px;background:#21C7E6;font-family:'Anton';font-size:15px;text-decoration:none;color:#111">Email My Ticket</a>
 </div>
-<button onClick="{{ closeTicket }}" style="width:100%;margin-top:10px;padding:11px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:700">Done</button>
+<button aria-label="Close" data-dialog-close onClick="{{ closeTicket }}" style="width:100%;margin-top:10px;padding:11px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:700">Done</button>
 </sc-if>
 </div>
 </div>
@@ -321,11 +322,11 @@
 </sc-if>
 
 <sc-if value="{{ coOpen }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeCheckoutBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+<div role="dialog" aria-modal="true" aria-label="Merch checkout" data-v25-dialog onClick="{{ closeCheckoutBg }}" style="position:fixed;inset:0;z-index:180;background:rgba(17,17,17,.8);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 <div style="width:560px;max-width:100%;background:#fff;border:4px solid #111;border-radius:22px;overflow:hidden;box-shadow:12px 12px 0 #21C7E6;margin:16px 0">
 <div style="background:#111;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px">
 <div style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400;line-height:1">Merch Checkout</div>
-<button onClick="{{ closeCheckout }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
+<button data-dialog-close onClick="{{ closeCheckout }}" aria-label="Close" style="flex:none;width:34px;height:34px;border:2px solid #fff;border-radius:9px;background:transparent;color:#fff;font-size:18px;line-height:1">×</button>
 </div>
 <div style="padding:24px">
 <sc-if value="{{ coStageDetails }}" hint-placeholder-val="{{ true }}">
@@ -363,7 +364,7 @@
 <sc-if value="{{ coStageFailed }}" hint-placeholder-val="{{ false }}">
 <div style="text-align:center;padding:10px 0 4px">
 <div style="display:inline-flex;align-items:center;gap:8px;background:#C62828;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px">Payment was cancelled or failed</div>
-<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">The M-Pesa payment did not go through and nothing was charged.<br>Order {{ coOrderId }}</div>
+<div style="color:#555;font-size:13.5px;margin-top:12px;line-height:1.65">Payment was not confirmed. Check your M-Pesa messages before trying again. If money was deducted, contact us with your order reference.<br>Order {{ coOrderId }}</div>
 <button onClick="{{ coTryAgain }}" style="margin-top:16px;width:100%;padding:14px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Try again</button>
 </div>
 </sc-if>
@@ -376,10 +377,10 @@
 </div>
 </sc-if>
 <sc-if value="{{ coStageDone }}" hint-placeholder-val="{{ false }}">
-<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Receipt emailed to {{ coOrder.email }}</div></div>
+<div style="text-align:center;margin-bottom:16px"><div style="display:inline-flex;align-items:center;gap:8px;background:#1F8A5B;color:#fff;border-radius:100px;padding:7px 15px;font-weight:700;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" style="color:#fff"><use href="#i-check"></use></svg> Payment confirmed</div><div style="color:#888;font-size:12px;margin-top:8px">Your receipt is ready below.</div></div>
 <div style="border:3px solid #111;border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 #111;background:#fff">
 <div style="background:#111;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px">
-<div style="display:flex;align-items:center;gap:10px"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>
+<div style="display:flex;align-items:center;gap:10px"><img src="/assets/ugt-logo-v2.png" alt="UGT" style="height:34px;width:auto"><div><div style="font-family:'Bungee';font-size:10px;color:#FFD400">URBAN GANG TOUR</div><div style="font-family:'Anton';font-size:16px;color:#fff;text-transform:uppercase;line-height:1.1">Official Receipt</div></div></div>
 <div style="text-align:right;font-size:10.5px;color:#bbb;line-height:1.5"><div>{{ coOrder.ref }}</div><div>{{ coOrder.date }}</div><div>{{ coOrder.time }}</div></div>
 </div>
 <div style="height:4px;background:#E6218C"></div>
@@ -397,7 +398,7 @@
 </div>
 <div style="border-top:2px dashed #ccc;padding:12px 18px;font-size:10.5px;color:#666;line-height:1.7"><b style="color:#111">Urban Gang Tour</b> &#183; Chelezo Apartments, Kindaruma Road, Floor 15 Door 2, Kilimani, Nairobi<br>P.O. Box 6431 - 00622, Juja &#183; +254 799 886247 &#183; admin@urbangangtour.co.ke &#183; urbangangtour.co.ke</div></div>
 <a href="{{ coReceiptHref }}" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:13px;border:3px solid #111;border-radius:12px;background:#FFD400;font-family:'Anton';font-size:15px;text-decoration:none;color:#111" style-hover="transform:translateY(-1px)">View / Print Full Receipt</a>
-<button onClick="{{ closeCheckout }}" style="width:100%;margin-top:10px;padding:11px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:700">Done</button>
+<button aria-label="Close" data-dialog-close onClick="{{ closeCheckout }}" style="width:100%;margin-top:10px;padding:11px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:700">Done</button>
 </sc-if>
 </div>
 </div>
@@ -426,7 +427,7 @@
 <div style="max-width:1100px;margin:0 auto;position:relative">
 <div style="display:inline-block;background:#FFD400;color:#111;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">MAIN EVENTS</div>
 <h1 style="font-family:'Anton';font-size:clamp(40px,7vw,92px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#fff;text-shadow:4px 4px 0 #E6218C">Get Your<br><span style="background:#E6218C;color:#fff;padding:0 10px;border:3px solid #fff;display:inline-block;transform:rotate(-1deg)">Tickets</span></h1>
-<p style="color:#ccc;font-size:18px;line-height:1.6;max-width:640px;margin:20px 0 0;font-weight:500">Beyond the school tour, we throw the festivals. Grab a ticket and get an instant e-ticket and invoice — generated on the spot and sent straight to your inbox.</p>
+<p style="color:#ccc;font-size:18px;line-height:1.6;max-width:640px;margin:20px 0 0;font-weight:500">Beyond the school tour, we throw the festivals. Choose a published event to book your ticket. Your e-ticket and receipt are available after payment is confirmed.</p>
 </div>
 </div>
 <div style="background:#E6218C;padding:44px 24px 60px">
@@ -479,7 +480,7 @@
 <div style="position:relative;display:flex;align-items:center;justify-content:center;animation:pop .8s both">
 <svg style="position:absolute;top:-6%;left:-2%;z-index:2;--r:-6deg;animation:floatY 6s ease-in-out infinite" width="110" height="86" viewBox="0 0 90 70" fill="none"><path d="M6 8C30 4 62 14 70 44" stroke="#111" stroke-width="7" stroke-linecap="round"/><path d="M50 42l20 4 2-22" stroke="#111" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div style="position:absolute;width:82%;aspect-ratio:1;border-radius:50%;background:#FFD400;border:4px solid #111"></div>
-<img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style="position:relative;z-index:1;width:100%;max-width:440px;animation:floatY 6.5s ease-in-out infinite;filter:drop-shadow(6px 8px 0 rgba(17,17,17,.35))">
+<img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style="position:relative;z-index:1;width:100%;max-width:440px;animation:floatY 6.5s ease-in-out infinite;filter:drop-shadow(6px 8px 0 rgba(17,17,17,.35))">
 </div>
 </div>
 </div>
@@ -932,7 +933,7 @@
 <div style="max-width:1200px;margin:0 auto;position:relative">
 <div style="display:inline-block;background:#111;color:#FFD400;font-family:'Bungee';font-size:13px;padding:8px 16px;border-radius:100px;transform:rotate(-2deg)">THE CREW BEHIND THE CULTURE</div>
 <h1 style="font-family:'Anton';font-size:clamp(44px,7vw,92px);line-height:.9;margin:16px 0 0;text-transform:uppercase;color:#111;text-shadow:4px 4px 0 #fff">Meet <span style="background:#21C7E6;color:#111;padding:0 10px;border:3px solid #111;display:inline-block;transform:rotate(-1deg)">The Gang</span></h1>
-<p style="color:#fff;font-size:18px;line-height:1.6;max-width:640px;margin:18px 0 0;font-weight:500">Around thirty people build, run, and film every event. These are the leads.</p>
+<p style="color:#fff;font-size:18px;line-height:1.6;max-width:640px;margin:18px 0 0;font-weight:500">Meet the founders of Urban Gang Tour.</p>
 </div>
 </div>
 <div style="background:#FFD400;padding:44px 24px 60px">
@@ -1304,212 +1305,13 @@
 </section>
 </sc-if>
 
-<sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
-<section data-screen-label="Admin" style="min-height:82vh;background:#f0f0f0">
-<sc-if value="{{ adminAuthed }}" hint-placeholder-val="{{ false }}">
-<div style="background:#111;border-bottom:4px solid #FFD400;padding:22px 24px">
-<div style="max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-<div style="display:flex;align-items:center;gap:14px"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="UGT" style="height:44px"><div><div style="font-family:'Bungee';font-size:12px;color:#FFD400">CONTROL ROOM · {{ adminRoleLabel }}</div><div style="font-family:'Anton';font-size:26px;text-transform:uppercase;color:#fff;line-height:.9">Dashboard</div></div></div>
-<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-<div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.06);border:1px dashed #444;border-radius:100px;padding:8px 16px">
-<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#fff"><span style="width:9px;height:9px;border-radius:50%;background:#FF3B30;animation:blink 1.4s steps(1) infinite"></span>ON AIR</span>
-<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#fff"><span style="width:9px;height:9px;border-radius:50%;background:#1F8A5B"></span>BOOKINGS OPEN</span>
-<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#fff"><span style="width:9px;height:9px;border-radius:50%;background:#FFD400"></span>MERCH LIVE</span>
-</div>
-<button onClick="{{ adminLogout }}" style="background:#E6218C;color:#fff;font-family:'Space Grotesk';font-weight:700;padding:10px 18px;border:3px solid #fff;border-radius:10px">Log out</button>
-</div>
-</div>
-</div>
-<div style="max-width:1200px;margin:0 auto;padding:26px 24px 70px">
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:26px">
-<sc-for list="{{ metrics }}" as="m" hint-placeholder-count="4">
-<div style="background:#fff;border:3px solid #111;border-left:8px solid {{ m.color }};border-radius:14px;padding:20px;box-shadow:5px 5px 0 #111"><div style="font-family:'Anton';font-size:44px;line-height:.85;color:{{ m.color }}">{{ m.value }}</div><div style="color:#333;font-size:13px;font-weight:700;margin-top:6px">{{ m.label }}</div></div>
-</sc-for>
-</div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
-<sc-if value="{{ canBookings }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setBookings }}" style="font-family:'Space Grotesk';font-weight:700;font-size:14px;padding:11px 18px;border:3px solid #111;border-radius:100px;color:{{ tabBookingsColor }};background:{{ tabBookingsBg }};box-shadow:3px 3px 0 #111">Bookings Inbox</button></sc-if>
-<sc-if value="{{ canOrders }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setOrders }}" style="font-family:'Space Grotesk';font-weight:700;font-size:14px;padding:11px 18px;border:3px solid #111;border-radius:100px;color:{{ tabOrdersColor }};background:{{ tabOrdersBg }};box-shadow:3px 3px 0 #111">Orders &amp; Sales</button></sc-if>
-<sc-if value="{{ canStops }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setEvents }}" style="font-family:'Space Grotesk';font-weight:700;font-size:14px;padding:11px 18px;border:3px solid #111;border-radius:100px;color:{{ tabEventsColor }};background:{{ tabEventsBg }};box-shadow:3px 3px 0 #111">Tour Stops</button></sc-if>
-<sc-if value="{{ canBlog }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setNewsroom }}" style="font-family:'Space Grotesk';font-weight:700;font-size:14px;padding:11px 18px;border:3px solid #111;border-radius:100px;color:{{ tabNewsroomColor }};background:{{ tabNewsroomBg }};box-shadow:3px 3px 0 #111">Newsroom</button></sc-if>
-<sc-if value="{{ canGallery }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setGalleryman }}" style="font-family:'Space Grotesk';font-weight:700;font-size:14px;padding:11px 18px;border:3px solid #111;border-radius:100px;color:{{ tabGallerymanColor }};background:{{ tabGallerymanBg }};box-shadow:3px 3px 0 #111">Gallery Manager</button></sc-if>
-<sc-if value="{{ canTeam }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setTeam }}" style="font-family:'Space Grotesk';font-weight:700;font-size:14px;padding:11px 18px;border:3px solid #111;border-radius:100px;color:{{ tabTeamColor }};background:{{ tabTeamBg }};box-shadow:3px 3px 0 #111">Admins &amp; Access</button></sc-if>
-</div>
-<sc-if value="{{ tabBookings }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-<sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
-<button onClick="{{ f.go }}" style="padding:8px 15px;border-radius:100px;font-family:'Space Grotesk';font-weight:700;font-size:12.5px;border:2px solid {{ f.border }};background:{{ f.bg }};color:{{ f.color }}">{{ f.label }}</button>
-</sc-for>
-</div>
-<div style="display:flex;flex-direction:column;gap:12px">
-<sc-for list="{{ bookings }}" as="b" hint-placeholder-count="5">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 #111">
-<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
-<div style="display:flex;align-items:center;gap:12px">
-<span style="font-family:'Anton';font-size:14px;color:#999">{{ b.id }}</span>
-<div><div style="font-family:'Anton';font-size:17px;text-transform:uppercase;line-height:1">{{ b.org }}</div><div style="color:#666;font-size:13px">{{ b.name }} · {{ b.email }}</div></div>
-</div>
-<div style="display:flex;align-items:center;gap:8px">
-<span style="background:#f0f0f0;border:2px solid #111;border-radius:100px;padding:5px 12px;font-size:11.5px;font-weight:700">{{ b.type }}</span>
-<span style="background:{{ b.statusColor }};color:#fff;border-radius:100px;padding:6px 12px;font-size:11.5px;font-weight:700">{{ b.statusLabel }}</span>
-</div>
-</div>
-<p style="color:#444;font-size:13.5px;line-height:1.5;margin:12px 0 0;font-weight:500">{{ b.msg }}</p>
-<div style="display:flex;gap:8px;margin-top:12px">
-<button onClick="{{ b.review }}" style="background:#FFD400;border:2px solid #111;color:#111;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:9px">Mark in review</button>
-<button onClick="{{ b.confirm }}" style="background:#1B8A3A;border:2px solid #111;color:#fff;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:9px">Confirm booking</button>
-</div>
-</div>
-</sc-for>
-</div>
-</sc-if>
-<sc-if value="{{ tabOrders }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:12px">
-<sc-if value="{{ noOrders }}" hint-placeholder-val="{{ false }}">
-<div style="background:#fff;border:3px dashed #999;border-radius:14px;padding:34px;text-align:center;color:#888;font-weight:600">No paid orders yet. Ticket and merch purchases made on the site land here automatically.</div>
-</sc-if>
-<sc-for list="{{ orderRows }}" as="o" hint-placeholder-count="3">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #111;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-<div style="display:flex;align-items:center;gap:12px;min-width:0">
-<span style="background:{{ o.kindBg }};border:2px solid #111;border-radius:100px;padding:5px 12px;font-size:11px;font-weight:700;text-transform:uppercase;flex:none">{{ o.kind }}</span>
-<div style="min-width:0"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ o.name }}</div><div style="color:#666;font-size:12.5px;margin-top:4px">{{ o.email }} · {{ o.detail }}</div></div>
-</div>
-<div style="text-align:right"><div style="font-family:'Anton';font-size:18px;color:#1B8A3A">{{ o.totalFmt }}</div><div style="color:#999;font-size:11.5px">{{ o.ref }} · {{ o.invoice }} · {{ o.date }}</div></div>
-</div>
-</sc-for>
-</div>
-</sc-if>
-<sc-if value="{{ tabEvents }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:12px">
-<sc-for list="{{ stops }}" as="s" hint-placeholder-count="4">
-<div style="display:flex;gap:16px;align-items:center;background:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #111">
-<div style="text-align:center;min-width:56px"><div style="font-family:'Anton';font-size:28px;color:{{ s.accent }};line-height:.85">{{ s.day }}</div><div style="font-weight:800;font-size:12px">{{ s.mon }}</div></div>
-<div style="flex:1"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase">{{ s.name }}</div><div style="color:#888;font-size:12.5px">{{ s.loc }}</div></div>
-<span style="background:{{ s.badgeBg }};color:#111;border:2px solid #111;border-radius:100px;padding:5px 12px;font-size:11px;font-weight:700">{{ s.badge }}</span>
-</div>
-</sc-for>
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 #111;margin-top:6px">
-<div style="font-family:'Anton';font-size:16px;text-transform:uppercase;margin-bottom:12px">+ Add a tour stop</div>
-<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-<input value="{{ nsName }}" onChange="{{ onNsName }}" placeholder="School / venue name" style="flex:2;min-width:180px;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13px">
-<input value="{{ nsLoc }}" onChange="{{ onNsLoc }}" placeholder="Location (town, county)" style="flex:2;min-width:160px;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13px">
-<input value="{{ nsDay }}" onChange="{{ onNsDay }}" placeholder="Day" style="flex:none;width:70px;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13px">
-<input value="{{ nsMon }}" onChange="{{ onNsMon }}" placeholder="Month" style="flex:none;width:80px;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13px">
-<button onClick="{{ addStop }}" style="background:#E6218C;color:#fff;font-family:'Anton';font-size:15px;padding:11px 20px;border:3px solid #111;border-radius:10px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">Add</button>
-</div>
-<div style="color:#888;font-size:11.5px;margin-top:10px;font-weight:600">New stops go live on the public Tour Stops page instantly and are saved on this device.</div>
-</div>
-</div>
-</sc-if>
-<sc-if value="{{ tabNewsroom }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:12px">
-<div style="background:#111;color:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #FFD400"><span style="font-family:'Anton';font-size:17px;text-transform:uppercase;color:#FFD400">Student submissions</span><span style="color:#bbb;font-size:12.5px;margin-left:10px">Approve to publish instantly on the Urban News Culture Desk. No AI, no waiting — your call.</span></div>
-<sc-if value="{{ noBlogQueue }}" hint-placeholder-val="{{ false }}">
-<div style="background:#fff;border:3px dashed #999;border-radius:14px;padding:34px;text-align:center;color:#888;font-weight:600">No student submissions yet. They arrive here from the "Write For Urban News" form.</div>
-</sc-if>
-<sc-for list="{{ blogQueue }}" as="b" hint-placeholder-count="2">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:16px 20px;box-shadow:4px 4px 0 #111;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-<div style="min-width:0;flex:1"><div style="font-family:'Anton';font-size:16px;text-transform:uppercase;line-height:1">{{ b.name }} <span style="color:#888;font-family:'Space Grotesk';font-size:12px;text-transform:none">· {{ b.org }}</span></div><div style="color:#444;font-size:13px;margin-top:6px;line-height:1.5">{{ b.msg }}</div></div>
-<div style="display:flex;gap:8px;flex:none">
-<sc-if value="{{ b.isNew }}" hint-placeholder-val="{{ true }}"><button onClick="{{ b.approve }}" style="background:#1F8A5B;color:#fff;border:3px solid #111;border-radius:10px;padding:10px 16px;font-family:'Anton';font-size:14px;box-shadow:3px 3px 0 #111" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">Publish ✓</button></sc-if>
-<sc-if value="{{ b.isNew }}" hint-placeholder-val="{{ false }}"></sc-if>
-<button onClick="{{ b.reject }}" style="background:#fff;color:#E6218C;border:2px dashed #E6218C;border-radius:10px;padding:10px 14px;font-weight:700;font-size:12.5px" style-hover="background:#E6218C;color:#fff">Remove</button>
-</div>
-</div>
-</sc-for>
-</div>
-</sc-if>
-<sc-if value="{{ tabGalleryman }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:14px">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 #111">
-<div style="font-family:'Anton';font-size:16px;text-transform:uppercase;margin-bottom:10px">Post photos to a school catalogue</div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-<select value="{{ galSchool }}" onChange="{{ onGalSchool }}" style="flex:2;min-width:220px;background:#fff;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13.5px">
-<option value="">— pick a school catalogue —</option>
-<sc-for list="{{ galSchoolNames }}" as="n" hint-placeholder-count="6"><option value="{{ n }}">{{ n }}</option></sc-for>
-</select>
-<label style="flex:none;background:#E6218C;color:#fff;font-family:'Anton';font-size:14px;padding:11px 20px;border:3px solid #111;border-radius:10px;box-shadow:3px 3px 0 #111;cursor:pointer" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #111">+ Upload Photos<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ uploadGalleryPics }}" style="display:none"></label>
-<sc-if value="{{ galBusy }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Permanent Marker';color:#E6218C;font-size:14px">compressing at max quality…</span></sc-if>
-</div>
-<div style="color:#888;font-size:11.5px;margin-top:10px;font-weight:600">Images only (no videos) · auto-compressed with zero visible quality loss · up to 100 photos per school · live on the public Gallery page instantly.</div>
-</div>
-<sc-if value="{{ galManagerHas }}" hint-placeholder-val="{{ false }}">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 #111">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-family:'Anton';font-size:15px;text-transform:uppercase">{{ galSchool }}</span><span style="background:#FFD400;border:2px solid #111;border-radius:100px;padding:3px 11px;font-size:11.5px;font-weight:800">{{ galManagerCount }} / 100</span></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
-<sc-for list="{{ galManagerPics }}" as="p" hint-placeholder-count="4">
-<div style="position:relative;border:2px solid #111;border-radius:10px;overflow:hidden"><img src="{{ p.url }}" alt="catalogue photo" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><button onClick="{{ p.del }}" aria-label="Delete" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:8px;background:#fff;border:2px solid #111;font-size:13px;line-height:1" style-hover="background:#E6218C;color:#fff">×</button></div>
-</sc-for>
-</div>
-</div>
-</sc-if>
-</div>
-</sc-if>
-<sc-if value="{{ tabTeam }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:14px">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 #111">
-<div style="font-family:'Anton';font-size:16px;text-transform:uppercase;margin-bottom:4px">Add a crew admin</div>
-<div style="color:#888;font-size:12px;font-weight:600;margin-bottom:12px">They get a generated password that opens ONLY the tools you tick. Revoke any time.</div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-<input value="{{ naName }}" onChange="{{ onNaName }}" placeholder="Admin name (e.g. Rania)" style="flex:1;min-width:200px;border:2px solid #111;border-radius:9px;padding:10px 12px;font-size:13.5px">
-<button onClick="{{ createAdmin }}" style="background:#111;color:#FFD400;font-family:'Anton';font-size:14px;padding:11px 20px;border:3px solid #111;border-radius:10px;box-shadow:3px 3px 0 #E6218C" style-hover="transform:translate(1px,1px);box-shadow:2px 2px 0 #E6218C">Generate Password →</button>
-</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-<sc-for list="{{ naPerms }}" as="pm" hint-placeholder-count="5">
-<button onClick="{{ pm.toggle }}" style="background:{{ pm.bg }};border:2px solid #111;border-radius:100px;padding:8px 14px;font-size:12px;font-weight:800;text-transform:uppercase" style-hover="background:#FFD400">{{ pm.label }}</button>
-</sc-for>
-</div>
-<sc-if value="{{ hasNaMade }}" hint-placeholder-val="{{ false }}">
-<div style="margin-top:14px;background:#1F8A5B;color:#fff;border:3px solid #111;border-radius:12px;padding:14px 18px">
-<div style="font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">Access created for {{ naMade.name }}</div>
-<div style="font-family:'Anton';font-size:26px;letter-spacing:.08em;margin-top:4px">{{ naMade.pass }}</div>
-<div style="font-size:11.5px;opacity:.85;margin-top:4px">Send them this password — it only opens their permitted tools at /admin.</div>
-</div>
-</sc-if>
-</div>
-<sc-if value="{{ noAdmins }}" hint-placeholder-val="{{ false }}">
-<div style="background:#fff;border:3px dashed #999;border-radius:14px;padding:26px;text-align:center;color:#888;font-weight:600">No crew admins yet. Create the first one above.</div>
-</sc-if>
-<sc-for list="{{ adminList }}" as="a" hint-placeholder-count="2">
-<div style="background:#fff;border:3px solid #111;border-radius:14px;padding:14px 20px;box-shadow:4px 4px 0 #111;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-<div><span style="font-family:'Anton';font-size:16px;text-transform:uppercase">{{ a.name }}</span><span style="background:#21C7E6;border:2px solid #111;border-radius:100px;padding:3px 10px;font-size:10.5px;font-weight:800;text-transform:uppercase;margin-left:10px">{{ a.permsLabel }}</span></div>
-<div style="display:flex;gap:10px;align-items:center"><span style="font-family:'Space Grotesk';font-weight:700;font-size:13px;background:#F1EDE2;border:2px dashed #999;border-radius:8px;padding:6px 12px">{{ a.pass }}</span><button onClick="{{ a.revoke }}" style="background:#fff;color:#E6218C;border:2px dashed #E6218C;border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px" style-hover="background:#E6218C;color:#fff">Revoke</button></div>
-</div>
-</sc-for>
-</div>
-</sc-if>
-<sc-if value="{{ tabContent }}" hint-placeholder-val="{{ false }}">
-<div style="background:#fff;border:3px solid #111;border-radius:16px;padding:28px;color:#444;line-height:1.7;box-shadow:5px 5px 0 #111">
-<div style="font-family:'Anton';font-size:22px;text-transform:uppercase;color:#111;margin-bottom:10px">Content &amp; Media</div>
-<p style="margin:0 0 12px;font-weight:500">Upload event galleries, attach Urban News episode links per stop, and publish winner lists. Drops here sync to the public Tour Stops and Urban News pages.</p>
-<div style="border:3px dashed #999;border-radius:14px;padding:34px;text-align:center;color:#888;font-weight:600">Drag photos or a video link here to attach to a stop</div>
-</div>
-</sc-if>
-</div>
-</sc-if>
-<sc-if value="{{ adminNotAuthed }}" hint-placeholder-val="{{ true }}">
-<div style="background:#E6218C;min-height:82vh;display:flex;align-items:center;justify-content:center;padding:40px 24px">
-<div style="width:420px;max-width:100%">
-<div style="text-align:center;margin-bottom:22px"><img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="UGT" style="height:64px;margin:0 auto"><div style="font-family:'Anton';font-size:28px;text-transform:uppercase;color:#111;margin-top:12px;text-shadow:2px 2px 0 #fff">Control Room</div><div style="color:#fff;font-size:13px;font-weight:600">urbangangtour.co.ke/admin · authorised staff only</div></div>
-<form onSubmit="{{ adminLogin }}" style="background:#fff;border:3px solid #111;border-radius:18px;padding:26px;box-shadow:8px 8px 0 #111">
-<div id="ugt-gsi-btn" style="display:flex;justify-content:center;min-height:44px"></div>
-<div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:#999;font-size:12px;font-weight:700"><span style="flex:1;height:2px;background:#eee"></span>OR<span style="flex:1;height:2px;background:#eee"></span></div>
-<label style="display:block"><span style="font-weight:700;font-size:13px">Access code</span><input type="password" value="{{ admin.pass }}" onChange="{{ onAdminPass }}" placeholder="Enter access code" style="margin-top:6px;width:100%;background:#fff;border:2px solid #111;border-radius:10px;padding:12px 14px;color:#111"></label>
-<sc-if value="{{ hasAdminErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-size:13px;margin-top:12px;font-weight:700">{{ adminErr }}</div></sc-if>
-<button type="submit" style="margin-top:18px;width:100%;padding:15px;border:3px solid #111;border-radius:12px;background:#111;color:#FFD400;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #FFD400" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD400">ENTER CONTROL ROOM</button>
-<div style="text-align:center;color:#999;font-size:11.5px;margin-top:12px;line-height:1.5">Authorised staff only. Use the Control Room at /admin to sign in.</div>
-</form>
-</div>
-</div>
-</sc-if>
-</section>
-</sc-if>
 
 </main>
 
 <footer style="background:#111;border-top:4px solid #FFD400;padding:54px 24px 30px;color:#fff">
 <div data-foot style="max-width:1320px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px">
 <div>
-<img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style="height:60px;width:auto;margin-bottom:12px">
+<img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style="height:60px;width:auto;margin-bottom:12px">
 <div style="font-family:'Permanent Marker';color:#FFD400;font-size:19px;margin-bottom:8px">From Potential to Purpose</div>
 <p style="color:#bbb;font-size:13.5px;line-height:1.6;max-width:280px">Kenya's youth talent search, mentorship, and awards concert tour. Live, and on the national screen.</p>
 </div>
@@ -1571,8 +1373,8 @@ class Component extends DCLogic {
     super(props);
     this.state = {
       page:((typeof window!=='undefined'&&window.__UGT_PAGE)||'home'), mobileOpen:false, bookOpen:false,
-      workTab:'brands', cart:[], cartOpen:false, quickId:null, memberId:null, canInstall:false,
-      form:{name:'',org:'',email:'',phone:'',type:'School Booking',preferredDate:'',expectedAttendance:'',eventBrief:'',message:'',schoolContactConfirmed:false},
+      workTab:(typeof location!=='undefined'&&['brands','institutions','campuses','schools','mega'].includes(new URLSearchParams(location.search).get('tab'))?new URLSearchParams(location.search).get('tab'):'brands'), cart:[], cartOpen:false, quickId:null, memberId:null, canInstall:false,
+      form:{name:'',org:'',email:'',phone:'',type:((typeof location!=='undefined'&&['School Booking','Campus Rave','Mega Event','Sponsorship','Media','Join the Crew'].includes(new URLSearchParams(location.search).get('type')))?new URLSearchParams(location.search).get('type'):'School Booking'),preferredDate:'',expectedAttendance:'',eventBrief:'',message:'',schoolContactConfirmed:false},
       ticket:{eventId:null,tier:0,qty:1,name:'',email:'',phone:'',stage:'select',order:null,err:'',orderId:'',secs:0,busy:false,ack:false},
       swipe:{i:0,size:'M'}, quickSize:'M', quickQty:1,
       checkout:{stage:null,name:'',email:'',phone:'',order:null,err:'',orderId:'',secs:0,busy:false,lines:[],ack:false}, blog:{name:'',school:'',title:'',pitch:'',sent:false}, orders:[], extraStops:[], newStop:{name:'',loc:'',day:'',mon:''},
@@ -1580,14 +1382,7 @@ class Component extends DCLogic {
       admin:{authed:false,user:'',pass:'',email:'',tab:'bookings',filter:'all',err:'',role:'',name:'',perms:[]},
       railMeta:{}, admins:[], publishedBlogs:[], galleryPics:{}, galSchool:'', galBusy:false, galPublicSchool:'',
       newAdmin:{name:'',perms:{blog:false,gallery:false,bookings:false,orders:false,stops:false},made:null},
-      bookings:[
-        {id:'B-2041',name:'Grace Wanjiru',org:'Ngeya Girls Senior School',type:'School Booking',date:'2026-07-02',status:'new',email:'principal@ngeya.ac.ke',msg:'We would love the tour for our second term. About 900 students.'},
-        {id:'B-2040',name:'Brand Team',org:'Norda Industries',type:'Sponsorship',date:'2026-07-01',status:'review',email:'partnerships@norda.co.ke',msg:'Interested in official snacking partner across the tour.'},
-        {id:'B-2039',name:'Dean of Students',org:'Zetech University',type:'Campus Rave',date:'2026-06-28',status:'confirmed',email:'dos@zetech.ac.ke',msg:'Campus Rave edition for orientation week.'},
-        {id:'B-2038',name:'Events Office',org:'Nakuru County',type:'Mega Event',date:'2026-06-25',status:'new',email:'events@nakuru.go.ke',msg:'Youth day main stage takeover.'},
-        {id:'B-2037',name:'Madam Divina',org:'Gituamba Girls High School',type:'Media',date:'2026-06-20',status:'confirmed',email:'talent@gituamba.ac.ke',msg:'Requesting the Urban News feature link and photos.'},
-        {id:'B-2036',name:'Kevin O.',org:'Freelance Videographer',type:'Join the Crew',date:'2026-06-18',status:'review',email:'kev.films@gmail.com',msg:'Camera op, Kiambu county, own gimbal.'}
-      ]
+      bookings:[]
     };
     // Product names, prices and variants are authoritative only when supplied
     // by the live catalogue bridge. Never revive obsolete sample merchandise.
@@ -1657,88 +1452,12 @@ class Component extends DCLogic {
     this.TEAM = [
       {id:'eugine',img:'/assets/crew/eugine-micah.png',name:'Eugine Micah',role:'Co-Founder, Creative Director & Lead Host',tag:'The Face of the Tour',hype:true,bio:[
         'Eugine Micah is the co-founder and creative director of the Urban Gang Tour, and the lead host audiences across Kenya now recognise on sight. He built the tour from a single school hall into a travelling production that sets up a full stage, a live broadcast, and a mentorship programme in one day.',
-        'As lead host of Urban News on PPP TV Kenya, Eugine turns every stop into television. He has hosted, produced, and directed hundreds of hours of youth programming, and moves comfortably from a school assembly to a festival main stage to a corporate activation without ever dropping the energy.',
-        'For investors, Eugine is the safest pair of hands in the room. He carries the vision, keeps a thirty-person crew moving to the minute, and knows exactly how to place a brand inside a cultural moment so it feels earned, not bolted on. When you book the Urban Gang Tour, you are booking Eugine\u2019s standard.']},
+        'As lead host of Urban News on PPP TV Kenya, Eugine turns every stop into television. He has hosted, produced, and directed youth programming, and moves comfortably from a school assembly to a festival main stage to a corporate activation without ever dropping the energy.',
+        'For investors, Eugine is the safest pair of hands in the room. He carries the vision, keeps a production crew moving to the minute, and knows exactly how to place a brand inside a cultural moment so it feels earned, not bolted on. When you book the Urban Gang Tour, you are booking Eugine\u2019s standard.']},
       {id:'lucy',img:'/assets/crew/lucy-ogunde.jpg',name:'Lucy Ogunde',role:'Co-Founder & Co-Host',tag:'The Voice They Trust',hype:true,bio:[
         'Lucy Ogunde is co-founder of the Urban Gang Tour and its co-host: the warmth and the sharp wit that balances every show. She is the reason first-time performers feel safe enough to give their very best on a national stage.',
         'On camera for Urban News, Lucy leads interviews, mentors young women through the pageant and modelling categories, and anchors the parts of the day that stay with students long after the crew packs up. Her presence is a large part of why institutions trust the tour with their halls.',
         'For brands and investors, Lucy is a powerful, credible voice to young Kenyan audiences, and especially to young women. She makes a message land because she has already earned the room\u2019s trust. Book the tour and Lucy is front and centre, representing your name.']},
-      {id:'okiyo',img:'/assets/crew/mark-davinci.jpg',name:'Okiyo DaVinci',role:'Overseer, Urban Gang Structure',tag:'The Architect',hype:false,bio:[
-        'Okiyo DaVinci is the overseer of the Urban Gang structure, the strategic mind that keeps the movement organised as it scales from school to campus to mega event.',
-        'With a background in youth-programme design and operations, he built the systems that let the tour run the same high standard whether the crowd is three hundred or three thousand. Categories, judging, pods, and logistics all run on frameworks he set.',
-        'For institutional investors, Okiyo is the person who makes ambitious plans real. He is meticulous, calm under pressure, and relentless about turning creative ideas into a schedule that actually delivers on the day.']},
-      {id:'esther',img:'/assets/crew/wambui-gakunju.webp',name:'Esther Wambui Gakunju',role:'Head of Modelling \u00b7 CEO, Synapse Models & Moyo Response',tag:'Runway Director',hype:false,bio:[
-        'Esther Wambui Gakunju leads modelling and pageantry for the Urban Gang Tour, directing the runway and the Miss/Mrs of the Institution crowning at every stop.',
-        'A seasoned runway director working alongside Synapse Models, she coaches first-time models through the cultural, creative, cosplay, and professional categories, staging a full T-shaped runway to broadcast standard.',
-        'For sponsors in beauty, fashion, and lifestyle, Esther is the gateway to a captivated audience. She builds the runway moments that dominate the highlight reels and give brands a premium, camera-ready stage.']},
-      {id:'kalamu',img:'/assets/crew/kalamu-nyeusi.jpg',name:'Kalamu Nyeusi',role:'Stage Manager & Spoken Word Lead',tag:'The Wordsmith',hype:false,bio:[
-        'Kalamu Nyeusi is a stage manager and the spoken-word lead for the tour, holding the show together backstage while championing poetry and bars on stage.',
-        'A respected spoken-word artist in his own right, he curates and judges the spoken-word and poetry showcases, and mentors young writers to perform with confidence and meaning.',
-        'For investors, Kalamu represents depth and substance. He is the crew member who ensures the tour is not only loud but says something, giving brands association with real cultural credibility.']},
-      {id:'carian',img:'/assets/crew/dj-carian.jpg',name:'DJ Carian',role:'Resident DJ \u00b7 XP Hub',tag:'The Soundtrack',hype:false,bio:[
-        'DJ Carian is a resident DJ of the Urban Gang Tour, the soundtrack to every showcase, runway, and crowning.',
-        'With years spinning at clubs, campuses, and live events across Kenya, he reads the floor and matches the energy of every segment, from a tense dance final to a celebratory finale.',
-        'For event investors, DJ Carian guarantees professional, seamless live sound that keeps the crowd moving all day. The music never drops, and neither does the energy.']},
-      {id:'xavi',img:'/assets/crew/dj-xavi.jpg',name:'DJ Xavi',role:'Resident DJ',tag:'The Selector',hype:false,bio:[
-        'DJ Xavi is a resident DJ of the Urban Gang Tour, sharing the decks and keeping the sound alive from load-in to final act.',
-        'A versatile selector comfortable across genres, he brings the current sound of young Kenya to every stage and knows how to keep a set fresh across a long event day.',
-        'For sponsors, DJ Xavi is part of the reason the tour feels like a festival, not an assembly. He sets the tone that makes every brand moment feel like a celebration.']},
-      {id:'hypeola',img:'/assets/crew/hype-ola.jpg',name:'Hype Ola',role:'Investor & Hypeman \u00b7 CEO, The Experience Hub',tag:'The Hypeman',hype:false,bio:[
-        'Hype Ola facilitates the performance pod, coaching young talent in music, stage presence, and delivery before they take the stage.',
-        'A performer and trainer, he runs the pod that transforms raw ability into a confident stage act, giving students practical skills they keep long after the tour leaves.',
-        'For education and youth-focused investors, Hype Ola embodies the mentorship promise of the tour. He is living proof that the day is about growth, not just spectacle.']},
-      {id:'nyarangi',img:'/assets/crew2/nyarangi.png',name:'Khloe Nyarangi',role:'Head of Dance \u00b7 XP Hub',tag:'Head of Dance',hype:false,bio:[
-        'Khloe Nyarangi is the Head of Dance for the Urban Gang Tour, leading the choreography and dance programme at every stop with The Experience Hub.',
-        'With experience in performance and youth engagement, she creates a safe, high-energy space where students discover and sharpen their talent under real coaching.',
-        'For investors, Khloe is a relatable role model to the exact audience they want to reach. Her sessions are where potential visibly turns into purpose.']},
-      {id:'fred',img:'/assets/crew/fred-oduor.jpeg',name:'Fred (Baba Harshna)',role:'Stage Manager',tag:'The Backbone',hype:false,bio:[
-        'Fred, known on the road as Baba Harshna, is a stage manager who keeps the entire production running to time.',
-        'He coordinates acts, transitions, and crew backstage so the audience only ever sees a seamless show. Nothing reaches the stage without passing through his checklist.',
-        'For investors, Fred is the invisible reason the day feels professional. His discipline is what lets a thirty-person crew deliver broadcast-quality events again and again.']},
-      {id:'george',img:'/assets/crew/george-morgan.jpg',name:'George',role:'Lead Videographer',tag:'The Eye',hype:true,bio:[
-        'George is the lead videographer of the Urban Gang Tour, the eye behind the footage that carries every stop to the nation.',
-        'He shoots, directs, and oversees the field camera team, capturing the showcases, interviews, and crowd moments that become Urban News features and short-form content.',
-        'For brands, George is where reach is made. His footage is the asset that lives on long after the event, putting sponsors in front of audiences far beyond the room.']},
-      {id:'jayjey',img:'/assets/crew/jayjey.jpg',name:'Jayjey',role:'Field Content Creator',tag:'Social-First',hype:false,bio:[
-        'Jayjey is a field content creator for the tour, capturing the fast, vertical, social-first moments as they happen.',
-        'He lives in the crowd with a camera, turning raw energy into reels and stories that publish while the event is still live and rack up views overnight.',
-        'For investors, Jayjey delivers the always-on social presence that keeps a campaign trending. He is the reason the tour is felt online, not just on the ground.']},
-      {id:'tony',img:'/assets/crew/tony-lallez.webp',name:'Tony',role:'Photographer',tag:'The Still Frame',hype:false,bio:[
-        'Tony is the tour photographer, freezing the crowns, the runway walks, and the winning moments into images that last.',
-        'With a strong editorial eye, he produces the stills that fill galleries, press features, and partner decks, giving every event a professional visual record.',
-        'For sponsors, Tony\u2019s photography is premium brand collateral. His images are the ones that end up on posters, recaps, and the timelines of everyone who was there.']},
-      {id:'rania',img:'/assets/crew/rania-martin.webp',name:'Rania',role:'Head of Social Media',tag:'The Timeline',hype:false,bio:[
-        'Rania is the Head of Social Media for the Urban Gang Tour \u2014 the person who decides what the timeline sees, and when.',
-        'She runs the tour\u2019s accounts across every platform, turning each stop into reels, stories and posts that trend while the event is still live.',
-        'For brands, Rania is the always-on channel: the reason a partnership is felt online long after the convoy leaves the school gate.']},
-      {id:'pauline',img:'/assets/crew/pauline-masika.png',name:'Pauline Masika',role:'Sound Engineer',tag:'The Sound',hype:false,bio:[
-        'Pauline Masika is the tour\u2019s sound engineer \u2014 the ears behind every mic, monitor and mix on the road.',
-        'Working hand-in-hand with Ashton Sounds, she tunes each venue so a school field sounds like a broadcast studio.',
-        'For institutions, Pauline is the reassurance that their students are looked after. Her care and organisation are why schools invite the tour back year after year.']},
-      {id:'karembo',img:'/assets/crew2/karembo.webp',name:'Karembo',role:'Dancer & Entertainer',tag:'Pure Energy',hype:true,bio:[
-        'Karembo is a dancer and entertainer on the Urban Gang Tour \u2014 the performer who can pull a shy crowd onto its feet in one song.',
-        'From hype sets to featured routines, she moves between choreographed showcases and freestyle crowd moments without dropping the energy once.',
-        'For audiences, Karembo is the show inside the show \u2014 the reason phone lights come out.']},
-      {id:'dropjunior',img:'/assets/crew2/drop-junior.png',name:'Drop Junior',role:'Dancer \u00b7 Content Creator \u00b7 Spoken Word',tag:'Triple Threat',hype:false,bio:[
-        'Drop Junior is the tour\u2019s triple threat with The Experience Hub: dancer, content creator, and spoken word artiste.',
-        'One hour he is battling on the main stage, the next he is publishing the reel of it, and by evening he is closing a pod with a poem.',
-        'He is proof of the tour\u2019s whole message: talent does not come in one lane.']},
-      {id:'mercie',img:'/assets/crew2/mercie-smalls.png',name:'Mercie Smalls',role:'Dancer \u00b7 XP Hub',tag:'The Move',hype:false,bio:[
-        'Mercie Smalls is a dancer with The Experience Hub crew, performing featured routines and leading student dance moments at every stop.',
-        'Her sets during the hype blocks are a masterclass \u2014 precise, playful, and impossible to look away from.',
-        'For young dancers in the crowd, Mercie is the mirror: proof that the stage has space for them.']},
-      {id:'jeffdancer',img:'/assets/crew2/jeff-dancer.png',name:'Jeff Dancer',role:'Dancer \u00b7 XP Hub',tag:'Footwork',hype:false,bio:[
-        'Jeff Dancer brings the footwork \u2014 an Experience Hub dancer whose showcases are a guaranteed highlight-reel moment.',
-        'He performs, he showcases students, and he coaches the brave ones who step up mid-set.',
-        'Cameras love him because crowds love him \u2014 his clips travel far beyond the school gate.']},
-      {id:'khalif',img:'/assets/crew2/khalif-arts.png',name:'Khalif Arts',role:'Videographer \u2014 Reels',tag:'The Reel One',hype:false,bio:[
-        'Khalif Arts is a tour videographer in charge of reels \u2014 the fast, vertical cuts that put every stop on the timeline before the day even ends.',
-        'He lives in the crowd with a gimbal, hunting the three seconds that make a million people wish they were there.',
-        'If you saw the tour on your feed before you saw it in person, that was probably Khalif\u2019s work.']},
-      {id:'chiwa',img:'/assets/crew2/chiwaculture.png',name:'Chiwaculture',role:'Social Media Content',tag:'The Feed',hype:false,bio:[
-        'Chiwaculture runs social media content for the tour, working with Head of Social Media Rania to keep every platform fed and every moment posted.',
-        'Captions, cutdowns, trends, replies \u2014 the whole conversation around the tour runs through this desk.',
-        'The tour feels alive online because Chiwaculture never lets it sleep.']}
     ];
     this.PARTNERS = [
       // PPP TV Kenya is the one true partner. Everyone else on this wall is an
@@ -1795,7 +1514,7 @@ class Component extends DCLogic {
     this.NEWS = ['Show intro with the hosts on location','School and institution feature','Student interviews and stories','Club visits and campus culture','Competition highlights and winner moments','Principal and leadership interviews','Behind the scenes with the crew','Outro with the next-stop tease'];
     this.ARTICLES = [
       {id:'gitchez',headline:'Gituamba Girls Erupts as Urban Gang Tour Brings the Festival of Colours',date:'2026-06-07',section:'Tour Recap',img:'/assets/gal/gituamba.jpg',dek:'A full day of showcases, a runway, and a national broadcast turned GITCHEZ into the loudest school day of the term.',body:['Gituamba Girls High School hosted the Urban Gang Tour for a Cultural Day and Festival of Colours that ran from morning assembly to a packed evening finale. Students competed across every kind of talent — music, dance, spoken word, comedy and modelling — while the mentorship pods ran sessions alongside the main stage.','Hosts Eugine Micah and Lucy Ogunde anchored the day for Urban News on PPP TV Kenya, interviewing performers, teachers, and the eventual category winners. The modelling runway, directed with Synapse Models, closed with the crowning of Miss of the Institution by the school administration.','The feature aired nationally on Urban News, carrying the school\u2019s name and its students far beyond Kiambu County.']},
-      {id:'loreto',headline:'Loreto Kiambu Girls Turns Out in Full Colour for the Urban Gang Tour',date:'2026-06-01',section:'Tour Recap',img:'/assets/gal/loreto.jpg',dek:'The tour\u2019s June run opened at Loreto Kiambu with showcases, pods, and a runway finale.',body:['Loreto Kiambu Girls High School welcomed the Urban Gang Tour for a full production day, complete with stage, sound, and a thirty-person crew. Music, dance, spoken word, and comedy showcases filled the programme as students competed for their categories.','The mentorship pods drew large groups between performances, delivering the mentorship half of the tour\u2019s promise. Eugine and Lucy hosted throughout, with the day captured for a national Urban News feature.']},
+      {id:'loreto',headline:'Loreto Kiambu Girls Turns Out in Full Colour for the Urban Gang Tour',date:'2026-06-01',section:'Tour Recap',img:'/assets/gal/loreto.jpg',dek:'The tour\u2019s June run opened at Loreto Kiambu with showcases, pods, and a runway finale.',body:['Loreto Kiambu Girls High School welcomed the Urban Gang Tour for a full production day, complete with stage, sound, and a production crew. Music, dance, spoken word, and comedy showcases filled the programme as students competed for their categories.','The mentorship pods drew large groups between performances, delivering the mentorship half of the tour\u2019s promise. Eugine and Lucy hosted throughout, with the day captured for a national Urban News feature.']},
       {id:'koinange',headline:'Senior Chief Koinange Girls Kicks Off the 2026 Tour',date:'2026-05-30',section:'Tour Recap',img:'/assets/gal/koinange.jpg',dek:'The 2026 second-term tour launched at Senior Chief Koinange Girls to a roaring crowd.',body:['The Urban Gang Tour opened its 2026 second-term calendar at Senior Chief Koinange Girls, setting the tone for the stops that followed. The crowd stayed loud through to the final crowning.','Every moment was filmed for Urban News, giving the school a national platform and the tour a strong start to the season.']},
       {id:'lari',headline:'Next Stop: Lari Boys High School as Bookings Stay Open',date:'2026-07-08',section:'Upcoming',img:'/assets/gal/lari.jpg',dek:'The tour heads to Lari Boys High School in Kimende next, with more institutions still able to book this term.',body:['Lari Boys High School in Kimende is the next confirmed stop on the Urban Gang Tour calendar, set for 19 July. Preparations are already underway with the school administration to plan the day to the minute.','Bookings for the remainder of the term remain open to schools, campuses, and event organisers who want the full production and a national Urban News feature. Institutions can request a date through the tour\u2019s booking page.']}
     ,
@@ -1828,7 +1547,7 @@ class Component extends DCLogic {
 
   scrollTop(){ try{ window.scrollTo({top:0,left:0,behavior:'auto'}); }catch(e){} }
   go = window.__UGT_GO = (page) => { if(page==='stops'){ window.location.assign('/tour-stops'); return; } if(page==='admin'){ window.location.assign('/admin'); return; } try{const __m={home:'/',about:'/about',gang:'/the-gang',exp:'/experience',stops:'/experience',work:'/work-with-us',shop:'/shop',news:'/blog',gallery:'/gallery',partners:'/partners',events:'/events',contact:'/book'};const __u=__m[page];if(__u&&location.pathname!==__u){window.location.assign(__u);return;}}catch(e){} this.setState({page, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
-  goWork = window.__UGT_GO_WORK = (tab) => { try{if(location.pathname!=='/work-with-us')history.pushState({ugt:'work'},'','/work-with-us');}catch(e){} this.setState({page:'work', workTab:tab, mobileOpen:false, bookOpen:false, cartOpen:false, memberId:null}); this.scrollTop(); };
+  goWork = window.__UGT_GO_WORK = (tab) => { const selected=Object.prototype.hasOwnProperty.call(this.WORKTABS,tab)?tab:'brands'; window.location.assign('/work-with-us?tab='+encodeURIComponent(selected)); };
   toggleBook = () => this.setState(s=>({bookOpen:!s.bookOpen}));
   toggleMobile = () => this.setState(s=>({mobileOpen:!s.mobileOpen}));
   toggleCart = () => this.setState(s=>({cartOpen:!s.cartOpen}));
@@ -1888,7 +1607,9 @@ class Component extends DCLogic {
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('tic',{err:'M-Pesa payments are not available right now.'}); return; }
     this.setPay('tic',{busy:true,err:''});
     const idem='tic-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-    const r=await window.__UGT_MPESA_PAY({ticket:{eventId:t.eventId,tier:t.tier,qty:t.qty},name:t.name.trim(),email:t.email.trim(),phone:ph,idempotencyKey:idem});
+    let r;
+    try{ r=await window.__UGT_MPESA_PAY({ticket:{eventId:t.eventId,tier:t.tier,qty:t.qty},name:t.name.trim(),email:t.email.trim(),phone:ph,idempotencyKey:idem}); }
+    catch(e){ this.setPay('tic',{busy:false,err:'Could not start the payment. Check your connection and try again.'}); return; }
     if(r&&r.ok&&r.id){ this.setPay('tic',{busy:false,stage:'stk',orderId:r.id,secs:120}); this.beginPoll('tic',r.id); }
     else { this.setPay('tic',{busy:false,err:(r&&r.error)||'Could not start the payment. Try again.'}); }
   };
@@ -1903,9 +1624,9 @@ class Component extends DCLogic {
   onCardUp=(e)=>{ if(!this._drag)return; this._drag=false; const dx=this._dx||0; const el=this._card; this._card=null; if(el) el.style.transition='transform .3s ease, opacity .3s ease'; if(dx>110){ if(el) el.style.transform='translateX(720px) rotate(28deg)'; setTimeout(()=>this.swipeDecide(true),150); } else if(dx<-110){ if(el) el.style.transform='translateX(-720px) rotate(-28deg)'; setTimeout(()=>this.swipeDecide(false),150); } else if(el){ el.style.transform=''; el.style.opacity='1'; } };
 
   quickCloseBg = (e) => { if(e.target===e.currentTarget) this.quickClose(); };
-  addQuick = () => { const st=this.state; const p=this.PRODUCTS.find(x=>x.id===st.quickId); if(!p) return; const options=Array.isArray(p.variants)?p.variants:[]; const size=options.some(v=>v.label===st.quickSize)?st.quickSize:null; this.setState(s2=>{ const c=s2.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===p.id&&x.size===size); if(i>=0) c[i].qty+=s2.quickQty; else c.push({id:p.id,qty:s2.quickQty,size}); return {cart:c, quickId:null, cartOpen:true, quickQty:1}; }); this.flash('In the bag'+(size?' · '+size:'')+'. Sawa!'); };
+  addQuick = () => { const st=this.state; const p=this.PRODUCTS.find(x=>x.id===st.quickId); if(!p) return; const options=Array.isArray(p.variants)?p.variants:[]; const size=options.some(v=>v.label===st.quickSize)?st.quickSize:null; this.setState(s2=>{ const c=s2.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===p.id&&x.size===size); if(i>=0) c[i].qty=Math.min(20,c[i].qty+s2.quickQty); else c.push({id:p.id,qty:Math.max(1,Math.min(20,s2.quickQty)),size}); return {cart:c, quickId:null, cartOpen:true, quickQty:1}; }); this.flash('In the bag'+(size?' · '+size:'')+'. Sawa!'); };
   addToCart = (id) => this.setState(s=>{ const c=s.cart.map(x=>({...x})); const i=c.findIndex(x=>x.id===id&&!x.size); if(i>=0) c[i].qty++; else c.push({id,qty:1}); return {cart:c, cartOpen:true, quickId:null}; });
-  incAt = (i) => this.setState(s=>({cart:s.cart.map((x,j)=>j===i?{...x,qty:x.qty+1}:x)}));
+  incAt = (i) => this.setState(s=>({cart:s.cart.map((x,j)=>j===i?{...x,qty:Math.min(20,x.qty+1)}:x)}));
   decAt = (i) => this.setState(s=>({cart:s.cart.map((x,j)=>j===i?{...x,qty:x.qty-1}:x).filter(x=>x.qty>0)}));
   removeAt = (i) => this.setState(s=>({cart:s.cart.filter((x,j)=>j!==i)}));
   openQuick = (id) => { const p=this.PRODUCTS.find(x=>x.id===id); const first=(p&&Array.isArray(p.variants)&&p.variants[0])?p.variants[0].label:null; this.setState({quickId:id,quickSize:first}); };
@@ -1935,6 +1656,8 @@ class Component extends DCLogic {
       try{
         if(typeof window.__UGT_ORDER_STATUS!=='function') return;
         const r=await window.__UGT_ORDER_STATUS(orderId);
+        const current=this.state[k];
+        if(!current||current.stage!=='stk'||current.orderId!==orderId||(kind==='tic'&&!current.eventId)) return;
         if(!r||!r.status) return;
         if(r.status==='paid'){ this.stopPay(); this.finishPaid(kind,orderId,r); }
         else if(r.status==='failed'){ this.stopPay(); this.setPay(kind,{stage:'failed'}); }
@@ -1990,7 +1713,9 @@ class Component extends DCLogic {
     const items=s.cart.map(l=>({id:l.id,qty:l.qty,variant:l.size||undefined}));
     this.setPay('co',{busy:true,err:''});
     const idem='co-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-    const r=await window.__UGT_MPESA_PAY({items,name:co.name.trim(),email:co.email.trim(),phone:ph,idempotencyKey:idem});
+    let r;
+    try{ r=await window.__UGT_MPESA_PAY({items,name:co.name.trim(),email:co.email.trim(),phone:ph,idempotencyKey:idem}); }
+    catch(e){ this.setPay('co',{busy:false,err:'Could not start the payment. Check your connection and try again.'}); return; }
     if(r&&r.ok&&r.id){ this.setPay('co',{busy:false,stage:'stk',orderId:r.id,lines,secs:120}); this.beginPoll('co',r.id); }
     else { this.setPay('co',{busy:false,err:(r&&r.error)||'Could not start the payment. Try again.'}); }
   };
@@ -2001,9 +1726,9 @@ class Component extends DCLogic {
 
   setField = (k,v) => this.setState(s=>({form:{...s.form,[k]:v}}));
   setBlog = (k,v) => this.setState(s=>({blog:{...s.blog,[k]:v}}));
-  submitBlog = (e) => { if(e&&e.preventDefault)e.preventDefault(); const b=this.state.blog; if(!b.name.trim()||!b.title.trim()) return; const rec={id:'BLOG-'+Math.floor(100+Math.random()*900),name:b.name.trim(),org:(b.school.trim()||'Student'),type:'Student Blog',date:new Date().toISOString().slice(0,10),status:'new',email:'',msg:b.title.trim()+' \u2014 '+b.pitch.trim()}; const inbox=[rec,...this.loadLS('ugt_inbox',[])]; this.saveLS('ugt_inbox',inbox); this.setState(s=>({blog:{...s.blog,sent:true}, bookings:[rec,...s.bookings]})); };
+  submitBlog = (e) => { if(e&&e.preventDefault)e.preventDefault(); window.location.assign('/account'); };
   submitForm = async (e) => { if(e&&e.preventDefault) e.preventDefault(); if(this._bookingBusy)return; const f=this.state.form; if(!f.name.trim()||!f.org.trim()||!f.email.trim()||f.message.trim().length<10||!f.schoolContactConfirmed){ this.flash('Complete the required booking details first.'); return; } this._bookingBusy=true; if(!this._bookingRequestId){ try{ this._bookingRequestId=crypto.randomUUID(); }catch(_){ this._bookingRequestId=Date.now().toString(36)+Math.random().toString(36).slice(2); } } try{ const r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.name,org:f.org,email:f.email,phone:f.phone,type:f.type,preferredDate:f.preferredDate,expectedAttendance:f.expectedAttendance,eventBrief:f.eventBrief,message:f.message,schoolContactConfirmed:!!f.schoolContactConfirmed,requestId:this._bookingRequestId})}); if(!r.ok)throw new Error('booking_failed'); this.setState({formSent:true}); this.scrollTop(); }catch(_){ this.flash('Could not send that yet. Please try again.'); }finally{ this._bookingBusy=false; } };
-  resetForm = () => { this._bookingRequestId=''; this.setState({formSent:false, form:{name:'',org:'',email:'',phone:'',type:'School Booking',preferredDate:'',expectedAttendance:'',eventBrief:'',message:'',schoolContactConfirmed:false}}); };
+  resetForm = () => { this._bookingRequestId=''; this.setState({formSent:false, form:{name:'',org:'',email:'',phone:'',type:((typeof location!=='undefined'&&['School Booking','Campus Rave','Mega Event','Sponsorship','Media','Join the Crew'].includes(new URLSearchParams(location.search).get('type')))?new URLSearchParams(location.search).get('type'):'School Booking'),preferredDate:'',expectedAttendance:'',eventBrief:'',message:'',schoolContactConfirmed:false}}); };
 
   flash = (msg) => { this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:''}),3600); };
 
@@ -2034,11 +1759,13 @@ class Component extends DCLogic {
   };
   scanReveal(){ try{ document.querySelectorAll('main h2').forEach(el=>{ if(!el.hasAttribute('data-reveal')&&!el.classList.contains('seen')) el.setAttribute('data-reveal',''); }); if(!this._revObs){ this._revObs=new IntersectionObserver((es)=>{ es.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('seen'); this._revObs.unobserve(en.target); } }); },{threshold:0.12,rootMargin:'0px 0px -8% 0px'}); } document.querySelectorAll('[data-reveal]:not(.seen)').forEach(el=>this._revObs.observe(el)); }catch(e){} }
   componentDidMount(){
+    this._catalogReady=!!window.__UGT_PRODUCTS_LOADED;
     try{ const orders=this.loadLS('ugt_orders',[]); const inbox=this.loadLS('ugt_inbox',[]); const extraStops=this.loadLS('ugt_stops',[]); const storedCart=this.loadLS('ugt_cart',[]); const cart=(Array.isArray(storedCart)?storedCart:[]).filter(l=>l&&this.PRODUCTS.some(p=>p.id===l.id)&&Number.isInteger(l.qty)&&l.qty>0&&l.qty<=20); const admins=this.loadLS('ugt_admins',[]); const publishedBlogs=this.loadLS('ugt_published',[]); this.setState(s=>({orders, extraStops, admins, publishedBlogs, cart:(cart.length?cart:s.cart), bookings:[...inbox,...s.bookings]})); }catch(e){}
     // Product detail pages send a shopper back here with ?item=<product id>.
     // The catalogue has already loaded before this runtime boots, so open the
     // existing option picker instead of duplicating cart/payment logic.
     try{ const item=new URLSearchParams(location.search).get('item'); if(this.state.page==='shop'&&item&&this.PRODUCTS.some(p=>p.id===item)) this.openQuick(item); }catch(e){}
+    try{const event=new URLSearchParams(location.search).get('event');if(this.state.page==='events'&&event&&this.MAIN_EVENTS.some(e=>e.id===event)){this._ticketDeepLinked=true;this.buyTicket(event);}}catch(e){}
     if(this.state.page==='gallery'){this._galleryLoaded=true;this.loadGallery();}
     // Rotate whole words instead of rerendering the entire app per letter.
     let wordIndex=0;
@@ -2050,6 +1777,22 @@ class Component extends DCLogic {
     // The old countdown ended in July; do not rerender every page every second.
     this._onGallery=()=>this.setState({galleryVersion:Date.now()});
     window.addEventListener('ugt:gallery',this._onGallery);
+    this._onCatalog=()=>{
+      if(Array.isArray(window.__UGT_PRODUCTS))this.PRODUCTS=window.__UGT_PRODUCTS;
+      const events=window.__UGT_EVENTS;
+      if(events){this.MAIN_EVENTS=events.ticketed||[];this.STOPS=events.school||[];this.WORKS=events.past||[];}
+      if(Array.isArray(window.__UGT_ARTICLES))this.ARTICLES=window.__UGT_ARTICLES;
+      try{const event=new URLSearchParams(location.search).get('event');if(this.state.page==='events'&&event&&!this._ticketDeepLinked&&this.MAIN_EVENTS.some(e=>e.id===event)){this._ticketDeepLinked=true;this.buyTicket(event);}}catch(e){}
+      if(!this._catalogReady&&window.__UGT_PRODUCTS_LOADED){
+        this._catalogReady=true;
+        const saved=this.loadLS('ugt_cart',[]);
+        const cart=(Array.isArray(saved)?saved:[]).filter(l=>l&&this.PRODUCTS.some(p=>p.id===l.id)&&Number.isInteger(l.qty)&&l.qty>0&&l.qty<=20);
+        this.setState({cart});
+        try{const item=new URLSearchParams(location.search).get('item');if(this.state.page==='shop'&&item&&this.PRODUCTS.some(p=>p.id===item))this.openQuick(item);}catch(e){}
+      }
+      this.setState({catalogVersion:Date.now()});
+    };
+    window.addEventListener('ugt:catalog',this._onCatalog);
     this._onScroll=()=>{ const el=document.getElementById('ugt-progress'); if(!el) return; const h=document.documentElement,max=(h.scrollHeight-h.clientHeight)||1; el.style.width=Math.min(100,Math.max(0,(h.scrollTop/max)*100))+'%'; };
     window.addEventListener('scroll',this._onScroll,{passive:true});
     requestAnimationFrame(()=>this.scanReveal());
@@ -2062,7 +1805,7 @@ class Component extends DCLogic {
   componentDidUpdate(){
     if(this.state.page==='admin' && !this.state.admin.authed) this.initGoogle();
     if(this.state.page==='gallery'&&!this._galleryLoaded){this._galleryLoaded=true;this.loadGallery();}
-    if(this._savedCart!==this.state.cart){ this._savedCart=this.state.cart; try{localStorage.setItem('ugt_cart',JSON.stringify(this.state.cart));}catch(e){} }
+    if(this._catalogReady&&this._savedCart!==this.state.cart){ this._savedCart=this.state.cart; try{localStorage.setItem('ugt_cart',JSON.stringify(this.state.cart));}catch(e){} }
     if(this._revealedPage!==this.state.page){this._revealedPage=this.state.page;requestAnimationFrame(()=>this.scanReveal());}
   }
   componentWillUnmount(){
@@ -2070,6 +1813,7 @@ class Component extends DCLogic {
     if(this._twT) clearInterval(this._twT);
     if(this._onScroll) window.removeEventListener('scroll',this._onScroll);
     if(this._onGallery) window.removeEventListener('ugt:gallery',this._onGallery);
+    if(this._onCatalog) window.removeEventListener('ugt:catalog',this._onCatalog);
     if(this._revObs) this._revObs.disconnect();
     Object.values(this.state.galleryPics||{}).flat().forEach(p=>URL.revokeObjectURL(p.url));
   }
@@ -2133,7 +1877,7 @@ class Component extends DCLogic {
     // No school picked means show them all, which is the default landing state.
     const galSections = s.galPublicSchool ? galFilled.filter(c=>c.name===s.galPublicSchool) : galFilled;
     const galTotal = galFilled.reduce((n,c)=>n+c.count,0);
-    const bookForType = ()=>{ this.setState(st=>({page:'contact', form:{...st.form,type:wt.type}})); this.scrollTop(); };
+    const bookForType = ()=>window.location.assign('/book?type='+encodeURIComponent(wt.type));
     const fb = s.admin.filter==='all'?s.bookings:s.bookings.filter(b=>b.status===s.admin.filter);
     const bookings = fb.map(b=>({...b,confirm:()=>this.setStatus(b.id,'confirmed'),review:()=>this.setStatus(b.id,'review'),statusColor:b.status==='confirmed'?'#1B8A3A':b.status==='review'?'#B26A00':'#E6218C',statusLabel:b.status==='confirmed'?'Confirmed':b.status==='review'?'In review':'New'}));
     const filters = ['all','new','review','confirmed'].map(f=>{const on=s.admin.filter===f;const p=pill(on);return {key:f,label:f==='all'?'All':f==='new'?'New':f==='review'?'In review':'Confirmed',active:on,go:()=>this.setFilter(f),border:p.border,bg:p.bg,color:p.color};});
@@ -2166,7 +1910,7 @@ class Component extends DCLogic {
       coOpen:!!s.checkout.stage, coStageDetails:s.checkout.stage==='details', coStageDone:s.checkout.stage==='done',
       coStageStk:s.checkout.stage==='stk', coStageFailed:s.checkout.stage==='failed', coStageSlow:s.checkout.stage==='slow',
       coErr:(s.checkout.err||''), coPayLabel:(s.checkout.busy?'Sending prompt...':'Pay & Get Receipt'), coOrderId:(s.checkout.orderId||''), coStkPhone:(this.msisdn(s.checkout.phone)||s.checkout.phone||''), coSecsFmt:this.fmtSecs(s.checkout.secs), coDot1:(s.checkout.secs%3===2?'1':'0.25'), coDot2:(s.checkout.secs%3===1?'1':'0.25'), coDot3:(s.checkout.secs%3===0?'1':'0.25'), coTryAgain:this.coTryAgain, coReceiptHref:('/receipt/'+(s.checkout.orderId||'')), coPhoneMasked:this.maskPhone(s.checkout.order?s.checkout.order.phone:(this.msisdn(s.checkout.phone)||'')),
-      coLines:s.cart.map(l=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt(pi.price*l.qty)}; }),
+      coLines:s.cart.map(l=>{ const p=prodById(l.id); const pi=this.priceInfo(p); return {name:p.name+(l.size?' · '+l.size:''),qty:l.qty,totalFmt:this.fmt((pi.price+optionAdjustment(p,l.size))*l.qty)}; }),
       coTotalFmt:this.fmt(cartTotal), coName:s.checkout.name, coEmail:s.checkout.email, coPhone:s.checkout.phone, coAck:s.checkout.ack,
       onCoName:(e)=>this.setCo('name',e.target.value), onCoEmail:(e)=>this.setCo('email',e.target.value), onCoPhone:(e)=>this.setCo('phone',e.target.value), onCoAck:(e)=>this.setCo('ack',e.target.checked),
       confirmOrder:this.confirmOrder, payCard:this.payCard, closeCheckout:this.closeCheckout, closeCheckoutBg:this.closeCheckoutBg,

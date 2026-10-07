@@ -1,4 +1,4 @@
-const CACHE = 'ugt-v2';
+const CACHE = 'ugt-v25-20261007';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
@@ -20,7 +20,19 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || /^\/(admin|organizer|account)(\/|$)/.test(url.pathname)) return;
-  // Static assets: cache-first
+  // Unhashed application files change between deployments. Never pin a
+  // visitor to the runtime from their first install. Keep an offline copy,
+  // but always ask the network for the current version when connected.
+  if (['/support.js', '/v25-template.html', '/sw.js', '/manifest.json'].includes(url.pathname)) {
+    event.respondWith(
+      fetch(request).then((res) => {
+        if (res.ok) event.waitUntil(caches.open(CACHE).then((cache) => cache.put(request, res.clone())));
+        return res;
+      }).catch(() => caches.match(request).then((res) => res || new Response('Unavailable offline', { status: 503 })))
+    );
+    return;
+  }
+  // Immutable compiled assets: cache-first
   if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/assets/') || url.pathname.match(/\.(png|jpg|jpeg|webp|svg|ico|woff2?|css|js)$/)) {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((res) => {

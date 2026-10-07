@@ -39,7 +39,7 @@ export default function ControlRoomHome({ stats, scope, perms, onOpen }: Props) 
       .then(async (response) => ({ response, data: await response.json().catch(() => ({})) }))
       .then(({ response, data }) => {
         if (!live) return;
-        if (!response.ok || data.error) setQueueError(data.error || 'Queue report unavailable');
+        if (!response.ok || data.error || !Array.isArray(data.items) || !Array.isArray(data.sources) || typeof data.period !== 'string' || !Number.isFinite(Date.parse(data.generatedAt))) setQueueError(data.error || 'Queue report unavailable');
         else setQueue(data as Queue);
       })
       .catch(() => live && setQueueError('Queue report unavailable'));

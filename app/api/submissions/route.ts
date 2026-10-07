@@ -8,6 +8,8 @@ import { notifyNewSubmission } from '@/lib/server/notify';
 // Student blog / news pitch submissions → admin Newsroom queue.
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
+  const user = currentUser(req);
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   // Per device, not per IP — see lib/server/ratelimit.ts.
   if (!rateLimit('subm:' + clientIp(req), 5, 60_000, req)) return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   const b = await req.json().catch(() => ({}));
@@ -17,10 +19,9 @@ export async function POST(req: Request) {
   }
   if (!name || !title) return NextResponse.json({ error: 'need_name_and_title' }, { status: 400 });
   if (!db()) return NextResponse.json({ error: 'unavailable' }, { status: 503 });
-  const user = currentUser(req);
   await q(
     `INSERT INTO submissions (kind, name, school, title, pitch, email) VALUES ('blog',$1,$2,$3,$4,$5)`,
-    [name, school, title, pitch, user?.email || b.email || null]
+    [name, school, title, pitch, user.email || null]
   );
   after(() => notifyNewSubmission({ name, school, title, pitch }));
   return NextResponse.json({ ok: true });

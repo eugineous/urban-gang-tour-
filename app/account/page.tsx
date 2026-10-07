@@ -3,7 +3,7 @@ import AccountApp from './AccountApp';
 
 export const metadata: Metadata = {
   title: 'My Account — Urban Gang Tour',
-  description: 'Log in or create your Urban Gang account to pitch stories, track orders and stay close to the tour.',
+  description: 'Log in or create your Urban Gang account to pitch stories and manage your profile.',
   alternates: { canonical: 'https://urbangangtour.co.ke/account' },
   robots: { index: false, follow: true },
 };

@@ -1,11 +1,9 @@
 // Content corrections applied to the frozen server-rendered shells in
 // app/_rendered/*.html.
 //
-// Those files are static DOM snapshots of the v25 runtime, and the tool that
-// captured them (scratchpad/cap/) is no longer in the repo - so they cannot be
-// regenerated, only edited. Rather than hand-patching ten snapshots and hoping
-// none drift, the corrections are expressed once here and applied on the way
-// out in app/_components/RenderedPage.tsx.
+// Regenerate snapshots with scripts/capture-v25.mjs after template changes.
+// These shared corrections also protect older captures and runtime content,
+// so first paint and enhancement follow the same approved content rules.
 //
 // Two corrections, both requested directly:
 //   1. MC Paps and Sauti Moto are off the tour. They come out of the crew wall,
@@ -15,6 +13,8 @@
 //
 // When these pages are eventually rebuilt as real React components reading
 // app/_data, this module and the snapshots go away together.
+
+import { GALLERY_ARCHIVE } from '@/lib/gallery-archive';
 
 interface RemoveOpts {
   /**
@@ -147,7 +147,9 @@ function correctProse(html: string): string {
  * Legacy shell helper. Captured shells have no gallery fallback: live gallery
  * content arrives only from the Gallery desk after hydration.
  */
-const GALLERY_SEEDS: Record<string, string[]> = {};
+const GALLERY_SEEDS: Record<string, string[]> = {
+  'From the archive': GALLERY_ARCHIVE.map(photo => photo.url),
+};
 
 /**
  * The captured gallery.html snapshot predates the "open the gallery up" fix
@@ -225,9 +227,47 @@ function correctPartnerBadges(html: string): string {
 export function correctShellContent(html: string): string {
   let out = html;
 
+  // Captured commerce examples are not published inventory. The runtime
+  // fills its existing ticket wall from /api/events after boot.
+  for (const event of ['The Experience Hub Dance Event', 'Urban Festival Of Colours', 'Campus Rave — Nairobi Edition']) {
+    out = removeEnclosing(out, event, { tag: 'div', alsoContains: 'Get Tickets' });
+    out = removeEnclosing(out, event, { tag: 'button' });
+  }
+  out = out.replace(/Grab a ticket and get an instant e-ticket and invoice — generated on the spot and sent straight to your inbox\./g,
+    'Choose a published event to book your ticket. Your e-ticket and receipt are available after payment is confirmed.');
+
   // The frozen homepage capture contains a July countdown. The live runtime
   // replaces this with admin data; first paint must not advertise an old stop.
-  out = out.replace(/<div data-dc-tpl="522"[\s\S]*?(?=<div data-dc-tpl="543")/, '<section style="background:#FFD400;padding:20px 24px;border-bottom:4px solid #111"><div style="max-width:1320px;margin:auto;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap"><strong>Tour Calendar</strong><a href="/tour-stops" style="color:#111;font-weight:700;text-decoration:underline">Published dates and recent stops</a></div></section>');
+  const countdownAt = out.indexOf('<div data-dc-tpl="522"');
+  if (countdownAt >= 0) {
+    const end = matchingClose(out, countdownAt, 'div');
+    // Only the captured countdown: runtime bindings must remain intact.
+    if (end > 0 && /Ngeya/.test(out.slice(countdownAt, end))) {
+      out = out.slice(0, countdownAt) + out.slice(end);
+    }
+  }
+
+  // Keep original card markup, but publish only the two approved founders.
+  const crewPhotos = [...out.matchAll(/\/assets\/(?:crew2?|team)\/[^"'\s<>]+/g)].map(match => match[0]);
+  for (const photo of new Set(crewPhotos)) {
+    if (/\/(?:eugine-micah|lucy-ogunde)\./.test(photo)) continue;
+    out = removeEnclosing(out, photo, { tag: 'button' });
+  }
+  out = out
+    .replace(/Around thirty people build, run, and film every event\. These are the leads\./g, 'Meet the founders of Urban Gang Tour.')
+    .replace(/\+ THE WHOLE 30-PERSON CREW/g, 'MEET THE FOUNDERS')
+    .replace(/Meet The Whole Gang|Meet the Full Gang/g, 'Meet the Founders')
+    .replace(/thirty-person crew/g, 'production crew')
+    .replace(/hundreds of hours of youth programming/g, 'youth programming');
+
+  if (out.includes('tap a school to open its catalogue')) {
+    // The snapshot's chip counts predate the public gallery. They cannot
+    // advertise catalogues that are absent from the current data source.
+    out = out.replace(/<button\b[^>]*data-dc-tpl="1024"[\s\S]*?<\/button>/g, '');
+    out = out.replace(/Every School\.([\s\S]*?)Its Own Catalogue\./g, 'From the Archive.$1Urban Gang in Pictures.');
+    out = out.replace(/Shot on the road by The Vibe Studios and the crew\. Pick a school, relive its day\./g, 'Explore images from the Urban Gang archive.');
+    out = injectGalleryPhotos(out);
+  }
 
   // Crew wall: each member is one <button class="scpr"> holding photo, name,
   // role and bio. The photo filename is the stable marker - the display name is

@@ -172,10 +172,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const shareText = encodeURIComponent(`${event.name} — ${event.venue || ''} ${eventDate}`.trim());
   const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
   const calStart = startDate ? startDate.replace(/[-:]/g, '').replace('+03:00', '') : null;
+  const ticketHref = `/events?event=${encodeURIComponent(event.id)}`;
 
   // Sticky mobile CTA — visible after scroll, hidden when not needed
   const stickyCta = sellable
-    ? <a href="/events#ticket-booth" style={{ flex: 1, textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 10, padding: '13px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 17, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
+    ? <a href={ticketHref} style={{ flex: 1, textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 10, padding: '13px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 17, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
     : <a href="/events" style={{ flex: 1, textAlign: 'center', background: '#eee7ea', color: '#111', borderRadius: 10, padding: '13px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 17, textTransform: 'uppercase', textDecoration: 'none' }}>{soldOut ? 'Sold out' : 'View events'}</a>;
 
   return <main style={{ minHeight: '100vh', color: '#111', background: '#fffafc', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
@@ -218,7 +219,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <p style={{ margin: 0, color: '#555', fontWeight: 800, fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase' }}>Ticket options</p>
           {tiers.length ? <div style={{ display: 'grid', gap: 10, margin: '15px 0 22px' }}>{tiers.map((tier) => <div key={tier.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: '1px solid #e1dce0', fontWeight: 800 }}><span>{tier.name}</span><span>{money(tier.price)}</span></div>)}</div> : <p style={{ lineHeight: 1.5 }}>Ticket options will be confirmed on the ticket desk.</p>}
           {sellable
-            ? <a href="/events#ticket-booth" style={{ display: 'block', textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 11, padding: '15px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 19, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
+            ? <a href={ticketHref} style={{ display: 'block', textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 11, padding: '15px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 19, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
             : <p role="status" style={{ margin: 0, textAlign: 'center', background: '#eee7ea', borderRadius: 11, padding: '15px 18px', fontWeight: 800 }}>{soldOut ? 'Sold out' : 'Tickets not on sale'}</p>}
           <a href="/book" style={{ display: 'block', textAlign: 'center', marginTop: 12, color: '#111', fontWeight: 800 }}>Book Urban Gang Tour for your event</a>
         </aside>

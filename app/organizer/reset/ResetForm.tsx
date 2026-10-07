@@ -19,12 +19,14 @@ export default function ResetForm() {
   const [toast, say] = useToast();
 
   const submit = async () => {
+    if (busy) return;
     if (password.length < 8) { say('Password must be at least 8 characters.'); return; }
     setBusy(true);
-    const { data } = await api('/api/organizer/reset', { method: 'POST', body: JSON.stringify({ token, password }) });
-    setBusy(false);
-    if (data.ok) setDone(true);
-    else say(ERR[data.error] || 'Reset failed: ' + (data.error || 'unknown error'));
+    try {
+      const { data } = await api('/api/organizer/reset', { method: 'POST', body: JSON.stringify({ token, password }) });
+      if (data.ok) setDone(true);
+      else say(ERR[data.error] || 'Reset failed: ' + (data.error || 'unknown error'));
+    } finally { setBusy(false); }
   };
 
   return (

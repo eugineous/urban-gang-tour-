@@ -8,6 +8,7 @@ import homeHtml from '@/app/_rendered/home.html?rendered-page';
 import newsHtml from '@/app/_rendered/news.html?rendered-page';
 import partnersHtml from '@/app/_rendered/partners.html?rendered-page';
 import shopHtml from '@/app/_rendered/shop.html?rendered-page';
+import workHtml from '@/app/_rendered/work.html?rendered-page';
 
 // Webpack's asset/source module type turns each build-time import into a string
 // inside the server bundle. This keeps the captured v25 shells available in a
@@ -23,6 +24,7 @@ const CAPTURED_PAGES: Readonly<Record<string, string>> = {
   news: newsHtml,
   partners: partnersHtml,
   shop: shopHtml,
+  work: workHtml,
 };
 
 export function getRawCapturedPage(page: string): string | null {

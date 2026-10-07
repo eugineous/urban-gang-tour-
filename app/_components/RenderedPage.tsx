@@ -15,8 +15,7 @@ function readCaptured(page: string): string | null {
     if (html) {
       // Two passes before this markup ever reaches a browser:
       //  - correctShellContent: drops departed acts and relabels the partner
-      //    wall (these snapshots can no longer be regenerated - see
-      //    lib/content-rules.ts).
+      //    wall (snapshots are refreshed by scripts/capture-v25.mjs).
       //  - rewriteHtmlMedia: routes images through the edge resizer and repairs
       //    the video attributes (25.6MB page, ~97MB decoded, dead iOS autoplay
       //    - see lib/img.ts).
@@ -38,7 +37,7 @@ export function RenderedPage({ pathName }: { pathName: string }) {
     // V25App then boots the live interactive runtime for this page on top.
     return (
       <>
-        <div dangerouslySetInnerHTML={{ __html: captured }} />
+        <div data-v25-page={page} dangerouslySetInnerHTML={{ __html: captured }} />
         <FastImages />
         <V25App page={page} />
       </>
@@ -52,7 +51,7 @@ export function RenderedPage({ pathName }: { pathName: string }) {
     <>
     <FastImages />
     <V25App page={page} />
-    <main style={{ background: '#E6218C', minHeight: '60vh', padding: '64px 22px 90px' }}>
+    <main data-v25-page={page} style={{ background: '#E6218C', minHeight: '60vh', padding: '64px 22px 90px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div
           style={{
