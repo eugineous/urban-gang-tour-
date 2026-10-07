@@ -202,6 +202,21 @@ input,textarea,select{font-family:inherit}
   #dc-root table,#ssr-shell table{display:block;overflow-x:auto}
 }
 @media (max-width:560px){
+  /* Keep route content stable instead of scaling/fading the entire screen. */
+  :is(#dc-root,#ssr-shell) [data-screen-label],
+  :is(#dc-root,#ssr-shell) [data-hero]>div{animation:none!important}
+  :is(#dc-root,#ssr-shell) [data-hero]{padding:24px 0 20px!important;gap:24px!important}
+  :is(#dc-root,#ssr-shell) [data-hero] h1{font-size:clamp(42px,12vw,60px)!important;line-height:.98!important}
+  :is(#dc-root,#ssr-shell) [data-hero]>div:first-child>div:last-child{gap:12px!important;margin-top:22px!important}
+  :is(#dc-root,#ssr-shell) [data-hero]>div:first-child>div:last-child>button{flex:1;min-width:0;padding:14px 10px!important;font-size:16px!important}
+  :is(#dc-root,#ssr-shell) [data-hero]>div:last-child{width:220px;max-width:100%;justify-self:center}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Home"]>div:first-child>div[style*="filter:blur"],
+  :is(#dc-root,#ssr-shell) [data-screen-label="Home"]>div:first-child>div[style*="filter: blur"]{display:none}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"]>div:first-child{padding:28px 20px!important}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"]>div:nth-child(2){padding:24px 16px 44px!important}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] button[style*="aspect-ratio"]{aspect-ratio:3/2!important}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] a[href^="/shop/"]{display:flex;align-items:center;min-height:44px}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Tickets"]>div:first-child{padding:32px 20px!important}
   /* collapse desktop multi-column grids so cards get full width */
   #dc-root [style*="grid-template-columns:repeat(4"],#ssr-shell [style*="grid-template-columns:repeat(4"],
   #dc-root [style*="grid-template-columns:repeat(3"],#ssr-shell [style*="grid-template-columns:repeat(3"]{
@@ -218,6 +233,7 @@ input,textarea,select{font-family:inherit}
 @media(max-width:560px){#dc-root [data-quick]>div:first-child img{max-height:160px!important}}
 body:has(#dc-root [aria-modal="true"]) .wa-fab{visibility:hidden}
 body:has(#dc-root [aria-modal="true"]) .ugt-cookie-consent{display:none}
+body:has(.ugt-sheet) :is(.ugt-cookie-consent,.wa-fab){visibility:hidden}
 :focus-visible{outline:3px solid #21C7E6;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}[data-reveal]{opacity:1;transform:none;transition:none}#dc-root *{animation:none!important;transition:none!important}}
 #ssr-shell[data-enhanced="true"]{display:none}
