@@ -16,8 +16,8 @@ vi.mock("../lib/server/db", () => ({
   qSchema: vi.fn(async () => undefined),
 }));
 
-vi.mock("../lib/server/r2", () => ({
-  isR2Url: (url: string) => url.startsWith("https://uploads.example.test/"),
+vi.mock("../lib/server/media", () => ({
+  isMediaUrl: (url: string) => url.startsWith("/media/"),
 }));
 
 import {

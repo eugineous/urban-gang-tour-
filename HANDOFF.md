@@ -40,7 +40,7 @@ for faithful snapshots. No credentials or authenticated data are captured.
 
 Push a feature branch, create/review a PR, merge, then deploy with the current
 runtime-bound Cloudflare credentials. Use Cloudflare only. Preserve existing
-Worker secrets, R2 buckets, service bindings and the custom-domain routes.
+Worker secrets, the UGT_MEDIA KV namespace, service bindings and custom-domain routes.
 Do not read historical pasted credentials or copy secrets into files/logs.
 
 ## Verification limits
