@@ -214,8 +214,11 @@ input,textarea,select{font-family:inherit}
   :is(#dc-root,#ssr-shell) [data-screen-label="Home"]>div:first-child>div[style*="filter: blur"]{display:none}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"]>div:first-child{padding:28px 20px!important}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] h1 span{text-shadow:none}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] h1{font-size:clamp(28px,9vw,38px)!important}
+  body:has([data-v25-page="shop"]) .wa-fab,
+  body:has([data-v25-page="events"]) .wa-fab{visibility:hidden}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"]>div:nth-child(2){padding:24px 16px 44px!important}
-  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] button[style*="aspect-ratio"]{aspect-ratio:3/2!important}
+  :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] button[style*="aspect-ratio"]{aspect-ratio:3/2!important;max-height:210px}
   :is(#dc-root,#ssr-shell) [data-screen-label="Shop"] a[href^="/shop/"]{display:flex;align-items:center;min-height:44px}
   :is(#dc-root,#ssr-shell) [data-screen-label="Tickets"]>div:first-child{padding:32px 20px!important}
   /* collapse desktop multi-column grids so cards get full width */
