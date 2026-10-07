@@ -105,6 +105,24 @@ export function BottomTabBar() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const sheet = document.getElementById('ugt-sheet');
+    const previous = document.activeElement as HTMLElement | null;
+    const controls = () => Array.from(sheet?.querySelectorAll<HTMLElement>('button, a[href]') || []);
+    controls()[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); }
+      if (event.key !== 'Tab') return;
+      const items = controls();
+      const first = items[0], last = items.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); previous?.focus({ preventScroll: true }); };
+  }, [open]);
+
   // Lock page scroll while the menu sheet is open. Plain `overflow:hidden` on
   // html/body doesn't stop iOS Safari's touch-driven scroll — the background
   // page still scrolls underneath the fixed sheet, which is what made
@@ -127,7 +145,7 @@ export function BottomTabBar() {
       body.style.left = prev.left;
       body.style.right = prev.right;
       body.style.width = prev.width;
-      window.scrollTo(0, scrollY);
+      window.scrollTo({ top: scrollY, behavior: 'instant' });
     };
   }, [open]);
 
