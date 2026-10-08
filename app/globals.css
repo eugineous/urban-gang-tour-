@@ -428,3 +428,14 @@ body:has([data-v25-page]) #boot-veil:not(.gone){display:none}
  .ugt-product-purchase a{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px 12px;background:#E6218C;color:#fff;border:2px solid #111;border-radius:10px;font-size:14px;font-weight:800;max-width:70%;text-align:center}
  body:has(.ugt-product-purchase) main{padding-bottom:90px}
 }
+/* Keep the server-rendered app bar visible on account and information pages.
+   The HTML insertion wrapper must stick; a header cannot outscroll its parent. */
+#ssr-shell>div:has(>.ugt-site-header){position:sticky;top:0;z-index:120}
+html{scroll-padding-top:88px}
+.ugt-account-consent{scroll-margin-top:92px}
+/* html already clips horizontal overflow. A second body scroll container
+   prevents sticky app bars from following the document's actual scroll. */
+body{overflow-x:visible}
+/* Keep secondary page tabs in the reading flow rather than stacking them
+   beneath an app bar whose height changes on narrow desktop screens. */
+:is(#dc-root,#ssr-shell) main>div:is([style*="position:sticky"],[style*="position: sticky"]),.ugt-news-finder{position:relative!important;top:auto!important}
