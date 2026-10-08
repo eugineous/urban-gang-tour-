@@ -257,7 +257,7 @@ export async function POST(req: Request) {
       {
         ok: false,
         payment: "not_configured",
-        hint: "Set MPESA_* env vars in Vercel to activate live STK push.",
+        hint: "Configure the MPESA_* Cloudflare Worker secrets to activate live STK push.",
       },
       { status: 503 },
     );
@@ -266,7 +266,7 @@ export async function POST(req: Request) {
   const id =
     "ORD-" +
     now.toString(36).toUpperCase() +
-    randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase();
+    randomUUID().replace(/-/g, "").slice(0, 24).toUpperCase();
   // persist order (ledger for admin reconciliation)
   try {
     // hasDb(), not db(): db() constructs a Pool, and this is only asking

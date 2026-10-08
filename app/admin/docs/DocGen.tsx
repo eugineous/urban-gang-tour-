@@ -1897,6 +1897,7 @@ export default function DocGen() {
         <h2 style={{ fontFamily: "Anton", margin: "0 0 4px", fontSize: 22 }}>
           Document Generator
         </h2>
+        <a href="/admin/docs/designs" style={{display:"inline-block",padding:"10px 0",color:"#b30862",fontWeight:700}}>Ticket, receipt and email design studio →</a>
         <div style={{ fontSize: 13, color: "#555", marginBottom: 12 }}>
           Brand-locked, serialised, QR-verifiable documents. Serials and totals
           are computed by the server, never typed. Finalised documents are

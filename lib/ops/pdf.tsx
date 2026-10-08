@@ -60,28 +60,9 @@ const st = StyleSheet.create({
   note: { fontSize: 9, color: BRAND.grey, marginTop: 2 },
 });
 
-// Logo resolution: local file first (works in dev and when Vercel traces the
-// literal path), live site as fallback (assets are cached immutable), no logo
-// as the final fallback - the PDF must always render.
-let logoCache: string | null | undefined;
-export async function getLogoDataUri(): Promise<string | null> {
-  if (logoCache !== undefined) return logoCache;
-  try {
-    const buf = await readFile(path.join(process.cwd(), 'public', 'uploads', 'URBAN GANG TOUR OFFICIAL LOGO.png'));
-    logoCache = 'data:image/png;base64,' + buf.toString('base64');
-    return logoCache;
-  } catch { /* fall through */ }
-  try {
-    const r = await fetch('https://urbangangtour.co.ke/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png');
-    if (r.ok) {
-      const buf = Buffer.from(await r.arrayBuffer());
-      logoCache = 'data:image/png;base64,' + buf.toString('base64');
-      return logoCache;
-    }
-  } catch { /* fall through */ }
-  logoCache = null;
-  return null;
-}
+// Small approved logo embedded at build time; no cold-start filesystem or network lookup.
+import {printLogo} from '@/lib/tickets/brand-logo';
+export async function getLogoDataUri(): Promise<string> { return printLogo; }
 
 function fmtDate(v: unknown): string {
   if (!v) return '';

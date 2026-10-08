@@ -283,3 +283,10 @@ Load-test checkout before big drops.
 `POST /api/auth` with `action: "signup"` requires `adultConfirmed: true` and `termsAccepted: true`. Missing/false confirmation returns 400 (`age_confirmation_required` or `terms_required`) before any account write. New self-managed accounts are 18+; no date of birth or identity document is collected. Existing login and guest checkout remain unchanged. This is an attestation, not verified age identity.
 
 Public organizer applications (`POST /api/organizer/signup`) also require boolean `adultConfirmed: true` and `termsAccepted: true`; these attest adult business authority and policy acceptance before an application is written.
+
+## Compact document suite (9 October 2026)
+- `GET /verify/ticket/:code`: public, noindex current admission status; no holder contacts and no check-in mutation.
+- `GET /verify/order/:id`: public, noindex order status only; no customer contacts or purchased items.
+- `GET /api/admin/tickets/:code/holder`: verified admin plus `gate_scanner` permission; 30 requests/minute/IP, audited contact lookup, `private, no-store`. Anonymous 401, unauthorized role 403.
+- `PUT /api/organizer/events/:id/design`: approved organizer, same-origin, rate-limited; ownership enforced in UPDATE. Allowed `design`, `name`, `accent`, optional PNG/JPEG data URI `logo`, `photo`. Unexpected fields rejected, request bounded to 750 KB; missing/foreign event 404. Cannot modify price/status. Static templates live in `/organizer/dashboard/designs`; admin sample studio `/admin/docs/designs` requires `documents` permission.
+- Personalized PDF endpoints use private no-store headers. New download retains issued ID. Payment receipt delivery accepts only paid/fulfilled orders and uses provider idempotency; manual resend is separately keyed.

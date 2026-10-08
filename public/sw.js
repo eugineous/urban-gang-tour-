@@ -1,4 +1,4 @@
-const CACHE = 'ugt-v25-20261008-copy-app';
+const CACHE = 'ugt-documents-20261009';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
@@ -19,7 +19,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || /^\/(admin|organizer|account)(\/|$)/.test(url.pathname)) return;
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || /^\/(admin|organizer|account|verify|t|tickets|receipt|checkout)(\/|$)/.test(url.pathname)) return;
   // Unhashed application files change between deployments. Never pin a
   // visitor to the runtime from their first install. Keep an offline copy,
   // but always ask the network for the current version when connected.

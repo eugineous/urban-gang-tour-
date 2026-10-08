@@ -8,7 +8,11 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { hasDb, q } from '@/lib/server/db';
 
-const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
+const SECRET = () => {
+ if(process.env.SESSION_SECRET)return process.env.SESSION_SECRET;
+ if(process.env.NODE_ENV==='production')throw new Error('organizer_secret_not_configured');
+ return 'dev-secret-change-me';
+};
 const COOKIE = 'ugt_organizer';
 
 function b64u(buf: Buffer | string): string {
@@ -35,14 +39,15 @@ export function signOrganizerToken(payload: OrganizerSession, days = 30): string
 
 export function verifyOrganizerToken(token: string | undefined | null): OrganizerSession | null {
   if (!token) return null;
+  if(token.split('.').length!==2)return null;
   const [body, sig] = token.split('.');
   if (!body || !sig) return null;
-  const expect = createHmac('sha256', SECRET()).update('org:' + body).digest('base64url');
+  let expect:string;try{expect=createHmac('sha256', SECRET()).update('org:' + body).digest('base64url')}catch{return null}
   if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
   try {
     const data = JSON.parse(Buffer.from(body, 'base64url').toString());
     if (data.ctx !== 'org' || (data.exp && Date.now() > data.exp)) return null;
-    return { id: data.id, email: data.email, businessName: data.businessName };
+    return { id: data.id, email: data.email, businessName: data.businessName, pwdv: data.pwdv };
   } catch {
     return null;
   }

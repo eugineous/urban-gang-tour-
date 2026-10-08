@@ -64,6 +64,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
           <h1 style={{ ...h1, marginBottom: 0 }}>{organizer.businessName}</h1>
           <div style={{ flex: 1 }} />
+          <a href="/organizer/dashboard/designs" style={{ ...btn, textDecoration: 'none' }}>Ticket designs</a>
           <a style={{ ...btn, textDecoration: 'none' }} href="/organizer/events/new">+ New event</a>
           <button style={btnDark} onClick={logout} disabled={loggingOut}>{loggingOut ? 'Signing out…' : 'Log out'}</button>
         </div>

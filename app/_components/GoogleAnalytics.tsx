@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useConsent } from './Ads';
+import {usePathname} from 'next/navigation';
 
 // Real Google Analytics (GA4). Same two-gate pattern as AdSenseLoader:
 //   1. NEXT_PUBLIC_GA_MEASUREMENT_ID must be set (the owner's real
@@ -15,8 +16,10 @@ const ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
 export function GoogleAnalytics() {
   const consent = useConsent();
   const injected = useRef(false);
+  const pathname=usePathname();
 
   useEffect(() => {
+    if(/^\/(verify|t|tickets|receipt|admin|organizer|account|checkout)(\/|$)/.test(pathname||""))return;
     if (!ID || !consent || injected.current) return;
     if (document.getElementById('ugt-ga4')) { injected.current = true; return; }
     injected.current = true;
@@ -33,7 +36,7 @@ export function GoogleAnalytics() {
     w.gtag = w.gtag || gtag;
     w.gtag('js', new Date());
     w.gtag('config', ID);
-  }, [consent]);
+  }, [consent,pathname]);
 
   return null;
 }

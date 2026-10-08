@@ -1,0 +1,4 @@
+import {notFound} from 'next/navigation';
+import {q} from '@/lib/server/db';
+export const dynamic='force-dynamic';export const metadata={title:'Receipt verification | Urban Gang Tour',robots:{index:false,follow:false}};
+export default async function Page({params}:{params:Promise<{id:string}>}){const {id}=await params;if(!/^ORD-[A-Z0-9-]{4,40}$/.test(id))notFound();const rows=await q<{id:string;status:string}>('SELECT id,status FROM orders WHERE id=$1',[id]);if(!rows[0])notFound();return <main style={{maxWidth:520,margin:'0 auto',padding:'120px 24px 32px',fontFamily:'Arial,sans-serif',lineHeight:1.5}}><a href="/">Urban Gang Tour</a><h1>Receipt verification</h1><p>Order {id}</p><p>Status: {rows[0].status}</p><p>Customer details and purchased items are private. Sign in to your account to view your own orders.</p><a href="/account">My account</a> · <a href="/privacy-policy">Privacy policy</a></main>}

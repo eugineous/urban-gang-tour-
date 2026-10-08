@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Owner review gate
+- On 9 October 2026 (Nairobi), the owner explicitly requested DEPLOY for the secure document suite. This authorizes this reviewed release to the production Cloudflare Worker after tests and build. Future unrelated changes remain review-gated.
+
+## Prior owner review gate (8 October 2026)
+- Keep new changes local and available for review. Do not merge to `main`, deploy to Cloudflare, or update the production website without a new explicit user instruction.
+- Building, testing and showing previews is authorized. The owner explicitly authorizes publishing the existing private ChatGPT Sites review, including all pages and review documents. This does not authorize the public Cloudflare Worker or main website. Earlier automatic-production-deployment permission is superseded by this gate.
+
 Apply these by default in every session. See `HANDOFF.md` for the full roadmap.
 
 ## Architecture (don't break)

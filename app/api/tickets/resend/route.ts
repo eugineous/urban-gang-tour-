@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       (order.status === 'paid' || order.status === 'fulfilled') &&
       order.email &&
       (String(order.email).toLowerCase() === contact || String(order.phone || '') === contact.replace(/\D/g, ''));
-    if (matches) await sendReceiptEmail(order);
+    if (matches) await sendReceiptEmail(order, "resend-" + Math.floor(Date.now() / 60000));
   } catch (e) {
     console.error('[ticket-resend]', e);
   }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import {usePathname} from 'next/navigation';
 
 // Google AdSense, consent-gated and fully dormant until configured.
 //
@@ -51,8 +52,10 @@ export function useConsent(): boolean {
 export function AdSenseLoader() {
   const consent = useConsent();
   const injected = useRef(false);
+  const pathname=usePathname();
 
   useEffect(() => {
+    if(/^\/(verify|t|tickets|receipt|admin|organizer|account|checkout)(\/|$)/.test(pathname||""))return;
     if (!CLIENT || !consent || injected.current) return;
     if (document.getElementById('ugt-adsense')) { injected.current = true; return; }
     injected.current = true;
@@ -62,7 +65,7 @@ export function AdSenseLoader() {
     s.crossOrigin = 'anonymous';
     s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(CLIENT)}`;
     document.head.appendChild(s);
-  }, [consent]);
+  }, [consent,pathname]);
 
   return null;
 }
