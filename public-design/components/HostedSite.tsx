@@ -1,0 +1,6 @@
+"use client";
+import {Suspense,useEffect,useState} from 'react';
+import {useSearchParams} from 'next/navigation';
+import Site from './Site';
+function QuerySync({onChange}:{onChange:(q:Record<string,string>)=>void}){const q=useSearchParams();const serialized=q.toString();useEffect(()=>onChange(Object.fromEntries(new URLSearchParams(serialized).entries())),[serialized,onChange]);return null}
+export default function HostedSite(props:Omit<React.ComponentProps<typeof Site>,'query'>){const [query,setQuery]=useState<Record<string,string>>({});const [events,setEvents]=useState(props.events);const [posts,setPosts]=useState(props.posts);useEffect(()=>{const controller=new AbortController();if(props.path==='/events')fetch('/api/site-data/events',{signal:controller.signal}).then(r=>r.ok?r.json():null).then(d=>{if(d?.ok&&Array.isArray(d.events))setEvents(d.events)}).catch(()=>{});if(props.path==='/'||props.path==='/blog')fetch('/api/site-data/posts',{signal:controller.signal}).then(r=>r.ok?r.json():null).then(d=>{if(d?.ok&&Array.isArray(d.posts))setPosts(d.posts)}).catch(()=>{});return()=>controller.abort()},[props.path]);return <><Suspense fallback={null}><QuerySync onChange={setQuery}/></Suspense><Site {...props} events={events} posts={posts} query={query}/></>}

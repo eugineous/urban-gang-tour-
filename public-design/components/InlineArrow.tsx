@@ -1,0 +1,1 @@
+export function InlineArrow(){return <svg className="inline-arrow" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19L19 5M6 5h13v13" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>}

@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run --no-cache",
-    "cf:build": "opennextjs-cloudflare build",
+    "cf:build": "npm --prefix public-design run build && opennextjs-cloudflare build && node scripts/prepare-public-design.mjs",
     "cf:preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {
@@ -19,9 +19,9 @@
     "@react-pdf/renderer": "^4.5.1",
     "google-auth-library": "^10.9.0",
     "html-to-image": "^1.11.13",
-    "jspdf": "^2.5.2",
+    "jspdf": "4.2.1",
     "jsqr": "^1.4.0",
-    "next": "^15.5.20",
+    "next": "15.5.27",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -39,10 +39,15 @@
     "@types/ws": "^8.18.1",
     "@vitest/ui": "^2.1.1",
     "eslint": "^9.12.0",
-    "eslint-config-next": "^15.5.23",
+    "eslint-config-next": "15.5.27",
     "playwright": "^1.61.1",
     "typescript": "5.7.2",
     "vitest": "^2.1.1",
     "wrangler": "^4.121.0"
+  },
+  "overrides": {
+    "postcss": "8.5.29",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2"
   }
 }

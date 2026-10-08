@@ -951,6 +951,8 @@ function Shell({
   canSee: (tab: Tab) => boolean;
   onLogout: () => void;
 }) {
+  const [navOpen,setNavOpen]=useState(false);
+  const [moduleQuery,setModuleQuery]=useState("");
   const labels: Record<string, [string, string]> = {
     Dashboard: [
       "Today",
@@ -969,7 +971,7 @@ function Shell({
     "Manage this part of the Urban Gang operation.",
   ];
   return (
-    <div className="cr-shell">
+    <div className={`cr-shell ${navOpen?"cr-nav-open":""}`}>
       <style>{`@media (min-width: 860px){.admin-split{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.65fr);gap:14px;align-items:start}}@media (max-width:859px){.admin-split{display:grid;gap:14px}.admin-split>section:first-child{max-height:420px!important}}`}</style>
       <header className="cr-topbar">
         <div className="cr-brand">
@@ -980,15 +982,16 @@ function Shell({
           <strong>CONTROL ROOM</strong>
           <span>Internal operations</span>
         </div>
-        <div className="cr-topbar-spacer" />
+        <div className="cr-topbar-spacer" /><button className="cr-menu-toggle" aria-controls="control-room-nav" aria-expanded={navOpen} onClick={()=>setNavOpen(v=>!v)}>Modules</button>
         <button className="cr-logout" onClick={onLogout}>
           Log out
         </button>
       </header>
       <div className="cr-layout">
-        <aside className="cr-sidebar" aria-label="Control Room navigation">
+        <aside id="control-room-nav" className="cr-sidebar" aria-label="Control Room navigation">
+          <label className="cr-module-search">Find a module<input type="search" value={moduleQuery} onChange={e=>setModuleQuery(e.target.value)} placeholder="Bookings, payments, gallery…"/></label>
           {NAV_GROUPS.map((group) => {
-            const items = group.items.filter((item) => canSee(item.tab));
+            const items = group.items.filter((item) => canSee(item.tab)&&`${item.label} ${item.tab}`.toLowerCase().includes(moduleQuery.toLowerCase()));
             if (!items.length) return null;
             return (
               <div className="cr-nav-group" key={group.label}>
@@ -998,7 +1001,7 @@ function Shell({
                     key={item.tab}
                     className="cr-nav-button"
                     aria-current={tab === item.tab ? "page" : undefined}
-                    onClick={() => setTab(item.tab)}
+                    onClick={() => {setTab(item.tab);setNavOpen(false);const url=new URL(window.location.href);url.searchParams.set("tab",item.tab);history.replaceState(null,"",url)}}
                   >
                     <i className="cr-nav-icon">{item.icon}</i>
                     {item.label}

@@ -98,7 +98,10 @@ body{overflow:hidden}
   .tk-live i{animation:none}
   .tk-perf i{background:#fff}
   .tk-card,.tk-edge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-}`;
+}
+/* Calm, readable ticket presentation; all signatures, state and QR payloads stay server authoritative. */
+.tk-stage{background:#f3f3f3;color:#171717;font-family:Inter,system-ui,sans-serif}.tk-edge{background:#a81561;padding:2px;box-shadow:0 12px 40px #0002;border-radius:24px}.tk-card{background:#161616;border:0}.tk-card::after{display:none}.tk-stage a,.tk-stage button{min-height:44px}.tk-stage :focus-visible{outline:3px solid #21c7e6;outline-offset:3px}@media(prefers-reduced-motion:reduce){.tk-stage *{animation:none!important;transition:none!important}}
+`;
 
 export default async function TicketPage({ params }: { params: Promise<{ code: string }> }) {
   const { code: raw } = await params;

@@ -1,8 +1,13 @@
 import app from './.open-next/worker.js';
+import designRoutes from './data/public-design-routes.json';
+import { publicDesignResponse } from './lib/cloudflare/public-design.mjs';
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/_design-pages/')) return new Response('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } });
+    const design = await publicDesignResponse(request, env, designRoutes);
+    if (design) return design;
     if ((url.pathname === '/v25-template' || url.pathname === '/v25-template.html') && request.headers.get('sec-fetch-dest') === 'document') {
       return Response.redirect(new URL('/', url).href, 302);
     }

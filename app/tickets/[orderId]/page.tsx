@@ -52,7 +52,9 @@ body{overflow:hidden}
 .tks-links{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;justify-content:center}
 .tks-links a{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;text-decoration:none;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:9px 16px}
 .tks-links a:hover{border-color:#FFD400;color:#FFD400}
-.tks-slogan{text-align:center;font-family:'Permanent Marker',cursive;font-size:13px;color:#FFD400;margin-top:26px}`;
+.tks-slogan{text-align:center;font-family:'Permanent Marker',cursive;font-size:13px;color:#FFD400;margin-top:26px}
+.tks-stage{background:#f3f3f3;color:#161616;font-family:Inter,system-ui,sans-serif}.tks-title{font:750 clamp(30px,8vw,40px)/1.1 Inter,system-ui;text-transform:none;letter-spacing:-.035em}.tks-sub{color:#626262;font-size:14px}.tks-sub b{color:#a81561}.tks-edge{background:#a81561;padding:1px;box-shadow:none;border-radius:18px}.tks-card{background:white;color:#151515;border-radius:17px;padding:20px 16px;min-height:100px}.tks-ev{font:700 18px/1.3 Inter,system-ui;text-transform:none;white-space:normal}.tks-codeline{font-size:12px;color:#666}.tks-open{font-size:11px;color:#a81561;border-color:#a81561;min-height:44px;display:flex;align-items:center}.tks-num{background:#fff5dc;color:#151515}.tks-num b{color:#151515}.tks-stage a:focus-visible{outline:3px solid #21c7e6;outline-offset:3px}
+`;
 
 async function getOrder(id: string) {
   try {
