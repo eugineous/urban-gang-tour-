@@ -9,6 +9,7 @@ try{
   for(const path of ['/book','/privacy-policy','/faq','/partners','/blog','/']){
    await page.goto(base+path,{waitUntil:'domcontentloaded'});
    if(await page.locator('[data-v25-page]').count())await page.locator('#v25-host[data-ready="1"]').waitFor();
+   await page.waitForTimeout(450);
    const root=page.locator('#dc-root main').or(page.locator('#ssr-shell main:visible')).first();
    const outside=await root.locator('h1,h2,h3,p,input:not([type="checkbox"]),textarea').evaluateAll(es=>es.filter(e=>e.getClientRects().length&&(e.getBoundingClientRect().right>innerWidth+3||e.getBoundingClientRect().left < -3)).map(e=>e.tagName+':'+e.textContent.slice(0,50)));
    assert.deepEqual(outside,[],`${width} ${path}: readable content stays inside viewport`);
@@ -23,7 +24,7 @@ try{
     const bar=page.locator('.ugt-news-desks');await page.locator('.ugt-news-desks[data-ready="1"]').waitFor();assert.ok((await bar.boundingBox()).height<=70,'Filters do not consume the first screen');
     const last=bar.getByRole('button').last();await last.scrollIntoViewIfNeeded();await last.click();await page.waitForFunction(()=>document.querySelector('.ugt-news-desks button:last-child')?.getAttribute('aria-pressed')==='true');
    }
-   if(path==='/'&&width>1024){assert.ok(await root.locator('h1').evaluate(e=>parseFloat(getComputedStyle(e).fontSize))<=92);}
+   if(path==='/'&&width>1024){assert.ok(await root.locator('h1').evaluate(e=>parseFloat(getComputedStyle(e).fontSize))<=92);const portrait=root.locator('img[alt*="Co-Founder"]').first();const frame=await portrait.evaluate(e=>e.parentElement.getBoundingClientRect().height);assert.ok(frame<=520,'Founder frame fits inside the desktop viewport');assert.ok((await portrait.boundingBox()).height>=frame-12,'Portrait fills its frame');}
   }
   await context.close();console.log(`PASS proportions ${width}: content bounds, booking fields, reading hierarchy, reachable news filters`);
  }

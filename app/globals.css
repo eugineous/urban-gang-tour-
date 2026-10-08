@@ -367,3 +367,8 @@ body:has([data-v25-page]) #boot-veil:not(.gone){display:none}
 @media(max-width:600px){:is(#dc-root,#ssr-shell) [data-screen-label="The Gang"]>div:nth-child(2)>div>div:first-child{grid-template-columns:minmax(0,360px)!important}}
 :is(#dc-root,#ssr-shell) main button{min-height:44px}
 :is(#dc-root,#ssr-shell) .ugt-reading-page>article>div{color:#666!important}
+@media(min-width:1025px){
+ :is(#dc-root,#ssr-shell) [data-screen-label="Home"] div:has(>button>div>img[alt*="Co-Founder"]){max-width:780px;margin-inline:auto}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Home"] div:has(>img[alt*="Co-Founder"]){width:100%;max-width:360px;margin-inline:auto}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Home"] img[alt*="Co-Founder"]{max-height:none!important;object-fit:cover!important}
+}

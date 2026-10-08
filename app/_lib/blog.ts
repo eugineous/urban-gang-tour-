@@ -1,4 +1,6 @@
 import { SITE } from '@/lib/site';
+import { cached } from '@/lib/server/microcache';
+import { q, hasDb } from '@/lib/server/db';
 import { NEWS_PUBLISHER_ID } from './jsonld';
 
 export type BlogPost = {
@@ -17,12 +19,11 @@ export type BlogPost = {
 // article presented as a current report.
 export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
-    const { q, hasDb } = await import('@/lib/server/db');
     if (hasDb()) {
       // AND date <= CURRENT_DATE: a future-dated post is "scheduled", not yet
       // live. Without this, setting published=true made a post public the
       // instant it was saved regardless of its date field.
-      const rows = await q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published AND date <= CURRENT_DATE ORDER BY date DESC`);
+      const rows = await cached('blog-published-posts', 60_000, () => q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published AND date <= CURRENT_DATE ORDER BY date DESC`));
       if (rows.length) {
         // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
         // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.

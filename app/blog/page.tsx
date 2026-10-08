@@ -14,7 +14,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);
 }
 
-export const revalidate = 300;
+// Published articles must come from the runtime database, not an empty build seed.
+export const dynamic = 'force-dynamic';
 
 // Real posts use two section-naming generations (pre- and post- 2026-07-21
 // content push) - map both onto the redesign's desks so nothing silently
