@@ -30,6 +30,9 @@ export function V25App({ page }: { page: string }) {
       if (!r.ok) throw new Error('Public content unavailable');
       return r.json();
     });
+    // Download the template alongside public data, rather than after it.
+    const templateReady = fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal });
+    void templateReady.catch(() => {});
     w.__UGT_PAGE = page;
     // Promo overlay bridge: fetch the public active-promos list once and
     // expose it for the v25 template's client-side price display (shop grid,
@@ -265,7 +268,7 @@ export function V25App({ page }: { page: string }) {
       attempts += 1;
       // the layout preloads this, so it resolves from cache almost instantly
       // This fragment is an internal asset, never a public page.
-      fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal })
+      (attempts === 1 ? templateReady : fetch('/v25-template.html', { cache: 'no-cache', signal: controller.signal }))
         .then((r) => { if (!r.ok) throw new Error('Template unavailable'); return r.text(); })
         .then((raw) => {
           if (cancelled) return;
@@ -274,11 +277,11 @@ export function V25App({ page }: { page: string }) {
           // and the <video> tags get real boolean muted/playsinline attributes
           // instead of the never-interpolated playsInline="{{ true }}" that
           // left iOS showing a flat magenta rectangle. See lib/img.ts.
-          const html = rewriteHtmlMedia(correctShellContent(raw));
+          const html = rewriteHtmlMedia(correctShellContent(raw), true);
           host.innerHTML = html; // injects <x-dc> + <script data-dc-script>
           const s = document.createElement('script');
           runtimeScript = s;
-          s.src = '/support.js?v=20261007';
+          s.src = '/support.js';
           s.async = false;
           s.onerror = dropVeil;
           document.body.appendChild(s); // support.js auto-boots on load

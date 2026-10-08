@@ -97,7 +97,7 @@ function fixVideo(el: HTMLVideoElement) {
   if (isHomeHero) {
     el.autoplay = true;
     el.setAttribute('autoplay', '');
-    el.preload = 'auto';
+    el.preload = 'metadata';
   } else {
     el.preload = 'none';
   }

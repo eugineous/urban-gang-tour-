@@ -99,7 +99,7 @@ export function rewriteHtmlImages(html: string): string {
  * keeps a real src + autoplay + preload=auto. Other decorative videos stay
  * inert until FastImages sees them on screen.
  */
-export function rewriteHtmlVideos(html: string): string {
+export function rewriteHtmlVideos(html: string, deferHero = false): string {
   return html.replace(/<video\b([^>]*)>/gi, (tag, attrs: string) => {
     const rawSrc = attrs.match(/\ssrc=(["'])(.*?)\1/i)?.[2] ?? '';
     const isHomeHero = /\/assets\/(?:light-v1\/)?video\/hero-main\.mp4/i.test(rawSrc);
@@ -117,11 +117,11 @@ export function rewriteHtmlVideos(html: string): string {
     // Keep non-hero videos inert until FastImages sees them in the viewport.
     // The homepage hero keeps src/autoplay so the browser can fetch it during
     // first paint instead of waiting for the runtime boot.
-    if (!isHomeHero) {
+    if (!isHomeHero || deferHero) {
       out = out.replace(/\ssrc=(["'])(.*?)\1/i, ' data-ugt-video="$2"');
     }
     out = out.replace(/\/assets\/video\/(hero-main|hero-1)\.mp4/g, '/assets/light-v1/video/$1.mp4');
-    out += isHomeHero
+    out += isHomeHero && !deferHero
       ? ' autoplay muted loop playsinline preload="auto" disablepictureinpicture'
       : ' muted loop playsinline preload="none" disablepictureinpicture';
 
@@ -130,6 +130,6 @@ export function rewriteHtmlVideos(html: string): string {
 }
 
 /** Both HTML passes together. */
-export function rewriteHtmlMedia(html: string): string {
-  return rewriteHtmlVideos(rewriteHtmlImages(html));
+export function rewriteHtmlMedia(html: string, deferHero = false): string {
+  return rewriteHtmlVideos(rewriteHtmlImages(html), deferHero);
 }
