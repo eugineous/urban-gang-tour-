@@ -234,6 +234,7 @@ export function NewsClient({
         <div style={{ maxWidth: 1280, margin: '22px auto 0', padding: '0 24px', position: 'relative', zIndex: 2 }}>
           <button
             onClick={() => setTick((t) => t + 1)}
+            className="ugt-news-breaking"
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, background: '#1A0E14', border: 'none', borderRadius: 18, padding: '14px 20px', cursor: 'pointer', textAlign: 'left', boxShadow: '6px 6px 0 rgba(26,14,20,.35)' }}
           >
             <span style={{ flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', gap: 8, background: '#F7A81B', color: '#1A0E14', fontFamily: "'Permanent Marker',cursive", fontSize: 14, padding: '6px 14px', borderRadius: 8, transform: 'rotate(-2deg)' }}>
