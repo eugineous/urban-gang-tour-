@@ -32,6 +32,7 @@ try {
       const copy = main.cloneNode(true);
       copy.removeAttribute('id');
       copy.removeAttribute('tabindex');
+      copy.querySelectorAll('video[src]').forEach(el => { el.removeAttribute('data-ugt-video'); el.removeAttribute('data-ugt-fast'); });
       copy.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('seen'));
       return copy.outerHTML;
     });

@@ -10,6 +10,8 @@ export default function AccountApp() {
   const [user, setUser] = useState<any>(null);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
+  const [eligible, setEligible] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [msg, setMsg] = useState('');
   const [checking, setChecking] = useState(true);
   const [sessionError, setSessionError] = useState(false);
@@ -32,17 +34,18 @@ export default function AccountApp() {
 
   const go = async (action: string) => {
     if (pending.current) return;
+    if (action === 'signup' && (!eligible || !termsAccepted)) { setMsg('Confirm you are 18 or older and accept the terms to create an account.'); return; }
     pending.current = true;
     setBusy(true);
     setMsg('');
     try {
-      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f }) });
+      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f, ...(action === 'signup' ? { adultConfirmed: eligible, termsAccepted } : {}) }) });
       const d = await r.json();
       if (r.ok && d.ok) {
         setUser(action === 'logout' ? null : d.user);
         setF({ name: '', email: '', phone: '', password: '' });
         if (action === 'logout') setSub({ name: '', school: '', title: '', pitch: '', sent: false });
-      } else setMsg(({ account_exists: 'Unable to create this account. Try logging in or contact us for help.', wrong_credentials: 'Check your email or phone and password, then try again.', password_min_6: 'Use a password with 6 to 100 characters.', invalid_email: 'Enter a valid email address.', need_email_or_phone: 'Enter your email or Kenyan phone number.', too_many_requests: 'Too many attempts. Wait a minute, then try again.', invalid_phone: 'Use a Kenyan number like 07XX… or +2547XX…', accounts_unavailable: 'Accounts are briefly unavailable. Try again shortly.' } as Record<string, string>)[d.error] || 'We could not complete that request. Please try again.');
+      } else setMsg(({ account_exists: 'Unable to create this account. Try logging in or contact us for help.', wrong_credentials: 'Check your email or phone and password, then try again.', password_min_6: 'Use a password with 6 to 100 characters.', invalid_email: 'Enter a valid email address.', need_email_or_phone: 'Enter your email or Kenyan phone number.', too_many_requests: 'Too many attempts. Wait a minute, then try again.', invalid_phone: 'Use a Kenyan number like 07XX… or +2547XX…', age_confirmation_required: 'Accounts are for adults aged 18 and over. Ask a parent or guardian to manage purchases.', terms_required: 'Accept the terms to create an account.', accounts_unavailable: 'Accounts are briefly unavailable. Try again shortly.' } as Record<string, string>)[d.error] || 'We could not complete that request. Please try again.');
     } catch { setMsg('Check your connection and try again. Your details have been kept.'); }
     finally { pending.current = false; setBusy(false); }
   };
@@ -104,6 +107,7 @@ export default function AccountApp() {
         <label>Email<input style={inp} type="email" autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
         <label>Or Kenyan phone number<input style={inp} type="tel" autoComplete="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></label>
         <label>Password<input style={inp} type="password" required minLength={6} maxLength={100} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>
+        {mode === 'signup' && <><p style={{ margin: '4px 0', fontSize: 14, lineHeight: 1.5 }}>Accounts are for adults aged 18 and over. Under 18? Ask a parent or guardian to manage bookings and purchases. You can explore the tour without an account.</p><label className="ugt-account-consent"><input type="checkbox" required checked={eligible} onChange={e => setEligible(e.target.checked)} />I am 18 or older.</label><label className="ugt-account-consent"><input type="checkbox" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label></>}
         {msg && <div role="alert" style={{ color: '#a00', fontSize: 14 }}>{msg}</div>}
         <button style={btn} disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'LOG IN' : 'CREATE ACCOUNT'}</button>
         <button type="button" disabled={busy} style={{ background: 'none', border: 'none', color: '#9a145d', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}

@@ -225,7 +225,10 @@ function correctPartnerBadges(html: string): string {
  * markers ("MC Paps", "sauti-moto.jpg") are still present to match on.
  */
 export function correctShellContent(html: string): string {
-  let out = html;
+  let out = html
+    .replace(/You Already(?:<br\s*\/?>|\s+)Know Us\./gi, 'Your Event.<br>Our Energy.')
+    .replace(/Live &amp; On Air · PPP TV Kenya/g, 'Schools · Campuses · Events')
+    .replace(/YOU ALREADY KNOW US/g, 'SCHOOL TOURS · CAMPUS EVENTS · FESTIVALS');
 
   // Captured commerce examples are not published inventory. The runtime
   // fills its existing ticket wall from /api/events after boot.

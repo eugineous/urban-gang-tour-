@@ -278,3 +278,8 @@ In-memory rate limits are per-instance; swap to Upstash Redis
 (`UPSTASH_REDIS_REST_URL/TOKEN`) before heavy campaigns. Email sends batch in
 50s; move to a queue (for example Cloudflare Queues) beyond ~2k subscribers.
 Load-test checkout before big drops.
+
+### New public account eligibility
+`POST /api/auth` with `action: "signup"` requires `adultConfirmed: true` and `termsAccepted: true`. Missing/false confirmation returns 400 (`age_confirmation_required` or `terms_required`) before any account write. New self-managed accounts are 18+; no date of birth or identity document is collected. Existing login and guest checkout remain unchanged. This is an attestation, not verified age identity.
+
+Public organizer applications (`POST /api/organizer/signup`) also require boolean `adultConfirmed: true` and `termsAccepted: true`; these attest adult business authority and policy acceptance before an application is written.

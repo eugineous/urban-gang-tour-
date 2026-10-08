@@ -11,7 +11,7 @@ const PHONE_RE = /^(\+?254|0)(7|1)\d{8}$/;
 // action: signup | login | logout | me  (email OR Kenyan phone + password)
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  const { action, email = '', phone = '', name = '', password = '' } = await req.json().catch(() => ({}));
+  const { action, email = '', phone = '', name = '', password = '', adultConfirmed, termsAccepted } = await req.json().catch(() => ({}));
 
   if (action === 'me') {
     return NextResponse.json({ user: currentUser(req) });
@@ -24,6 +24,8 @@ export async function POST(req: Request) {
   if (!rateLimit('auth:' + clientIp(req), 8, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
+  if (action === 'signup' && adultConfirmed !== true) return NextResponse.json({ error: 'age_confirmation_required' }, { status: 400 });
+  if (action === 'signup' && termsAccepted !== true) return NextResponse.json({ error: 'terms_required' }, { status: 400 });
   if (!db()) return NextResponse.json({ error: 'accounts_unavailable' }, { status: 503 });
 
   const em = String(email).toLowerCase().trim();

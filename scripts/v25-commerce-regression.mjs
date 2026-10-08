@@ -105,7 +105,7 @@ for (const width of [390,1440]) {
     await host.getByRole('button',{name:/For Schools/}).first().click();
     await page.waitForURL('**/work-with-us?tab=schools');
     await page.reload(); await page.locator('#v25-host[data-ready="1"]').waitFor();
-    await host.getByText('Your School. Their Stage.',{exact:true}).waitFor();
+    await host.getByText('Give Your Students Their Stage.',{exact:true}).waitFor();
     await page.goBack();
     assert.equal(new URL(page.url()).pathname,'/');
   });

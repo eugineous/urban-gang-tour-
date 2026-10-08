@@ -380,3 +380,51 @@ body:has([data-v25-page]) #boot-veil:not(.gone){display:none}
  :is(#dc-root,#ssr-shell) .ugt-news-breaking>span:nth-child(2){grid-column:1 / -1;grid-row:2;line-height:1.5!important}
  :is(#dc-root,#ssr-shell) .ugt-news-breaking>span:last-child{grid-column:2;grid-row:1;max-width:96px;font-size:11px!important;text-align:right;line-height:1.4}
 }
+
+/* V25 motion should reinforce actions without making reading move. */
+@keyframes ugt-enter{from{opacity:.65;transform:translateY(6px)}to{opacity:1;transform:none}}
+:is(#dc-root,#ssr-shell) h1,:is(#dc-root,#ssr-shell) h2{animation:none!important}
+[data-reveal]{opacity:1;transform:none;transition:none}
+.ugt-booking-paths{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px}
+.ugt-booking-paths a{color:#fff;text-decoration:underline;text-underline-offset:5px;font-size:15px;font-weight:700;min-height:44px;display:flex;align-items:center}
+.ugt-next-step{font-size:14px!important;line-height:1.5!important;color:#fff;max-width:48ch;margin:8px 0 0}
+:is(a,button,input,select,textarea):focus-visible{outline:3px solid #111;outline-offset:4px;box-shadow:0 0 0 6px #FFD400}
+@media(hover:hover) and (pointer:fine){
+ :is(#dc-root,#ssr-shell) button{transition:background-color .16s ease,color .16s ease,box-shadow .16s ease}
+ .ugt-tab:hover{background:#fff0b3}
+ .ugt-booking-paths a:hover{color:#FFD400}
+}
+@media(max-width:1024px){
+ body{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+ .ugt-tabbar{padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px));align-items:center}
+ .ugt-tab,.ugt-tab-cta{min-height:62px;gap:5px}
+ .ugt-tab-ic{width:28px;height:28px}
+ .ugt-tab-lb,.ugt-tab-cta .ugt-tab-lb{font-size:13px}
+ .ugt-tab-cta .ugt-tab-ic{width:40px;height:40px;padding:7px}
+ .ugt-tab.on{background:#fff0f7;border-radius:10px}
+ .ugt-booking-paths{gap:2px 14px;margin-top:16px}
+ .ugt-booking-paths a{font-size:14px}
+ .ugt-next-step{font-size:14px!important}
+ [data-hero] h1{line-height:1!important}
+}
+@media(min-width:600px) and (max-width:1024px){
+ .ugt-tabbar{padding-inline:max(12px,calc((100vw - 680px)/2))}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+.ugt-account-consent{display:flex;align-items:flex-start;gap:12px;min-height:44px;font-size:15px;line-height:1.5}
+.ugt-account-consent input[type=checkbox]{width:20px;height:20px;min-height:20px;flex:0 0 20px;margin-top:2px}
+.ugt-account-consent a{text-decoration:underline;color:#9a145d}
+@media(max-width:1024px){
+ :is(#dc-root,#ssr-shell) [data-hero] h1{line-height:1.08!important;font-size:50px!important}
+ :is(#dc-root,#ssr-shell) .ugt-next-step{font-size:14px!important;line-height:1.5!important}
+ :is(#dc-root,#ssr-shell) [data-hero]>div:last-child{display:none!important}
+}
+.ugt-app-back,.ugt-product-purchase{display:none}
+@media(max-width:1024px){
+ .ugt-app-back{display:flex;align-items:center;justify-content:center;position:fixed;z-index:121;top:10px;left:120px;min-height:44px;padding:0 8px;font-size:14px;font-weight:700;background:#fff;border-radius:6px}
+ .ugt-product-purchase{display:flex;gap:12px;align-items:center;justify-content:space-between;position:fixed;bottom:calc(82px + env(safe-area-inset-bottom,0px));left:0;right:0;z-index:125;padding:12px 16px;background:#fff;border-top:3px solid #111;font-size:18px}
+ .ugt-product-purchase a{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px 12px;background:#E6218C;color:#fff;border:2px solid #111;border-radius:10px;font-size:14px;font-weight:800;max-width:70%;text-align:center}
+ body:has(.ugt-product-purchase) main{padding-bottom:90px}
+}
