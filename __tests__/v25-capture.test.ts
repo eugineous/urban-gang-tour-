@@ -12,7 +12,7 @@ describe('bundled v25 page captures', () => {
       createElement(RenderedPage, { pathName: '/' }),
     );
 
-    expect(markup).toContain('You Already');
+    expect(markup).toContain('Your Event.');
     expect(markup).toContain(
       'src="/assets/light-v1/video/hero-main.mp4"',
     );
@@ -25,7 +25,7 @@ describe('bundled v25 page captures', () => {
   });
 
   it('returns bundled capture source and rejects an unknown page key', () => {
-    expect(getRawCapturedPage('home')).toContain('You Already');
+    expect(getRawCapturedPage('home')).toContain('Your Event.');
     expect(getRawCapturedPage('not-a-real-page')).toBeNull();
   });
 

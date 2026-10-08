@@ -46,10 +46,12 @@ export async function POST(req: Request) {
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
   if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
-  const allowed = new Set(['businessName', 'contactName', 'email', 'phone', 'password', 'settlementBank', 'settlementAccount']);
+  const allowed = new Set(['businessName', 'contactName', 'email', 'phone', 'password', 'settlementBank', 'settlementAccount', 'adultConfirmed', 'termsAccepted']);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
+  if (body.adultConfirmed !== true) return NextResponse.json({ error: 'age_confirmation_required' }, { status: 400 });
+  if (body.termsAccepted !== true) return NextResponse.json({ error: 'terms_required' }, { status: 400 });
   const { businessName, contactName, email, phone, password, settlementBank, settlementAccount } = body;
 
   if (typeof businessName !== 'string' || businessName.trim().length < 2 || businessName.length > 200) {

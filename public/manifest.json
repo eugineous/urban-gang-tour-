@@ -1,11 +1,11 @@
 {
   "name": "Urban Gang Tour",
   "short_name": "Urban Gang",
-  "description": "Kenya's youth talent search, mentorship, and awards concert tour. Live, and on the national screen.",
+  "description": "School, campus and live-event experiences with Urban Gang Tour. Book events, discover tour stops and shop official merchandise.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#E6218C",
   "theme_color": "#E6218C",
   "lang": "en-KE",

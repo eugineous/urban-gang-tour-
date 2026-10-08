@@ -113,7 +113,9 @@ export function FastImages() {
     const removeFallback = installImageFallback();
     const videos = new Set<HTMLVideoElement>();
     const visible = new Set<HTMLVideoElement>();
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateVideo = (video: HTMLVideoElement) => {
+      if (motion.matches) { video.autoplay = false; video.pause(); video.poster = '/assets/poster.png'; return; }
       if (!visible.has(video) || document.hidden || !video.getClientRects().length) {
         video.pause();
         return;
@@ -152,6 +154,7 @@ export function FastImages() {
       });
     };
     const resume = () => visible.forEach(updateVideo);
+    motion.addEventListener('change', resume);
     document.addEventListener('visibilitychange', resume);
     document.addEventListener('pointerdown', resume, { passive: true });
     sweep(document);
@@ -188,6 +191,7 @@ export function FastImages() {
       obs.disconnect();
       videoObserver.disconnect();
       videos.forEach((video) => video.pause());
+      motion.removeEventListener('change', resume);
       document.removeEventListener('visibilitychange', resume);
       document.removeEventListener('pointerdown', resume);
       removeFallback();

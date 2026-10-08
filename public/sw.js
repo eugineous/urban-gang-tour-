@@ -1,4 +1,4 @@
-const CACHE = 'ugt-v25-20261008';
+const CACHE = 'ugt-v25-20261008-copy-app';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

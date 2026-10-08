@@ -14,6 +14,8 @@ export default function SignupForm() {
   const [password, setPassword] = useState('');
   const [settlementBank, setSettlementBank] = useState('');
   const [settlementAccount, setSettlementAccount] = useState('');
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [toast, say] = useToast();
@@ -21,6 +23,7 @@ export default function SignupForm() {
   useEffect(() => { api('/api/organizer/banks').then(({ data }) => setBanks(data.banks || [])); }, []);
 
   const submit = async () => {
+    if (!adultConfirmed || !termsAccepted) return say('Confirm adult authority and accept the terms before applying.');
     if (businessName.trim().length < 2) return say('Business name is required');
     if (contactName.trim().length < 2) return say('Contact name is required');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return say('Enter a valid email');
@@ -31,7 +34,7 @@ export default function SignupForm() {
     setBusy(true);
     const { data } = await api('/api/organizer/signup', {
       method: 'POST',
-      body: JSON.stringify({ businessName, contactName, email, phone, password, settlementBank, settlementAccount }),
+      body: JSON.stringify({ businessName, contactName, email, phone, password, settlementBank, settlementAccount, adultConfirmed, termsAccepted }),
     });
     setBusy(false);
     if (data.ok) setDone(true);
@@ -103,6 +106,8 @@ export default function SignupForm() {
                 </div>
               </div>
             </div>
+            <label className="ugt-account-consent"><input type="checkbox" checked={adultConfirmed} onChange={e => setAdultConfirmed(e.target.checked)} />I am 18 or older and authorised to apply for this business.</label>
+            <label className="ugt-account-consent"><input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label>
             <button style={{ ...btnMagenta, marginTop: 8 }} disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Apply to sell tickets'}</button>
             <div style={{ fontSize: 12, color: '#888' }}>Already approved? <a href="/organizer/login" style={{ color: '#E6218C', fontWeight: 700 }}>Log in</a></div>
           </div>

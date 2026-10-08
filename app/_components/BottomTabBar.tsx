@@ -156,6 +156,9 @@ export function BottomTabBar() {
 
   return (
     <>
+      {routedPath !== '/' && <a className="ugt-app-back" href="/" aria-label="Go back" onClick={event => {
+        try { if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) { event.preventDefault(); history.back(); } } catch { /* Home remains a safe fallback. */ }
+      }}>← Back</a>}
       {open && (
         <div className="ugt-sheet" id="ugt-sheet" role="dialog" aria-modal="true" aria-label="Site menu">
           <div className="ugt-sheet-head">
