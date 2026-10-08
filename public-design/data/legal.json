@@ -1,0 +1,193 @@
+{
+  "privacy-policy": {
+    "title": "Privacy Policy",
+    "sections": [
+      {
+        "h": "1. Who we are",
+        "p": [
+          "Urban Gang Tour (\"we\", \"us\") is a Kenyan entertainment and media company based in Nairobi. We are the data controller for personal data collected through urbangangtour.co.ke. Contact: admin@urbangangtour.co.ke."
+        ]
+      },
+      {
+        "h": "2. What we collect",
+        "p": [
+          "Booking enquiries: name, organisation, email, phone and your message.",
+          "Shop and ticket orders: name, email, phone number and order details. Payment credentials are handled by the payment provider used at checkout. We do not store M-Pesa PINs or card details.",
+          "Accounts: email or phone, name, and a securely hashed password (we cannot read your password).",
+          "A privacy-friendly page-view counter that stores no personal information and only runs if you accept cookies."
+        ]
+      },
+      {
+        "h": "3. Why we collect it (lawful basis)",
+        "p": [
+          "To respond to booking requests and deliver orders (performance of a contract), to send receipts and service messages (legitimate interest), and to send the newsletter only where you subscribed (consent). We comply with the Kenya Data Protection Act, 2019."
+        ]
+      },
+      {
+        "h": "4. Sharing",
+        "p": [
+          "We do not sell personal data. We share it only with service providers needed to run the site, payment and email services used to fulfil your request, and where the law requires."
+        ]
+      },
+      {
+        "h": "5. Storage & security",
+        "p": [
+          "Data is stored in an encrypted database. Access is restricted to authorised crew. Passwords are hashed; sessions are signed. We keep data only as long as needed for the purposes above or as law requires."
+        ]
+      },
+      {
+        "h": "6. Your rights",
+        "p": [
+          "Under the DPA 2019 you may ask us to access, correct, delete, or port your data, and you may object to or restrict processing. Email admin@urbangangtour.co.ke and we will respond within 30 days. You may also complain to the Office of the Data Protection Commissioner (ODPC) Kenya."
+        ]
+      },
+      {
+        "h": "7. Cookies",
+        "p": [
+          "We use one strictly-necessary cookie for signed-in sessions and a consent choice stored on your device. Our page-view counter only activates after you accept. No third-party advertising trackers are used."
+        ]
+      },
+      {
+        "h": "8. Children",
+        "p": [
+          "School events involve minors on stage and camera under agreements with their institutions and guardians. New self-managed accounts are for adults aged 18 and over, confirmed at signup. We do not collect a date of birth or identity document for this confirmation. A parent or guardian should manage bookings and purchases for anyone under 18."
+        ]
+      },
+      {
+        "h": "9. Changes",
+        "p": [
+          "We will post any changes here with a new \"last updated\" date."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "sections": [
+      {
+        "h": "1. Agreement",
+        "p": [
+          "By using urbangangtour.co.ke, creating an account, booking the tour, or buying tickets or merch, you agree to these terms and our Privacy Policy. These terms are governed by the laws of Kenya."
+        ]
+      },
+      {
+        "h": "2. Bookings",
+        "p": [
+          "Submitting a booking enquiry is a request, not a confirmed event. Dates are confirmed in writing after our team agrees scope, logistics and fees with your institution or brand."
+        ]
+      },
+      {
+        "h": "3. Orders & payments",
+        "p": [
+          "Prices are in Kenyan Shillings (KES). The payment methods available for an order are shown at checkout. An order is confirmed only after the relevant payment provider confirms it. All prices are validated on our servers at checkout."
+        ]
+      },
+      {
+        "h": "4. Tickets",
+        "p": [
+          "Tickets admit one person per ticket, subject to venue capacity and entry conditions. See the Ticket Terms page for refunds and entry rules."
+        ]
+      },
+      {
+        "h": "5. Accounts",
+        "p": [
+          "New self-managed accounts are for adults aged 18 and over. A parent or guardian should manage bookings and purchases for anyone under 18. Browsing does not require an account. Keep your password private. You are responsible for activity on your account. We may suspend accounts used for abuse, fraud or unlawful content."
+        ]
+      },
+      {
+        "h": "6. Content you submit",
+        "p": [
+          "Story pitches and blog submissions must be your own work. By submitting, you licence us to edit and publish them across Urban Gang Tour and Urban News platforms with credit."
+        ]
+      },
+      {
+        "h": "7. Our content",
+        "p": [
+          "The Urban Gang Tour name, logo, photos and videos are our property or used with permission. Personal, non-commercial sharing with credit is welcome; commercial use needs written consent."
+        ]
+      },
+      {
+        "h": "8. Liability",
+        "p": [
+          "The site is provided \"as is\". To the maximum extent permitted by Kenyan law, we are not liable for indirect losses arising from use of the site. Nothing limits liability that cannot be limited by law."
+        ]
+      },
+      {
+        "h": "9. Contact",
+        "p": [
+          "Questions: admin@urbangangtour.co.ke — Urban Gang Tour, Nairobi, Kenya."
+        ]
+      }
+    ]
+  },
+  "refund-policy": {
+    "title": "Refund & Delivery Policy",
+    "sections": [
+      {
+        "h": "1. Merch delivery",
+        "p": [
+          "Any collection or delivery option available for an order is shown at checkout or confirmed with you before fulfilment. Contact admin@urbangangtour.co.ke with your order number if you need help with a delivery or collection arrangement."
+        ]
+      },
+      {
+        "h": "2. Merch refunds & exchanges",
+        "p": [
+          "Wrong size or defective item? Contact us within 7 days of delivery at admin@urbangangtour.co.ke with your order number. Unworn items in original condition are exchanged, or refunded to the paying M-Pesa number within 7 business days of us receiving the return."
+        ]
+      },
+      {
+        "h": "3. Failed or duplicate payments",
+        "p": [
+          "If a payment succeeds but your order shows unpaid, or you believe you were charged twice, contact admin@urbangangtour.co.ke with your order number and payment confirmation. We will investigate verified cases with the relevant payment provider."
+        ]
+      },
+      {
+        "h": "4. Ticket refunds",
+        "p": [
+          "If an event is cancelled by us, tickets are refunded in full. If an event is postponed, tickets remain valid for the new date, or you may request a refund within 14 days of the announcement. Tickets are otherwise non-refundable but are transferable to another person."
+        ]
+      },
+      {
+        "h": "5. How refunds are paid",
+        "p": [
+          "Where a refund is approved, we will confirm the return method with the original payer. We never ask for your M-Pesa PIN or card details."
+        ]
+      }
+    ]
+  },
+  "ticket-terms": {
+    "title": "Ticket Terms",
+    "sections": [
+      {
+        "h": "1. Entry",
+        "p": [
+          "A valid ticket (QR or reference) admits one person once. Tickets may be checked against ID at the gate. Copied tickets or tickets resold above face value may be refused."
+        ]
+      },
+      {
+        "h": "2. Conduct & safety",
+        "p": [
+          "Security screening applies. No weapons, illegal substances, or outside alcohol. Follow crew and venue instructions at all times; we may refuse entry or remove anyone endangering others, without refund."
+        ]
+      },
+      {
+        "h": "3. Age",
+        "p": [
+          "School events follow the host institution rules. Campus and public events may have age guidance shown on the event listing."
+        ]
+      },
+      {
+        "h": "4. Filming",
+        "p": [
+          "Events are filmed for Urban News on PPP TV Kenya and our social platforms. Entry constitutes consent to appear in crowd footage."
+        ]
+      },
+      {
+        "h": "5. Changes & refunds",
+        "p": [
+          "Line-ups and times may change. Cancelled events are refunded in full; postponed events follow the Refund Policy. Weather delays at outdoor events do not automatically qualify for refunds."
+        ]
+      }
+    ]
+  }
+}

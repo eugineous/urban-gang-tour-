@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import publicDesignRoutes from '@/data/public-design-routes.json';
 import { ROUTES, SITE } from '@/lib/site';
 import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';
@@ -90,5 +91,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...pages, ...authors, ...posts, ...products, ...ticketedEvents];
+  const newPages = publicDesignRoutes.map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
+  return [...new Map([...pages,...authors,...posts,...products,...ticketedEvents,...newPages].map(page=>[page.url,page])).values()];
 }

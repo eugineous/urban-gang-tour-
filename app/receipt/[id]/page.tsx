@@ -87,7 +87,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   return (
     <div style={{ minHeight: '100vh', background: '#f4f1ea', padding: '32px 14px', fontFamily: grotesk, color: '#111' }}>
       <style>{`@media print { body { background: #fff !important; } .no-print { display: none !important; } .receipt-card { box-shadow: none !important; } }`}</style>
-      <div className="receipt-card" style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 18, overflow: 'hidden', boxShadow: '10px 10px 0 #111' }}>
+      <div className="receipt-card" style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '1px solid #ddd', borderRadius: 18, overflow: 'hidden', boxShadow: '0 12px 36px #0001' }}>
         <div style={{ background: '#111', padding: '20px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -200,13 +200,13 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       <div className="no-print" style={{ maxWidth: 620, margin: '16px auto 0', textAlign: 'center' }}>
         <a
           href="#print"
-          style={{ display: 'inline-block', background: '#E6218C', color: '#fff', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase', marginRight: 10 }}
+          style={{ display: 'inline-block', background: '#E6218C', color: '#fff', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '1px solid #ddd', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase', marginRight: 10 }}
         >
           Print this receipt
         </a>
         <a
           href={`/api/receipts/${encodeURIComponent(id)}/pdf`}
-          style={{ display: 'inline-block', background: '#FFD400', color: '#111', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase' }}
+          style={{ display: 'inline-block', background: '#FFD400', color: '#111', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '1px solid #ddd', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase' }}
         >
           Download PDF
         </a>

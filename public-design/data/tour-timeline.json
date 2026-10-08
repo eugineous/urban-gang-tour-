@@ -1,0 +1,68 @@
+{
+  "entries": [
+    {
+      "id": "koinange",
+      "name": "Senior Chief Koinange Girls",
+      "status": "completed",
+      "date": "2026-05-30",
+      "dateEvidence": "repository",
+      "time": null,
+      "image": "/assets/gal/koinange.jpg",
+      "venue": "Kiambu County",
+      "source": "public/v25-template.html and data/events.json"
+    },
+    {
+      "id": "loreto",
+      "name": "Loreto Kiambu Girls",
+      "status": "completed",
+      "date": "2026-06-01",
+      "dateEvidence": "repository",
+      "time": null,
+      "image": "/assets/gal/loreto.jpg",
+      "venue": "Kiambu County",
+      "source": "public/v25-template.html and data/events.json"
+    },
+    {
+      "id": "gituamba",
+      "name": "Gituamba Girls",
+      "status": "completed",
+      "date": "2026-06-07",
+      "dateEvidence": "repository",
+      "time": null,
+      "image": "/assets/gal/gituamba.jpg",
+      "venue": "Kiambu County",
+      "source": "public/v25-template.html and data/events.json"
+    },
+    {
+      "id": "lari",
+      "name": "Lari Boys High School",
+      "status": "completed",
+      "date": "2026-07-19",
+      "dateEvidence": "repository",
+      "time": null,
+      "image": "/assets/gal/lari.jpg",
+      "venue": "Kimende, Lari",
+      "source": "public/v25-template.html and data/events.json"
+    },
+    {
+      "id": "gathirimu",
+      "name": "Gathirimu Girls",
+      "status": "reconnaissance",
+      "date": null,
+      "time": null,
+      "image": null,
+      "venue": "Kiambu County",
+      "source": "Owner-confirmed visit; date not located in repository"
+    },
+    {
+      "id": "mlolongo-mixed",
+      "name": "Mlolongo Mixed",
+      "status": "reconnaissance",
+      "date": null,
+      "time": null,
+      "image": null,
+      "venue": "Mlolongo",
+      "source": "Owner-confirmed visit; date not located in repository"
+    }
+  ]
+}

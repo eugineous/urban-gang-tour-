@@ -37,7 +37,7 @@ for (const width of [390,1440]) {
     catch(e) { results.push({width,name,ok:false,error:e.message}); console.log(`FAIL ${width} ${name}: ${e.message}`); await page.screenshot({path:`${out}/${width}-${name}.png`,fullPage:true}); }
   };
   await check('ticket', async()=> {
-    await boot('/events');
+    await boot('/events?event=');
     await host.getByRole('button',{name:'Get Tickets',exact:true}).click();
     await host.getByRole('button',{name:/VIP.*KES 1,000/}).click();
     await host.getByRole('button',{name:'+',exact:true}).click();
@@ -100,14 +100,13 @@ for (const width of [390,1440]) {
     await host.getByText('Your request is in. We will review the details before confirming anything in writing.',{exact:true}).waitFor();
     assert.equal(await form.count(),0);
   });
-  await check('work-navigation', async()=> {
-    await boot('/');
-    await host.getByRole('button',{name:/For Schools/}).first().click();
-    await page.waitForURL('**/work-with-us?tab=schools');
-    await page.reload(); await page.locator('#v25-host[data-ready="1"]').waitFor();
-    await host.getByText('Give Your Students Their Stage.',{exact:true}).waitFor();
-    await page.goBack();
-    assert.equal(new URL(page.url()).pathname,'/');
+  await check('school-timeline-navigation', async()=> {
+    await page.goto(base+'/');
+    await page.locator('.home-experiences a').first().click();
+    await page.waitForURL(url=>url.pathname.replace(/\/$/,'')==='/tour-stops');
+    await page.reload();await page.locator('h1').waitFor();
+    assert.equal(await page.locator('h1').count(),1);
+    await page.goBack();assert.equal(new URL(page.url()).pathname,'/');
   });
   await check('late-catalog-cart', async()=> {
     await boot('/shop');

@@ -56,3 +56,5 @@ mobile-check-*.png
 /playwright-report/
 /tmp/
 /document-thumbs/
+
+node_modules

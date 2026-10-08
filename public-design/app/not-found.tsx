@@ -1,0 +1,1 @@
+export default function NotFound(){return <main className="not-found"><p>Urban Gang Tour</p><h1>Wrong turn.<br/>Good company.</h1><p>We couldn’t find that page.</p><a className="button" href="/">Back to the tour</a></main>}
