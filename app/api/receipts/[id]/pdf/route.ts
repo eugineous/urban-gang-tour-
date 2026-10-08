@@ -20,7 +20,7 @@ function safeName(x: string): string {
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!rateLimit('rcpt-pdf:' + clientIp(req), 20, 60_000)) {
+  if (!rateLimit('rcpt-pdf:' + clientIp(req), 20, 60_000, req)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const { id: rawId } = await params;
@@ -51,14 +51,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${safeName('UGT-Receipt-' + id)}.pdf"`,
-        // Was no-store: every repeat download re-ran the full PDF render.
-        // Shorter than the ticket PDF's cache on purpose - an order's
-        // status can change (pending -> paid -> fulfilled), so this can't
-        // be cached indefinitely without risking a stale pre-payment
-        // receipt being served after the order clears. 300s matches the
-        // revalidate window already used elsewhere in this codebase
-        // (app/blog, app/page.tsx, etc).
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+        // Personalized artifacts must not enter shared CDN caches.
+        'Cache-Control': 'private, no-store',
       },
     });
   } catch (e: any) {

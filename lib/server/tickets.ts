@@ -1,8 +1,8 @@
 // Digital ticket ledger: one row per admission, minted the moment an order
-// with ticket lines is confirmed paid. Codes are self-authenticating offline:
-// TKT-<10 random chars>-<4-char HMAC tag keyed with SESSION_SECRET>, drawn
-// from an unambiguous alphabet (no 0/O/1/I), so gate staff can sanity-check a
-// code with no network and forged codes die at the HMAC check.
+// with ticket lines is confirmed paid. Codes are authenticated on the server:
+// New: TKT-<22 random chars>-<12-char HMAC tag keyed with SESSION_SECRET>, drawn
+// from an unambiguous alphabet (no 0/O/1/I), so forged codes fail the server HMAC check. Never distribute the signing
+// secret to gate devices. Admission also requires a paid, unused database row.
 //
 // Roles: minting runs server-side only (payment webhooks + the ticket pages'
 // lazy-mint path). Reads are keyed by the unguessable code / ORD- id, same
@@ -15,9 +15,13 @@ import { getMarketplaceEventById } from './marketplace';
 
 // 32 chars, no 0/O/1/I. 32 divides 256, so byte % 32 is bias-free.
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-export const CODE_RE = /^TKT-[A-HJ-NP-Z2-9]{10}-[A-HJ-NP-Z2-9]{4}$/;
+export const CODE_RE = /^TKT-(?:[A-HJ-NP-Z2-9]{22}-[A-HJ-NP-Z2-9]{12}|[A-HJ-NP-Z2-9]{10}-[A-HJ-NP-Z2-9]{4})$/;
 
-const SECRET = () => process.env.SESSION_SECRET || 'dev-secret-change-me';
+const SECRET = () => {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === 'production') throw new Error('ticket_signing_secret_not_configured');
+  return 'dev-secret-change-me';
+};
 
 // Display metadata per event (date/time/venue/city/accent), looked up
 // against the same DB-backed, cached tour_events read as pricing (see
@@ -69,11 +73,12 @@ function chars(buf: Buffer, len: number): string {
 }
 
 function tagFor(rand: string): string {
-  return chars(createHmac('sha256', SECRET()).update('tkt:' + rand).digest(), 4);
+  return chars(createHmac('sha256', SECRET()).update('tkt:' + rand).digest(), rand.length === 10 ? 4 : 12);
 }
 
 export function mintCode(): string {
-  const rand = chars(randomBytes(10), 10);
+  // 110 random bits plus a 60-bit authentication tag. Legacy tickets remain valid.
+  const rand = chars(randomBytes(22), 22);
   return `TKT-${rand}-${tagFor(rand)}`;
 }
 
@@ -81,8 +86,10 @@ export function mintCode(): string {
 export function codeAuthentic(code: string): boolean {
   if (typeof code !== 'string' || !CODE_RE.test(code)) return false;
   const [, rand, tag] = code.split('-');
-  const want = tagFor(rand);
-  return timingSafeEqual(Buffer.from(tag), Buffer.from(want));
+  try {
+    const want = tagFor(rand);
+    return timingSafeEqual(Buffer.from(tag), Buffer.from(want));
+  } catch { return false; }
 }
 
 export type TicketRow = {
@@ -262,14 +269,9 @@ export async function getTicket(
 // checks the code against the database, so reuse/revocation/refunds are
 // always caught. This blob is an ADDITIONAL, genuinely redundant layer: it
 // signs a snapshot of the ticket's core facts (code, order, event, tier,
-// mint time) with the same server secret, so a gate device that has
-// SESSION_SECRET baked in (but no live internet link that moment) can
-// recompute the HMAC and confirm the PDF's printed facts were not edited
-// after issuance. It does NOT know about later state (used_at, refunds) -
-// only a live scan against the DB catches those. Same pattern as
-// signToken/verifyToken in session.ts, but with no expiry (a ticket's
-// authenticity should not expire) and its own HMAC context string so it can
-// never be replayed as a session cookie or vice versa.
+// mint time) with a server-only secret. Do not distribute SESSION_SECRET to
+// gate devices. Gate devices use authenticated online verification; this
+// proof can be checked by trusted server tooling and never grants admission.
 export type TicketBlobPayload = { c: string; o: string; e: string; t: string; i: string };
 
 export function signedTicketBlob(t: { code: string; order_id: string; event_id: string; tier_name: string; created_at: string | Date }): string {
@@ -286,9 +288,11 @@ export function signedTicketBlob(t: { code: string; order_id: string; event_id: 
 }
 
 export function verifyTicketBlob(blob: string): TicketBlobPayload | null {
+  if (String(blob || '').split('.').length !== 2) return null;
   const [body, sig] = String(blob || '').split('.');
   if (!body || !sig) return null;
-  const expect = createHmac('sha256', SECRET()).update('tktsig:' + body).digest('base64url');
+  let expect: string;
+  try { expect = createHmac('sha256', SECRET()).update('tktsig:' + body).digest('base64url'); } catch { return null; }
   if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString());

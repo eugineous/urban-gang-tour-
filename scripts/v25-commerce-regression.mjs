@@ -30,7 +30,7 @@ for (const width of [390,1440]) {
   const page = await context.newPage();
   page.setDefaultTimeout(8000);
   const host = page.locator('#v25-host');
-  const boot = async path => { await page.goto(base+path); await page.locator('#v25-host[data-ready="1"]').waitFor({timeout:30000}); };
+  const boot = async path => { await page.goto(base+path,{waitUntil:"domcontentloaded"}); await page.locator('#v25-host[data-ready="1"]').waitFor({timeout:30000}); };
   const check = async (name, fn) => {
     console.log(`CHECK ${width} ${name}`);
     try { await fn(); results.push({width,name,ok:true}); }
@@ -42,6 +42,7 @@ for (const width of [390,1440]) {
     await host.getByRole('button',{name:/VIP.*KES 1,000/}).click();
     await host.getByRole('button',{name:'+',exact:true}).click();
     assert(await host.getByText('KES 2,000',{exact:true}).count());
+    await host.locator('form').filter({has:page.getByPlaceholder('Full name (goes on the ticket)')}).locator('input[type=checkbox]').check();
     await host.getByRole('button',{name:'Pay & Get Ticket',exact:true}).click();
     await host.getByText('Enter the name that goes on the ticket.',{exact:true}).waitFor();
     await host.getByPlaceholder('Full name (goes on the ticket)').fill('Local Buyer');
@@ -68,6 +69,7 @@ for (const width of [390,1440]) {
     assert.equal(await host.getByText('KES 2,400',{exact:true}).count(),2);
     await host.getByPlaceholder('Full name',{exact:true}).fill('Local Buyer');
     await host.getByPlaceholder('M-Pesa number & delivery contact').fill('0712345678');
+    await host.locator('form').filter({has:page.getByPlaceholder('Full name',{exact:true})}).locator('input[type=checkbox]').check();
     await host.getByRole('button',{name:'Pay & Get Receipt',exact:true}).click();
     await host.getByText(/Network error/).waitFor();
     assert.equal(await host.getByPlaceholder('Full name',{exact:true}).inputValue(),'Local Buyer');

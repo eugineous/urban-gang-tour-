@@ -94,7 +94,7 @@ const nextConfig = {
       // - tested against a real config with NEXT_PUBLIC_GA_MEASUREMENT_ID set,
       // not guessed, learning from the connect-src gap Google Sign-In hit today.
       "connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com",
-      "frame-src https://www.youtube.com https://accounts.google.com",
+      "frame-src 'self' https://www.youtube.com https://accounts.google.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "object-src 'none'",
@@ -110,6 +110,8 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
+      { source: '/admin/gate', headers: [{key:'Permissions-Policy',value:'camera=(self), microphone=(), geolocation=()'}] },
+      { source: '/verify/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Referrer-Policy',value:'no-referrer'}] },
       {
         source: '/support.js',
         headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],

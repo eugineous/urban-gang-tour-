@@ -58,9 +58,10 @@ export type OrderRow = {
   marketplace_event_id?: string | null;
 };
 
-export async function sendReceiptEmail(order: OrderRow): Promise<void> {
+export async function sendReceiptEmail(order: OrderRow, delivery = "payment"): Promise<void> {
   try {
     if (!process.env.RESEND_API_KEY) return;
+    if (!["paid", "fulfilled"].includes(String(order.status))) return;
     const to = String(order?.email || '').trim();
     if (!to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return;
 
@@ -130,7 +131,7 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
     const html = `
 <div style="margin:0;padding:24px 12px;background:#f4f1ea;font-family:'Space Grotesk',Arial,Helvetica,sans-serif">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border:3px solid #111111;border-radius:18px;overflow:hidden">
-    <div style="background:#111111;padding:22px 26px">
+    <div style="background:#111111;padding:22px 26px"><img src="https://urbangangtour.co.ke/_design/design-assets/logo.png" width="80" alt="Urban Gang Tour" style="display:block;height:auto;margin-bottom:12px">
       <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;letter-spacing:.04em;font-size:13px;color:#FFD400;text-transform:uppercase">Urban Gang Tour</div>
       <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:24px;color:#ffffff;text-transform:uppercase;margin-top:4px">Official Receipt${isComp ? ' &middot; Complimentary' : ''}</div>
     </div>
@@ -196,9 +197,10 @@ export async function sendReceiptEmail(order: OrderRow): Promise<void> {
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `order-${order.id}-${delivery}` },
       body: JSON.stringify({
         from: FROM,
+        reply_to: BIZ.email,
         to,
         subject: `Your receipt ${order.id} - Urban Gang Tour`,
         html,

@@ -127,10 +127,10 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
     ? (await getMarketplaceEventById(t.marketplace_event_id))?.organizer_business_name || null
     : null;
   const vip = /vip/i.test(t.tier_name);
-  const qrSvg = await QRCode.toString(`${SITE}/t/${code}`, {
+  const qrSvg = await QRCode.toString(`${SITE}/verify/ticket/${code}`, {
     type: 'svg',
     errorCorrectionLevel: 'M',
-    margin: 0,
+    margin: 4,
     color: { dark: '#111111', light: '#ffffff' },
   });
 

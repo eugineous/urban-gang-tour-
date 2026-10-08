@@ -35,6 +35,7 @@ export function verifyToken<T = any>(token: string | undefined | null): T | null
   if (!token) return null;
   const tokenSecret = secret();
   if (!tokenSecret) return null;
+  if(token.split('.').length!==2)return null;
   const [body, sig] = token.split('.');
   if (!body || !sig) return null;
   const expect = createHmac('sha256', tokenSecret).update(body).digest('base64url');

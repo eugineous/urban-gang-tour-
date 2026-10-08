@@ -8,7 +8,7 @@ import jsQR from 'jsqr';
 // runs fully on-device (getUserMedia + canvas + jsQR - no external CDN); each
 // decoded code hits POST /api/tickets/verify which flips used_at atomically.
 
-const CODE_RE = /TKT-[A-HJ-NP-Z2-9]{10}-[A-HJ-NP-Z2-9]{4}/i;
+const CODE_RE = /TKT-(?:[A-HJ-NP-Z2-9]{22}-[A-HJ-NP-Z2-9]{12}|[A-HJ-NP-Z2-9]{10}-[A-HJ-NP-Z2-9]{4})/i;
 
 type Verdict = {
   result: 'valid' | 'used' | 'invalid';
@@ -30,6 +30,9 @@ export default function GateApp() {
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [busy, setBusy] = useState(false);
   const [manual, setManual] = useState('');
+  const [lastCode,setLastCode]=useState('');
+  const [holderContact,setHolderContact]=useState<{holder:string;email:string;phone:string}|null>(null);
+  const [contactNotice,setContactNotice]=useState('');
   const [scans, setScans] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -60,6 +63,7 @@ export default function GateApp() {
     if (pausedRef.current) return;
     pausedRef.current = true;
     setBusy(true);
+    setLastCode(code);setHolderContact(null);setContactNotice('');
     let v: Verdict = { result: 'invalid', reason: 'network' };
     try {
       const r = await fetch('/api/tickets/verify', {
@@ -224,6 +228,8 @@ export default function GateApp() {
           />
           <button type="submit" style={{ background: C.yellow, color: '#111', fontFamily: anton, fontSize: 14, padding: '0 18px', border: '2px solid #111', borderRadius: 12, cursor: 'pointer', textTransform: 'uppercase' }}>Check</button>
         </form>
+        {lastCode&&<details style={{maxWidth:440,margin:'12px auto',color:'#fff'}}><summary>Private holder contact lookup</summary><p style={{fontSize:13}}>For authorised event operations or safety only. Access is logged.</p><button onClick={async()=>{setContactNotice('Looking up…');try{const r=await fetch('/api/admin/tickets/'+encodeURIComponent(lastCode)+'/holder',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error();setHolderContact(d.holder);setContactNotice('')}catch{setContactNotice('Contact lookup unavailable.')}}}>View holder contacts</button>{holderContact&&<div><p>{holderContact.holder}</p><p>{holderContact.email||'No email supplied'}</p><p>{holderContact.phone||'No phone supplied'}</p><button onClick={()=>setHolderContact(null)}>Hide contacts</button></div>}<p role="status">{contactNotice}</p></details>}
+
       </div>
 
       {/* verdict overlay */}

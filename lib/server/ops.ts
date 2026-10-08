@@ -365,6 +365,7 @@ CREATE TABLE IF NOT EXISTS marketplace_events (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+ALTER TABLE marketplace_events ADD COLUMN IF NOT EXISTS ticket_design JSONB DEFAULT '{}';
 -- Gallery / photo wall admin uploads. This is the sole source for published
 -- public gallery photos, following the same admin-editable pattern as events
 -- and products above. Uploads use Workers KV through lib/server/media.ts.

@@ -246,7 +246,8 @@
 <form onSubmit="{{ confirmTicket }}" style="margin-top:16px;padding-top:16px;border-top:2px dashed #ccc">
 <input value="{{ ticketName }}" onChange="{{ onTName }}" placeholder="Full name (goes on the ticket)" autocomplete="name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
 <input value="{{ ticketPhone }}" onChange="{{ onTPhone }}" type="tel" inputmode="numeric" placeholder="M-Pesa number" autocomplete="tel" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
-<input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email (optional — for the invoice)" autocomplete="email" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:16px">
+<input value="{{ ticketEmail }}" onChange="{{ onTEmail }}" type="email" placeholder="Email (optional — receive PDF tickets)" autocomplete="email" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:16px">
+<label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;margin:12px 0"><input required type="checkbox" checked="{{ ticAck }}" onChange="{{ onTAck }}" style="width:20px;height:20px;flex-shrink:0"> <span>I accept the <a href="/terms" target="_blank" rel="noopener">Terms</a> and <a href="/ticket-terms" target="_blank" rel="noopener">Ticket Terms</a>. I have read the <a href="/privacy-policy" target="_blank" rel="noopener">Privacy Notice</a>. Contacts are private; gate access is logged. Add an email to receive ticket PDFs.</span></label>
 <sc-if value="{{ ticketErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ ticketErr }}</div></sc-if>
 <button type="submit" style="width:100%;padding:16px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:19px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ ticketPayLabel }}</button>
 <!-- Clickwrap on the Pay button rather than a separate tick box: same
@@ -340,6 +341,7 @@
 <input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="Full name" autocomplete="name" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
 <input value="{{ coPhone }}" onChange="{{ onCoPhone }}" type="tel" inputmode="numeric" placeholder="M-Pesa number &amp; delivery contact" autocomplete="tel" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:16px">
 <input value="{{ coEmail }}" onChange="{{ onCoEmail }}" type="email" placeholder="Email (optional — for the receipt)" autocomplete="email" style="width:100%;border:2px solid #111;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:16px">
+<label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;margin:12px 0"><input required type="checkbox" checked="{{ coAck }}" onChange="{{ onCoAck }}" style="width:20px;height:20px;flex-shrink:0"> <span>I accept the <a href="/terms" target="_blank" rel="noopener">Terms</a>. I have read the <a href="/privacy-policy" target="_blank" rel="noopener">Privacy Notice</a>. Contacts are private; gate access is logged. Add an email to receive your receipt.</span></label>
 <sc-if value="{{ coErr }}" hint-placeholder-val="{{ false }}"><div style="color:#E6218C;font-weight:700;font-size:13px;margin-bottom:12px">{{ coErr }}</div></sc-if>
 <button type="submit" style="width:100%;padding:16px;border:3px solid #111;border-radius:13px;background:#E6218C;color:#fff;font-family:'Anton';font-size:18px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">{{ coPayLabel }}</button>
 <button type="button" onClick="{{ payCard }}" style="width:100%;margin-top:10px;padding:15px;border:3px solid #111;border-radius:13px;background:#21C7E6;color:#111;font-family:'Anton';font-size:17px;box-shadow:5px 5px 0 #111" style-hover="transform:translate(2px,2px);box-shadow:2px 2px 0 #111">Pay with Card</button>
@@ -1603,13 +1605,11 @@ class Component extends DCLogic {
     if(e&&e.preventDefault)e.preventDefault();
     const t=this.state.ticket;
     if(t.busy) return;
-    // No separate "accept the terms" tick box any more - the agreement is
-    // clickwrapped onto the Pay button, with the terms rendered directly above
-    // it. One less tap on the only screen that has to convert.
+    if(!t.ack){ this.setPay('tic',{err:'Please accept the terms and read the privacy notice before paying.'}); return; }
     if(!t.name.trim()){ this.setPay('tic',{err:'Enter the name that goes on the ticket.'}); return; }
     const ph=this.msisdn(t.phone);
     if(!ph){ this.setPay('tic',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
-    // Email is optional: the ticket itself is delivered by SMS and lives at its
+    // Email is optional: the ticket lives at its
     // own /t/<code> URL, so requiring an address only cost a field. It is still
     // used for the invoice when given.
     if(typeof window==='undefined'||typeof window.__UGT_MPESA_PAY!=='function'){ this.setPay('tic',{err:'M-Pesa payments are not available right now.'}); return; }
@@ -1643,7 +1643,7 @@ class Component extends DCLogic {
   closeCheckout = () => { this.stopPay(); this.setState(s=>({checkout:{...s.checkout,stage:null}})); };
   closeCheckoutBg = (e) => { if(e.target===e.currentTarget) this.closeCheckout(); };
   setCo = (k,v) => this.setState(s=>({checkout:{...s.checkout,[k]:v}}));
-  payCard = () => { const s=this.state; if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty,variant:l.size||undefined})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
+  payCard = () => { const s=this.state; if(!s.checkout.ack){this.setCo('err','Please accept the terms and read the privacy notice first.');return;} if(!s.cart.length) return; const items=s.cart.map(l=>({id:l.id,qty:l.qty,variant:l.size||undefined})); const email=(s.checkout.email||'').trim(); if(typeof window!=='undefined'&&typeof window.__UGT_CARD_PAY==='function') window.__UGT_CARD_PAY(items, email); else alert('Card payments are not available right now'); };
   msisdn = (raw) => { const d=String(raw||'').replace(/\D/g,''); if(/^254(7|1)\d{8}$/.test(d)) return d; if(/^0(7|1)\d{8}$/.test(d)) return '254'+d.slice(1); if(/^(7|1)\d{8}$/.test(d)) return '254'+d; return null; };
   maskPhone = (p) => { const d=String(p||'').replace(/\D/g,''); return d.length>=8 ? d.slice(0,6)+'***'+d.slice(-2) : ''; };
   fmtSecs = (v) => { const n=Math.max(0,Number(v)||0); return Math.floor(n/60)+':'+String(n%60).padStart(2,'0'); };
@@ -1710,9 +1710,7 @@ class Component extends DCLogic {
     if(e&&e.preventDefault)e.preventDefault();
     const s=this.state, co=s.checkout;
     if(co.busy) return;
-    // Terms are clickwrapped onto the Pay button (rendered directly above it),
-    // so there is no separate tick box to gate on. Email is optional here for
-    // the same reason as tickets: /api/orders takes phone-only guest orders.
+    if(!co.ack){ this.setPay('co',{err:'Please accept the terms and read the privacy notice before paying.'}); return; }
     if(!co.name.trim()||!s.cart.length){ this.setPay('co',{err:'Enter your name so we can label the order.'}); return; }
     const ph=this.msisdn(co.phone);
     if(!ph){ this.setPay('co',{err:'Enter a valid M-Pesa number (07XX, 01XX or 2547XX).'}); return; }
