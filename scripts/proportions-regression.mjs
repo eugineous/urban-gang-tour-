@@ -21,6 +21,7 @@ try{
    }
    if(path==='/privacy-policy'||path==='/faq')assert.equal(await root.locator('h2').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)),22);
    if(path==='/blog'&&width<=1024){
+    const breaking=page.locator('.ugt-news-breaking');if(await breaking.count()){const headline=breaking.locator(':scope>span').nth(1);assert.ok((await headline.boundingBox()).width>(await breaking.boundingBox()).width*.65,'Published news headline has usable reading width');}
     const bar=page.locator('.ugt-news-desks');await page.locator('.ugt-news-desks[data-ready="1"]').waitFor();assert.ok((await bar.boundingBox()).height<=70,'Filters do not consume the first screen');
     const last=bar.getByRole('button').last();await last.scrollIntoViewIfNeeded();await last.click();await page.waitForFunction(()=>document.querySelector('.ugt-news-desks button:last-child')?.getAttribute('aria-pressed')==='true');
    }
