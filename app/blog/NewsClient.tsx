@@ -94,9 +94,11 @@ export function NewsClient({
   const [query, setQuery] = useState('');
   const [desk, setDesk] = useState<'all' | Desk | 'route'>('all');
   const [tick, setTick] = useState(0);
+  const [ready, setReady] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    setReady(true);
     const h = new URLSearchParams(location.hash.slice(1));
     const savedDesk = h.get('desk');
     if (DESKS.some(item => item.id === savedDesk)) setDesk(savedDesk as typeof desk);
@@ -186,16 +188,17 @@ export function NewsClient({
       </header>
 
       {/* sticky finder bar */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: '#1A0E14', boxShadow: '0 4px 0 rgba(26,14,20,.35)' }}>
+      <nav className="ugt-news-finder" style={{ position: 'sticky', top: 0, zIndex: 50, background: '#1A0E14', boxShadow: '0 4px 0 rgba(26,14,20,.35)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12, padding: '11px 24px', flexWrap: 'wrap' }}>
           <span style={{ fontFamily: "'Titan One',cursive", fontSize: 16, color: '#F7A81B', flex: '0 0 auto' }}>URBAN NEWS</span>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: '1 1 auto' }}>
+          <div className="ugt-news-desks" data-ready={ready ? "1" : "0"} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: '1 1 auto' }}>
             {DESKS.map((d) => {
               const active = desk === d.id;
               const n = (counts as any)[d.id];
               return (
                 <button
                   key={d.id}
+                  aria-pressed={active}
                   onClick={() => setFilters({ desk: d.id })}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 7, cursor: 'pointer',
@@ -350,7 +353,7 @@ export function NewsClient({
           )}
 
           {!isFiltering && (
-            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 44 }}>
+            <section className="ugt-news-promos" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 44 }}>
               <div style={{ border: '3px solid #1A0E14', borderRadius: 22, background: '#5B1A8A', color: '#fff', padding: 26, display: 'flex', flexDirection: 'column', gap: 12, boxShadow: '7px 7px 0 #1A0E14' }}>
                 <span style={{ fontFamily: "'Permanent Marker',cursive", fontSize: 14, color: '#F7A81B' }}>the show itself ✦</span>
                 <h3 style={{ margin: 0, fontFamily: "'Titan One',cursive", fontSize: 25, fontWeight: 400, lineHeight: 1.12, color: '#fff' }}>URBAN NEWS ON PPP TV — CH 430</h3>

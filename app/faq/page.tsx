@@ -68,7 +68,7 @@ export default function FaqPage() {
   return (
     <>
       <JsonLd data={faqSchema} />
-      <main style={{ background: '#E6218C', minHeight: '60vh', padding: '52px 20px 90px' }}>
+      <main className="ugt-reading-page" style={{ background: '#E6218C', minHeight: '60vh', padding: '52px 20px 90px' }}>
         <article style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 18, boxShadow: '8px 8px 0 #111', padding: '34px 34px 44px' }}>
           <h1 style={{ fontFamily: "'Anton'", fontSize: 'clamp(28px,5vw,44px)', margin: '0 0 6px', textTransform: 'uppercase' }}>
             Frequently Asked Questions

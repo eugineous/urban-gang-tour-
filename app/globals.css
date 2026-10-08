@@ -309,3 +309,61 @@ body:has([data-v25-page]) #boot-veil:not(.gone){display:none}
 }
 
 @media(max-width:1024px){:is(#dc-root,#ssr-shell) :is(a,span,div,label):is([style*="font-size:10px"],[style*="font-size: 10px"],[style*="font-size:11px"],[style*="font-size: 11px"],[style*="font-size:12px"],[style*="font-size: 12px"],[style*="font-size:13px"],[style*="font-size: 13px"],[style*="font-size:14px"],[style*="font-size: 14px"],[style*="font-size:15px"],[style*="font-size: 15px"]){font-size:16px!important}}
+
+/* V25 proportions: emphasis for headings, readable copy, predictable controls. */
+:is(#dc-root,#ssr-shell) main{overflow-wrap:break-word}
+:is(#dc-root,#ssr-shell) main p{max-width:70ch}
+:is(#dc-root,#ssr-shell) input:not([type="checkbox"]):not([type="radio"]),
+:is(#dc-root,#ssr-shell) textarea,:is(#dc-root,#ssr-shell) select{min-width:0;max-width:100%;font-size:16px!important;min-height:48px}
+:is(#dc-root,#ssr-shell) input:is([type="checkbox"],[type="radio"]){width:20px!important;height:20px!important;min-height:20px!important;flex:0 0 20px}
+:is(#dc-root,#ssr-shell) label:has(input:is([type="checkbox"],[type="radio"])){min-height:44px;align-items:flex-start}
+:is(#dc-root,#ssr-shell) [data-screen-label="Contact"] form>div:first-child{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+:is(#dc-root,#ssr-shell) [data-screen-label="Contact"] form label{min-width:0}
+:is(#dc-root,#ssr-shell) [data-v25-dialog] button{min-width:44px;min-height:44px}
+.ugt-site-header [data-desktop-nav] a,.ugt-site-header [data-desktop-nav] summary{min-height:44px;display:flex;align-items:center;font-size:14px}
+:is(#dc-root,#ssr-shell) .ugt-reading-page>article{max-width:780px!important}
+:is(#dc-root,#ssr-shell) .ugt-reading-page h1{font-size:clamp(32px,4vw,44px)!important;line-height:1.12!important}
+:is(#dc-root,#ssr-shell) .ugt-reading-page h2{font-size:22px!important;line-height:1.3!important}
+:is(#dc-root,#ssr-shell) .ugt-reading-page p{font-size:17px!important;line-height:1.7!important}
+.ugt-news-finder{top:82px!important}
+.ugt-news-finder button{min-height:44px}
+@media(min-width:1025px){
+ :is(#dc-root,#ssr-shell) [data-screen-label] h1{font-size:clamp(48px,5.4vw,78px)!important;line-height:.98!important}
+ :is(#dc-root,#ssr-shell) [data-hero] h1{font-size:clamp(60px,6.4vw,92px)!important}
+ :is(#dc-root,#ssr-shell) [data-hero]>div:last-child{width:min(100%,400px);justify-self:center}
+ :is(#dc-root,#ssr-shell) main p{font-size:17px;line-height:1.6}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Home"] img[alt*="Co-Founder"]{max-height:420px;width:100%;object-fit:contain}
+}
+@media(max-width:1024px){
+ .ugt-news-finder{top:68px!important;position:static!important}
+ :is(#dc-root,#ssr-shell) main>div:is([style*="position:sticky"],[style*="position: sticky"]){position:static!important;padding:12px 16px!important}
+ :is(#dc-root,#ssr-shell) main>div:is([style*="position:sticky"],[style*="position: sticky"])>div{gap:8px!important}
+ :is(#dc-root,#ssr-shell) main>div:is([style*="position:sticky"],[style*="position: sticky"])>div>div:last-child{flex-wrap:nowrap!important;overflow-x:auto;max-width:100%;padding:0 4px 6px 0}
+ :is(#dc-root,#ssr-shell) main>div:is([style*="position:sticky"],[style*="position: sticky"]) button{flex:none;padding:10px 14px!important}
+ :is(#dc-root,#ssr-shell) [data-screen-label]:not([data-screen-label="Home"]):not([data-screen-label="Shop"])>div:first-child{padding:32px 20px!important}
+ :is(#dc-root,#ssr-shell) .ugt-reading-page{padding:28px 16px 48px!important}
+ :is(#dc-root,#ssr-shell) .ugt-reading-page>article{padding:24px 20px 30px!important}
+ :is(#dc-root,#ssr-shell) .ugt-reading-page h2{font-size:22px!important}
+ :is(#dc-root,#ssr-shell) .ugt-reading-page p{font-size:18px!important;line-height:1.6!important}
+ :is(#dc-root,#ssr-shell) .ugt-reading-page>article>div{font-size:14px!important;line-height:1.5;overflow-wrap:anywhere}
+ :is(#dc-root,#ssr-shell) .ugt-news-desks{flex-wrap:nowrap!important;overflow-x:auto;width:100%;flex-basis:100%!important;padding-bottom:6px}
+ :is(#dc-root,#ssr-shell) .ugt-news-desks button{flex:none;font-size:14px!important}
+ :is(#dc-root,#ssr-shell) .ugt-news-desks button span{font-size:12px!important}
+ .ugt-news-finder>div>div:last-child{flex-basis:100%!important;min-width:0!important}
+ body .wa-fab{display:none!important}
+}
+@media(max-width:600px){
+ :is(#dc-root,#ssr-shell) [data-screen-label="Contact"] [data-col2]>div:first-child{padding:22px 18px!important}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Contact"] form{padding:0!important}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Contact"] form>div:first-child{grid-template-columns:1fr!important;gap:18px!important}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Partners"]>div:nth-child(2)>div>div{grid-template-columns:1fr!important}
+ :is(#dc-root,#ssr-shell) [data-screen-label="Tickets"]>div:nth-child(2)>div{grid-template-columns:1fr!important}
+}
+
+.un-main>*{min-width:0}
+@media(max-width:768px){.ugt-news-promos{grid-template-columns:1fr!important}.un-main{padding-left:16px!important;padding-right:16px!important}}
+
+:is(#dc-root,#ssr-shell) [data-screen-label="The Gang"]>div:nth-child(2)>div>div:first-child{grid-template-columns:repeat(2,minmax(0,360px))!important;justify-content:center;gap:28px!important}
+@media(max-width:600px){:is(#dc-root,#ssr-shell) [data-screen-label="The Gang"]>div:nth-child(2)>div>div:first-child{grid-template-columns:minmax(0,360px)!important}}
+:is(#dc-root,#ssr-shell) main button{min-height:44px}
+:is(#dc-root,#ssr-shell) .ugt-reading-page>article>div{color:#666!important}
