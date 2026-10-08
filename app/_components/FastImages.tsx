@@ -115,7 +115,7 @@ export function FastImages() {
     const visible = new Set<HTMLVideoElement>();
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateVideo = (video: HTMLVideoElement) => {
-      if (motion.matches) { video.autoplay = false; video.pause(); video.poster = '/assets/poster.png'; return; }
+      if (motion.matches) { video.autoplay = false; video.pause(); video.poster = '/assets/gal/festival-colours.jpg'; return; }
       if (!visible.has(video) || document.hidden || !video.getClientRects().length) {
         video.pause();
         return;
