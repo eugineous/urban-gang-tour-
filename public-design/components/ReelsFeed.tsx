@@ -59,6 +59,11 @@ export function ReelsFeed() {
     } catch {}
     const id = new URLSearchParams(location.search).get("film"),
       index = all.findIndex((a) => a.id === id);
+    // Preserve a native swipe made before hydration attached the React listener.
+    if(index <= 0 && feed.current && feed.current.clientHeight > 0){
+      const seen=Math.min(all.length-1,Math.max(0,Math.round(feed.current.scrollTop/feed.current.clientHeight)));
+      if(seen>0)setActive(seen);
+    }
     if (index > 0) {
       setActive(index);
       requestAnimationFrame(() =>
