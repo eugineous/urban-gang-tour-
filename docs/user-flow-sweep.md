@@ -42,3 +42,12 @@ Final browser follow-up results:
 - Final Worker: consent gating, aggregate demand ranking, refreshed own-event hero priority and real pointer dismissal of the update notice passed.
 - Final Worker: fictional Google ID-token callbacks passed at 390 and 1440 pixels. Buyer sign-in updates the account view; pending organizers cannot proceed to their dashboard.
 - The final update is published only to the existing owner-private ChatGPT Site. No production Worker deployment or main-branch merge is part of this follow-up.
+
+## Navigation and remaining public-page replacements
+
+- Removed the duplicate desktop Shop action and secondary footer Shop link. The separate Bag action opens the cart. Mobile navigation now visibly labels Menu and Close.
+- First-party absolute links stay inside the current review origin. Shop, Contact and Book retain the approved interface when navigated to and refreshed.
+- Replaced retired product, event, article and account styling; FAQ and author fallback routes use the approved renderer. Product details now offer variants, quantity and direct bag addition using the same cart ledger as the shop.
+- Clarified the booking steps and retained real quote-request validation, retry identity and school authorization. Private preview booking remains an explicitly labeled email/WhatsApp handoff.
+- Validation: 215 unit tests across 32 files, typecheck, production Next/OpenNext build, private static build and Worker dry-run bundle passed. Shop/cart/checkout/booking fixture journeys passed at 390, 820 and 1440 pixels. Navigation and refresh checks passed in Chromium and WebKit at 360, 390, 820 and 1440 pixels, for both Worker and private static builds. Tests checked one header, no duplicate Shop action, mobile menu labels, same-origin navigation and no horizontal overflow.
+- Positive payment and booking browser tests used fictional intercepted APIs. These results do not certify live bank settlement, email delivery or physical devices. Publication remains limited to the existing owner-private ChatGPT Site.

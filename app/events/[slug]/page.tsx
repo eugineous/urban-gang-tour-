@@ -174,61 +174,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const calStart = startDate ? startDate.replace(/[-:]/g, '').replace('+03:00', '') : null;
   const ticketHref = `/events?event=${encodeURIComponent(event.id)}`;
 
-  // Sticky mobile CTA — visible after scroll, hidden when not needed
-  const stickyCta = sellable
-    ? <a href={ticketHref} style={{ flex: 1, textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 10, padding: '13px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 17, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
-    : <a href="/events" style={{ flex: 1, textAlign: 'center', background: '#eee7ea', color: '#111', borderRadius: 10, padding: '13px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 17, textTransform: 'uppercase', textDecoration: 'none' }}>{soldOut ? 'Sold out' : 'View events'}</a>;
-
-  return <main style={{ minHeight: '100vh', color: '#111', background: '#fffafc', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
-    {eventJsonLd ? <JsonLd data={eventJsonLd} /> : null}
-    <EventsAnalytics eventSlug={event.slug} eventNames={[{ slug: event.slug, name: event.name }]} />
-    <div style={{ borderBottom: '4px solid #111', background: '#111', padding: '14px 20px' }}>
-      <a href="/" aria-label="Urban Gang Tour home" style={{ display: 'inline-flex', alignItems: 'center' }}>
-        <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ display: 'block', height: 48, width: 'auto', maxWidth: 'min(280px, 76vw)', objectFit: 'contain' }} />
-      </a>
-    </div>
-    <section style={{ position: 'relative', overflow: 'hidden', background: accent, borderBottom: '4px solid #111' }}>
-      {event.image ? <img src={event.image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.26 }} /> : null}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(110deg, rgba(17,17,17,.92), rgba(17,17,17,.52))' }} />
-      <div style={{ position: 'relative', maxWidth: 1080, margin: '0 auto', padding: 'clamp(42px,9vw,96px) 20px', color: '#fff' }}>
-        <p style={{ margin: '0 0 12px', fontWeight: 800, letterSpacing: '.11em', fontSize: 12, textTransform: 'uppercase', color: '#FFD400' }}>Urban Gang Tour presents</p>
-        <h1 style={{ maxWidth: 780, margin: 0, fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 'clamp(44px,8vw,96px)', lineHeight: .94, textTransform: 'uppercase' }}>{event.name}</h1>
-        <p style={{ maxWidth: 660, fontSize: 'clamp(17px,2.5vw,22px)', fontWeight: 600, lineHeight: 1.45, margin: '24px 0 0' }}>{event.description || 'Details and ticket options are available below.'}</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 24, fontSize: 15, fontWeight: 600 }}>
-          <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 8, padding: '8px 14px' }}>{eventDate}</span>
-          {event.event_time ? <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 8, padding: '8px 14px' }}>{event.event_time}</span> : null}
-          <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 8, padding: '8px 14px' }}>{event.venue}{event.city ? `, ${event.city}` : ''}</span>
-        </div>
-      </div>
-    </section>
-    <section style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(30px,6vw,72px) 20px 100px' }}>
-      {currentStatus.body ? <p role="status" style={{ margin: '0 0 22px', background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 16, lineHeight: 1.5, padding: '14px 18px', borderRadius: 12 }}>{currentStatus.body}</p> : null}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 28, alignItems: 'start' }}>
-        <div>
-          <p style={{ margin: 0, color: accent, fontWeight: 900, letterSpacing: '.1em', fontSize: 12, textTransform: 'uppercase' }}>Event details</p>
-          <dl style={{ margin: '16px 0 0', borderTop: '2px solid #111' }}>
-            {[['Date', eventDate], ['Time', event.event_time || 'To be confirmed'], ['Venue', event.venue || 'To be confirmed'], ['City', event.city || 'Kenya']].map(([label, value]) => <div key={label} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 14, padding: '15px 0', borderBottom: '1px solid #d8d0d5' }}><dt style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase' }}>{label}</dt><dd style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{value}</dd></div>)}
-          </dl>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 22 }}>
-            <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener" style={{ fontWeight: 800, fontSize: 14, color: '#111', border: '2px solid #111', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}>Share on WhatsApp</a>
-            <a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener" style={{ fontWeight: 800, fontSize: 14, color: '#111', border: '2px solid #111', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}>Share on X</a>
-            {calStart ? <a href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${shareText}&dates=${calStart}/${calStart}&details=${shareUrl}`} target="_blank" rel="noopener" style={{ fontWeight: 800, fontSize: 14, color: '#111', border: '2px solid #111', borderRadius: 10, padding: '10px 16px', textDecoration: 'none' }}>Add to calendar</a> : null}
-          </div>
-        </div>
-        <aside style={{ background: '#fff', border: '3px solid #111', borderRadius: 18, padding: 22, boxShadow: `8px 8px 0 ${accent}` }}>
-          <p style={{ margin: 0, color: '#555', fontWeight: 800, fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase' }}>Ticket options</p>
-          {tiers.length ? <div style={{ display: 'grid', gap: 10, margin: '15px 0 22px' }}>{tiers.map((tier) => <div key={tier.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: '1px solid #e1dce0', fontWeight: 800 }}><span>{tier.name}</span><span>{money(tier.price)}</span></div>)}</div> : <p style={{ lineHeight: 1.5 }}>Ticket options will be confirmed on the ticket desk.</p>}
-          {sellable
-            ? <a href={ticketHref} style={{ display: 'block', textAlign: 'center', background: '#111', color: '#FFD400', borderRadius: 11, padding: '15px 18px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 19, textTransform: 'uppercase', textDecoration: 'none' }}>Get tickets</a>
-            : <p role="status" style={{ margin: 0, textAlign: 'center', background: '#eee7ea', borderRadius: 11, padding: '15px 18px', fontWeight: 800 }}>{soldOut ? 'Sold out' : 'Tickets not on sale'}</p>}
-          <a href="/book" style={{ display: 'block', textAlign: 'center', marginTop: 12, color: '#111', fontWeight: 800 }}>Book Urban Gang Tour for your event</a>
-        </aside>
-      </div>
-    </section>
-    {/* Sticky mobile CTA */}
-    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: '#fff', borderTop: '2px solid #111', padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#555', minWidth: 60 }}>{fromPrice !== null ? `From ${money(fromPrice)}` : ''}</span>
-      {stickyCta}
-    </div>
+  return <main className="event-detail-page wrap">
+    {eventJsonLd&&<JsonLd data={eventJsonLd}/>}
+    <EventsAnalytics eventSlug={event.slug} eventNames={[{slug:event.slug,name:event.name}]}/>
+    <div className="detail-breadcrumbs"><a href="/events">All events</a><span>/</span><span>{event.name}</span></div>
+    <section className="event-detail-hero"><div><p className="eyebrow">Urban Gang Tour presents</p><h1>{event.name}</h1><p>{event.description||'Event details and ticket options are below.'}</p><p>{eventDate} · {event.venue}</p></div>{event.image&&<img src={event.image} alt={event.name+' event poster'}/>}</section>
+    {currentStatus.body&&<p className="modern-alert" role="status">{currentStatus.body}</p>}
+    <section className="event-detail-grid"><div><h2>Plan your visit.</h2><dl>{[['Date',eventDate],['Time',event.event_time||'To be confirmed'],['Venue',event.venue||'To be confirmed'],['City',event.city||'Kenya']].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on WhatsApp</a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on X</a>{calStart&&<a href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${shareText}&dates=${calStart}/${calStart}&details=${shareUrl}`} target="_blank" rel="noopener noreferrer">Add to calendar</a>}</div></div>
+    <aside className="modern-card"><h2>Ticket options.</h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt>{tier.name}</dt><dd>{money(tier.price)}</dd></div>)}</dl>:<p>Ticket options have not been published yet.</p>}{sellable?<a className="button" href={ticketHref}>Get tickets</a>:<p role="status">{soldOut?'Sold out':'Tickets not on sale'}</p>}<p className="form-note">Ticket availability is checked again at checkout.</p><a href="/book">Plan your own event with us</a></aside></section>
+    {sellable&&<div className="event-ticket-dock"><span>{fromPrice!==null?'From '+money(fromPrice):''}</span><a className="button" href={ticketHref}>Get tickets</a></div>}
   </main>;
 }

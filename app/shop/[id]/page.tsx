@@ -1,3 +1,4 @@
+import {ProductPurchase} from '@/app/_components/ProductPurchase';
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
@@ -139,25 +140,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     }));
   }
 
-  return <main style={{ minHeight: '100vh', background: '#fffafc', color: '#111', fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}>
+  return <main className="product-page">
     <JsonLd data={productJsonLd} />
-    <section style={{ maxWidth: 1120, margin: '0 auto', padding: 'clamp(28px,6vw,72px) 20px 84px' }}>
-      <a href="/shop" style={{ color: '#111', fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.08em' }}>← Back to merch</a>
-      <div className="ugt-product-detail" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(290px,440px)', gap: 'clamp(28px,6vw,72px)', marginTop: 26, alignItems: 'start' }}>
-        <div style={{ background: '#fff', border: '3px solid #111', borderRadius: 24, minHeight: 360, padding: 'clamp(18px,4vw,42px)', boxShadow: '8px 8px 0 #21C7E6', display: 'grid', placeItems: 'center' }}>
-          {product.image ? <div className="ugt-product-photo"><PhotoGallery photos={[{ id: product.id, url: product.image, altText: product.name }]} /></div> : <div style={{ fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 48, textTransform: 'uppercase' }}>Urban<br />Gang</div>}
-        </div>
-        <div>
-          <p style={{ display: 'inline-block', margin: 0, padding: '5px 9px', background: '#FFD400', border: '2px solid #111', borderRadius: 7, fontWeight: 900, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase' }}>{product.category || 'Official merch'}</p>
-          <h1 style={{ margin: '17px 0 10px', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 'clamp(42px,6vw,68px)', lineHeight: .92, textTransform: 'uppercase' }}>{product.name}</h1>
-          <p style={{ margin: '0 0 20px', color: '#E6218C', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 30 }}>{money(Number(product.price))}</p>
-          {product.description ? <p style={{ margin: '0 0 24px', color: '#383238', fontSize: 17, fontWeight: 600, lineHeight: 1.6 }}>{product.description}</p> : null}
-          {variants.length ? <div style={{ margin: '0 0 26px', borderTop: '2px solid #111', borderBottom: '2px solid #111', padding: '15px 0' }}><p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>Available options</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{variants.map((variant) => <span key={variant.label} style={{ border: '2px solid #111', borderRadius: 999, padding: '7px 11px', fontSize: 13, fontWeight: 800 }}>{variant.label}{variant.priceAdjustment ? ` · ${variant.priceAdjustment > 0 ? '+' : ''}${money(variant.priceAdjustment)}` : ''}</span>)}</div></div> : null}
-          <a href={`/shop?item=${encodeURIComponent(product.id)}`} style={{ display: 'block', textAlign: 'center', textDecoration: 'none', background: '#E6218C', color: '#fff', border: '3px solid #111', borderRadius: 13, padding: '15px 18px', boxShadow: '5px 5px 0 #111', fontFamily: 'var(--font-anton), Impact, sans-serif', fontSize: 20, textTransform: 'uppercase' }}>Choose options · Add to bag</a>
-          <p style={{ margin: '17px 0 0', color: '#555', fontSize: 13, lineHeight: 1.5 }}>Choose your options, then review your bag and pay by M-Pesa or card where available. Your order is confirmed after payment.</p>
-        </div>
-      </div>
+    <div className="wrap breadcrumbs"><a href="/shop">Shop</a><span>/</span><span>{product.name}</span></div>
+    <section className="product-detail wrap">
+      <div className="detail-image ugt-product-photo">{product.image?<PhotoGallery photos={[{id:product.id,url:product.image,altText:product.name}]}/>:<p>Product photograph coming soon.</p>}</div>
+      <div className="product-info"><p className="eyebrow">{product.category||'Official merchandise'}</p><h1>{product.name}</h1><p className="price">{money(Number(product.price))}</p>{product.description&&<p>{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants}/></div>
     </section>
-    <div className="ugt-product-purchase"><strong>{money(Number(product.price))}</strong><a href={`/shop?item=${encodeURIComponent(product.id)}`}>Choose options · Add to bag</a></div>
+    {reviews.length>0&&<section className="wrap product-reviews"><h2>Customer reviews</h2>{reviews.map((review,i)=><article key={i}><h3>{review.author}</h3><p>{review.rating} / 5</p><p>{review.body}</p></article>)}</section>}
   </main>;
 }
