@@ -56,9 +56,9 @@ export const ROUTES: RouteDef[] = [
   },
   {
     path: '/events', page: 'events', nav: 'Events',
-    title: 'Events & Tickets — Upcoming Urban Gang Tour Stops',
+    title: 'Nairobi Events & Tickets — Concerts, Festivals & Live Shows',
     description:
-      'Upcoming Urban Gang Tour stops and ticketed events across Kenya. See dates, venues and secure your place at the next school, campus or mega event.',
+      'Find concerts, festivals, club nights and live entertainment in Nairobi and across Kenya. Compare event dates, venues and ticket sellers, plus Urban Gang Tour events.',
     changefreq: 'daily', priority: 0.9,
   },
   {

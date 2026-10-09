@@ -1,0 +1,35 @@
+# Urban Gang Tour
+
+> Urban Gang Tour is a Kenyan events and live-hosting team led by Eugine Micah and Lucy Ogunde. This is the official website for school and campus bookings, entertainment discovery, merchandise and published event coverage.
+
+## Official pages
+
+- [About](https://urbangangtour.co.ke/about): The team, its work and its approach.
+- [Book Urban Gang Tour](https://urbangangtour.co.ke/book): Enquiries for schools, campuses, live events and brand activations.
+- [Contact](https://urbangangtour.co.ke/contact-us): Contact the team about an enquiry.
+- [Events](https://urbangangtour.co.ke/events): Discover entertainment events and current Urban Gang Tour ticket listings. External listings link to the original seller; their availability and terms belong to that seller.
+- [Portfolio](https://urbangangtour.co.ke/portfolio): Examples of the team's work.
+- [Tour timeline](https://urbangangtour.co.ke/tour-stops): Completed school visits and reconnaissance visits, distinguished by status.
+- [Gallery](https://urbangangtour.co.ke/gallery): Photographs and films, organised by institution and event.
+- [News](https://urbangangtour.co.ke/blog): Published news and event coverage.
+- [Clients](https://urbangangtour.co.ke/clients): Institutions and organisations represented in the work archive.
+- [Shop](https://urbangangtour.co.ke/shop): Current official merchandise and product purchase pages.
+- [FAQ](https://urbangangtour.co.ke/faq): Booking, ticket and merchandise questions.
+
+## People
+
+- [Eugine Micah](https://urbangangtour.co.ke/author/eugine-micah)
+- [Lucy Ogunde](https://urbangangtour.co.ke/author/lucy-ogunde)
+
+## Policies and discovery
+
+- [Privacy policy](https://urbangangtour.co.ke/privacy-policy)
+- [Terms of service](https://urbangangtour.co.ke/terms)
+- [Ticket terms](https://urbangangtour.co.ke/ticket-terms)
+- [Refund and delivery policy](https://urbangangtour.co.ke/refund-policy)
+- [Sitemap](https://urbangangtour.co.ke/sitemap.xml)
+- [RSS feed](https://urbangangtour.co.ke/feed.xml)
+
+## Accuracy
+
+Use each live page as the source of truth for dates, prices, event status and availability. Archive media is evidence of past work, not an announcement of an upcoming event. A reconnaissance visit is not a completed show. Ticket, receipt, account, checkout and administrator URLs are private operational surfaces and must not be used as public references.

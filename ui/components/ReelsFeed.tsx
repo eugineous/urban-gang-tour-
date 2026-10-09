@@ -19,7 +19,7 @@ export function ReelsFeed(){
   },[all]);
   useEffect(()=>{if(!filterMounted.current){filterMounted.current=true;return}setCurrentFrame(offset);requestAnimationFrame(()=>locate(0))},[query,category,savedOnly]);
   useEffect(()=>{if(active>=films.length){const index=Math.max(0,films.length-1);setActive(index);setCurrentFrame(index+offset);requestAnimationFrame(()=>locate(index))}else if(films.length===1){setCurrentFrame(0);requestAnimationFrame(()=>locate(0))}},[films.length,active,offset]);
-  useEffect(()=>{setError(false);setLoading(true);setProgress(0);for(const [index,v] of players.current){if(index===currentFrame&&(motion||manual)&&!paused)v.play().catch(()=>{setLoading(false);setNotice('Tap Play to start this video.')});else v.pause()}
+  useEffect(()=>{setError(false);setLoading(true);setProgress(0);for(const [index,v] of players.current){if(index===currentFrame&&(motion||manual)&&!paused)v.play().catch(e=>{if(e.name==='NotAllowedError'){setLoading(false);setPaused(true);setNotice('Tap Play to start this video.')}});else v.pause()}
     if(item&&initialized){const u=new URL(location.href);u.searchParams.set('film',item.id);history.replaceState(null,'',u)}
   },[item?.id,motion,manual,paused,currentFrame,initialized]);
   useEffect(()=>{const visibility=()=>{for(const [index,v] of players.current){if(document.hidden)v.pause();else if(index===currentFrame&&(motion||manual)&&!paused)v.play().catch(()=>{})}};document.addEventListener('visibilitychange',visibility);return()=>document.removeEventListener('visibilitychange',visibility)},[currentFrame,motion,manual,paused]);

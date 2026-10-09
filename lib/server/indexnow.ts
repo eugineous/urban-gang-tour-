@@ -8,15 +8,15 @@ import { SITE } from '@/lib/site';
 const INDEXNOW_KEY = 'db2a35cb019b2d7ae6e257a25e899f96';
 const INDEXNOW_KEY_LOCATION = `${SITE.domain}/${INDEXNOW_KEY}.txt`;
 
-// Fire-and-forget: a search-engine ping must never block or fail an admin
-// mutation. Swallow all errors, cap wait time so a slow/unreachable endpoint
-// can't hang the request.
-export function pingIndexNow(paths: string[]): void {
+// Called through Next's after() hook by publishing routes. Return the promise
+// so the Worker keeps this background request alive after sending its response.
+// Errors remain non-fatal and the timeout bounds the background task.
+export async function pingIndexNow(paths: string[]): Promise<void> {
   if (!paths.length) return;
   const urlList = paths.map((p) => SITE.domain + (p.startsWith('/') ? p : `/${p}`));
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 4000);
-  fetch('https://api.indexnow.org/indexnow', {
+  await fetch('https://api.indexnow.org/indexnow', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
     body: JSON.stringify({
