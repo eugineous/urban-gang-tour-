@@ -1,14 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import '../public-design/app/globals.css';
+import './modern.css';
+import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
-import { ICON_SPRITE } from './_components/iconSprite';
-import { HEADER_HTML } from './_components/headerHtml';
-import { FOOTER_HTML } from './_components/footerHtml';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
 import { AdSenseLoader } from './_components/Ads';
-import { BottomTabBar } from './_components/BottomTabBar';
-import { WhatsAppWidget } from './_components/WhatsAppWidget';
 import { PromoBanner } from './_components/PromoBanner';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { InstallableApp } from './_components/InstallableApp';
@@ -66,8 +64,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta property="fb:app_id" content="1338478978482580" />
         <link href="/fonts/v25-fonts.css" rel="stylesheet" />
         <link href="/fonts/v25-1.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
-        {/* Google Identity Services — powers the /admin Google Sign-In (v25 parity) */}
-        <script src="https://accounts.google.com/gsi/client" async defer />
         {/* Device id for rate limiting (lib/server/ratelimit.ts).
             Set here in the browser rather than in middleware on purpose: a
             middleware Set-Cookie lands on the page response, and a response
@@ -97,12 +93,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG')return;var o=t.getAttribute('data-ugt-src');if(!o||t.getAttribute('data-ugt-fellback'))return;t.setAttribute('data-ugt-fellback','1');t.removeAttribute('srcset');t.removeAttribute('sizes');t.setAttribute('src',o);},true);`,
           }}
         />
-        {/* Load the v25 runtime + template with priority so boot never gets
-            starved behind the static shell's images/video on media-heavy pages. */}
-        <link rel="preload" as="fetch" href="/v25-template.html" crossOrigin="anonymous" />
-        <link rel="preload" as="script" href="/support.js" />
-        <link rel="preload" as="script" href="/vendor/react.production.min.js" />
-        <link rel="preload" as="script" href="/vendor/react-dom.production.min.js" />
       </head>
       <body>
         {/* Skip-to-content link — first focusable element on every page.
@@ -117,58 +107,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
-        {/* v25 SVG icon sprite — rendered once, referenced by <use href="#i-*"> everywhere */}
-        <div
-          aria-hidden="true"
-          style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
-          dangerouslySetInnerHTML={{ __html: ICON_SPRITE }}
-        />
-        {/* Sitewide promo bar — rendered OUTSIDE #ssr-shell (survives the v25
-            runtime boot swap, same reason as BottomTabBar/WhatsAppWidget) and
-            as a normal in-flow block, not position:fixed, so it sits above
-            the sticky header and pushes everything else down by its own
-            height with zero z-index fighting. Renders nothing when there is
-            no active promo. */}
         <PromoBanner />
-        {/* SSR shell: full server-rendered page for crawlers + first paint.
-            v25's live runtime boots into #v25-host and then hides this. */}
-        <div id="ssr-shell" style={{ minHeight: '100vh', background: '#E6218C', position: 'relative' }}>
-          <div dangerouslySetInnerHTML={{ __html: HEADER_HTML }} />
-          {/* Skip-to-content target — must appear after the header nav so the
-              skip link jumps past it, but before page content. */}
-          <span id="main-content" tabIndex={-1} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }} aria-hidden="true" />
-          {children}
-          <div dangerouslySetInnerHTML={{ __html: FOOTER_HTML }} />
-        </div>
+        <AppShell>{children}</AppShell>
         <InstallableApp />
-        {/* mount point for the live interactive v25 app (client-only) */}
-        <div id="v25-host" />
-        {/* Mobile bottom tab bar — outside #ssr-shell so it survives the
-            runtime boot (the old menu vanished with the shell). */}
-        <BottomTabBar />
-        <WhatsAppWidget />
-        {/* Boot veil: hides the pre-boot shell flash; removed the instant the
-            live app renders (or by fallback timer). Hidden entirely for no-JS
-            visitors and crawlers via noscript. */}
-        {/* suppressHydrationWarning + hide-only (never .remove()): the veil
-            scripts race React hydration, and deleting the node made React
-            regenerate the whole tree (error 418) on slow loads. */}
-        <div id="boot-veil" aria-hidden="true" suppressHydrationWarning>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/ugt-logo-v2.png" alt="Urban Gang Tour" style={{ height: 84, width: 'auto' }} />
-          <p>Loading Urban Gang Tour</p>
-          <div className="boot-veil-bar"><span /></div>
-        </div>
-        <noscript>
-          <style>{`#boot-veil{display:none !important}`}</style>
-        </noscript>
-        {/* pages without the v25 booter (admin, account, blog, legal) never set
-            data-booted on the host — drop the veil for them immediately */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `setTimeout(function(){var v=document.getElementById('boot-veil');if(v)v.classList.add('gone');},3000);`,
-          }}
-        />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
             where we can't attach a debugger) in the server logs */}
         <script
@@ -179,7 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CookieConsent />
         {/* AdSense: dormant until NEXT_PUBLIC_ADSENSE_CLIENT is set, and even
             then loads only after a visitor accepts cookies. Drives Auto Ads
-            site-wide (covers the v25 SPA pages too). */}
+            site-wide. */}
         <AdSenseLoader />
         {/* Google Analytics: same dormant-until-configured, consent-gated
             pattern as AdSense above. */}

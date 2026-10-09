@@ -22,6 +22,8 @@ export function CookieConsent() {
     return () => window.removeEventListener('scroll', reveal);
   }, []);
 
+  useEffect(() => { const open = () => setShow(true); window.addEventListener('ugt-open-cookie-settings', open); return () => window.removeEventListener('ugt-open-cookie-settings', open); }, []);
+
   const beacon = () => {
     try {
       void fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: location.pathname }), keepalive: true }).catch(() => {});
@@ -43,7 +45,7 @@ export function CookieConsent() {
   const gaEnabled = Boolean(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
   const thirdParty = [adsEnabled && 'ads via Google', gaEnabled && 'Google Analytics'].filter(Boolean).join(' and ');
 
-  if (pathname?.startsWith('/admin') || !show) return null;
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/checkout') || pathname?.startsWith('/pay/') || !show) return null;
   return (
     <div className="ugt-cookie-consent" role="region" aria-label="Privacy preferences" style={{ position: 'fixed', bottom: 14, left: 14, right: 14, zIndex: 10000, maxWidth: 560, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', padding: '16px 18px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Your privacy choices</div>

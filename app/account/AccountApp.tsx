@@ -1,4 +1,5 @@
 'use client';
+import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -24,7 +25,7 @@ export default function AccountApp() {
     const controller = new AbortController();
     setChecking(true);
     setSessionError(false);
-    fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'me' }), signal: controller.signal })
+    fetchWithTimeout('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'me' }), signal: controller.signal })
       .then(async (r) => { if (!r.ok) throw new Error('session_unavailable'); return r.json(); })
       .then((d) => { if (!controller.signal.aborted) setUser(d.user || null); })
       .catch(() => { if (!controller.signal.aborted) setSessionError(true); })
@@ -39,7 +40,7 @@ export default function AccountApp() {
     setBusy(true);
     setMsg('');
     try {
-      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f, ...(action === 'signup' ? { adultConfirmed: eligible, termsAccepted } : {}) }) });
+      const r = await fetchWithTimeout('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f, ...(action === 'signup' ? { adultConfirmed: eligible, termsAccepted } : {}) }) });
       const d = await r.json();
       if (r.ok && d.ok) {
         setUser(action === 'logout' ? null : d.user);
@@ -57,7 +58,7 @@ export default function AccountApp() {
     setMsg('');
     try {
       const { name, school, title, pitch } = sub;
-      const r = await fetch('/api/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, school, title, pitch }) });
+      const r = await fetchWithTimeout('/api/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, school, title, pitch }) });
       const d = await r.json();
       if (r.ok && d.ok) setSub({ ...sub, sent: true });
       else if (r.status === 401) { setUser(null); setMsg('Your session has ended. Log in again to send your story.'); }

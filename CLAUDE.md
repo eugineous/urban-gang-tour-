@@ -7,10 +7,8 @@ Apply these by default in every session. See `HANDOFF.md` for the full roadmap.
   state-swap as the primary navigation — real `<a href>` between routes.
 - Every route server-renders unique metadata (title, description, canonical, OG). **No two
   pages share a canonical.**
-- Keep v25's markup + CSS verbatim. Engine/routing/data changes only — never a visual redesign.
-- The live v25 experience is restored by booting the dc-runtime (`app/_components/V25App.tsx`)
-  over an SEO shell. If you change v25's markup, re-run `scratchpad/cap/capture.mjs` and
-  `scratchpad/cap/build-runtime.py`.
+- V25 was retired by the owner on 9 October 2026. Use the approved `public-design` interface and real API-backed transaction screens. Do not restore captured HTML, a second React runtime or the bottom navigation.
+- Preserve business records and media when retiring old frontend code.
 
 ## Security (non-negotiable)
 - **No hardcoded secrets** anywhere. Env vars, server-side only, never exposed client-side.

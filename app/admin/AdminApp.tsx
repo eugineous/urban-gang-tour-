@@ -1,4 +1,5 @@
 "use client";
+import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -327,7 +328,7 @@ function startingTab(scope: AdminSession["scope"], perms: string[]): Tab {
 
 async function api(path: string, opts?: RequestInit) {
   try {
-    const r = await fetch(path, {
+    const r = await fetchWithTimeout(path, {
       headers: { "Content-Type": "application/json" },
       ...opts,
     });
@@ -365,12 +366,6 @@ export default function AdminApp({
     setToast(m);
     setTimeout(() => setToast(""), 3000);
   };
-
-  const refreshSession = useCallback(async () => {
-    const { status, data } = await api("/api/admin/me");
-    if (status === 200)
-      setSession({ scope: data.scope, perms: data.perms || [] });
-  }, []);
 
   // Client-side visibility only (see TAB_PERM's note above) - while the
   // session hasn't loaded yet, hide every scoped tab rather than flash
@@ -424,7 +419,11 @@ export default function AdminApp({
       return;
     }
     setSession({ scope: data.scope, perms: data.perms });
-    setTab(startingTab(data.scope, data.perms));
+    const requested = new URLSearchParams(window.location.search || '').get("tab") as Tab | null;
+    const permission = requested ? TAB_PERM[requested] : undefined;
+    const special = requested && ["Inbox", "Admins", "Security"].includes(requested);
+    const allowed = data.scope === "super_admin" || (!special && (!permission || (Array.isArray(permission) ? permission : [permission]).some(p => data.perms.includes(p))));
+    setTab(requested && ([...TABS, ...OPS_TABS] as readonly string[]).includes(requested) && allowed ? requested : startingTab(data.scope, data.perms));
     setAuthed(true);
     const s = await load("stats");
     setStats(s[0] || null);
@@ -433,14 +432,6 @@ export default function AdminApp({
     void probeSession();
   }, [probeSession]);
 
-  useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get("tab");
-    if (
-      requested &&
-      ([...TABS, ...OPS_TABS] as readonly string[]).includes(requested)
-    )
-      setTab(requested as Tab);
-  }, []);
 
   const viewFor: Record<string, string> = {
     Bookings: "bookings",
@@ -488,10 +479,7 @@ export default function AdminApp({
       body: JSON.stringify({ password: code }),
     });
     if (status === 200) {
-      setAuthed(true);
-      await refreshSession();
-      const s = await load("stats");
-      setStats(s[0] || null);
+      await probeSession();
     } else
       setErr(
         data.error === "wrong_password"
@@ -503,12 +491,15 @@ export default function AdminApp({
   };
 
   // Google Sign-In (GIS) — alternative to the access code. The gsi/client
-  // script is loaded globally in the layout; render the button once the
+  // script loads after this login card hydrates; render the button once the
   // login card is showing and the library is ready.
   useEffect(() => {
     if (authed !== false) return;
     const clientId = googleClientId;
     if (!clientId) return;
+    if (!(window as any).google?.accounts?.id && !document.querySelector('script[data-ugt-gsi]')) {
+      const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.dataset.ugtGsi='true';document.body.appendChild(script);
+    }
     let tries = 0;
     const t = setInterval(() => {
       const g = (window as any).google?.accounts?.id;
@@ -524,10 +515,7 @@ export default function AdminApp({
               body: JSON.stringify({ credential: resp.credential }),
             });
             if (status === 200) {
-              setAuthed(true);
-              await refreshSession();
-              const s = await load("stats");
-              setStats(s[0] || null);
+              await probeSession();
             } else
               setErr(
                 data.error === "not_authorised"
@@ -545,7 +533,7 @@ export default function AdminApp({
       } else if (++tries > 40) clearInterval(t);
     }, 250);
     return () => clearInterval(t);
-  }, [authed, load, googleClientId]);
+  }, [authed, probeSession, googleClientId]);
 
   const save = async (kind: string, data: any, after?: () => void) => {
     setBusy(true);

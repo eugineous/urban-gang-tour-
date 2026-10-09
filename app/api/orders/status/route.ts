@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   if (!rows.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
   const o = rows[0];
-  const paid = o.status === 'paid';
+  const paid = o.status === 'paid' || o.status === 'fulfilled';
   // pay_method / paystack_ref / stripe_payment_intent are added lazily by the
   // card routes' ensureColumns; SELECT * keeps this endpoint tolerant of both
   // schema generations.

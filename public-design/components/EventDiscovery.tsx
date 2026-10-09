@@ -2,9 +2,9 @@
 import {Newsletter} from './Newsletter';
 import {useEffect,useState} from 'react';
 import Link from './DocumentLink';
-import seed from '@/data/event-discovery.json';
-import {rankEvents,reportedSales} from '@/lib/event-ranking.mjs';
-import timeline from '@/data/tour-timeline.json';
+import seed from '../data/event-discovery.json';
+import {rankEvents,reportedSales} from '../lib/event-ranking.mjs';
+import timeline from '../data/tour-timeline.json';
 const endpoint='https://urban-gang-tour-events.euginemicah.workers.dev/events';
 type Listing=typeof seed.events[number];type Source=typeof seed.sources[number];type Feed={generatedAt:string;refreshSeconds:number;events:Listing[];sources:Source[];stale?:boolean};
 const initial=seed as Feed;

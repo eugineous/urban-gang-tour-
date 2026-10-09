@@ -15,6 +15,10 @@ async function main() {
     return;
   }
   await mkdir(destDir, { recursive: true });
+  for (const dir of ['media-library', 'design-assets', 'fonts']) {
+    const source = path.join(root, 'public-design/public', dir);
+    if (existsSync(source)) await cp(source, path.join(destDir, dir), {recursive: true});
+  }
   // .orig.* are local pre-compression masters (gitignored) - never ship them
   // These three committed public files are already compressed. Copying their
   // source masters over them silently undid the previous performance fix.

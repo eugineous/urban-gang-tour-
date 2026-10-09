@@ -5,6 +5,8 @@ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless
 for(const width of [390,820,1440]){
  const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
+ // Keep the UI regression deterministic; a third-party player owns its own scripts.
+ await context.route('https://www.youtube-nocookie.com/embed/**',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>YouTube test player</title>'}));
  await context.route('**/api/site-data/events',r=>r.fulfill({json:{ok:true,events:[]}}));
  await context.route('**/api/site-data/posts',r=>r.fulfill({json:{ok:true,posts:[]}}));
  await context.route('**/api/subscribe',r=>{assert.equal(JSON.parse(r.request().postData()).email,'review@example.invalid');return r.fulfill({json:{ok:true}})});

@@ -6,7 +6,7 @@ try{
  for(const width of [320,390,414,1440]){
  const context=await browser.newContext({viewport:{width,height:844},serviceWorkers:'block'});
  // A stalled enhancement must never strand visitors behind a loading screen.
- await context.route('**/support.js',route=>route.abort());
+
  const page=await context.newPage();
  for(const route of ['/','/shop','/events','/about']){
  await page.goto(base+route,{waitUntil:'domcontentloaded'});
