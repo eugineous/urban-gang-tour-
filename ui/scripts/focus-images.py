@@ -5,6 +5,8 @@ from pathlib import Path
 import cv2,numpy as np
 from PIL import Image,ImageOps
 root=Path(__file__).resolve().parents[1]
+public_dir=root.parent/'public'
+if not public_dir.is_dir():raise SystemExit('Application public asset directory is missing')
 output=root/'data/image-focus.json'
 cache=root/'data/image-focus-cache.json'
 previous_path=cache if cache.exists() else output
@@ -14,9 +16,9 @@ overrides_path=root/'data/image-focus-overrides.json'
 overrides=json.loads(overrides_path.read_text()) if overrides_path.exists() else {}
 detector=cv2.FaceDetectorYN.create(str(root/'scripts/models/yunet.onnx'),'',(320,320),0.8,0.3,5000)
 result={};detected=0;errors=[]
-for path in sorted((root/'public').rglob('*')):
+for path in sorted(public_dir.rglob('*')):
  if path.suffix.lower() not in {'.jpg','.jpeg','.png','.webp','.avif'}:continue
- url='/'+path.relative_to(root/'public').as_posix()
+ url='/'+path.relative_to(public_dir).as_posix()
  try:
   digest=hashlib.sha256(path.read_bytes()).hexdigest()
   if previous.get(url,{}).get('digest')==digest:entry=previous[url]
