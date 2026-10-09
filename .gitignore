@@ -58,3 +58,12 @@ mobile-check-*.png
 /document-thumbs/
 
 node_modules
+
+/evidence/
+/e2e/evidence/
+/e2e/results/
+/e2e/.e2e/
+
+# Generated copies of approved design media; sources live in public-design/public.
+/public/media-library/
+/public/design-assets/

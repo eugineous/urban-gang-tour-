@@ -67,7 +67,7 @@ configured · 429 (8/min/IP).
 Public poll for the checkout STK-waiting panel. Id format-validated
 (`^ORD-[A-Z0-9-]{4,40}$`); the unguessable id is the bearer. Returns
 `{status, total, receipt, method, created_at}` - `receipt` (M-Pesa receipt /
-Paystack ref / Stripe payment intent) only once paid. NEVER returns
+Paystack ref / Stripe payment intent) only once paid or fulfilled. NEVER returns
 name/email/phone. 200 - 400 - 404 unknown - 429 (30/min/IP) - 503 no DB.
 
 ### GET /receipt/[id]
@@ -290,3 +290,7 @@ Public organizer applications (`POST /api/organizer/signup`) also require boolea
 - `GET /api/admin/tickets/:code/holder`: verified admin plus `gate_scanner` permission; 30 requests/minute/IP, audited contact lookup, `private, no-store`. Anonymous 401, unauthorized role 403.
 - `PUT /api/organizer/events/:id/design`: approved organizer, same-origin, rate-limited; ownership enforced in UPDATE. Allowed `design`, `name`, `accent`, optional PNG/JPEG data URI `logo`, `photo`. Unexpected fields rejected, request bounded to 750 KB; missing/foreign event 404. Cannot modify price/status. Static templates live in `/organizer/dashboard/designs`; admin sample studio `/admin/docs/designs` requires `documents` permission.
 - Personalized PDF endpoints use private no-store headers. New download retains issued ID. Payment receipt delivery accepts only paid/fulfilled orders and uses provider idempotency; manual resend is separately keyed.
+
+## Approved transaction interface (9 October 2026)
+
+`/shop`, `/cart`, `/checkout` and `/book` use native Next/React components and the existing authenticated/server-validated APIs. No captured template or separate React runtime is loaded. Product and ticket prices are display hints only; order creation resolves prices and inventory server-side. Payment confirmation polls the recorded order status. The browser migrates older `ugt_cart` entries to `ugt-live-cart-v1` and removes a paid merchandise bag only when it matches the saved checkout snapshot. Booking and order retries preserve the request ID while the submitted details are unchanged.

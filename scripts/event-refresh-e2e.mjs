@@ -1,0 +1,14 @@
+import {chromium} from 'playwright';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
+const b=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const p=await b.newPage({viewport:{width:390,height:844}});const now=Date.now();
+const event=(id,title)=>({id,title,category:'Music & nightlife',sourceId:id,sourceName:id,sourceType:'Ticket seller',url:'https://example.com/'+id,startsAt:new Date(now+86400000).toISOString(),checkedAt:new Date(now).toISOString(),region:'Nairobi & nearby',image:'/assets/ugt-logo.png',venue:'Nairobi stage',price:500,currency:'KES',priority:0});
+const events=[event('alpha','Artist Alpha live'),event('beta','Artist Beta live')];let own=[],writes=[];
+await p.route('**/api/site-data/events',r=>r.fulfill({json:{ok:true,events:own}}));
+await p.route('**/api/event-interest',r=>{if(r.request().method()==='POST'){writes.push(JSON.parse(r.request().postData()));return r.fulfill({json:{ok:true}})}return r.fulfill({json:{capturedAt:new Date(now).toISOString(),signals:[{key:createHash('sha256').update('beta').digest('hex').slice(0,24),kind:'click',value:20}]}})});
+await p.route('https://urban-gang-tour-events.euginemicah.workers.dev/events',r=>r.fulfill({json:{generatedAt:new Date(now).toISOString(),refreshSeconds:180,events,sources:[]}}));
+await p.goto('http://127.0.0.1:4184/events',{waitUntil:'domcontentloaded'});
+await p.waitForFunction(()=>document.querySelector('.discovery-feature h2')?.textContent==='Artist Beta live');
+await p.locator('.discovery-search input').fill('Artist Alpha');await p.waitForTimeout(900);assert.equal(writes.length,0,'No consent means no tracking');
+await p.evaluate(()=>localStorage.setItem('ugt-new-preview-v1consent',JSON.stringify('accepted')));await p.locator('.discovery-search input').fill('Artist Alpha live');await p.waitForTimeout(900);assert.equal(writes.length,1);assert.equal(writes[0].kind,'search');assert.equal('query' in writes[0],false);
+own=[{id:'own',kind:'ticketed',status:'published',eventDate:new Date(now+86400000).toISOString().slice(0,10),priority:50,name:'Urban Gang Live',slug:'urban-gang-live',venue:'Nairobi',image:'/assets/ugt-logo.png'}];
+await p.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await p.getByRole('heading',{name:'Urban Gang Live',exact:true}).waitFor();await p.locator('.event-update-notice').waitFor();await p.getByRole('button',{name:'Dismiss event update'}).click();await p.locator('.event-update-notice').waitFor({state:'hidden'});
+console.log('PASS measured-interest ranking, consent gating, no raw queries, refreshed own-event priority and dismissible announcement');await b.close();

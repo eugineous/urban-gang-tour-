@@ -8,17 +8,12 @@ export default {
     if (url.pathname.startsWith('/_design-pages/')) return new Response('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } });
     const design = await publicDesignResponse(request, env, designRoutes);
     if (design) return design;
-    if ((url.pathname === '/v25-template' || url.pathname === '/v25-template.html') && request.headers.get('sec-fetch-dest') === 'document') {
-      return Response.redirect(new URL('/', url).href, 302);
-    }
+    if (url.pathname === '/v25-template' || url.pathname === '/v25-template.html') return Response.redirect(new URL('/', url).href, 301);
     const response = await app.fetch(request, env, ctx);
-    if (url.pathname === '/v25-template.html') {
-      const headers = new Headers(response.headers);
-      headers.set('X-Robots-Tag', 'noindex, nofollow');
-      headers.set('Cache-Control', 'no-cache, must-revalidate');
-      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-    }
-    return response;
+    const headers = new Headers(response.headers);
+    const csp = headers.get('Content-Security-Policy');
+    if (csp) headers.set('Content-Security-Policy', csp.replace(/(connect-src[^;]*)/, '$1 https://urban-gang-tour-events.euginemicah.workers.dev').replace(/(frame-src[^;]*)/, '$1 https://www.youtube-nocookie.com'));
+    return new Response(response.body, {status: response.status, statusText: response.statusText, headers});
   },
   async scheduled(_controller, env, ctx) {
     // Use the existing self-service binding. No public bearer token travels

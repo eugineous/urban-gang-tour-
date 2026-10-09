@@ -1,0 +1,4 @@
+export type CartItem={id:string;qty:number;variant?:string};
+export const LIVE_CART_KEY='ugt-live-cart-v1';
+export function readLiveCart():CartItem[]{try{const stored=JSON.parse(localStorage.getItem(LIVE_CART_KEY)||localStorage.getItem('ugt_cart')||'[]');return Array.isArray(stored)?stored.filter(x=>typeof x?.id==='string'&&Number.isInteger(x.qty)&&x.qty>=1&&x.qty<=20&&(!x.variant||typeof x.variant==='string')).map((x:CartItem&{size?:string})=>({id:x.id,qty:x.qty,variant:x.variant||(typeof x.size==='string'?x.size:undefined)})):[]}catch{return []}}
+export function addCartItem(items:CartItem[],item:CartItem){const found=items.find(x=>x.id===item.id&&x.variant===item.variant);return found?items.map(x=>x===found?{...x,qty:Math.min(20,x.qty+item.qty)}:x):[...items,{...item,qty:Math.max(1,Math.min(20,item.qty))}]}

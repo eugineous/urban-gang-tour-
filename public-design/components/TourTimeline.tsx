@@ -1,7 +1,7 @@
 'use client';
 import Link from './DocumentLink';
 import {useState} from 'react';
-import timeline from '@/data/tour-timeline.json';
+import timeline from '../data/tour-timeline.json';
 
 export function TourTimeline(){
   const [filter,setFilter]=useState('All');
@@ -13,7 +13,7 @@ export function TourTimeline(){
     <article className="tour-timeline-card">
       {e.image&&<img src={e.image} alt={`Urban Gang Tour at ${e.name}`} loading="lazy" decoding="async"/>}
       <div><span className="tour-status">{e.status==='completed'?'Completed event':'Reconnaissance visit'}</span><h2>{e.name}</h2><p>{e.venue}</p><p>{e.status==='completed'?'A school tour stop with Urban Gang Tour.':'A planning visit to the school. This was not a completed school event.'}</p>
-      {e.status==='completed'&&<Link href={`/events/${e.id}`}>Explore this stop <span aria-hidden="true">→</span></Link>}</div>
+      {e.status==='completed'&&<Link href={`/gallery/school-${e.id}`}>Explore this stop <span aria-hidden="true">→</span></Link>}</div>
     </article>
   </li>}
   return <><section className="page-intro wrap"><div><p className="eyebrow">The school tour</p><h1>Our journey,<br/>school by school.</h1></div><p>See where we’ve hosted events and where we’ve visited to plan what comes next.</p></section>

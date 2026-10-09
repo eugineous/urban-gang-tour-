@@ -12,6 +12,8 @@ export default function EditEventForm() {
   const [ready, setReady] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [accessError, setAccessError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState('draft');
   const [ticketsSold, setTicketsSold] = useState(0);
   const [name, setName] = useState('');
@@ -28,10 +30,15 @@ export default function EditEventForm() {
 
   useEffect(() => {
     if (!id) return;
+    setLoadError('');setReady(false);setNotFound(false);
     api('/api/organizer/me').then(({ data }) => {
       if (!data.organizer) { setAccessError(organizerAccessMessage(data.error)); setReady(true); return; }
       api(`/api/organizer/events/${id}`).then(({ status: st, data: d }) => {
-        if (st !== 200) { setNotFound(true); setReady(true); return; }
+        if (st !== 200) {
+          if (st === 404 || st === 403) setNotFound(true);
+          else setLoadError('Could not load this event. Your saved details have not been changed.');
+          setReady(true); return;
+        }
         const r = d.row;
         setStatus(r.status);
         setTicketsSold(d.ticketsSold || 0);
@@ -45,7 +52,7 @@ export default function EditEventForm() {
         setReady(true);
       });
     });
-  }, [id]);
+  }, [id, attempt]);
 
   const setTier = (i: number, patch: Partial<Tier>) => setTiers(tiers.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
 
@@ -67,6 +74,7 @@ export default function EditEventForm() {
 
   if (!ready) return <div style={shell}><div style={wrap}><div style={card}>Checking organizer access…</div></div></div>;
   if (accessError) return <div style={shell}><div style={wrap}><div style={card}>{accessError}<div style={{ marginTop: 14 }}><a href="/organizer/login" style={{ ...btnMagenta, textDecoration: 'none', display: 'inline-block' }}>Organizer login</a></div></div></div></div>;
+  if (loadError) return <div style={shell}><div style={wrap}><div style={card}><p role="alert">{loadError}</p><button style={btnMagenta} onClick={()=>setAttempt(n=>n+1)}>Try loading again</button><p><a href="/organizer/dashboard">Back to your dashboard</a></p></div></div></div>;
   if (notFound) return <div style={shell}><div style={wrap}><div style={{ ...card, background: '#fff' }}>Event not found.</div></div></div>;
 
   const st = STATUS_CHIP[status] || STATUS_CHIP.draft;

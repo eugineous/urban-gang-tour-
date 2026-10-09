@@ -3,9 +3,9 @@ import {LogoRoll,VideoRoll,GalleryPhoto} from './ExperienceRails';
 import {SchoolDirectory} from './PortfolioExperience';
 import Link from './DocumentLink';
 import {useEffect,useRef,useState} from 'react';
-import library from '@/data/media-library.json';
-import focusMetadata from '@/data/image-focus.json';
-import {focalPosition} from '@/lib/focal';
+import library from '../data/media-library.json';
+import focusMetadata from '../data/image-focus.json';
+import {focalPosition} from '../lib/focal';
 export function PortfolioArrow(){return <svg className="portfolio-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>}
 export type Asset={id:string;kind:string;src:string;poster:string|null;width:number;height:number;duration:number|null;collection:string;title:string;adult:boolean;bytes:number};
 export const media=library.assets as Asset[];

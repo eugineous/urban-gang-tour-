@@ -1,4 +1,4 @@
-const CACHE = 'ugt-documents-20261009';
+const CACHE = 'ugt-approved-interface-20261009';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
@@ -23,7 +23,7 @@ self.addEventListener('fetch', (event) => {
   // Unhashed application files change between deployments. Never pin a
   // visitor to the runtime from their first install. Keep an offline copy,
   // but always ask the network for the current version when connected.
-  if (['/support.js', '/v25-template.html', '/sw.js', '/manifest.json'].includes(url.pathname)) {
+  if (['/sw.js', '/manifest.json'].includes(url.pathname)) {
     event.respondWith(
       fetch(request).then((res) => {
         if (res.ok) event.waitUntil(caches.open(CACHE).then((cache) => cache.put(request, res.clone())));

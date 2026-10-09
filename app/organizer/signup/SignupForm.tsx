@@ -7,6 +7,8 @@ interface Bank { name: string; code: string; currency: string }
 
 export default function SignupForm() {
   const [banks, setBanks] = useState<Bank[]>([]);
+  const [bankError, setBankError] = useState('');
+  const [bankAttempt, setBankAttempt] = useState(0);
   const [businessName, setBusinessName] = useState('');
   const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
@@ -20,7 +22,7 @@ export default function SignupForm() {
   const [done, setDone] = useState(false);
   const [toast, say] = useToast();
 
-  useEffect(() => { api('/api/organizer/banks').then(({ data }) => setBanks(data.banks || [])); }, []);
+  useEffect(() => { setBankError('');api('/api/organizer/banks').then(({ status,data }) => {if(status===200 && Array.isArray(data.banks))setBanks(data.banks);else setBankError('Could not load settlement banks. Please retry.');}); }, [bankAttempt]);
 
   const submit = async () => {
     if (!adultConfirmed || !termsAccepted) return say('Confirm adult authority and accept the terms before applying.');
@@ -91,6 +93,7 @@ export default function SignupForm() {
               <input id="org-password" style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
             </div>
             <div style={{ borderTop: '1px dashed #ccc', paddingTop: 12, marginTop: 4 }}>
+              {bankError&&<div><p role="alert">{bankError}</p><button style={btnMagenta} onClick={()=>setBankAttempt(n=>n+1)}>Retry bank list</button></div>}
               <span style={{ ...label, marginBottom: 8 }}>Payout details — where we send your share automatically per sale</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>

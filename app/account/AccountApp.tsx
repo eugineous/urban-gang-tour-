@@ -1,10 +1,12 @@
 'use client';
+import {GoogleSignIn} from '@/app/_components/GoogleSignIn';
+import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useEffect, useRef, useState } from 'react';
 
-const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', padding: 22 };
-const inp: React.CSSProperties = { width: '100%', padding: '11px 13px', border: '2px solid #111', borderRadius: 10, fontSize: 16, boxSizing: 'border-box', fontFamily: 'inherit' };
-const btn: React.CSSProperties = { background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 14, padding: '12px 18px', border: '3px solid #111', borderRadius: 12, boxShadow: '4px 4px 0 #111', cursor: 'pointer', width: '100%' };
+const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd4da', borderRadius: 16, boxShadow: 'none', padding: 22 };
+const inp: React.CSSProperties = { width: '100%', padding: '11px 13px', border: '1px solid #b9acb3', borderRadius: 10, fontSize: 16, boxSizing: 'border-box', fontFamily: 'inherit' };
+const btn: React.CSSProperties = { background: '#9a145d', color: '#fff', fontWeight: 600, fontSize: 14, padding: '12px 18px', border: '1px solid #ddd4da', borderRadius: 12, boxShadow: 'none', cursor: 'pointer', width: '100%' };
 
 export default function AccountApp() {
   const [user, setUser] = useState<any>(null);
@@ -24,7 +26,7 @@ export default function AccountApp() {
     const controller = new AbortController();
     setChecking(true);
     setSessionError(false);
-    fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'me' }), signal: controller.signal })
+    fetchWithTimeout('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'me' }), signal: controller.signal })
       .then(async (r) => { if (!r.ok) throw new Error('session_unavailable'); return r.json(); })
       .then((d) => { if (!controller.signal.aborted) setUser(d.user || null); })
       .catch(() => { if (!controller.signal.aborted) setSessionError(true); })
@@ -39,7 +41,7 @@ export default function AccountApp() {
     setBusy(true);
     setMsg('');
     try {
-      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f, ...(action === 'signup' ? { adultConfirmed: eligible, termsAccepted } : {}) }) });
+      const r = await fetchWithTimeout('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f, ...(action === 'signup' ? { adultConfirmed: eligible, termsAccepted } : {}) }) });
       const d = await r.json();
       if (r.ok && d.ok) {
         setUser(action === 'logout' ? null : d.user);
@@ -57,7 +59,7 @@ export default function AccountApp() {
     setMsg('');
     try {
       const { name, school, title, pitch } = sub;
-      const r = await fetch('/api/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, school, title, pitch }) });
+      const r = await fetchWithTimeout('/api/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, school, title, pitch }) });
       const d = await r.json();
       if (r.ok && d.ok) setSub({ ...sub, sent: true });
       else if (r.status === 401) { setUser(null); setMsg('Your session has ended. Log in again to send your story.'); }
@@ -73,7 +75,7 @@ export default function AccountApp() {
     return (
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'grid', gap: 18 }}>
         <div style={card}>
-          <h2 style={{ fontFamily: 'Anton', margin: '0 0 6px' }}>KARIBU, {(user.name || user.email || 'GANG MEMBER').toUpperCase()}</h2>
+          <h2 style={{ fontFamily: 'inherit', margin: '0 0 6px' }}>KARIBU, {(user.name || user.email || 'GANG MEMBER').toUpperCase()}</h2>
           <div style={{ fontSize: 13, color: '#555' }}>{user.email || user.phone} · Your details are protected under our <a href="/privacy-policy" style={{ color: '#E6218C', fontWeight: 700 }}>Privacy Policy</a>.</div>
           <button style={{ ...btn, width: 'auto', marginTop: 14, background: '#111', color: '#fff' }}
             disabled={busy} onClick={() => go('logout')}>
@@ -82,7 +84,7 @@ export default function AccountApp() {
         </div>
         {msg && <p role="alert" style={{ ...card, color: '#a00' }}>{msg}</p>}
         <div style={card}>
-          <h3 style={{ fontFamily: 'Anton', margin: '0 0 8px' }}>PITCH A STUDENT BLOG / NEWS STORY</h3>
+          <h3 style={{ fontFamily: 'inherit', margin: '0 0 8px' }}>PITCH A STUDENT BLOG / NEWS STORY</h3>
           {sub.sent ? <div style={{ color: '#1F8A5B', fontWeight: 700 }}>✓ Sent to the newsroom — the crew reviews every pitch.</div> : (
             <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void submitPitch(); }}>
               <label>Your name<input style={inp} required maxLength={100} autoComplete="name" value={sub.name} onChange={(e) => setSub({ ...sub, name: e.target.value })} /></label>
@@ -93,14 +95,15 @@ export default function AccountApp() {
             </form>
           )}
         </div>
-        <div style={card}><h3 style={{ fontFamily: 'Anton' }}>YOUR DATA</h3><p>To request a copy or deletion of your personal data, <a href="mailto:admin@urbangangtour.co.ke?subject=Account%20data%20request">email our team</a>. We respond within 30 days. Opening your email app does not submit a request.</p><a href="/privacy-policy">Your privacy rights</a> · <a href="/">Back to the tour</a></div>
+        <div style={card}><h3 style={{ fontFamily: 'inherit' }}>YOUR DATA</h3><p>To request a copy or deletion of your personal data, <a href="mailto:admin@urbangangtour.co.ke?subject=Account%20data%20request">email our team</a>. We respond within 30 days. Opening your email app does not submit a request.</p><a href="/privacy-policy">Your privacy rights</a> · <a href="/">Back to the tour</a></div>
       </div>
     );
   }
 
   return (
     <div style={{ ...card, maxWidth: 440, margin: '0 auto' }}>
-      <h2 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>{mode === 'login' ? 'LOG IN' : 'JOIN THE GANG'}</h2>
+      <h2 style={{ fontFamily: 'inherit', margin: '0 0 4px' }}>{mode === 'login' ? 'LOG IN' : 'JOIN THE GANG'}</h2>
+      {mode==='login'&&<GoogleSignIn endpoint="/api/auth/google" onSuccess={d=>{setUser(d.user);setMsg('')}}/>}
       <div style={{ fontSize: 13, color: '#555', marginBottom: 14 }}>Use your email or Kenyan phone number.</div>
       <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void go(mode); }}>
         {mode === 'signup' && <label>Name<input style={inp} maxLength={100} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>}

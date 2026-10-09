@@ -20,12 +20,12 @@ async function request(path: string, networkFails = false) {
 
 describe('deployed runtime updates', () => {
   it('fetches the current unhashed runtime instead of keeping a previous deployment', async () => {
-    const result = await request('/support.js');
+    const result = await request('/manifest.json');
     expect(result.text).toBe('current runtime');
     expect(result.fetched).toHaveLength(1);
   });
   it('can fall back to a cached runtime while offline', async () => {
-    expect((await request('/support.js', true)).text).toBe('old runtime');
+    expect((await request('/manifest.json', true)).text).toBe('old runtime');
   });
   it('retains cache-first behavior only for immutable compiled bundles', async () => {
     const result = await request('/_next/static/chunks/hashed.js');

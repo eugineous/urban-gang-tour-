@@ -10,17 +10,6 @@ const nextConfig = {
   // visitor. A streamed Suspense placeholder needs JavaScript to become the
   // real page, which made otherwise server-rendered routes look blank.
   htmlLimitedBots: /.*/,
-  // Captured v25 shells must be part of the server bundle: Workers do not have
-  // the repository filesystem at runtime. The explicit query keeps this rule
-  // scoped to imports in app/_components/captured-pages.ts.
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.html$/i,
-      resourceQuery: /rendered-page/,
-      type: 'asset/source',
-    });
-    return config;
-  },
   // Legacy eslint config in the repo isn't for this app; don't let it block builds.
   eslint: { ignoreDuringBuilds: true },
   // @react-pdf/renderer (pdfkit inside) ships font data that breaks if webpack
@@ -43,18 +32,7 @@ const nextConfig = {
       { source: '/gang', destination: '/the-gang', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },
       { source: '/v25-template', destination: '/', permanent: true },
-      // /v25-template.html is a raw client-side template fragment (unrendered
-      // {{ mustache }} placeholders), fetched internally by V25App.tsx via
-      // `fetch('/v25-template.html')` — that request never sets
-      // sec-fetch-dest: document, only a real browser navigation does. Google
-      // had indexed it directly as a broken-looking page; 301 real visitors
-      // away from it while leaving the internal fetch() untouched.
-      {
-        source: '/v25-template.html',
-        has: [{ type: 'header', key: 'sec-fetch-dest', value: 'document' }],
-        destination: '/',
-        permanent: true,
-      },
+      { source: '/v25-template.html', destination: '/', permanent: true },
     ];
   },
   // NOTE: the old preview-era rewrite that proxied missing /assets/* to the
@@ -70,12 +48,7 @@ const nextConfig = {
     // never an embedded script/iframe, so it needs no CSP allowance at all.
     const csp = [
       "default-src 'self'",
-      // 'unsafe-eval' is required: the v25 runtime (public/support.js) uses
-      // `new Function(...)` to evaluate each template's logic class at boot
-      // (see evalDcLogic) — confirmed by testing a real production build,
-      // where without this the entire interactive app (cart, checkout,
-      // tickets, admin) fails to boot. Not a dev-mode artifact, don't remove.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://www.googletagmanager.com",
+      `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval' " : ""}https://accounts.google.com https://www.googletagmanager.com`,
       // accounts.google.com is here too: the GIS button loads its own
       // stylesheet (https://accounts.google.com/gsi/style) separately from
       // the script - found live while testing the connect-src fix above.
@@ -93,8 +66,8 @@ const nextConfig = {
       // subdomains like region1.google-analytics.com) plus analytics.google.com
       // - tested against a real config with NEXT_PUBLIC_GA_MEASUREMENT_ID set,
       // not guessed, learning from the connect-src gap Google Sign-In hit today.
-      "connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com",
-      "frame-src 'self' https://www.youtube.com https://accounts.google.com",
+      "connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com https://urban-gang-tour-events.euginemicah.workers.dev",
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "object-src 'none'",
@@ -113,15 +86,7 @@ const nextConfig = {
       { source: '/admin/gate', headers: [{key:'Permissions-Policy',value:'camera=(self), microphone=(), geolocation=()'}] },
       { source: '/verify/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Referrer-Policy',value:'no-referrer'}] },
       {
-        source: '/support.js',
-        headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],
-      },
-      {
         source: '/sw.js',
-        headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],
-      },
-      {
-        source: '/v25-template.html',
         headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],
       },
       {

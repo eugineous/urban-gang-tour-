@@ -1876,7 +1876,7 @@ export default function DocGen() {
           : "Check every entered detail against the current approved record before generating the final document.";
 
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div className="ugt-docgen" style={{ display: "grid", gap: 14, minWidth: 0 }}>
       {toast && (
         <div
           style={{
@@ -1906,7 +1906,7 @@ export default function DocGen() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(220px, 1fr) auto",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,220px),1fr))",
             gap: 10,
             alignItems: "center",
             padding: 10,
@@ -1929,7 +1929,7 @@ export default function DocGen() {
             value={librarySearch}
             onChange={(event) => setLibrarySearch(event.target.value)}
             placeholder="Search invoice, school, poster..."
-            style={{ ...inp, minWidth: 220 }}
+            style={{ ...inp, minWidth: 0 }}
           />
         </div>
         <div
@@ -2014,10 +2014,10 @@ export default function DocGen() {
         </div>
       </div>
 
-      <div
+      <div className="ugt-docgen-workspace"
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(280px,1fr) minmax(300px,1.15fr)",
+          gridTemplateColumns: "minmax(0,1fr) minmax(0,1.15fr)",
           gap: 14,
           alignItems: "start",
         }}

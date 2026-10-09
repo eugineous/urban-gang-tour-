@@ -1,5 +1,8 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Private review publication
+- On 9 October 2026, the owner requested that every review change be published to the existing owner-private ChatGPT Site. Keep internal navigation inside that review origin. This does not authorize deployment to the public Cloudflare Worker or a main-branch merge.
+
 ## Owner review gate
 - On 9 October 2026 (Nairobi), the owner explicitly requested DEPLOY for the secure document suite. This authorizes this reviewed release to the production Cloudflare Worker after tests and build. Future unrelated changes remain review-gated.
 
@@ -14,12 +17,8 @@ Apply these by default in every session. See `HANDOFF.md` for the full roadmap.
   state-swap as the primary navigation — real `<a href>` between routes.
 - Every route server-renders unique metadata (title, description, canonical, OG). **No two
   pages share a canonical.**
-- Keep v25's markup + CSS verbatim. Engine/routing/data changes only — never a visual redesign.
-- The live v25 experience is restored by booting the dc-runtime (`app/_components/V25App.tsx`)
-  over the same V25 SSR shell on desktop and mobile. After changing markup, use
-  `scripts/capture-v25.mjs` against the running local server to regenerate captures.
-  `PUBLIC_SOURCE=https://urbangangtour.co.ke` optionally uses published public feeds.
-  Do not bring back the removed MobileApp renderer or the rejected PublicSite redesign.
+- The owner retired V25 on 9 October 2026. Use the approved new interface from `public-design` and real backend-backed transaction screens. Do not restore the template, captured HTML, dual React runtime, bottom navigation or boot veil.
+- Preserve business data and owned media. Remove old frontends after connecting and testing their replacements.
 
 ## Security (non-negotiable)
 - **No hardcoded secrets** anywhere. Env vars, server-side only, never exposed client-side.
