@@ -142,7 +142,7 @@ html[data-focus-view=true] .logo-roll-track{animation:none!important}html[data-f
 @media(max-width:700px), (max-device-width:600px) and (pointer:coarse){.reels-page{--reels-header:76px;--reels-toolbar:110px}.reels-toolbar{display:grid;grid-template-columns:1fr auto auto;gap:4px 6px;padding:8px 16px}.reels-toolbar h1{font-size:25px}.reels-toolbar label{grid-row:2;grid-column:1/-1}.reels-toolbar button{font-size:13px;padding:0 9px}.reels-caption{left:20px;bottom:18px;max-width:calc(100% - 40px)}.reels-caption h2{font-size:25px}.reels-caption>p{font-size:15px}.reels-video-controls{right:12px;top:12px}.reels-video-controls button{min-height:44px;padding:0 12px}.reels-frame video{object-fit:contain}.reels-caption small{margin-top:8px}}
 
 /* Phone-first hero: portrait viewport, independent of the desktop film ratio. */
-@media(max-width:700px), (max-device-width:600px) and (pointer:coarse){.hero{aspect-ratio:auto;min-height:max(830px,100svh);height:auto}.hero-inner{position:relative;inset:auto;width:auto;min-height:max(830px,100svh);height:auto;margin:0 24px;padding:310px 0 52px;justify-content:flex-end}.hero h1{font-size:clamp(72px,20vw,112px)}.hero-heading p{max-width:340px;font-size:19px;line-height:1.5}.hero-bottom{margin-top:28px}.hero-video{object-position:55% center}}
+@media(max-width:700px), (max-device-width:600px) and (pointer:coarse){.hero{aspect-ratio:auto;min-height:0;height:auto}.hero-inner{position:relative;inset:auto;width:auto;min-height:0;height:auto;margin:0 24px;padding:310px 0 52px;justify-content:flex-end}.hero h1{font-size:clamp(72px,20vw,112px)}.hero-heading p{max-width:340px;font-size:19px;line-height:1.5}.hero-bottom{margin-top:28px}.hero-video{object-position:55% center}}
 .floating-talk{touch-action:none;user-select:none;-webkit-user-select:none}.floating-talk.dock-left .floating-talk-preview svg,.floating-talk.dock-left .floating-talk-link svg{transform:scaleX(-1)}.floating-talk.dock-left.is-expanded{flex-direction:row-reverse}.floating-talk.dock-left .floating-talk-details{text-align:left}
 
 .event-update-notice{position:fixed;top:112px;left:20px;z-index:65;background:white;border:1px solid #9a145d;box-shadow:0 4px 24px #0002;padding:16px;max-width:min(360px,calc(100vw - 40px));display:flex;gap:16px;align-items:center}.event-update-notice p{font-size:15px;line-height:1.5;margin:0}.event-update-notice button{min-height:44px;padding:8px;color:#9a145d}
@@ -184,6 +184,22 @@ html[data-focus-view=true] .logo-roll-track{animation:none!important}html[data-f
 }
 
 @media(max-device-width:600px) and (pointer:coarse){
- body{container-type:inline-size}.hero h1{font-size:clamp(64px,20cqw,112px)}.hero,.hero-inner{min-height:max(830px,calc(100svh / var(--ugt-phone-zoom,1)))}
+ body{container-type:inline-size}.hero h1{font-size:clamp(64px,20cqw,112px)}.hero,.hero-inner{min-height:0}
  .hero-heading p{font-size:19px}.hero-inner{padding-top:310px}
 }
+
+/* Viewport-fit opening frame: browser bars, rotation and normalized phone zoom. */
+.hero.panel{margin:6px}
+.hero{container-type:size;aspect-ratio:auto;height:calc(var(--ugt-screen-height,100dvh) / var(--ugt-phone-zoom,1) - 12px);min-height:0;max-height:none}
+.hero .hero-inner{position:absolute;inset:0;height:100%;min-height:0;width:calc(100% - 48px);margin:auto;padding:108px 0 28px;justify-content:flex-end}
+.hero h1{font-size:clamp(48px,min(12cqw,18cqh),148px)}
+.hero-heading p{margin-top:18px}.hero-bottom{margin-top:20px}
+@media(max-width:700px), (max-device-width:600px) and (pointer:coarse){
+ .hero h1{font-size:clamp(40px,min(20cqw,12cqh),100px)}
+ .hero .hero-inner{width:calc(100% - 48px);padding:102px 0 24px}
+ .hero-heading p{font-size:17px;line-height:1.5;margin-top:16px}.hero-bottom{gap:10px;margin-top:18px}
+ .hero-bottom .button{min-height:48px}.hero-archive-credit{font-size:10px}
+ .discovery-feature .discovery-poster{max-height:calc(var(--ugt-screen-height,100dvh) / var(--ugt-phone-zoom,1) - 140px)}
+ .commercial-feature .film-stage{max-height:calc(var(--ugt-screen-height,100dvh) / var(--ugt-phone-zoom,1) - 120px)}
+}
+@media(max-height:500px){.hero .hero-inner{padding:90px 0 18px}.hero h1{font-size:clamp(32px,13cqh,64px)}.hero-heading p{font-size:16px;line-height:1.4;margin-top:10px}.hero-bottom{margin-top:12px;gap:6px}.hero-archive-credit{display:none}.video-control{top:80px;right:18px}.hero-bottom .button{min-height:44px;padding-block:10px}}
