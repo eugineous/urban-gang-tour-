@@ -1,4 +1,5 @@
 'use client';
+import {GoogleSignIn} from '@/app/_components/GoogleSignIn';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useEffect, useRef, useState } from 'react';
@@ -102,6 +103,7 @@ export default function AccountApp() {
   return (
     <div style={{ ...card, maxWidth: 440, margin: '0 auto' }}>
       <h2 style={{ fontFamily: 'Anton', margin: '0 0 4px' }}>{mode === 'login' ? 'LOG IN' : 'JOIN THE GANG'}</h2>
+      {mode==='login'&&<GoogleSignIn endpoint="/api/auth/google" onSuccess={d=>{setUser(d.user);setMsg('')}}/>}
       <div style={{ fontSize: 13, color: '#555', marginBottom: 14 }}>Use your email or Kenyan phone number.</div>
       <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void go(mode); }}>
         {mode === 'signup' && <label>Name<input style={inp} maxLength={100} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>}

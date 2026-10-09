@@ -1,5 +1,6 @@
 'use client';
 
+import {GoogleSignIn} from '@/app/_components/GoogleSignIn';
 import { useState } from 'react';
 import { shell, wrap, card, btnMagenta, inp, label, h1, api, useToast, Toast } from '../ui';
 
@@ -32,7 +33,7 @@ export default function LoginForm() {
       <div style={{ ...wrap, maxWidth: 420 }}>
         <Toast msg={toast} />
         <h1 style={h1}>Organizer login</h1>
-        <div style={card}>
+        <div style={card}><GoogleSignIn endpoint="/api/organizer/google" onSuccess={()=>{window.location.href='/organizer/dashboard'}}/>
           <div style={{ display: 'grid', gap: 12 }}>
             <div>
               <label htmlFor="org-login-email" style={label}>Email</label>

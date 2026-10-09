@@ -525,9 +525,10 @@ export default function AdminApp({
           },
         });
         g.renderButton(holder, {
-          theme: "filled_black",
+          theme: "outline",
           size: "large",
-          width: 320,
+          width: Math.min(360, holder.clientWidth || 320),
+          shape: "rectangular",
           text: "signin_with",
         });
       } else if (++tries > 40) clearInterval(t);

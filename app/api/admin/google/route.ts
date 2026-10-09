@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   try {
     const verification = await fetch(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
-      { cache: 'no-store' },
+      { cache: 'no-store', signal: AbortSignal.timeout(8000) },
     );
     if (!verification.ok) {
       return NextResponse.json({ error: 'invalid_token' }, { status: 401 });
