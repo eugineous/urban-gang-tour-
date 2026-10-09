@@ -59,7 +59,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-KE">
-      <head>
+      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{if((navigator.maxTouchPoints>0||matchMedia("(pointer:coarse)").matches)&&screen.width<=600&&innerWidth>700){const z=innerWidth/screen.width;document.documentElement.style.zoom=String(z);document.documentElement.style.setProperty("--ugt-phone-zoom",String(z));document.documentElement.dataset.phoneViewport="wide"}}catch{}})();`}}/>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
         <link href="/fonts/v25-fonts.css" rel="stylesheet" />
