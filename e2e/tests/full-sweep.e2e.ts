@@ -97,7 +97,7 @@ test('Signing in from a Documents deep link returns to the requested workspace',
  await browser.route('**/api/admin/login',r=>{signedIn=true;return r.fulfill({json:{ok:true}})});
  await app.open('/admin?tab=Documents');
  await browser.locator('input[type=password]').fill('fictional-review-code');
- await screen.getByRole('button','ENTER CONTROL ROOM').click();
+ await screen.getByRole('button','Sign in to Control Room').click();
  await expect(browser.locator('.cr-shell h1')).toContainText('Documents');
 });
 

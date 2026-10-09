@@ -8,17 +8,17 @@ import ControlRoomHome from "./ControlRoomHome";
 import SystemPanel from "./SystemPanel";
 
 // Urban Gang Control Room — real, database-backed admin.
-// Styling follows v25: magenta/yellow/cyan, Anton headers, hard shadows.
+// One responsive operations interface, matching the approved public design.
 
 // UGT Ops Suite tools live in their own lazy chunks so this shell stays light.
 const opsLoading = () => (
   <div
     style={{
       background: "#fff",
-      border: "3px solid #111",
+      border: "1px solid #d8d2d6",
       borderRadius: 14,
-      boxShadow: "5px 5px 0 #111",
-      padding: 16,
+      boxShadow: "none",
+      padding: 24,
     }}
   >
     Loading tool...
@@ -120,20 +120,20 @@ const SearchConsolePanel = dynamic(() => import("./SearchConsolePanel"), {
 const C = { pink: "#E6218C", yellow: "#FFD400", cyan: "#21C7E6", ink: "#111" };
 const card: React.CSSProperties = {
   background: "#fff",
-  border: "3px solid #111",
+  border: "1px solid #d8d2d6",
   borderRadius: 14,
-  boxShadow: "5px 5px 0 #111",
-  padding: 16,
+  boxShadow: "none",
+  padding: 24,
 };
 const btn: React.CSSProperties = {
   background: C.yellow,
   color: "#111",
   fontWeight: 800,
-  fontSize: 13,
+  fontSize: 14,
   padding: "9px 14px",
-  border: "2px solid #111",
+  border: "1px solid #bdb4ba",
   borderRadius: 10,
-  boxShadow: "3px 3px 0 #111",
+  boxShadow: "none",
   cursor: "pointer",
 };
 const btnDark: React.CSSProperties = {
@@ -144,24 +144,25 @@ const btnDark: React.CSSProperties = {
 const inp: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  border: "2px solid #111",
+  border: "1px solid #bdb4ba",
   borderRadius: 10,
-  fontSize: 14,
+  fontSize: 16,
+  minHeight: 48,
   fontFamily: "inherit",
   boxSizing: "border-box" as const,
 };
 const th: React.CSSProperties = {
   textAlign: "left",
   padding: "8px 10px",
-  fontSize: 11,
-  textTransform: "uppercase",
+  fontSize: 13,
+  textTransform: "none",
   letterSpacing: ".05em",
   borderBottom: "2px solid #111",
   whiteSpace: "nowrap",
 };
 const td: React.CSSProperties = {
   padding: "8px 10px",
-  fontSize: 13,
+  fontSize: 14,
   borderBottom: "1px solid #eee",
   verticalAlign: "top",
 };
@@ -346,7 +347,8 @@ export default function AdminApp({
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
-  const [tab, setTab] = useState<Tab>("Dashboard");
+  const [tab, setTabState] = useState<Tab>("Dashboard");
+  const setTab = (next: Tab) => {setTabState(next);try{const url=new URL(window.location.href);url.searchParams.set('tab',next);history.replaceState(null,'',url)}catch{}};
   const [rows, setRows] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
@@ -576,7 +578,7 @@ export default function AdminApp({
           style={{
             ...card,
             maxWidth: 420,
-            margin: "60px auto",
+            margin: "28px auto",
             textAlign: "center",
           }}
         >
@@ -585,10 +587,10 @@ export default function AdminApp({
             alt=""
             style={{ height: 64, margin: "0 auto 10px" }}
           />
-          <h1 style={{ fontFamily: "Anton", fontSize: 28, margin: "0 0 4px" }}>
-            CONTROL ROOM
+          <h1 style={{ fontFamily: "inherit", fontSize: 30, margin: "0 0 4px" }}>
+            Control Room
           </h1>
-          <div style={{ color: "#666", fontSize: 12, marginBottom: 16 }}>
+          <div style={{ color: "#666", fontSize: 15, marginBottom: 20 }}>
             Authorised staff only
           </div>
           <div
@@ -634,12 +636,12 @@ export default function AdminApp({
               ...btnDark,
               width: "100%",
               marginTop: 12,
-              color: C.yellow,
+              color: "#fff",
             }}
             onClick={login}
             disabled={!code}
           >
-            ENTER CONTROL ROOM
+            Sign in to Control Room
           </button>
           {!googleClientId && (
             <div
@@ -990,7 +992,7 @@ function Shell({
                     key={item.tab}
                     className="cr-nav-button"
                     aria-current={tab === item.tab ? "page" : undefined}
-                    onClick={() => {setTab(item.tab);setNavOpen(false);const url=new URL(window.location.href);url.searchParams.set("tab",item.tab);history.replaceState(null,"",url)}}
+                    onClick={() => {setTab(item.tab);setNavOpen(false);}}
                   >
                     <i className="cr-nav-icon">{item.icon}</i>
                     {item.label}
@@ -999,12 +1001,13 @@ function Shell({
               </div>
             );
           })}
+          {moduleQuery&&!NAV_GROUPS.some(group=>group.items.some(item=>canSee(item.tab)&&`${item.label} ${item.tab}`.toLowerCase().includes(moduleQuery.toLowerCase())))&&<div className="cr-empty-search" role="status"><p>No modules match “{moduleQuery}”.</p><button onClick={()=>setModuleQuery('')}>Clear search</button></div>}
           <div className="cr-sidebar-note">
-            System tools are deliberately separate from daily work. Start with
-            bookings and inbox.
+            Start with bookings and inbox. Use system tools for access and maintenance.
           </div>
         </aside>
         <main className="cr-main">
+          {tab!=='Dashboard'&&canSee('Dashboard')&&<button className="cr-back" onClick={()=>setTab('Dashboard')}>Back to Today</button>}
           <div className="cr-page-head">
             <div>
               <h1>{title}</h1>
@@ -1068,7 +1071,7 @@ function Dashboard({ stats }: { stats: any }) {
     >
       {items.map(([label, v]) => (
         <div key={String(label)} style={{ ...card, textAlign: "center" }}>
-          <div style={{ fontFamily: "Anton", fontSize: 30 }}>
+          <div style={{ fontFamily: "inherit", fontSize: 30 }}>
             {String(v ?? 0)}
           </div>
           <div
@@ -1238,7 +1241,7 @@ function CompTicketForm({
               style={{
                 fontSize: 12.5,
                 background: "#f4f1ea",
-                border: "2px solid #111",
+                border: "1px solid #bdb4ba",
                 borderRadius: 10,
                 padding: 10,
               }}
@@ -1442,7 +1445,7 @@ function CommsTab({
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <div style={{ ...card }}>
-        <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
+        <h3 style={{ fontFamily: "inherit", margin: "0 0 4px" }}>
           NEWSLETTER BROADCAST
         </h3>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
@@ -1498,7 +1501,7 @@ function CommsTab({
         </div>
       </div>
       <div style={{ ...card }}>
-        <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
+        <h3 style={{ fontFamily: "inherit", margin: "0 0 4px" }}>
           POST TO SOCIALS
         </h3>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
@@ -1595,7 +1598,7 @@ function CommsTab({
         </div>
       </div>
       <div style={{ ...card }}>
-        <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
+        <h3 style={{ fontFamily: "inherit", margin: "0 0 4px" }}>
           FROM THE GRAM (blog wall)
         </h3>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
@@ -1623,10 +1626,10 @@ function CommsTab({
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  border: "2px solid #111",
+                  border: "1px solid #bdb4ba",
                   borderRadius: 10,
                   padding: "6px 10px",
-                  fontSize: 13,
+                  fontSize: 14,
                 }}
               >
                 <span style={{ fontWeight: 700, color: "#888" }}>{i + 1}</span>
@@ -1690,7 +1693,7 @@ function CommsTab({
         </div>
       </div>
       {canManageDeliverySettings && <div style={{ ...card }}>
-        <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
+        <h3 style={{ fontFamily: "inherit", margin: "0 0 4px" }}>
           WHATSAPP CHAT BUTTON (public site)
         </h3>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
@@ -1716,7 +1719,7 @@ function CommsTab({
         </div>
       </div>}
       {canManageDeliverySettings && <div style={{ ...card }}>
-        <h3 style={{ fontFamily: "Anton", margin: "0 0 4px" }}>
+        <h3 style={{ fontFamily: "inherit", margin: "0 0 4px" }}>
           OWNER NOTIFICATIONS
         </h3>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>
@@ -1734,7 +1737,7 @@ function CommsTab({
           />
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1749,7 +1752,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1764,7 +1767,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1779,7 +1782,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1794,7 +1797,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1809,7 +1812,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1824,7 +1827,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1839,7 +1842,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1854,7 +1857,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1869,7 +1872,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1884,7 +1887,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1899,7 +1902,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1914,7 +1917,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -1929,7 +1932,7 @@ function CommsTab({
           </label>
           <label
             style={{
-              fontSize: 13,
+              fontSize: 14,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -2061,7 +2064,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
     const set = (k: string, v: any) => setEditPost({ ...p, [k]: v });
     return (
       <div style={card}>
-          <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
+          <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
             {p.slug ? "EDIT: " + p.slug : "NEW POST"}
           </h3>
           {!canPublish && (
@@ -2288,7 +2291,7 @@ function SiteTab({ settings, setSettings, seoPath, setSeoPath, onSave }: any) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
+        <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
           HERO & ANNOUNCEMENTS
         </h3>
         <div style={{ display: "grid", gap: 10 }}>
@@ -2317,7 +2320,7 @@ function SiteTab({ settings, setSettings, seoPath, setSeoPath, onSave }: any) {
         </div>
       </div>
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>SEO — PER PAGE</h3>
+        <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>SEO — PER PAGE</h3>
         <div style={{ display: "grid", gap: 10 }}>
           <select
             style={inp}
@@ -2368,7 +2371,7 @@ function PeopleTab({ load }: { load: (v: string) => Promise<any[]> }) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
+        <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
           USER ACCOUNTS ({users.length})
         </h3>
         <Table
@@ -2377,7 +2380,7 @@ function PeopleTab({ load }: { load: (v: string) => Promise<any[]> }) {
         />
       </div>
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
+        <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
           NEWSLETTER SUBSCRIBERS ({subs.length})
         </h3>
         <Table
@@ -2406,7 +2409,7 @@ function TrafficTab({ rows }: { rows: any[] }) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>
+        <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
           VIEWS — LAST 30 DAYS
         </h3>
         <div
@@ -2424,7 +2427,7 @@ function TrafficTab({ rows }: { rows: any[] }) {
               style={{
                 flex: 1,
                 background: C.cyan,
-                border: "2px solid #111",
+                border: "1px solid #bdb4ba",
                 height: `${(v / max) * 100}%`,
                 minHeight: 4,
               }}
@@ -2439,14 +2442,14 @@ function TrafficTab({ rows }: { rows: any[] }) {
         </div>
       </div>
       <div style={card}>
-        <h3 style={{ fontFamily: "Anton", marginTop: 0 }}>TOP PAGES</h3>
+        <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>TOP PAGES</h3>
         {paths.map(([p, v]) => (
           <div
             key={p}
             style={{
               display: "flex",
               gap: 10,
-              fontSize: 13,
+              fontSize: 14,
               padding: "4px 0",
               borderBottom: "1px solid #eee",
             }}

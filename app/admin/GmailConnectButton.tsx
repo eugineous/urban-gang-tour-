@@ -3,9 +3,9 @@
 import { useState } from 'react';
 
 const button: React.CSSProperties = {
-  background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 13,
-  padding: '10px 14px', border: '2px solid #111', borderRadius: 10,
-  boxShadow: '3px 3px 0 #21C7E6', cursor: 'pointer',
+  background: '#941358', color: '#fff', fontWeight: 600, fontSize: 15, minHeight: 48,
+  padding: '10px 14px', border: '1px solid #941358', borderRadius: 10,
+  boxShadow: 'none', cursor: 'pointer',
 };
 
 export default function GmailConnectButton({

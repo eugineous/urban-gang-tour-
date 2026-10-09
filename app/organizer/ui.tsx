@@ -8,7 +8,7 @@ import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useState } from 'react';
 
-export const OC = { magenta: '#E6218C', gold: '#FFD400', charcoal: '#111', grey: '#666', green: '#1F8A5B', red: '#C0392B' };
+export const OC = { magenta: '#ad1264', gold: '#FFD400', charcoal: '#111', grey: '#666', green: '#1F8A5B', red: '#C0392B' };
 
 export const shell: React.CSSProperties = { minHeight: '100vh', background: '#f5f4f0', padding: '140px 20px 80px', fontFamily: "Inter, system-ui, sans-serif" };
 export const wrap: React.CSSProperties = { maxWidth: 720, margin: '0 auto' };

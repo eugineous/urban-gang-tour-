@@ -1,4 +1,4 @@
-const CACHE = 'ugt-approved-interface-20261009-refresh1';
+const CACHE = 'ugt-experience-refinement-20261009-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

@@ -1,319 +1,42 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { media, collections } from "./MediaLibrary";
-import { useCalmMotion } from "./ExperienceRails";
-const savedKey = "ugt-tok-saved-v1";
-export function ReelsFeed() {
-  const all = useMemo(
-    () =>
-      media
-        .filter(
-          (a) =>
-            a.kind === "video" && a.collection !== "host-contact-portraits",
-        )
-        .sort(
-          (a, b) =>
-            (collections.find((c) => c.slug === a.collection)?.category ===
-            "Campus"
-              ? 0
-              : 1) -
-              (collections.find((c) => c.slug === b.collection)?.category ===
-              "Campus"
-                ? 0
-                : 1) || a.id.localeCompare(b.id),
-        ),
-    [],
-  );
-  const [query, setQuery] = useState(""),
-    [saved, setSaved] = useState<string[]>([]),
-    [savedOnly, setSavedOnly] = useState(false),
-    [active, setActive] = useState(0),
-    [muted, setMuted] = useState(true),
-    [paused, setPaused] = useState(false),
-    [manual, setManual] = useState(false),
-    [notice, setNotice] = useState(""),
-    [error, setError] = useState(false);
-  const motion = useCalmMotion(),
-    feed = useRef<HTMLDivElement>(null),
-    players = useRef(new Map<string, HTMLVideoElement>());
-  const films = useMemo(
-      () =>
-        all.filter(
-          (a) =>
-            (!savedOnly || saved.includes(a.id)) &&
-            (!query ||
-              `${a.title} ${collections.find((c) => c.slug === a.collection)?.title || ""}`
-                .toLowerCase()
-                .includes(query.toLowerCase())),
-        ),
-      [all, saved, savedOnly, query],
-    ),
-    item = films[active];
-  useEffect(() => {
-    try {
-      setSaved(
-        JSON.parse(localStorage.getItem(savedKey) || "[]").filter(
-          (id: string) => all.some((a) => a.id === id),
-        ),
-      );
-    } catch {}
-    const id = new URLSearchParams(location.search).get("film"),
-      index = all.findIndex((a) => a.id === id);
-    // Preserve a native swipe made before hydration attached the React listener.
-    if(index <= 0 && feed.current && feed.current.clientHeight > 0){
-      const seen=Math.min(all.length-1,Math.max(0,Math.round(feed.current.scrollTop/feed.current.clientHeight)));
-      if(seen>0)setActive(seen);
-    }
-    if (index > 0) {
-      setActive(index);
-      requestAnimationFrame(() =>
-        feed.current?.scrollTo({
-          top: index * (feed.current?.clientHeight || 0),
-        }),
-      );
-    }
-  }, [all]);
-  useEffect(() => {
-    for (const [id, v] of players.current) {
-      if (id === item?.id && (motion || manual) && !paused)
-        v.play().catch(() => setNotice("Tap play to start this video."));
-      else v.pause();
-    }
-    if (item) {
-      const u = new URL(location.href);
-      u.searchParams.set("film", item.id);
-      history.replaceState(null, "", u);
-    }
-    setError(false);
-  }, [item?.id, motion, manual, paused]);
-  useEffect(() => {
-    const visibility = () => {
-      for (const [id, v] of players.current)
-        if (document.hidden) v.pause();
-        else if (id === item?.id && (motion || manual) && !paused)
-          v.play().catch(() => {});
-    };
-    document.addEventListener("visibilitychange", visibility);
-    return () => document.removeEventListener("visibilitychange", visibility);
-  }, [item?.id, motion, manual, paused]);
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches("input,textarea,select")) return;
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        move(e.key === "ArrowDown" ? 1 : -1);
-      }
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [active, films.length]);
-  function move(direction: number) {
-    feed.current?.scrollTo({
-      top:
-        Math.min(films.length - 1, Math.max(0, active + direction)) *
-        (feed.current?.clientHeight || 0),
-      behavior: motion ? "smooth" : "instant",
-    });
-  }
-  function change(value: string, only = savedOnly) {
-    setQuery(value);
-    setSavedOnly(only);
-    setActive(0);
-    feed.current?.scrollTo({ top: 0 });
-    setPaused(false);
-  }
-  function save() {
-    if (!item) return;
-    const ids = saved.includes(item.id)
-      ? saved.filter((id) => id !== item.id)
-      : [...saved, item.id];
-    setSaved(ids);
-    try {
-      localStorage.setItem(savedKey, JSON.stringify(ids));
-    } catch {}
-    setNotice(
-      ids.includes(item.id)
-        ? "Saved on this device"
-        : "Removed from saved videos",
-    );
-  }
-  async function share() {
-    if (!item) return;
-    const url = location.origin + "/reels/?film=" + item.id;
-    try {
-      if (navigator.share) await navigator.share({ title: item.title, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        setNotice("Video link copied");
-      }
-    } catch {
-      setNotice("Share the video link from the address bar.");
-    }
-  }
-  return (
-    <section className="reels-page">
-      <div className="reels-toolbar">
-        <h1>Reels</h1>
-        <label>
-          <span className="sr-only">Search videos</span>
-          <input
-            type="search"
-            placeholder="Find a school, campus or moment"
-            value={query}
-            onChange={(e) => change(e.target.value)}
-          />
-        </label>
-        <button
-          className={savedOnly ? "selected" : ""}
-          aria-pressed={savedOnly}
-          onClick={() => change(query, !savedOnly)}
-        >
-          {savedOnly ? "Show all" : "Saved"}
-        </button>
-        <button
-          onClick={() => setMuted(!muted)}
-          aria-label={muted ? "Turn sound on" : "Mute videos"}
-        >
-          {muted ? "Sound off" : "Sound on"}
-        </button>
-      </div>
-      <div
-        className="reels-scroll"
-        ref={feed}
-        tabIndex={0}
-        aria-label="Reels video feed. Swipe or scroll for the next video"
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          const index = Math.min(
-            films.length - 1,
-            Math.max(0, Math.round(el.scrollTop / el.clientHeight)),
-          );
-          if (index !== active) {
-            setActive(index);
-            setPaused(false);
-          }
-        }}
-      >
-        {films.length ? (
-          films.map((film, index) => {
-            const collection = collections.find(
-                (c) => c.slug === film.collection,
-              ),
-              prepared = Math.abs(index - active) <= 1;
-            return (
-              <article
-                className="reels-frame"
-                key={film.id}
-                data-active={index === active}
-              >
-                <video
-                  ref={(el) => {
-                    if (el) players.current.set(film.id, el);
-                    else players.current.delete(film.id);
-                  }}
-                  src={
-                    index === active || (prepared && motion)
-                      ? film.src
-                      : undefined
-                  }
-                  preload={
-                    prepared && motion && film.bytes < 5_000_000
-                      ? "auto"
-                      : "metadata"
-                  }
-                  muted={index === active ? muted : true}
-                  playsInline
-                  loop
-                  aria-label={film.title}
-                  data-active={index === active}
-                  onError={() => {
-                    if (index === active) setError(true);
-                  }}
-                />
-                {index === active && (
-                  <>
-                    <div className="reels-video-controls">
-                      <button
-                        aria-label={
-                          paused || (!motion && !manual)
-                            ? "Play video"
-                            : "Pause video"
-                        }
-                        onClick={() => {
-                          if (!motion && !manual) {
-                            setManual(true);
-                            setPaused(false);
-                          } else setPaused(!paused);
-                        }}
-                      >
-                        {paused || (!motion && !manual) ? "Play" : "Pause"}
-                      </button>
-                      <button
-                        aria-label={
-                          saved.includes(film.id)
-                            ? "Unsave video"
-                            : "Save video"
-                        }
-                        aria-pressed={saved.includes(film.id)}
-                        onClick={save}
-                      >
-                        {saved.includes(film.id) ? "Saved" : "Save"}
-                      </button>
-                      <button onClick={share}>Share</button>
-                    </div>
-                    <div className="reels-caption">
-                      <p>URBAN GANG TOUR · {collection?.category}</p>
-                      <h2>
-                        {collection?.title || film.title.replace(" · film", "")}
-                      </h2>
-                      <p>
-                        {collection?.description ||
-                          "Original moments from the Urban Gang Tour archive."}
-                      </p>
-                      <a href={"/gallery/" + film.collection}>
-                        View this collection ↗
-                      </a>
-                      <small>Swipe up or scroll for the next moment</small>
-                    </div>
-                    {error && (
-                      <div className="reels-error" role="alert">
-                        This clip could not load.{" "}
-                        <button
-                          onClick={() => {
-                            setError(false);
-                            players.current.get(film.id)?.load();
-                          }}
-                        >
-                          Retry video
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </article>
-            );
-          })
-        ) : (
-          <div className="reels-no-results">
-            <h2>{savedOnly ? "No saved videos yet" : "No matching videos"}</h2>
-            <p>
-              {savedOnly
-                ? "Save a moment to find it here."
-                : "Try a school, event or campus name."}
-            </p>
-            <button onClick={() => change("", false)}>Watch all videos</button>
-          </div>
-        )}
-      </div>
-      {notice && (
-        <p
-          className="reels-notice"
-          role="status"
-          onAnimationEnd={() => setNotice("")}
-        >
-          {notice}
-        </p>
-      )}
-    </section>
-  );
+import {useEffect,useMemo,useRef,useState} from 'react';
+import {media,collections} from './MediaLibrary';
+import {useCalmMotion} from './ExperienceRails';
+const savedKey='ugt-tok-saved-v1';
+const categories=['All moments','Schools & campuses','Live events','Brands & hosts'];
+export function ReelsFeed(){
+  const all=useMemo(()=>media.filter(a=>a.kind==='video'&&!a.adult&&a.collection!=='host-contact-portraits').sort((a,b)=>Number(a.width>=a.height)-Number(b.width>=b.height)||a.id.localeCompare(b.id)),[]);
+  const [query,setQuery]=useState(''),[category,setCategory]=useState('All moments'),[saved,setSaved]=useState<string[]>([]),[savedOnly,setSavedOnly]=useState(false),[active,setActive]=useState(0),[currentFrame,setCurrentFrame]=useState(1),[muted,setMuted]=useState(true),[paused,setPaused]=useState(false),[manual,setManual]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState(false),[loading,setLoading]=useState(true),[progress,setProgress]=useState(0);
+  const [initialized,setInitialized]=useState(false);const filterMounted=useRef(false);
+  const motion=useCalmMotion(),feed=useRef<HTMLDivElement>(null),players=useRef(new Map<number,HTMLVideoElement>());
+  const films=useMemo(()=>all.filter(a=>{const c=collections.find(c=>c.slug===a.collection);return(!savedOnly||saved.includes(a.id))&&(!query||`${a.title} ${c?.title} ${c?.category}`.toLowerCase().includes(query.toLowerCase()))&&(category==='All moments'||category==='Schools & campuses'&&['Campus','High schools'].includes(c?.category||'')||category==='Live events'&&c?.category==='Live events'||category==='Brands & hosts'&&['Brand activation','Hosts','Advertising'].includes(c?.category||''))}),[all,saved,savedOnly,query,category]);
+  const offset=films.length>1?1:0,item=films[active];
+  const frames=films.length>1?[films.at(-1)!,...films,films[0]]:films;
+  const locate=(index:number,behavior:ScrollBehavior='instant')=>feed.current?.scrollTo({top:(index+offset)*(feed.current?.clientHeight||0),behavior});
+  useEffect(()=>{try{const ids=JSON.parse(localStorage.getItem(savedKey)||'[]');if(Array.isArray(ids))setSaved(ids.filter(id=>all.some(a=>a.id===id)))}catch{}
+    const index=all.findIndex(a=>a.id===new URLSearchParams(location.search).get('film'));
+    const initial=Math.max(0,index);setActive(initial);setCurrentFrame(initial+offset);setInitialized(true);requestAnimationFrame(()=>locate(initial));
+  },[all]);
+  useEffect(()=>{if(!filterMounted.current){filterMounted.current=true;return}setCurrentFrame(offset);requestAnimationFrame(()=>locate(0))},[query,category,savedOnly]);
+  useEffect(()=>{if(active>=films.length){const index=Math.max(0,films.length-1);setActive(index);setCurrentFrame(index+offset);requestAnimationFrame(()=>locate(index))}else if(films.length===1){setCurrentFrame(0);requestAnimationFrame(()=>locate(0))}},[films.length,active,offset]);
+  useEffect(()=>{setError(false);setLoading(true);setProgress(0);for(const [index,v] of players.current){if(index===currentFrame&&(motion||manual)&&!paused)v.play().catch(()=>{setLoading(false);setNotice('Tap Play to start this video.')});else v.pause()}
+    if(item&&initialized){const u=new URL(location.href);u.searchParams.set('film',item.id);history.replaceState(null,'',u)}
+  },[item?.id,motion,manual,paused,currentFrame,initialized]);
+  useEffect(()=>{const visibility=()=>{for(const [index,v] of players.current){if(document.hidden)v.pause();else if(index===currentFrame&&(motion||manual)&&!paused)v.play().catch(()=>{})}};document.addEventListener('visibilitychange',visibility);return()=>document.removeEventListener('visibilitychange',visibility)},[currentFrame,motion,manual,paused]);
+  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),3000);return()=>clearTimeout(t)},[notice]);
+  useEffect(()=>{const el=feed.current;if(!el)return;let timer:ReturnType<typeof setTimeout>;const settle=()=>{clearTimeout(timer);const frame=Math.round(el.scrollTop/el.clientHeight);if(offset&&frame===0)locate(films.length-1);else if(offset&&frame===films.length+1)locate(0)};const scroll=()=>{clearTimeout(timer);timer=setTimeout(settle,180)};el.addEventListener('scroll',scroll,{passive:true});el.addEventListener('scrollend',settle);const resize=()=>locate(active);window.addEventListener('resize',resize);return()=>{clearTimeout(timer);el.removeEventListener('scroll',scroll);el.removeEventListener('scrollend',settle);window.removeEventListener('resize',resize)}},[films.length,offset,active]);
+  function move(direction:number){if(!films.length)return;const target=active+direction;feed.current?.scrollTo({top:(target+offset)*(feed.current.clientHeight||0),behavior:motion?'smooth':'instant'})}
+  useEffect(()=>{const key=(e:KeyboardEvent)=>{if((e.target as HTMLElement).matches('input,textarea,select')||document.querySelector('.menu-panel.is-open'))return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();move(e.key==='ArrowDown'?1:-1)}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[active,films.length,motion]);
+  function change(value:string,only=savedOnly,nextCategory=category){setQuery(value);setSavedOnly(only);setCategory(nextCategory);setActive(0);setPaused(false);requestAnimationFrame(()=>feed.current?.scrollTo({top:films.length>1?feed.current.clientHeight:0}))}
+  function save(){if(!item)return;const ids=saved.includes(item.id)?saved.filter(id=>id!==item.id):[...saved,item.id];setSaved(ids);try{localStorage.setItem(savedKey,JSON.stringify(ids))}catch{}setNotice(ids.includes(item.id)?'Saved on this device':'Removed from saved videos')}
+  async function share(){if(!item)return;const url=location.origin+'/reels/?film='+item.id;try{if(navigator.share)await navigator.share({title:item.title,url});else{await navigator.clipboard.writeText(url);setNotice('Video link copied')}}catch(e){if((e as Error).name!=='AbortError')setNotice('Share this video using the link in the address bar.')}}
+  return <section className="reels-page"><div className="reels-toolbar"><h1>Reels</h1><label><span className="sr-only">Search videos</span><input type="search" placeholder="Find a school, campus or moment" value={query} onChange={e=>change(e.target.value)}/></label><button aria-pressed={savedOnly} className={savedOnly?'selected':''} onClick={()=>change(query,!savedOnly)}>{savedOnly?'Show all':'Saved'}</button><button onClick={()=>setMuted(!muted)} aria-label={muted?'Turn sound on':'Mute videos'}>{muted?'Sound off':'Sound on'}</button></div>
+    <div className="reels-categories" role="group" aria-label="Video categories">{categories.map(c=><button key={c} aria-pressed={category===c} className={category===c?'selected':''} onClick={()=>change(query,savedOnly,c)}>{c}</button>)}</div>
+    <div className="reels-scroll" ref={feed} tabIndex={0} aria-label="Reels video feed. Swipe or scroll for the next video" onScroll={e=>{const el=e.currentTarget;if(!films.length)return;const frame=Math.round(el.scrollTop/el.clientHeight);setCurrentFrame(frame);const index=((frame-offset)%films.length+films.length)%films.length;if(index!==active){setActive(index);setPaused(false)}}}>
+      {frames.length?frames.map((film,index)=>{const c=collections.find(c=>c.slug===film.collection),selected=index===currentFrame,prepared=Math.abs(index-currentFrame)<=1;
+        return <article className="reels-frame" key={index+'-'+film.id} data-active={selected} aria-hidden={!selected} inert={!selected}><video ref={el=>{if(el)players.current.set(index,el);else players.current.delete(index)}} src={selected||prepared&&motion?film.src:undefined} poster={prepared?film.poster||undefined:undefined} preload={prepared&&motion?'auto':'none'} muted={selected?muted:true} playsInline loop aria-label={film.title} onPlaying={()=>selected&&setLoading(false)} onWaiting={()=>selected&&setLoading(true)} onTimeUpdate={e=>{if(selected&&e.currentTarget.duration)setProgress(e.currentTarget.currentTime/e.currentTarget.duration*100)}} onError={()=>{if(selected){setError(true);setLoading(false)}}}/>
+        {selected&&<><div className="reels-progress" aria-hidden="true"><span style={{width:progress+'%'}}/></div><div className="reels-video-controls"><button aria-label={paused||!motion&&!manual?'Play video':'Pause video'} onClick={()=>{setManual(true);setPaused(paused||!motion&&!manual?false:true)}}>{paused||!motion&&!manual?'Play':'Pause'}</button><button aria-label={saved.includes(film.id)?'Unsave video':'Save video'} aria-pressed={saved.includes(film.id)} onClick={save}>{saved.includes(film.id)?'Saved':'Save'}</button><button onClick={share}>Share</button></div><div className="reels-caption"><p>URBAN GANG TOUR · {c?.category}</p><h2>{c?.title||film.title.replace(' · film','')}</h2><p>{c?.description||'Original moments from the Urban Gang Tour archive.'}</p><a href={'/gallery/'+film.collection}>Explore this collection ↗</a><div className="reels-next"><button onClick={()=>move(-1)} aria-label="Previous reel">↑ Previous</button><small>Swipe up for the next moment</small><button onClick={()=>move(1)} aria-label="Next reel">Next ↓</button></div></div>{loading&&!error&&(motion||manual)&&!paused&&<p className="reels-loading" role="status">Preparing your clip…</p>}{error&&<div className="reels-error" role="alert">This clip could not load. <button onClick={()=>{setError(false);players.current.get(index)?.load();players.current.get(index)?.play().catch(()=>{})}}>Retry video</button><button onClick={()=>move(1)}>Next clip</button></div>}</>}
+        </article>}) : <div className="reels-no-results"><h2>{savedOnly?'No saved videos yet':'No matching videos'}</h2><p>{savedOnly?'Save a moment to find it here.':'Try another category, school or event name.'}</p><button onClick={()=>change('',false,'All moments')}>Watch all videos</button></div>}
+    </div>{notice&&<p className="reels-notice" role="status">{notice}</p>}
+  </section>;
 }

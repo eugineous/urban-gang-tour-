@@ -2,7 +2,7 @@
 (() => {
   if (window.__ugtReleaseStarted || !('serviceWorker' in navigator)) return;
   window.__ugtReleaseStarted = true;
-  const release = 'approved-adaptive-20261009-refresh1';
+  const release = 'experience-refinement-20261009-v1';
   const hadController = Boolean(navigator.serviceWorker.controller);
   // A replaced old controller needs one reload to discard its in-memory runtime.
   // Do not reload while a visitor is entering a form or payment details.
