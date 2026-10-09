@@ -1,8 +1,11 @@
+import {MEDIA_LIFECYCLE_BOOTSTRAP} from '@/lib/client/media-lifecycle';
+import {BookingInvitation} from '../public-design/components/BookingInvitation';
 import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import '../public-design/app/globals.css';
 import './modern.css';
+import '../public-design/app/refinements.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';
@@ -60,7 +63,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-KE">
-      <head><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
+      <head><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
         <link href="/fonts/v25-fonts.css" rel="stylesheet" />
@@ -87,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             This capture-phase listener swaps a failed resized URL back to the
             original path recorded in data-ugt-src, so the worst case is the
             site looking the way it did before, not a page with no images.
-            Inline and in <head> deliberately: React mounts too late to catch
+            Inline and in <head><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/> deliberately: React mounts too late to catch
             errors from the server-rendered shell. */}
         <script
           dangerouslySetInnerHTML={{
@@ -126,7 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Google Analytics: same dormant-until-configured, consent-gated
             pattern as AdSense above. */}
         <GoogleAnalytics />
-      </body>
+      <BookingInvitation/></body>
     </html>
   );
 }

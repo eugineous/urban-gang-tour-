@@ -84,25 +84,25 @@ export default function AccountApp() {
         </div>
         {msg && <p role="alert" style={{ ...card, color: '#a00' }}>{msg}</p>}
         <div style={card}>
-          <h3 style={{ fontFamily: 'inherit', margin: '0 0 8px' }}>PITCH A STUDENT BLOG / NEWS STORY</h3>
+          <h3 style={{ fontFamily: 'inherit', margin: '0 0 8px' }}>Share a story with Urban News</h3>
           {sub.sent ? <div style={{ color: '#1F8A5B', fontWeight: 700 }}>✓ Sent to the newsroom — the crew reviews every pitch.</div> : (
             <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void submitPitch(); }}>
               <label>Your name<input style={inp} required maxLength={100} autoComplete="name" value={sub.name} onChange={(e) => setSub({ ...sub, name: e.target.value })} /></label>
               <label>School / campus<input style={inp} maxLength={150} value={sub.school} onChange={(e) => setSub({ ...sub, school: e.target.value })} /></label>
               <label>Story title<input style={inp} required maxLength={150} value={sub.title} onChange={(e) => setSub({ ...sub, title: e.target.value })} /></label>
               <label>Your story<textarea style={{ ...inp, minHeight: 110 }} maxLength={2000} value={sub.pitch} onChange={(e) => setSub({ ...sub, pitch: e.target.value })} /></label>
-              <button style={btn} disabled={busy}>{busy ? 'Sending…' : 'SEND TO THE NEWSROOM'}</button>
+              <button style={btn} disabled={busy}>{busy ? 'Sending…' : 'Send to the newsroom'}</button>
             </form>
           )}
         </div>
-        <div style={card}><h3 style={{ fontFamily: 'inherit' }}>YOUR DATA</h3><p>To request a copy or deletion of your personal data, <a href="mailto:admin@urbangangtour.co.ke?subject=Account%20data%20request">email our team</a>. We respond within 30 days. Opening your email app does not submit a request.</p><a href="/privacy-policy">Your privacy rights</a> · <a href="/">Back to the tour</a></div>
+        <div style={card}><h3 style={{ fontFamily: 'inherit' }}>Your data</h3><p>To request a copy or deletion of your personal data, <a href="mailto:admin@urbangangtour.co.ke?subject=Account%20data%20request">email our team</a>. We respond within 30 days. Opening your email app does not submit a request.</p><a href="/privacy-policy">Your privacy rights</a> · <a href="/">Back to the tour</a></div>
       </div>
     );
   }
 
   return (
     <div style={{ ...card, maxWidth: 440, margin: '0 auto' }}>
-      <h2 style={{ fontFamily: 'inherit', margin: '0 0 4px' }}>{mode === 'login' ? 'LOG IN' : 'JOIN THE GANG'}</h2>
+      <h2 style={{ fontFamily: 'inherit', margin: '0 0 4px' }}>{mode === 'login' ? 'Sign in' : 'Create your account'}</h2>
       {mode==='login'&&<GoogleSignIn endpoint="/api/auth/google" onSuccess={d=>{setUser(d.user);setMsg('')}}/>}
       <div style={{ fontSize: 13, color: '#555', marginBottom: 14 }}>Use your email or Kenyan phone number.</div>
       <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void go(mode); }}>
@@ -112,7 +112,7 @@ export default function AccountApp() {
         <label>Password<input style={inp} type="password" required minLength={6} maxLength={100} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>
         {mode === 'signup' && <><p style={{ margin: '4px 0', fontSize: 14, lineHeight: 1.5 }}>Accounts are for adults aged 18 and over. Under 18? Ask a parent or guardian to manage bookings and purchases. You can explore the tour without an account.</p><label className="ugt-account-consent"><input type="checkbox" required checked={eligible} onChange={e => setEligible(e.target.checked)} />I am 18 or older.</label><label className="ugt-account-consent"><input type="checkbox" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label></>}
         {msg && <div role="alert" style={{ color: '#a00', fontSize: 14 }}>{msg}</div>}
-        <button style={btn} disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'LOG IN' : 'CREATE ACCOUNT'}</button>
+        <button style={btn} disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
         <button type="button" disabled={busy} style={{ background: 'none', border: 'none', color: '#9a145d', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
           onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMsg(''); }}>
           {mode === 'login' ? "New here? Create an account →" : '← Already have an account? Log in'}

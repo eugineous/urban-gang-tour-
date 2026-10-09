@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export const OC = {
-  magenta: '#C7238E',
+  magenta: '#ad1264',
   charcoal: '#26262B',
   gold: '#E8A33D',
   green: '#1F8A5B',
@@ -17,16 +17,16 @@ export const OC = {
   paper: '#fff',
 };
 
-export const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 14 };
-export const btn: React.CSSProperties = { background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer' };
+export const card: React.CSSProperties = { background: '#fff', border: '1px solid #d8d2d6', borderRadius: 16, boxShadow: 'none', padding: 24 };
+export const btn: React.CSSProperties = { background: '#f4f1f3', color: '#151515', fontWeight: 600, fontSize: 14, minHeight: 44, padding: '9px 14px', border: '1px solid #bdb4ba', borderRadius: 10, boxShadow: 'none', cursor: 'pointer' };
 export const btnDark: React.CSSProperties = { ...btn, background: '#111', color: '#fff' };
 export const btnMagenta: React.CSSProperties = { ...btn, background: OC.magenta, color: '#fff' };
-export const btnSmall: React.CSSProperties = { ...btn, padding: '5px 9px', fontSize: 12 };
-export const inp: React.CSSProperties = { width: '100%', padding: '9px 11px', border: '2px solid #111', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
-export const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' };
-export const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, borderBottom: '1px solid #eee', verticalAlign: 'top' };
-export const label: React.CSSProperties = { fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: '#555', display: 'block', marginBottom: 4 };
-export const h3: React.CSSProperties = { fontFamily: 'Anton', margin: '0 0 8px', fontSize: 18, letterSpacing: '.02em' };
+export const btnSmall: React.CSSProperties = { ...btn, padding: '8px 12px', fontSize: 13 };
+export const inp: React.CSSProperties = { width: '100%', padding: '9px 11px', border: '1px solid #bdb4ba', borderRadius: 10, fontSize: 16, minHeight: 48, fontFamily: 'inherit', boxSizing: 'border-box' };
+export const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', fontSize: 13, textTransform: 'none', letterSpacing: '.05em', borderBottom: '2px solid #111', whiteSpace: 'nowrap' };
+export const td: React.CSSProperties = { padding: '8px 10px', fontSize: 14, borderBottom: '1px solid #eee', verticalAlign: 'top' };
+export const label: React.CSSProperties = { fontSize: 14, fontWeight: 600, textTransform: 'none', letterSpacing: '.04em', color: '#555', display: 'block', marginBottom: 4 };
+export const h3: React.CSSProperties = { fontFamily: 'inherit', margin: '0 0 16px', fontSize: 23, letterSpacing: '-.03em' };
 
 export function Chip({ text, color, bg }: { text: string; color?: string; bg?: string }) {
   return (
