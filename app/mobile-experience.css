@@ -62,3 +62,8 @@
 @media(max-height:500px) and (orientation:landscape){.hero-heading p{max-width:100%}}
 @media(min-width:701px) and (max-width:1000px) and (pointer:coarse){.page-intro{grid-template-columns:1fr;gap:20px;padding-top:112px}.page-intro h1{font-size:clamp(40px,7vw,62px)}.section-title{grid-template-columns:1fr;gap:16px}.service-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.booking2{grid-template-columns:1fr;gap:32px}.product-page .detail-image{position:static}.event-detail-hero,.event-detail-grid{grid-template-columns:1fr;gap:28px}.contact-page-grid{grid-template-columns:1fr}.contact-footer-pitch h2{font-size:clamp(56px,10vw,90px)}}
 @media(max-height:500px) and (orientation:landscape){.hero .video-control{top:80px;bottom:auto;left:auto;right:18px;min-height:44px;height:auto;max-height:48px;min-width:44px;padding:10px 14px;font-size:12px}.hero-bottom{justify-content:flex-start}}
+
+/* Keep the embedded film landscape too; the earlier phone rule made it 4:3. */
+.youtube-panel{aspect-ratio:16/9;width:min(100%,calc((var(--ugt-screen-height,100dvh)/var(--ugt-phone-zoom,1) - 112px)*16/9));margin-inline:auto}
+.youtube-panel iframe,.youtube-panel>button{position:absolute;inset:0;display:block;width:100%;height:100%}
+.youtube-panel>a{max-width:calc(100% - 24px);right:12px;bottom:12px;font-size:12px;line-height:1.4}

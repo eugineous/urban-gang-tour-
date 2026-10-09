@@ -8,3 +8,9 @@ it('tracks available height and rotation but preserves the page during typing or
  typing=false;context.window.visualViewport.scale=2;callbacks['visual-resize']();expect(values['--ugt-screen-height']).toBe('1700px');
  context.window.visualViewport.scale=1;context.innerWidth=390;callbacks.resize();expect(values['--ugt-screen-height']).toBe('1200px');expect(root.style.zoom).toBe('');
 });
+
+it('does not zoom a landscape phone whose screen dimensions remain portrait',()=>{
+ const values:Record<string,string>={};const root={style:{zoom:'',setProperty:(k:string,v:string)=>values[k]=v},dataset:{}};
+ const context={document:{documentElement:root,activeElement:null},navigator:{maxTouchPoints:1},screen:{width:390,height:844,orientation:{type:'landscape-primary'}},innerWidth:844,innerHeight:390,matchMedia:()=>({matches:true}),requestAnimationFrame:(fn:Function)=>fn(),addEventListener:()=>{},window:{visualViewport:{height:390,scale:1,addEventListener:()=>{}}}};
+ vm.runInNewContext(VIEWPORT_BOOTSTRAP,context);expect(values['--ugt-phone-zoom']).toBe('1');expect(root.style.zoom).toBe('');
+});
