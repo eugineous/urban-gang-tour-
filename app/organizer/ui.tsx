@@ -2,7 +2,7 @@
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 // Shared styling for the organizer portal. On-brand (charcoal/magenta/gold,
-// Anton headings) but visually distinct from both the public v25 site and
+// Readable headings) in the shared current interface and
 // the admin Control Room — this is a third-party business tool, not a fan
 // page. Mobile-first, same hard-border/hard-shadow language as the ops suite.
 

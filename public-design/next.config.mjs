@@ -1,1 +1,0 @@
-export default {output:'export',assetPrefix:'/_design',trailingSlash:true,images:{unoptimized:true},devIndicators:false,typescript:{ignoreBuildErrors:false},eslint:{ignoreDuringBuilds:true},poweredByHeader:false};

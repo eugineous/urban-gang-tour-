@@ -122,7 +122,7 @@ function ExportPanel() {
   };
   const miniInp: React.CSSProperties = {
     padding: '6px 8px',
-    border: '2px solid #111',
+    border: '1px solid #ddd',
     borderRadius: 8,
     fontSize: 12,
     fontFamily: 'inherit',
@@ -160,7 +160,7 @@ function ExportPanel() {
               )}
             </div>
             <button
-              style={{ padding: '5px 9px', fontSize: 12, border: '2px solid #111', borderRadius: 8, background: isOpen ? '#eee' : '#fff', cursor: 'pointer', fontWeight: 700 }}
+              style={{ padding: '5px 9px', fontSize: 12, border: '1px solid #ddd', borderRadius: 8, background: isOpen ? '#eee' : '#fff', cursor: 'pointer', fontWeight: 700 }}
               onClick={() => setOpen(isOpen ? null : kind)}
               aria-expanded={isOpen}
             >
@@ -196,7 +196,7 @@ function ExportPanel() {
                   />
                 </div>
                 <button
-                  style={{ padding: '5px 9px', fontSize: 12, border: '2px solid #111', borderRadius: 8, background: '#21C7E6', cursor: 'pointer', fontWeight: 700 }}
+                  style={{ padding: '5px 9px', fontSize: 12, border: '1px solid #ddd', borderRadius: 8, background: '#21C7E6', cursor: 'pointer', fontWeight: 700 }}
                   onClick={() => fetchCount(kind, st)}
                 >
                   Count
@@ -205,7 +205,7 @@ function ExportPanel() {
             )}
             <a
               href={buildExportUrl(kind, st)}
-              style={{ background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap' }}
+              style={{ background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '1px solid #ddd', borderRadius: 10, boxShadow: 'none', cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap' }}
             >
               ⬇ {label}
             </a>
@@ -213,7 +213,7 @@ function ExportPanel() {
         );
       })}
       <div style={{ marginTop: 14, paddingTop: 14, borderTop: '2px dashed #ccc' }}>
-        <a href="/api/admin/backup" style={{ display: 'inline-block', background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 13, padding: '11px 16px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #FFD400', cursor: 'pointer', textDecoration: 'none' }}>
+        <a href="/api/admin/backup" style={{ display: 'inline-block', background: '#111', color: '#FFD400', fontWeight: 800, fontSize: 13, padding: '11px 16px', border: '1px solid #ddd', borderRadius: 10, boxShadow: 'none', cursor: 'pointer', textDecoration: 'none' }}>
           ⬇ Download Full Backup
         </a>
         <div style={{ fontSize: 11, color: '#666', marginTop: 6 }}>Full backup, everything, one file. For disaster recovery, not routine reporting, so it is rate limited and every download is logged.</div>
@@ -245,7 +245,7 @@ export default function OpsDashboard() {
       <ExportPanel />
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' }}>
         <div style={{ ...card, textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Anton', fontSize: 26, color: d.outstanding > 0 ? OC.orange : OC.green }}>{fmtKES(d.outstanding)}</div>
+          <div style={{ fontFamily: 'inherit', fontSize: 26, color: d.outstanding > 0 ? OC.orange : OC.green }}>{fmtKES(d.outstanding)}</div>
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Outstanding on invoices</div>
           <div style={{ marginTop: 6 }}>
             <Chip text={`${d.overdueCount} overdue`} bg={d.overdueCount ? '#FBE9E7' : '#E7F5EE'} color={d.overdueCount ? OC.red : OC.green} />
@@ -255,7 +255,7 @@ export default function OpsDashboard() {
         <div style={{ ...card, textAlign: 'center' }}>
           {ne ? (
             <>
-              <div style={{ fontFamily: 'Anton', fontSize: 20 }}>{ne.name}</div>
+              <div style={{ fontFamily: 'inherit', fontSize: 20 }}>{ne.name}</div>
               <div style={{ fontSize: 12, color: '#666' }}>{ne.school}</div>
               <div style={{ fontSize: 13, marginTop: 4 }}>
                 <b>{fmtDate(ne.event_date)}</b>{daysOut !== null && <span style={{ color: OC.magenta, fontWeight: 800 }}> - {daysOut} day{daysOut === 1 ? '' : 's'} out</span>}
@@ -266,7 +266,7 @@ export default function OpsDashboard() {
             </>
           ) : (
             <>
-              <div style={{ fontFamily: 'Anton', fontSize: 20, color: '#999' }}>No upcoming event</div>
+              <div style={{ fontFamily: 'inherit', fontSize: 20, color: '#999' }}>No upcoming event</div>
               <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Confirm a lead in the Pipeline, then budget it.</div>
             </>
           )}
@@ -274,7 +274,7 @@ export default function OpsDashboard() {
         </div>
 
         <div style={{ ...card, textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Anton', fontSize: 26, color: d.followups?.length ? OC.orange : OC.green }}>{d.followups?.length || 0}</div>
+          <div style={{ fontFamily: 'inherit', fontSize: 26, color: d.followups?.length ? OC.orange : OC.green }}>{d.followups?.length || 0}</div>
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Follow-ups due</div>
           <div style={{ marginTop: 6, display: 'grid', gap: 4, textAlign: 'left' }}>
             {(d.followups || []).slice(0, 3).map((f: any) => (
@@ -289,7 +289,7 @@ export default function OpsDashboard() {
         <div style={{ ...card, textAlign: 'center' }}>
           {d.activePromo ? (
             <>
-              <div style={{ fontFamily: 'Anton', fontSize: 20 }}>{d.activePromo.name}</div>
+              <div style={{ fontFamily: 'inherit', fontSize: 20 }}>{d.activePromo.name}</div>
               <div style={{ fontSize: 13, marginTop: 4 }}>
                 <b style={{ color: OC.magenta }}>{d.activePromo.promo_type === 'percent' ? `${Number(d.activePromo.discount)}% off` : `KES ${Number(d.activePromo.discount).toLocaleString()} off`}</b>
                 {d.activePromo.code ? <span> - code {d.activePromo.code}</span> : null}
@@ -297,13 +297,13 @@ export default function OpsDashboard() {
               {d.activePromo.ends_on && <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>ends {fmtDate(d.activePromo.ends_on)}</div>}
             </>
           ) : (
-            <div style={{ fontFamily: 'Anton', fontSize: 20, color: '#999' }}>No active promo</div>
+            <div style={{ fontFamily: 'inherit', fontSize: 20, color: '#999' }}>No active promo</div>
           )}
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#666', fontWeight: 700, marginTop: 8 }}>Active promo</div>
         </div>
 
         <div style={{ ...card, textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Anton', fontSize: 26, color: d.pendingReviews ? OC.orange : OC.green }}>{d.pendingReviews}</div>
+          <div style={{ fontFamily: 'inherit', fontSize: 26, color: d.pendingReviews ? OC.orange : OC.green }}>{d.pendingReviews}</div>
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Reviews awaiting moderation</div>
         </div>
       </div>
@@ -401,10 +401,10 @@ function RevenueChartPanel() {
     <div
       style={{
         ...card,
-        boxShadow: '5px 5px 0 #111',
+        boxShadow: 'none',
       }}
     >
-      <h3 style={{ fontFamily: 'Anton', margin: '0 0 14px', fontSize: 18, letterSpacing: '.02em' }}>
+      <h3 style={{ fontFamily: 'inherit', margin: '0 0 14px', fontSize: 18, letterSpacing: '.02em' }}>
         WEEKLY REVENUE — LAST 8 WEEKS
       </h3>
       {err && <div style={{ fontSize: 13, color: '#A11212' }}>Revenue chart unavailable: {err}</div>}

@@ -3,7 +3,7 @@
 // Supplier / vendor management for the UGT Ops Suite.
 // Tracks PA system providers, printers, caterers, staging companies,
 // security firms and any other service vendor used on the tour.
-// Same visual conventions as the rest of the ops suite: Anton headers,
+// Same visual conventions as the rest of the ops suite: readable headings,
 // magenta/yellow/cyan, hard drop shadows.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -322,7 +322,7 @@ export default function Suppliers() {
                 style={{
                   ...h3,
                   marginBottom: 0,
-                  fontFamily: 'Anton',
+                  fontFamily: 'inherit',
                   color: OC.magenta,
                 }}
               >

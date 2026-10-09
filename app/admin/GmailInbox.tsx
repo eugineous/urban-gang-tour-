@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import GmailConnectButton from './GmailConnectButton';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6' };
-const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111' };
-const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '2px solid #111', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
-const button: React.CSSProperties = { background: C.yellow, color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer' };
+const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd', borderRadius: 14, boxShadow: 'none' };
+const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
+const button: React.CSSProperties = { background: C.yellow, color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '1px solid #ddd', borderRadius: 10, boxShadow: 'none', cursor: 'pointer' };
 
 function address(value: string): string {
   return value.match(/<([^>]+)>/)?.[1] || value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || '';
@@ -67,7 +67,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
 
   if (!connection.connected && !loading) {
     return <div style={{ ...card, padding: 22 }}>
-      <div style={{ fontFamily: 'Anton', fontSize: 26 }}>CONNECT URBAN GANG GMAIL</div>
+      <div style={{ fontFamily: 'inherit', fontSize: 26 }}>CONNECT URBAN GANG GMAIL</div>
       <p style={{ maxWidth: 620, fontSize: 14, lineHeight: 1.55 }}>Read and reply to Urban Gang conversations without leaving the Control Room. This is the owner-only full inbox. Booking staff use the booking reply workspace, and comms staff use the broadcast workspace.</p>
       <GmailConnectButton clientId={googleClientId} onConnected={(email) => { setConnection({ connected: true, email }); load(); }} />
     </div>;
@@ -75,7 +75,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
 
   return <div>
     <div style={{ ...card, padding: 14, marginBottom: 14, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-      <div style={{ flex: 1, minWidth: 220 }}><div style={{ fontFamily: 'Anton', fontSize: 22 }}>GMAIL INBOX</div><div style={{ fontSize: 12, color: '#666' }}>{connection.email || 'Loading connection…'}</div></div>
+      <div style={{ flex: 1, minWidth: 220 }}><div style={{ fontFamily: 'inherit', fontSize: 22 }}>GMAIL INBOX</div><div style={{ fontSize: 12, color: '#666' }}>{connection.email || 'Loading connection…'}</div></div>
       <form onSubmit={(event) => { event.preventDefault(); load(search); }} style={{ display: 'flex', gap: 7, flex: '1 1 360px' }}>
         <input aria-label="Search Gmail" style={field} placeholder="Search Gmail (name, subject, from:)" value={search} onChange={(event) => setSearch(event.target.value)} />
         <button style={button} type="submit">Search</button>
@@ -95,10 +95,10 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
       <section style={{ ...card, padding: 18, minWidth: 0 }}>
         {!selected ? <div>Select a message.</div> : <>
           <div style={{ color: C.pink, fontWeight: 800, fontSize: 12 }}>{selected.from}</div>
-          <h2 style={{ fontFamily: 'Anton', fontSize: 26, margin: '4px 0 2px' }}>{selected.subject}</h2>
+          <h2 style={{ fontFamily: 'inherit', fontSize: 26, margin: '4px 0 2px' }}>{selected.subject}</h2>
           <div style={{ color: '#777', fontSize: 12 }}>{selected.date}</div>
-          <div style={{ margin: '16px 0', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: 14, border: '2px solid #111', background: '#F8F8F8', borderRadius: 12, padding: 14, maxHeight: 350, overflowY: 'auto' }}>{selected.body}</div>
-          <div style={{ fontFamily: 'Anton', fontSize: 18, marginBottom: 8 }}>REPLY</div>
+          <div style={{ margin: '16px 0', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: 14, border: '1px solid #ddd', background: '#F8F8F8', borderRadius: 12, padding: 14, maxHeight: 350, overflowY: 'auto' }}>{selected.body}</div>
+          <div style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8 }}>REPLY</div>
           <textarea aria-label="Email reply" style={{ ...field, minHeight: 180, resize: 'vertical' }} placeholder={`Reply to ${address(selected.from)}`} value={reply} onChange={(event) => setReply(event.target.value)} />
           <button type="button" style={{ ...button, background: '#111', color: C.yellow, marginTop: 9, opacity: sending || !reply.trim() ? .6 : 1 }} disabled={sending || !reply.trim()} onClick={send}>{sending ? 'Sending…' : 'Send reply'}</button>
         </>}

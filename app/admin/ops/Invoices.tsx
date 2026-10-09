@@ -539,7 +539,7 @@ export default function Invoices() {
         <div style={{ ...card, textAlign: "center" }}>
           <div
             style={{
-              fontFamily: "Anton",
+              fontFamily: 'inherit',
               fontSize: 26,
               color: outstanding > 0 ? OC.orange : OC.green,
             }}
@@ -560,7 +560,7 @@ export default function Invoices() {
         <div style={{ ...card, textAlign: "center" }}>
           <div
             style={{
-              fontFamily: "Anton",
+              fontFamily: 'inherit',
               fontSize: 26,
               color: overdueCount ? OC.red : OC.green,
             }}

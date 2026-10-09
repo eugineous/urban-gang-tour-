@@ -294,7 +294,7 @@ export default function AdminAccounts() {
                     fontSize: 12.5,
                     fontWeight: 700,
                     padding: "6px 10px",
-                    border: "2px solid #111",
+                    border: '1px solid #ddd',
                     borderRadius: 100,
                     background: edit.perms.includes(k) ? OC.magenta : "#fff",
                     color: edit.perms.includes(k) ? "#fff" : "#111",

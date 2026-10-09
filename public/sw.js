@@ -1,4 +1,4 @@
-const CACHE = 'ugt-experience-refinement-20261009-v1';
+const CACHE = 'ugt-single-interface-20261009-v2';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
@@ -19,7 +19,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || /^\/(admin|organizer|account|verify|t|tickets|receipt|checkout)(\/|$)/.test(url.pathname)) return;
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || request.headers.get('RSC') === '1' || /^\/(admin|organizer|account|verify|t|tickets|receipt|checkout)(\/|$)/.test(url.pathname)) return;
   // Unhashed application files change between deployments. Never pin a
   // visitor to the runtime from their first install. Keep an offline copy,
   // but always ask the network for the current version when connected.
@@ -33,7 +33,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   // Immutable compiled assets: cache-first
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/_design/_next/static/')) {
+  if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((res) => {
         if (res.ok) { const clone = res.clone(); caches.open(CACHE).then((c) => c.put(request, clone)); }

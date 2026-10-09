@@ -18,42 +18,7 @@ export const metadata: Metadata = {
 const ID_RE = /^ORD-[A-Z0-9-]{4,40}$/;
 
 const CSS = `
-/* fixed overlay above the site chrome - same stage as /t/[code] */
-body{overflow:hidden}
-.tks-stage{position:fixed;inset:0;z-index:12000;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  padding:34px 16px 60px;font-family:'Space Grotesk',system-ui,sans-serif;color:#fff;background:#0c0c0c;
-  background:radial-gradient(90% 50% at 50% 0%,rgba(230,33,140,.13),transparent 62%),
-    radial-gradient(75% 45% at 88% 100%,rgba(33,199,230,.09),transparent 60%),
-    radial-gradient(140% 100% at 50% 42%,#141414 0%,#0c0c0c 58%,#050505 100%)}
-.tks-wrap{max-width:440px;margin:0 auto}
-.tks-head{text-align:center;margin-bottom:22px}
-.tks-head img{height:44px;width:auto}
-.tks-title{font-family:'Anton','Arial Black',sans-serif;font-size:clamp(28px,8vw,38px);text-transform:uppercase;line-height:1;margin:10px 0 6px}
-.tks-sub{font-size:12px;color:#9a9aa4;letter-spacing:.08em}
-.tks-sub b{color:#FFD400;font-family:ui-monospace,'Courier New',monospace;letter-spacing:.1em}
-.tks-grid{display:grid;gap:14px;margin-top:18px}
-.tks-edge{border-radius:18px;padding:3px;background:linear-gradient(135deg,#E6218C 0%,#FFD400 70%);box-shadow:0 14px 34px rgba(0,0,0,.5)}
-.tks-edge.used{background:linear-gradient(135deg,#555,#333)}
-.tks-card{display:flex;align-items:center;gap:14px;background:#111;border-radius:15px;padding:14px 16px;text-decoration:none;color:#fff}
-.tks-num{flex:none;width:44px;height:44px;border-radius:12px;border:2px solid #FFD400;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700}
-.tks-num b{font-family:'Anton','Arial Black',sans-serif;font-size:18px;color:#FFD400;line-height:1}
-.tks-num span{font-size:8px;letter-spacing:.1em;color:#9a9aa4}
-.tks-info{flex:1;min-width:0}
-.tks-ev{font-family:'Anton','Arial Black',sans-serif;font-size:15px;text-transform:uppercase;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tks-tier{display:inline-block;font-family:'Permanent Marker',cursive;font-size:11px;color:#111;background:#21C7E6;border-radius:4px;padding:2px 8px;margin-top:5px;transform:rotate(-2deg)}
-.tks-tier.gold{background:#FFD400}
-.tks-codeline{font-family:ui-monospace,'Courier New',monospace;font-size:10.5px;letter-spacing:.1em;color:#bdbdc6;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tks-open{flex:none;font-size:9px;font-weight:700;letter-spacing:.16em;color:#21C7E6;border:1px solid rgba(33,199,230,.6);border-radius:999px;padding:5px 9px;white-space:nowrap}
-.tks-pdfrow{display:block;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#FFD400;text-decoration:none;background:#111;border-radius:10px;padding:7px;margin-top:6px}
-.tks-pdfrow:hover{color:#fff}
-.tks-usedtag{flex:none;font-size:9px;font-weight:700;letter-spacing:.14em;color:#ff6b6b;border:1px solid rgba(255,80,80,.6);border-radius:999px;padding:5px 9px;white-space:nowrap}
-.tks-note{border:3px solid #FFD400;border-radius:14px;background:rgba(255,212,0,.06);padding:16px 18px;font-size:13px;line-height:1.65;color:#eee;margin-top:18px}
-.tks-note b{color:#FFD400}
-.tks-links{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;justify-content:center}
-.tks-links a{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;text-decoration:none;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:9px 16px}
-.tks-links a:hover{border-color:#FFD400;color:#FFD400}
-.tks-slogan{text-align:center;font-family:'Permanent Marker',cursive;font-size:13px;color:#FFD400;margin-top:26px}
-.tks-stage{background:#f3f3f3;color:#161616;font-family:Inter,system-ui,sans-serif}.tks-title{font:750 clamp(30px,8vw,40px)/1.1 Inter,system-ui;text-transform:none;letter-spacing:-.035em}.tks-sub{color:#626262;font-size:14px}.tks-sub b{color:#a81561}.tks-edge{background:#a81561;padding:1px;box-shadow:none;border-radius:18px}.tks-card{background:white;color:#151515;border-radius:17px;padding:20px 16px;min-height:100px}.tks-ev{font:700 18px/1.3 Inter,system-ui;text-transform:none;white-space:normal}.tks-codeline{font-size:12px;color:#666}.tks-open{font-size:11px;color:#a81561;border-color:#a81561;min-height:44px;display:flex;align-items:center}.tks-num{background:#fff5dc;color:#151515}.tks-num b{color:#151515}.tks-stage a:focus-visible{outline:3px solid #21c7e6;outline-offset:3px}
+.tks-stage{min-height:100svh;padding:32px 16px 56px;background:#f4f4f4;color:#151515;font-family:Inter,system-ui,sans-serif}.tks-wrap{max-width:560px;margin:auto}.tks-head{margin-bottom:24px}.tks-head img{width:72px;height:48px;object-fit:contain}.tks-title{font-size:40px;font-weight:600;letter-spacing:-.04em;line-height:1.1;margin:20px 0 12px}.tks-sub{font-size:14px;line-height:1.6;color:#686268;overflow-wrap:anywhere}.tks-sub b{color:#86104f}.tks-grid{display:grid;gap:20px}.tks-edge{border:1px solid #d6cbd1;border-radius:20px;overflow:hidden;background:#fff}.tks-card{display:flex;align-items:center;gap:16px;padding:24px;text-decoration:none;color:#151515}.tks-num{flex-shrink:0;width:48px;display:grid;gap:4px;text-align:center}.tks-num b{font-size:24px;line-height:1}.tks-num span{font-size:11px;color:#686268}.tks-info{flex:1;min-width:0}.tks-ev{font-size:20px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}.tks-tier{display:inline-block;font-size:14px;border-radius:8px;background:#f7e8ef;color:#86104f;padding:5px 10px;margin-top:8px}.tks-tier.gold{background:#fff0b0;color:#534300}.tks-codeline{font:12px/1.6 ui-monospace,monospace;overflow-wrap:anywhere;color:#686268;margin-top:8px}.tks-open,.tks-usedtag{font-size:13px;color:#86104f;flex-shrink:0}.tks-usedtag{color:#a61925}.tks-pdfrow{display:flex;justify-content:center;align-items:center;min-height:48px;border-top:1px solid #e4dce0;color:#86104f;font-size:15px}.tks-pdfrow:hover{background:#f7e8ef}.tks-note{background:#fff;border:1px solid #d6cbd1;border-radius:16px;padding:20px;font-size:16px;line-height:1.7;margin-block:24px}.tks-note b{color:#86104f}.tks-links{display:flex;flex-wrap:wrap;gap:16px;margin-top:24px}.tks-links a{display:flex;align-items:center;justify-content:center;min-height:48px;background:white;border:1px solid #d6cbd1;border-radius:12px;padding:12px 20px;color:#86104f}.tks-slogan{font-size:14px;color:#686268;margin-top:32px}.tks-stage a:focus-visible{outline:3px solid #21c7e6;outline-offset:3px}@media(max-width:480px){.tks-card{flex-wrap:wrap;padding:20px}.tks-open,.tks-usedtag{margin-left:64px}.tks-title{font-size:36px}}@media(max-width:280px){.tks-info{flex-basis:100%}.tks-open,.tks-usedtag{margin-left:0}.tks-title{font-size:30px}}
 `;
 
 async function getOrder(id: string) {
@@ -101,8 +66,8 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
       <div className="tks-wrap">
         <div className="tks-head">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
-          <div className="tks-title">Your Tickets</div>
+          <img src="/assets/ugt-logo.png" alt="Urban Gang Tour" />
+          <h1 className="tks-title">Your tickets</h1>
           <div className="tks-sub">ORDER <b>{id}</b>{meta ? <> &middot; {meta.date}</> : null}</div>
         </div>
 
@@ -113,7 +78,7 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
           </div>
         ) : tickets.length === 0 ? (
           <div className="tks-note">
-            This order has no event tickets. Check your <a href={`/receipt/${encodeURIComponent(id)}`} style={{ color: '#FFD400' }}>receipt</a> for the full order details.
+            This order has no event tickets. Check your <a href={`/receipt/${encodeURIComponent(id)}`} style={{ color: '#86104f' }}>receipt</a> for the full order details.
           </div>
         ) : (
           <div className="tks-grid">

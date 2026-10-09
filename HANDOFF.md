@@ -1,12 +1,12 @@
 # Urban Gang Tour handoff
 
 Production: https://urbangangtour.co.ke/. Hosting: Cloudflare Worker `urban-gang-tour`.
-The owner explicitly retired V25 on 9 October 2026. The working branch uses the approved new design; this cleanup has not been deployed to production.
+The owner explicitly retired V25 on 9 October 2026. The working branch uses the approved new design; See `docs/single-interface-release.md` for the current cleanup and release verification.
 
 ## Working architecture
 
 - Next.js App Router provides real routes, server metadata and authenticated APIs.
-- `public-design` builds the approved information pages served by the Worker. Its marketing component is also the main app’s information-page fallback. There is no captured-template or second React runtime.
+- All pages render through the native Next.js application. `ui/` contains the approved public component library; `public/media-library` and `public/design-assets` are authoritative static assets. The separate static export and its Worker interceptor have been deleted.
 - `AppShell` provides the approved header and footer around transaction routes. No bottom navigation or boot veil.
 - `LiveCommerce` uses the actual products/events APIs, one browser cart, server-authoritative prices, and idempotent order requests. `/cart` and `/checkout` are real routes. Older `ugt_cart` contents migrate to the new bag.
 - `BookingForm` persists bookings through `/api/bookings`, keeps details after failures, and reuses request IDs on retry. A request does not confirm an event.

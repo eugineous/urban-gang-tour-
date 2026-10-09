@@ -1,6 +1,6 @@
 import {test} from '@e2e-dev/web';
 import {expect} from 'e2e';
-const routes=['/','/about','/the-gang','/portfolio','/proof','/experience','/tour-stops','/events','/gallery','/work-with-us','/clients','/partners','/blog','/contact-us','/faq','/author/eugine-micah','/author/lucy-ogunde','/shop','/cart','/checkout','/book','/account','/marketplace','/organizer/login','/organizer/signup','/organizer/forgot','/organizer/reset','/organizer/verify','/privacy-policy','/terms','/refund-policy','/ticket-terms','/offline'];
+const routes=['/','/about','/the-gang','/press','/reels','/portfolio','/proof','/experience','/tour-stops','/events','/gallery','/work-with-us','/clients','/partners','/blog','/contact-us','/faq','/author/eugine-micah','/author/lucy-ogunde','/shop','/cart','/checkout','/book','/account','/marketplace','/organizer/login','/organizer/signup','/organizer/forgot','/organizer/reset','/organizer/verify','/privacy-policy','/terms','/refund-policy','/ticket-terms','/offline'];
 test.beforeEach(async({browser})=>{
  await browser.route('**/api/**',async r=>{
   const u=new URL(r.request.url);
@@ -118,4 +118,12 @@ test('An unavailable event can be retried without claiming it does not exist',as
 test('Organizer application retries its bank list while retaining entered details',async({app,browser,screen})=>{
  let fails=true;await browser.route('**/api/organizer/banks',r=>r.fulfill({status:fails?503:200,json:fails?{error:'unavailable'}:{banks:[{name:'Fixture bank',code:'FIXTURE',currency:'KES'}]}}));
  await app.open('/organizer/signup');await screen.getByLabel('Business / organizer name *').fill('Review Organizer');await expect(screen.getByRole('button','Retry bank list')).toBeVisible();fails=false;await screen.getByRole('button','Retry bank list').click();await expect(browser.locator('#org-bank option')).toHaveCount(2);await expect(screen.getByLabel('Business / organizer name *')).toHaveValue('Review Organizer');
+});
+
+test('Shop to Contact to Book uses one interface before and after refresh',async({app,browser})=>{
+ await app.open('/shop');
+ if(await browser.locator('.menu-toggle').isVisible()){await browser.locator('.menu-toggle').click();await browser.locator('#site-menu a[href="/contact-us"]').click()}else await browser.locator('.desktop-nav a[href="/contact-us"]').click();
+ await expect(browser).toHaveURL('/contact-us');await expect(browser.locator('.contact-compose')).toHaveCount(1);
+ await browser.locator('.start-link').click();await expect(browser).toHaveURL('/book');await expect(browser.locator('h1:visible')).toHaveCount(1);
+ await browser.reload();await expect(browser.locator('.site-header')).toHaveCount(1);
 });

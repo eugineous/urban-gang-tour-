@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getDocumentBySerial, ensureDocgenSchema, DOC_TYPES } from '@/lib/server/docgen';
@@ -43,10 +42,6 @@ export default async function VerifyPage({ params }: { params: Promise<{ serial:
 
   const valid = doc.status !== 'void';
   const typeLabel = DOC_TYPES[doc.type]?.label || doc.type;
-  const badge = valid ? { bg: '#1F8A5B', label: 'VALID', mark: '✓' } : { bg: '#C62828', label: 'VOID', mark: '✗' };
-
-  const anton = "'Anton','Arial Black',sans-serif";
-  const grotesk = "'Space Grotesk',Arial,sans-serif";
 
   const rows: Array<[string, string]> = [
     ['Document type', typeLabel],
@@ -57,49 +52,5 @@ export default async function VerifyPage({ params }: { params: Promise<{ serial:
   rows.push(['Date issued', fmtDate(doc.created_at)]);
   if (!valid && doc.void_reason) rows.push(['Void reason', doc.void_reason]);
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#1a0c13', padding: '40px 16px', fontFamily: grotesk, color: '#111', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;600;700&display=swap');`}</style>
-      <div style={{ maxWidth: 520, width: '100%', background: '#fff', border: '3px solid #111', borderRadius: 18, overflow: 'hidden', boxShadow: '10px 10px 0 rgba(0,0,0,.4)' }}>
-        <div style={{ background: '#111', padding: '20px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 42, width: 'auto' }} />
-            <div>
-              <div style={{ fontFamily: anton, fontSize: 11, letterSpacing: '.06em', color: '#FFD400', textTransform: 'uppercase' }}>Urban Gang Tour</div>
-              <div style={{ fontFamily: anton, fontSize: 20, color: '#fff', textTransform: 'uppercase', lineHeight: 1.1 }}>Document Check</div>
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', height: 6 }}>
-          <span style={{ flex: 2, background: '#E6218C' }} />
-          <span style={{ flex: 1, background: '#FFD400' }} />
-          <span style={{ flex: 1, background: '#21C7E6' }} />
-        </div>
-        <div style={{ background: badge.bg, color: '#fff', textAlign: 'center', padding: '26px 20px' }}>
-          <div style={{ fontSize: 46, lineHeight: 1, fontWeight: 700 }}>{badge.mark}</div>
-          <div style={{ fontFamily: anton, fontSize: 40, letterSpacing: '.04em', marginTop: 6 }}>{badge.label}</div>
-          <div style={{ fontSize: 13, marginTop: 6, opacity: 0.92 }}>
-            {valid ? 'This is a genuine Urban Gang Tour document.' : 'This document has been cancelled and is no longer valid.'}
-          </div>
-        </div>
-        <div style={{ padding: '22px 26px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 11, columnGap: 14, fontSize: 14, color: '#555' }}>
-            {rows.map(([k, v]) => (
-              <Fragment key={k}>
-                <span>{k}</span>
-                <span style={{ fontWeight: 700, color: '#111', textAlign: 'right', wordBreak: 'break-word' }}>{v}</span>
-              </Fragment>
-            ))}
-          </div>
-        </div>
-        <div style={{ borderTop: '2px dashed #ddd', padding: '16px 26px', fontSize: 11.5, color: '#666', lineHeight: 1.7 }}>
-          Verified against Urban Gang Tour's official records. If the details above do not match the document in your hand, do not act on it - contact <strong style={{ color: '#111' }}>admin@urbangangtour.co.ke</strong>.
-        </div>
-        <div style={{ background: '#111', color: '#FFD400', textAlign: 'center', padding: 12, fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-          urbangangtour.co.ke
-        </div>
-      </div>
-    </div>
-  );
+  return <section className="document-stage"><article className="document-card"><a className="document-brand" href="/"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour" width={72}/><span>Document verification</span></a><p className={`document-status ${valid?'valid':'void'}`} role="status">{valid?'Verified document':'Document cancelled'}</p><h1>{typeLabel}</h1><p>{valid?'This document matches our official records.':'This document is no longer valid.'}</p><dl className="document-details">{rows.map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl><p className="document-note">Check these details against the document in your hand. If they differ, contact <a href="mailto:admin@urbangangtour.co.ke">admin@urbangangtour.co.ke</a>.</p><a className="button" href="/">Back to Urban Gang Tour</a></article></section>;
 }

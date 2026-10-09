@@ -15,7 +15,7 @@ const nextConfig = {
   // @react-pdf/renderer (pdfkit inside) ships font data that breaks if webpack
   // tries to bundle it; keep it external so Node resolves it normally.
   serverExternalPackages: ['@react-pdf/renderer'],
-  // v25 assets live in /assets and are copied into /public/assets at build time
+  // Owned media live in /assets and are copied into /public/assets at build time
   // by scripts/sync-assets.mjs so we never have to move 77MB of media in git.
   // 301s: friendly aliases + legacy URLs → canonical routes
   async redirects() {
@@ -24,7 +24,7 @@ const nextConfig = {
       { source: '/news', destination: '/blog', permanent: true },
       // /urban-news retired 2026-07-21 in favor of /blog, which now carries
       // the real redesigned Urban News page (real posts, real tour dates,
-      // real traffic-based trending) instead of the old static v25 capture.
+      // real traffic-based trending) instead of the retired static capture.
       { source: '/urban-news', destination: '/blog', permanent: true },
       { source: '/tickets', destination: '/events', permanent: true },
       { source: '/contact', destination: '/contact-us', permanent: true },

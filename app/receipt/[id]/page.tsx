@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { orderLines } from '@/lib/server/catalog';
+import {PrintDocumentButton} from '@/app/_components/PrintDocumentButton';
+import QRCode from 'qrcode';
 import { maskPhone } from '@/lib/server/receipt-email';
 
 // Printable order receipt. Roles: public (anon) - the unguessable ORD- id is
@@ -50,7 +52,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
   const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
   const lines = orderLines(items || []);
-  const paid = o.status === 'paid';
+  const paid = o.status === 'paid' || o.status === 'fulfilled';
   const failed = o.status === 'failed';
   const isComp = o.pay_method === 'comp';
   const method = isComp ? 'Complimentary (no charge)' : o.pay_method === 'card' ? 'Card' : 'M-Pesa';
@@ -81,137 +83,6 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       ? { bg: '#C62828', label: 'NOT COMPLETED' }
       : { bg: '#B7860B', label: 'PENDING' };
 
-  const anton = "'Anton','Arial Black',sans-serif";
-  const grotesk = "'Space Grotesk',Arial,sans-serif";
-
-  return (
-    <div style={{ minHeight: '100vh', background: '#f4f1ea', padding: '32px 14px', fontFamily: grotesk, color: '#111' }}>
-      <style>{`@media print { body { background: #fff !important; } .no-print { display: none !important; } .receipt-card { box-shadow: none !important; } }`}</style>
-      <div className="receipt-card" style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '1px solid #ddd', borderRadius: 18, overflow: 'hidden', boxShadow: '0 12px 36px #0001' }}>
-        <div style={{ background: '#111', padding: '20px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 46, width: 'auto' }} />
-            <div>
-              <div style={{ fontFamily: anton, fontSize: 12, letterSpacing: '.06em', color: '#FFD400', textTransform: 'uppercase' }}>Urban Gang Tour</div>
-              <div style={{ fontFamily: anton, fontSize: 22, color: '#fff', textTransform: 'uppercase', lineHeight: 1.1 }}>Official Receipt</div>
-            </div>
-          </div>
-          <div style={{ background: banner.bg, color: '#fff', borderRadius: 100, padding: '7px 16px', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>{banner.label}</div>
-        </div>
-        <div style={{ height: 5, background: '#E6218C' }} />
-        <div style={{ padding: '22px 26px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 5, fontSize: 13.5, color: '#555' }}>
-            <span>Receipt / Order No.</span>
-            <span style={{ fontWeight: 700, color: '#111', textAlign: 'right' }}>{o.id}</span>
-            {reference ? (
-              <>
-                <span>Payment reference</span>
-                <span style={{ fontWeight: 700, color: '#111', textAlign: 'right' }}>{reference}</span>
-              </>
-            ) : null}
-            <span>Date</span>
-            <span style={{ color: '#111', textAlign: 'right' }}>{dateStr}</span>
-            <span>Payment method</span>
-            <span style={{ color: '#111', textAlign: 'right' }}>{method}</span>
-            {o.name ? (
-              <>
-                <span>Billed to</span>
-                <span style={{ color: '#111', textAlign: 'right' }}>{o.name}{phone ? ` (${phone})` : ''}</span>
-              </>
-            ) : phone ? (
-              <>
-                <span>Phone</span>
-                <span style={{ color: '#111', textAlign: 'right' }}>{phone}</span>
-              </>
-            ) : null}
-          </div>
-          <div style={{ marginTop: 18 }}>
-            {lines.map((l, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: '1px dashed #ccc', fontSize: 14 }}>
-                <span>
-                  {l.name} &times; {l.qty}
-                  {l.unit && !isComp ? <span style={{ color: '#888' }}> @ {fmtKes(l.unit)}</span> : null}
-                </span>
-                {/* Comp orders carry the real tier price on the item line so the
-                    ticket matches a paid one at the gate, but the order total is
-                    0 - showing that real price here would read as a fake charge. */}
-                <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{isComp ? 'FREE' : fmtKes(l.total)}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, background: '#FFD400', border: '2px solid #111', borderRadius: 10, padding: '12px 14px' }}>
-            <span style={{ fontFamily: anton, fontSize: 15, textTransform: 'uppercase' }}>{isComp ? 'Complimentary' : 'Total'}</span>
-            <span style={{ fontFamily: anton, fontSize: 22 }}>{isComp ? 'KES 0' : fmtKes(Number(o.total) || 0)}</span>
-          </div>
-          {isComp ? (
-            <div style={{ marginTop: 10, fontSize: 12, color: '#8a6d1a' }}>
-              Issued free of charge by Urban Gang Tour admin. This is not a paid transaction - KES 0 due.
-            </div>
-          ) : null}
-          {tickets.length > 0 ? (
-            <div style={{ marginTop: 16, background: '#111', border: '2px solid #111', borderRadius: 14, overflow: 'hidden' }}>
-              <div style={{ padding: '13px 16px 3px', fontFamily: anton, fontSize: 15, color: '#FFD400', textTransform: 'uppercase', letterSpacing: '.04em' }}>Your E-Tickets</div>
-              <div style={{ padding: '2px 16px 8px', fontSize: 12, color: '#bbb', lineHeight: 1.6 }}>One QR ticket per person - open it, screenshot it, show it at the gate.</div>
-              {tickets.map((t) => (
-                <div key={t.code} style={{ padding: '10px 16px', borderTop: '1px dashed #444', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                  <span>
-                    <a href={`/t/${encodeURIComponent(t.code)}`} style={{ color: '#21C7E6', textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>
-                      Ticket {t.position} of {t.of_count} &middot; {t.tier_name} &rarr;
-                    </a>
-                    <span style={{ display: 'block', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: 11, letterSpacing: '.08em', color: '#999', marginTop: 2 }}>{t.code}</span>
-                  </span>
-                  {t.used_at ? (
-                    <span style={{ flex: 'none', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', color: '#ff6b6b', border: '1px solid rgba(255,80,80,.6)', borderRadius: 100, padding: '4px 9px' }}>USED</span>
-                  ) : null}
-                </div>
-              ))}
-              <div style={{ padding: '13px 16px', borderTop: '1px dashed #444', textAlign: 'center' }}>
-                <a href={`/tickets/${encodeURIComponent(o.id)}`} style={{ display: 'inline-block', background: '#FFD400', color: '#111', textDecoration: 'none', fontFamily: anton, fontSize: 14, padding: '11px 22px', borderRadius: 10, textTransform: 'uppercase' }}>
-                  View your tickets
-                </a>
-              </div>
-            </div>
-          ) : null}
-          {!paid && !failed ? (
-            <div style={{ marginTop: 14, fontSize: 12.5, color: '#8a6d1a', background: '#fff8dd', border: '2px solid #B7860B', borderRadius: 10, padding: '10px 14px' }}>
-              This order has not been confirmed yet. If you completed payment, this page updates automatically once M-Pesa confirms - refresh in a moment.
-            </div>
-          ) : null}
-          {failed ? (
-            <div style={{ marginTop: 14, fontSize: 12.5, color: '#8a1c1c', background: '#fdecec', border: '2px solid #C62828', borderRadius: 10, padding: '10px 14px' }}>
-              Payment was cancelled or failed. No money left your account? You can order again from the shop or events page.
-            </div>
-          ) : null}
-        </div>
-        <div style={{ borderTop: '2px dashed #ccc', padding: '16px 26px', fontSize: 11.5, color: '#666', lineHeight: 1.7 }}>
-          <strong style={{ color: '#111' }}>{BIZ.name}</strong>
-          <br />
-          {BIZ.addr}
-          <br />
-          {BIZ.box} &middot; {BIZ.phone}
-          <br />
-          {BIZ.email} &middot; {BIZ.web}
-        </div>
-        <div style={{ background: '#111', color: '#FFD400', textAlign: 'center', padding: 12, fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-          Thank you for supporting the culture
-        </div>
-      </div>
-      <div className="no-print" style={{ maxWidth: 620, margin: '16px auto 0', textAlign: 'center' }}>
-        <a
-          href="#print"
-          style={{ display: 'inline-block', background: '#E6218C', color: '#fff', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '1px solid #ddd', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase', marginRight: 10 }}
-        >
-          Print this receipt
-        </a>
-        <a
-          href={`/api/receipts/${encodeURIComponent(id)}/pdf`}
-          style={{ display: 'inline-block', background: '#FFD400', color: '#111', textDecoration: 'none', fontFamily: anton, fontSize: 15, padding: '12px 26px', border: '1px solid #ddd', borderRadius: 12, boxShadow: '5px 5px 0 #111', textTransform: 'uppercase' }}
-        >
-          Download PDF
-        </a>
-        <script dangerouslySetInnerHTML={{ __html: `document.currentScript.previousElementSibling.previousElementSibling.addEventListener('click',function(e){e.preventDefault();window.print();});` }} />
-      </div>
-    </div>
-  );
+  const qr=await QRCode.toString(`https://urbangangtour.co.ke/verify/order/${encodeURIComponent(id)}`,{type:'svg',margin:4,errorCorrectionLevel:'M'});
+  return <section className="document-stage"><article className="document-card receipt-card"><a className="document-brand" href="/"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour" width={72}/><span>Official receipt</span></a><p className={`document-status ${paid?'valid':failed?'void':'pending'}`} role="status">{banner.label}</p><h1>Your order receipt.</h1><dl className="document-details"><div><dt>Order</dt><dd>{o.id}</dd></div>{reference&&<div><dt>Payment reference</dt><dd>{reference}</dd></div>}<div><dt>Date</dt><dd>{dateStr}</dd></div><div><dt>Payment method</dt><dd>{method}</dd></div>{(o.name||phone)&&<div><dt>Billed to</dt><dd>{o.name}{phone?` (${phone})`:''}</dd></div>}</dl><div className="receipt-lines">{lines.map((l,i)=><div key={i}><span>{l.name} × {l.qty}{l.unit&&!isComp?<small> @ {fmtKes(l.unit)}</small>:null}</span><strong>{isComp?'FREE':fmtKes(l.total)}</strong></div>)}</div><div className="receipt-total"><span>{isComp?'Complimentary':'Total'}</span><strong>{isComp?'KES 0':fmtKes(Number(o.total)||0)}</strong></div>{isComp&&<p className="document-note">Issued free of charge. KES 0 due.</p>}{!paid&&!failed&&<p className="document-note" role="status">Payment has not been confirmed. Refresh to check the latest server status before attempting another purchase.</p>}{failed&&<p className="document-note" role="status">Payment was cancelled or failed. Check your provider’s payment record before retrying.</p>}{tickets.length>0&&<section className="receipt-tickets"><h2>Your tickets</h2><p>Each ticket admits one person.</p>{tickets.map(t=><a key={t.code} href={`/t/${encodeURIComponent(t.code)}`}>Ticket {t.position} of {t.of_count} · {t.tier_name}{t.used_at?' · Admitted':''} →</a>)}<a href={`/tickets/${encodeURIComponent(id)}`}>View all tickets</a></section>}<div className="receipt-qr" dangerouslySetInnerHTML={{__html:qr}}/><p className="document-note">Scan to verify the order status.</p><address className="document-note">{BIZ.name}<br/>{BIZ.addr}<br/>{BIZ.box}<br/>{BIZ.phone} · {BIZ.email}</address><div className="current-actions no-print"><a className="button" href={`/api/receipts/${encodeURIComponent(id)}/pdf`}>Download receipt</a><PrintDocumentButton/></div><p className="document-note">Thank you for supporting the culture.</p></article></section>;
 }

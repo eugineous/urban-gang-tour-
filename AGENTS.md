@@ -20,7 +20,7 @@ Apply these by default in every session. See `HANDOFF.md` for the full roadmap.
   state-swap as the primary navigation — real `<a href>` between routes.
 - Every route server-renders unique metadata (title, description, canonical, OG). **No two
   pages share a canonical.**
-- The owner retired V25 on 9 October 2026. Use the approved new interface from `public-design` and real backend-backed transaction screens. Do not restore the template, captured HTML, dual React runtime, bottom navigation or boot veil.
+- The owner retired V25 on 9 October 2026. Use the approved new interface in `ui/` through the single Next.js renderer and real backend-backed transaction screens. Do not restore the template, captured HTML, dual React runtime, bottom navigation or boot veil.
 - Preserve business data and owned media. Remove old frontends after connecting and testing their replacements.
 
 ## Security (non-negotiable)

@@ -98,13 +98,13 @@ export default function Checklists() {
             )}
           </div>
           {items.length > 0 && (
-            <div style={{ height: 10, border: '2px solid #111', borderRadius: 100, overflow: 'hidden', marginBottom: 12, background: '#eee' }}>
+            <div style={{ height: 10, border: '1px solid #ddd', borderRadius: 100, overflow: 'hidden', marginBottom: 12, background: '#eee' }}>
               <div style={{ width: `${items.length ? (done / items.length) * 100 : 0}%`, height: '100%', background: OC.green }} />
             </div>
           )}
           <div style={{ display: 'grid', gap: 6 }}>
             {items.map((i) => (
-              <div key={i.id} style={{ display: 'flex', gap: 8, alignItems: 'center', border: '2px solid #111', borderRadius: 10, padding: '8px 10px', background: i.done_at ? '#E7F5EE' : '#fff' }}>
+              <div key={i.id} style={{ display: 'flex', gap: 8, alignItems: 'center', border: '1px solid #ddd', borderRadius: 10, padding: '8px 10px', background: i.done_at ? '#E7F5EE' : '#fff' }}>
                 <input type="checkbox" checked={!!i.done_at} style={{ width: 18, height: 18, accentColor: OC.green }} onChange={async () => {
                   const { data } = await opsPost('checklist.item.toggle', { id: i.id });
                   if (data.error) say('Failed: ' + data.error); else load(eventId);

@@ -63,7 +63,3 @@ node_modules
 /e2e/evidence/
 /e2e/results/
 /e2e/.e2e/
-
-# Generated copies of approved design media; sources live in public-design/public.
-/public/media-library/
-/public/design-assets/

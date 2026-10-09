@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run --no-cache",
-    "cf:build": "npm --prefix public-design run build && opennextjs-cloudflare build && node scripts/prepare-public-design.mjs",
+    "cf:build": "node scripts/clean-release.mjs && opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {

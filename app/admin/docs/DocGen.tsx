@@ -36,8 +36,6 @@ import {
 } from "../ops/ui";
 
 const VERIFY_BASE = "https://urbangangtour.co.ke/verify/";
-const FONT_HREF =
-  "https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap";
 
 type DocType =
   | "invoice"
@@ -1428,18 +1426,6 @@ export default function DocGen() {
     return true;
   }, [type, previewPayload]);
 
-  // Ensure brand fonts are present in the admin document so the hidden capture
-  // node (which is mounted in THIS document, not the iframe) renders correctly.
-  useEffect(() => {
-    if (!document.querySelector("link[data-docgen-fonts]")) {
-      const l = document.createElement("link");
-      l.rel = "stylesheet";
-      l.href = FONT_HREF;
-      l.setAttribute("data-docgen-fonts", "1");
-      document.head.appendChild(l);
-    }
-  }, []);
-
   const loadRecent = useCallback(async () => {
     const { data } = await api("/api/admin/docs/list");
     if (data?.rows) setRecent(data.rows);
@@ -1894,7 +1880,7 @@ export default function DocGen() {
       )}
 
       <div style={card}>
-        <h2 style={{ fontFamily: "Anton", margin: "0 0 4px", fontSize: 22 }}>
+        <h2 style={{ fontFamily: 'inherit', margin: "0 0 4px", fontSize: 22 }}>
           Document Generator
         </h2>
         <a href="/admin/docs/designs" style={{display:"inline-block",padding:"10px 0",color:"#b30862",fontWeight:700}}>Ticket, receipt and email design studio →</a>
@@ -2251,7 +2237,7 @@ export default function DocGen() {
                     >
                       <div
                         style={{
-                          fontFamily: "Anton",
+                          fontFamily: 'inherit',
                           fontSize: 16,
                           color: "#1F8A5B",
                         }}
@@ -3199,7 +3185,7 @@ function InvoiceForm({ inv, setInv, rows, setRows, computed }: any) {
       <div
         style={{
           background: "#faf7f0",
-          border: "2px solid #111",
+          border: '1px solid #ddd',
           borderRadius: 10,
           padding: 10,
           margin: "4px 0 10px",
@@ -3278,7 +3264,7 @@ function ReceiptForm({ rct, setRct, computed }: any) {
       <div
         style={{
           background: "#faf7f0",
-          border: "2px solid #111",
+          border: '1px solid #ddd',
           borderRadius: 10,
           padding: 10,
           marginBottom: 10,
@@ -3934,7 +3920,7 @@ function BudgetForm({
       <div
         style={{
           background: "#faf7f0",
-          border: "2px solid #111",
+          border: '1px solid #ddd',
           borderRadius: 10,
           padding: 10,
           margin: "4px 0 4px",
@@ -4398,7 +4384,7 @@ function ProductionLibrary({
           >
             <div
               style={{
-                fontFamily: "Bungee",
+                fontFamily: 'inherit',
                 fontSize: 8,
                 letterSpacing: ".08em",
                 color: "#777",
@@ -4431,7 +4417,7 @@ function ProductionLibrary({
         <div
           style={{
             marginTop: 14,
-            border: "2px solid #111",
+            border: '1px solid #ddd',
             borderRadius: 12,
             overflow: "hidden",
             background: "#171017",
@@ -4441,7 +4427,7 @@ function ProductionLibrary({
             style={{
               color: "#fff",
               padding: "8px 12px",
-              fontFamily: "Anton",
+              fontFamily: 'inherit',
               letterSpacing: ".03em",
             }}
           >
@@ -5387,7 +5373,7 @@ function PromoForm({
                     width: 40,
                     height: 40,
                     borderRadius: 8,
-                    border: "2px solid #111",
+                    border: '1px solid #ddd',
                     overflow: "hidden",
                     background: "#eee",
                     flex: "none",
@@ -5655,7 +5641,7 @@ function QtyControls({
             background: "#f2fbf6",
           }}
         >
-          <div style={{ fontFamily: "Anton", fontSize: 16, color: "#1F8A5B" }}>
+          <div style={{ fontFamily: 'inherit', fontSize: 16, color: "#1F8A5B" }}>
             Issued {result.serials?.length} {noun}
           </div>
           <div
@@ -5932,7 +5918,7 @@ function BatchPanel({
             background: "#f2fbf6",
           }}
         >
-          <div style={{ fontFamily: "Anton", fontSize: 16, color: "#1F8A5B" }}>
+          <div style={{ fontFamily: 'inherit', fontSize: 16, color: "#1F8A5B" }}>
             Issued {result.serials?.length} certificates
           </div>
           <div

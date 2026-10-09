@@ -160,7 +160,7 @@ export default function Expenses() {
             }}
           >
             <div style={{ ...card, textAlign: "center" }}>
-              <div style={{ fontFamily: "Anton", fontSize: 24 }}>
+              <div style={{ fontFamily: 'inherit', fontSize: 24 }}>
                 {fmtKES(totalActual)}
               </div>
               <div
@@ -178,7 +178,7 @@ export default function Expenses() {
               <div style={{ ...card, textAlign: "center" }}>
                 <div
                   style={{
-                    fontFamily: "Anton",
+                    fontFamily: 'inherit',
                     fontSize: 24,
                     color: OC.magenta,
                   }}
@@ -201,7 +201,7 @@ export default function Expenses() {
               <div style={{ ...card, textAlign: "center" }}>
                 <div
                   style={{
-                    fontFamily: "Anton",
+                    fontFamily: 'inherit',
                     fontSize: 24,
                     color:
                       budget && totalActual > budget.productionCost

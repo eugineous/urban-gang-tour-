@@ -116,7 +116,7 @@ export default function Payouts() {
             }}
           >
             <div style={{ ...card, textAlign: "center" }}>
-              <div style={{ fontFamily: "Anton", fontSize: 24 }}>
+              <div style={{ fontFamily: 'inherit', fontSize: 24 }}>
                 {fmtKES(totals.planned)}
               </div>
               <div
@@ -132,7 +132,7 @@ export default function Payouts() {
             </div>
             <div style={{ ...card, textAlign: "center" }}>
               <div
-                style={{ fontFamily: "Anton", fontSize: 24, color: OC.green }}
+                style={{ fontFamily: 'inherit', fontSize: 24, color: OC.green }}
               >
                 {fmtKES(totals.paid)}
               </div>
@@ -151,7 +151,7 @@ export default function Payouts() {
               <div style={{ ...card, textAlign: "center" }}>
                 <div
                   style={{
-                    fontFamily: "Anton",
+                    fontFamily: 'inherit',
                     fontSize: 24,
                     color:
                       totals.budgetCrew !== null &&
