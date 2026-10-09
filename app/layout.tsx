@@ -6,6 +6,7 @@ import './globals.css';
 import './design.css';
 import './modern.css';
 import './refinements.css';
+import './mobile-experience.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';
