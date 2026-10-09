@@ -12,7 +12,7 @@ describe('public design deployment boundary',()=>{
   const fetch=vi.fn(async()=>new Response('<h1>About</h1>'));
   const response=await publicDesignResponse(new Request('https://urbangangtour.co.ke/about/'),{ASSETS:{fetch}},routes);
   expect(fetch.mock.calls[0][0].url).toBe('https://urbangangtour.co.ke/_design-pages/about/index.html');
-  expect(response.status).toBe(200);expect(response.headers.get('cache-control')).toContain('no-cache');expect(response.headers.get('content-security-policy')).toContain('https://www.youtube-nocookie.com');expect(await response.text()).toContain('<h1>');
+  expect(response.status).toBe(200);expect(response.headers.get('cache-control')).toBe('no-store');expect(response.headers.get('content-security-policy')).toContain('https://www.youtube-nocookie.com');expect(await response.text()).toContain('<h1>');
  });
  it('falls back to the working application if an asset is missing',async()=>{expect(await publicDesignResponse(new Request('https://urbangangtour.co.ke/about'),{ASSETS:{fetch:async()=>new Response('missing',{status:404})}},routes)).toBeNull()});
 });
