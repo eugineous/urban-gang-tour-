@@ -2,7 +2,7 @@
 
 Release: `single-interface-20261009-v2`.
 
-Public pages, galleries, store, booking, account, organizer and admin routes now render through the native Next.js application. The Worker no longer switches public URLs to separately exported HTML. React navigation requests receive React responses from the same application that serves direct page requests.
+Public pages, galleries, store, booking, account, organizer and admin routes now render through the native Next.js application. The Worker no longer switches public URLs to separately exported HTML. React navigation requests receive React responses from the same application that serves direct page requests. A page-content loading boundary isolates public-page hydration from the shared navigation shell; protected and transactional screens retain their direct rendering and redirect behavior.
 
 ## Removed
 

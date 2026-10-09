@@ -4,7 +4,7 @@ import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
 import path from 'node:path';
 const runtime = path.resolve(process.argv[2] || '/tmp/ugt-flow-runtime');
 const options = convertV4MiniflareOptions({
-  host: '127.0.0.1', port: 4184,
+  host: '127.0.0.1', port: Number(process.env.FLOW_PORT || 4184),
   workers: [{
     name: 'urban-gang-tour', modules: true,
     modulesRoot: path.join(runtime, 'bundle'),
