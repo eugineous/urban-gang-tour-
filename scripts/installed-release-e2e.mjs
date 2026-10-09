@@ -9,7 +9,7 @@ try{for(const engine of [chromium,webkit]){const browser=await engine.launch(eng
  for(const [name,path] of [['home','/'],['news','/news'],['gallery','/gallery'],['events','/events']]){
   await p.goto('http://127.0.0.1:4192'+path,{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>document.documentElement.dataset.focusView!==undefined);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
-  if(name==='home')assert.ok(await p.locator('.hero').evaluate(e=>e.getBoundingClientRect().height)>=830);
+  if(name==='home')assert.ok(await p.locator('.hero').evaluate(e=>Math.abs(e.getBoundingClientRect().bottom+6*(Number(document.documentElement.style.getPropertyValue('--ugt-phone-zoom'))||1)-Math.min(innerHeight,visualViewport?.height||innerHeight)))<3);
   if(name==='news')assert.equal(await p.locator('.news-categories').evaluate(e=>getComputedStyle(e).flexWrap),'nowrap');
   if(name==='gallery')assert.equal(await p.locator('.archive-collections').evaluate(e=>getComputedStyle(e).gridTemplateColumns.trim().split(' ').length),1);
   await p.waitForTimeout(1400);if(engine===chromium)await p.screenshot({path:'/workspace/ugt-mobile-audit/after-'+name+'.png'});

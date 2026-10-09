@@ -1,3 +1,4 @@
+import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import '../public-design/app/globals.css';
@@ -59,7 +60,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-KE">
-      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{if((navigator.maxTouchPoints>0||matchMedia("(pointer:coarse)").matches)&&screen.width<=600&&innerWidth>700){const z=innerWidth/screen.width;document.documentElement.style.zoom=String(z);document.documentElement.style.setProperty("--ugt-phone-zoom",String(z));document.documentElement.dataset.phoneViewport="wide"}}catch{}})();`}}/>
+      <head><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
         <link href="/fonts/v25-fonts.css" rel="stylesheet" />
