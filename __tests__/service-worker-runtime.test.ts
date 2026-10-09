@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
-async function request(path: string, networkFails = false) {
+async function request(path: string, networkFails = false, rsc = false) {
   const listeners: Record<string, Function> = {};
   const fetched: string[] = [];
   const cacheWrites: string[] = [];
@@ -14,7 +14,7 @@ async function request(path: string, networkFails = false) {
     fetch: async (req: any) => { fetched.push(req.url); if (networkFails) throw new Error('offline'); return new Response('current runtime'); },
   });
   let response: Promise<Response> | undefined;
-  listeners.fetch({ request: { url: 'https://urbangangtour.co.ke' + path, method: 'GET', mode: 'cors' }, respondWith: (result: Promise<Response>) => { response = result; }, waitUntil: () => {} });
+  listeners.fetch({ request: { url: 'https://urbangangtour.co.ke' + path, method: 'GET', mode: 'cors', headers: new Headers(rsc?{RSC:'1'}:{}) }, respondWith: (result: Promise<Response>) => { response = result; }, waitUntil: () => {} });
   return { text: response ? await (await response).text() : '', fetched, cacheWrites };
 }
 
@@ -25,12 +25,17 @@ describe('deployed runtime updates', () => {
     expect(result.fetched).toHaveLength(1);
   });
   it('revalidates mutable images and styles despite an old cache entry', async () => {
-    for (const path of ['/assets/ugt-logo.png', '/design-assets/hero.jpg', '/fonts/v25-fonts.css', '/release-client.js']) {
+    for (const path of ['/assets/ugt-logo.png', '/design-assets/hero.jpg', '/fonts/inter.woff2', '/release-client.js']) {
       expect((await request(path)).text).toBe('current runtime');
     }
   });
   it('can fall back to a cached runtime while offline', async () => {
     expect((await request('/manifest.json', true)).text).toBe('old runtime');
+  });
+  it('never substitutes cached HTML for a React navigation response', async () => {
+    const result=await request('/about?_rsc=123',false,true);
+    expect(result.text).toBe('');
+    expect(result.cacheWrites).toHaveLength(0);
   });
   it('retains cache-first behavior only for immutable compiled bundles', async () => {
     const result = await request('/_next/static/chunks/hashed.js');

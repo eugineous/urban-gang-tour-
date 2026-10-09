@@ -29,78 +29,7 @@ function eatStamp(d: Date): string {
 }
 
 const CSS = `
-/* fixed overlay: the ticket is a full-screen artifact - it sits above the
-   site chrome (header/footer/cookie bar) instead of being wrapped by it */
-body{overflow:hidden}
-.tk-stage{position:fixed;inset:0;z-index:12000;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  display:flex;padding:16px 16px 30px;font-family:'Space Grotesk',system-ui,sans-serif;color:#fff;background:#0c0c0c;
-  background:radial-gradient(90% 55% at 50% 0%,rgba(230,33,140,.13),transparent 62%),
-    radial-gradient(75% 45% at 88% 100%,rgba(33,199,230,.09),transparent 60%),
-    radial-gradient(140% 100% at 50% 42%,#141414 0%,#0c0c0c 58%,#050505 100%)}
-.tk-mid{margin:auto;width:min(400px,100%);display:flex;flex-direction:column;align-items:center}
-.tk-edge{position:relative;border-radius:24px;padding:4px;width:min(400px,100%);
-  background:linear-gradient(135deg,#E6218C 0%,#ff5db1 28%,#FFD400 62%,#E6218C 135%);
-  box-shadow:0 26px 60px rgba(0,0,0,.6),10px 10px 0 rgba(230,33,140,.15)}
-.tk-card{position:relative;background:#111;border:3px solid #111;border-radius:20px;overflow:hidden}
-.tk-card::after{content:'';position:absolute;inset:-40%;pointer-events:none;z-index:4;
-  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.07) 46%,rgba(230,33,140,.13) 50%,rgba(255,212,0,.11) 54%,rgba(255,255,255,.06) 58%,transparent 66%);
-  transform:translateX(-75%);animation:tkholo 6s ease-in-out infinite}
-@keyframes tkholo{0%{transform:translateX(-75%)}58%{transform:translateX(75%)}100%{transform:translateX(75%)}}
-.tk-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 10px}
-.tk-top img{height:30px;width:auto}
-.tk-ppp{font-family:'Bungee',cursive;font-size:8.5px;letter-spacing:.14em;color:#FFD400;border:1px solid rgba(255,212,0,.7);border-radius:999px;padding:4px 9px;white-space:nowrap}
-.tk-rule{height:2px;margin:0 18px;background:linear-gradient(90deg,transparent,#FFD400 18%,#FFD400 82%,transparent)}
-.tk-body{padding:13px 20px 14px}
-.tk-live{display:inline-flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.24em;color:#9a9aa4;text-transform:uppercase;font-weight:700}
-.tk-live i{width:7px;height:7px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 8px rgba(255,59,92,.9);animation:tkblink 1.5s ease-in-out infinite}
-@keyframes tkblink{0%,100%{opacity:1}50%{opacity:.22}}
-.tk-event{font-family:'Anton','Arial Black',sans-serif;text-transform:uppercase;font-size:clamp(28px,8vw,38px);line-height:.98;color:#fff;margin:8px 0 0;text-shadow:0 2px 0 rgba(0,0,0,.4)}
-.tk-tier{display:inline-block;font-family:'Permanent Marker',cursive;font-size:15px;color:#111;background:#21C7E6;border:2px solid #111;border-radius:6px;padding:4px 12px;transform:rotate(-5deg);box-shadow:3px 3px 0 rgba(0,0,0,.5);margin:11px 0 1px}
-.tk-tier.gold{background:#FFD400}
-.tk-meta{font-size:12.5px;color:#d9d9de;margin-top:10px;letter-spacing:.02em}
-.tk-issued{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:12px}
-.tk-lbl{font-size:8.5px;letter-spacing:.24em;color:#8a8a92;text-transform:uppercase;font-weight:700;margin-bottom:3px}
-.tk-holder{font-weight:700;font-size:16px;color:#fff;text-transform:uppercase;letter-spacing:.04em}
-.tk-pos{font-size:10px;font-weight:700;letter-spacing:.16em;color:#21C7E6;border:1px solid rgba(33,199,230,.65);border-radius:999px;padding:4px 10px;white-space:nowrap}
-.tk-perf{position:relative;height:0;border-top:2px dashed rgba(255,255,255,.32);margin:8px 0 0}
-.tk-perf i{position:absolute;top:-14px;width:26px;height:26px;border-radius:50%;background:#0c0c0c}
-.tk-perf i.l{left:-13px}.tk-perf i.r{right:-13px}
-.tk-stub{display:flex;align-items:center;gap:16px;padding:14px 20px 8px}
-.tk-admit{writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Bungee',cursive;font-size:13px;letter-spacing:.3em;color:#FFD400;text-transform:uppercase;flex:none;align-self:stretch;display:flex;align-items:center;justify-content:center}
-.tk-qrwrap{flex:1;display:flex;flex-direction:column;align-items:center}
-.tk-qr{background:#fff;border-radius:14px;padding:10px;width:min(44vw,200px);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 10px 30px rgba(0,0,0,.45)}
-.tk-qr svg{display:block;width:100%;height:auto}
-.tk-scan{font-size:8.5px;letter-spacing:.28em;color:#8a8a92;text-transform:uppercase;font-weight:700;margin-top:8px}
-.tk-code{text-align:center;font-family:ui-monospace,SFMono-Regular,'Courier New',monospace;font-size:14px;letter-spacing:.16em;color:#FFD400;padding:4px 16px 12px;word-break:break-all}
-.tk-foot{border-top:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);padding:10px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.tk-slogan{font-family:'Permanent Marker',cursive;font-size:12.5px;color:#FFD400;white-space:nowrap}
-.tk-biz{font-size:9.5px;color:#9a9aa2;text-align:right;line-height:1.55}
-.tk-dim{filter:saturate(.5) brightness(.82)}
-.tk-blur{filter:blur(7px);pointer-events:none;user-select:none}
-.tk-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:6;border:4px solid #ff3b3b;color:#ff4b4b;border-radius:10px;padding:10px 20px;text-align:center;background:rgba(12,12,12,.74);box-shadow:0 0 0 2px rgba(0,0,0,.35);white-space:nowrap}
-.tk-stamp b{font-family:'Anton','Arial Black',sans-serif;font-size:27px;letter-spacing:.1em;display:block}
-.tk-stamp span{font-size:11px;font-weight:700;letter-spacing:.08em}
-.tk-pending{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:22px}
-.tk-pending>div{border:3px solid #FFD400;border-radius:14px;background:rgba(12,12,12,.9);padding:18px 20px;text-align:center;max-width:290px}
-.tk-pending b{font-family:'Anton','Arial Black',sans-serif;font-size:22px;letter-spacing:.05em;color:#FFD400;display:block;text-transform:uppercase}
-.tk-pending p{font-size:12.5px;color:#d9d9de;line-height:1.6;margin:8px 0 0}
-.tk-links{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
-.tk-links a{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;text-decoration:none;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:8px 14px}
-.tk-links a:hover{border-color:#FFD400;color:#FFD400}
-.tk-comp{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#111;background:#FFD400;border-radius:999px;padding:4px 10px;margin-top:6px}
-@media (prefers-reduced-motion:reduce){.tk-card::after{animation:none;display:none}.tk-live i{animation:none}}
-@media print{
-  body{background:#fff !important;overflow:visible}
-  .tk-stage{position:static;overflow:visible;background:#fff;min-height:0;padding:12px;color:#111}
-  .tk-links{display:none}
-  .tk-edge{box-shadow:none;margin:0 auto}
-  .tk-card::after{animation:none;display:none}
-  .tk-live i{animation:none}
-  .tk-perf i{background:#fff}
-  .tk-card,.tk-edge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-}
-/* Calm, readable ticket presentation; all signatures, state and QR payloads stay server authoritative. */
-.tk-stage{background:#f3f3f3;color:#171717;font-family:Inter,system-ui,sans-serif}.tk-edge{background:#a81561;padding:2px;box-shadow:0 12px 40px #0002;border-radius:24px}.tk-card{background:#161616;border:0}.tk-card::after{display:none}.tk-stage a,.tk-stage button{min-height:44px}.tk-stage :focus-visible{outline:3px solid #21c7e6;outline-offset:3px}@media(prefers-reduced-motion:reduce){.tk-stage *{animation:none!important;transition:none!important}}
+.tk-stage{min-height:100svh;padding:24px 16px 48px;background:#f4f4f4;color:#151515;font-family:Inter,system-ui,sans-serif}.tk-mid{width:min(460px,100%);margin:auto}.tk-card{position:relative;background:white;border:1px solid #d6cbd1;border-radius:24px;overflow:hidden}.tk-top{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:12px}.tk-top img{width:72px;height:48px;object-fit:contain}.tk-rule{height:4px;background:#a81561}.tk-body{padding:24px}.tk-live,.tk-lbl{font-size:12px;line-height:1.5;color:#686268}.tk-event{font-size:clamp(28px,7vw,40px);letter-spacing:-.04em;line-height:1.12;overflow-wrap:anywhere;margin:12px 0}.tk-tier,.tk-comp{display:inline-block;padding:6px 12px;background:#f7e8ef;color:#86104f;font-size:15px;border-radius:8px}.tk-tier.gold,.tk-comp{background:#fff0b0;color:#534300}.tk-meta{font-size:16px;line-height:1.6;margin-top:16px}.tk-issued{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-top:24px}.tk-holder{font-size:20px;font-weight:600;overflow-wrap:anywhere}.tk-pos{font-size:13px;white-space:nowrap;padding-top:6px}.tk-perf{border-top:1px dashed #c8bdc3}.tk-stub{padding:24px;display:flex;align-items:center;justify-content:center;gap:20px}.tk-admit{writing-mode:vertical-rl;transform:rotate(180deg);font-size:14px;font-weight:600;color:#86104f}.tk-qrwrap{display:flex;flex-direction:column;align-items:center;gap:8px}.tk-qr{width:min(210px,56vw);background:#fff}.tk-qr svg{display:block;width:100%;height:auto}.tk-scan{font-size:14px;color:#686268}.tk-code{font:14px/1.6 ui-monospace,monospace;text-align:center;overflow-wrap:anywhere;padding:0 24px 24px}.tk-foot{background:#f7f2f5;padding:16px 24px;display:flex;gap:16px;justify-content:space-between;align-items:center;font-size:12px;line-height:1.6}.tk-slogan{color:#86104f}.tk-biz{text-align:right;color:#686268}.tk-links{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:24px}.tk-links a{display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px 16px;background:#fff;border:1px solid #d6cbd1;border-radius:12px;color:#86104f;font-size:15px}.tk-links a:hover{background:#f7e8ef}.tk-links a:focus-visible{outline:3px solid #21c7e6;outline-offset:3px}.tk-dim{opacity:.55}.tk-blur{filter:blur(7px);pointer-events:none;user-select:none}.tk-stamp{position:absolute;top:45%;inset-inline:20px;border:2px solid #a61925;color:#a61925;background:white;padding:20px;text-align:center;border-radius:12px;display:grid;gap:8px}.tk-stamp b{font-size:30px}.tk-stamp span{font-size:15px}.tk-pending{position:absolute;inset:0;display:grid;place-items:center;padding:20px}.tk-pending>div{background:#fff;border:1px solid #d6cbd1;border-radius:16px;padding:24px;text-align:center}.tk-pending b{font-size:24px}.tk-pending p{font-size:16px;line-height:1.6;margin-top:12px}@media(max-width:280px){.tk-body,.tk-stub,.tk-top,.tk-foot{padding:18px}.tk-issued,.tk-foot{flex-wrap:wrap}.tk-event{font-size:28px}.tk-links a{width:100%}}@media print{.tk-stage{padding:0;background:#fff;min-height:0}.tk-card{break-inside:avoid}.tk-links{display:none}.tk-rule,.tk-tier,.tk-foot{print-color-adjust:exact}}
 `;
 
 export default async function TicketPage({ params }: { params: Promise<{ code: string }> }) {
@@ -143,12 +72,12 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
           <div className={!paid ? 'tk-blur' : used ? 'tk-dim' : undefined}>
             <div className="tk-top">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" />
-              <span className="tk-ppp">PPP TV KENYA</span>
+              <img src="/assets/ugt-logo.png" alt="Urban Gang Tour" />
+              <span className="tk-lbl">Official e-ticket</span>
             </div>
             <div className="tk-rule" />
             <div className="tk-body">
-              <span className="tk-live"><i /> UGT LIVE &middot; OFFICIAL E-TICKET</span>
+              <span className="tk-live">Your entry pass</span>
               {t.pay_method === 'comp' ? <div><span className="tk-comp">Complimentary ticket</span></div> : null}
               <h1 className="tk-event">{evName}</h1>
               <div>

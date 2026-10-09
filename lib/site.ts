@@ -14,7 +14,7 @@ export const SITE = {
 
 export type RouteDef = {
   path: string;        // URL path, e.g. "/shop"
-  page: string;        // v25 dc-runtime page key this route renders
+  page: string;        // page identifier used by route metadata
   nav?: string;        // label if shown in main nav (omit to hide)
   title: string;       // <title> — unique per page
   description: string; // meta description — unique per page

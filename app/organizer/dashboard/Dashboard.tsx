@@ -72,15 +72,15 @@ export default function Dashboard() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 12, marginBottom: 18 }}>
           <div style={{ ...card, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Anton', fontSize: 28 }}>{totalSold}</div>
+            <div style={{ fontFamily: 'inherit', fontSize: 28 }}>{totalSold}</div>
             <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Tickets sold</div>
           </div>
           <div style={{ ...card, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Anton', fontSize: 24 }}>{fmtKES(totalRevenue)}</div>
+            <div style={{ fontFamily: 'inherit', fontSize: 24 }}>{fmtKES(totalRevenue)}</div>
             <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Your share (after commission)</div>
           </div>
           <div style={{ ...card, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Anton', fontSize: 24 }}>{events.length}</div>
+            <div style={{ fontFamily: 'inherit', fontSize: 24 }}>{events.length}</div>
             <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Events submitted</div>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function Dashboard() {
             {events.map((e) => {
               const st = STATUS_CHIP[e.status] || STATUS_CHIP.draft;
               return (
-                <div key={e.id} style={{ border: '2px solid #111', borderRadius: 12, padding: 14 }}>
+                <div key={e.id} style={{ border: '1px solid #ddd', borderRadius: 12, padding: 14 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     <b style={{ fontSize: 15 }}>{e.name}</b>
                     <Chip text={e.status.replace('_', ' ')} bg={st.bg} color={st.color} />

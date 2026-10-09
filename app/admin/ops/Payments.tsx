@@ -156,7 +156,7 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
           >
             <div style={{ ...card, textAlign: "center" }}>
               <div
-                style={{ fontFamily: "Anton", fontSize: 24, color: OC.green }}
+                style={{ fontFamily: 'inherit', fontSize: 24, color: OC.green }}
               >
                 {fmtKES(money.received)}
               </div>
@@ -175,7 +175,7 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
               <div style={{ ...card, textAlign: "center" }}>
                 <div
                   style={{
-                    fontFamily: "Anton",
+                    fontFamily: 'inherit',
                     fontSize: 24,
                     color: OC.magenta,
                   }}
@@ -198,7 +198,7 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
               <div style={{ ...card, textAlign: "center" }}>
                 <div
                   style={{
-                    fontFamily: "Anton",
+                    fontFamily: 'inherit',
                     fontSize: 24,
                     color:
                       money.crewPaid >= money.crewPlanned
@@ -227,7 +227,7 @@ export default function Payments({ canExportFinancialReport = false }: { canExpo
             <div style={{ ...card, textAlign: "center" }}>
               <div
                 style={{
-                  fontFamily: "Anton",
+                  fontFamily: 'inherit',
                   fontSize: 24,
                   color: balance !== null && balance > 0 ? OC.orange : OC.green,
                 }}

@@ -383,7 +383,7 @@ export default function Contacts() {
           <div key={org} style={{ marginBottom: 12 }}>
             <div
               style={{
-                fontFamily: "Anton",
+                fontFamily: 'inherit',
                 fontSize: 14,
                 color: OC.magenta,
                 borderBottom: "2px solid #111",

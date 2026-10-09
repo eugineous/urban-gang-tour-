@@ -24,9 +24,9 @@ type Inspection = {
   googleCanonical: string | null;
 };
 
-const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111', padding: 16 };
-const button: React.CSSProperties = { background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer' };
-const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '2px solid #111', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
+const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd', borderRadius: 14, boxShadow: 'none', padding: 16 };
+const button: React.CSSProperties = { background: '#FFD400', color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '1px solid #ddd', borderRadius: 10, boxShadow: 'none', cursor: 'pointer' };
+const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
 
 function formatWhen(value: string | null | undefined) {
   if (!value) return 'Not reported';
@@ -100,7 +100,7 @@ export default function SearchConsolePanel() {
   return <section style={card} aria-live="polite">
     <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap' }}>
       <div>
-        <h3 style={{ fontFamily: 'Anton', margin: 0, fontSize: 24 }}>GOOGLE SEARCH CONSOLE</h3>
+        <h3 style={{ fontFamily: 'inherit', margin: 0, fontSize: 24 }}>GOOGLE SEARCH CONSOLE</h3>
         <p style={{ color: '#666', fontSize: 13, maxWidth: 680, lineHeight: 1.5, margin: '6px 0 0' }}>Verification, sitemap health and Google Search signals. This panel uses read-only access and never submits sitemaps or requests indexing.</p>
       </div>
       <button type="button" style={{ ...button, opacity: loading ? .65 : 1 }} onClick={load} disabled={loading}>{loading ? 'Checking…' : 'Refresh status'}</button>
@@ -108,15 +108,15 @@ export default function SearchConsolePanel() {
     {error ? <p style={{ margin: '14px 0 0', color: '#9D1428', fontWeight: 700 }}>Could not load status: {error}</p> : null}
     {overview ? <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10, marginTop: 16 }}>
-        <div style={{ border: '2px solid #111', borderRadius: 10, padding: 11 }}><b>Connection</b><div style={{ marginTop: 5, fontSize: 13 }}>{overview.state.replace(/_/g, ' ')}</div></div>
-        <div style={{ border: '2px solid #111', borderRadius: 10, padding: 11 }}><b>Property</b><div style={{ marginTop: 5, fontSize: 13, overflowWrap: 'anywhere' }}>{overview.property || 'Not configured'}</div></div>
-        <div style={{ border: '2px solid #111', borderRadius: 10, padding: 11 }}><b>Access</b><div style={{ marginTop: 5, fontSize: 13 }}>{overview.permissionLevel || 'Not reported'}</div></div>
+        <div style={{ border: '1px solid #ddd', borderRadius: 10, padding: 11 }}><b>Connection</b><div style={{ marginTop: 5, fontSize: 13 }}>{overview.state.replace(/_/g, ' ')}</div></div>
+        <div style={{ border: '1px solid #ddd', borderRadius: 10, padding: 11 }}><b>Property</b><div style={{ marginTop: 5, fontSize: 13, overflowWrap: 'anywhere' }}>{overview.property || 'Not configured'}</div></div>
+        <div style={{ border: '1px solid #ddd', borderRadius: 10, padding: 11 }}><b>Access</b><div style={{ marginTop: 5, fontSize: 13 }}>{overview.permissionLevel || 'Not reported'}</div></div>
       </div>
       <p style={{ margin: '12px 0 0', color: '#555', fontSize: 13, lineHeight: 1.5 }}>{stateCopy} Checked {formatWhen(overview.checkedAt)}.</p>
       {overview.performance ? <div style={{ marginTop: 16 }}>
         <h4 style={{ margin: '0 0 8px', fontSize: 14, textTransform: 'uppercase' }}>Search performance, {overview.performance.startDate} to {overview.performance.endDate}</h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(135px,1fr))', gap: 10 }}>
-          {[["Clicks", overview.performance.clicks], ["Impressions", overview.performance.impressions], ["CTR", pct(overview.performance.ctr)], ["Average position", overview.performance.position ?? 'Not reported'], ["Days reported", overview.performance.daysWithData]].map(([label, value]) => <div key={String(label)} style={{ background: '#FFF8D8', border: '2px solid #111', borderRadius: 10, padding: 10 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>{label}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{value}</div></div>)}
+          {[["Clicks", overview.performance.clicks], ["Impressions", overview.performance.impressions], ["CTR", pct(overview.performance.ctr)], ["Average position", overview.performance.position ?? 'Not reported'], ["Days reported", overview.performance.daysWithData]].map(([label, value]) => <div key={String(label)} style={{ background: '#FFF8D8', border: '1px solid #ddd', borderRadius: 10, padding: 10 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>{label}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{value}</div></div>)}
         </div>
         {!overview.performance.daysWithData ? <p style={{ color: '#666', fontSize: 12, marginBottom: 0 }}>Google returned no daily rows for this completed period. That can mean no reportable data, it is not a forecast or a zero-traffic claim.</p> : null}
       </div> : null}

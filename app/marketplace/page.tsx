@@ -31,45 +31,5 @@ export default async function MarketplacePage() {
   let events: Awaited<ReturnType<typeof getPublishedMarketplaceEvents>> = [];
   try { events = await getPublishedMarketplaceEvents(); } catch { events = []; }
 
-  return (
-    <main style={{ background: '#0c0c0c', minHeight: '80vh', padding: '48px 18px 90px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 30 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ width: 'min(210px, 55vw)', height: 'auto', margin: '0 auto 14px', display: 'block' }} />
-          <h1 style={{ fontFamily: 'Anton', color: '#fff', fontSize: 'clamp(32px,7vw,58px)', textTransform: 'uppercase', margin: '0 0 8px', WebkitTextStroke: '1px #E6218C' }}>Ticket Marketplace</h1>
-          <p style={{ color: '#bbb', maxWidth: 620, margin: '0 auto', lineHeight: 1.6 }}>
-            Independently organized events, ticketed securely through Urban Gang Tour. Each event below is run by its own
-            organizer — UGT processes the payment and never claims to be the host.
-          </p>
-          <a href="/organizer/signup" style={{ display: 'inline-block', marginTop: 14, color: '#FFD400', fontSize: 12.5, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,212,0,.5)', borderRadius: 999, padding: '7px 14px' }}>
-            Have an event? Sell tickets through UGT →
-          </a>
-        </div>
-
-        {!events.length ? (
-          <div style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>No marketplace events are published right now — check back soon.</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 20 }}>
-            {events.map((e) => {
-              const minPrice = e.tiers.length ? Math.min(...e.tiers.map((t) => t.price)) : 0;
-              return (
-                <a key={e.id} href={`/marketplace/${encodeURIComponent(e.id)}`} style={{ textDecoration: 'none', color: '#fff' }}>
-                  <div style={{ background: '#151515', border: '2px solid #2a2a2a', borderRadius: 16, overflow: 'hidden', height: '100%' }}>
-                    <div style={{ height: 150, background: e.image ? `url(${e.image}) center/cover` : 'linear-gradient(135deg,#E6218C,#FFD400)' }} />
-                    <div style={{ padding: 16 }}>
-                      <div style={{ fontFamily: 'Anton', fontSize: 19, textTransform: 'uppercase', lineHeight: 1.1 }}>{e.name}</div>
-                      <div style={{ fontSize: 12, color: '#9a9aa4', marginTop: 6 }}>{fmtDate(e.event_date)} · {e.venue}{e.city ? `, ${e.city}` : ''}</div>
-                      <div style={{ fontSize: 11.5, color: '#21C7E6', marginTop: 8, fontWeight: 700 }}>Hosted by {e.organizer_business_name}</div>
-                      <div style={{ marginTop: 10, fontFamily: 'Anton', color: '#FFD400', fontSize: 16 }}>From KES {minPrice.toLocaleString('en-KE')}</div>
-                    </div>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </main>
-  );
+  return <section className="current-reading current-wide wrap"><p className="eyebrow">Ticket marketplace</p><h1>Find your next event.</h1><p>Events from independent organizers. Check the date, venue and ticket options before booking.</p><a className="button" href="/organizer/signup">Sell tickets for your event</a>{!events.length?<div className="current-card"><h2>No events on sale yet.</h2><p>Browse our event recommendations while organizers prepare their next release.</p><a href="/events">Explore events</a></div>:<div className="current-grid">{events.map(e=><a className="current-card marketplace-card" href={`/marketplace/${encodeURIComponent(e.id)}`} key={e.id}>{e.image?<img src={e.image} alt={e.name} loading="lazy"/>:<div className="event-image-empty">Ticket marketplace</div>}<h2>{e.name}</h2><p>{fmtDate(e.event_date)} · {e.venue}{e.city?`, ${e.city}`:''}</p><p>Hosted by {e.organizer_business_name}</p><strong>From KES {(e.tiers.length?Math.min(...e.tiers.map(t=>t.price)):0).toLocaleString('en-KE')}</strong></a>)}</div>}</section>;
 }

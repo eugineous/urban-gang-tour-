@@ -1,21 +1,17 @@
 import app from './.open-next/worker.js';
-import designRoutes from './data/public-design-routes.json';
-import { publicDesignResponse } from './lib/cloudflare/public-design.mjs';
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith('/_design-pages/')) return new Response('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } });
-    const design = await publicDesignResponse(request, env, designRoutes);
-    if (design) return design;
+    if (/^\/(?:_design-pages|_design\/_next|fonts\/v25-)(?:\/|$)/.test(url.pathname) || url.pathname.startsWith('/fonts/v25-')) return new Response('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } });
     if (url.pathname === '/v25-template' || url.pathname === '/v25-template.html') return Response.redirect(new URL('/', url).href, 301);
     const response = await app.fetch(request, env, ctx);
     const headers = new Headers(response.headers);
-    if (url.pathname === '/sw.js' || url.pathname === '/release-client.js' || url.pathname === '/manifest.json' || (response.headers.get('content-type') || '').includes('text/html')) {
+    if (request.headers.get('RSC') === '1' || url.pathname === '/sw.js' || url.pathname === '/release-client.js' || url.pathname === '/manifest.json' || (response.headers.get('content-type') || '').includes('text/html')) {
       headers.set('Cache-Control', 'no-store');
       headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
     }
-    headers.set('X-UGT-Release', 'experience-refinement-20261009-v1');
+    headers.set('X-UGT-Release', 'single-interface-20261009-v2');
     const csp = headers.get('Content-Security-Policy');
     if (csp) headers.set('Content-Security-Policy', csp.replace(/(connect-src[^;]*)/, '$1 https://urban-gang-tour-events.euginemicah.workers.dev').replace(/(frame-src[^;]*)/, '$1 https://www.youtube-nocookie.com'));
     return new Response(response.body, {status: response.status, statusText: response.statusText, headers});

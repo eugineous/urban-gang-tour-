@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import publicDesignRoutes from '@/data/public-design-routes.json';
+import publicDesignRoutes from '@/data/public-page-routes.json';
 import { ROUTES, SITE } from '@/lib/site';
 import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';

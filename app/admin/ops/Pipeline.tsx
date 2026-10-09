@@ -164,7 +164,7 @@ export default function Pipeline() {
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
               {byStage.get(stage)!.map((l) => (
-                <div key={l.id} style={{ border: '2px solid #111', borderRadius: 10, padding: 8, fontSize: 13, background: '#fff' }}>
+                <div key={l.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 8, fontSize: 13, background: '#fff' }}>
                   {stage === 'new' && (
                     <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, color: '#666', cursor: 'pointer' }}>
                       <input type="checkbox" checked={selectedNew.has(l.id)} onChange={() => toggleSelectedNew(l.id)} /> select

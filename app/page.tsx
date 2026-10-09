@@ -6,7 +6,7 @@ import { RenderedPage } from '@/app/_components/RenderedPage';
 
 const PATH = '/';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);
@@ -15,7 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function Page() {
   return (
     <>
-      <link rel="preload" as="video" href="/assets/light-v1/video/hero-main.mp4" type="video/mp4" />
       <JsonLd data={structuredDataForPath(PATH)} />
       <RenderedPage pathName={PATH} />
     </>

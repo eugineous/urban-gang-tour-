@@ -8,7 +8,7 @@ await p.route('https://urban-gang-tour-events.euginemicah.workers.dev/events',r=
 await p.goto('http://127.0.0.1:4184/events',{waitUntil:'domcontentloaded'});
 await p.waitForFunction(()=>document.querySelector('.discovery-feature h2')?.textContent==='Artist Beta live');
 await p.locator('.discovery-search input').fill('Artist Alpha');await p.waitForTimeout(900);assert.equal(writes.length,0,'No consent means no tracking');
-await p.evaluate(()=>localStorage.setItem('ugt-new-preview-v1consent',JSON.stringify('accepted')));await p.locator('.discovery-search input').fill('Artist Alpha live');await p.waitForTimeout(900);assert.equal(writes.length,1);assert.equal(writes[0].kind,'search');assert.equal('query' in writes[0],false);
+await p.evaluate(()=>localStorage.setItem('ugt-consent','yes'));await p.locator('.discovery-search input').fill('Artist Alpha live');await p.waitForTimeout(900);assert.equal(writes.length,1);assert.equal(writes[0].kind,'search');assert.equal('query' in writes[0],false);
 own=[{id:'own',kind:'ticketed',status:'published',eventDate:new Date(now+86400000).toISOString().slice(0,10),priority:50,name:'Urban Gang Live',slug:'urban-gang-live',venue:'Nairobi',image:'/assets/ugt-logo.png'}];
 await p.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await p.getByRole('heading',{name:'Urban Gang Live',exact:true}).waitFor();await p.locator('.event-update-notice').waitFor();await p.getByRole('button',{name:'Dismiss event update'}).click();await p.locator('.event-update-notice').waitFor({state:'hidden'});
 console.log('PASS measured-interest ranking, consent gating, no raw queries, refreshed own-event priority and dismissible announcement');await b.close();

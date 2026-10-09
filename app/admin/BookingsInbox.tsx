@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import GmailConnectButton from './GmailConnectButton';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111', green: '#1F8A5B' };
-const card: React.CSSProperties = { background: '#fff', border: '3px solid #111', borderRadius: 14, boxShadow: '5px 5px 0 #111' };
-const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '2px solid #111', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
-const button: React.CSSProperties = { background: C.yellow, color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '2px solid #111', borderRadius: 10, boxShadow: '3px 3px 0 #111', cursor: 'pointer' };
+const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd', borderRadius: 14, boxShadow: 'none' };
+const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' };
+const button: React.CSSProperties = { background: C.yellow, color: '#111', fontWeight: 800, fontSize: 13, padding: '9px 14px', border: '1px solid #ddd', borderRadius: 10, boxShadow: 'none', cursor: 'pointer' };
 
 function formatDate(value: string) {
   if (!value) return '';
@@ -123,11 +123,11 @@ export default function BookingsInbox({
     <div>
       <div style={{ ...card, padding: 16, marginBottom: 14, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ fontFamily: 'Anton', fontSize: 22 }}>BOOKING DESK</div>
+          <div style={{ fontFamily: 'inherit', fontSize: 22 }}>BOOKING DESK</div>
           <div style={{ fontSize: 12, color: '#666' }}>Review requests, reply from Gmail, and keep every decision in one place.</div>
         </div>
         {gmail.connected
-          ? <div style={{ border: '2px solid #111', borderRadius: 999, padding: '7px 11px', background: '#DDF6E8', fontSize: 12, fontWeight: 800 }}>Gmail connected · {gmail.email}</div>
+          ? <div style={{ border: '1px solid #ddd', borderRadius: 999, padding: '7px 11px', background: '#DDF6E8', fontSize: 12, fontWeight: 800 }}>Gmail connected · {gmail.email}</div>
           : <GmailConnectButton clientId={googleClientId} onConnected={(email) => setGmail({ connected: true, email })} />}
         <a href="/api/admin/export?kind=bookings" style={{ ...button, textDecoration: 'none', background: '#fff' }}>Export CSV</a>
       </div>
@@ -168,7 +168,7 @@ export default function BookingsInbox({
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div style={{ color: C.pink, fontSize: 12, fontWeight: 900, textTransform: 'uppercase' }}>{selected.type}</div>
-                <h2 style={{ fontFamily: 'Anton', fontSize: 28, margin: '3px 0' }}>{selected.name}</h2>
+                <h2 style={{ fontFamily: 'inherit', fontSize: 28, margin: '3px 0' }}>{selected.name}</h2>
                 <div style={{ fontSize: 13, color: '#666' }}>{selected.org || 'No organisation supplied'} · {formatDate(selected.created_at)}</div>
               </div>
               <select aria-label="Booking status" style={{ ...field, width: 150 }} value={selected.status} onChange={(event) => changeStatus(event.target.value)}>
@@ -184,7 +184,7 @@ export default function BookingsInbox({
             {selectedDetails.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, margin: '8px 0 16px' }}>
                 {selectedDetails.map(([label, value]) => (
-                  <div key={label} style={{ border: '2px solid #111', borderRadius: 10, padding: 10, background: '#FFF8D8' }}>
+                  <div key={label} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 10, background: '#FFF8D8' }}>
                     <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.06em', color: '#666' }}>{label}</div>
                     <div style={{ marginTop: 4, fontSize: 14, fontWeight: 800, lineHeight: 1.35 }}>{value}</div>
                   </div>
@@ -192,10 +192,10 @@ export default function BookingsInbox({
               </div>
             )}
 
-            <div style={{ border: '2px solid #111', borderRadius: 12, padding: 14, background: '#F8F8F8', whiteSpace: 'pre-wrap', lineHeight: 1.55, fontSize: 14 }}>{selected.message || 'No message supplied.'}</div>
+            <div style={{ border: '1px solid #ddd', borderRadius: 12, padding: 14, background: '#F8F8F8', whiteSpace: 'pre-wrap', lineHeight: 1.55, fontSize: 14 }}>{selected.message || 'No message supplied.'}</div>
 
             {replies.length > 0 && <div style={{ marginTop: 18 }}>
-              <div style={{ fontFamily: 'Anton', fontSize: 16, marginBottom: 8 }}>REPLY HISTORY</div>
+              <div style={{ fontFamily: 'inherit', fontSize: 16, marginBottom: 8 }}>REPLY HISTORY</div>
               <div style={{ display: 'grid', gap: 8 }}>
                 {replies.map((reply) => <div key={reply.id} style={{ borderLeft: `4px solid ${C.cyan}`, padding: '8px 12px', background: '#F3FBFD', fontSize: 12 }}>
                   <div style={{ fontWeight: 800 }}>{reply.subject}</div>
@@ -206,8 +206,8 @@ export default function BookingsInbox({
             </div>}
 
             <div style={{ marginTop: 20, borderTop: '3px solid #111', paddingTop: 16 }}>
-              <div style={{ fontFamily: 'Anton', fontSize: 18, marginBottom: 8 }}>REPLY FROM GMAIL</div>
-              {!gmail.connected && <div style={{ background: '#FFF6CC', border: '2px solid #111', borderRadius: 10, padding: 12, marginBottom: 10, fontSize: 12 }}>Connect Gmail above to send without leaving the Control Room.</div>}
+              <div style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8 }}>REPLY FROM GMAIL</div>
+              {!gmail.connected && <div style={{ background: '#FFF6CC', border: '1px solid #ddd', borderRadius: 10, padding: 12, marginBottom: 10, fontSize: 12 }}>Connect Gmail above to send without leaving the Control Room.</div>}
               <div style={{ display: 'grid', gap: 8 }}>
                 <input style={field} value={subject} onChange={(event) => setSubject(event.target.value)} aria-label="Reply subject" />
                 <textarea style={{ ...field, minHeight: 180, resize: 'vertical' }} value={body} onChange={(event) => setBody(event.target.value)} aria-label="Reply message" />

@@ -1897,7 +1897,7 @@ function Actions({
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div style={{ ...card, textAlign: "center" }}>
-      <div style={{ fontFamily: "Anton", fontSize: 25, color: OC.magenta }}>
+      <div style={{ fontFamily: 'inherit', fontSize: 25, color: OC.magenta }}>
         {value}
       </div>
       <div

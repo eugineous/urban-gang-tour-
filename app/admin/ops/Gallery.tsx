@@ -211,7 +211,7 @@ export default function Gallery() {
                 <span style={{ background: p.published ? '#E7F5EE' : '#FDF2D9', color: p.published ? OC.green : OC.orange, borderRadius: 99, padding: '3px 8px' }}>{p.published ? 'PUBLIC' : 'PRIVATE REVIEW'}</span>
                 <span style={{ color: '#666' }}>{frameLabel(p)}</span>
               </div>
-              <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '2px solid #111', aspectRatio: '4/3', background: '#111' }}>
+              <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid #ddd', aspectRatio: '4/3', background: '#111' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.url} alt={d.altText || p.alt_text || 'Unlabelled gallery photo'} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
               </div>

@@ -141,12 +141,12 @@ export default function GateApp() {
     };
   }, [authed, onDecoded]);
 
-  const anton = "'Anton','Arial Black',sans-serif";
+  const headingFont = 'Inter,system-ui,sans-serif';
   const wrap: React.CSSProperties = {
     // z above the site chrome (cookie banner 10000, boot veil 9999) - gate
     // staff must never have the scanner blocked by a consent popup
     position: 'fixed', inset: 0, zIndex: 12000, background: '#0c0c0c', color: '#fff',
-    fontFamily: "'Space Grotesk',system-ui,sans-serif", display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    fontFamily: 'inherit', display: 'flex', flexDirection: 'column', overflow: 'hidden',
   };
 
   if (authed === null) {
@@ -157,13 +157,13 @@ export default function GateApp() {
       <div style={{ ...wrap, alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 60, marginBottom: 14 }} />
-        <div style={{ fontFamily: anton, fontSize: 26, textTransform: 'uppercase' }}>Gate Scanner</div>
+        <div style={{ fontFamily: headingFont, fontSize: 26, textTransform: 'uppercase' }}>Gate Scanner</div>
         <p style={{ color: '#9a9aa4', fontSize: 13.5, lineHeight: 1.6, maxWidth: 300 }}>
           {permDenied
             ? "Signed in, but this account isn't authorised for gate scanning. Ask the owner to grant the gate_scanner module in Admins."
             : 'Staff only. Sign in to the Control Room first, then come back here.'}
         </p>
-        <a href="/admin" style={{ background: C.yellow, color: '#111', fontFamily: anton, fontSize: 16, textDecoration: 'none', padding: '13px 26px', border: '3px solid #111', borderRadius: 12, boxShadow: '5px 5px 0 rgba(230,33,140,.5)', textTransform: 'uppercase' }}>
+        <a href="/admin" style={{ background: C.yellow, color: '#111', fontFamily: headingFont, fontSize: 16, textDecoration: 'none', padding: '13px 26px', border: '1px solid #ddd', borderRadius: 12, boxShadow: '5px 5px 0 rgba(230,33,140,.5)', textTransform: 'uppercase' }}>
           {permDenied ? 'Back to /admin' : 'Sign in at /admin'}
         </a>
       </div>
@@ -184,7 +184,7 @@ export default function GateApp() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 32 }} />
           <div>
-            <div style={{ fontFamily: anton, fontSize: 16, lineHeight: 1, textTransform: 'uppercase' }}>Gate Scanner</div>
+            <div style={{ fontFamily: headingFont, fontSize: 16, lineHeight: 1, textTransform: 'uppercase' }}>Gate Scanner</div>
             <div style={{ fontSize: 10, letterSpacing: '.18em', color: C.yellow }}>SCANS: {scans}</div>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function GateApp() {
             autoCapitalize="characters" autoCorrect="off" spellCheck={false}
             style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: '2px solid rgba(255,255,255,.35)', background: 'rgba(17,17,17,.85)', color: '#fff', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: 13, letterSpacing: '.08em' }}
           />
-          <button type="submit" style={{ background: C.yellow, color: '#111', fontFamily: anton, fontSize: 14, padding: '0 18px', border: '2px solid #111', borderRadius: 12, cursor: 'pointer', textTransform: 'uppercase' }}>Check</button>
+          <button type="submit" style={{ background: C.yellow, color: '#111', fontFamily: headingFont, fontSize: 14, padding: '0 18px', border: '1px solid #ddd', borderRadius: 12, cursor: 'pointer', textTransform: 'uppercase' }}>Check</button>
         </form>
         {lastCode&&<details style={{maxWidth:440,margin:'12px auto',color:'#fff'}}><summary>Private holder contact lookup</summary><p style={{fontSize:13}}>For authorised event operations or safety only. Access is logged.</p><button onClick={async()=>{setContactNotice('Looking up…');try{const r=await fetch('/api/admin/tickets/'+encodeURIComponent(lastCode)+'/holder',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error();setHolderContact(d.holder);setContactNotice('')}catch{setContactNotice('Contact lookup unavailable.')}}}>View holder contacts</button>{holderContact&&<div><p>{holderContact.holder}</p><p>{holderContact.email||'No email supplied'}</p><p>{holderContact.phone||'No phone supplied'}</p><button onClick={()=>setHolderContact(null)}>Hide contacts</button></div>}<p role="status">{contactNotice}</p></details>}
 
@@ -235,12 +235,12 @@ export default function GateApp() {
       {/* verdict overlay */}
       {verdict ? (
         <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: verdictBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
-          <div style={{ fontFamily: anton, fontSize: 'clamp(44px, 14vw, 72px)', lineHeight: 1, textTransform: 'uppercase', textShadow: '4px 4px 0 rgba(0,0,0,.35)' }}>
+          <div style={{ fontFamily: headingFont, fontSize: 'clamp(44px, 14vw, 72px)', lineHeight: 1, textTransform: 'uppercase', textShadow: '4px 4px 0 rgba(0,0,0,.35)' }}>
             {verdict.result === 'valid' ? 'VALID' : verdict.result === 'used' ? 'ALREADY USED' : 'INVALID'}
           </div>
           {verdict.ticket ? (
             <div style={{ marginTop: 18, background: 'rgba(0,0,0,.3)', border: '2px solid rgba(255,255,255,.5)', borderRadius: 14, padding: '14px 20px', fontSize: 15, lineHeight: 1.7, maxWidth: 340 }}>
-              <div style={{ fontFamily: anton, fontSize: 19, textTransform: 'uppercase' }}>{verdict.ticket.event}</div>
+              <div style={{ fontFamily: headingFont, fontSize: 19, textTransform: 'uppercase' }}>{verdict.ticket.event}</div>
               <div><b>{verdict.ticket.tier}</b> &middot; {verdict.ticket.position} of {verdict.ticket.ofCount}</div>
               {verdict.ticket.holder ? <div>{verdict.ticket.holder}</div> : null}
               {verdict.result === 'used' && verdict.usedAt ? (

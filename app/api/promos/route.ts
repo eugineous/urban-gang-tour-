@@ -4,7 +4,7 @@ import { cached } from '@/lib/server/microcache';
 import { getActivePromos } from '@/lib/server/promos';
 
 // Public, read-only view of currently-active shop promos. Powers the
-// sitewide PromoBanner and the shop's client-side price overlay. Exposes
+// live commerce catalogue and promotion tools. Exposes
 // ONLY intentionally-public fields: never max_uses/uses/id/starts_on/code —
 // a promo code is only ever validated server-side at checkout
 // (lib/server/promos.ts validatePromoCode), never revealed here even for a

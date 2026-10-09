@@ -1,17 +1,16 @@
 import {MEDIA_LIFECYCLE_BOOTSTRAP} from '@/lib/client/media-lifecycle';
-import {BookingInvitation} from '../public-design/components/BookingInvitation';
+import {BookingInvitation} from '../ui/components/BookingInvitation';
 import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import '../public-design/app/globals.css';
+import './design.css';
 import './modern.css';
-import '../public-design/app/refinements.css';
+import './refinements.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';
 import { CookieConsent } from './_components/CookieConsent';
 import { AdSenseLoader } from './_components/Ads';
-import { PromoBanner } from './_components/PromoBanner';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
@@ -66,8 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
-        <link href="/fonts/v25-fonts.css" rel="stylesheet" />
-        <link href="/fonts/v25-1.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link href="/fonts/inter.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Device id for rate limiting (lib/server/ratelimit.ts).
             Set here in the browser rather than in middleware on purpose: a
             middleware Set-Cookie lands on the page response, and a response
@@ -111,7 +109,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
-        <PromoBanner />
         <AppShell>{children}</AppShell>
         <InstallableApp />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,

@@ -1,74 +1,9 @@
-import type { Metadata } from 'next';
-import { metadataForPathDynamic } from '@/app/_lib/seo';
-import { newsIndexJsonLd, structuredDataForPath } from '@/app/_lib/jsonld';
-import { JsonLd } from '@/app/_components/JsonLd';
-import { getBlogPosts } from '@/app/_lib/blog';
-import { getUpcomingStops, getTrendingAndMostRead, getMostSearched } from '@/app/_lib/news-data';
-import { getIgWall } from '@/lib/server/social-wall';
-import { InstagramWall } from '@/app/_components/InstagramWall';
-import { FeedAd } from '@/app/_components/Ads';
-import { NewsClient, type Desk, type Story } from './NewsClient';
-
-const PATH = '/blog';
-export async function generateMetadata(): Promise<Metadata> {
-  return metadataForPathDynamic(PATH);
-}
-
-// Published articles must come from the runtime database, not an empty build seed.
-export const dynamic = 'force-dynamic';
-
-// Real posts use two section-naming generations (pre- and post- 2026-07-21
-// content push) - map both onto the redesign's desks so nothing silently
-// disappears from every filtered view. Unrecognised sections fall back to
-// 'culture' rather than vanishing.
-function deskFor(section: string): Desk {
-  const s = section.toLowerCase();
-  if (s === 'events' || s === 'tour recap' || s === 'upcoming') return 'fresh';
-  if (s === 'the gang' || s === 'partnerships') return 'gang';
-  if (s === 'for institutions') return 'institutions';
-  return 'culture';
-}
-
-function formatDate(iso: string) {
-  const d = new Date(iso + 'T00:00:00Z');
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-}
-
-export default async function BlogIndex() {
-  const posts = await getBlogPosts();
-  const [routeRows, { trending, mostRead }, mostSearched, igWall] = await Promise.all([
-    getUpcomingStops(),
-    getTrendingAndMostRead(posts),
-    getMostSearched(),
-    getIgWall(),
-  ]);
-
-  const stories: Story[] = posts.map((p) => ({
-    slug: p.slug,
-    title: p.headline,
-    dek: p.description,
-    image: p.image,
-    date: formatDate(p.datePublished),
-    desk: deskFor(p.section),
-  }));
-
-  return (
-    <>
-      <JsonLd data={[...structuredDataForPath(PATH), newsIndexJsonLd(posts)]} />
-      <NewsClient
-        hero={stories[0] ?? null}
-        stories={stories.slice(1)}
-        routeRows={routeRows}
-        trending={trending}
-        mostRead={mostRead}
-        mostSearched={mostSearched}
-      />
-      <div style={{ background: '#1A0E14', padding: '0 24px 40px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <FeedAd />
-          {igWall.length > 0 && <InstagramWall urls={igWall} />}
-        </div>
-      </div>
-    </>
-  );
-}
+import type {Metadata} from 'next';
+import {metadataForPathDynamic} from '@/app/_lib/seo';
+import {newsIndexJsonLd,structuredDataForPath} from '@/app/_lib/jsonld';
+import {JsonLd} from '@/app/_components/JsonLd';
+import {getBlogPosts} from '@/app/_lib/blog';
+import HostedSite from '@/ui/components/HostedSite';
+export const dynamic='force-dynamic';
+export async function generateMetadata():Promise<Metadata>{return metadataForPathDynamic('/blog')}
+export default async function BlogIndex(){const posts=await getBlogPosts();return <><JsonLd data={[...structuredDataForPath('/blog'),newsIndexJsonLd(posts)]}/><HostedSite path="/blog" screens={[]} events={[]} products={[]} posts={posts.map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description,body:p.body}))}/></>}

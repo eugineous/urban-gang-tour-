@@ -47,7 +47,7 @@ export function CookieConsent() {
 
   if (pathname?.startsWith('/admin') || pathname?.startsWith('/checkout') || pathname?.startsWith('/pay/') || !show) return null;
   return (
-    <div className="ugt-cookie-consent" role="region" aria-label="Privacy preferences" style={{ position: 'fixed', bottom: 14, left: 14, right: 14, zIndex: 10000, maxWidth: 560, margin: '0 auto', background: '#fff', border: '3px solid #111', borderRadius: 16, boxShadow: '6px 6px 0 #111', padding: '16px 18px', fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
+    <div className="ugt-cookie-consent" role="region" aria-label="Privacy preferences" style={{ position: 'fixed', bottom: 14, left: 14, right: 14, zIndex: 10000, maxWidth: 560, margin: '0 auto', background: '#fff', border: '1px solid #ddd', borderRadius: 16, boxShadow: 'none', padding: '16px 18px', fontFamily: 'inherit' }}>
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Your privacy choices</div>
       <div style={{ fontSize: 12.5, color: '#444', lineHeight: 1.5 }}>
         Optional page-view analytics stay off until you accept.{' '}
@@ -58,8 +58,8 @@ export function CookieConsent() {
         <a href="/privacy-policy" style={{ color: '#E6218C', fontWeight: 700 }}>Privacy Policy</a>.
       </div>
       <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-        <button onClick={() => decide(true)} style={{ background: '#FFD400', border: '2px solid #111', borderRadius: 10, padding: '9px 16px', fontWeight: 800, fontSize: 13, boxShadow: '3px 3px 0 #111', cursor: 'pointer' }}>Accept</button>
-        <button onClick={() => decide(false)} style={{ background: '#fff', border: '2px solid #111', borderRadius: 10, padding: '9px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Decline non-essential</button>
+        <button onClick={() => decide(true)} style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 10, padding: '9px 16px', fontWeight: 800, fontSize: 13, boxShadow: 'none', cursor: 'pointer' }}>Accept</button>
+        <button onClick={() => decide(false)} style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 10, padding: '9px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Decline non-essential</button>
       </div>
     </div>
   );

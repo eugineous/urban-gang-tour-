@@ -1,7 +1,7 @@
 'use client';
 
 // Shared styling + helpers for the UGT Ops Suite tools. Follows AdminApp's
-// visual conventions (hard borders, hard shadows, Anton headings) with the
+// current interface (subtle borders and readable headings) with the
 // ops magenta #C7238E as the suite accent. Mobile-first: everything stacks
 // and tables scroll inside their card at 375px.
 
