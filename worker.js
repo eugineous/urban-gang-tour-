@@ -11,6 +11,11 @@ export default {
     if (url.pathname === '/v25-template' || url.pathname === '/v25-template.html') return Response.redirect(new URL('/', url).href, 301);
     const response = await app.fetch(request, env, ctx);
     const headers = new Headers(response.headers);
+    if (url.pathname === '/sw.js' || url.pathname === '/release-client.js' || url.pathname === '/manifest.json' || (response.headers.get('content-type') || '').includes('text/html')) {
+      headers.set('Cache-Control', 'no-store');
+      headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
+    }
+    headers.set('X-UGT-Release', 'approved-adaptive-20261009-refresh1');
     const csp = headers.get('Content-Security-Policy');
     if (csp) headers.set('Content-Security-Policy', csp.replace(/(connect-src[^;]*)/, '$1 https://urban-gang-tour-events.euginemicah.workers.dev').replace(/(frame-src[^;]*)/, '$1 https://www.youtube-nocookie.com'));
     return new Response(response.body, {status: response.status, statusText: response.statusText, headers});

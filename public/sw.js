@@ -1,4 +1,4 @@
-const CACHE = 'ugt-approved-interface-20261009';
+const CACHE = 'ugt-approved-interface-20261009-refresh1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
@@ -11,7 +11,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k.startsWith('ugt-') && k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -23,7 +23,7 @@ self.addEventListener('fetch', (event) => {
   // Unhashed application files change between deployments. Never pin a
   // visitor to the runtime from their first install. Keep an offline copy,
   // but always ask the network for the current version when connected.
-  if (['/sw.js', '/manifest.json'].includes(url.pathname)) {
+  if (['/sw.js', '/release-client.js', '/manifest.json'].includes(url.pathname)) {
     event.respondWith(
       fetch(request).then((res) => {
         if (res.ok) event.waitUntil(caches.open(CACHE).then((cache) => cache.put(request, res.clone())));
@@ -33,7 +33,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   // Immutable compiled assets: cache-first
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/assets/') || url.pathname.match(/\.(png|jpg|jpeg|webp|svg|ico|woff2?|css|js)$/)) {
+  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/_design/_next/static/')) {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((res) => {
         if (res.ok) { const clone = res.clone(); caches.open(CACHE).then((c) => c.put(request, clone)); }
@@ -49,6 +49,9 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  // Everything else: network only
-  event.respondWith(fetch(request));
+  // Unversioned media/styles must revalidate after a release.
+  event.respondWith(fetch(request).then((res) => {
+    if (res.ok) event.waitUntil(caches.open(CACHE).then((cache) => cache.put(request, res.clone())));
+    return res;
+  }).catch(() => caches.match(request).then((res) => res || new Response('Unavailable offline', {status:503}))));
 });

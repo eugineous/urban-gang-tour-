@@ -24,6 +24,11 @@ describe('deployed runtime updates', () => {
     expect(result.text).toBe('current runtime');
     expect(result.fetched).toHaveLength(1);
   });
+  it('revalidates mutable images and styles despite an old cache entry', async () => {
+    for (const path of ['/assets/ugt-logo.png', '/design-assets/hero.jpg', '/fonts/v25-fonts.css', '/release-client.js']) {
+      expect((await request(path)).text).toBe('current runtime');
+    }
+  });
   it('can fall back to a cached runtime while offline', async () => {
     expect((await request('/manifest.json', true)).text).toBe('old runtime');
   });
