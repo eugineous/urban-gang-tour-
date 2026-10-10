@@ -24,6 +24,7 @@ const opsLoading = () => (
     Loading tool...
   </div>
 );
+const PerformancePanel=dynamic(()=>import("./PerformancePanel"),{ssr:false,loading:opsLoading});
 const Budgeter = dynamic(() => import("./ops/Budgeter"), {
   ssr: false,
   loading: opsLoading,
@@ -892,7 +893,7 @@ export default function AdminApp({
       )}
       {tab === "Site & SEO" && (
         <>
-          {session?.scope === "super_admin" ? <SearchConsolePanel /> : null}
+          {session?.scope === "super_admin" ? <><SearchConsolePanel /><PerformancePanel /><p className="cr-next-tools"><a href="/admin/affiliates">Affiliate applications</a> · <a href="/admin/accessibility">Video captions</a> · <a href="/admin/email-delivery">Email delivery</a> · <a href="/admin/privacy">Privacy requests</a></p></> : null}
           <SiteTab
             settings={settings}
             setSettings={setSettings}

@@ -118,4 +118,13 @@ describe('recordPaidMerchOrder', () => {
     expect(inserts).toHaveLength(1);
     expect(inserts[0].params[0]).toBe('p1');
   });
+
+  it('rejects combined variants that exceed the same product stock', async () => {
+    await expect(recordPaidMerchOrder({
+      id: 'ORD-TWO-SIZES', status: 'paid',
+      items: [{ id: 'p1', variant: 'M', qty: 60 }, { id: 'p1', variant: 'L', qty: 60 }],
+    })).rejects.toThrow('insufficient_inventory');
+    expect(calls.some(call => call.sql.includes('INSERT INTO merch_inventory_moves'))).toBe(false);
+    expect(calls.some(call => call.sql === 'ROLLBACK')).toBe(true);
+  });
 });

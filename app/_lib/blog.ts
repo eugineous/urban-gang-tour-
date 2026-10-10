@@ -1,4 +1,5 @@
 import { SITE } from '@/lib/site';
+import {publicImageUrl} from '@/lib/public-image-url';
 import { cached } from '@/lib/server/microcache';
 import { q, hasDb } from '@/lib/server/db';
 import { NEWS_PUBLISHER_ID } from './jsonld';
@@ -57,7 +58,7 @@ export function articleJsonLd(post: BlogPost) {
     datePublished: post.datePublished,
     dateModified: post.dateModified,
     articleSection: post.section,
-    image: [SITE.domain + post.image],
+    image: [publicImageUrl(post.image)],
     description: post.description,
     articleBody: post.body.join('\n\n'),
     mainEntityOfPage: url,

@@ -3,11 +3,12 @@
 // callback, Paystack webhook, Stripe webhook) and ONLY when the order row has
 // an email. Never throws - a failed receipt email must never break payment
 // reconciliation.
-import { orderLines } from './catalog';
+import { receiptLines } from './receipt-lines';
 import { ticketsForOrder, type TicketRow } from './tickets';
 import { getMarketplaceEventById } from './marketplace';
 import { renderReceiptPdf, renderTicketPdf } from '@/lib/tickets/pdf';
 import { getLogoDataUri } from '@/lib/ops/pdf';
+import {enqueueReceiptEmail,deliverReceiptEmailJob} from './email-outbox';
 
 const BIZ = {
   name: 'Urban Gang Tour',
@@ -58,15 +59,13 @@ export type OrderRow = {
   marketplace_event_id?: string | null;
 };
 
-export async function sendReceiptEmail(order: OrderRow, delivery = "payment"): Promise<void> {
-  try {
-    if (!process.env.RESEND_API_KEY) return;
-    if (!["paid", "fulfilled"].includes(String(order.status))) return;
+export async function renderReceiptEmailPayload(order: OrderRow): Promise<string> {
+    if (!["paid", "fulfilled"].includes(String(order.status))) throw new Error("receipt_order_not_paid");
     const to = String(order?.email || '').trim();
-    if (!to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return;
+    if (!to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) throw new Error("receipt_email_invalid");
 
     const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-    const lines = orderLines(items);
+    const lines = await receiptLines(order);
     const isComp = order.pay_method === 'comp';
     const method = isComp ? 'Complimentary (no charge)' : order.pay_method === 'card' ? 'Card' : 'M-Pesa';
     const receipt = String(order.mpesa_receipt || order.paystack_ref || order.stripe_payment_intent || '');
@@ -131,7 +130,7 @@ export async function sendReceiptEmail(order: OrderRow, delivery = "payment"): P
     const html = `
 <div style="margin:0;padding:24px 12px;background:#f4f1ea;font-family:'Space Grotesk',Arial,Helvetica,sans-serif">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border:3px solid #111111;border-radius:18px;overflow:hidden">
-    <div style="background:#111111;padding:22px 26px"><img src="https://urbangangtour.co.ke/_design/design-assets/logo.png" width="80" alt="Urban Gang Tour" style="display:block;height:auto;margin-bottom:12px">
+    <div style="background:#111111;padding:22px 26px"><img src="https://urbangangtour.co.ke/design-assets/logo.png" width="80" alt="Urban Gang Tour" style="display:block;height:auto;margin-bottom:12px">
       <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;letter-spacing:.04em;font-size:13px;color:#FFD400;text-transform:uppercase">Urban Gang Tour</div>
       <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:24px;color:#ffffff;text-transform:uppercase;margin-top:4px">Official Receipt${isComp ? ' &middot; Complimentary' : ''}</div>
     </div>
@@ -195,21 +194,21 @@ export async function sendReceiptEmail(order: OrderRow, delivery = "payment"): P
       console.error('[receipt-email-pdf]', e);
     }
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `order-${order.id}-${delivery}` },
-      body: JSON.stringify({
-        from: FROM,
-        reply_to: BIZ.email,
-        to,
-        subject: `Your receipt ${order.id} - Urban Gang Tour`,
-        html,
-        ...(attachments.length ? { attachments } : {}),
-      }),
+    return JSON.stringify({
+      from: FROM, reply_to: BIZ.email, to,
+      subject: `Your receipt ${order.id} - Urban Gang Tour`, html,
+      ...(attachments.length ? { attachments } : {}),
     });
-    if (!res.ok) console.error('[receipt-email] resend', res.status, (await res.text()).slice(0, 300));
-    else console.log('[receipt-email] sent', order.id);
-  } catch (e) {
-    console.error('[receipt-email]', e);
+}
+
+// Persist the job first. Its exact provider payload is also saved before the
+// first send; retries use the same body and idempotency key, never this wrapper.
+export async function sendReceiptEmail(order: OrderRow, delivery = 'payment'): Promise<void> {
+  if (!['paid','fulfilled'].includes(String(order.status)) || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(order.email || '').trim())) return;
+  try {
+    const id = await enqueueReceiptEmail(order.id, delivery);
+    await deliverReceiptEmailJob(id);
+  } catch {
+    console.error('[receipt-email] durable delivery unavailable', order.id);
   }
 }

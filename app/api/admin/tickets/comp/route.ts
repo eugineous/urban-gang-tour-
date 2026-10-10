@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
+import {randomBytes} from 'node:crypto';
 import { isSuperAdmin, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
-import { q, db } from '@/lib/server/db';
+import { q, hasDb } from '@/lib/server/db';
 import { getTicketTiers } from '@/lib/server/catalog';
 import { ensureTickets } from '@/lib/server/tickets';
-import { sendReceiptEmail } from '@/lib/server/receipt-email';
+import {enqueueReceiptEmail,deliverReceiptEmailJob} from '@/lib/server/email-outbox';
 
 // Admin-only complimentary (free) tickets. Only an authenticated admin can
 // call this - it mints real, gate-valid tickets (identical in every way to a
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
   if (!isSuperAdmin(req)) return bad('forbidden', 403);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!rateLimit('comp:' + clientIp(req), 20, 60_000)) return bad('too_many_requests', 429);
-  if (!db()) return bad('db_not_configured', 503);
+  if (!hasDb()) return bad('db_not_configured', 503);
 
   let body: any;
   try {
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
   // Item line is identical in shape to a real purchase's - the resulting
   // ticket must be indistinguishable from a paid one at the gate.
   const orderItems = [{ id: `ticket:${eventId}:${tier}`, qty, name: `${ev.name} - ${tierInfo.name}` }];
-  const id = 'ORD-' + Date.now().toString(36).toUpperCase();
+  const id = 'ORD-' + randomBytes(12).toString('hex').toUpperCase();
   const actor = adminActor(req);
 
   try {
@@ -90,12 +91,11 @@ export async function POST(req: Request) {
   }
 
   if (emailStr) {
-    // Fire-and-forget, same as every other paid path - a failed email must
-    // never fail the API response (the order + tickets already exist).
-    sendReceiptEmail({
-      id, items: orderItems, total: 0, name, email: emailStr, phone: phoneStr,
-      status: 'paid', pay_method: 'comp',
-    }).catch((e) => console.error('[comp-ticket-email]', e));
+    // Persist the job before replying; render and send after the response.
+    try {
+      const jobId=await enqueueReceiptEmail(id);
+      after(async()=>{await deliverReceiptEmailJob(jobId).catch(e=>console.error('[comp-ticket-email]',e));});
+    } catch(e) {console.error('[comp-ticket-email-queue]',e);}
   }
 
   return NextResponse.json({

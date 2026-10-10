@@ -71,3 +71,57 @@
 .menu-groups{display:grid;gap:24px}.menu-groups h2{font-size:13px;line-height:1.5;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}.menu-panel .menu-groups nav{grid-template-columns:1fr 1fr;gap:0 20px}.menu-panel .menu-groups nav a{min-height:68px;font-size:20px;padding:12px 0}.menu-link-copy{display:grid;gap:4px;min-width:0}.menu-link-copy strong{font-weight:550}.menu-link-copy>span{font-size:13px;line-height:1.4;color:var(--muted)}.menu-account-links{display:flex;gap:24px;flex-wrap:wrap}.menu-panel .menu-bottom{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line);padding-top:16px;margin-top:20px;gap:12px}.header-actions .cart-link{font-size:14px}
 @media(max-height:500px) and (orientation:landscape){.menu-groups{grid-template-columns:2fr 1fr;gap:28px}.menu-panel .menu-groups nav{grid-template-columns:1fr 1fr}.menu-groups section:last-child nav{grid-template-columns:1fr}.menu-panel .menu-groups nav a{min-height:50px;font-size:18px;padding:8px 0}.menu-link-copy>span{font-size:12px}.menu-panel .menu-bottom{display:flex;align-items:center}.menu-link-copy{gap:2px}}
 @media(max-width:340px){.menu-panel .menu-groups nav{grid-template-columns:1fr}.menu-link-copy strong{font-size:20px}}
+.referral-disclosure{margin:12px auto;padding:12px 16px;max-width:1180px;display:flex;align-items:center;gap:16px;border:1px solid #ddd;border-radius:12px;background:#fafafa;color:#202020;font-size:14px;line-height:1.45}.referral-disclosure p{margin:0;flex:1}.referral-disclosure button{min-height:44px;border:1px solid #bbb;border-radius:24px;padding:8px 14px;background:white;color:#202020;flex-shrink:0}@media(max-width:600px){.referral-disclosure{margin:10px 16px;align-items:flex-start;flex-direction:column;gap:8px}}
+/* Consent and interest controls retain a 44px label target without stretching the checkbox. */
+.booking-form label:has(>input[type=checkbox]){display:flex;align-items:flex-start;gap:12px;min-height:44px;padding-block:8px;cursor:pointer;line-height:1.5;font-size:16px}
+.booking-form label>input[type=checkbox]{width:20px;max-width:20px;height:20px;min-height:20px;padding:0;margin:2px 0 0;flex:0 0 20px;accent-color:#b70a70}
+.booking-form fieldset{min-width:0}.booking-form fieldset legend{font-size:14px;line-height:1.5}
+
+/* Public phone pages: preserve the full card copy and readable form guidance. */
+@media(max-width:700px), (max-device-width:600px) and (pointer:coarse), (max-width:950px) and (max-height:500px) and (orientation:landscape){
+ .event-discovery .discovery-grid{grid-template-columns:minmax(0,1fr);gap:24px}
+ .event-discovery .discovery-card-copy{padding:18px}
+ .event-discovery .discovery-card-copy h3{font-size:24px;line-height:1.25}
+ .event-discovery .discovery-card-copy>p,.event-discovery .discovery-card-copy time,.event-discovery .discovery-card-meta,.event-discovery .discovery-card-action{font-size:16px;line-height:1.5}
+ .event-discovery .discovery-card-meta{display:flex;flex-wrap:wrap}
+ .event-discovery .discovery-card-meta>span:first-child{display:inline}
+ .event-discovery .discovery-card-action{min-height:44px}
+ .event-discovery .discovery-sync,.event-discovery .discovery-priority-note,.event-quick-filters button,.event-discovery .discovery-controls label,.event-search-first label{font-size:16px;line-height:1.5}
+ .event-filter-summary{flex-wrap:wrap;align-items:flex-start}
+ .event-filter-summary>label{flex:1 1 180px}
+ .event-discovery .event-picks-rail .discovery-card-copy>p,.event-discovery .event-picks-rail .discovery-card-action{font-size:16px}
+ .news-card small,.collection-card small,.project-caption small,.article-meta,.article-meta time,.article-read-time,.results-count,.gallery-search,.news-search{font-size:16px;line-height:1.5}
+ .filter-bar button,.entertainment-feature-tabs button,.rail-pause,.rail-actions button,.share-actions>a,.share-actions>button{font-size:16px;min-height:44px}
+ .news-editorial-bar{flex-wrap:wrap;gap:12px}
+ .news-editorial-bar a,.contact-person a{overflow-wrap:anywhere}
+ .contact-compose label,.contact-compose legend,.contact-compose .checkbox,.contact-compose .form-note,.contact-channels button,.contact-compose .edit-message,.booking2 .form-note,.booking-direct p,.booking-extras small,.booking2-form>label,.booking2-form [role=status]{font-size:16px;line-height:1.5}
+ .contact-compose input:not([type=checkbox]),.contact-compose textarea,.contact-channels button,.contact-compose .edit-message{min-height:44px}
+ .contact-compose fieldset,.contact-page-form,.booking2-form{min-width:0}
+ .contact-compose .checkbox{min-height:44px;padding-block:8px}
+ .modern-page label,.modern-page form button,.modern-page form p,.modern-page small,.modern-page [role=alert],.modern-page [style*="font-size: 13px"],.modern-page [style*="font-size: 14px"],.modern-page [style*="font-size: 15px"],.ugt-account-consent{font-size:16px!important;line-height:1.5}
+ .modern-page button,.modern-page input:not([type=checkbox]),.modern-page select{min-height:44px}
+ .modern-page form input,.modern-page form select,.modern-page form textarea{font-size:16px!important;max-width:100%;min-width:0}
+ .modern-page h1,.booking2 h1{font-size:clamp(34px,10vw,42px);overflow-wrap:anywhere}
+ .shopping-assurance,.footer-bottom,.footer-secondary,.footer-bottom button,.menu-link-copy>span,.menu-bottom a{font-size:16px;line-height:1.5}
+ .menu-panel .menu-groups nav a{min-height:72px}
+ .invitation-film video{aspect-ratio:16/9;object-fit:contain}
+}
+/* A rotated phone still has enough room for two readable result cards. */
+@media(min-width:701px) and (max-width:950px) and (max-height:500px) and (orientation:landscape){
+ .event-discovery .discovery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+ .event-discovery .discovery-card-copy>p,.event-discovery .discovery-card-copy time,.event-discovery .discovery-card-meta,.event-discovery .discovery-card-action{font-size:16px;line-height:1.5}
+ .page-intro{grid-template-columns:1fr;gap:16px;padding-top:96px;padding-bottom:32px}
+ .page-intro h1{font-size:48px}.page-intro>p{font-size:18px}
+ .booking2{grid-template-columns:1fr;gap:28px;padding-top:96px}
+ .contact-page-grid{grid-template-columns:1fr}
+}
+
+/* Keep contact consent together and the primary enquiry action unobstructed. */
+.contact-compose .checkbox{grid-template-columns:20px minmax(0,1fr);align-items:start}
+.contact-compose .checkbox>span{min-width:0}
+@media(max-width:700px){
+ .contact-channels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .contact-channels button{min-width:0;justify-content:center;padding-inline:8px;gap:6px}
+ body:has(.contact-page-grid) .floating-talk{display:none}
+ .contact-footer .footer-bottom{padding-bottom:24px}
+}

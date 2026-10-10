@@ -13,16 +13,16 @@ export const OC = { magenta: '#ad1264', gold: '#FFD400', charcoal: '#111', grey:
 export const shell: React.CSSProperties = { minHeight: '100vh', background: '#f5f4f0', padding: '140px 20px 80px', fontFamily: "Inter, system-ui, sans-serif" };
 export const wrap: React.CSSProperties = { maxWidth: 720, margin: '0 auto' };
 export const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd9d6', borderRadius: 16, padding: 20 };
-export const btn: React.CSSProperties = { background: '#111', color: '#fff', fontWeight: 600, fontSize: 16, minHeight: 48, padding: '12px 20px', border: '1px solid #111', borderRadius: 10, cursor: 'pointer' };
+export const btn: React.CSSProperties = { background: '#111', color: '#fff', fontWeight: 600, fontSize: 16, minHeight: 48, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 20px', border: '1px solid #111', borderRadius: 10, cursor: 'pointer' };
 export const btnMagenta: React.CSSProperties = { ...btn, background: OC.magenta, color: '#fff' };
 export const btnDark: React.CSSProperties = { ...btn, background: '#111', color: '#fff' };
 export const inp: React.CSSProperties = { width: '100%', padding: '12px', minHeight: 48, border: '1px solid #aaa', borderRadius: 10, fontSize: 16, fontFamily: 'inherit', boxSizing: 'border-box' };
-export const label: React.CSSProperties = { fontSize: 14, fontWeight: 600, letterSpacing: '.04em', color: '#555', display: 'block', marginBottom: 4 };
+export const label: React.CSSProperties = { fontSize: 16, fontWeight: 600, letterSpacing: '.04em', color: '#555', display: 'block', marginBottom: 4 };
 export const h1: React.CSSProperties = { fontFamily: 'Inter, system-ui, sans-serif', fontSize: 38, color: '#161616', margin: '0 0 12px', letterSpacing: '-.04em' };
 export const h3: React.CSSProperties = { fontFamily: 'Inter, system-ui, sans-serif', margin: '0 0 12px', fontSize: 22 };
 
 export function Chip({ text, bg, color }: { text: string; bg?: string; color?: string }) {
-  return <span style={{ background: bg || '#eee', color: color || '#333', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 800, whiteSpace: 'nowrap', display: 'inline-block' }}>{text}</span>;
+  return <span style={{ background: bg || '#eee', color: color || '#333', borderRadius: 100, padding: '3px 10px', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', display: 'inline-block' }}>{text}</span>;
 }
 
 export const STATUS_CHIP: Record<string, { bg: string; color: string }> = {

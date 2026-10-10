@@ -1,0 +1,16 @@
+import {q} from './db';
+export type FulfillmentChoice={method:'pickup'|'delivery';address?:{line1:string;city:string;postalCode?:string}};
+export function checkoutDeliveryContact(input:{name?:unknown;phone?:unknown},required:boolean){
+ const name=input.name===undefined?'':input.name;
+ const phone=input.phone===undefined?'':input.phone;
+ if(typeof name!=='string'||name.length>100||name.trim()&&name.trim().length<2||/[\u0000-\u001f]/.test(name))throw Error('invalid_name');
+ if(typeof phone!=='string'||phone.length>30||phone&&!/^[+().\s\d-]+$/.test(phone))throw Error('invalid_phone');
+ const digits=phone.replace(/\D/g,'');
+ if(phone&&(digits.length<7||digits.length>15))throw Error('invalid_phone');
+ if(required&&(!name.trim()||!digits))throw Error('delivery_contact_required');
+ return{name:name.trim(),phone:phone.trim()};
+}
+export function checkoutFulfillmentOptions(){const raw=process.env.MERCH_DELIVERY_FEE_KES;const fee=raw!==undefined&&/^\d+$/.test(raw)?Number(raw):null;return{pickup:{enabled:true,fee:0,location:process.env.MERCH_PICKUP_LOCATION||'Collection details confirmed by the merchandise team'},delivery:{enabled:fee!==null&&Number.isSafeInteger(fee)&&fee>=0,fee}};}
+export function resolveCheckoutFulfillment(input:unknown):{choice:FulfillmentChoice;fee:number}{const v=input===undefined?{method:'pickup'}:input;if(!v||typeof v!=='object'||Array.isArray(v))throw Error('invalid_fulfillment');const b=v as Record<string,unknown>;if(Object.keys(b).some(k=>!['method','address'].includes(k)))throw Error('invalid_fulfillment');if(b.method==='pickup'){if(b.address!==undefined)throw Error('invalid_fulfillment');return{choice:{method:'pickup'},fee:0};}if(b.method!=='delivery')throw Error('invalid_fulfillment');const options=checkoutFulfillmentOptions();if(!options.delivery.enabled)throw Error('delivery_unavailable');const a=b.address;if(!a||typeof a!=='object'||Array.isArray(a))throw Error('delivery_address_required');const address=a as Record<string,unknown>;if(Object.keys(address).some(k=>!['line1','city','postalCode'].includes(k)))throw Error('invalid_delivery_address');for(const field of ['line1','city'])if(typeof address[field]!=='string'||!(address[field] as string).trim()||(address[field] as string).length>200)throw Error('invalid_delivery_address');if(address.postalCode!==undefined&&(typeof address.postalCode!=='string'||address.postalCode.length>20))throw Error('invalid_delivery_address');return{choice:{method:'delivery',address:{line1:(address.line1 as string).trim(),city:(address.city as string).trim(),...(address.postalCode?{postalCode:address.postalCode as string}:{})}},fee:options.delivery.fee!};}
+export async function ensureCheckoutFulfillmentSchema(){await q(`CREATE TABLE IF NOT EXISTS order_delivery_preferences(order_id TEXT PRIMARY KEY REFERENCES orders(id) ON DELETE CASCADE,method TEXT NOT NULL CHECK(method IN ('pickup','delivery')),fee INT NOT NULL DEFAULT 0,address JSONB,created_at TIMESTAMPTZ NOT NULL DEFAULT now())`);}
+export async function saveCheckoutFulfillment(orderId:string,resolved:ReturnType<typeof resolveCheckoutFulfillment>){await q(`INSERT INTO order_delivery_preferences(order_id,method,fee,address) VALUES($1,$2,$3,$4) ON CONFLICT(order_id) DO NOTHING`,[orderId,resolved.choice.method,resolved.fee,resolved.choice.address?JSON.stringify(resolved.choice.address):null]);}

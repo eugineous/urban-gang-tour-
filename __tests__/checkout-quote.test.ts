@@ -1,0 +1,13 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test',PURCHASE_NETWORK_LIMIT:1000}));
+vi.mock('@/lib/server/catalog',()=>({serverTotalWithPromos:vi.fn()}));
+vi.mock('@/lib/server/merch-variants',()=>({applyVerifiedMerchVariants:vi.fn()}));
+vi.mock('@/lib/server/inventory',()=>({assertMerchStockAvailable:vi.fn()}));
+import {serverTotalWithPromos} from '@/lib/server/catalog';
+import {applyVerifiedMerchVariants} from '@/lib/server/merch-variants';
+import {assertMerchStockAvailable} from '@/lib/server/inventory';
+import {POST} from '@/app/api/checkout/quote/route';
+const request=(b:unknown)=>new Request('https://urbangangtour.co.ke/api/checkout/quote',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
+beforeEach(()=>{vi.clearAllMocks();vi.mocked(serverTotalWithPromos).mockResolvedValue({total:700,lines:[{id:'shirt',qty:1,name:'Shirt',unit:700,basePrice:800,promoId:1}],appliedPromoCode:{promoId:1,promoName:'Real code'}});vi.mocked(applyVerifiedMerchVariants).mockResolvedValue({lines:[{id:'shirt',qty:1,name:'Shirt L',unit:900,variant:'L'}],adjustment:200});vi.mocked(assertMerchStockAvailable).mockResolvedValue()});
+describe('server checkout quote',()=>{it('returns promo and variant total without creating an order',async()=>{const r=await POST(request({items:[{id:'shirt',qty:1,variant:'L'}],promoCode:'VALID'}));expect(r.status).toBe(200);expect(await r.json()).toEqual({total:900,promoApplied:true,savings:100,deliveryFee:0});expect(assertMerchStockAvailable).toHaveBeenCalledWith([{id:'shirt',qty:1,name:'Shirt L',unit:900,variant:'L'}]);expect(r.headers.get('cache-control')).toBe('no-store')});it('rejects browser-supplied prices',async()=>{const r=await POST(request({items:[{id:'shirt',qty:1,unit:1}]}));expect(r.status).toBe(400);expect(serverTotalWithPromos).not.toHaveBeenCalled()});it('rejects quantities outside purchase limits',async()=>{expect((await POST(request({items:[{id:'shirt',qty:21}]}))).status).toBe(400)});it('fails closed when inventory is insufficient',async()=>{vi.mocked(assertMerchStockAvailable).mockRejectedValue(Error('insufficient_inventory'));const r=await POST(request({items:[{id:'shirt',qty:1}]}));expect(r.status).toBe(400);expect(await r.json()).toEqual({error:'quote_unavailable'})})});

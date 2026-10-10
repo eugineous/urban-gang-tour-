@@ -3,9 +3,10 @@ import AccountApp from './AccountApp';
 
 export const metadata: Metadata = {
   title: 'My Account — Urban Gang Tour',
-  description: 'Log in or create your Urban Gang account to pitch stories and manage your profile.',
+  description: 'Manage your Urban Gang Tour purchases, tickets, receipts, account access and privacy requests.',
   alternates: { canonical: 'https://urbangangtour.co.ke/account' },
   robots: { index: false, follow: true },
+  referrer: 'no-referrer',
 };
 
 export default function AccountPage() {

@@ -14,6 +14,9 @@ import { notifyNewOrder } from "@/lib/server/notify";
 import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
 import { assertMerchStockAvailable } from "@/lib/server/inventory";
 import { parseTierInventory, assertTicketAvailable, holdTickets, releaseReservation } from "@/lib/server/ticket-inventory";
+import {recordOrderReferral} from '@/lib/server/affiliate-program';
+import {ensureCustomerAccountSchema,validatedCurrentBuyer} from '@/lib/server/customer-account';
+import {resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema,saveCheckoutFulfillment} from '@/lib/server/checkout-fulfillment';
 import { q, hasDb } from "@/lib/server/db";
 import { resolveEventTruth } from "@/lib/server/event-truth";
 
@@ -60,6 +63,8 @@ export async function POST(req: Request) {
     "phone",
     "idempotencyKey",
     "promoCode",
+    "fulfillment",
+    "referralCode",
   ]);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k))
@@ -68,7 +73,8 @@ export async function POST(req: Request) {
         { status: 400 },
       );
   }
-  const { items, ticket, name, email, phone, idempotencyKey, promoCode } = body;
+  const { items, ticket, name, email, phone, idempotencyKey, promoCode, fulfillment, referralCode } = body;
+  if(referralCode!==undefined&&(typeof referralCode!=='string'||!/^[a-f0-9]{24}$/.test(referralCode)))return NextResponse.json({error:'invalid_referral_code'},{status:400});
   if (
     promoCode !== undefined &&
     (typeof promoCode !== "string" || promoCode.length > 60)
@@ -218,6 +224,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: e.message }, { status: 400 });
     }
   }
+  let resolvedFulfillment: ReturnType<typeof resolveCheckoutFulfillment> | undefined;
+  try {
+    if(ticket!==undefined&&fulfillment!==undefined)return NextResponse.json({error:'fulfillment_not_applicable'},{status:400});
+    if(ticket===undefined){resolvedFulfillment=resolveCheckoutFulfillment(fulfillment);total+=resolvedFulfillment.fee;}
+  } catch(e){return NextResponse.json({error:e instanceof Error?e.message:'invalid_fulfillment'},{status:400});}
   if (!Number.isSafeInteger(total) || total < 1) {
     return NextResponse.json({ error: "invalid_order_total" }, { status: 400 });
   }
@@ -277,10 +288,16 @@ export async function POST(req: Request) {
     const { q, hasDb } = await import("@/lib/server/db");
     if (!hasDb())
       return NextResponse.json({ error: "db_not_configured" }, { status: 503 });
+    await ensureCustomerAccountSchema();
+    if(resolvedFulfillment)await ensureCheckoutFulfillmentSchema();
+    const buyer=await validatedCurrentBuyer(req);
+    const owner=buyer&&Number.isSafeInteger(buyer.id)?await q('SELECT id FROM users WHERE id=$1',[buyer.id]):[];
     await q(
-      `INSERT INTO orders (id, items, total, name, email, phone) VALUES ($1,$2,$3,$4,$5,$6)`,
-      [id, JSON.stringify(orderItems), total, name, emailStr, msisdn],
+      `INSERT INTO orders (id, items, total, name, email, phone, user_id) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [id, JSON.stringify(orderItems), total, name, emailStr, msisdn,owner[0]?.id??null],
     );
+    if(resolvedFulfillment)await saveCheckoutFulfillment(id,resolvedFulfillment);
+    if(referralCode)try{await recordOrderReferral(id,referralCode,buyer?.id)}catch{console.error('[affiliate] attribution unavailable for order',id)}
     // Only a durable order can be retried or sent to a payment provider.
     if (seenKey) seen.set(seenKey, { id, ts: now });
     // Hold capped ticket inventory against this order so a second buyer

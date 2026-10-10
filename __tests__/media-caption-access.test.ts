@@ -1,0 +1,21 @@
+import {describe,it,expect,vi,beforeEach} from 'vitest';
+import library from '@/ui/data/media-library.json';
+const mocks=vi.hoisted(()=>({q:vi.fn(),db:true,admin:false,perm:false}));
+vi.mock('@/lib/server/db',()=>({q:mocks.q,hasDb:()=>mocks.db}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>mocks.admin,hasPerm:()=>mocks.perm,adminActor:()=> 'test'}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test'}));
+vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true}));
+vi.mock('@/lib/server/microcache',()=>({cached:(_key:string,_ttl:number,fn:()=>Promise<unknown>)=>fn(),invalidate:vi.fn()}));
+import {GET,POST} from '@/app/api/captions/route';
+const video=library.assets.find(a=>a.kind==='video'&&!a.adult)!;
+const adult=library.assets.find(a=>a.kind==='video'&&a.adult)!;
+const photo=library.assets.find(a=>a.kind==='photograph')!;
+const req=(id:string)=>new Request('https://urbangangtour.co.ke/api/captions?format=json&asset='+id);
+beforeEach(()=>{mocks.q.mockReset();mocks.admin=false;mocks.perm=false;mocks.db=true});
+describe('reviewed caption publication',()=>{
+ it('rejects unknown IDs, photographs and adult campaigns before querying',async()=>{for(const id of ['invented',photo.id,adult.id])expect((await GET(req(id))).status).toBe(400);expect(mocks.q).not.toHaveBeenCalled()});
+ it('describes uncaptions videos without a broken VTT request',async()=>{mocks.q.mockResolvedValue([]);const response=await GET(req(video.id));expect(response.status).toBe(200);expect(await response.json()).toEqual({available:false,asset:video.id})});
+ it('publishes only stored transcript and track metadata for the selected owned video',async()=>{mocks.q.mockImplementation(async(sql:string)=>sql.startsWith('SELECT')?[{vtt:'WEBVTT\n\n00:00.000 --> 00:02.000\nActual dialogue',transcript:'Actual dialogue',language:'en',updated_at:'2026-10-10'}]:[]);const response=await GET(req(video.id));expect(await response.json()).toMatchObject({available:true,asset:video.id,transcript:'Actual dialogue',language:'en',track:'/api/captions?asset='+video.id+'&rev=2026-10-10'});expect(mocks.q.mock.calls.at(-1)?.[1]).toEqual([video.id])});
+ it('rejects empty caption files and saves reviewed cues for owned videos',async()=>{mocks.admin=true;mocks.perm=true;mocks.q.mockResolvedValue([]);const send=(vtt:string)=>new Request('https://urbangangtour.co.ke/api/captions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:video.id,vtt,transcript:'Actual dialogue',language:'en'})});expect((await POST(send('WEBVTT\n'))).status).toBe(400);expect((await POST(send('WEBVTT\n\n00:00.000 --> 00:02.000\nActual dialogue'))).status).toBe(200);expect(mocks.q.mock.calls.find(([sql])=>sql.startsWith('INSERT INTO media_captions'))?.[1]).toEqual([video.id,'WEBVTT\n\n00:00.000 --> 00:02.000\nActual dialogue','Actual dialogue','en'])});
+ it('rejects import by unscoped visitors and nonexistent video IDs',async()=>{const request=()=>new Request('https://urbangangtour.co.ke/api/captions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:'unknown',vtt:'WEBVTT\n',transcript:'Real',language:'en'})});expect((await POST(request())).status).toBe(403);mocks.admin=true;mocks.perm=true;expect((await POST(request())).status).toBe(400);expect(mocks.q).not.toHaveBeenCalled()});
+});

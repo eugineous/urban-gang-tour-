@@ -11,7 +11,7 @@ export default {
       headers.set('Cache-Control', 'no-store');
       headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
     }
-    headers.set('X-UGT-Release', 'mobile-events-20261010-v3');
+    headers.set('X-UGT-Release', 'mobile-pages-20261010-v4');
     const csp = headers.get('Content-Security-Policy');
     if (csp) headers.set('Content-Security-Policy', csp.replace(/(connect-src[^;]*)/, '$1 https://urban-gang-tour-events.euginemicah.workers.dev').replace(/(frame-src[^;]*)/, '$1 https://www.youtube-nocookie.com'));
     return new Response(response.body, {status: response.status, statusText: response.statusText, headers});
@@ -40,5 +40,7 @@ export default {
       headers: { 'x-ugt-cron': env.UGT_CRON_SECRET },
     });
     ctx.waitUntil(env.WORKER_SELF_REFERENCE.fetch(recon));
+    const receipts = new Request('https://urbangangtour.co.ke/api/internal/cron/email-delivery', {method:'POST', headers:{'x-ugt-cron':env.UGT_CRON_SECRET}});
+    ctx.waitUntil(env.WORKER_SELF_REFERENCE.fetch(receipts));
   },
 };

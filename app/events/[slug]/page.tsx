@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { JsonLd } from '@/app/_components/JsonLd';
 import EventsAnalytics from '@/app/_components/EventsAnalytics';
 import { SITE } from '@/lib/site';
+import {EventCalendar} from '@/app/_components/EventCalendar';
 import { hasDb, q } from '@/lib/server/db';
 import { formatEventDate } from '@/lib/server/catalog';
 import { PUBLIC_EVENT_STATUSES, isEventIndexable, eventSchemaStatus } from '@/lib/server/event-lifecycle';
@@ -83,6 +84,7 @@ function dateTime(event: TicketedEvent): string | null {
   const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(event.event_time || '').trim());
   const date = String(event.event_date || '').slice(0, 10);
   if (!m || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  if (Number(m[1]) < 1 || Number(m[1]) > 12 || Number(m[2]) > 59) return null;
   let hour = Number(m[1]) % 12;
   if (/pm/i.test(m[3])) hour += 12;
   return `${date}T${String(hour).padStart(2, '0')}:${m[2]}:00+03:00`;
@@ -171,7 +173,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const eventDate = formatEventDate(event.event_date);
   const shareText = encodeURIComponent(`${event.name} — ${event.venue || ''} ${eventDate}`.trim());
   const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
-  const calStart = startDate ? startDate.replace(/[-:]/g, '').replace('+03:00', '') : null;
   const ticketHref = `/events?event=${encodeURIComponent(event.id)}`;
 
   return <main className="event-detail-page wrap">
@@ -180,7 +181,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <div className="detail-breadcrumbs"><a href="/events">All events</a><span>/</span><span>{event.name}</span></div>
     <section className="event-detail-hero"><div><p className="eyebrow">Urban Gang Tour presents</p><h1>{event.name}</h1><p>{event.description||'Event details and ticket options are below.'}</p><p>{eventDate} · {event.venue}</p></div>{event.image&&<img src={event.image} alt={event.name+' event poster'}/>}</section>
     {currentStatus.body&&<p className="modern-alert" role="status">{currentStatus.body}</p>}
-    <section className="event-detail-grid"><div><h2>Plan your visit.</h2><dl>{[['Date',eventDate],['Time',event.event_time||'To be confirmed'],['Venue',event.venue||'To be confirmed'],['City',event.city||'Kenya']].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on WhatsApp</a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on X</a>{calStart&&<a href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${shareText}&dates=${calStart}/${calStart}&details=${shareUrl}`} target="_blank" rel="noopener noreferrer">Add to calendar</a>}</div></div>
+    <section className="event-detail-grid"><div><h2>Plan your visit.</h2><dl>{[['Date',eventDate],['Time',event.event_time||'To be confirmed'],['Venue',event.venue||'To be confirmed'],['City',event.city||'Kenya']].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on WhatsApp</a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on X</a>{/^\d{4}-\d{2}-\d{2}$/.test(String(event.event_date).slice(0,10))&&<EventCalendar name={event.name} date={String(event.event_date).slice(0,10)} start={startDate} venue={event.venue||''} url={`${SITE.domain}${path}`}/>}</div></div>
     <aside className="modern-card"><h2>Ticket options.</h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt>{tier.name}</dt><dd>{money(tier.price)}</dd></div>)}</dl>:<p>Ticket options have not been published yet.</p>}{sellable?<a className="button" href={ticketHref}>Get tickets</a>:<p role="status">{soldOut?'Sold out':'Tickets not on sale'}</p>}<p className="form-note">Ticket availability is checked again at checkout.</p><a href="/book">Plan your own event with us</a></aside></section>
     {sellable&&<div className="event-ticket-dock"><span>{fromPrice!==null?'From '+money(fromPrice):''}</span><a className="button" href={ticketHref}>Get tickets</a></div>}
   </main>;
