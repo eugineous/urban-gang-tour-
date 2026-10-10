@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { orderLines } from '@/lib/server/catalog';
+import { receiptLines } from '@/lib/server/receipt-lines';
 import {PrintDocumentButton} from '@/app/_components/PrintDocumentButton';
 import QRCode from 'qrcode';
 import { maskPhone } from '@/lib/server/receipt-email';
@@ -50,8 +50,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const o = await getOrder(id);
   if (!o) notFound();
 
-  const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
-  const lines = orderLines(items || []);
+  const lines = await receiptLines(o);
   const paid = o.status === 'paid' || o.status === 'fulfilled';
   const failed = o.status === 'failed';
   const isComp = o.pay_method === 'comp';

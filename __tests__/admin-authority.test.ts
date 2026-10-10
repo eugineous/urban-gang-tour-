@@ -19,6 +19,7 @@ vi.mock('@/lib/server/session', () => ({
 
 vi.mock('@/lib/server/db', () => ({
   db: vi.fn(() => database.available ? {} : null),
+  hasDb: vi.fn(() => database.available),
   q: vi.fn(async () => []),
 }));
 

@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
 import { notifyNewBooking } from '@/lib/server/notify';
+import {signToken,sessionSecretConfigured} from '@/lib/server/session';
 import { ensureBookingsSchema } from '@/lib/server/bookings-schema';
 
 const TYPES = ['School Booking', 'Campus Rave', 'Sponsorship', 'Partnership', 'Mega Event', 'Media', 'Join the Crew'];
@@ -103,8 +104,8 @@ export async function POST(req: Request) {
 
   // persist to DB when configured (admin Bookings Inbox reads from here)
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (!db()) return NextResponse.json({ error: 'booking_unavailable' }, { status: 503 });
+    const { q, hasDb } = await import('@/lib/server/db');
+    if (!hasDb()) return NextResponse.json({ error: 'booking_unavailable' }, { status: 503 });
     await ensureBookingsSchema();
     const inserted = await q<{ id: string }>(
       `INSERT INTO bookings (id, name, org, email, phone, type, message, preferred_date, expected_attendance, event_brief, source)
@@ -132,5 +133,5 @@ export async function POST(req: Request) {
   after(() => notifyNewBooking({ id: booking.id, name, org, email, phone, type, message: notificationMessage }));
 
   console.log('[booking] accepted', booking.id, booking.type);
-  return NextResponse.json({ ok: true, id: booking.id });
+  return NextResponse.json({ ok: true, id: booking.id, ...(sessionSecretConfigured()?{statusToken:signToken({scope:'booking_status',bookingId:booking.id},30)}:{}) });
 }

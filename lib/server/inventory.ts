@@ -84,16 +84,22 @@ export async function recordPaidMerchOrder(order: { id: string; items: unknown; 
     }
     if (existingCount > 0) throw new Error("inventory_consequence_incomplete");
 
+    const productQuantities = new Map<string, number>();
+    for (const line of lines) productQuantities.set(line.productId, (productQuantities.get(line.productId) || 0) + line.qty);
+    const checkedProducts = new Set<string>();
     const resolved: Array<StockLine & { variantId: number | null }> = [];
     for (const line of lines) {
-      const product = await client.query<{ inventory_tracked: boolean }>(
-        "SELECT inventory_tracked FROM products WHERE id=$1 FOR UPDATE", [line.productId],
-      );
-      if (!product.rows.length) throw new Error("unknown_product");
-      const productOnHand = await client.query<{ on_hand: number }>(
-        "SELECT COALESCE(SUM(quantity),0)::int AS on_hand FROM merch_inventory_moves WHERE product_id=$1", [line.productId],
-      );
-      if (product.rows[0].inventory_tracked && Number(productOnHand.rows[0]?.on_hand || 0) < line.qty) throw new Error("insufficient_inventory");
+      if (!checkedProducts.has(line.productId)) {
+        const product = await client.query<{ inventory_tracked: boolean }>(
+          "SELECT inventory_tracked FROM products WHERE id=$1 FOR UPDATE", [line.productId],
+        );
+        if (!product.rows.length) throw new Error("unknown_product");
+        const productOnHand = await client.query<{ on_hand: number }>(
+          "SELECT COALESCE(SUM(quantity),0)::int AS on_hand FROM merch_inventory_moves WHERE product_id=$1", [line.productId],
+        );
+        if (product.rows[0].inventory_tracked && Number(productOnHand.rows[0]?.on_hand || 0) < productQuantities.get(line.productId)!) throw new Error("insufficient_inventory");
+        checkedProducts.add(line.productId);
+      }
 
       let variantId: number | null = null;
       if (line.variant) {

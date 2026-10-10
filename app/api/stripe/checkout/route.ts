@@ -1,3 +1,4 @@
+import {recordOrderReferral} from '@/lib/server/affiliate-program';
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { getProducts, serverTotalWithPromos } from '@/lib/server/catalog';
@@ -7,6 +8,8 @@ import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
 import { stripe, stripeConfigured } from '@/lib/server/stripe';
 import { applyVerifiedMerchVariants } from '@/lib/server/merch-variants';
+import {checkoutDeliveryContact,resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema,saveCheckoutFulfillment} from '@/lib/server/checkout-fulfillment';
+import {validatedCurrentBuyer,ensureCustomerAccountSchema} from '@/lib/server/customer-account';
 import { assertMerchStockAvailable } from '@/lib/server/inventory';
 
 // Card checkout (Stripe Checkout Session). Public (anon) create, rate-limited.
@@ -43,11 +46,16 @@ export async function POST(req: Request) {
   }
 
   // Strict schema: {items:[{id,qty}], email?, promoCode?} — reject anything else.
-  const allowed = new Set(['items', 'email', 'promoCode']);
+  const allowed = new Set(['items', 'email', 'promoCode', 'fulfillment', 'referralCode', 'name', 'phone']);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
-  const { items, email, promoCode } = body;
+  const { items, email, promoCode, fulfillment, referralCode, name, phone } = body;
+  if(referralCode!==undefined&&(typeof referralCode!=='string'||!/^[a-f0-9]{24}$/.test(referralCode)))return NextResponse.json({error:'invalid_referral_code'},{status:400});
+  let delivery:ReturnType<typeof resolveCheckoutFulfillment>;
+  try{delivery=resolveCheckoutFulfillment(fulfillment)}catch(e:any){return NextResponse.json({error:String(e.message)},{status:400})}
+  let contact:ReturnType<typeof checkoutDeliveryContact>;
+  try{contact=checkoutDeliveryContact({name,phone},delivery.choice.method==='delivery')}catch(e:any){return NextResponse.json({error:String(e.message)},{status:400})}
   if (promoCode !== undefined && (typeof promoCode !== 'string' || promoCode.length > 60)) {
     return NextResponse.json({ error: 'invalid_promo_code' }, { status: 400 });
   }
@@ -94,7 +102,7 @@ export async function POST(req: Request) {
     lines = priced.lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name, unit: l.unit }));
     const variants = await applyVerifiedMerchVariants(items, lines);
     lines = variants.lines;
-    total += variants.adjustment;
+    total += variants.adjustment + delivery.fee;
     if (!Number.isSafeInteger(total) || total < 1) throw new Error('invalid_order_total');
     await assertMerchStockAvailable(lines);
     appliedPromoCode = priced.appliedPromoCode;
@@ -102,18 +110,23 @@ export async function POST(req: Request) {
 
   // Same id shape as the M-Pesa ledger, plus entropy so parallel card
   // checkouts in the same millisecond can't collide on the primary key.
-  const id = 'ORD-' + Date.now().toString(36).toUpperCase() + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
+  const id = 'ORD-' + Date.now().toString(36).toUpperCase() + randomUUID().replace(/-/g, '').slice(0, 24).toUpperCase();
 
   // The webhook can only reconcile a row that exists — no ledger, no charge.
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+    const { q, hasDb } = await import('@/lib/server/db');
+    if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
     await ensureColumns(q);
+    await ensureCheckoutFulfillmentSchema();
+    await ensureCustomerAccountSchema();
+    const buyer=await validatedCurrentBuyer(req);
     await q(
-      `INSERT INTO orders (id, items, total, name, email, phone, status, pay_method)
-       VALUES ($1,$2,$3,$4,$5,$6,'pending','card')`,
-      [id, JSON.stringify(lines), total, '', emailStr, '']
+      `INSERT INTO orders (id, items, total, name, email, phone, status, pay_method, user_id)
+       VALUES ($1,$2,$3,$4,$5,$6,'pending','card',$7)`,
+      [id, JSON.stringify(lines), total, contact.name, emailStr, contact.phone, buyer?.id||null]
     );
+    await saveCheckoutFulfillment(id,delivery);
+    if(referralCode)await recordOrderReferral(id,referralCode,buyer?.id).catch(()=>false);
     // Order is now durably created — safe to count the code redemption.
     if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
   } catch (e: any) {
@@ -127,14 +140,14 @@ export async function POST(req: Request) {
     const session = await s.checkout.sessions.create(
       {
         mode: 'payment',
-        line_items: lines.map((l) => ({
+        line_items: [...lines.map((l) => ({
           quantity: l.qty,
           price_data: {
             currency: 'kes',
             unit_amount: l.unit * 100, // discounted KES -> cents (never the raw catalog price)
             product_data: { name: l.name },
           },
-        })),
+        })), ...(delivery.fee>0?[{quantity:1,price_data:{currency:'kes',unit_amount:delivery.fee*100,product_data:{name:'Merchandise delivery'}}}]:[])],
         metadata: { order_id: id },
         payment_intent_data: { metadata: { order_id: id } },
         client_reference_id: id,

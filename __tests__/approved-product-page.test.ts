@@ -1,5 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
+vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:vi.fn(async()=>{})}));
 vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:vi.fn()}));
 vi.mock('next/navigation',()=>({notFound:()=>{throw Error('not-found')}}));
 import {q} from '@/lib/server/db';

@@ -36,7 +36,7 @@ try {
     assert.equal(await page.locator('.cr-shell').isVisible(), true);
     logoutFails = false;
     await page.locator('.cr-logout').click();
-    await page.getByRole('button', { name: 'ENTER CONTROL ROOM' }).waitFor();
+    await page.getByRole('button', { name: 'Sign in to Control Room', exact: true }).waitFor();
   });
 
   await scenario('organizer login and reset transport failure, retry and input retention', async (page, context) => {
@@ -89,18 +89,18 @@ try {
     await page.getByRole('button', { name: 'Try again', exact: true }).click();
     await page.getByLabel('Email', { exact: true }).fill('tester@example.invalid');
     await page.getByLabel('Password', { exact: true }).fill('browser-test-password');
-    await page.getByRole('button', { name: 'LOG IN', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await page.getByRole('alert').filter({ hasText: 'Check your connection and try again. Your details have been kept.' }).waitFor();
     assert.equal(await page.getByLabel('Password', { exact: true }).inputValue(), 'browser-test-password');
-    assert.equal(await page.getByRole('button', { name: 'LOG IN', exact: true }).isEnabled(), true);
+    assert.equal(await page.getByRole('button', { name: 'Sign in', exact: true }).isEnabled(), true);
     loginFails = false;
-    await page.getByRole('button', { name: 'LOG IN', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await page.getByRole('heading', { name: 'KARIBU, BROWSER TESTER' }).waitFor();
     await page.getByRole('button', { name: 'Log out', exact: true }).click();
     await page.getByRole('alert').filter({ hasText: 'We could not complete that request. Please try again.' }).waitFor();
     assert.equal(await page.getByRole('heading', { name: 'KARIBU, BROWSER TESTER' }).isVisible(), true);
     logoutFails = false;
     await page.getByRole('button', { name: 'Log out', exact: true }).click();
-    await page.getByRole('button', { name: 'LOG IN', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Sign in', exact: true }).waitFor();
   });
 } finally { await browser.close(); }

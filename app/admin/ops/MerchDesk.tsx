@@ -80,6 +80,9 @@ type InventoryMove = {
   created_at: string;
 };
 type Fulfillment = {
+  requested_handoff?: string;
+  delivery_fee?: number;
+  delivery_address?: {line1:string;city:string;postalCode?:string}|null;
   order_id: string;
   customer_name: string;
   customer_email: string;
@@ -1463,7 +1466,8 @@ export default function MerchDesk() {
                         <Chip text={f.status.replace("_", " ")} />
                       </td>
                       <td style={td}>
-                        {f.handoff_method || "Not set"}
+                        {f.handoff_method || f.requested_handoff || "Not set"}
+                        {f.delivery_address&&<div style={{fontSize:12,marginTop:6}}><strong>Delivery address</strong><br/>{f.delivery_address.line1}<br/>{f.delivery_address.city} {f.delivery_address.postalCode||""}<br/>Fee: KES {Number(f.delivery_fee||0).toLocaleString()}</div>}
                         <div style={{ fontSize: 11, color: "#777" }}>
                           {f.reference || ""}
                         </div>

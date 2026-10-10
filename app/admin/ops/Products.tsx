@@ -1,7 +1,7 @@
 'use client';
 
-// Shop products — single source of truth for public/v25-template.html's shop
-// grid and every checkout route's server-side pricing (lib/server/catalog.ts
+// Shop products — single source of truth for the native shop
+// catalog and every checkout route's server-side pricing (lib/server/catalog.ts
 // getProducts()). See app/api/site-data/products/route.ts for the public
 // read side.
 
@@ -14,10 +14,10 @@ import {
 
 interface Product {
   id: string; name: string; price: number; costPrice: number; image: string; category: string;
-  description: string; active: boolean;
+  description: string; active: boolean; photos:string[];sizeGuide:string;
 }
 
-const EMPTY = { id: '', name: '', price: 0, costPrice: 0, image: '', category: 'Apparel', description: '', active: true };
+const EMPTY = { id: '', name: '', price: 0, costPrice: 0, image: '', category: 'Apparel', description: '', active: true,photos:'',sizeGuide:'' };
 const CATEGORIES = ['Apparel', 'Headwear', 'Accessories'];
 
 // Markup is derived, never stored: (sell - cost) / cost. Zero/blank cost means
@@ -39,7 +39,7 @@ export default function Products() {
   const reload = useCallback(async () => {
     const { data } = await opsGet('products');
     if (data.error) say('Load failed: ' + data.error);
-    else setRows((data.rows || []).map((r: any) => ({ ...r, price: Number(r.price), costPrice: Number(r.cost_price || 0) })));
+    else setRows((data.rows || []).map((r: any) => ({ ...r, price: Number(r.price), costPrice: Number(r.cost_price || 0),photos:Array.isArray(r.photos)?r.photos:[],sizeGuide:r.size_guide||'' })));
   }, [say]);
   useEffect(() => { reload(); }, [reload]);
 
@@ -50,7 +50,7 @@ export default function Products() {
     setBusy(true);
     const { data } = await opsPost('product.save', {
       id: edit.id || undefined, name: edit.name, price: edit.price, costPrice: edit.costPrice, image: edit.image,
-      category: edit.category, description: edit.description, active: edit.active,
+      category: edit.category, description: edit.description, active: edit.active,photos:edit.photos.split('\n').map(x=>x.trim()).filter(Boolean),sizeGuide:edit.sizeGuide,
     });
     setBusy(false);
     if (data.error) { say('Failed: ' + data.error); return; }
@@ -66,7 +66,7 @@ export default function Products() {
   };
 
   const restore = async (p: Product) => {
-    const { data } = await opsPost('product.save', { id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: true });
+    const { data } = await opsPost('product.save', { id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: true,photos:p.photos,sizeGuide:p.sizeGuide });
     if (data.error) say('Failed: ' + data.error); else { say('Restored'); reload(); }
   };
 
@@ -93,6 +93,7 @@ export default function Products() {
           <span style={label}>Description</span>
           <textarea style={{ ...inp, minHeight: 70 }} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
         </div>
+        <label style={{display:"grid",gap:6,marginTop:10}}>Additional product photographs<textarea style={inp} rows={3} value={edit.photos} onChange={e=>setEdit({...edit,photos:e.target.value})} placeholder="One existing image path or HTTPS URL per line (maximum 12)"/></label><label style={{display:"grid",gap:6,marginTop:10}}>Size guide<textarea style={inp} rows={3} maxLength={4000} value={edit.sizeGuide} onChange={e=>setEdit({...edit,sizeGuide:e.target.value})} placeholder="Enter verified measurements and fit guidance for this product."/></label>
         <div style={{ marginTop: 10, fontSize: 13, color: '#333' }}>
           Markup: <b>{markupOf(edit)}</b>
           {edit.costPrice > 0 && edit.price > 0 && <span style={{ color: '#888' }}> (KES {edit.price.toLocaleString()} − KES {edit.costPrice.toLocaleString()} = KES {(edit.price - edit.costPrice).toLocaleString()} margin)</span>}
@@ -139,7 +140,7 @@ export default function Products() {
                   <td style={td}>{p.active ? <Chip text="active" bg="#E7F5EE" color={OC.green} /> : <Chip text="retired" bg="#eee" />}</td>
                   <td style={td}>
                     <div style={{ display: 'flex', gap: 5 }}>
-                      <button style={btnSmall} onClick={() => setEdit({ id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: p.active })}>Edit</button>
+                      <button style={btnSmall} onClick={() => setEdit({ id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: p.active,photos:p.photos.join('\n'),sizeGuide:p.sizeGuide })}>Edit</button>
                       {p.active
                         ? <button style={{ ...btnSmall, background: '#111', color: '#fff' }} onClick={() => retire(p)}>Retire</button>
                         : <button style={btnSmall} onClick={() => restore(p)}>Restore</button>}

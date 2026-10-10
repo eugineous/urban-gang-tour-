@@ -1,0 +1,14 @@
+import {describe,it,expect,vi,beforeEach} from 'vitest';
+const mocks=vi.hoisted(()=>({user:null as null|{id:number},admin:false,perm:false,q:vi.fn(),db:true}));
+vi.mock('@/lib/server/db',()=>({hasDb:()=>mocks.db,q:mocks.q,db:()=>null}));
+vi.mock('@/lib/server/customer-account',()=>({validatedCurrentBuyer:async()=>mocks.user}));
+vi.mock('@/lib/server/session',()=>({currentUser:()=>mocks.user,verifyAdminSession:async()=>mocks.admin,hasPerm:()=>mocks.perm,adminActor:()=>"test-admin"}));
+vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test'}));
+vi.mock('@/lib/server/engagement',()=>({ensureEngagementSchema:async()=>{},EVENT_INTERESTS:['concerts','festivals','school-events','campus-events','merchandise']}));
+import {GET as affiliateGet,POST as affiliatePost} from '@/app/api/affiliates/route';
+import {GET as adminGet,PATCH as adminPatch} from '@/app/api/admin/affiliates/route';
+import {GET as prefsGet,PUT as prefsPut} from '@/app/api/account/preferences/route';
+const req=(body?:unknown)=>new Request('https://urbangangtour.co.ke/api/test',{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+beforeEach(()=>{mocks.user=null;mocks.admin=false;mocks.perm=false;mocks.db=true;mocks.q.mockReset()});
+describe('engagement access boundaries',()=>{it('requires a buyer session for preferences and affiliate records',async()=>{expect((await affiliateGet(req())).status).toBe(401);expect((await affiliatePost(req({name:'Guest',audience:'A campus group'}))).status).toBe(401);expect((await prefsGet(req())).status).toBe(401)});it('requires scoped administrator permission for approvals',async()=>{mocks.admin=true;expect((await adminGet(req())).status).toBe(403);expect((await adminPatch(req({id:'a'.repeat(24),status:'approved'}))).status).toBe(403);expect(mocks.q).not.toHaveBeenCalled()});it('rejects unknown fields and invented event interests',async()=>{mocks.user={id:9};expect((await prefsPut(req({marketing_email:true,event_interests:['private-data']}))).status).toBe(400);expect((await affiliatePost(req({name:'Buyer',audience:'School community',user_id:1}))).status).toBe(400);expect(mocks.q).not.toHaveBeenCalled()});it('reads only the signed-in buyer preferences with private caching',async()=>{mocks.user={id:9};mocks.q.mockResolvedValue([]);const response=await prefsGet(req());expect(response.status).toBe(200);expect(mocks.q.mock.calls[0][1]).toEqual([9]);expect(response.headers.get('cache-control')).toBe('private, no-store');expect((await response.json()).preferences.marketing_email).toBe(false)});});

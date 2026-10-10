@@ -293,4 +293,236 @@ Public organizer applications (`POST /api/organizer/signup`) also require boolea
 
 ## Approved transaction interface (9 October 2026)
 
-`/shop`, `/cart`, `/checkout` and `/book` use native Next/React components and the existing authenticated/server-validated APIs. No captured template or separate React runtime is loaded. Product and ticket prices are display hints only; order creation resolves prices and inventory server-side. Payment confirmation polls the recorded order status. The browser migrates older `ugt_cart` entries to `ugt-live-cart-v1` and removes a paid merchandise bag only when it matches the saved checkout snapshot. Booking and order retries preserve the request ID while the submitted details are unchanged.
+`/shop`, `/cart`, `/checkout` and `/book` use native Next/React components and the existing authenticated/server-validated APIs. No captured template or separate React runtime is loaded. Product and ticket prices are display hints only; order creation resolves prices and inventory server-side. Payment confirmation polls the recorded order status. The browser migrates older `ugt_cart` entries to `ugt-live-cart-v1` and removes a paid merchandise cart only when it matches the saved checkout snapshot. Booking and order retries preserve the request ID while the submitted details are unchanged.
+
+### Checkout fulfillment and customer progress
+
+- `GET /api/checkout/fulfillment`: public, device/IP rate limited; returns configured pickup location, zero pickup fee, and delivery fee only when `MERCH_DELIVERY_FEE_KES` is a valid non-negative integer. Delivery is disabled otherwise. `MERCH_PICKUP_LOCATION` supplies the real collection instruction. No provider is invented.
+- Order creation accepts `fulfillment: {method: "pickup" | "delivery", address?: {line1, city, postalCode?}}` for merchandise. Server validation determines the fee. Delivery addresses remain private in `order_delivery_preferences`.
+- `GET /api/orders/tracking?id=ORD-…`: public bearer capability limited to order references containing 24 random hexadecimal characters. Returns recorded payment and fulfillment state, handover method and reference; excludes names, contacts, addresses and internal notes. `no-store` response. `/orders/track?ref=…` presents the same record without implying an unrecorded delivery.
+- `POST /api/bookings`: a newly inserted enquiry additionally returns a signed `statusToken` when the signing secret is configured. Retry acknowledgements do not mint new follow-up credentials. Booking drafts remain in tab-scoped session storage until successful submission.
+- `GET /api/bookings/status?token=…`: signed, expiring 30-day capability; returns only enquiry reference, category, recorded status, preferred date and creation date. Predictable booking IDs and invalid/expired tokens are rejected. `/book/status?token=…` displays the enquiry progress. Both progress pages exclude indexing and send a no-referrer policy.
+
+### Engagement additions
+- `GET/POST /api/affiliates`: validated buyer's own application, configured programme terms and refund-adjusted earnings. New applications remain pending review. Attribution activates only for approved applicants who accept the configured current terms.
+- `GET/PATCH /api/admin/affiliates`: verified admin with `people` permission; review applications. Optional `?id=24hex` returns the selected affiliate ledger. `/admin/affiliates` applies the same server permission guard.
+- `GET/PUT /api/admin/affiliates/program`: `people` permission; configure explicit commission basis points, versioned terms and eligible published owned ticket events. Enabled incomplete programmes are rejected; changed conditions require a new terms version.
+- `POST /api/affiliates/terms`: validated buyer accepts the current version for their own approved application. Stale versions return 409.
+- `GET /api/affiliates/referral?code=24hex`: anonymous, rate-limited, coalesced read; returns only active-code validity and terms version, no affiliate contact or earnings. The browser captures only validated codes in tab-scoped session storage for up to 24 hours with a visible remove control.
+- `POST /api/admin/affiliates/payouts`: `ops_payouts` permission; records an already-made external payment by unique reference. A transaction locks the affiliate ledger, validates payout against refund-adjusted earned balance and logs the actor. This endpoint never transfers money.
+- `GET/PUT /api/account/preferences`: authenticated buyer's own optional marketing email consent and supported event interests. Defaults are opt-out. Saving consent synchronizes the account newsletter subscription; opt-outs override newsletter rows. Owner newsletter broadcasts select only consented recipients and optionally filter by a supported `interest`. Transactional email is unaffected. No SMS/push delivery is implied.
+- `POST /api/captions`: verified admin with `gallery` permission imports reviewed WebVTT/transcript text. `GET /api/captions?asset=ID` returns only public caption text.
+
+## Customer, commerce and operations additions (10 October 2026)
+
+These contracts describe implemented routes. Provider configuration and recorded
+business data determine availability; a ready UI does not establish successful
+payment settlement, inbox delivery or third-party account connection.
+
+### GET /api/account and GET /api/account?download=1
+
+Buyer session required. The signed account ID is checked against the current
+persisted user and session version before any customer records are returned.
+Missing/revoked sessions return 401; unavailable account storage returns 503.
+Rate limit: 30 requests/minute/device with a shared-network backstop.
+
+Response: `{profile, orders, tickets, requests}`. Profile contains the buyer's
+own `id`, `name`, `email`, `phone` and `created_at`. Orders are scoped by
+`orders.user_id`; the ordinary view returns up to 100 orders and 300 tickets.
+Tickets are limited to the buyer's paid/fulfilled orders. Privacy requests expose
+only the buyer's request reference, kind, status and creation time.
+
+`download=1` returns the same categories without the order/ticket display limits
+as a downloadable `urban-gang-account.json`. Both modes send
+`Cache-Control: private, no-store`. Guest purchases are not claimed by matching
+an email address; ownership is established server-side when purchasing while
+signed in. Existing receipt/ticket download capabilities remain separate from
+this authenticated account export.
+
+### POST /api/account/recovery
+
+Public credential endpoint with a required trusted Origin and a strict
+5 requests/minute/IP limit. Unexpected fields are rejected.
+
+- `{action: "forgot", email}`: valid email required (maximum 254 characters).
+  Database and `RESEND_API_KEY` must be configured; unavailable delivery returns
+  503 before checking account existence. Known and unknown accounts receive the
+  same `{ok: true, message}` immediately. The actual lookup and email run after
+  the response. A successful API acknowledgement does not prove email delivery.
+- `{action: "reset", token, password}`: the reset token must be a 43-character
+  base64url value; password length is 8–100 characters. Links expire after one
+  hour. Only the SHA-256 token hash is stored, with one active link per account.
+  Token consumption and password replacement are atomic; invalid, expired or
+  previously used links return 400. Success increments the stored buyer session
+  version and clears `ugt_user`. APIs validating the current buyer reject older
+  session versions.
+
+Reset messages use Resend and `BOOKINGS_FROM`; this route does not connect Gmail
+or add a Gmail inbox integration.
+
+### POST /api/account/privacy
+
+Authenticated current buyer, trusted Origin and 3 requests/minute/device.
+Body: `{confirmation: "DELETE MY ACCOUNT"}` only. Creates a deletion request
+for the signed buyer; an existing `received`/`reviewing` request is returned
+rather than duplicated. Response: `{ok: true, request: {id, status, created_at}}`,
+with no-store caching. This is a review request, not immediate account deletion,
+anonymization or destruction of required financial records. The authenticated
+account screen shows the request's recorded status.
+
+### GET/PATCH /api/admin/privacy
+
+Verified super-admin only, never a general buyer or unscoped staff member.
+GET returns up to 200 privacy requests with the buyer name/email, recorded
+status and resolution to the private Control Room. It sends
+`Cache-Control: private, no-store`; limit is 30 reads/minute/device.
+
+PATCH requires a trusted Origin and strict 20 writes/minute/IP. Body:
+`{id, status: "reviewing" | "closed", resolution}`. Unknown fields are rejected;
+resolution is at most 2,000 characters and requires at least 10 non-whitespace
+characters when closing. Missing requests return 404. Updates are audited as
+`privacy.request.review`. Closing records the administrator's review outcome;
+it does not perform an automatic deletion of accounts or financial ledgers.
+
+### POST /api/checkout/quote
+
+Public same-origin preview, 20 requests/minute/device with the purchase network
+backstop. Body: `{items: [{id, qty, variant?}], promoCode?, fulfillment?}`.
+Limits: 1–30 lines, integer quantities 1–20, product ID up to 80 characters,
+variant up to 100, promo code up to 60. Unexpected fields are rejected.
+
+Prices, variant adjustments, promo eligibility, stock and configured delivery
+fees are resolved server-side. Success returns
+`{total, promoApplied, savings, deliveryFee}` in integer KES with no-store
+caching. `savings` reflects the validated base-price reductions. Invalid or
+unavailable quotes return 400; a disallowed Origin returns 403.
+A quote creates no order, reserves no stock and redeems no promo use. The
+subsequent checkout independently validates price and availability again.
+Fulfillment rules are the same as `/api/checkout/fulfillment` and order creation;
+no carrier integration or delivery fee is inferred from client input.
+
+### GET/POST /api/reviews and moderation
+
+GET `?product=ID` is public and limited to a real catalogue product. Returns
+`{ok, reviews, aggregate}` from approved reviews only (up to 50 newest reviews).
+The aggregate is calculated from those returned approved records; no fabricated
+ratings are inserted into product pages or structured data.
+
+POST requires a validated current buyer and trusted Origin. Body:
+`{product_id, author, rating, body}` only. Author length: 2–60; integer rating:
+1–5; review text: 5–1,000 characters. Rate limit: 5/minute/device.
+The server requires a paid/fulfilled order linked to that buyer's account that
+contains the product. Matching email, a browser-supplied order or a self-declared
+purchase does not authorize a review. A non-purchaser receives 403
+`verified_purchase_required`; anonymous visitors receive 401. Accepted reviews
+return `{ok: true, pending: true}` and remain unpublished until moderation.
+
+`GET/POST /api/admin/reviews` retains verified admin and `reviews` permission
+checks. POST additionally requires a trusted Origin; `{id, action}` supports
+`approve`, `reject` (unpublish without deleting) or `delete`. Public reviews and
+product rating schema follow recorded approval, never pending submissions.
+
+### Product photographs, size guides and availability
+
+`POST /api/admin/ops` with `{kind: "product.save", data: {...}}` uses the existing `products`
+admin permission and audit trail. Its `data` fields additionally accept
+`photos: string[]` and `sizeGuide: string` alongside the established product
+fields. Photos are deduplicated and limited to 12 same-origin image paths or
+HTTPS URLs without embedded credentials. Size guidance is limited to 4,000
+characters. Main product images follow the same URL validation. Unknown product
+fields return 400. `GET /api/admin/ops?view=products` returns these persisted
+fields to the authorized product editor.
+
+The server-rendered `/shop/:id` detail page reads actual saved photographs and
+size guidance. It does not synthesize measurements or product photographs.
+`GET /api/site-data/products` remains a public coalesced catalogue read of active
+products: `{ok, products}` includes total stock and per-variant stock, where
+`null` means inventory is not tracked and zero means unavailable. A catalogue
+outage returns 503 `catalog_unavailable` with no-store caching, rather than a
+successful empty shop. Historical orders continue to resolve retired products.
+
+### Reviewed captions and transcripts
+
+`GET /api/captions?asset=ID&format=json` is a public, coalesced read for an owned,
+non-adult video from the approved media library. Unknown IDs, photographs and
+adult commercial video IDs return 400 before querying storage. Rate limit:
+120/minute/device. A video without an imported track returns
+`{available: false, asset}` with HTTP 200. Available records return
+`{available: true, asset, language, transcript, track}`. `track` is a same-origin
+VTT endpoint with an update revision; no personal customer data is exposed.
+
+`GET /api/captions?asset=ID` returns `text/vtt; charset=utf-8` for the stored
+reviewed WebVTT. Missing tracks return 404; missing/unavailable storage returns
+503. Both successful public modes cache for 30 seconds and send nosniff headers.
+Gallery film modals and Reels request metadata for the selected/playing video
+and add a caption track and expandable transcript only when one actually exists.
+They do not request broken VTT files for every hidden gallery item.
+
+POST requires a verified admin with `gallery` permission and trusted Origin.
+Body: `{asset_id, vtt, transcript, language}` only. The asset must be an existing
+owned video; WebVTT must begin `WEBVTT` and contain a timed cue. VTT and transcript
+are each limited to 100,000 characters; transcript must be non-empty. Language
+is a two-letter code with optional uppercase region, for example `en` or `en-KE`.
+Success returns `{ok, track}`, audits the import and invalidates the caption
+cache. Captions are reviewed imports from recordings; the service does not
+invent dialogue or automatically transcribe recordings.
+
+### Durable receipt email and operator recovery
+
+Paid/fulfilled orders with a valid email create a database-backed receipt job.
+The job ID is deterministic for the order and delivery purpose; the exact
+Resend payload and provider idempotency key are retained across retries.
+Claims use expiring leases to prevent concurrent sends. Temporary provider
+failures retry with bounded backoff, up to eight attempts. Uncertain sends older
+than 20 hours require manual review, before the provider idempotency window
+expires. No new ticket ID is minted merely by downloading or retrying an email.
+
+`GET /api/admin/email-delivery`: verified super-admin, 60 reads/minute/device,
+private no-store. Returns `{configured, jobs}` with up to 100 job summaries:
+order reference, state, attempts, provider reference, bounded error and timing.
+Recipient addresses, receipt payloads and credentials are not returned.
+States include `queued`, `processing`, `blocked`, `accepted` and `failed`.
+`accepted` means the email provider accepted the request; it does not establish
+inbox delivery, opening or reading. Unconfigured/unavailable delivery returns 503.
+
+`POST /api/admin/email-delivery`: same super-admin role, trusted Origin,
+10 attempts/minute/device. Body: `{id: "receipt-<40 lowercase hexadecimal>"}`
+only. Retains the original payload and safe idempotency window. A job requiring
+manual review returns 409 `manual_review_required`; missing provider config
+returns 503. This is a receipt recovery tool, not an arbitrary email composer.
+
+`POST /api/internal/cron/email-delivery`: internal scheduler only, protected by
+constant-time comparison of `x-ugt-cron` against server-only `UGT_CRON_SECRET`.
+Missing secret: 503; incorrect secret: 401; strict rate limit: 20/minute/IP.
+Processes up to five due jobs and returns `{ok, outcomes}` privately. The Worker
+scheduled handler calls this endpoint through its existing self-reference
+binding. It uses the existing configured cron; deployment does not create a new
+schedule. Automation requires the self-reference binding, secret, database and
+Resend configuration. This does not enable Gmail, SMS or push delivery.
+
+### POST/GET /api/performance
+
+POST accepts anonymous bounded Web Vitals samples on the same origin, limited
+to 30/minute/device. Body: `{name, value, path}` only; `name` is
+`CLS | INP | LCP | FCP | TTFB`. Values must be finite and non-negative;
+CLS is bounded to 10, other metrics to 120,000 milliseconds. Path is a public
+pathname of at most 250 characters, without query parameters or fragments.
+Account, checkout, orders, receipt/ticket, verification, organizer, admin, API
+and booking-status paths are rejected. Success: 204; invalid samples: 400;
+unavailable monitoring storage: 503.
+
+The browser collector sends only after recorded optional analytics consent.
+The sample table stores metric, value, public path and timestamp; it does not
+store visitor identity, email, IP, location or a device fingerprint. GET requires
+a verified super-admin and returns `{rows}` containing sample counts and p75
+values grouped by metric for the last 28 days, with private no-store caching.
+This is a reporting window, not a promise that older stored rows are deleted.
+
+### Additional server configuration
+
+The batch uses existing `DATABASE_URL`, `SESSION_SECRET`, `RESEND_API_KEY` and
+`BOOKINGS_FROM`, plus server-owned `UGT_CRON_SECRET` for receipt automation.
+`MERCH_PICKUP_LOCATION` provides actual collection instructions;
+`MERCH_DELIVERY_FEE_KES` enables delivery only when it contains a non-negative
+integer fee. No new R2 binding, public storage credential, browser fingerprint
+or unconfigured email/carrier integration is required or implied.

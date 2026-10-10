@@ -1,0 +1,11 @@
+import {beforeEach,it,expect,vi} from 'vitest';
+vi.mock('@/lib/server/db',()=>({hasDb:vi.fn(),q:vi.fn()}));
+vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:vi.fn(async()=>{})}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test',PUBLIC_READ_NETWORK_LIMIT:1000}));
+vi.mock('@/lib/server/microcache',()=>({cached:(_key:string,_ttl:number,load:()=>unknown)=>load()}));
+import {hasDb,q} from '@/lib/server/db';
+import {GET} from '@/app/api/site-data/products/route';
+beforeEach(()=>{vi.resetAllMocks();vi.mocked(hasDb).mockReturnValue(true);vi.mocked(q).mockResolvedValue([])});
+it('reports a genuine empty catalog as an empty result',async()=>{const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(200);expect(await r.json()).toEqual({ok:true,products:[]})});
+it('does not disguise missing database configuration as no products',async()=>{vi.mocked(hasDb).mockReturnValue(false);const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(503);expect(await r.json()).toEqual({error:'catalog_unavailable'});expect(r.headers.get('cache-control')).toBe('no-store')});
+it('does not disguise a transient read failure as an empty shop',async()=>{vi.mocked(q).mockRejectedValue(Error('Database password is private'));const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(503);expect(await r.json()).toEqual({error:'catalog_unavailable'})});

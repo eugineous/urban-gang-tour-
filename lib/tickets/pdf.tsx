@@ -1,7 +1,7 @@
 // Shared compact print engine: actual PDF text and vector QR modules, no page screenshots.
 import {compactDocumentPdf,type PrintBrand,type PrintRecord} from './compact-document-pdf';
 import {getEventMeta,getEventName,signedTicketBlob} from '@/lib/server/tickets';
-import {orderLines} from '@/lib/server/catalog';
+import {receiptLines} from '@/lib/server/receipt-lines';
 import {q} from '@/lib/server/db';
 const SITE='https://urbangangtour.co.ke';
 async function eventBrand(id?:string|null):Promise<PrintBrand & {design?:string}>{
@@ -16,7 +16,7 @@ export async function renderTicketPdf(input:{code:string;eventId:string;tierName
  return Buffer.from(pdf.output('arraybuffer'));
 }
 export async function renderReceiptPdf(order:any,logo:string|null,maskedPhone:string,tickets:{code:string;position:number;ofCount:number;tierName:string}[]=[]):Promise<Buffer>{
- const lines=orderLines(typeof order.items==='string'?JSON.parse(order.items):order.items||[]);
+ const lines=await receiptLines(order);
  const record:PrintRecord={type:'receipt',event:'Urban Gang Tour purchase',name:String(order.name||'Customer'),date:new Date(order.created_at||Date.now()).toLocaleDateString('en-GB',{timeZone:'Africa/Nairobi'}),time:'',venue:'',amount:Number(order.total||0),order:String(order.id),id:String(order.id),tier:'Purchase',qty:lines.reduce((n,l)=>n+l.qty,0),status:String(order.status||'pending'),verifyUrl:`${SITE}/verify/order/${encodeURIComponent(order.id)}`,reference:String(order.mpesa_receipt||order.paystack_ref||order.stripe_payment_intent||'No payment reference'),items:lines.map(l=>({name:l.name,qty:l.qty,price:order.pay_method==='comp'?0:l.total/l.qty}))};
  const pdf=await compactDocumentPdf(record,'retail',{logo:logo||undefined});return Buffer.from(pdf.output('arraybuffer'));
 }

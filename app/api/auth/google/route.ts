@@ -5,6 +5,7 @@ import {sameOrigin} from '@/lib/server/origin';
 import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 import {verifyGoogleIdentity} from '@/lib/server/google-identity';
 import {signToken,sessionCookie} from '@/lib/server/session';
+import {ensureBuyerSessionSchema} from '@/lib/server/customer-account';
 export async function GET(req:Request){
  if(!rateLimit('google-config:'+clientIp(req),60,60000,req))return NextResponse.json({error:'too_many_requests'},{status:429});
  return NextResponse.json({clientId:process.env.GOOGLE_OAUTH_CLIENT_ID||process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID||null},{headers:{'Cache-Control':'no-store'}});
@@ -19,9 +20,12 @@ export async function POST(req:Request){
  if(!body||Array.isArray(body)||Object.keys(body).some(k=>k!=='credential')||typeof body.credential!=='string'||body.credential.length<20||body.credential.length>4096)return NextResponse.json({error:'bad_request'},{status:400});
  let email:string|null;try{email=await verifyGoogleIdentity(body.credential,clientId)}catch{return NextResponse.json({error:'verify_unavailable'},{status:502})}
  if(!email)return NextResponse.json({error:'invalid_token'},{status:401});
- const rows=await q('SELECT id,email,phone,name FROM users WHERE email=$1 LIMIT 1',[email]);const u=rows[0];
+ try {
+ await ensureBuyerSessionSchema();
+ const rows=await q('SELECT id,email,phone,name,session_version FROM users WHERE email=$1 LIMIT 1',[email]);const u=rows[0];
  if(!u)return NextResponse.json({error:'account_not_found'},{status:401});
  const res=NextResponse.json({ok:true,user:u});
- res.headers.set('Set-Cookie',sessionCookie('ugt_user',signToken({id:u.id,email:u.email,phone:u.phone,name:u.name})));
+ res.headers.set('Set-Cookie',sessionCookie('ugt_user',signToken({id:u.id,email:u.email,phone:u.phone,name:u.name,sessionVersion:u.session_version})));
  return res;
+ } catch {return NextResponse.json({error:'accounts_unavailable'},{status:503});}
 }

@@ -1,3 +1,5 @@
+import {ensureProductPresentationSchema,productPresentation,isProductImageUrl} from '@/lib/server/product-presentation';
+import {ensureCheckoutFulfillmentSchema} from '@/lib/server/checkout-fulfillment';
 import { NextResponse, after } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { q, db } from "@/lib/server/db";
@@ -377,10 +379,12 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, rows });
       }
       case "products": {
+        await ensureProductPresentationSchema();
         const rows = await q(`SELECT * FROM products ORDER BY active DESC, id`);
         return NextResponse.json({ ok: true, rows });
       }
       case "merch": {
+        await ensureCheckoutFulfillmentSchema();
         const [
           products,
           suppliers,
@@ -415,8 +419,9 @@ export async function GET(req: Request) {
                       o.created_at AS order_created_at, COALESCE(f.status,'new') AS status,
                       COALESCE(f.assignee,'') AS assignee, COALESCE(f.handoff_method,'') AS handoff_method,
                       COALESCE(f.reference,'') AS reference, COALESCE(f.note,'') AS note,
-                      f.updated_at
+                      f.updated_at, d.method AS requested_handoff, d.fee AS delivery_fee, d.address AS delivery_address
                FROM orders o LEFT JOIN merch_fulfillments f ON f.order_id=o.id
+               LEFT JOIN order_delivery_preferences d ON d.order_id=o.id
                WHERE o.status IN ('paid','fulfilled')
                  AND EXISTS (
                    SELECT 1 FROM jsonb_array_elements(o.items) AS item
@@ -1776,8 +1781,12 @@ export async function POST(req: Request) {
 
       // ---- Shop products ----
       case "product.save": {
+        if(Object.keys(d).some(k=>!["id","name","price","costPrice","image","category","description","active","photos","sizeGuide"].includes(k)))return bad("unexpected_product_field");
+        let presentation;try{presentation=productPresentation(d)}catch{return bad("invalid_product_presentation")}
+        await ensureProductPresentationSchema();
         const name = s(d.name, 200);
         if (!name) return bad("missing_name");
+        if(d.image!==undefined&&d.image!==""&&!isProductImageUrl(d.image))return bad("invalid_product_image");
         const price = Math.max(0, Math.round(Number(d.price) || 0));
         // Cost is owner-recorded and must never exceed the sell price. It is
         // never trusted from the browser beyond a non-negative integer clamp;
@@ -1804,16 +1813,18 @@ export async function POST(req: Request) {
           d.active !== false,
           costPrice,
           id,
+          JSON.stringify(presentation.photos),
+          presentation.sizeGuide,
         ];
         let row;
         if (isNew) {
           row = await q(
-            `INSERT INTO products (name, price, image, category, description, active, cost_price, id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+            `INSERT INTO products (name, price, image, category, description, active, cost_price, id, photos, size_guide) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
             fields,
           );
         } else {
           row = await q(
-            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, updated_at=now() WHERE id=$8 RETURNING *`,
+            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, photos=$9, size_guide=$10, updated_at=now() WHERE id=$8 RETURNING *`,
             fields,
           );
           if (!row.length) return bad("not_found", 404);

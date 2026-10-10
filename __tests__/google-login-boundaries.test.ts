@@ -4,6 +4,7 @@ vi.mock('@/lib/server/ratelimit',()=>({clientIp:()=> 'test',rateLimit:()=>true})
 vi.mock('@/lib/server/google-identity',()=>({verifyGoogleIdentity:vi.fn()}));
 vi.mock('@/lib/server/session',()=>({sessionSecretConfigured:()=>true,signToken:()=> 'signed-user',sessionCookie:()=> 'ugt_user=signed; HttpOnly; Secure'}));
 vi.mock('@/lib/server/organizer-session',()=>({signOrganizerToken:()=> 'signed-organizer',organizerSessionCookie:()=> 'ugt_organizer=signed; HttpOnly; Secure'}));
+vi.mock('@/lib/server/customer-account',()=>({ensureBuyerSessionSchema:()=>Promise.resolve()}));
 import {q} from '@/lib/server/db';
 import {verifyGoogleIdentity} from '@/lib/server/google-identity';
 import {POST as buyer} from '@/app/api/auth/google/route';

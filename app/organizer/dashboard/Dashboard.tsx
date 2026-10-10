@@ -73,15 +73,15 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 12, marginBottom: 18 }}>
           <div style={{ ...card, textAlign: 'center' }}>
             <div style={{ fontFamily: 'inherit', fontSize: 28 }}>{totalSold}</div>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Tickets sold</div>
+            <div style={{ fontSize: 14, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Tickets sold</div>
           </div>
           <div style={{ ...card, textAlign: 'center' }}>
             <div style={{ fontFamily: 'inherit', fontSize: 24 }}>{fmtKES(totalRevenue)}</div>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Your share (after commission)</div>
+            <div style={{ fontSize: 14, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Your share (after commission)</div>
           </div>
           <div style={{ ...card, textAlign: 'center' }}>
             <div style={{ fontFamily: 'inherit', fontSize: 24 }}>{events.length}</div>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Events submitted</div>
+            <div style={{ fontSize: 14, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Events submitted</div>
           </div>
         </div>
 
@@ -98,15 +98,15 @@ export default function Dashboard() {
                     <b style={{ fontSize: 15 }}>{e.name}</b>
                     <Chip text={e.status.replace('_', ' ')} bg={st.bg} color={st.color} />
                     <div style={{ flex: 1 }} />
-                    <a style={{ ...btn, padding: '5px 10px', fontSize: 12, textDecoration: 'none' }} href={`/organizer/events/${e.id}/edit`}>Edit</a>
+                    <a style={{ ...btn, padding: '10px 16px', fontSize: 14, textDecoration: 'none' }} href={`/organizer/events/${e.id}/edit`}>Edit</a>
                   </div>
-                  <div style={{ fontSize: 12.5, color: '#666', marginTop: 4 }}>
+                  <div style={{ fontSize: 14, color: '#666', marginTop: 4 }}>
                     {e.event_date ? e.event_date : 'Date TBA'} · {e.venue}{e.city ? `, ${e.city}` : ''}
                   </div>
                   {e.status === 'rejected' && e.rejection_reason ? (
-                    <div style={{ fontSize: 12.5, color: '#C0392B', marginTop: 6 }}>Rejected: {e.rejection_reason}</div>
+                    <div style={{ fontSize: 14, color: '#C0392B', marginTop: 6 }}>Rejected: {e.rejection_reason}</div>
                   ) : null}
-                  <div style={{ fontSize: 12, color: '#888', marginTop: 6 }}>
+                  <div style={{ fontSize: 14, color: '#888', marginTop: 6 }}>
                     {parseTiers(e.tiers).map((t) => `${t.name} ${fmtKES(t.price)}`).join(' · ')}
                   </div>
                   {e.status === 'published' ? (

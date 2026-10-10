@@ -1,0 +1,6 @@
+import type {Metadata} from 'next';
+import {verifyToken} from '@/lib/server/session';
+import {q,hasDb} from '@/lib/server/db';
+export const metadata:Metadata={title:'Your booking enquiry | Urban Gang Tour',robots:{index:false,follow:false},referrer:'no-referrer'};
+export const dynamic='force-dynamic';
+export default async function BookingStatus({searchParams}:{searchParams:Promise<{token?:string}>}){const {token}=await searchParams;const claim=verifyToken<{scope?:string;bookingId?:string}>(token);let booking:any=null;if(claim?.scope==='booking_status'&&typeof claim.bookingId==='string'&&hasDb())try{booking=(await q(`SELECT id,type,status,preferred_date FROM bookings WHERE id=$1`,[claim.bookingId]))[0]}catch{}return <main className="modern-page"><h1>Your event enquiry</h1>{booking?<section className="modern-card"><p>Reference: {booking.id}</p><h2>{booking.status==='new'?'Your brief is with the team.':String(booking.status).replace(/_/g,' ')}</h2><p>{booking.type}</p><p>Your event date is reserved only after the scope and payment are agreed with the team.</p></section>:<p>This enquiry link has expired or is unavailable. Contact the team with your booking reference.</p>}<a className="button" href="/contact-us">Talk to the team</a></main>}
