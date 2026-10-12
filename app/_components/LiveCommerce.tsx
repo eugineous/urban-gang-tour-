@@ -1,7 +1,7 @@
 'use client';
 import {readReferralCode,clearAffiliateReferral} from '@/lib/client/affiliate-referral';
 import {readLiveCart,addCartItem,LIVE_CART_KEY,type CartItem} from '@/lib/client/live-cart';
-import {useEffect,useRef,useState} from 'react';
+import {startTransition,useEffect,useRef,useState} from 'react';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {normalizePrintableName,PRINTABLE_NAME_MAX_LENGTH} from '@/lib/shared/merch-personalization';
 import styles from './Commerce.module.css';
@@ -22,9 +22,12 @@ export function LiveCommerce({view='shop',eventId}:{view?:'shop'|'cart'|'checkou
  const quoteRequest=useRef<AbortController|null>(null);
  const [search,setSearch]=useState('');const [sort,setSort]=useState('featured');const [category,setCategory]=useState('');const [printableNames,setPrintableNames]=useState<Record<string,string>>({});
  const [selected,setSelected]=useState('');const [products,setProducts]=useState<Product[]>([]);const [event,setEvent]=useState<Event>();const [items,setItems]=useState<Item[]>([]);const [ready,setReady]=useState(false);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [retry,setRetry]=useState(0);const [tier,setTier]=useState(0);const [qty,setQty]=useState(1);const [variants,setVariants]=useState<Record<string,string>>({});const [method,setMethod]=useState('mpesa');const [promo,setPromo]=useState('');const [busy,setBusy]=useState(false);const pending=useRef(false);const key=useRef('');const [form,setForm]=useState({name:'',email:'',phone:''});
- useEffect(()=>{setSelected(new URLSearchParams(location.search).get('item')||'');setItems(readLiveCart());setReady(true)},[]);
+ // Storage and a warm catalogue may resolve before sibling SSR boundaries
+ // hydrate. Keep their first updates interruptible rather than replacing
+ // still-hydrating markup with a synchronous populated cart.
+ useEffect(()=>{const selectedItem=new URLSearchParams(location.search).get('item')||'',savedItems=readLiveCart();startTransition(()=>{setSelected(selectedItem);setItems(savedItems);setReady(true)})},[]);
  useEffect(()=>{if(ready)try{localStorage.setItem(storage,JSON.stringify(items));window.dispatchEvent(new Event('ugt-cart-changed'))}catch{setNotice('Your browser cannot save this cart. Keep this page open.')}},[items,ready]);
- useEffect(()=>{const controller=new AbortController();setLoading(true);setError('');fetchWithTimeout(eventId?'/api/site-data/events':'/api/site-data/products',{signal:controller.signal}).then(async r=>{if(!r.ok)throw Error();const d=await r.json();if(!d.ok)throw Error();if(eventId){const current=d.events?.find((e:Event)=>e.id===eventId);setEvent(current);const first=current?.tiers.findIndex((t:Event['tiers'][number])=>t.sellable!==false);setTier(first>=0?first:0);setQty(current?.tiers[first>=0?first:0]?.per_order_min||1)}else setProducts(d.products||[])}).catch(()=>{if(!controller.signal.aborted)setError('We could not load the live catalogue. Try again.');}).finally(()=>{if(!controller.signal.aborted)setLoading(false)});return()=>controller.abort()},[eventId,retry]);
+ useEffect(()=>{const controller=new AbortController();setLoading(true);setError('');fetchWithTimeout(eventId?'/api/site-data/events':'/api/site-data/products',{signal:controller.signal}).then(async r=>{if(!r.ok)throw Error();const d=await r.json();if(!d.ok)throw Error();startTransition(()=>{if(eventId){const current=d.events?.find((e:Event)=>e.id===eventId);setEvent(current);const first=current?.tiers.findIndex((t:Event['tiers'][number])=>t.sellable!==false);setTier(first>=0?first:0);setQty(current?.tiers[first>=0?first:0]?.per_order_min||1)}else setProducts(d.products||[])});}).catch(()=>{if(!controller.signal.aborted)setError('We could not load the live catalogue. Try again.');}).finally(()=>{if(!controller.signal.aborted)startTransition(()=>setLoading(false))});return()=>controller.abort()},[eventId,retry]);
  useEffect(()=>{if(eventId||view!=='checkout')return;const controller=new AbortController();fetchWithTimeout('/api/checkout/fulfillment',{signal:controller.signal}).then(async r=>{if(!r.ok)throw Error();const d=await r.json();if(!controller.signal.aborted&&typeof d.pickup?.location==='string'&&typeof d.delivery?.enabled==='boolean')setFulfillmentOptions(d)}).catch(()=>{});return()=>controller.abort()},[eventId,view]);
  const fulfillment={method:fulfillmentMethod,...(fulfillmentMethod==='delivery'?{address:{line1:address.line1,city:address.city,...(address.postalCode?{postalCode:address.postalCode}:{})}}:{})};
  const deliveryFee=fulfillmentMethod==='delivery'?(fulfillmentOptions?.delivery.fee||0):0;
