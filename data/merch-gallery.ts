@@ -6,4 +6,3 @@ export function productTiles(id:string):GalleryTile[]{return (studioTiles[id]||[
 export function getColourPreview(id:string,colour?:string):GalleryTile|undefined{return [...productTiles(id),...(extraGalleryTiles[id]||[]).filter(t=>t.kind!=='detail')].find(t=>t.colour===colour)||productTiles(id)[0];}
 export function getGalleryTile(id:string,colour:string,kind:GalleryKind):GalleryTile|undefined{if(kind==='product')return getColourPreview(id,colour);const matches=(extraGalleryTiles[id]||[]).filter(t=>t.kind===kind);return matches.find(t=>t.colour===colour)||matches[0];}
 export function getGalleryKinds(id:string):GalleryKind[]{return ['product',...new Set((extraGalleryTiles[id]||[]).map(t=>t.kind))];}
-
