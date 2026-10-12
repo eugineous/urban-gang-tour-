@@ -42,7 +42,7 @@ try{
   assert.equal(tracked,acceptedCount);
   await page.getByRole('button',{name:'Review privacy preferences',exact:true}).click();
   await page.getByRole('button',{name:'Necessary only',exact:true}).click();
-  await page.goto(base+'/shop');
+  await page.goto(base+'/shop/available');
   await page.getByLabel('Printed name for Fixture tour shirt').fill('Amani');
   await page.getByRole('button',{name:'Add to cart',exact:true}).click();
   await page.getByLabel('Printed name for Fixture tour shirt').fill('Nia');

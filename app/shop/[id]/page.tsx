@@ -9,6 +9,8 @@ import { SITE } from '@/lib/site';
 import { ProductGallery } from '@/app/_components/ProductGallery';
 import styles from '@/app/_components/Commerce.module.css';
 import { hasDb, q } from '@/lib/server/db';
+import {getMerchProduct,merchProducts,ARTWORK} from '@/data/color-blast';
+import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
 
 export const revalidate = 300;
 
@@ -16,12 +18,13 @@ export const revalidate = 300;
 // yields no pre-generated pages (honest empty list); pages are then rendered
 // on demand and cached for the revalidate window.
 export async function generateStaticParams() {
-  if (!hasDb()) return [];
+  const previews=merchProducts.map(p=>({id:p.id}));
+  if (!hasDb()) return previews;
   try {
     const rows = await q<{ id: string }>(`SELECT id FROM products WHERE active`);
-    return rows.map((r) => ({ id: r.id }));
+    return [...previews,...rows.filter(r=>!getMerchProduct(r.id)).map((r) => ({ id: r.id }))];
   } catch {
-    return [];
+    return previews;
   }
 }
 
@@ -84,6 +87,8 @@ function imageUrl(value: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
+  const preview=getMerchProduct(id);
+  if(preview)return {title:preview.name+' | Color Blast Design Preview',description:preview.description+' Proposed design; samples and stock unconfirmed.',alternates:{canonical:'/shop/'+id},openGraph:{title:preview.name+' | Color Blast',description:'Design preview, not manufactured stock.',url:'/shop/'+id,images:[{url:ARTWORK}]}};
   const product = await productForPage(id);
   if (!product) return {};
   const path = `/shop/${product.id}`;
@@ -103,6 +108,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const preview=getMerchProduct(id);
+  if(preview)return <ColorBlastShop product={preview}/>;
   const product = await productForPage(id);
   if (!product) notFound();
   const variants = safeVariants(product.variants);

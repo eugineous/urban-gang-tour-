@@ -1,0 +1,2093 @@
+{
+  "collection": "Color Blast / Generated studio mockups",
+  "currency": "KES",
+  "prices": "Proposed; samples and stock unconfirmed",
+  "originalArtwork": "/assets/color-blast/original-artwork.png",
+  "products": [
+    {
+      "id": "cb-oversized-tee",
+      "name": "Color Blast Oversized Tee",
+      "category": "Apparel",
+      "price": 1800,
+      "eventPrice": 1500,
+      "description": "The supplied original Color Blast artwork on a relaxed tee. Silver Urban lettering, orange Gang lettering and the magenta Tour ribbon sit above the original sweep of colour.",
+      "shape": "tee",
+      "colorNames": [
+        "Black",
+        "White",
+        "Royal blue",
+        "Hot pink",
+        "Lime green",
+        "Purple",
+        "Cream",
+        "Red",
+        "Charcoal",
+        "Yellow",
+        "Orange"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "details": [
+        "Oversized, dropped shoulders",
+        "Original full-front artwork",
+        "Plain reverse; fixed design",
+        "Cotton specification pending supplier sample"
+      ],
+      "image": "/assets/color-blast/generated/primary.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Wash cool and inside out. Do not iron the printed area.",
+      "variants": [
+        {
+          "label": "Black / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-1"
+        },
+        {
+          "label": "Black / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-2"
+        },
+        {
+          "label": "Black / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-3"
+        },
+        {
+          "label": "Black / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-4"
+        },
+        {
+          "label": "Black / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-5"
+        },
+        {
+          "label": "Black / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-6"
+        },
+        {
+          "label": "Black / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-1-7"
+        },
+        {
+          "label": "White / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-1"
+        },
+        {
+          "label": "White / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-2"
+        },
+        {
+          "label": "White / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-3"
+        },
+        {
+          "label": "White / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-4"
+        },
+        {
+          "label": "White / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-5"
+        },
+        {
+          "label": "White / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-6"
+        },
+        {
+          "label": "White / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-2-7"
+        },
+        {
+          "label": "Royal blue / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-1"
+        },
+        {
+          "label": "Royal blue / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-2"
+        },
+        {
+          "label": "Royal blue / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-3"
+        },
+        {
+          "label": "Royal blue / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-4"
+        },
+        {
+          "label": "Royal blue / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-5"
+        },
+        {
+          "label": "Royal blue / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-6"
+        },
+        {
+          "label": "Royal blue / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-3-7"
+        },
+        {
+          "label": "Hot pink / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-1"
+        },
+        {
+          "label": "Hot pink / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-2"
+        },
+        {
+          "label": "Hot pink / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-3"
+        },
+        {
+          "label": "Hot pink / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-4"
+        },
+        {
+          "label": "Hot pink / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-5"
+        },
+        {
+          "label": "Hot pink / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-6"
+        },
+        {
+          "label": "Hot pink / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-4-7"
+        },
+        {
+          "label": "Lime green / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-1"
+        },
+        {
+          "label": "Lime green / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-2"
+        },
+        {
+          "label": "Lime green / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-3"
+        },
+        {
+          "label": "Lime green / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-4"
+        },
+        {
+          "label": "Lime green / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-5"
+        },
+        {
+          "label": "Lime green / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-6"
+        },
+        {
+          "label": "Lime green / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-5-7"
+        },
+        {
+          "label": "Purple / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-1"
+        },
+        {
+          "label": "Purple / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-2"
+        },
+        {
+          "label": "Purple / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-3"
+        },
+        {
+          "label": "Purple / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-4"
+        },
+        {
+          "label": "Purple / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-5"
+        },
+        {
+          "label": "Purple / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-6"
+        },
+        {
+          "label": "Purple / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-6-7"
+        },
+        {
+          "label": "Cream / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-1"
+        },
+        {
+          "label": "Cream / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-2"
+        },
+        {
+          "label": "Cream / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-3"
+        },
+        {
+          "label": "Cream / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-4"
+        },
+        {
+          "label": "Cream / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-5"
+        },
+        {
+          "label": "Cream / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-6"
+        },
+        {
+          "label": "Cream / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-7-7"
+        },
+        {
+          "label": "Red / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-1"
+        },
+        {
+          "label": "Red / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-2"
+        },
+        {
+          "label": "Red / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-3"
+        },
+        {
+          "label": "Red / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-4"
+        },
+        {
+          "label": "Red / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-5"
+        },
+        {
+          "label": "Red / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-6"
+        },
+        {
+          "label": "Red / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-8-7"
+        },
+        {
+          "label": "Charcoal / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-1"
+        },
+        {
+          "label": "Charcoal / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-2"
+        },
+        {
+          "label": "Charcoal / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-3"
+        },
+        {
+          "label": "Charcoal / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-4"
+        },
+        {
+          "label": "Charcoal / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-5"
+        },
+        {
+          "label": "Charcoal / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-6"
+        },
+        {
+          "label": "Charcoal / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-9-7"
+        },
+        {
+          "label": "Yellow / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-1"
+        },
+        {
+          "label": "Yellow / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-2"
+        },
+        {
+          "label": "Yellow / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-3"
+        },
+        {
+          "label": "Yellow / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-4"
+        },
+        {
+          "label": "Yellow / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-5"
+        },
+        {
+          "label": "Yellow / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-6"
+        },
+        {
+          "label": "Yellow / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-10-7"
+        },
+        {
+          "label": "Orange / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-1"
+        },
+        {
+          "label": "Orange / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-2"
+        },
+        {
+          "label": "Orange / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-3"
+        },
+        {
+          "label": "Orange / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-4"
+        },
+        {
+          "label": "Orange / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-5"
+        },
+        {
+          "label": "Orange / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-6"
+        },
+        {
+          "label": "Orange / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-OVERSIZED-TEE-11-7"
+        }
+      ]
+    },
+    {
+      "id": "cb-hoodie",
+      "name": "Color Blast Pullover Hoodie",
+      "category": "Apparel",
+      "price": 3500,
+      "eventPrice": 3000,
+      "description": "A relaxed pullover with the supplied original artwork on the front. Hood, drawcords and a kangaroo pocket make it an easy layer for cool campus mornings.",
+      "shape": "hoodie",
+      "colorNames": [
+        "Black",
+        "Cream",
+        "Charcoal"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "details": [
+        "Relaxed unisex shape",
+        "Original full-front artwork",
+        "Hood and kangaroo pocket",
+        "Fleece weight subject to supplier sample"
+      ],
+      "image": "/assets/color-blast/generated/primary.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Wash cool and inside out. Do not iron the printed area.",
+      "variants": [
+        {
+          "label": "Black / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-1"
+        },
+        {
+          "label": "Black / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-2"
+        },
+        {
+          "label": "Black / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-3"
+        },
+        {
+          "label": "Black / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-4"
+        },
+        {
+          "label": "Black / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-5"
+        },
+        {
+          "label": "Black / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-6"
+        },
+        {
+          "label": "Black / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-1-7"
+        },
+        {
+          "label": "Cream / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-1"
+        },
+        {
+          "label": "Cream / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-2"
+        },
+        {
+          "label": "Cream / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-3"
+        },
+        {
+          "label": "Cream / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-4"
+        },
+        {
+          "label": "Cream / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-5"
+        },
+        {
+          "label": "Cream / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-6"
+        },
+        {
+          "label": "Cream / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-2-7"
+        },
+        {
+          "label": "Charcoal / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-1"
+        },
+        {
+          "label": "Charcoal / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-2"
+        },
+        {
+          "label": "Charcoal / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-3"
+        },
+        {
+          "label": "Charcoal / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-4"
+        },
+        {
+          "label": "Charcoal / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-5"
+        },
+        {
+          "label": "Charcoal / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-6"
+        },
+        {
+          "label": "Charcoal / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HOODIE-3-7"
+        }
+      ]
+    },
+    {
+      "id": "cb-crewneck",
+      "name": "Color Blast Crewneck",
+      "category": "Apparel",
+      "price": 2900,
+      "eventPrice": 2500,
+      "description": "The original artwork on a clean round-neck sweatshirt. A relaxed layer for jeans, cargos and everyday styling.",
+      "shape": "crewneck",
+      "colorNames": [
+        "Black",
+        "Cream",
+        "Charcoal"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "details": [
+        "Round neck; ribbed cuffs and hem",
+        "Original full-front artwork",
+        "Plain reverse",
+        "Proposed fleece construction"
+      ],
+      "image": "/assets/color-blast/generated/primary.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Wash cool and inside out. Do not iron the printed area.",
+      "variants": [
+        {
+          "label": "Black / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-1"
+        },
+        {
+          "label": "Black / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-2"
+        },
+        {
+          "label": "Black / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-3"
+        },
+        {
+          "label": "Black / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-4"
+        },
+        {
+          "label": "Black / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-5"
+        },
+        {
+          "label": "Black / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-6"
+        },
+        {
+          "label": "Black / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-1-7"
+        },
+        {
+          "label": "Cream / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-1"
+        },
+        {
+          "label": "Cream / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-2"
+        },
+        {
+          "label": "Cream / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-3"
+        },
+        {
+          "label": "Cream / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-4"
+        },
+        {
+          "label": "Cream / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-5"
+        },
+        {
+          "label": "Cream / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-6"
+        },
+        {
+          "label": "Cream / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-2-7"
+        },
+        {
+          "label": "Charcoal / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-1"
+        },
+        {
+          "label": "Charcoal / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-2"
+        },
+        {
+          "label": "Charcoal / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-3"
+        },
+        {
+          "label": "Charcoal / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-4"
+        },
+        {
+          "label": "Charcoal / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-5"
+        },
+        {
+          "label": "Charcoal / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-6"
+        },
+        {
+          "label": "Charcoal / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CREWNECK-3-7"
+        }
+      ]
+    },
+    {
+      "id": "cb-baby-tee",
+      "name": "Color Blast Baby Tee",
+      "category": "Apparel",
+      "price": 1600,
+      "eventPrice": 1300,
+      "description": "The original Color Blast artwork on a fitted short-sleeve tee with a shorter silhouette.",
+      "shape": "baby",
+      "colorNames": [
+        "Black",
+        "White",
+        "Cream"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "details": [
+        "Fitted short-sleeve silhouette",
+        "Original front artwork",
+        "Plain reverse",
+        "Stretch-cotton specification pending sample"
+      ],
+      "image": "/assets/color-blast/generated/primary.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Wash cool and inside out. Do not iron the printed area.",
+      "variants": [
+        {
+          "label": "Black / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-1-1"
+        },
+        {
+          "label": "Black / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-1-2"
+        },
+        {
+          "label": "Black / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-1-3"
+        },
+        {
+          "label": "Black / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-1-4"
+        },
+        {
+          "label": "Black / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-1-5"
+        },
+        {
+          "label": "Black / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-1-6"
+        },
+        {
+          "label": "White / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-2-1"
+        },
+        {
+          "label": "White / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-2-2"
+        },
+        {
+          "label": "White / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-2-3"
+        },
+        {
+          "label": "White / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-2-4"
+        },
+        {
+          "label": "White / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-2-5"
+        },
+        {
+          "label": "White / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-2-6"
+        },
+        {
+          "label": "Cream / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-3-1"
+        },
+        {
+          "label": "Cream / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-3-2"
+        },
+        {
+          "label": "Cream / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-3-3"
+        },
+        {
+          "label": "Cream / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-3-4"
+        },
+        {
+          "label": "Cream / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-3-5"
+        },
+        {
+          "label": "Cream / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BABY-TEE-3-6"
+        }
+      ]
+    },
+    {
+      "id": "cb-jersey",
+      "name": "Color Blast Performance Jersey",
+      "category": "Apparel",
+      "price": 2500,
+      "eventPrice": 2200,
+      "description": "A sports-inspired short-sleeve jersey carrying the original Color Blast artwork. Clean reverse, with no invented player names or numbers.",
+      "shape": "jersey",
+      "colorNames": [
+        "Black",
+        "White",
+        "Royal blue"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "details": [
+        "Relaxed sports-inspired shape",
+        "Original artwork front",
+        "Plain reverse",
+        "Proposed breathable polyester construction"
+      ],
+      "image": "/assets/color-blast/generated/headwear.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Wash cool and inside out. Do not iron the printed area.",
+      "variants": [
+        {
+          "label": "Black / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-1"
+        },
+        {
+          "label": "Black / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-2"
+        },
+        {
+          "label": "Black / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-3"
+        },
+        {
+          "label": "Black / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-4"
+        },
+        {
+          "label": "Black / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-5"
+        },
+        {
+          "label": "Black / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-6"
+        },
+        {
+          "label": "Black / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-1-7"
+        },
+        {
+          "label": "White / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-1"
+        },
+        {
+          "label": "White / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-2"
+        },
+        {
+          "label": "White / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-3"
+        },
+        {
+          "label": "White / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-4"
+        },
+        {
+          "label": "White / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-5"
+        },
+        {
+          "label": "White / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-6"
+        },
+        {
+          "label": "White / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-2-7"
+        },
+        {
+          "label": "Royal blue / XS",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-1"
+        },
+        {
+          "label": "Royal blue / S",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-2"
+        },
+        {
+          "label": "Royal blue / M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-3"
+        },
+        {
+          "label": "Royal blue / L",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-4"
+        },
+        {
+          "label": "Royal blue / XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-5"
+        },
+        {
+          "label": "Royal blue / 2XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-6"
+        },
+        {
+          "label": "Royal blue / 3XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-JERSEY-3-7"
+        }
+      ]
+    },
+    {
+      "id": "cb-snapback",
+      "name": "Color Blast Snapback",
+      "category": "Headwear",
+      "price": 1400,
+      "eventPrice": 1100,
+      "description": "A structured adjustable cap with the Color Blast artwork printed on its front panel.",
+      "shape": "cap",
+      "colorNames": [
+        "Black",
+        "White"
+      ],
+      "sizes": [
+        "Adjustable"
+      ],
+      "details": [
+        "Structured front; flat brim",
+        "Adjustable snap closure",
+        "Original artwork front patch",
+        "Cotton-twill specification pending sample"
+      ],
+      "image": "/assets/color-blast/generated/headwear.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / Adjustable",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-SNAPBACK-1-1"
+        },
+        {
+          "label": "White / Adjustable",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-SNAPBACK-2-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-bucket-hat",
+      "name": "Color Blast Bucket Hat",
+      "category": "Headwear",
+      "price": 1400,
+      "eventPrice": 1100,
+      "description": "A soft brim and a printed Color Blast panel for bright days and packed fields.",
+      "shape": "bucket",
+      "colorNames": [
+        "Black",
+        "Cream"
+      ],
+      "sizes": [
+        "S/M",
+        "L/XL"
+      ],
+      "details": [
+        "Soft stitched brim",
+        "Original artwork front panel",
+        "Proposed cotton construction",
+        "Fit dimensions pending supplier sample"
+      ],
+      "image": "/assets/color-blast/generated/headwear.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / S/M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BUCKET-HAT-1-1"
+        },
+        {
+          "label": "Black / L/XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BUCKET-HAT-1-2"
+        },
+        {
+          "label": "Cream / S/M",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BUCKET-HAT-2-1"
+        },
+        {
+          "label": "Cream / L/XL",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BUCKET-HAT-2-2"
+        }
+      ]
+    },
+    {
+      "id": "cb-beanie",
+      "name": "Color Blast Cuffed Beanie",
+      "category": "Headwear",
+      "price": 1100,
+      "eventPrice": 900,
+      "description": "A folded-cuff rib-knit beanie with the original artwork on a small printed patch.",
+      "shape": "beanie",
+      "colorNames": [
+        "Black",
+        "Cream",
+        "Charcoal"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "details": [
+        "Folded cuff",
+        "Original artwork patch",
+        "Proposed rib-knit construction",
+        "Stretch fit; sample pending"
+      ],
+      "image": "/assets/color-blast/generated/headwear.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BEANIE-1-1"
+        },
+        {
+          "label": "Cream / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BEANIE-2-1"
+        },
+        {
+          "label": "Charcoal / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BEANIE-3-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-tote",
+      "name": "Color Blast Canvas Tote",
+      "category": "Bags",
+      "price": 1100,
+      "eventPrice": 850,
+      "description": "The complete original design on a long-handle tote for books, small essentials and everyday carry.",
+      "shape": "tote",
+      "colorNames": [
+        "Black",
+        "Cream"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "details": [
+        "Long handles",
+        "Full original front print",
+        "Proposed canvas construction",
+        "Proposed dimensions: 38 × 42 cm"
+      ],
+      "image": "/assets/color-blast/generated/carry.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-TOTE-1-1"
+        },
+        {
+          "label": "Cream / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-TOTE-2-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-crossbody",
+      "name": "Color Blast Crossbody Bag",
+      "category": "Bags",
+      "price": 1800,
+      "eventPrice": 1500,
+      "description": "A compact zip carry for your phone and keys, with the original artwork on the front pocket.",
+      "shape": "crossbody",
+      "colorNames": [
+        "Black"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "details": [
+        "Adjustable strap",
+        "Zip compartment",
+        "Original artwork front pocket",
+        "Proposed dimensions: 22 × 15 cm"
+      ],
+      "image": "/assets/color-blast/generated/carry.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-CROSSBODY-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-gym-sack",
+      "name": "Color Blast Drawstring Sack",
+      "category": "Bags",
+      "price": 1000,
+      "eventPrice": 800,
+      "description": "A lightweight drawstring sack with the full original Color Blast artwork on its front.",
+      "shape": "sack",
+      "colorNames": [
+        "Black",
+        "White"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "details": [
+        "Drawstring closure",
+        "Full original artwork front",
+        "Lightweight construction pending sample",
+        "Proposed dimensions: 34 × 42 cm"
+      ],
+      "image": "/assets/color-blast/generated/carry.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-GYM-SACK-1-1"
+        },
+        {
+          "label": "White / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-GYM-SACK-2-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-lanyard",
+      "name": "Color Blast Lanyard",
+      "category": "Accessories",
+      "price": 400,
+      "eventPrice": 300,
+      "description": "A neck strap and clip with an original-artwork card sleeve for keys and everyday IDs.",
+      "shape": "lanyard",
+      "colorNames": [
+        "Black"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "details": [
+        "Neck strap and swivel clip",
+        "Original artwork card insert",
+        "No access credentials included",
+        "Closure subject to supplier sample"
+      ],
+      "image": "/assets/color-blast/generated/carry.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / One size",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-LANYARD-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-wristbands",
+      "name": "Color Blast Wristband Duo",
+      "category": "Accessories",
+      "price": 300,
+      "eventPrice": 200,
+      "description": "Two fabric wristbands carrying compact panels of the original design.",
+      "shape": "wristband",
+      "colorNames": [
+        "Black + White"
+      ],
+      "sizes": [
+        "Two-piece pack"
+      ],
+      "details": [
+        "Two fabric bands per pack",
+        "Original artwork panels",
+        "Coordinated black and white set",
+        "Closure and dimensions pending sample"
+      ],
+      "image": "/assets/color-blast/generated/collectibles.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black + White / Two-piece pack",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-WRISTBANDS-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-stickers",
+      "name": "Color Blast Sticker Sheet",
+      "category": "Collectibles",
+      "price": 300,
+      "eventPrice": 200,
+      "description": "Four complete Color Blast artwork stickers on a single sheet for books, laptops and smooth surfaces.",
+      "shape": "sticker",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "A5 sheet"
+      ],
+      "details": [
+        "Four original-artwork stickers",
+        "Proposed A5 sheet",
+        "Finish and adhesive pending sample",
+        "No waterproof claim"
+      ],
+      "image": "/assets/color-blast/generated/collectibles.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Original artwork / A5 sheet",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-STICKERS-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-bottle",
+      "name": "Color Blast 500 ml Bottle",
+      "category": "Drinkware",
+      "price": 1800,
+      "eventPrice": 1500,
+      "description": "A reusable screw-cap bottle with the original Color Blast artwork applied as a vertical wrap.",
+      "shape": "bottle",
+      "colorNames": [
+        "Black",
+        "White"
+      ],
+      "sizes": [
+        "500 ml"
+      ],
+      "details": [
+        "Proposed 500 ml capacity",
+        "Original artwork wrap",
+        "Proposed double-wall steel body",
+        "Thermal performance pending supplier testing"
+      ],
+      "image": "/assets/color-blast/generated/carry.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Hand wash only; do not microwave.",
+      "variants": [
+        {
+          "label": "Black / 500 ml",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BOTTLE-1-1"
+        },
+        {
+          "label": "White / 500 ml",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BOTTLE-2-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-pin-badge",
+      "name": "Color Blast Pin Badge",
+      "category": "Collectibles",
+      "price": 200,
+      "eventPrice": 150,
+      "description": "A 58 mm button badge with the complete artwork scaled to its face. Add a small piece of the tour to a bag or jacket.",
+      "shape": "badge",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "58 mm"
+      ],
+      "details": [
+        "One badge",
+        "Proposed diameter: 58 mm",
+        "Complete original artwork face",
+        "Pin-back fastening"
+      ],
+      "image": "/assets/color-blast/generated/collectibles.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Original artwork / 58 mm",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-PIN-BADGE-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-keychain",
+      "name": "Color Blast Acrylic Keychain",
+      "category": "Collectibles",
+      "price": 350,
+      "eventPrice": 300,
+      "description": "The complete artwork in a clear rectangular acrylic charm with a metal split ring.",
+      "shape": "keychain",
+      "colorNames": [
+        "Clear acrylic"
+      ],
+      "sizes": [
+        "One keychain"
+      ],
+      "details": [
+        "One acrylic charm",
+        "Full original artwork",
+        "Metal split ring",
+        "Proposed dimensions: 4 × 6 cm"
+      ],
+      "image": "/assets/color-blast/generated/collectibles.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Clear acrylic / One keychain",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-KEYCHAIN-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-photocards",
+      "name": "Color Blast Founders Photocard Pack",
+      "category": "Collectibles",
+      "price": 300,
+      "eventPrice": 250,
+      "description": "Four collector cards featuring the supplied smiling photographs of Eugine and Lucy, with the original artwork on their backs.",
+      "shape": "cards",
+      "colorNames": [
+        "Founders pack"
+      ],
+      "sizes": [
+        "Four-card pack"
+      ],
+      "details": [
+        "Four cards: two Eugine and two Lucy",
+        "Supplied photographs; no invented signatures",
+        "Original artwork backs",
+        "Proposed card size: 5.2 × 8.3 cm"
+      ],
+      "image": "/assets/color-blast/generated/desk.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Founders pack / Four-card pack",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-PHOTOCARDS-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-poster",
+      "name": "Color Blast A3 Art Poster",
+      "category": "Collectibles",
+      "price": 250,
+      "eventPrice": 200,
+      "description": "The complete original design as portrait wall art. The artwork itself is the statement.",
+      "shape": "poster",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "A3"
+      ],
+      "details": [
+        "One A3 portrait print: 297 × 420 mm",
+        "Complete original artwork",
+        "Paper stock and finish pending sample",
+        "Frame not included"
+      ],
+      "image": "/assets/color-blast/generated/collectibles.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Original artwork / A3",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-POSTER-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-bandana",
+      "name": "Color Blast Bandana",
+      "category": "Accessories",
+      "price": 500,
+      "eventPrice": 450,
+      "description": "A square fabric accessory with the original Color Blast artwork centred on the cloth.",
+      "shape": "bandana",
+      "colorNames": [
+        "Black",
+        "Cream"
+      ],
+      "sizes": [
+        "55 × 55 cm"
+      ],
+      "details": [
+        "Proposed 55 × 55 cm square",
+        "Full original artwork at centre",
+        "No added symbols",
+        "Fabric specification pending sample"
+      ],
+      "image": "/assets/color-blast/generated/carry.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Black / 55 × 55 cm",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BANDANA-1-1"
+        },
+        {
+          "label": "Cream / 55 × 55 cm",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BANDANA-2-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-bookmark",
+      "name": "Color Blast Bookmark",
+      "category": "Stationery",
+      "price": 80,
+      "eventPrice": 50,
+      "description": "A slim portrait bookmark carrying the original artwork. Keep your place in a book or a notebook full of ideas.",
+      "shape": "bookmark",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "One bookmark"
+      ],
+      "details": [
+        "One rounded-corner bookmark",
+        "Complete original artwork",
+        "Proposed coated cardstock",
+        "Proposed dimensions: 5 × 15 cm"
+      ],
+      "image": "/assets/color-blast/generated/desk.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Original artwork / One bookmark",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-BOOKMARK-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-notepad",
+      "name": "Color Blast A6 Pocket Notepad",
+      "category": "Stationery",
+      "price": 450,
+      "eventPrice": 400,
+      "description": "The original Color Blast design on an A6 pad, with plain pages for lyrics, notes and sketches.",
+      "shape": "notepad",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "A6 · 25 leaves"
+      ],
+      "details": [
+        "A6: 105 × 148 mm",
+        "Proposed 25 leaves",
+        "Original cover artwork; plain pages",
+        "Top-bound format"
+      ],
+      "image": "/assets/color-blast/generated/desk.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Original artwork / A6 · 25 leaves",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-NOTEPAD-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-tattoo-sheet",
+      "name": "Color Blast Transfer Sheet",
+      "category": "Collectibles",
+      "price": 350,
+      "eventPrice": 300,
+      "description": "A proposed A6 sheet with four compact transfers of the original artwork. Supplier skin-contact documentation is required before sale.",
+      "shape": "tattoo",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "A6 sheet"
+      ],
+      "details": [
+        "One proposed A6 transfer sheet",
+        "Four complete-artwork transfers",
+        "Supplier safety verification pending",
+        "No wear-duration claim"
+      ],
+      "image": "/assets/color-blast/generated/desk.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Keep dry. Store flat where appropriate.",
+      "variants": [
+        {
+          "label": "Original artwork / A6 sheet",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-TATTOO-SHEET-1-1"
+        }
+      ]
+    },
+    {
+      "id": "cb-hand-fan",
+      "name": "Color Blast Paddle Fan",
+      "category": "Accessories",
+      "price": 600,
+      "eventPrice": 500,
+      "description": "A portrait paddle fan with the original Color Blast design on its front and a wooden handle.",
+      "shape": "fan",
+      "colorNames": [
+        "Original artwork"
+      ],
+      "sizes": [
+        "One fan"
+      ],
+      "details": [
+        "One paddle fan",
+        "Complete original artwork",
+        "Plain reverse",
+        "Face material subject to supplier sample"
+      ],
+      "image": "/assets/color-blast/generated/collectibles.webp",
+      "stock": null,
+      "name_on_back_enabled": false,
+      "care": "Spot clean with a damp cloth; air dry.",
+      "variants": [
+        {
+          "label": "Original artwork / One fan",
+          "priceAdjustment": 0,
+          "sku": "UGT-CB-HAND-FAN-1-1"
+        }
+      ]
+    }
+  ],
+  "studioTiles": {
+    "cb-oversized-tee": [
+      {
+        "sheet": "/assets/color-blast/generated/primary.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 0,
+        "tileWidth": 508,
+        "tileHeight": 466,
+        "colour": "Black",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/generated/primary.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 0,
+        "tileWidth": 509,
+        "tileHeight": 466,
+        "colour": "White",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/generated/headwear.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 978,
+        "tileWidth": 509,
+        "tileHeight": 558,
+        "colour": "Royal blue",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/generated/headwear.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 978,
+        "tileWidth": 509,
+        "tileHeight": 558,
+        "colour": "Hot pink",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/generated/desk.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 1000,
+        "tileWidth": 509,
+        "tileHeight": 536,
+        "colour": "Orange",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/supplied-colourways.jpg",
+        "width": 1536,
+        "height": 1024,
+        "left": 1228,
+        "top": 0,
+        "tileWidth": 307,
+        "tileHeight": 475,
+        "colour": "Lime green",
+        "source": "supplied"
+      },
+      {
+        "sheet": "/assets/color-blast/supplied-colourways.jpg",
+        "width": 1536,
+        "height": 1024,
+        "left": 0,
+        "top": 478,
+        "tileWidth": 307,
+        "tileHeight": 475,
+        "colour": "Purple",
+        "source": "supplied"
+      },
+      {
+        "sheet": "/assets/color-blast/supplied-colourways.jpg",
+        "width": 1536,
+        "height": 1024,
+        "left": 307,
+        "top": 478,
+        "tileWidth": 307,
+        "tileHeight": 475,
+        "colour": "Cream",
+        "source": "supplied"
+      },
+      {
+        "sheet": "/assets/color-blast/supplied-colourways.jpg",
+        "width": 1536,
+        "height": 1024,
+        "left": 614,
+        "top": 478,
+        "tileWidth": 307,
+        "tileHeight": 475,
+        "colour": "Red",
+        "source": "supplied"
+      },
+      {
+        "sheet": "/assets/color-blast/supplied-colourways.jpg",
+        "width": 1536,
+        "height": 1024,
+        "left": 921,
+        "top": 478,
+        "tileWidth": 307,
+        "tileHeight": 475,
+        "colour": "Charcoal",
+        "source": "supplied"
+      },
+      {
+        "sheet": "/assets/color-blast/supplied-colourways.jpg",
+        "width": 1536,
+        "height": 1024,
+        "left": 1228,
+        "top": 478,
+        "tileWidth": 307,
+        "tileHeight": 475,
+        "colour": "Yellow",
+        "source": "supplied"
+      }
+    ],
+    "cb-hoodie": [
+      {
+        "sheet": "/assets/color-blast/generated/primary.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 472,
+        "tileWidth": 508,
+        "tileHeight": 521,
+        "colour": "Black",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/generated/primary.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 472,
+        "tileWidth": 509,
+        "tileHeight": 521,
+        "colour": "Cream",
+        "source": "generated"
+      },
+      {
+        "sheet": "/assets/color-blast/generated/desk.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 517,
+        "top": 1000,
+        "tileWidth": 507,
+        "tileHeight": 536,
+        "colour": "Charcoal",
+        "source": "generated"
+      }
+    ],
+    "cb-crewneck": [
+      {
+        "sheet": "/assets/color-blast/generated/primary.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 999,
+        "tileWidth": 508,
+        "tileHeight": 537,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-baby-tee": [
+      {
+        "sheet": "/assets/color-blast/generated/primary.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 999,
+        "tileWidth": 509,
+        "tileHeight": 537,
+        "colour": "White",
+        "source": "generated"
+      }
+    ],
+    "cb-jersey": [
+      {
+        "sheet": "/assets/color-blast/generated/headwear.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 0,
+        "tileWidth": 509,
+        "tileHeight": 508,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-snapback": [
+      {
+        "sheet": "/assets/color-blast/generated/headwear.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 0,
+        "tileWidth": 509,
+        "tileHeight": 508,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-bucket-hat": [
+      {
+        "sheet": "/assets/color-blast/generated/headwear.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 515,
+        "tileWidth": 509,
+        "tileHeight": 457,
+        "colour": "Cream",
+        "source": "generated"
+      }
+    ],
+    "cb-beanie": [
+      {
+        "sheet": "/assets/color-blast/generated/headwear.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 515,
+        "tileWidth": 509,
+        "tileHeight": 457,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-tote": [
+      {
+        "sheet": "/assets/color-blast/generated/carry.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 0,
+        "tileWidth": 509,
+        "tileHeight": 497,
+        "colour": "Cream",
+        "source": "generated"
+      }
+    ],
+    "cb-crossbody": [
+      {
+        "sheet": "/assets/color-blast/generated/carry.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 0,
+        "tileWidth": 509,
+        "tileHeight": 497,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-gym-sack": [
+      {
+        "sheet": "/assets/color-blast/generated/carry.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 504,
+        "tileWidth": 509,
+        "tileHeight": 474,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-bottle": [
+      {
+        "sheet": "/assets/color-blast/generated/carry.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 504,
+        "tileWidth": 509,
+        "tileHeight": 474,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-bandana": [
+      {
+        "sheet": "/assets/color-blast/generated/carry.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 985,
+        "tileWidth": 509,
+        "tileHeight": 551,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-lanyard": [
+      {
+        "sheet": "/assets/color-blast/generated/carry.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 515,
+        "top": 985,
+        "tileWidth": 509,
+        "tileHeight": 551,
+        "colour": "Black",
+        "source": "generated"
+      }
+    ],
+    "cb-wristbands": [
+      {
+        "sheet": "/assets/color-blast/generated/collectibles.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 0,
+        "tileWidth": 510,
+        "tileHeight": 492,
+        "colour": "Black + White",
+        "source": "generated"
+      }
+    ],
+    "cb-stickers": [
+      {
+        "sheet": "/assets/color-blast/generated/collectibles.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 514,
+        "top": 0,
+        "tileWidth": 510,
+        "tileHeight": 492,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-pin-badge": [
+      {
+        "sheet": "/assets/color-blast/generated/collectibles.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 497,
+        "tileWidth": 510,
+        "tileHeight": 422,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-keychain": [
+      {
+        "sheet": "/assets/color-blast/generated/collectibles.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 514,
+        "top": 497,
+        "tileWidth": 510,
+        "tileHeight": 422,
+        "colour": "Clear acrylic",
+        "source": "generated"
+      }
+    ],
+    "cb-poster": [
+      {
+        "sheet": "/assets/color-blast/generated/collectibles.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 924,
+        "tileWidth": 510,
+        "tileHeight": 612,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-hand-fan": [
+      {
+        "sheet": "/assets/color-blast/generated/collectibles.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 514,
+        "top": 924,
+        "tileWidth": 510,
+        "tileHeight": 612,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-bookmark": [
+      {
+        "sheet": "/assets/color-blast/generated/desk.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 0,
+        "tileWidth": 509,
+        "tileHeight": 489,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-notepad": [
+      {
+        "sheet": "/assets/color-blast/generated/desk.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 517,
+        "top": 0,
+        "tileWidth": 507,
+        "tileHeight": 489,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-tattoo-sheet": [
+      {
+        "sheet": "/assets/color-blast/generated/desk.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 0,
+        "top": 496,
+        "tileWidth": 509,
+        "tileHeight": 500,
+        "colour": "Original artwork",
+        "source": "generated"
+      }
+    ],
+    "cb-photocards": [
+      {
+        "sheet": "/assets/color-blast/generated/desk.webp",
+        "width": 1024,
+        "height": 1536,
+        "left": 517,
+        "top": 496,
+        "tileWidth": 507,
+        "tileHeight": 500,
+        "colour": "Founders pack",
+        "source": "generated"
+      }
+    ]
+  }
+}
