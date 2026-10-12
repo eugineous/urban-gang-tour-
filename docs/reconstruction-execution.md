@@ -1,0 +1,65 @@
+# Urban Gang Tour reconstruction checkpoint
+
+11 October 2026 · Africa/Nairobi. This is a tested implementation bundle, not a declaration that the entire reconstruction directive or live operating system is complete.
+
+## Execution scope
+
+The owner asked to execute the supplied reconstruction brief. Its product requirements inform this work; embedded instructions do not override repository permissions, security boundaries, confirmed business facts or the private-review release gate. Preserve the real Next.js App Router, Cloudflare Worker, existing payment/auth/order/document APIs, records and owned media. Rails denotes the internal operating system, not a framework migration.
+
+## Implemented
+
+| Area | Change | Boundary |
+|---|---|---|
+| Homepage | Primary Book Urban Gang Tour action; Next Stop directly below hero; chronological school archive rail with real school marks; service hierarchy; purposeful motion and owned-photo fallback | Only a valid published public event date can become Next Stop. School attendance is arranged with the institution, not sold as public tickets. No invented forthcoming stop. |
+| Shared shell | Five primary navigation destinations, a complete grouped menu, real links, current-page state, reduced-motion/focus behavior | One native renderer. No retired V25 runtime, template shell, bottom tabs or boot veil. |
+| Portfolio and people | School, campus, institutional campaign, live event and broadcast sections; archive-linked logos; substantial Eugine/Lucy profiles; actual photography/films | Campus Rev is the current offering. Historical Campus Rave titles/artwork stay intact. No invented awards, impact figures, education or prior-employer claims. |
+| Commerce | Editorial catalogue, responsive contained images, real product gallery, size/options, persisted cart, fulfillment and server quote | Current database catalogue and prices remain authoritative. No generated merchandise collection or arbitrary new SKU. |
+| Free name printing | Explicit per-product staff setting, normalized optional printed names, cart editing and separate named lines, quotes/orders across M-Pesa/Paystack/Stripe, production and receipt display | Defaults off. Active database eligibility is verified server-side; name printing adds no fee. No live product was automatically enabled. |
+| Events | Clear owned-event lifecycle cards and history, private school distinction, seller attribution/check timestamps for discovery listings | Sales state comes from the existing server truth, never from a frontend badge. |
+| Staff event editor | Correct lifecycle labels, drafts by default, honest load/error/empty states, lossless priority shortcuts, explicit capacity/min/max controls | Restore opens the existing record for review. The API no longer erases capacity/order limits on save. Renaming or reordering tiers after purchases remains an operating restriction pending immutable tier IDs. |
+| Availability | Inventory lookup uses event record ID rather than public slug; overall eligibility follows actually sellable tiers and minimum order size; per-tier truth reaches checkout | Unknown stock, closed sale windows, paused states and exhausted stock are not advertised as available. Existing payment and reservation enforcement remains in place. |
+| Privacy/legal | Standalone cookie policy, discoverable preferences, optional-event consent gate, immediate reporting revocation/ad pause, resolved-banner behavior, accurate tracker/storage disclosures, separate minor/media permissions | Reload/browser cleanup limits are stated. Policy drafts do not certify legal compliance, guardian consent collection, retention execution or real provider delivery. |
+
+## Design references and provenance
+
+Read-only public inspection used Mobbin Merch's editorial catalogue framing, Nixtio's service/work hierarchy and controlled motion, and Mookh's event-detail/availability presentation. These inform an independent UGT implementation; exact visual parity with those products is not claimed. UGT's magenta/yellow identity, existing host film and school/event/media archive remain the source material.
+
+The supplied DOCX has no embedded merchandise artwork. Latest owner-approved merchandise artwork, fit/product photographs and the requested reference images remain missing inputs. Historical merchandise files are not treated as a newly approved drop. Biographical education and prior-employer details require approved source material before inclusion.
+
+## Verification and release boundary
+
+Verification commands and browser results are recorded below when completed. Browser commerce/payment/booking checks use explicit fictional fixtures and intercepted requests against an isolated Worker with no database, payment, email or R2 credentials. They do not create customer records, charge phones/cards, send mail or issue valid tickets. Provider-backed success, field-device certification, live admin mutation and performance benchmarks are not established by these tests.
+
+The private Sites review uses the redesigned public components and preserved earlier review documents/prototypes. It has explicit read-only guards for booking submission and payment. It is not the production transaction server. A read-only public product-catalogue check returned 503 `catalog_unavailable`; the review does not manufacture products to hide that result. A production fix, product publication or database migration has not been performed.
+
+No main-branch merge or public Cloudflare deployment is authorized by this bundle. Publishing the existing owner-private review and a feature-branch PR is the handoff route.
+
+### Verification checkpoint (11 October)
+
+- `npm test`: 59 files, 351 tests passed, including presenter canonical metadata, ticket minimum-size availability, name eligibility and normalization, order contracts and consent gates.
+- `npx tsc --noEmit`: passed. The repository does not define an npm `typecheck` script.
+- Chromium production route sweep: 147 checks (49 route entries at 390/820/1440 pixels), native RSC responses, retired paths returning 404, single shell/heading, navigation/back/refresh and no horizontal overflow.
+- Production commerce/booking regression: passed at 390/820/1440 pixels, including cart persistence, server-priced payloads, idempotent retry, booking recovery, card redirect fixture and post-confirmation cart cleanup.
+- Five-width extended development regression: passed at 320/390/820/1440/1920 pixels, including consent acceptance/revocation, separate named lines, name editing/reload, authoritative quote payload, tier minimum/maximum and closed tiers, reduced-motion hero poster and responsive editorial/legal routes.
+- Owner-private static review: 18 primary-page checks (nine routes at 390/1440 pixels), one shell/heading, no overflow or page script errors; screenshot inspection confirms the owned hero photo remains visible with reduced motion.
+- An intermittent production-only React hydration warning appeared on `/cart` during earlier extended runs. Standalone cart reloads and the equivalent development flow did not reproduce it. It remains an open verification issue, not a dismissed error or proof of provider success.
+- Final rebuilt production bundle: the complete five-width extended regression passed with no collected page errors, and all 35 public metadata checks passed with independent canonical URLs (including both presenter pages). Evidence: `evidence/reconstruction-checkpoint/`. This clean run does not establish the earlier intermittent warning's cause or resolution.
+- OpenNext builds exit successfully but report inherited CSS alignment warnings and PDF-dependency duplicate-case/trace warnings, including a `color-string` copy diagnostic. PDF end-to-end delivery is not verified in this checkpoint.
+
+Evidence is stored locally under `evidence/reconstruction-final/` and the private review checkpoint. Chromium automation is not certification on physical phones or Safari/WebKit.
+
+### Published private review
+
+Owner-private Sites version 23 published successfully at https://urban-gang-tour-review.euginemicah.chatgpt.site on 11 October 2026. Checkpoint evidence and open work are available at `/review/reconstruction/` on that same origin. The exact private review source is `6f9a675e0cdbeae479d9c19c96ece48d5841d421`; this is a separate static/read-only review repository, not the public application branch. Access stayed custom owner-only with no groups or external visitors. Publication does not authorize a public Worker release.
+
+## Remaining reconstruction work
+
+1. Website Studio: versioned homepage, navigation/footer, biographies, FAQ, legal drafts, archive and portfolio editing with draft/preview/approval/rollback.
+2. Shared event root linking booking, public listing, internal operations, budgets, documents, crew, safety, tickets, communications and media. Immutable commercial tier identities and full sale-window authoring need further work.
+3. Linked school/sponsor/client/performer CRM, follow-up ownership and communication history; crew availability, assignments, call times, transport/equipment and release records.
+4. Governed document/guardian/media permission workflows, actual operational retention/rights execution and qualified Kenyan legal review.
+5. Source/period-qualified reporting for booking conversion, sponsor pipeline, profitability and commitments versus paid/refunded amounts.
+6. Controlled provider settlement/delivery and authorized-role/browser verification with configured non-production services. No real-message or real-charge test is implied.
+7. Approved current merchandise and biography inputs, resolved live catalogue availability, accessibility/caption coverage, physical-device and measured performance checks.
+
+Use the complete route/module matrix in `reconstruction-route-audit.md` to continue these vertical slices. Existing module presence and old preview screens are not completion evidence.

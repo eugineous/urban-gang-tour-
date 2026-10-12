@@ -208,7 +208,7 @@ export async function serverTotalWithPromos(
 // Older incomplete records deliberately show a generic name and KES 0 rather
 // than borrowing a current or historical sample catalogue price.
 export function orderLines(
-  items: { id: string; qty: number; name?: string; unit?: number }[]
+  items: { id: string; qty: number; name?: string; unit?: number; printableName?: string }[]
 ): { name: string; qty: number; unit: number; total: number }[] {
   return (Array.isArray(items) ? items : []).map((it) => {
     const qty = Number(it?.qty) || 0;
@@ -220,6 +220,7 @@ export function orderLines(
       return { name, qty, unit, total: unit * qty };
     }
     const unit = storedUnit ?? 0;
-    return { name: it?.name || id || 'Item', qty, unit, total: unit * qty };
+    const name = it?.name || id || 'Item';
+    return { name: typeof it?.printableName === 'string' && it.printableName ? `${name} · Name on back: ${it.printableName}` : name, qty, unit, total: unit * qty };
   });
 }

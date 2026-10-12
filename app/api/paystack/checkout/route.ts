@@ -8,6 +8,8 @@ import { sameOrigin } from '@/lib/server/origin';
 import { alertCritical } from '@/lib/server/alert';
 import { paystackConfigured, paystackInit } from '@/lib/server/paystack';
 import { applyVerifiedMerchVariants } from '@/lib/server/merch-variants';
+import { applyVerifiedMerchPersonalization } from '@/lib/server/merch-personalization';
+import { normalizePrintableName } from '@/lib/shared/merch-personalization';
 import {checkoutDeliveryContact,resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema,saveCheckoutFulfillment} from '@/lib/server/checkout-fulfillment';
 import {validatedCurrentBuyer,ensureCustomerAccountSchema} from '@/lib/server/customer-account';
 import { assertMerchStockAvailable } from '@/lib/server/inventory';
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
     }
     for (const k of Object.keys(it)) {
-      if (k !== 'id' && k !== 'qty' && k !== 'variant') return NextResponse.json({ error: `unexpected_field:items.${k}` }, { status: 400 });
+      if (k !== 'id' && k !== 'qty' && k !== 'variant' && k !== 'printableName') return NextResponse.json({ error: `unexpected_field:items.${k}` }, { status: 400 });
     }
     if (typeof it.id !== 'string' || !catalogPrices[it.id]) {
       return NextResponse.json({ error: 'unknown_product' }, { status: 400 });
@@ -74,6 +76,9 @@ export async function POST(req: Request) {
     }
     if (it.variant !== undefined && (typeof it.variant !== 'string' || it.variant.length > 100)) {
       return NextResponse.json({ error: 'invalid_item' }, { status: 400 });
+    }
+    try { normalizePrintableName(it.printableName); } catch {
+      return NextResponse.json({ error: 'invalid_printable_name' }, { status: 400 });
     }
   }
   const emailStr = typeof email === 'string' && email ? email.trim() : '';
@@ -87,7 +92,7 @@ export async function POST(req: Request) {
   if (!paystackConfigured()) return NextResponse.json({ error: 'card_not_configured' }, { status: 503 });
 
   let total: number;
-  let lines: { id: string; qty: number; name: string; unit: number; variant?: string }[];
+  let lines: { id: string; qty: number; name: string; unit: number; variant?: string; printableName?: string }[];
   let appliedPromoCode: { promoId: number; promoName: string } | null;
   try {
     const priced = await serverTotalWithPromos(
@@ -97,7 +102,7 @@ export async function POST(req: Request) {
     total = priced.total;
     lines = priced.lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name, unit: l.unit }));
     const variants = await applyVerifiedMerchVariants(items, lines);
-    lines = variants.lines;
+    lines = await applyVerifiedMerchPersonalization(items, variants.lines);
     total += variants.adjustment + delivery.fee;
     if (!Number.isSafeInteger(total) || total < 1) throw new Error('invalid_order_total');
     await assertMerchStockAvailable(lines);

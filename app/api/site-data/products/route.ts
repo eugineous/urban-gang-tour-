@@ -22,6 +22,7 @@ export async function GET(req: Request) {
       await ensureOpsSchema();
       const rows = await q<any>(
         `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
+                COALESCE((to_jsonb(p)->>'name_on_back_enabled')::boolean, false) AS name_on_back_enabled,
                 CASE WHEN p.inventory_tracked THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
                 COALESCE(
                   jsonb_agg(jsonb_build_object('label',v.label,'priceAdjustment',v.price_adjustment,'sku',v.sku,'stock',(SELECT CASE WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
@@ -42,6 +43,7 @@ export async function GET(req: Request) {
         image: r.image || '',
         category: r.category || '',
         description: r.description || '',
+        name_on_back_enabled: r.name_on_back_enabled === true,
         variants: Array.isArray(r.variants) ? r.variants.map((v: any) => ({
           label: String(v.label || ''),
           priceAdjustment: Number(v.priceAdjustment || 0),

@@ -36,6 +36,7 @@ import {
   validateRecoveredEvents,
 } from "@/lib/server/recovered-legacy-events";
 import { isEventStatus } from "@/lib/server/event-lifecycle";
+import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
@@ -1524,17 +1525,9 @@ export async function POST(req: Request) {
         // permissive one: a malformed payload must never be able to publish
         // an event or make it sellable.
         const status = isEventStatus(d.status) ? d.status : "draft";
-        const tiersIn = Array.isArray(d.tiers) ? d.tiers : [];
-        const tiers =
-          kind === "ticketed"
-            ? tiersIn
-                .slice(0, 12)
-                .map((t: any) => ({
-                  name: s(t?.name, 60),
-                  price: Math.max(0, Math.round(Number(t?.price) || 0)),
-                }))
-                .filter((t: any) => t.name)
-            : [];
+        const tierInput = validateEventTiers(kind === 'ticketed' ? d.tiers : []);
+        if (!tierInput.ok) return bad(tierInput.error);
+        const tiers = tierInput.tiers;
         const priority = intOrNull(d.priority) ?? 0;
         let id = s(d.id, 60);
         const isNew = !id;
@@ -1781,7 +1774,8 @@ export async function POST(req: Request) {
 
       // ---- Shop products ----
       case "product.save": {
-        if(Object.keys(d).some(k=>!["id","name","price","costPrice","image","category","description","active","photos","sizeGuide"].includes(k)))return bad("unexpected_product_field");
+        if(Object.keys(d).some(k=>!["id","name","price","costPrice","image","category","description","active","photos","sizeGuide","nameOnBackEnabled"].includes(k)))return bad("unexpected_product_field");
+        if(d.nameOnBackEnabled!==undefined&&typeof d.nameOnBackEnabled!=="boolean")return bad("invalid_personalization_eligibility");
         let presentation;try{presentation=productPresentation(d)}catch{return bad("invalid_product_presentation")}
         await ensureProductPresentationSchema();
         const name = s(d.name, 200);
@@ -1815,21 +1809,22 @@ export async function POST(req: Request) {
           id,
           JSON.stringify(presentation.photos),
           presentation.sizeGuide,
+          d.nameOnBackEnabled ?? null,
         ];
         let row;
         if (isNew) {
           row = await q(
-            `INSERT INTO products (name, price, image, category, description, active, cost_price, id, photos, size_guide) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+            `INSERT INTO products (name, price, image, category, description, active, cost_price, id, photos, size_guide, name_on_back_enabled) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,COALESCE($11::boolean,false)) RETURNING *`,
             fields,
           );
         } else {
           row = await q(
-            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, photos=$9, size_guide=$10, updated_at=now() WHERE id=$8 RETURNING *`,
+            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, photos=$9, size_guide=$10, name_on_back_enabled=COALESCE($11::boolean,name_on_back_enabled), updated_at=now() WHERE id=$8 RETURNING *`,
             fields,
           );
           if (!row.length) return bad("not_found", 404);
         }
-        await opsAudit("ops.product.save", { id: row[0]?.id, name, price, costPrice });
+        await opsAudit("ops.product.save", { id: row[0]?.id, name, price, costPrice, nameOnBackEnabled:row[0]?.name_on_back_enabled===true });
         if (d.active !== false) after(() => pingIndexNow(["/shop"]));
         return NextResponse.json({ ok: true, row: row[0] });
       }

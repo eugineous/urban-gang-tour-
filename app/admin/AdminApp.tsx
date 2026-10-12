@@ -800,6 +800,7 @@ export default function AdminApp({
                 >
                   Receipt
                 </button>
+                <MerchProductionDetails items={r.items} />
                 {tix[r.id]?.length ? (
                   <details style={{ fontSize: 12 }}>
                     <summary
@@ -1986,6 +1987,24 @@ function CommsTab({
       </div>}
     </div>
   );
+}
+
+function MerchProductionDetails({ items }: { items: unknown }) {
+  let parsed = items;
+  if (typeof parsed === 'string') {
+    try { parsed = JSON.parse(parsed); } catch { return null; }
+  }
+  if (!Array.isArray(parsed)) return null;
+  const lines = parsed.filter((line) => typeof line?.id === 'string' && !line.id.startsWith('ticket:'));
+  if (!lines.length) return null;
+  return <details style={{ fontSize: 12, minWidth: 180 }}>
+    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Merch production details</summary>
+    <ul style={{ paddingLeft: 18, margin: '8px 0' }}>{lines.map((line, index) => <li key={index} style={{ marginBottom: 6 }}>
+      {String(line.name || line.id)} · Qty {Number(line.qty) || 0}
+      {line.variant && <div>Variant: {String(line.variant)}</div>}
+      <div>Name on back: {typeof line.printableName === 'string' && line.printableName ? line.printableName : 'None'}</div>
+    </li>)}</ul>
+  </details>;
 }
 
 function Table({

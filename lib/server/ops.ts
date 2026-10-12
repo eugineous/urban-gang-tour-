@@ -225,6 +225,9 @@ CREATE TABLE IF NOT EXISTS products (
 -- zero stock and avoids publishing invented availability to the shop.
 ALTER TABLE products ADD COLUMN IF NOT EXISTS inventory_tracked BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point INT;
+-- Staff opt in only after confirming the product can be printed. Existing
+-- and newly created products never offer name printing by default.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS name_on_back_enabled BOOLEAN NOT NULL DEFAULT false;
 -- Unit cost (what UGT pays to produce/buy the item). Zero means "not yet
 -- recorded" — never invented. Markup is derived as (price - cost) / cost,
 -- shown in the Control Room only; it is never trusted from the browser.

@@ -38,7 +38,7 @@ function publicRow(r: any, truth?: EventTruth) {
     accent: r.accent || '',
     image: r.image || '',
     description: r.description || '',
-    tiers,
+    tiers: truth?.tiers ?? tiers,
     logo: r.logo || '',
     testimonial: r.testimonial || '',
     priority: Number(r.priority) || 0,

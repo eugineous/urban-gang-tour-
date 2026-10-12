@@ -1,0 +1,12 @@
+import type {Metadata} from 'next';
+import {LegalPage} from '@/app/_components/LegalPage';
+import {PrivacyPreferencesButton} from '@/app/_components/CookieConsent';
+export const metadata: Metadata = {title:'Cookie Policy — Urban Gang Tour',description:'Necessary storage, optional analytics and how to change your privacy choice on Urban Gang Tour.',alternates:{canonical:'https://urbangangtour.co.ke/cookie-policy'}};
+export default function CookiePolicyPage(){return <>
+  <LegalPage title="Cookie Policy" updated="11 October 2026" sections={[
+    {h:'Necessary storage',p:['Signed-in accounts use session cookies. A randomly generated device identifier helps protect public endpoints from abuse while allowing visitors on shared school or mobile networks to use the site. These functions run without optional analytics consent.','Your browser may store your cart, booking draft, display and playback preferences, privacy choice, and promotional-film dismissal. An affiliate link can save referral attribution for eligible purchases; checkout offers a way to clear it. This storage does not confirm an order or payment.']},
+    {h:'Optional reporting',p:['After acceptance, this site can send page-view counts, event-discovery interest and performance measurements. Sensitive account, payment and administrative routes are excluded from general reporting. If configured, Google Analytics and Google advertising services also load after acceptance and may use their own cookies.','Choose Necessary only to keep optional reporting off. Optional consent is not required to browse, book, shop or buy a ticket. Visitors under 18 should choose Necessary only.']},
+    {h:'Change your choice',p:['Use the privacy preferences control below or in the footer. Withdrawing acceptance stops future site reporting, disables the configured Google Analytics measurement and pauses new Google ad requests. Code that already ran cannot be undone; reload the page to complete cleanup. Provider cookies already set may remain until they expire or you clear them using your browser settings.','Blocking necessary storage may affect sign-in, draft recovery or cart persistence. If browser storage is unavailable, a choice applies to the current page session.']},
+    {h:'Questions',p:['Contact admin@urbangangtour.co.ke for questions about storage or your personal data. See the Privacy Policy for order, account, communication, diagnostic and data-request practices.']},
+  ]}/><div className="wrap privacy-policy-actions"><PrivacyPreferencesButton/></div>
+</>}

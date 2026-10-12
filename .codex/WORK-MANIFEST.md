@@ -1,5 +1,11 @@
 # Urban Gang Tour recovery manifest
 
+## Current checkpoint — 11 October 2026
+
+The owner authorized execution of the new reconstruction brief. The current frontend is the native `ui/` renderer; V25 is retired. Older V25/non-redesign statements and verification counts below are historical, not the current implementation contract. The active release gate permits the existing owner-private Sites review and a tested feature-branch PR, not a public deployment or main merge.
+
+Current implementation, evidence boundaries and remaining work: `docs/reconstruction-execution.md`. Full route/module inventory: `docs/reconstruction-route-audit.md`. Homepage, portfolio/profiles, event presentation and staff inventory controls, optional merchandise name printing and privacy choices have been implemented in this bundle. Full Website Studio, shared event root, linked CRM/crew/reporting and provider-backed operational proof are not complete. Missing current merchandise artwork and approved biographical facts are not fabricated.
+
 ## Objective
 
 Recover the Urban Gang Tour operating system without discarding existing work. Finish and verify the public experience, Control Room, ticketing and payments, merchandising, document generation, event and relationship operations, content workflows, reporting and safe automation. Do not invent commercial facts or describe a workflow as verified until it has been exercised.

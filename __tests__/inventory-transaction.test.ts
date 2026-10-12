@@ -127,4 +127,13 @@ describe('recordPaidMerchOrder', () => {
     expect(calls.some(call => call.sql.includes('INSERT INTO merch_inventory_moves'))).toBe(false);
     expect(calls.some(call => call.sql === 'ROLLBACK')).toBe(true);
   });
+  it('counts separately personalized names against the same physical size inventory', async () => {
+    await recordPaidMerchOrder({ id:'ORD-NAMES',status:'paid',items:[
+      {id:'p1',qty:2,variant:'L',printableName:'Amina'},
+      {id:'p1',qty:3,variant:'L',printableName:'Brian'},
+    ]});
+    const inserts=calls.filter(call=>call.sql.includes('INSERT INTO merch_inventory_moves'));
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0].params.slice(0,3)).toEqual(['p1',42,-5]);
+  });
 });

@@ -9,3 +9,8 @@ beforeEach(()=>{vi.resetAllMocks();vi.mocked(hasDb).mockReturnValue(true);vi.moc
 it('reports a genuine empty catalog as an empty result',async()=>{const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(200);expect(await r.json()).toEqual({ok:true,products:[]})});
 it('does not disguise missing database configuration as no products',async()=>{vi.mocked(hasDb).mockReturnValue(false);const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(503);expect(await r.json()).toEqual({error:'catalog_unavailable'});expect(r.headers.get('cache-control')).toBe('no-store')});
 it('does not disguise a transient read failure as an empty shop',async()=>{vi.mocked(q).mockRejectedValue(Error('Database password is private'));const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(503);expect(await r.json()).toEqual({error:'catalog_unavailable'})});
+it('publishes personalization only for an explicit product opt-in',async()=>{
+ vi.mocked(q).mockResolvedValue([{id:'rails',name:'Rails Tee',price:1500,name_on_back_enabled:true},{id:'generic',name:'Name Print Tee',price:900}]);
+ const body=await (await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'))).json();
+ expect(body.products.map((product:any)=>[product.id,product.name_on_back_enabled])).toEqual([['rails',true],['generic',false]]);
+});
