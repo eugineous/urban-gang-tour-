@@ -74,8 +74,12 @@ export async function q<T = any>(sql: string, params: any[] = []): Promise<T[]> 
 // which is how every ensure*Schema()/ensure*Seeded() function here is
 // written - this is what caused every DB-backed public route to quietly
 // return empty results after the Cloudflare migration). Strips `--` line
-// comments first, then splits the remaining SQL on `;` and runs each
-// statement in sequence. The comment-strip step matters: this codebase's
+// comments first, then splits the remaining SQL on `;` and submits the
+// statements in one atomic HTTP transaction. The 79-statement operations
+// schema must not consume 79 external requests on a cold checkout invocation.
+// A transaction-scoped advisory lock serialises concurrent bootstraps;
+// commit/rollback releases it, without a persistent connection or partial DDL.
+// The comment-strip step matters: this codebase's
 // schema blocks have prose comments that themselves contain semicolons
 // (grammatical punctuation, e.g. "...agree); the ALTER TABLE statements...")
 // - a naive split-on-`;` alone cuts mid-comment and sends a bare word like
@@ -95,8 +99,18 @@ export async function qSchema(sql: string): Promise<void> {
     })
     .join('\n');
   const statements = withoutComments.split(';').map((s) => s.trim()).filter(Boolean);
-  for (const stmt of statements) {
-    await client.query(stmt);
+  if (!statements.length) return;
+  try {
+    // Neon query promises are lazy: constructing this array issues no fetch.
+    // transaction() sends one HTTP request and Postgres executes it in order.
+    await client.transaction([
+      client.query("SELECT pg_advisory_xact_lock(hashtext('ugt:schema-bootstrap'))"),
+      ...statements.map((stmt) => client.query(stmt)),
+    ]);
+  } catch (error) {
+    const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code) ? error.code : 'unclassified';
+    console.error('schema_bootstrap_failed', { code });
+    throw error;
   }
 }
 
