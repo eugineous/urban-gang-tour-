@@ -4,6 +4,11 @@ All endpoints: JSON in/out. Public POSTs are IP rate-limited (never user-ID for
 anonymous traffic). Strict schemas — unknown fields are rejected with
 `unexpected_field:<name>`. Production secrets live in Cloudflare Worker secrets only.
 
+Static database schema bootstrap runs as one atomic Neon HTTP transaction,
+serialized with a transaction-scoped advisory lock. It does not execute one
+external request per DDL statement. Failures roll back and log only a validated
+SQLSTATE; existing endpoint error contracts and customer-data rules are unchanged.
+
 Cross-site protection (`lib/server/origin.ts`): public POSTs answer 403
 `bad_origin` when the browser sends an Origin header that is not
 urbangangtour.co.ke, an explicitly configured preview host, or localhost (a
