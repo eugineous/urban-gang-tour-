@@ -1,4 +1,4 @@
-const CACHE = 'ugt-color-blast-20261012-v1';
+const CACHE = 'ugt-android-mobile-20261013-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

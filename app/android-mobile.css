@@ -1,0 +1,56 @@
+/* Phone layouts must also work when Android Chrome uses a wider layout
+   viewport. The bootstrap normalises the content width, not media queries. */
+.live-catalogue-back { padding-top:110px; }
+@media (max-width:700px), (max-device-width:600px) and (pointer:coarse) {
+  .site-header { position:sticky!important; top:0!important; min-height:64px; padding:8px 16px!important; background:#f4f4f4!important; color:#191919!important; backdrop-filter:none!important; border-bottom:1px solid #dedede; }
+  .site-header .brand { width:50px; height:44px; }
+  .site-header .brand img { width:50px; height:44px; object-fit:contain; }
+  .site-header .start-link { display:none!important; }
+  .site-header .desktop-nav { display:none!important; }
+  .site-header .header-actions { gap:6px!important; min-width:0; flex-shrink:0; }
+  .site-header .mobile-shop-link,.site-header .cart-link { min-height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:14px; color:#191919!important; }
+  .site-header .cart-link { padding:0 10px; border:1px solid #d5d5d5; border-radius:24px; }
+  .site-header .menu-toggle { width:44px; min-width:44px; height:44px; color:#191919!important; background:#fff!important; border:1px solid #d5d5d5; }
+  .menu-panel { top:68px!important; max-height:calc(var(--ugt-screen-height, 100svh) / var(--ugt-phone-zoom, 1) - 84px); overflow-y:auto; }
+  .booking-invitation { width:calc(100vw / var(--ugt-phone-zoom,1) - 24px); max-width:calc(100vw / var(--ugt-phone-zoom,1) - 24px); max-height:calc(var(--ugt-screen-height,100dvh) / var(--ugt-phone-zoom,1) - 24px); }
+  .floating-talk { display:none!important; }
+  #main-content { min-width:0; }
+  #main-content [id] { scroll-margin-top:84px; }
+  #main-content h1 { max-width:100%; font-size:40px; line-height:1.1; overflow-wrap:anywhere; }
+  #main-content :is(h2,h3,p,fieldset) { min-width:0; }
+  #main-content :is(h2,h3) { overflow-wrap:break-word; }
+  .detail-offset { padding-top:24px!important; }
+  .current-reading,.state-page { padding-top:32px!important; }
+  .modern-hero,.page-hero,.portfolio-hero,.blog-hero { padding-top:28px!important; }
+  .portfolio-cinematic { padding-top:32px!important; }
+  .hero { height:auto!important; min-height:0!important; container-type:normal!important; }
+  .hero .hero-inner { position:relative!important; inset:auto!important; height:auto!important; min-height:calc(var(--ugt-screen-height, 100svh) / var(--ugt-phone-zoom, 1) - 76px)!important; padding:104px 0 28px!important; justify-content:flex-end; }
+  #main-content .hero h1 { font-size:56px; line-height:.98; }
+  .hero h1,.hero-bottom,.page-intro h1 { animation:none!important; }
+  .hero-heading { max-width:100%; }
+  .hero .button.light { background:#fff!important; color:#171717!important; }
+  .hero-archive-credit { color:#fff!important; opacity:1; }
+  .hero .video-control { top:16px!important; right:16px!important; bottom:auto!important; left:auto!important; min-height:44px; }
+  .hero-bottom { flex-direction:column; align-items:flex-start; gap:20px; }
+  .hero-bottom a { font-size:15px; min-height:44px; }
+  .hero-bottom .button { width:100%; padding:14px 16px; justify-content:space-between; gap:12px; white-space:normal; }
+  .hero-bottom .button svg { position:static!important; flex-shrink:0; width:18px; }
+  .hero-subtitle { font-size:16px; max-width:36ch; }
+  .hero-pause { top:20px!important; right:16px!important; min-width:44px; min-height:44px; }
+  .news-hero h1,.portfolio-hero h1 { font-size:40px!important; max-width:100%; }
+  .page-intro { padding-top:32px!important; }
+  .page-intro,.section-title,.service-grid,.booking2,.contact-page-grid,.contact-footer-grid,.contact-next,.news-grid,.collection-grid,.founders { grid-template-columns:minmax(0,1fr)!important; }
+  .breadcrumbs { padding-top:24px!important; }
+  .live-catalogue-back { padding-top:24px; }
+  .film-viewer video,.project-hero video { object-fit:contain!important; }
+  .filter-bar { overflow-x:auto; }
+  .filter-bar button { min-height:44px; }
+  #main-content :is(input,select,textarea) { font-size:16px; }
+  #main-content :is(input:not([type=checkbox]):not([type=radio]),select) { min-height:48px; }
+  .hero-bottom a svg,.site-header a svg { display:inline-block; vertical-align:middle; }
+}
+@media (max-width:380px), (max-device-width:380px) and (pointer:coarse) {
+  .site-header { padding-inline:12px!important; }
+  #main-content h1 { font-size:36px; }
+  #main-content .hero h1 { font-size:50px; }
+}

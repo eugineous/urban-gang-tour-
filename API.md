@@ -436,6 +436,11 @@ fields to the authorized product editor.
 The server-rendered `/shop/:id` detail page reads actual saved photographs and
 size guidance. It does not synthesize measurements or product photographs.
 `GET /api/site-data/products` remains a public coalesced catalogue read of active
+products. It reads the existing schema first, without unrelated admin migrations
+on the public request path. Only SQLSTATE `42P01`/`42703` triggers the existing
+schema initialisation and one retry; other failures return 503 `catalog_unavailable`
+with `no-store`. Diagnostics log only a validated SQLSTATE, never driver messages.
+The response contract remains unchanged for active
 products: `{ok, products}` includes total stock and per-variant stock, where
 `null` means inventory is not tracked and zero means unavailable. A catalogue
 outage returns 503 `catalog_unavailable` with no-store caching, rather than a
