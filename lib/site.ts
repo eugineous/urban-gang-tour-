@@ -25,6 +25,8 @@ export type RouteDef = {
 
 // Every distinct, crawlable URL. Order here drives the sitemap.
 export const ROUTES: RouteDef[] = [
+  { path: '/author/eugine-micah', page: 'eugine', title: 'Eugine Micah — Presenter & Urban Gang Tour Co-Founder', description: 'Explore Eugine Micah’s documented presenting, live hosting and Urban Gang Tour work, with archive links and booking enquiries.', changefreq: 'monthly', priority: 0.7 },
+  { path: '/author/lucy-ogunde', page: 'lucy', title: 'Lucy Ogunde — Presenter & Urban Gang Tour Co-Founder', description: 'Explore Lucy Ogunde’s documented presenting, live hosting and Urban Gang Tour work, with archive links and booking enquiries.', changefreq: 'monthly', priority: 0.7 },
   { path: '/tour-stops', page: 'stops', nav: 'Tour Stops', title: 'Tour Stops — Upcoming Visits & Tour History', description: 'Explore published Urban Gang Tour school and campus stops, upcoming dates and tour history across Kenya.', changefreq: 'daily', priority: 0.8 },
   {
     path: '/', page: 'home', nav: 'Home',

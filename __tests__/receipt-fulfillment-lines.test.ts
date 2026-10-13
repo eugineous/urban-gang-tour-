@@ -22,3 +22,8 @@ it('does not silently drop a charged fee during a database read failure',async()
  state.q.mockRejectedValueOnce(Error('Transient database failure'));
  await expect(receiptLines(order)).rejects.toThrow('Transient database failure');
 });
+it('keeps the purchased print instruction on the receipt at the recorded unit price',async()=>{
+ const lines=await receiptLines({...order,items:[{...order.items[0],printableName:'Amina'}]});
+ expect(lines[0]).toEqual({name:'Shirt · Name on back: Amina',qty:2,unit:700,total:1400});
+ expect(lines.reduce((total,line)=>total+line.total,0)).toBe(order.total);
+});

@@ -12,6 +12,8 @@ import { sameOrigin } from "@/lib/server/origin";
 import { alertCritical } from "@/lib/server/alert";
 import { notifyNewOrder } from "@/lib/server/notify";
 import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
+import { applyVerifiedMerchPersonalization } from "@/lib/server/merch-personalization";
+import { normalizePrintableName } from "@/lib/shared/merch-personalization";
 import { assertMerchStockAvailable } from "@/lib/server/inventory";
 import { parseTierInventory, assertTicketAvailable, holdTickets, releaseReservation } from "@/lib/server/ticket-inventory";
 import {recordOrderReferral} from '@/lib/server/affiliate-program';
@@ -55,6 +57,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
+  }
   const allowed = new Set([
     "items",
     "ticket",
@@ -97,6 +102,7 @@ export async function POST(req: Request) {
     name?: string;
     unit?: number;
     variant?: string;
+    printableName?: string;
   }[];
   let total: number;
   let appliedPromoCode: { promoId: number; promoName: string } | null = null;
@@ -180,7 +186,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "invalid_item" }, { status: 400 });
       }
       for (const k of Object.keys(it)) {
-        if (k !== "id" && k !== "qty" && k !== "variant")
+        if (k !== "id" && k !== "qty" && k !== "variant" && k !== "printableName")
           return NextResponse.json(
             { error: `unexpected_field:items.${k}` },
             { status: 400 },
@@ -195,6 +201,9 @@ export async function POST(req: Request) {
         it.qty > 20
       ) {
         return NextResponse.json({ error: "invalid_item" }, { status: 400 });
+      }
+      try { normalizePrintableName(it.printableName); } catch {
+        return NextResponse.json({ error: 'invalid_printable_name' }, { status: 400 });
       }
     }
     try {
@@ -216,7 +225,7 @@ export async function POST(req: Request) {
           variant?: string;
         }[],
       );
-      orderItems = variants.lines;
+      orderItems = await applyVerifiedMerchPersonalization(items, variants.lines);
       total += variants.adjustment;
       await assertMerchStockAvailable(orderItems);
       appliedPromoCode = priced.appliedPromoCode;

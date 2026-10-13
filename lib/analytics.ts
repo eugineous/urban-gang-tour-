@@ -1,3 +1,4 @@
+import {hasOptionalConsent} from '@/lib/client/consent';
 // Analytics — GA4 ecommerce-mapped events for the UGT Events funnel.
 // Server-safe: only sends when `window.dataLayer` exists (client-side).
 // Never sends customer PII. All event params are event/relation metadata.
@@ -10,7 +11,7 @@ declare global {
 }
 
 function push(event: string, params: Record<string, unknown>) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !hasOptionalConsent()) return;
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event, ...params });
 }

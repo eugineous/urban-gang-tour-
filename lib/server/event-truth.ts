@@ -29,6 +29,8 @@ export type EventTruth = {
     capacity: number | null;
     remaining: number | null;
     sellable: boolean;
+    per_order_min: number;
+    per_order_max: number;
   }>;
   totalRemaining: number | null;
   minPrice: number | null;
@@ -42,10 +44,10 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
   if (!hasDb() || !/^[a-z0-9-]{1,80}$/.test(slug)) return null;
   try {
     const rows = await q<{
-      slug: string; name: string; status: string; tiers: string;
+      id: string; slug: string; name: string; status: string; tiers: string;
       sales_start_at: string | null; sales_end_at: string | null;
     }>(
-      `SELECT slug, name, status, tiers, sales_start_at::text AS sales_start_at,
+      `SELECT id, slug, name, status, tiers, sales_start_at::text AS sales_start_at,
               sales_end_at::text AS sales_end_at
        FROM tour_events WHERE slug=$1 AND kind='ticketed' LIMIT 1`,
       [slug]
@@ -74,13 +76,13 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
         if (tier.capacity === null) {
           return { ...tier, remaining: null, sellable: false };
         }
-        const sold = await soldCount(slug, tier.name);
-        const reserved = await reservedCount(slug, index);
+        const sold = await soldCount(row.id, tier.name);
+        const reserved = await reservedCount(row.id, index);
         const remaining = Math.max(0, tier.capacity - sold - reserved);
         return {
           ...tier,
           remaining,
-          sellable: sellable && (saleWindowOpen === null || saleWindowOpen) && remaining > 0,
+          sellable: sellable && (saleWindowOpen === null || saleWindowOpen) && remaining >= tier.per_order_min,
         };
       })
     );
@@ -99,7 +101,7 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
       status,
       isPublic: true,
       isIndexable: isEventIndexable(status),
-      isSellable: sellable && (saleWindowOpen === null || saleWindowOpen),
+      isSellable: tierTruth.some(tier => tier.sellable),
       isSoldOut: status === 'sold_out' || (totalRemaining !== null && totalRemaining <= 0),
       isCompleted: status === 'completed',
       isCancelled: status === 'cancelled',

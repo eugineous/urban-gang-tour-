@@ -387,7 +387,7 @@ it does not perform an automatic deletion of accounts or financial ledgers.
 ### POST /api/checkout/quote
 
 Public same-origin preview, 20 requests/minute/device with the purchase network
-backstop. Body: `{items: [{id, qty, variant?}], promoCode?, fulfillment?}`.
+backstop. Body: `{items: [{id, qty, variant?, printableName?}], promoCode?, fulfillment?}`.
 Limits: 1–30 lines, integer quantities 1–20, product ID up to 80 characters,
 variant up to 100, promo code up to 60. Unexpected fields are rejected.
 
@@ -440,6 +440,31 @@ products: `{ok, products}` includes total stock and per-variant stock, where
 `null` means inventory is not tracked and zero means unavailable. A catalogue
 outage returns 503 `catalog_unavailable` with no-store caching, rather than a
 successful empty shop. Historical orders continue to resolve retired products.
+
+### Free merchandise name printing
+
+Product administrators can explicitly enable `nameOnBackEnabled: boolean` in
+`POST /api/admin/ops` `product.save`. The existing products permission and audit
+trail apply. The additive `products.name_on_back_enabled` column defaults to
+false for all products; product names and categories never imply eligibility.
+Omitting the setting preserves it on edits and leaves new products disabled.
+`GET /api/site-data/products` exposes `name_on_back_enabled: boolean` publicly.
+
+Cart, quote, M-Pesa orders, Paystack checkout and Stripe checkout items accept
+optional `printableName`. Names are trimmed, normalized to NFC and repeated
+spaces are collapsed; the result must be 1–24 Unicode characters, begin with a
+letter or number, and contain only letters, combining marks, numbers, spaces,
+apostrophes, dots or hyphens. Controls, newlines and unsupported characters
+return `invalid_printable_name`. Checkout verifies the product is currently
+active and explicitly eligible in the database; ineligible products return
+`personalization_not_available`. Catalog failure fails closed.
+
+Printing adds no fee and changes no promo, variant, delivery or stock pricing.
+Distinct names remain distinct cart/order lines for production, while the
+inventory ledger combines quantities for the same physical product/variant.
+The normalized name is stored as `printableName` in the order's existing items
+JSONB and appears in merchandise production details in the admin orders view
+and on customer receipts. No live product is automatically opted in.
 
 ### Reviewed captions and transcripts
 
@@ -517,6 +542,21 @@ store visitor identity, email, IP, location or a device fingerprint. GET require
 a verified super-admin and returns `{rows}` containing sample counts and p75
 values grouped by metric for the last 28 days, with private no-store caching.
 This is a reporting window, not a promise that older stored rows are deleted.
+
+### Event tier availability and staff editing
+
+Public `/api/site-data/events` includes authoritative per-tier availability,
+remaining capacity and per-order minimum/maximum where available. Unknown
+capacity is not treated as unlimited. A tier must satisfy its minimum order
+size before it is advertised as sellable; overall event availability follows
+the actual sellable tiers. Checkout reservations still validate server-side.
+
+The existing events-permission-gated `/api/admin/ops` event save validates and
+preserves tier `capacity`, `per_order_min` and `per_order_max` instead of dropping
+them. Capacity is a non-negative integer; blank capacity leaves sales closed.
+Order limits default to 1–20. Until immutable tier identities are implemented,
+staff must not rename or reorder tiers after purchases; this is an operating
+restriction, not a server-enforced guarantee.
 
 ### Additional server configuration
 

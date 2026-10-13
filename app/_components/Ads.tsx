@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {usePathname} from 'next/navigation';
+import {hasOptionalConsent, CONSENT_EVENT} from '@/lib/client/consent';
 
 // Google AdSense, consent-gated and fully dormant until configured.
 //
@@ -11,18 +12,17 @@ import {usePathname} from 'next/navigation';
 //      account). Unset = nothing here does anything.
 //   2. The visitor accepted cookies (localStorage 'ugt-consent' === 'yes').
 //      This keeps the site's "no third-party trackers unless you consent"
-//      promise honest and satisfies the Kenya Data Protection Act 2019.
+    //      promise honest. Legal compliance also requires operational review.
 //
 // The loader also drives AdSense Auto Ads, so Google can place ads across the
 // whole site (including the v25 SPA pages like /gallery and /urban-news that
 // are not React-owned) with no manual slot markup on those pages.
 
 const CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '';
-const CONSENT_EVENT = 'ugt:consent-changed';
 
 function hasConsent(): boolean {
   try {
-    return localStorage.getItem('ugt-consent') === 'yes';
+    return hasOptionalConsent();
   } catch {
     return false;
   }
@@ -55,8 +55,10 @@ export function AdSenseLoader() {
   const pathname=usePathname();
 
   useEffect(() => {
-    if(/^\/(verify|t|tickets|receipt|admin|organizer|account|checkout)(\/|$)/.test(pathname||""))return;
-    if (!CLIENT || !consent || injected.current) return;
+    const allowed=consent&&!/^\/(verify|t|tickets|receipt|admin|organizer|account|checkout|cart|pay|orders)(\/|$)/.test(pathname||'');
+    const queue = (window as unknown as {adsbygoogle?: any}).adsbygoogle;
+    if (queue) queue.pauseAdRequests = allowed ? 0 : 1;
+    if (!CLIENT || !allowed || injected.current) return;
     if (document.getElementById('ugt-adsense')) { injected.current = true; return; }
     injected.current = true;
     const s = document.createElement('script');
@@ -90,7 +92,7 @@ export function AdSlot({ slot, label = true, style }: { slot?: string; label?: b
     } catch { /* loader not ready yet; a later render will retry */ }
   }, [consent, slot]);
 
-  if (!CLIENT || !slot) return null; // dormant: nothing rendered pre-launch
+  if (!CLIENT || !slot || !consent) return null;
 
   return (
     <div style={{ margin: '24px 0', textAlign: 'center', ...style }}>

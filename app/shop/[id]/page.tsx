@@ -6,8 +6,11 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { SITE } from '@/lib/site';
-import { PhotoGallery } from '@/app/_components/PhotoGallery';
+import { ProductGallery } from '@/app/_components/ProductGallery';
+import styles from '@/app/_components/Commerce.module.css';
 import { hasDb, q } from '@/lib/server/db';
+import {getMerchProduct,merchProducts,ARTWORK} from '@/data/color-blast';
+import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
 
 export const revalidate = 300;
 
@@ -15,12 +18,13 @@ export const revalidate = 300;
 // yields no pre-generated pages (honest empty list); pages are then rendered
 // on demand and cached for the revalidate window.
 export async function generateStaticParams() {
-  if (!hasDb()) return [];
+  const previews=merchProducts.map(p=>({id:p.id}));
+  if (!hasDb()) return previews;
   try {
     const rows = await q<{ id: string }>(`SELECT id FROM products WHERE active`);
-    return rows.map((r) => ({ id: r.id }));
+    return [...previews,...rows.filter(r=>!getMerchProduct(r.id)).map((r) => ({ id: r.id }))];
   } catch {
-    return [];
+    return previews;
   }
 }
 
@@ -36,6 +40,7 @@ type Product = {
   stock: number|null;
   photos?: unknown;
   size_guide?:string;
+  name_on_back_enabled?:boolean|string;
 };
 
 const productForPage = cache(async (id: string): Promise<Product | null> => {
@@ -44,6 +49,7 @@ const productForPage = cache(async (id: string): Promise<Product | null> => {
   const rows = await q<Product>(
     `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
             to_jsonb(p)->'photos' AS photos, to_jsonb(p)->>'size_guide' AS size_guide,
+            to_jsonb(p)->>'name_on_back_enabled' AS name_on_back_enabled,
             CASE WHEN p.inventory_tracked THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
             COALESCE(
               jsonb_agg(jsonb_build_object('label', v.label, 'priceAdjustment', v.price_adjustment, 'sku', v.sku,'stock',(SELECT CASE WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
@@ -75,16 +81,14 @@ function safeVariants(value: Product['variants']): Variant[] {
   }
 }
 
-function money(value: number) {
-  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(value);
-}
-
 function imageUrl(value: string) {
   return /^https?:\/\//i.test(value) ? value : `${SITE.domain}${value}`;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
+  const preview=getMerchProduct(id);
+  if(preview)return {title:preview.name+' | Color Blast Design Preview',description:preview.description+' Proposed design; samples and stock unconfirmed.',alternates:{canonical:'/shop/'+id},openGraph:{title:preview.name+' | Color Blast',description:'Design preview, not manufactured stock.',url:'/shop/'+id,images:[{url:ARTWORK}]}};
   const product = await productForPage(id);
   if (!product) return {};
   const path = `/shop/${product.id}`;
@@ -104,6 +108,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const preview=getMerchProduct(id);
+  if(preview)return <ColorBlastShop product={preview}/>;
   const product = await productForPage(id);
   if (!product) notFound();
   const variants = safeVariants(product.variants);
@@ -151,14 +157,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     }));
   }
 
-  return <main className="product-page">
+  return <main className={`product-page ${styles.productPage}`}>
     <JsonLd data={productJsonLd} />
     <div className="wrap breadcrumbs"><a href="/shop">Shop</a><span>/</span><span>{product.name}</span></div>
-    <section className="product-detail wrap">
-      <div className="detail-image ugt-product-photo">{photos.length?<PhotoGallery photos={photos}/>:<p>Product photograph coming soon.</p>}</div>
-      <div className="product-info"><p className="eyebrow">{product.category||'Official merchandise'}</p><h1>{product.name}</h1><p className="price">{money(Number(product.price))}</p>{product.description&&<p>{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock}/>{product.size_guide&&<details><summary>Size guide</summary><p>{product.size_guide}</p></details>}</div>
+    <section className={`product-detail wrap ${styles.productDetail}`}>
+      <ProductGallery photos={photos} name={product.name}/>
+      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category||'Official merchandise'}</p><h1>{product.name}</h1>{product.description&&<p className={styles.description}>{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary>Size guide</summary><p>{product.size_guide}</p></details>}</div>
     </section>
-    {reviews.length>0&&<section className="wrap product-reviews"><h2>Customer reviews</h2>{reviews.map((review,i)=><article key={i}><h3>{review.author}</h3><p>{review.rating} / 5</p><p>{review.body}</p></article>)}</section>}
-    <section className="wrap product-reviews"><ProductReviewForm productId={product.id}/></section>
+    {reviews.length>0&&<section className={`wrap product-reviews ${styles.reviewSection}`}><p className="eyebrow">From the community</p><h2>Customer reviews</h2><div className={styles.reviewGrid}>{reviews.map((review,i)=><article key={i}><h3>{review.author}</h3><p className={styles.rating}>{review.rating} / 5</p><p>{review.body}</p></article>)}</div></section>}
+    <section className={`wrap product-reviews ${styles.reviewSection}`}><ProductReviewForm productId={product.id}/></section>
   </main>;
 }
