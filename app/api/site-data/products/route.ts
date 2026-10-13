@@ -19,8 +19,10 @@ export async function GET(req: Request) {
   if (!hasDb()) return NextResponse.json({ error: 'catalog_unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   try {
     const products = await cached('site-products', 60_000, async () => {
-      await ensureOpsSchema();
-      const rows = await q<any>(
+      // A public read must not depend on hundreds of unrelated admin DDL
+      // statements succeeding. Read the existing catalogue first; initialise
+      // only when Postgres reports a genuinely missing table/column.
+      const read = () => q<any>(
         `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
                 COALESCE((to_jsonb(p)->>'name_on_back_enabled')::boolean, false) AS name_on_back_enabled,
                 CASE WHEN p.inventory_tracked THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
@@ -35,6 +37,14 @@ export async function GET(req: Request) {
          GROUP BY p.id, p.name, p.price, p.image, p.category, p.description, p.inventory_tracked
          ORDER BY p.id`,
       );
+      let rows;
+      try { rows = await read(); }
+      catch (error) {
+        const code = databaseErrorCode(error);
+        if (code !== '42P01' && code !== '42703') throw error;
+        await ensureOpsSchema();
+        rows = await read();
+      }
       return rows.map((r) => ({
         id: r.id,
         name: r.name,
@@ -53,7 +63,15 @@ export async function GET(req: Request) {
       }));
     });
     return NextResponse.json({ ok: true, products }, { headers: CACHE_HEADERS });
-  } catch {
+  } catch (error) {
+    // Only a validated SQLSTATE is logged: never raw driver messages, SQL,
+    // connection strings, credentials or customer records.
+    console.error('public_catalog_read_failed', { code: databaseErrorCode(error) || 'unclassified' });
     return NextResponse.json({ error: 'catalog_unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
+}
+
+function databaseErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('code' in error)) return null;
+  return typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code) ? error.code : null;
 }

@@ -63,8 +63,8 @@
 .experience :global(.discovery-sort select) { min-height: 44px; font-size: 16px; }
 .experience :global(.discovery-results-heading) h2 { flex: 1 1 260px; }
 .experience :global(.discovery-intro) > div { min-width: 0; }
-@media (max-width: 1100px) { .ownedGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 700px) {
+@media(max-width:1100px), (max-device-width:600px) and (pointer:coarse){ .ownedGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width:700px), (max-device-width:600px) and (pointer:coarse){
   .owned { padding: 20px; margin-bottom: 32px; }
   .ownedHeading, .searchHeading { display: block; }
   .ownedHeading > a, .searchHeading > a { margin-top: 12px; }
@@ -78,4 +78,4 @@
   .experience :global(.discovery-sync) p, .experience :global(.discovery-card-meta) > span, .experience :global(.discovery-card-action) strong, .experience :global(.discovery-card-action) > span { font-size: 16px; }
   .experience :global(.sync-dot) { margin-top: 6px; flex-shrink: 0; }
 }
-@media (max-width: 340px) { .owned { padding: 14px; } .introLinks > a { width: 100%; } }
+@media(max-width:340px), (max-device-width:340px) and (pointer:coarse){ .owned { padding: 14px; } .introLinks > a { width: 100%; } }
