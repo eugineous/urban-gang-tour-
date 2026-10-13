@@ -13,3 +13,12 @@ The owner explicitly requested deployment of the work already created to `urbang
 - Rollback version recorded before release: `4cc2e798-c2ff-47bb-9933-126fbc16ba6d`.
 
 Verification: unit tests, TypeScript, Cloudflare build, production-runtime responsive browser checks, then read-only custom-domain and authentication checks. Never create real payment orders during release verification.
+
+## Final verification — 13 October 2026
+
+- All 357 unit tests, TypeScript and scoped lint passed.
+- Cloudflare production package built and dry-bundled successfully.
+- Exact Worker package: commerce, saved-name editing, server-priced checkout fixtures, ticket limits, consent, and editorial/legal pages passed at 320, 390, 820, 1440 and 1920 pixels, with no browser errors.
+- Collection, completed model views, colour selection, zoom, source artwork and isolated design bag passed at 320, 390, 820 and 1440 pixels. All 24 product URLs and 35 public canonical URLs verified.
+- Cart now renders per request; initial commerce hydration updates are interruptible.
+- Cloudflare's optional hosted build check failed before publishing, with logs inaccessible to the configured build API credential. The production package was built and verified locally; use the normal PR merge and configured Wrangler deployment, without overriding branch protection.
