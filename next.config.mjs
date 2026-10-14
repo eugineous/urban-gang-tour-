@@ -30,7 +30,9 @@ const nextConfig = {
       { source: '/contact', destination: '/contact-us', permanent: true },
       { source: '/tour', destination: '/experience', permanent: true },
       { source: '/gang', destination: '/the-gang', permanent: true },
+      { source: '/the-gang', destination: '/about', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },
+      { source: '/shop/available', destination: '/shop', permanent: true },
       { source: '/v25-template', destination: '/', permanent: true },
       { source: '/v25-template.html', destination: '/', permanent: true },
     ];

@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // definitions do not expose a source-of-truth modification timestamp, so
   // omit it rather than claiming every page changed whenever the sitemap was
   // requested. Database-owned records below retain their real updated_at.
-  const pages = ROUTES.filter((r) => r.path !== '/admin' && r.path !== '/account').map((r) => ({
+  const pages = ROUTES.filter((r) => !['/admin','/account','/the-gang','/shop/available'].includes(r.path)).map((r) => ({
     url: SITE.domain + (r.path === '/' ? '' : r.path),
     changeFrequency: r.changefreq,
     priority: r.priority,
@@ -91,6 +91,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  const newPages = publicDesignRoutes.map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
+  const newPages = [...publicDesignRoutes.filter(path=>path!=='/the-gang'),'/shop/lookbook'].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
   return [...new Map([...pages,...authors,...posts,...products,...ticketedEvents,...newPages].map(page=>[page.url,page])).values()];
 }

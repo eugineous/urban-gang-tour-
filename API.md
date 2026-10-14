@@ -119,7 +119,12 @@ tickets. 200 PDF attachment `UGT-Receipt-<id>.pdf` · 404 unknown id · 429
 (20/min/IP) · 503 no DB.
 
 ### POST /api/mpesa/callback
-Daraja result hook: marks order `paid` (+receipt) or `failed`. Always 200-acks.
+Daraja result hook: acknowledges immediately, then queries Daraja for a known
+recoverable checkout reference before marking it `paid`, `declined` or `timed_out`.
+The unsigned callback body cannot confirm or decline a payment by itself.
+Successful transitions also require the expected order amount and a valid receipt;
+unavailable or inconsistent results stay `reconciling` for the scheduled sweep.
+Unknown/settled references do not trigger a provider query. Always 200-acks.
 On paid, mints e-tickets (`ensureTickets`) then fires the branded Resend
 receipt email (fire-and-forget via `after()`) when the order row has an email
 - same on the Paystack and Stripe webhooks (`lib/server/receipt-email.ts`

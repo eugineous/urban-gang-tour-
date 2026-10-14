@@ -1,5 +1,6 @@
 /* Editorial and media corrections: loaded last so every public route gets the same rules. */
 .mobile-about-link{display:none}
+@media(max-height:500px) and (orientation:landscape){.site-header.on-hero .mobile-shop-link{color:#fff!important}.hero h1,.hero-bottom{animation:none!important}.hero .button.light{background:#fff!important;color:#171717!important}}
 .compact-contact{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:44px 0;border-bottom:1px solid #ffffff30}
 .compact-contact h2{font-size:clamp(40px,6vw,76px)}
 .home-faq-link{padding-block:44px;border-top:1px solid var(--line);text-align:center}

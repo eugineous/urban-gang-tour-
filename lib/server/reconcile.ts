@@ -10,6 +10,16 @@ import { paystackVerify, paystackConfigured } from './paystack';
 import { consumeReservation, releaseReservation } from './ticket-inventory';
 import { amountsMatch, RECOVERABLE_PAYMENT_STATUSES } from './payment-status';
 
+async function finishRecoveredOrder(order: any) {
+  const { ensureTickets } = await import('./tickets');
+  const { recordPaidMerchOrder } = await import('./inventory');
+  const { sendReceiptEmail } = await import('./receipt-email');
+  await consumeReservation(order.id).catch(() => {});
+  await recordPaidMerchOrder(order).catch(error => console.error('[recovered-merch-inventory]', error));
+  await ensureTickets(order).catch(error => console.error('[recovered-tickets]', error));
+  if (order.email) await sendReceiptEmail(order);
+}
+
 /** Pure mapping: Daraja ResultCode -> ledger status. Unit-testable. */
 export function decideMpesaOutcome(resultCode: number): 'paid' | 'declined' | 'timed_out' | 'unknown' {
   if (resultCode === 0) return 'paid';
@@ -38,7 +48,7 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
             NULLIF(pay_method,'') AS pay_method
        FROM orders
       WHERE status = ANY($2)
-        AND created_at < now() - interval '20 minutes'
+        AND created_at < now() - interval '2 minutes'
       ORDER BY created_at ASC LIMIT $1`,
     [limit, RECOVERABLE_PAYMENT_STATUSES],
   ).catch(() => [] as any[]);
@@ -65,9 +75,7 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
             [o.id, qr.receipt || '', RECOVERABLE_PAYMENT_STATUSES],
           );
           if (paid.length) {
-            const { ensureTickets } = await import('./tickets');
-            await consumeReservation(o.id).catch(() => {});
-            await ensureTickets(paid[0]).catch(() => {});
+            await finishRecoveredOrder(paid[0]);
             await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('reconcile','order_paid',$1)`, [
               JSON.stringify({ id: o.id, via: 'stkpushquery', receipt: qr.receipt || '' }),
             ]).catch(() => {});
@@ -97,9 +105,7 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
             [o.id, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (paid.length) {
-            const { ensureTickets } = await import('./tickets');
-            await consumeReservation(o.id).catch(() => {});
-            await ensureTickets(paid[0]).catch(() => {});
+            await finishRecoveredOrder(paid[0]);
             out.paid.push(o.id);
           } else out.stillPending.push(o.id);
         } else if (v.paid) {
