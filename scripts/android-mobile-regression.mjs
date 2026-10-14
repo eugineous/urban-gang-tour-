@@ -6,7 +6,7 @@ const base=(process.env.BASE_URL||'http://127.0.0.1:4190').replace(/\/$/,''),out
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
 const results=[];
-const routes=(process.env.MOBILE_ROUTES||'/,/shop,/portfolio,/blog,/experience,/tour-stops,/events,/gallery,/reels,/about,/partners,/book,/contact-us,/cart,/shop/available,/shop/design-bag,/account,/privacy-policy,/terms,/faq,/clients,/the-gang,/work-with-us,/press,/affiliates,/refund-policy,/ticket-terms,/cookie-policy,/account/preferences,/orders/track,/book/status,/checkout,/organizer/login,/organizer/signup').split(',');
+const routes=(process.env.MOBILE_ROUTES||'/,/shop,/shop/lookbook,/portfolio,/blog,/experience,/tour-stops,/events,/gallery,/reels,/about,/partners,/book,/contact-us,/cart,/shop/available,/shop/design-bag,/account,/privacy-policy,/terms,/faq,/clients,/the-gang,/work-with-us,/press,/affiliates,/refund-policy,/ticket-terms,/cookie-policy,/account/preferences,/orders/track,/book/status,/checkout,/organizer/login,/organizer/signup').split(',');
 const profiles=[
  ['galaxy-s24',devices['Galaxy S24']],
  ['galaxy-a55',devices['Galaxy A55']],
@@ -37,7 +37,7 @@ try{for(const [name,profile] of profiles){
    assert.equal(metrics.headingOverflows,false,name+route+' clipped heading text');
   }
   if(route==='/experience'&&name!=='android-landscape')assert.equal(await page.locator('.service-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),1,name+' stacked experience cards');
-  if(route==='/shop'){
+  if(route==='/shop/lookbook'){
    const grid=await page.locator('#collection article').first().evaluate(el=>getComputedStyle(el.parentElement).gridTemplateColumns.split(' ').length);
    assert.ok(grid<=2||name==='android-landscape',name+' readable collection');
    assert.equal(await page.locator('#collection article').count(),24);
@@ -47,7 +47,7 @@ try{for(const [name,profile] of profiles){
   await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.screenshot({path:out+'/'+name+'-'+(route.slice(1).replaceAll('/','-')||'home')+'.png',scale:'css'});
   results.push({profile:name,route,elapsedMs:Date.now()-start,...metrics});
  }
- await page.goto(base+'/shop',{waitUntil:'networkidle'});
+ await page.goto(base+'/shop/lookbook',{waitUntil:'networkidle'});
  if(name!=='android-landscape'){
   await page.getByRole('button',{name:'Open menu',exact:true}).click();
   await page.locator('#site-menu').getByRole('link',{name:/Book Urban Gang Tour/}).waitFor();

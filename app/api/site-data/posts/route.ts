@@ -11,19 +11,6 @@ export const dynamic = 'force-dynamic';
 
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' };
 
-function bodyParts(value: unknown): string[] {
-  if (Array.isArray(value)) return value.filter((part): part is string => typeof part === 'string');
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed.filter((part): part is string => typeof part === 'string') : [];
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
 export async function GET(req: Request) {
   if (!rateLimit('site-posts:' + clientIp(req), 60, 60_000, req, PUBLIC_READ_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
@@ -32,7 +19,7 @@ export async function GET(req: Request) {
   try {
     const posts = await cached('site-posts', 60_000, async () => {
       const rows = await q<any>(
-        `SELECT slug, headline, section, image, dek, body, date::text AS date
+        `SELECT slug, headline, section, image, dek, date::text AS date
          FROM posts
          WHERE published AND date <= CURRENT_DATE
          ORDER BY date DESC, slug ASC`
@@ -44,7 +31,6 @@ export async function GET(req: Request) {
         section: String(row.section || 'News'),
         img: String(row.image || '/assets/poster.png'),
         dek: String(row.dek || ''),
-        body: bodyParts(row.body),
       })).filter((post) => post.id && post.headline && /^\d{4}-\d{2}-\d{2}$/.test(post.date));
     });
     return NextResponse.json({ ok: true, posts }, { headers: CACHE_HEADERS });

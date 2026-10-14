@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import "./control-room.css";
 import ControlRoomHome from "./ControlRoomHome";
 import SystemPanel from "./SystemPanel";
+import { printOrderReceipt } from '@/lib/client/print-order-receipt';
 
 // Urban Gang Control Room — real, database-backed admin.
 // One responsive operations interface, matching the approved public design.
@@ -787,15 +788,7 @@ export default function AdminApp({
                 <button
                   style={{ ...btn, padding: "6px 8px" }}
                   onClick={() => {
-                    const items =
-                      (typeof r.items === "string"
-                        ? JSON.parse(r.items)
-                        : r.items) || [];
-                    const w = window.open("", "_blank");
-                    if (!w) return;
-                    w.document.write(
-                      `<html><head><title>Receipt ${r.id}</title></head><body style="font-family:sans-serif;max-width:560px;margin:40px auto"><h2>Urban Gang Tour — Receipt</h2><p><b>Order:</b> ${r.id}<br/><b>Date:</b> ${new Date(r.created_at).toLocaleString()}<br/><b>Customer:</b> ${r.name || ""} · ${r.email || ""} · ${r.phone || ""}<br/><b>Status:</b> ${r.status}${r.mpesa_receipt ? "<br/><b>M-Pesa receipt:</b> " + r.mpesa_receipt : ""}</p><table border="1" cellpadding="8" cellspacing="0" width="100%"><tr><th align="left">Item</th><th>Qty</th></tr>${items.map((i: any) => `<tr><td>${i.id}</td><td align="center">${i.qty}</td></tr>`).join("")}</table><h3>Total: KES ${Number(r.total).toLocaleString()}</h3><p style="color:#888">admin@urbangangtour.co.ke · Nairobi, Kenya</p><script>print()</script></body></html>`,
-                    );
+                    printOrderReceipt(r);
                   }}
                 >
                   Receipt

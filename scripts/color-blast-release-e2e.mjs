@@ -8,7 +8,7 @@ try{for(const width of [320,390,820,1440]){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await context.addInitScript(()=>{localStorage.setItem('ugt-consent','no');localStorage.setItem('ugt-booking-invitation-seen-v1','tested')});
- const response=await page.goto(base+'/shop',{waitUntil:'networkidle'});assert.equal(response.status(),200);
+ const response=await page.goto(base+'/shop/lookbook',{waitUntil:'networkidle'});assert.equal(response.status(),200);
  assert.equal(await page.locator('[data-studio-product]').count(),25);
  const urls=await page.locator('#collection article h2 a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')));assert.equal(urls.length,24);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,'shop overflow '+width);

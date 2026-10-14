@@ -22,6 +22,7 @@ async function accessToken(): Promise<string> {
   const res = await fetch(`${BASE()}/oauth/v1/generate?grant_type=client_credentials`, {
     headers: { Authorization: `Basic ${auth}` },
     cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`daraja auth failed: ${res.status}`);
   const j = await res.json();
@@ -92,9 +93,14 @@ export async function stkPushQuery(checkoutRequestId: string): Promise<
         CheckoutRequestID: checkoutRequestId,
       }),
       cache: 'no-store',
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return { ok: false, reason: 'query_failed', detail: `http ${res.status}` };
     const j = await res.json();
+    if ((typeof j.ResultCode !== 'number' &&
+         (typeof j.ResultCode !== 'string' || !/^\d+$/.test(j.ResultCode))) ||
+        !Number.isSafeInteger(Number(j.ResultCode)))
+      return { ok: false, reason: 'query_failed', detail: 'No definitive provider result' };
     return {
       ok: true,
       resultCode: Number(j.ResultCode),

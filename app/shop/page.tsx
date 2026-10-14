@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { breadcrumbFor } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
-import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
+import { LiveCommerce } from '@/app/_components/LiveCommerce';
 
 const PATH = '/shop';
 
@@ -19,7 +19,7 @@ export default async function Page() {
   return (
     <>
       <JsonLd data={breadcrumbFor(PATH)} />
-      <ColorBlastShop />
+      <LiveCommerce />
     </>
   );
 }
