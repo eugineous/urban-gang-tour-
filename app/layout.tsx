@@ -1,7 +1,7 @@
 import {PerformanceVitals} from './_components/PerformanceVitals';
 import ReferralCapture from '@/ui/components/ReferralCapture';
 import {MEDIA_LIFECYCLE_BOOTSTRAP} from '@/lib/client/media-lifecycle';
-import {BookingInvitation} from '../ui/components/BookingInvitation';
+
 import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
@@ -11,6 +11,7 @@ import './refinements.css';
 import './mobile-experience.css';
 import './reconstruction.css';
 import './android-mobile.css';
+import './concise-media.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';
@@ -131,7 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Google Analytics: same dormant-until-configured, consent-gated
             pattern as AdSense above. */}
         <GoogleAnalytics />
-      <BookingInvitation/></body>
+      </body>
     </html>
   );
 }
