@@ -3,7 +3,7 @@ const mocks=vi.hoisted(()=>({user:null as null|{id:number},admin:false,perm:fals
 vi.mock('@/lib/server/db',()=>({hasDb:()=>mocks.db,q:mocks.q,db:()=>null}));
 vi.mock('@/lib/server/customer-account',()=>({validatedCurrentBuyer:async()=>mocks.user}));
 vi.mock('@/lib/server/session',()=>({currentUser:()=>mocks.user,verifyAdminSession:async()=>mocks.admin,hasPerm:()=>mocks.perm,adminActor:()=>"test-admin"}));
-vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true}));
+vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true,requireOrigin:()=>true}));
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test'}));
 vi.mock('@/lib/server/engagement',()=>({ensureEngagementSchema:async()=>{},EVENT_INTERESTS:['concerts','festivals','school-events','campus-events','merchandise']}));
 import {GET as affiliateGet,POST as affiliatePost} from '@/app/api/affiliates/route';

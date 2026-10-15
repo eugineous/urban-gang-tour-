@@ -6,6 +6,7 @@ initOpenNextCloudflareForDev();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
   // Send complete metadata and page HTML in the initial document to every
   // visitor. A streamed Suspense placeholder needs JavaScript to become the
   // real page, which made otherwise server-rendered routes look blank.
@@ -73,6 +74,7 @@ const nextConfig = {
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "object-src 'none'",
+      "form-action 'self'",
     ].join('; ');
     return [
       {
@@ -83,8 +85,19 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          // Stage HSTS for one day; do not preload or affect subdomains until
+          // every hostname and rollback path has been independently verified.
+          ...(process.env.NODE_ENV === 'production' ? [{ key: 'Strict-Transport-Security', value: 'max-age=86400' }] : []),
         ],
       },
+      ...['/admin/:path*', '/account/:path*', '/organizer/:path*', '/api/admin/:path*', '/api/account/:path*', '/api/auth/:path*', '/api/organizer/:path*', '/api/orders/:path*', '/api/bookings/:path*', '/api/checkout/:path*', '/api/receipts/:path*', '/api/tickets/:path*', '/api/internal/:path*'].map(source => ({
+        source,
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Cloudflare-CDN-Cache-Control', value: 'no-store' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      })),
       { source: '/admin/gate', headers: [{key:'Permissions-Policy',value:'camera=(self), microphone=(), geolocation=()'}] },
       { source: '/verify/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Referrer-Policy',value:'no-referrer'}] },
       {

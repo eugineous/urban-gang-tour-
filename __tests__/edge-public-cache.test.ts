@@ -16,10 +16,10 @@ afterEach(()=>vi.unstubAllGlobals());
 it('reuses anonymous public HTML under the deployment-specific key',async()=>{
   const first=await worker.fetch(request('/about'),{},context());await Promise.all(jobs);
   expect(first.headers.get('cache-control')).toContain('s-maxage=60');
-  expect(first.headers.get('x-ugt-release')).toBe('audit-release-20261014-v1');
+  expect(first.headers.get('x-ugt-release')).toBe('backend-foundation-20261014-v1');
   const second=await worker.fetch(request('/about'),{},context());expect(await second.text()).toContain('Public page');
   expect(state.fetch).toHaveBeenCalledTimes(1);
-  expect([...entries.keys()][0]).toContain('__ugt_release=audit-release-20261014-v1');
+  expect([...entries.keys()][0]).toContain('__ugt_release=backend-foundation-20261014-v1');
 });
 it.each(['/shop','/checkout','/cart','/account','/admin'])('keeps %s private and uncached',async path=>{
   const response=await worker.fetch(request(path),{},context());expect(response.headers.get('cache-control')).toBe('no-store');expect(jobs).toHaveLength(0);
@@ -37,4 +37,19 @@ it('continues serving pages if Cloudflare cache reads fail',async()=>{
   caches.default.match.mockRejectedValueOnce(new Error('unavailable'));
   const response=await worker.fetch(request('/about'),{},context());expect(response.status).toBe(200);
   vi.restoreAllMocks();
+});
+it.each(['/api/admin/accounts','/api/account','/api/auth','/api/organizer/me','/api/orders/status?id=ORD-TEST','/api/bookings/status?token=test','/api/tickets/verify','/api/receipts/ORD-TEST/pdf','/api/internal/cron/email-delivery'])('prohibits storing sensitive JSON at %s even if a route says public',async path=>{
+  state.fetch.mockResolvedValue(new Response('{"private":"fixture"}',{headers:{'content-type':'application/json','cache-control':'public, max-age=3600'}}));
+  const response=await worker.fetch(request(path),{},context());
+  expect(response.headers.get('cache-control')).toBe('no-store');
+  expect(response.headers.get('cloudflare-cdn-cache-control')).toBe('no-store');
+  expect(jobs).toHaveLength(0);
+});
+it('does not retain authenticated JSON, mutations or session-setting responses on public paths',async()=>{
+  state.fetch.mockImplementation(async()=>new Response('{}',{headers:{'content-type':'application/json','cache-control':'public, max-age=3600'}}));
+  for(const req of [request('/api/reviews',{cookie:'ugt_user=test'}),request('/api/reviews',{Authorization:'Bearer test'}),new Request('https://urbangangtour.co.ke/api/reviews',{method:'POST',body:'{}'})]){
+    expect((await worker.fetch(req,{},context())).headers.get('cache-control')).toBe('no-store');
+  }
+  state.fetch.mockResolvedValue(new Response('{}',{headers:{'content-type':'application/json','set-cookie':'ugt_user=test'}}));
+  expect((await worker.fetch(request('/api/reviews'),{},context())).headers.get('cache-control')).toBe('no-store');
 });

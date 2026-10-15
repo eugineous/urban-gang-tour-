@@ -15,6 +15,7 @@ import { describe, it, expect, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 vi.mock('../lib/server/db', () => ({
   db: () => null,
+  hasDb: () => false,
   q: vi.fn(async () => []),
 }));
 

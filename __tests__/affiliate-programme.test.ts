@@ -4,7 +4,7 @@ vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:m.q,db:()=>({connect:m.connect,
 vi.mock('@/lib/server/engagement',()=>({ensureEngagementSchema:async()=>{},EVENT_INTERESTS:['concerts','festivals','school-events','campus-events','merchandise']}));
 vi.mock('@/lib/server/customer-account',()=>({validatedCurrentBuyer:async()=>m.buyer}));
 vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>m.admin,hasPerm:(_r:unknown,key:string)=>key==='people'?m.people:m.payout,adminActor:()=> 'verified-admin'}));
-vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true}));
+vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true,requireOrigin:()=>true}));
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test'}));
 vi.mock('@/lib/server/microcache',()=>({cached:(_key:string,_ttl:number,fn:()=>Promise<unknown>)=>fn()}));
 import {INACTIVE_PROGRAM,validateAffiliateProgram,recordAffiliatePayout,recordOrderReferral,EARNINGS_SQL} from '@/lib/server/affiliate-program';

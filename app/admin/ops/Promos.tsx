@@ -76,7 +76,7 @@ export default function Promos() {
           <div><span style={label}>Code (optional)</span><input style={inp} value={edit.code} onChange={(e) => setEdit({ ...edit, code: e.target.value.toUpperCase() })} placeholder="UGT10" /></div>
           <div><span style={label}>Starts</span><input style={inp} type="date" value={edit.startsOn} onChange={(e) => setEdit({ ...edit, startsOn: e.target.value })} /></div>
           <div><span style={label}>Ends</span><input style={inp} type="date" value={edit.endsOn} onChange={(e) => setEdit({ ...edit, endsOn: e.target.value })} /></div>
-          <div><span style={label}>Max uses (empty = unlimited)</span><NumInput value={edit.maxUses} onChange={(v) => setEdit({ ...edit, maxUses: v })} min={0} placeholder="unlimited" /></div>
+          <div><span style={label}>Max code uses (empty = unlimited)</span><NumInput value={edit.maxUses} onChange={(v) => setEdit({ ...edit, maxUses: v })} min={0} placeholder="unlimited" /></div>
         </div>
         <div style={{ marginTop: 10 }}>
           <span style={label}>Product ids (comma separated; empty = whole shop)</span>

@@ -5,6 +5,8 @@ import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { requireOrigin } from '@/lib/server/origin';
 import { getAdminAccount, type AdminAccount } from '@/lib/server/admin-accounts';
 import { notifyAdminLogin, notifyFailedAdminLogin } from '@/lib/server/notify';
+import { readJsonObject } from '@/lib/server/json-body';
+import { registerAdminSession } from '@/lib/server/admin-sessions';
 
 // Google Sign-In for the Control Room. The client posts the Google Identity
 // Services ID token; Google verifies its signature and expiry through the
@@ -18,15 +20,11 @@ import { notifyAdminLogin, notifyFailedAdminLogin } from '@/lib/server/notify';
 // role/perms. Env-var emails have no row and are always treated as
 // super_admin (they predate the accounts system - see ADMIN_GOOGLE_EMAILS
 // below - and only the owner can edit Worker secrets anyway, so this is not
-// a privilege-escalation path). If the database isn't connected we quietly
-// fall back to the env allowlist alone.
+// a privilege-escalation path). A configured but unavailable directory must
+// fail closed: falling back could promote a scoped account to owner access.
 async function dbAccount(email: string): Promise<AdminAccount | null> {
-  try {
-    if (!hasDb()) return null;
-    return await getAdminAccount(email);
-  } catch {
-    return null;
-  }
+  if (!hasDb()) return null;
+  return getAdminAccount(email);
 }
 export async function POST(req: Request) {
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
@@ -34,7 +32,9 @@ export async function POST(req: Request) {
   if (!rateLimit('admg:' + clientIp(req), 5, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
-  const body = await req.json().catch(() => ({}));
+  const parsed = await readJsonObject(req);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+  const body = parsed.value;
   for (const key of Object.keys(body)) {
     if (key !== 'credential') {
       return NextResponse.json({ error: `unexpected_field:${key}` }, { status: 400 });
@@ -65,20 +65,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'verify_unavailable' }, { status: 502 });
   }
 
-  const email = String(info.email || '').toLowerCase();
-  const issuer = String(info.iss || '');
-  const expiresAt = Number(info.exp || 0);
-  const emailVerified = info.email_verified === true || info.email_verified === 'true';
+  const email = String(info?.email || '').toLowerCase();
+  const issuer = String(info?.iss || '');
+  const expiresAt = Number(info?.exp || 0);
+  const emailVerified = info?.email_verified === true || info?.email_verified === 'true';
   if (
-    info.aud !== clientId
+    !info || info.aud !== clientId
     || !['accounts.google.com', 'https://accounts.google.com'].includes(issuer)
-    || expiresAt * 1000 <= Date.now()
+    || !Number.isSafeInteger(expiresAt) || expiresAt * 1000 <= Date.now()
     || !emailVerified
   ) {
     after(() => notifyFailedAdminLogin({ method: 'google', reason: 'token_mismatch', ip: clientIp(req) }));
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
   }
-  const account = await dbAccount(email);
+  let account: AdminAccount | null;
+  try { account = await dbAccount(email); }
+  catch { return NextResponse.json({ error: 'accounts_unavailable' }, { status: 503 }); }
   if (!allow.includes(email) && !account) {
     after(() => notifyFailedAdminLogin({ method: 'google', reason: 'not_on_allowlist', ip: clientIp(req), email }));
     return NextResponse.json({ error: 'not_authorised', email }, { status: 401 });
@@ -92,6 +94,10 @@ export async function POST(req: Request) {
 
   after(() => notifyAdminLogin({ email, method: 'google', scope, ip: clientIp(req) }));
   const res = NextResponse.json({ ok: true, email, scope, perms });
-  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email, scope, perms, authSource: account ? 'google_db' : 'google_env' }, 7), 7));
+  const authSource = account ? 'google_db' : 'google_env';
+  let sid: string;
+  try { sid = await registerAdminSession(email, authSource); }
+  catch { return NextResponse.json({ error: 'sessions_unavailable' }, { status: 503 }); }
+  res.headers.set('Set-Cookie', sessionCookie('ugt_admin', signToken({ role: 'admin', email, scope, perms, authSource, sid }, 1), 1));
   return res;
 }

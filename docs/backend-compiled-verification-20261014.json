@@ -1,0 +1,261 @@
+{
+  "localOnly": true,
+  "anonymousProtectedHandlerChecks": 51,
+  "checks": [
+    {
+      "method": "GET",
+      "pathname": "/api/admin/accounts",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/accounts",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/affiliates/payouts",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/affiliates/program",
+      "status": 403
+    },
+    {
+      "method": "PUT",
+      "pathname": "/api/admin/affiliates/program",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/affiliates",
+      "status": 403
+    },
+    {
+      "method": "PATCH",
+      "pathname": "/api/admin/affiliates",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/backup",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/bookings/reply",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/bookings/reply",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/broadcast",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/campaigns",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/campaigns",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/data",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/docs/batch",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/docs/generate",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/docs/hero-upload",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/docs/list",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/docs/preview",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/docs/void",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/email-delivery",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/email-delivery",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/export",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/gallery",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/gallery",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/gallery/upload",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/gmail/connect",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/gmail/messages",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/gmail/messages",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/gmail",
+      "status": 403
+    },
+    {
+      "method": "DELETE",
+      "pathname": "/api/admin/gmail",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/ops/pdf",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/ops",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/ops",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/privacy",
+      "status": 401
+    },
+    {
+      "method": "PATCH",
+      "pathname": "/api/admin/privacy",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/reviews",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/reviews",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/save",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/search-console",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/search-console",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/security",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/security",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/sessions",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/sessions",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/setup",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/social",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/social",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/admin/tickets/FIXTURE/holder",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/admin/tickets/comp",
+      "status": 401
+    }
+  ]
+}
