@@ -49,7 +49,7 @@ try{for(const [name,profile] of [['galaxy-s24',devices['Galaxy S24']],['galaxy-a
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'story form fits viewport');checks++;
  await page.screenshot({path:out+'/'+name+'-story-upload.png',fullPage:true});
  await page.goto(base+'/admin?tab=Campaigns');await page.getByRole('button',{name:'New campaign',exact:true}).click();await page.getByLabel('Campaign artwork',{exact:true}).waitFor();checks++;
- await page.goto(base+'/admin?tab=Gallery');await page.getByRole('button',{name:'+ Upload photo',exact:true}).waitFor();await page.locator('input[type=file]').setInputFiles({name:'gallery.png',mimeType:'image/png',buffer:png});await page.getByText('Photo uploaded',{exact:true}).waitFor();assert.equal(galleryUploads,1);assert.equal(gallerySaves,1);checks++;
+ await page.goto(base+'/admin?tab=Gallery');await page.getByRole('button',{name:'+ Upload photos',exact:true}).waitFor();await page.locator('input[type=file]').setInputFiles({name:'gallery.png',mimeType:'image/png',buffer:png});await page.getByText('Photo upload checked',{exact:true}).waitFor();assert.equal(galleryUploads,1);assert.equal(gallerySaves,1);checks++;
  assert.deepEqual(errors,[]);await context.close();console.log('PASS',name,'status confirmation/conflicts, file uploads, preserved drafts and responsive reflow');
 }
  const schoolContext=await browser.newContext({viewport:{width:412,height:915}});

@@ -3,6 +3,8 @@
 // Gallery management; the Worker persists uploads in KV.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { upload } from '@/lib/client/media-upload';
+import {runUploadQueue,type QueueItem} from '@/lib/client/upload-queue';
+import {useUnsavedWarning} from '@/lib/client/use-unsaved-warning';
 import {
   OC, card, btn, btnSmall, inp, label, h3,
   api, Toast, useToast,
@@ -40,12 +42,14 @@ function readImageDimensions(file: File): Promise<{ width: number; height: numbe
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();
+    const timer=setTimeout(()=>{URL.revokeObjectURL(url);reject(new Error('image_inspection_failed'))},10000);
     image.onload = () => {
+      clearTimeout(timer);
       URL.revokeObjectURL(url);
       if (!image.naturalWidth || !image.naturalHeight) return reject(new Error('invalid_image_dimensions'));
       resolve({ width: image.naturalWidth, height: image.naturalHeight });
     };
-    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image_inspection_failed')); };
+    image.onerror = () => { clearTimeout(timer);URL.revokeObjectURL(url); reject(new Error('image_inspection_failed')); };
     image.src = url;
   });
 }
@@ -60,6 +64,10 @@ function frameLabel(photo: Photo): string {
 export default function Gallery() {
   const [rows, setRows] = useState<Photo[]>([]);
   const [busy, setBusy] = useState(false);
+  const uploading=useRef(false);
+  const [queue,setQueue]=useState<QueueItem[]>([]);
+  const [batchCategory,setBatchCategory]=useState('');
+  useUnsavedWarning(busy||queue.some(item=>item.state==='failed'||item.state==='pending'));
   const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [drafts, setDrafts] = useState<Record<string, { caption: string; category: string; altText: string }>>({});
   const [canPublish, setCanPublish] = useState(false);
@@ -85,41 +93,51 @@ export default function Gallery() {
   }, [say]);
   useEffect(() => { reload(); }, [reload]);
 
-  const doUpload = async (file: File) => {
-    if (!ALLOWED_TYPES.includes(file.type)) { say('Only JPG, PNG or WEBP images are allowed'); return; }
-    if (file.size > MAX_BYTES) { say('Image is too large — 8MB max'); return; }
+  const doBatch = async (items:QueueItem[]) => {
+    if(uploading.current)return;
+    uploading.current=true;
     setBusy(true);
     setUploadPct(0);
     try {
-      const dimensions = await readImageDimensions(file);
-      const blob = await upload(`gallery/${Date.now()}-${safeName(file.name)}`, file, {
-        access: 'public',
-        handleUploadUrl: '/api/admin/gallery/upload',
-        onUploadProgress: (ev) => setUploadPct(Math.round(ev.percentage)),
-      });
-      const { data } = await galleryPost('upload', { url: blob.url, caption: '', category: '', ...dimensions });
-      if (data.error) { say('Upload failed: ' + data.error); return; }
-      say('Photo uploaded');
+      const update=(id:string,patch:Partial<QueueItem>)=>setQueue(current=>current.map(item=>item.id===id?{...item,...patch}:item));
+      await runUploadQueue(items,async(item,progress)=>{
+        const file=item.file;
+        if(!ALLOWED_TYPES.includes(file.type)||!file.size||file.size>MAX_BYTES)throw new Error('invalid_image');
+        const dimensions=await readImageDimensions(file);
+        const blob=item.url?{url:item.url}:await upload(item.path,file,{
+          access:'public',handleUploadUrl:'/api/admin/gallery/upload',onUploadProgress:event=>{setUploadPct(Math.round(event.percentage));progress(Math.round(event.percentage));},
+        });
+        update(item.id,{url:blob.url});
+        const {status,data}=await galleryPost('upload',{url:blob.url,caption:'',category:item.category,...dimensions});
+        if(status<200||status>=300||!data.ok)throw new Error('record_not_confirmed');
+      },update);
+      say(items.length===1?'Photo upload checked':'Batch finished. Check each photo below.');
       await reload();
-    } catch (e: any) {
-      say('Upload failed: ' + (e?.message || 'network error'));
     } finally {
-      setBusy(false);
-      setUploadPct(null);
-      if (fileRef.current) fileRef.current.value = '';
+      uploading.current=false;
+      setBusy(false);setUploadPct(null);
+      if(fileRef.current)fileRef.current.value='';
     }
+  };
+  const addFiles=(files:File[])=>{
+    if(uploading.current)return;
+    if(files.length>20){say('Choose up to 20 photos at a time. Nothing was uploaded.');return}
+    if(!files.length)return;
+    if(queue.length+files.length>20){say('Clear finished photos from this list, or remove unfinished ones, before adding more. Saved photos are kept in the gallery.');return}
+    const items:QueueItem[]=files.map(file=>{
+      const id=crypto.randomUUID();return {id,file,path:`gallery/${id}-${safeName(file.name)}`,category:batchCategory.trim(),state:'pending',progress:0};
+      });
+    setQueue(current=>[...current,...items]);void doBatch(items);
   };
 
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (f) doUpload(f);
+    addFiles(Array.from(e.target.files||[]));
   };
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
-    const f = e.dataTransfer.files?.[0];
-    if (f) doUpload(f);
+    addFiles(Array.from(e.dataTransfer.files));
   };
 
   const saveMeta = async (p: Photo) => {
@@ -188,14 +206,16 @@ export default function Gallery() {
             marginBottom: 4,
           }}
         >
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={onPick} disabled={busy} />
+          <label style={{display:'grid',gap:6,marginBottom:12,textAlign:'left'}}>Category for this batch<input style={inp} maxLength={120} value={batchCategory} disabled={busy} onChange={e=>setBatchCategory(e.target.value)} placeholder="Choose a school, event or new category name"/></label>
+          <input ref={fileRef} type="file" multiple accept="image/jpeg,image/png,image/webp" aria-label="Choose gallery photos" style={{ display: 'none' }} onChange={onPick} disabled={busy} />
           <div style={{ fontSize: 13, marginBottom: 10 }}>Drag a photo here, or</div>
           <button style={btn} disabled={busy} onClick={() => fileRef.current?.click()}>
-            {busy ? (uploadPct !== null ? `Uploading… ${uploadPct}%` : 'Uploading…') : '+ Upload photo'}
+            {busy ? (uploadPct !== null ? `Uploading… ${uploadPct}%` : 'Uploading…') : '+ Upload photos'}
           </button>
-          <div style={{ fontSize: 11, color: '#888', marginTop: 8 }}>JPG, PNG or WEBP, 8MB maximum. New uploads stay private until reviewed.</div>
+          <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Choose or drop up to 20 photos. JPG, PNG or WebP, 8 MB each. Uploads stay private until reviewed.</div>
         </div>
       </div>
+      {queue.length>0&&<section style={card} aria-label="Photo upload progress"><h3>Upload progress</h3><ul style={{paddingLeft:20}}>{queue.map(item=><li key={item.id} style={{overflowWrap:'anywhere',marginBottom:10}}>{item.file.name} — {item.state==='done'?'Saved privately':item.state==='failed'?item.error:item.state==='uploading'?`Uploading ${item.progress}%`:'Waiting'}{item.state==='uploading'&&<progress value={item.progress} max={100} aria-label={'Upload progress for '+item.file.name}/>}</li>)}</ul><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button style={btnSmall} disabled={busy||!queue.some(item=>item.state==='failed')} onClick={()=>void doBatch(queue.filter(item=>item.state==='failed'))}>Retry unfinished photos</button><button style={btnSmall} disabled={busy} onClick={()=>setQueue(current=>current.filter(item=>item.state!=='done'))}>Clear finished from this list</button><button style={btnSmall} disabled={busy} onClick={()=>{if(confirm('Remove unfinished photos from this upload list? Saved gallery photos will not be deleted.'))setQueue(current=>current.filter(item=>item.state==='done'))}}>Remove unfinished from this list</button></div></section>}
 
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
         {shown.map((p) => {

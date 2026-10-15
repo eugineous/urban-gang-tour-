@@ -1,0 +1,3 @@
+import {emailComposeLinks,whatsappUrl} from '@/lib/contact-actions';
+export function ContactPhone({value}:{value:string}){const href=whatsappUrl(value);return href?<a href={href} target="_blank" rel="noopener noreferrer" title="Open a WhatsApp conversation (does not send a message)">{value} · WhatsApp ↗</a>:<span>{value} <small>(check phone number)</small></span>}
+export function ContactEmail({value}:{value:string}){const links=emailComposeLinks(value);return links?<span style={{display:'inline-flex',flexWrap:'wrap',gap:8}}><a href={links.mailto}>{value}</a><a href={links.gmail} target="_blank" rel="noopener noreferrer" title="Open Gmail to write a message">Open Gmail ↗</a></span>:<span>{value} <small>(check email address)</small></span>}

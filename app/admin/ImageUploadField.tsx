@@ -2,7 +2,7 @@
 import {useId,useState} from 'react';
 import {upload} from '@/lib/client/media-upload';
 import styles from './ImageUploadField.module.css';
-export default function ImageUploadField({label,value,onChange,purpose,disabled=false,onBusyChange}:{label:string;value:string;onChange:(url:string)=>void;purpose:'events'|'stories'|'campaigns';disabled?:boolean;onBusyChange?:(busy:boolean)=>void}){
+export default function ImageUploadField({label,value,onChange,purpose,disabled=false,onBusyChange}:{label:string;value:string;onChange:(url:string)=>void;purpose:'events'|'stories'|'campaigns'|'products';disabled?:boolean;onBusyChange?:(busy:boolean)=>void}){
  const id=useId();const [progress,setProgress]=useState<number|null>(null),[error,setError]=useState('');
  async function pick(file:File){
   setError('');

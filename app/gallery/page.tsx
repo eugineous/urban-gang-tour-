@@ -6,10 +6,11 @@ import { RenderedPage } from '@/app/_components/RenderedPage';
 import { GALLERY_ARCHIVE } from '@/lib/gallery-archive';
 import { hasDb } from '@/lib/server/db';
 import { SITE } from '@/lib/site';
+import PublishedGallery from '@/app/_components/PublishedGallery';
 
 const PATH = '/gallery';
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic(PATH);
@@ -27,6 +28,7 @@ export default function Page() {
         })) : []),
       ]} />
       <RenderedPage pathName={PATH} />
+      <PublishedGallery/>
     </>
   );
 }

@@ -8,9 +8,10 @@ export type PartnerDetails = {
   institutions: string[];
   posters: {url: string; caption: string}[];
   newsSlug: string;
+  posterCaption?: string;
 };
 
-export const EMPTY_PARTNER: PartnerDetails = {organizer:'',client:'',role:'',admission:'external',ticketUrl:'',institutions:[],posters:[],newsSlug:''};
+export const EMPTY_PARTNER: PartnerDetails = {organizer:'',client:'',role:'',admission:'external',ticketUrl:'',institutions:[],posters:[],newsSlug:'',posterCaption:''};
 const plain = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 // Links are rendered, never fetched server-side. Still reject credentials,
@@ -38,6 +39,7 @@ export function parsePartnerDetails(value: unknown): PartnerDetails | null {
   if (typeof value === 'string') { try { value = JSON.parse(value); } catch { return null; } }
   if (!plain(value) || Object.keys(value).some(k => !Object.keys(EMPTY_PARTNER).includes(k))) return null;
   const v = value;
+  if(v.posterCaption!==undefined&&(typeof v.posterCaption!=='string'||v.posterCaption.length>300))return null;
   for (const [key, limit] of [['organizer',300],['client',200],['role',1200],['ticketUrl',800],['newsSlug',100]] as const) {
     if (typeof v[key] !== 'string' || v[key].length > limit) return null;
   }
@@ -56,6 +58,7 @@ export function parsePartnerDetails(value: unknown): PartnerDetails | null {
     institutions:(v.institutions as string[]).map(s=>s.trim()),
     posters:(v.posters as PartnerDetails['posters']).map(p=>({url:p.url,caption:p.caption.trim()})),
     newsSlug:(v.newsSlug as string).trim(),
+    posterCaption:typeof v.posterCaption==='string'?v.posterCaption.trim():'',
   };
 }
 

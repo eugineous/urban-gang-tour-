@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import GmailConnectButton from './GmailConnectButton';
+import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import {clearSentReply} from '@/lib/contact-actions';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6' };
 const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd', borderRadius: 14, boxShadow: 'none' };
@@ -18,55 +20,74 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
   const [selectedId, setSelectedId] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [reply, setReply] = useState('');
+  const [drafts,setDrafts]=useState<Record<string,string>>({});
+  const [loadError,setLoadError]=useState('');
+  const sendingRef=useRef(false),loadVersion=useRef(0);
   const [sending, setSending] = useState(false);
   const selected = useMemo(() => messages.find((message) => message.id === selectedId) || messages[0] || null, [messages, selectedId]);
+  const draftKey=selected?(connection.email||'')+':'+selected.id:'';
+  const reply=drafts[draftKey]||'';
+  const setReply=(text:string)=>setDrafts(current=>({...current,[draftKey]:text}));
 
   const load = async (query = '') => {
+    const version=++loadVersion.current;
     setLoading(true);
-    const statusResponse = await fetch('/api/admin/gmail');
+    setLoadError('');
+    try{
+    const statusResponse = await fetchWithTimeout('/api/admin/gmail');
     const status = await statusResponse.json().catch(() => ({}));
-    if (!statusResponse.ok || !status.connected) {
-      setConnection({ connected: false }); setMessages([]); setLoading(false); return;
+    if(version!==loadVersion.current)return;
+    if(!statusResponse.ok)throw new Error('connection_check_failed');
+    if (!status.connected) {
+      setConnection({ connected: false }); setMessages([]); return;
     }
     setConnection({ connected: true, email: status.email });
-    const response = await fetch(`/api/admin/gmail/messages${query ? `?q=${encodeURIComponent(query)}` : ''}`);
+    const response = await fetchWithTimeout(`/api/admin/gmail/messages${query ? `?q=${encodeURIComponent(query)}` : ''}`);
     const data = await response.json().catch(() => ({}));
-    setLoading(false);
-    if (!response.ok) { say(`Could not load Gmail: ${data.error || response.status}`); return; }
+    if(version!==loadVersion.current)return;
+    if (!response.ok) throw new Error('messages_unavailable');
     setMessages(data.messages || []);
-    if (data.messages?.[0]) setSelectedId(data.messages[0].id);
+    setSelectedId(current=>data.messages?.some((m:{id:string})=>m.id===current)?current:data.messages?.[0]?.id||'');
+    }catch{
+      if(version===loadVersion.current){setLoadError('Could not load Gmail. Your reply drafts are still here. Check your connection and retry.');}
+    }finally{if(version===loadVersion.current)setLoading(false)}
   };
 
   useEffect(() => { load(); }, []);
-  useEffect(() => { setReply(''); }, [selected?.id]);
+  useEffect(()=>{if(!Object.values(drafts).some(value=>value.trim()))return;const protect=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue=''};window.addEventListener('beforeunload',protect);return()=>window.removeEventListener('beforeunload',protect)},[drafts]);
 
   const send = async () => {
-    if (!selected || !reply.trim()) return;
+    if (!selected || !reply.trim()||sendingRef.current) return;
+    const message=selected,sentText=reply,sentKey=draftKey;
+    const recipient=address(message.from);
+    if(!recipient){say('This message has no valid reply address. Your draft is unchanged.');return}
+    sendingRef.current=true;
     setSending(true);
-    const recipient = address(selected.from);
-    const response = await fetch('/api/admin/gmail/messages', {
+    try{
+    const response = await fetchWithTimeout('/api/admin/gmail/messages', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messageId: selected.id,
-        threadId: selected.threadId,
+        messageId: message.id,
+        threadId: message.threadId,
         to: recipient,
-        subject: /^re:/i.test(selected.subject) ? selected.subject : `Re: ${selected.subject}`,
-        body: reply,
-        inReplyTo: selected.messageId,
-        references: selected.references,
+        subject: /^re:/i.test(message.subject) ? message.subject : `Re: ${message.subject}`,
+        body: sentText,
+        inReplyTo: message.messageId,
+        references: message.references,
       }),
     });
     const data = await response.json().catch(() => ({}));
-    setSending(false);
-    if (!response.ok) { say(`Reply failed: ${data.error || response.status}`); return; }
-    setReply('');
+    if (!response.ok||data.ok!==true) { say(`Reply failed: ${data.error || response.status}. Your draft is unchanged.`); return; }
+    setDrafts(current=>clearSentReply(current,sentKey,sentText));
     say('Email reply sent');
-    setMessages((current) => current.map((message) => message.id === selected.id ? { ...message, unread: false } : message));
+    setMessages((current) => current.map((m) => m.id === message.id ? { ...m, unread: false } : m));
+    }catch{say('Could not confirm delivery. Your draft is kept. Check Gmail Sent before retrying to avoid a duplicate.')}
+    finally{sendingRef.current=false;setSending(false)}
   };
 
   if (!connection.connected && !loading) {
     return <div style={{ ...card, padding: 22 }}>
+      {loadError&&<p role="alert">{loadError} <button type="button" style={button} onClick={()=>void load(search)}>Retry</button></p>}
       <div style={{ fontFamily: 'inherit', fontSize: 26 }}>CONNECT URBAN GANG GMAIL</div>
       <p style={{ maxWidth: 620, fontSize: 14, lineHeight: 1.55 }}>Read and reply to Urban Gang conversations without leaving the Control Room. This is the owner-only full inbox. Booking staff use the booking reply workspace, and comms staff use the broadcast workspace.</p>
       <GmailConnectButton clientId={googleClientId} onConnected={(email) => { setConnection({ connected: true, email }); load(); }} />
@@ -82,6 +103,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
       </form>
       <button style={{ ...button, background: '#fff' }} type="button" onClick={() => load(search)}>Refresh</button>
     </div>
+    {loadError&&<p role="alert">{loadError}</p>}
     <div className="admin-split">
       <section style={{ ...card, overflow: 'hidden', maxHeight: 760, overflowY: 'auto' }}>
         {loading && <div style={{ padding: 18 }}>Loading inbox…</div>}
@@ -100,6 +122,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
           <div style={{ margin: '16px 0', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: 14, border: '1px solid #ddd', background: '#F8F8F8', borderRadius: 12, padding: 14, maxHeight: 350, overflowY: 'auto' }}>{selected.body}</div>
           <div style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8 }}>REPLY</div>
           <textarea aria-label="Email reply" style={{ ...field, minHeight: 180, resize: 'vertical' }} placeholder={`Reply to ${address(selected.from)}`} value={reply} onChange={(event) => setReply(event.target.value)} />
+          <p style={{fontSize:12}}>Drafts stay while you switch messages or admin sections. Copy or send before closing this browser tab.</p>
           <button type="button" style={{ ...button, background: '#111', color: C.yellow, marginTop: 9, opacity: sending || !reply.trim() ? .6 : 1 }} disabled={sending || !reply.trim()} onClick={send}>{sending ? 'Sending…' : 'Send reply'}</button>
         </>}
       </section>
