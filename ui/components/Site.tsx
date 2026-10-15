@@ -27,7 +27,7 @@ function Home({events,posts}:{events:RecordData[];products:RecordData[];posts:Re
   <HomeTourStory events={events as React.ComponentProps<typeof HomeTourStory>['events']}/>
   <section className="section wrap" id="experiences"><div className="section-title"><Eyebrow>Find your experience</Eyebrow><h2>Find your<br/>experience.</h2></div><p className="home-company-intro">Live events, hosting and production. Built for your people.</p><div className="projects-grid home-experiences">{[
     {title:'The school experience',image:'/design-assets/school.jpg',tag:'Talent · Culture · Connection',href:'/book?type=school'},
-    {title:'Campus Rev',image:asset('M120').src,tag:'By Urban Gang Tour · For campuses',href:'/book?type=campus'},
+    {title:'Campus Rave',image:asset('M120').src,tag:'By Urban Gang Tour · For campuses',href:'/book?type=campus'},
     {title:'Production & campaigns',image:asset('M207').src,tag:'For institutions and brands',href:'/work-with-us'}
   ].map(p=><Link href={p.href} className="project-card" key={p.title}><div className="project-caption"><strong>{p.title}</strong><small>{p.tag}</small><Arrow/></div><Pic src={p.image} alt={p.title}/></Link>)}</div><div className="home-experience-actions"><Button href="/experience">What we do</Button><Link href="/events">Events & tickets <Arrow/></Link><Link href="/partners">Partnerships <Arrow/></Link></div></section>
   <section className="section wrap"><div className="section-title"><Eyebrow>See the energy</Eyebrow><h2>On the road.</h2></div><YouTubeFeature/></section>

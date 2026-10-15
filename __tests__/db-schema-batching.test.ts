@@ -14,7 +14,9 @@ it('submits all operations DDL in one atomic HTTP batch, never awaiting each que
  await qSchema(OPS_SCHEMA);
  expect(mock.transaction).toHaveBeenCalledOnce();
  const queries=mock.transaction.mock.calls[0][0];
- expect(queries).toHaveLength(80);
+  expect(queries).toHaveLength(83);
+  expect(queries.some((q:{text:string})=>q.text.includes('ADD COLUMN IF NOT EXISTS partner_details JSONB'))).toBe(true);
+  expect(queries.some((q:{text:string})=>q.text.includes("kind IN ('ticketed','school','past','partner')"))).toBe(true);
  expect(queries[0].text).toBe("SELECT pg_advisory_xact_lock(hashtext('ugt:schema-bootstrap'))");
  expect(queries[1].text).toMatch(/^CREATE TABLE IF NOT EXISTS ops_events/);
  expect(mock.awaitQuery).not.toHaveBeenCalled();

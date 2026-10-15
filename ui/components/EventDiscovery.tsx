@@ -189,7 +189,7 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
     && (source === 'All sources' || e.sourceId === source)
     && (e.title + ' ' + e.venue + ' ' + e.sourceName).toLowerCase().includes(search.toLowerCase())), {now, region, query:search, mode:sort});
   const own = publicOwnedEvents(liveOwn, now);
-  const ticketed = own.filter(e => e.kind === 'ticketed');
+  const ticketed = own.filter(e => e.kind === 'ticketed' || e.kind === 'partner');
   const upcomingOwn = ticketed.filter(e => !ownedEventPresentation(e, now).past);
   const pastOwn = ticketed.filter(e => ownedEventPresentation(e, now).past);
   const schools = own.filter(e => e.kind === 'school');
@@ -225,7 +225,7 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
         const view = ownedEventPresentation(event, now);
         return <li key={String(event.id)}><Link href={view.href}><div><span className={styles.status}>{view.label}</span><strong>{String(event.name)}</strong><small>{view.dateLabel}{event.venue ? ' · ' + String(event.venue) : ''}</small></div><span>View school tour <span aria-hidden="true">→</span></span></Link></li>;
       })}</ul></details>}
-      {pastOwn.length > 0 && <details className={styles.pastEvents}><summary>Past Urban Gang Tour events ({pastOwn.length})</summary><div className={styles.ownedGrid}>{pastOwn.map(event => <OwnedCard key={String(event.id)} event={event} now={now}/>)}</div></details>}
+      {pastOwn.length > 0 && <details className={styles.pastEvents}><summary>Past events & collaborations ({pastOwn.length})</summary><div className={styles.ownedGrid}>{pastOwn.map(event => <OwnedCard key={String(event.id)} event={event} now={now}/>)}</div></details>}
       {ownState&&<p className={styles.ownedCheck} role="status">{ownState}</p>}
     </section>
     </div><div id="kenya-panel" role="tabpanel" aria-labelledby="kenya-tab" hidden={filters.view!=='kenya'}>

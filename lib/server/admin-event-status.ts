@@ -1,5 +1,6 @@
 import { q } from './db';
 import { isEventStatus, type EventStatus } from './event-lifecycle';
+import { parsePartnerDetails, partnerPublicationError } from '../partner-events';
 
 export type EventStatusChange = {id:string;status:EventStatus;expectedStatus:EventStatus;updatedAt:string};
 export function parseEventStatusChange(value: unknown): EventStatusChange | null {
@@ -13,9 +14,13 @@ export function parseEventStatusChange(value: unknown): EventStatusChange | null
 // Narrow update: never overwrite schedule, media, tiers or prices. The exact
 // timestamp guards both concurrent state changes and edits made after loading.
 export async function changeEventStatus(input:EventStatusChange,actor:string) {
-  const [row]=await q('SELECT id,status,kind,name,event_date,venue,tiers,recovery FROM tour_events WHERE id=$1',[input.id]);
+  const [row]=await q("SELECT id,status,kind,name,event_date,venue,image,tiers,recovery,to_jsonb(tour_events)->'partner_details' AS partner_details FROM tour_events WHERE id=$1",[input.id]);
   if(!row)throw new Error('not_found');
   if(row.status!==input.expectedStatus)throw new Error('event_conflict');
+  if(row.kind==='partner'){
+    const error=partnerPublicationError(parsePartnerDetails(row.partner_details),{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue});
+    if(error)throw new Error(error);
+  }
   if(['published','ongoing'].includes(input.status)){
     if(!row.name||!String(row.venue||'').trim()||(row.kind==='ticketed'&&!row.event_date))throw new Error('event_details_required');
     let recovery=row.recovery;

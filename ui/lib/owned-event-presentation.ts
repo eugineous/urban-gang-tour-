@@ -1,4 +1,5 @@
 import {isPubliclyVisible, isSellable} from '../../lib/server/event-lifecycle';
+import {parsePartnerDetails,partnerAdmission} from '../../lib/partner-events';
 
 export type OwnedEvent = Record<string, unknown>;
 
@@ -15,12 +16,14 @@ function eventDate(event: OwnedEvent) {
 /** The API owns commercial availability; this helper only presents its truth. */
 export function ownedEventPresentation(event: OwnedEvent, now: number) {
   const school = event.kind === 'school';
+  const partner = event.kind === 'partner';
+  const partnerDetails = partner ? parsePartnerDetails(event.partnerDetails) : null;
   const date = eventDate(event);
   const status = text(event.status);
-  const publicEvent = isPubliclyVisible(status) && (school || event.kind === 'ticketed');
+  const publicEvent = isPubliclyVisible(status) && (school || event.kind === 'ticketed' || (partner && !!partnerDetails));
   const datePassed = date !== null && Date.parse(date.value + 'T23:59:59+03:00') < now;
   const past = status === 'completed' || (datePassed && !['postponed','ongoing'].includes(status));
-  const sellable = publicEvent && isSellable(status) && !school && !past && event.sellable === true;
+  const sellable = publicEvent && isSellable(status) && event.kind === 'ticketed' && !past && event.sellable === true;
   const labels: Record<string, string> = {
     published: past ? 'Date passed' : school ? 'School tour stop' : sellable ? 'Tickets on sale' : 'Details published',
     ongoing: 'Happening now',
@@ -46,8 +49,8 @@ export function ownedEventPresentation(event: OwnedEvent, now: number) {
     school,
     past,
     sellable,
-    label: labels[status] || 'Event update',
-    note: notes[status] || 'Check the latest event details.',
+    label: partner && partnerDetails && status === 'published' && !past ? partnerAdmission(partnerDetails) : labels[status] || 'Event update',
+    note: partner && partnerDetails ? `${past ? 'Past collaboration' : 'Contracted event'} · ${partnerDetails.client}. ${partnerDetails.role}` : notes[status] || 'Check the latest event details.',
     dateLabel: status === 'postponed' ? 'New date to be confirmed' : date ? new Intl.DateTimeFormat('en-KE', {day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Nairobi'}).format(date.date) : text(event.dateLabel) || 'Date to be confirmed',
     dateTime: status !== 'postponed' ? date?.value : undefined,
     href: school ? '/tour-stops' : detailAvailable ? '/events/' + slug : '/contact-us',
@@ -64,6 +67,6 @@ export function publicOwnedEvents(events: OwnedEvent[], now: number) {
 
 export function ownedEventSignature(events: OwnedEvent[]) {
   return events.filter(event => event && isPubliclyVisible(event.status))
-    .map(event => [event.id, event.kind, event.slug, event.status, event.sellable, event.eventDate, event.name, event.venue].join('|'))
+    .map(event => [event.id, event.kind, event.slug, event.status, event.sellable, event.eventDate, event.name, event.venue, JSON.stringify(event.partnerDetails || null)].join('|'))
     .sort().join('\n');
 }

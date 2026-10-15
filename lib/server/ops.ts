@@ -190,6 +190,12 @@ CREATE TABLE IF NOT EXISTS tour_events (
 -- recovery_notes, so a recovered row can always be told apart from a confirmed
 -- one — in the admin UI and on every public read path.
 ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS recovery JSONB;
+-- Nullable for existing inventory. One additive migration, inside the schema
+-- bootstrap's advisory-locked transaction; no historical rows are rewritten.
+ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS partner_details JSONB;
+ALTER TABLE tour_events DROP CONSTRAINT IF EXISTS tour_events_kind_check;
+ALTER TABLE tour_events ADD CONSTRAINT tour_events_kind_check
+  CHECK (kind IN ('ticketed','school','past','partner'));
 -- The date an event USED to be on. Google's Event guidance is to keep the
 -- original identifying information instead of deleting or silently
 -- overwriting a moved event, and buyers who already hold tickets need to be

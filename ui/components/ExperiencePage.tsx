@@ -5,7 +5,7 @@ import {InlineArrow} from './InlineArrow';
 
 const services = [
   {title:'School events',text:'Talent shows, culture days and colour festivals.',image:'M083',href:'/book?type=school',action:'Plan a school event'},
-  {title:'Campus Rev',text:'Student stages, performances and campus activations.',image:'M120',href:'/book?type=campus',action:'Plan a campus event'},
+  {title:'Campus Rave',text:'Student stages, performances and campus activations.',image:'M120',href:'/book?type=campus',action:'Plan a campus event'},
   {title:'Live hosting',text:'Eugine & Lucy. Together or individually.',image:'M207',href:'/book?type=hosts',action:'Book the hosts'},
   {title:'Event production',text:'Programme, stage and supplier coordination.',image:'M073',href:'/book?type=public',action:'Plan your event'},
   {title:'Brand campaigns',text:'Presenting and production for your audience.',image:'M204',href:'/work-with-us',action:'View campaign work'},

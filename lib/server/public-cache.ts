@@ -15,11 +15,15 @@ export function bumpEventPublicTruth(eventId?: string | null): void {
   invalidate('site-events:ticketed');
   invalidate('site-events:school');
   invalidate('site-events:past');
+  invalidate('site-events:partner');
+  invalidate('partner-portfolio');
   try {
     revalidatePath('/events');
     revalidatePath('/experience');
     revalidatePath('/');
     revalidatePath('/tour-stops');
+    revalidatePath('/portfolio');
+    revalidatePath('/blog', 'layout');
     revalidatePath('/sitemap.xml');
     revalidateTag('sitemap');
     revalidateTag('events');

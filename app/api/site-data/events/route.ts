@@ -4,19 +4,12 @@ import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/rat
 import { cached } from '@/lib/server/microcache';
 import { PUBLIC_EVENT_STATUSES, isEventSellable } from '@/lib/server/event-lifecycle';
 import { resolveManyEventTruths, type EventTruth } from '@/lib/server/event-truth';
+import { parsePartnerDetails } from '@/lib/partner-events';
 
-// Public, read-only view of tour events (ticketed concerts, school tour
-// stops, past-client showcase) — the single DB-backed source
-// app/_components/V25App.tsx bridges into window.__UGT_EVENTS for the v25
-// template's MAIN_EVENTS/STOPS/WORKS (see public/v25-template.html).
-//
-// Roles: public (anon). Only status IN ('published','completed') rows are
-// ever returned — draft and cancelled events never leak here, matching the
-// admin Events tool's soft-delete convention (cancel keeps the row for order
-// history but hides it from every public surface). Queried fresh on every
-// request (no in-memory cache) so an admin add/edit is visible immediately,
-// same as the live-add verification this migration shipped with; the
-// Cache-Control header is what keeps repeat-fetch cost down at the edge.
+// Public, read-only event DTO: local ticket inventory, school stops, client
+// work and contracted partner listings. Only PUBLIC_EVENT_STATUSES leave the
+// database. Five-second coalescing has a bounded fifteen-second fallback;
+// no intermediary cache may prolong stale ticket/lifecycle information.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +31,8 @@ function publicRow(r: any, truth?: EventTruth) {
     accent: r.accent || '',
     image: r.image || '',
     description: r.description || '',
-    tiers: truth?.tiers ?? tiers,
+    tiers: r.kind === 'partner' ? [] : truth?.tiers ?? tiers,
+    partnerDetails: r.kind === 'partner' ? parsePartnerDetails(r.partner_details) : undefined,
     logo: r.logo || '',
     testimonial: r.testimonial || '',
     priority: Number(r.priority) || 0,
@@ -66,7 +60,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const kind = new URL(req.url).searchParams.get('kind');
-  if (kind && !['ticketed', 'school', 'past'].includes(kind)) {
+  if (kind && !['ticketed', 'school', 'past', 'partner'].includes(kind)) {
     return NextResponse.json({ error: 'invalid_kind' }, { status: 400 });
   }
   if (!hasDb()) return NextResponse.json({ ok: false, events: [], error:'events_unavailable' }, { status:503,headers: CACHE_HEADERS });
@@ -75,7 +69,7 @@ export async function GET(req: Request) {
     // heaviest of the four per-page-load reads and the answer is the same for
     // everyone. See lib/server/microcache.ts.
     const snapshot = await cached(`site-events:${kind || 'all'}`, 5_000, async () => {
-      const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
+      const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status, to_jsonb(tour_events)->'partner_details' AS partner_details`;
       const rows = kind
         ? await q<any>(
             `SELECT ${cols} FROM tour_events WHERE kind=$1 AND status = ANY($2) ORDER BY priority DESC, event_date ASC NULLS LAST`,
