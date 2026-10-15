@@ -1,6 +1,7 @@
 "use client";
 import ImageUploadField from './ImageUploadField';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
 
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -2186,6 +2187,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
           ＋ New post
         </button>
       </div>
+      <details style={{marginBottom:20}}><summary>Supplied partner-event news drafts</summary><p>Start an editable, unpublished story. Confirm the brief and add the original cover before publication. Existing stories are not overwritten.</p><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{PARTNER_EVENT_DRAFTS.map(draft=><button key={draft.key} style={btn} disabled={rows.some((r:any)=>r.slug===draft.key)} onClick={()=>setEditPost({published:false,slug:draft.key,headline:draft.news.headline,dek:draft.news.dek,body:draft.news.body,date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Nairobi'}),section:'Events',image:''})}>{draft.name}{rows.some((r:any)=>r.slug===draft.key)?' · already saved':''}</button>)}</div></details>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "collapse", width: "100%" }}>
           <thead>

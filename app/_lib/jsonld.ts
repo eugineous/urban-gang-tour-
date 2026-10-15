@@ -2,6 +2,7 @@ import data from './jsonld.data.json';
 import { SITE, routeByPath } from '@/lib/site';
 import { INDEXABLE_EVENT_STATUSES, eventSchemaStatus } from '@/lib/server/event-lifecycle';
 import { resolveManyEventTruths } from '@/lib/server/event-truth';
+import {partnerEventSchema} from '@/lib/partner-event-schema';
 
 // v25's structured data, split onto the pages it belongs to.
 // Organization + WebSite are site-wide (rendered in the root layout);
@@ -108,8 +109,8 @@ function timeTo24h(t: string): string {
 // an expired, moved or unpublished show.
 export async function eventsFromDb(): Promise<unknown | null> {
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (!db()) return null;
+    const { q, hasDb } = await import('@/lib/server/db');
+    if (!hasDb()) return null;
     // event_date::text — plain 'YYYY-MM-DD' string, never a local-midnight
     // Date object (see lib/server/db.ts's note on pg's DATE parser).
     // Statuses come from the lifecycle (lib/server/event-lifecycle.ts). This
@@ -118,10 +119,10 @@ export async function eventsFromDb(): Promise<unknown | null> {
     // Draft, pending_review, cancelled, completed and archived rows are never
     // queried here.
     const rows = await q<any>(
-      `SELECT slug, name, event_date::text AS event_date, previous_start_at::text AS previous_start_at,
+      `SELECT slug, kind, to_jsonb(tour_events)->'partner_details' AS partner_details, name, event_date::text AS event_date, previous_start_at::text AS previous_start_at,
               event_time, venue, city, image, description, tiers, status
        FROM tour_events
-       WHERE kind='ticketed'
+       WHERE kind IN ('ticketed','partner')
          AND status = ANY($1)
          AND slug != ''
          AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled'))
@@ -129,9 +130,15 @@ export async function eventsFromDb(): Promise<unknown | null> {
       [[...INDEXABLE_EVENT_STATUSES]],
     );
     if (!rows.length) return null;
-    const truths = await resolveManyEventTruths(rows.map((row: { slug: string }) => row.slug));
+    const truths = await resolveManyEventTruths(rows.filter(row=>row.kind!=='partner').map((row: { slug: string }) => row.slug));
     const truthBySlug = new Map(truths.map((truth) => [truth.slug, truth]));
-    const graph = rows.flatMap((r: any) => {
+    const graph = rows.flatMap<Record<string,unknown>>((r: any) => {
+      if(r.kind==='partner'){
+        const schema=partnerEventSchema(r);
+        if(!schema)return [];
+        const {'@context':context,...node}=schema;
+        return [node];
+      }
       const truth = truthBySlug.get(r.slug);
       // A rich-result offer must be backed by current commercial truth. If
       // availability cannot be resolved, omit this event rather than assert

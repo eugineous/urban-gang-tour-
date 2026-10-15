@@ -3,7 +3,7 @@ import { LegalPage } from '@/app/_components/LegalPage';
 
 export const metadata: Metadata = {
   title: 'Ticket Terms — Urban Gang Tour',
-  description: 'Entry conditions, age guidance, media permissions and refund rules for Urban Gang Tour and Campus Rev events.',
+  description: 'Entry conditions, age guidance, media permissions and refund rules for Urban Gang Tour and Campus Rave events.',
   alternates: { canonical: 'https://urbangangtour.co.ke/ticket-terms' },
 };
 

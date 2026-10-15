@@ -2,7 +2,7 @@ import {ensureProductPresentationSchema,productPresentation,isProductImageUrl} f
 import {ensureCheckoutFulfillmentSchema} from '@/lib/server/checkout-fulfillment';
 import { NextResponse, after } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { q, db } from "@/lib/server/db";
+import { q, db, hasDb } from "@/lib/server/db";
 import {
   isAdmin,
   isSuperAdmin,
@@ -39,6 +39,7 @@ import { isEventStatus } from "@/lib/server/event-lifecycle";
 import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
 import { changeEventStatus, parseEventStatusChange } from '@/lib/server/admin-event-status';
+import { parsePartnerDetails, partnerPublicationError } from '@/lib/partner-events';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -195,7 +196,7 @@ export async function GET(req: Request) {
     return bad("forbidden", 403);
   if (SUPER_ADMIN_ONLY_VIEWS.has(view) && !isSuperAdmin(req))
     return bad("forbidden", 403);
-  if (!db()) return bad("db_not_configured", 503);
+  if (!hasDb()) return bad("db_not_configured", 503);
   try {
     await ensureOpsSchema();
     switch (view) {
@@ -368,7 +369,7 @@ export async function GET(req: Request) {
         // event_date::text — plain 'YYYY-MM-DD' for the admin form's <input
         // type="date">, never a local-midnight Date object that would print
         // wrong (see lib/server/db.ts's note on pg's DATE parser).
-        const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, recovery, previous_start_at, created_at, updated_at::text AS updated_at`;
+        const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, recovery, partner_details, previous_start_at, created_at, updated_at::text AS updated_at`;
         const kindFilter = url.searchParams.get("kind");
         const rows = kindFilter
           ? await q(
@@ -796,7 +797,7 @@ export async function POST(req: Request) {
   // Unknown kinds fall through unscoped and 400 in the switch below, same
   // as before this change - there is nothing sensitive to gate for a kind
   // that doesn't exist.
-  if (!db()) return bad("db_not_configured", 503);
+  if (!hasDb()) return bad("db_not_configured", 503);
 
   try {
     await ensureOpsSchema();
@@ -1526,12 +1527,12 @@ export async function POST(req: Request) {
           const code=error instanceof Error?error.message:'';
           if(code==='event_conflict')return bad(code,409);
           if(code==='not_found')return bad(code,404);
-          if(['event_details_required','event_review_required'].includes(code))return bad(code);
+          if(['event_details_required','event_review_required','invalid_partner_details','partner_details_required','partner_ticket_url_required'].includes(code))return bad(code);
           throw error;
         }
       }
       case "tourEvent.save": {
-        const kind = ["ticketed", "school", "past"].includes(d.kind)
+        const kind = ["ticketed", "school", "past", "partner"].includes(d.kind)
           ? d.kind
           : null;
         const name = s(d.name, 200);
@@ -1545,6 +1546,11 @@ export async function POST(req: Request) {
         const tierInput = validateEventTiers(kind === 'ticketed' ? d.tiers : []);
         if (!tierInput.ok) return bad(tierInput.error);
         const tiers = tierInput.tiers;
+        const partner = kind === 'partner' ? parsePartnerDetails(d.partnerDetails) : null;
+        if (kind === 'partner') {
+          const error = partnerPublicationError(partner, {status, image:d.image, eventDate:dateOrNull(d.eventDate), venue:s(d.venue,300)});
+          if (error) return bad(error);
+        } else if (d.partnerDetails != null) return bad('unexpected_partner_details');
         const priority = intOrNull(d.priority) ?? 0;
         let id = s(d.id, 60);
         const isNew = !id;
@@ -1579,25 +1585,28 @@ export async function POST(req: Request) {
           JSON.stringify(tiers),
           s(d.logo, 400),
           s(d.testimonial, 2000),
+          partner ? JSON.stringify(partner) : null,
         ];
         let row;
         if (isNew) {
           row = await q(
-            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial)
-             VALUES ($3,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
+            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, partner_details)
+             VALUES ($3,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb) RETURNING *`,
             fields,
           );
         } else {
           // Read the current date first so a move can be recorded rather than
           // silently overwritten (previous_start_at, below).
-          const before = await q<{ event_date: string | null }>(
-            `SELECT event_date::text AS event_date FROM tour_events WHERE id=$1`,
+          const before = await q<{ event_date: string | null; kind:string }>(
+            `SELECT event_date::text AS event_date,kind FROM tour_events WHERE id=$1`,
             [id],
           );
+          if (!before.length) return bad('not_found',404);
+          if (before[0].kind !== kind) return bad('event_kind_immutable');
           row = await q(
             `UPDATE tour_events SET kind=$1, name=$2, event_date=$4, date_label=$5, event_time=$6, venue=$7, city=$8, accent=$9,
-               status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, updated_at=now()
-             WHERE id=$3 RETURNING *`,
+               status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, partner_details=$17::jsonb, updated_at=now()
+             WHERE id=$3 AND kind=$1 RETURNING *`,
             fields,
           );
           if (!row.length) return bad("not_found", 404);
@@ -1651,8 +1660,8 @@ export async function POST(req: Request) {
           name,
           status,
         });
-        if (status === "published")
-          after(() => pingIndexNow(["/events", "/experience"]));
+        if (status === "published" || (kind === 'partner' && status === 'completed'))
+          after(() => pingIndexNow(["/events", "/experience", "/portfolio",`/events/${row[0]?.slug || id}`]));
         // Commercial mutation: the public list, leaf, sitemap and JSON-LD must
         // drop what they were serving now, not on the next deploy.
         bumpEventPublicTruth(row[0]?.id);

@@ -9,6 +9,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { EVENT_STATUSES, isPubliclyVisible, type EventStatus } from '@/lib/server/event-lifecycle';
 import ImageUploadField from '../ImageUploadField';
+import {EMPTY_PARTNER,parsePartnerDetails,partnerPublicationError,partnerAdmission,type PartnerDetails} from '@/lib/partner-events';
+import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
 import styles from './Events.module.css';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3,
@@ -16,7 +18,7 @@ import {
   SearchBox, useSearch,
 } from './ui';
 
-type Kind = 'ticketed' | 'school' | 'past';
+type Kind = 'ticketed' | 'school' | 'past' | 'partner';
 // Full lifecycle — mirrors lib/server/event-lifecycle.ts, which is the single
 // source of truth the server validates against.
 type Status = EventStatus;
@@ -39,17 +41,18 @@ interface TourEvent {
   logo: string; testimonial: string;
   recovery?: RecoveryInfo | null;
   previous_start_at?: string | null;
+  partner_details?: PartnerDetails | string | null;
 }
 
 const EMPTY = {
   id: '' as string, kind: 'school' as Kind, name: '', eventDate: '', dateLabel: '',
   eventTime: '', venue: '', city: '', accent: '', status: 'draft' as Status,
   priority: 0, image: '', description: '', tiers: [{ name: 'Regular', price: 0 }] as Tier[],
-  logo: '', testimonial: '',
+  logo: '', testimonial: '', partnerDetails: {...EMPTY_PARTNER},
 };
 
-const KIND_LABEL: Record<Kind, string> = { ticketed: 'Ticketed', school: 'School Tour', past: 'Past Client' };
-const KIND_TABS: (Kind | 'all')[] = ['all', 'ticketed', 'school', 'past'];
+const KIND_LABEL: Record<Kind, string> = { ticketed: 'Ticketed', school: 'School Tour', past: 'Past Client', partner:'Contracted / partner event' };
+const KIND_TABS: (Kind | 'all')[] = ['all', 'ticketed', 'partner', 'school', 'past'];
 const STATUS_LABEL: Record<Status, string> = {
   draft: 'Draft', pending_review: 'Pending review', published: 'Upcoming · published', ongoing: 'Happening now',
   sales_paused: 'Sales paused', sold_out: 'Sold out', postponed: 'Postponed',
@@ -60,6 +63,7 @@ function visibilityNote(status: Status, kind: Kind): string {
   if (!isPubliclyVisible(status)) return 'Hidden from the public site';
   if (status === 'ongoing') return 'Public · happening now · online sales closed';
   if (status === 'completed') return 'Public history · no ticket sales';
+  if (kind === 'partner') return 'Public partner listing · no Urban Gang checkout';
   if (kind !== 'ticketed') return 'Public information · no ticket sales';
   if (status !== 'published') return 'Public event · ticket sales closed';
   return 'Public event · sales depend on available inventory and sale window';
@@ -85,6 +89,7 @@ function eventSavePayload(r: TourEvent, priority: number) {
     accent: r.accent || '', status: r.status, priority, image: r.image || '',
     description: r.description || '', tiers: parseTiers(r.tiers),
     logo: r.logo || '', testimonial: r.testimonial || '',
+    partnerDetails: r.kind === 'partner' ? parsePartnerDetails(r.partner_details) : null,
   };
 }
 
@@ -128,6 +133,11 @@ export default function Events() {
 
   const save = async () => {
     if (!edit || !edit.name.trim()) { say('Name is required'); return; }
+    const partnerDetails={...edit.partnerDetails,institutions:edit.partnerDetails.institutions.map(i=>i.trim()).filter(Boolean)};
+    if(edit.kind==='partner'){
+      const error=partnerPublicationError(parsePartnerDetails(partnerDetails),{status:edit.status,image:edit.image,eventDate:edit.eventDate,venue:edit.venue});
+      if(error){say(partnerErrorMessage(error));return}
+    }
     setBusy(true);
     try {
     const { status, data } = await opsPost('tourEvent.save', {
@@ -136,8 +146,9 @@ export default function Events() {
       accent: edit.accent, status: edit.status, priority: edit.priority, image: edit.image,
       description: edit.description, tiers: edit.kind === 'ticketed' ? edit.tiers : [],
       logo: edit.logo, testimonial: edit.testimonial,
+      partnerDetails: edit.kind === 'partner' ? partnerDetails : null,
     });
-    if (status >= 400 || data.error) { say('Failed: ' + (data.error || 'event could not be saved')); return; }
+    if (status >= 400 || data.error) { say(partnerErrorMessage(data.error || 'event could not be saved')); return; }
     say('Saved');
     setEdit(null);
     reload();
@@ -155,7 +166,7 @@ export default function Events() {
     try{
       const {row,status:next}=pendingStatus;
       const result=await opsPost('tourEvent.status',{id:row.id,status:next,expectedStatus:row.status,updatedAt:row.updated_at});
-      if(result.status>=400||result.data.error){say(result.status===409?'This event changed. Reload and review before trying again.':result.data.error==='event_review_required'?'Open Edit and review this recovered record before publishing.':result.data.error==='event_details_required'?'Add a venue and ticketed event date before publishing.':'Status could not be changed. Your current event is unchanged.');return}
+      if(result.status>=400||result.data.error){say(result.status===409?'This event changed. Reload and review before trying again.':partnerErrorMessage(result.data.error));return}
       setPendingStatus(null);say('Status updated. Public pages will refresh shortly.');await reload();
     }catch{say('Connection interrupted. Reload to check the saved status before retrying.')}
     finally{setBusy(false)}
@@ -212,6 +223,7 @@ export default function Events() {
       status: r.status, priority: r.priority, image: r.image || '', description: r.description || '',
       tiers: parseTiers(r.tiers).length ? parseTiers(r.tiers) : [{ name: 'Regular', price: 0 }],
       logo: r.logo || '', testimonial: r.testimonial || '',
+      partnerDetails: parsePartnerDetails(r.partner_details) || {...EMPTY_PARTNER},
     });
   };
 
@@ -242,6 +254,7 @@ export default function Events() {
                 <option value="ticketed">Ticketed concert</option>
                 <option value="school">School tour stop</option>
                 <option value="past">Past client</option>
+                <option value="partner">Contracted / partner event</option>
               </select>
             </div>
             <div><label style={label} htmlFor="tour-event-name">Name *</label><input id="tour-event-name" style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Lari Boys High School" /></div>
@@ -259,6 +272,18 @@ export default function Events() {
           )}
         </div>
 
+        {edit.kind==='partner'&&<fieldset className={styles.partnerFields}>
+          <legend>Partner & admission</legend>
+          {PARTNER_EVENT_DRAFTS.find(d=>d.name===edit.name)&&<p role="note">Brief review: {PARTNER_EVENT_DRAFTS.find(d=>d.name===edit.name)?.review}</p>}
+          <p>This is your work on another organiser’s event. It never creates Urban Gang tickets or takes payments here.</p>
+          {([['organizer','Presented / organised by'],['client','Contracting company'],['role','Our role & credited team']] as const).map(([key,title])=><label key={key}>{title}<input style={inp} value={edit.partnerDetails[key]} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,[key]:e.target.value}})}/></label>)}
+          <div><label htmlFor="partner-admission">Admission</label><select id="partner-admission" style={inp} value={edit.partnerDetails.admission} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,admission:e.target.value as PartnerDetails['admission']}})}><option value="external">Tickets sold by organiser / another platform</option><option value="free">Free admission</option><option value="invitation">By invitation</option><option value="unconfirmed">Not yet confirmed</option></select></div>
+          {edit.partnerDetails.admission==='external'&&<label>Official ticket seller URL (HTTPS)<input style={inp} type="url" placeholder="https://official-ticket-seller.example/event" value={edit.partnerDetails.ticketUrl} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,ticketUrl:e.target.value}})}/></label>}
+          <label>Institutions (one per line)<textarea style={inp} value={edit.partnerDetails.institutions.join('\n')} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,institutions:e.target.value.split('\n')}})}/></label>
+          <label>Related news story slug (published in Content)<input style={inp} value={edit.partnerDetails.newsSlug} placeholder="unifest-2026-university-of-nairobi" onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,newsSlug:e.target.value}})}/></label>
+          <p>Only verified facts and published stories appear publicly. Past listings keep their credits but do not advertise active ticket sales.</p>
+        </fieldset>}
+
         {/* Schedule */}
         {edit.kind !== 'past' && (
           <div style={{ marginBottom: 18 }}>
@@ -268,7 +293,7 @@ export default function Events() {
               {edit.kind === 'school' && !edit.eventDate && (
                 <div><label style={label} htmlFor="tour-event-date-label">Date label (shown instead, e.g. &quot;Date to be confirmed&quot;)</label><input id="tour-event-date-label" style={inp} value={edit.dateLabel} onChange={(e) => setEdit({ ...edit, dateLabel: e.target.value })} placeholder="Date to be confirmed" /></div>
               )}
-              {edit.kind === 'ticketed' && (
+              {(edit.kind === 'ticketed'||edit.kind==='partner') && (
                 <div><label style={label} htmlFor="tour-event-time">Time</label><input id="tour-event-time" style={inp} value={edit.eventTime} onChange={(e) => setEdit({ ...edit, eventTime: e.target.value })} placeholder="2:00 PM" /></div>
               )}
             </div>
@@ -280,7 +305,7 @@ export default function Events() {
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Venue</p>
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             <div><label style={label} htmlFor="tour-event-venue">{edit.kind === 'ticketed' ? 'Venue' : 'Location line'}</label><input id="tour-event-venue" style={inp} value={edit.venue} onChange={(e) => setEdit({ ...edit, venue: e.target.value })} placeholder={edit.kind === 'ticketed' ? 'KICC Grounds' : 'Kimende, Lari, Kiambu County'} /></div>
-            {edit.kind === 'ticketed' && (
+            {(edit.kind === 'ticketed'||edit.kind==='partner') && (
               <div><label style={label} htmlFor="tour-event-city">City</label><input id="tour-event-city" style={inp} value={edit.city} onChange={(e) => setEdit({ ...edit, city: e.target.value })} placeholder="Nairobi" /></div>
             )}
           </div>
@@ -319,6 +344,15 @@ export default function Events() {
               <ImageUploadField label="Client logo" purpose="events" value={edit.logo} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,logo:url}:current)}/>
             )}
           </div>
+          {edit.kind==='partner'&&<div className={styles.partnerFields}>
+            <h4>Additional original posters</h4>
+            {edit.partnerDetails.posters.map((poster,index)=><fieldset key={index}><legend>Poster {index+2}</legend>
+              <ImageUploadField label={`Additional poster ${index+2}`} purpose="events" value={poster.url} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,partnerDetails:{...current.partnerDetails,posters:current.partnerDetails.posters.map((p,i)=>i===index?{...p,url}:p)}}:current)}/>
+              <label>Caption / accessible description<input style={inp} value={poster.caption} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:edit.partnerDetails.posters.map((p,i)=>i===index?{...p,caption:e.target.value}:p)}})}/></label>
+              <button style={btnSmall} disabled={busy||imageBusy} onClick={()=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:edit.partnerDetails.posters.filter((_,i)=>i!==index)}})}>Remove poster</button>
+            </fieldset>)}
+            <button style={btnSmall} disabled={busy||imageBusy||edit.partnerDetails.posters.length>=8} onClick={()=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:[...edit.partnerDetails.posters,{url:'',caption:''}]}})}>+ Add poster variant</button>
+          </div>}
         </div>
 
         {/* Lifecycle */}
@@ -380,6 +414,7 @@ export default function Events() {
         {loadError && <div role="alert" style={{ background: '#FBE7E7', padding: 14, borderRadius: 10, marginBottom: 14 }}><p style={{ margin: '0 0 10px' }}>{loadError}</p><button style={btnSmall} onClick={reload}>Retry loading events</button></div>}
         {!loading&&!loadError&&!rows.some(r=>r.kind==='ticketed')&&<details className={styles.summary}><summary>Legacy event recovery · advanced</summary><p>Restore old source records for review. Nothing is put on sale, and existing records are not overwritten.</p><button style={btnSmall} disabled={busy} onClick={()=>void recoverLegacyEvents()}>Recover legacy events</button></details>}
         <nav className={styles.tools} aria-label="Event tools"><a href="/admin?tab=Promos">Checkout discounts</a><a href="/admin?tab=Campaigns">Banners & pop-ups</a><a href="/admin?tab=Event%20Operations">Event operations</a></nav>
+        {!loading&&!loadError&&<details className={styles.summary}><summary>Supplied event briefs · start a draft</summary><p>Five unique events from your posters. Review artwork, dates, admission and team roles before publishing. Nothing is automatically published.</p><div className={styles.actions}>{PARTNER_EVENT_DRAFTS.map(draft=><button key={draft.key} style={btnSmall} disabled={rows.some(r=>r.kind==='partner'&&r.name===draft.name)} onClick={()=>setEdit({...EMPTY,kind:'partner',name:draft.name,eventDate:draft.eventDate,dateLabel:draft.dateLabel,eventTime:draft.eventTime,venue:draft.venue,city:draft.city,description:draft.description,partnerDetails:{...draft.partnerDetails}})}>{draft.name}{rows.some(r=>r.kind==='partner'&&r.name===draft.name)?' · already saved':''}</button>)}</div></details>}
         {!loading && !loadError && <div className={styles.cards}>
           {visible.map(r=><article key={r.id} className={styles.event}>
             {r.image&&<img src={r.image} alt="" className={styles.cover}/>}
@@ -388,6 +423,7 @@ export default function Events() {
               <h3>{r.name}</h3>
               <p>{r.event_date?fmtDate(r.event_date):r.date_label||'Date to be confirmed'}{r.event_time?' · '+r.event_time:''}<br/>{[r.venue,r.city].filter(Boolean).join(', ')||'Venue to be confirmed'}</p>
               {r.kind==='ticketed'&&<p>{parseTiers(r.tiers).map(t=>t.name+' · KES '+t.price.toLocaleString()).join(' / ')}</p>}
+              {r.kind==='partner'&&<p>{partnerAdmission(parsePartnerDetails(r.partner_details)||EMPTY_PARTNER)} · {parsePartnerDetails(r.partner_details)?.client||'Client to be confirmed'}</p>}
               <p>{visibilityNote(r.status,r.kind)}</p>
               {r.recovery&&r.recovery.verification_status!=='verified'&&<p>Recovered record · review its details before publishing.</p>}
               <label>Event status<select aria-label={'Status for '+r.name} disabled={busy} value={pendingStatus?.row.id===r.id?pendingStatus.status:r.status} onChange={e=>setPendingStatus({row:r,status:e.target.value as Status})}>{EVENT_STATUSES.map(status=><option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label>
@@ -395,7 +431,7 @@ export default function Events() {
               <div className={styles.actions}>
                 <button style={btnSmall} disabled={busy} onClick={()=>openEdit(r)}>Edit event</button>
                 <button style={btnSmall} disabled={busy} onClick={()=>setPriority(r,r.priority>0?0:maxPriorityFor(r.kind)+10)}>{r.priority>0?'Unfeature':'Feature'}</button>
-                {isPubliclyVisible(r.status)&&<a href={r.kind==='ticketed'?'/events/'+encodeURIComponent(r.slug||r.id):r.kind==='school'?'/tour-stops':'/clients'} target="_blank" rel="noopener noreferrer">View public page</a>}
+                {isPubliclyVisible(r.status)&&<a href={r.kind==='ticketed'||r.kind==='partner'?'/events/'+encodeURIComponent(r.slug||r.id):r.kind==='school'?'/tour-stops':'/clients'} target="_blank" rel="noopener noreferrer">View public page</a>}
               </div>
             </div>
           </article>)}
@@ -404,4 +440,9 @@ export default function Events() {
       </div>
     </div>
   );
+}
+
+function partnerErrorMessage(code:string){
+  const messages:Record<string,string>={partner_details_required:'Add the organiser, contracting company, our role, original artwork, date and venue before publishing.',partner_ticket_url_required:'Add the official external ticket URL before publishing this ticketed partner event.',invalid_partner_details:'Check partner details, HTTPS ticket URL, institutions and poster captions.',event_details_required:'Add the venue and event date before publishing.',event_review_required:'Open Edit and review this recovered record before publishing.',event_kind_immutable:'An existing event’s kind cannot change. Create a separate partner listing to preserve ticket history.'};
+  return messages[code]||'Could not save this change: '+code;
 }

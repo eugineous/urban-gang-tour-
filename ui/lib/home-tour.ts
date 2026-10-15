@@ -16,7 +16,7 @@ export type PublicTourEvent = {
 /** A published date is required; planning records never become announcements. */
 export function nextTourEvent(events: PublicTourEvent[], now: number): PublicTourEvent | undefined {
   return events.filter(event => {
-    if (!['school', 'ticketed'].includes(event.kind) || !['published', 'ongoing', 'rescheduled', 'sold_out', 'sales_paused'].includes(event.status)) return false;
+    if (!['school', 'ticketed', 'partner'].includes(event.kind) || !['published', 'ongoing', 'rescheduled', 'sold_out', 'sales_paused'].includes(event.status)) return false;
     if (!event.eventDate || !/^\d{4}-\d{2}-\d{2}$/.test(event.eventDate)) return false;
     const date = new Date(event.eventDate + 'T12:00:00+03:00');
     if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== event.eventDate) return false;
@@ -27,6 +27,7 @@ export function nextTourEvent(events: PublicTourEvent[], now: number): PublicTou
 export function tourEventAction(event: PublicTourEvent): {label: string; href: string; note: string} {
   if (event.kind === 'school') return {label: 'Explore the school tour', href: '/tour-stops', note: 'School programme · attendance is arranged with the institution.'};
   const href = event.slug ? '/events/' + encodeURIComponent(event.slug) : '/events';
-  if (event.status === 'published' && event.sellable === true) return {label: 'View tickets', href, note: 'Public event · check ticket availability and entry details.'};
+  if (event.kind === 'ticketed' && event.status === 'published' && event.sellable === true) return {label: 'View tickets', href, note: 'Public event · check ticket availability and entry details.'};
+  if (event.kind === 'partner') return {label:'View event details',href,note:'Partner event · see organiser and admission details.'};
   return {label: 'View event details', href, note: event.status === 'sold_out' ? 'Tickets sold out · check the event for updates.' : event.status === 'sales_paused' ? 'Ticket sales are paused.' : 'See the latest schedule and attendance details.'};
 }

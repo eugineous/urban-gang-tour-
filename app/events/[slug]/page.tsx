@@ -10,6 +10,8 @@ import { formatEventDate } from '@/lib/server/catalog';
 import { PUBLIC_EVENT_STATUSES, isEventIndexable, eventSchemaStatus } from '@/lib/server/event-lifecycle';
 import { matchEventRoute } from '@/lib/server/event-route';
 import { resolveEventTruth } from '@/lib/server/event-truth';
+import PartnerEventDetails from '@/app/_components/PartnerEventDetails';
+import {parsePartnerDetails} from '@/lib/partner-events';
 
 // Event pages include sellability and Offer markup, so serve them on demand.
 // This avoids a stale ISR page advertising a show after an authoritative
@@ -34,6 +36,8 @@ export async function generateStaticParams() {
 
 type Tier = { name: string; price: number };
 type TicketedEvent = {
+  kind: string;
+  partner_details: unknown;
   id: string;
   slug: string;
   name: string;
@@ -59,21 +63,21 @@ const eventForPage = cache(async (slug: string): Promise<RoutedEvent | null> => 
   // pending_review, archived and rejected rows stay invisible (404), per
   // Google's keep-the-event-and-flip-its-status rule.
   const rows = await q<TicketedEvent>(
-    `SELECT id, slug, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
+    `SELECT id, slug, kind, to_jsonb(tour_events)->'partner_details' AS partner_details, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
             status, previous_start_at::text AS previous_start_at
-     FROM tour_events WHERE slug=$1 AND kind='ticketed' AND status = ANY($2) LIMIT 1`,
+     FROM tour_events WHERE slug=$1 AND kind IN ('ticketed','partner') AND status = ANY($2) LIMIT 1`,
     [slug, [...PUBLIC_EVENT_STATUSES]]
   );
   const direct = rows[0];
-  if (direct) return { event: direct, canonical: true };
+  if (direct) return direct.kind==='partner'&&!parsePartnerDetails(direct.partner_details)?null:{ event: direct, canonical: true };
 
   // Legacy ids are resolved only after canonical slug lookup fails. A blank
   // legacy slug intentionally remains a 404; inventing a redirect would hide
   // an operator migration problem and could expose a non-public record.
   const legacyRows = await q<TicketedEvent>(
-    `SELECT id, slug, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
+    `SELECT id, slug, kind, to_jsonb(tour_events)->'partner_details' AS partner_details, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
             status, previous_start_at::text AS previous_start_at
-     FROM tour_events WHERE id=$1 AND slug != '' AND kind='ticketed' AND status = ANY($2) LIMIT 1`,
+     FROM tour_events WHERE id=$1 AND slug != '' AND kind IN ('ticketed','partner') AND status = ANY($2) LIMIT 1`,
     [slug, [...PUBLIC_EVENT_STATUSES]],
   );
   const match = matchEventRoute(slug, null, legacyRows[0]);
@@ -113,7 +117,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const event = resolved.event;
   const path = `/events/${event.slug}`;
   const description = event.description || `${event.name} at ${event.venue}${event.city ? `, ${event.city}` : ''}.`;
-  const indexable = isEventIndexable(event.status);
+  const indexable = isEventIndexable(event.status) || (event.kind==='partner'&&event.status==='completed');
   return {
     title: `${event.name} | Urban Gang Tour`,
     description,
@@ -129,6 +133,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   if (!resolved) notFound();
   if (!resolved.canonical) permanentRedirect(`/events/${resolved.event.slug}`);
   const event = resolved.event;
+  if(event.kind==='partner')return <PartnerEventDetails event={event}/>;
   const truth = await resolveEventTruth(event.slug);
   // A page may render public event information when availability lookup is
   // unavailable, but it must never claim tickets can be bought in that case.

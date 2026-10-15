@@ -653,6 +653,37 @@ Order limits default to 1–20. Until immutable tier identities are implemented,
 staff must not rename or reorder tiers after purchases; this is an operating
 restriction, not a server-enforced guarantee.
 
+### Contracted / partner event listings (15 October 2026)
+
+`tourEvent.save` accepts `kind: "partner"` with `partnerDetails` containing
+exactly `{organizer,client,role,admission,ticketUrl,institutions,posters,newsSlug}`.
+Admission is `external`, `free`, `invitation` or `unconfirmed`. Institutions
+are at most 12 names; posters are at most eight additional `{url,caption}`
+objects. HTTPS external seller links reject credentials, local/private IP
+hosts and Urban Gang checkout. Links are never fetched server-side.
+
+Drafts can be incomplete. Public partner transitions require the organiser,
+contracting company, credited role, original artwork, venue and confirmed date
+(except postponed dates). Active external-ticket listings also require the
+official seller URL. These checks apply to both full saves and narrow status
+changes. Existing event kinds cannot be changed, preserving ticket ownership.
+Partner tiers are always empty and `sellable` is always false: listing another
+company’s event never enables local payment collection or marketplace splits.
+
+Public `GET /api/site-data/events?kind=partner` returns `partnerDetails` and
+canonical `/events/[slug]` links. Event pages show the original poster gallery,
+presenter/client/team credits, admission and the external seller when active;
+past, paused, postponed and sold-out records never show a buy link. Completed
+partner pages remain indexable portfolio work (CreativeWork), not live offers.
+Upcoming Event schema credits the actual organiser and does not invent seller
+stock. Published matching news slugs provide bidirectional event/story links.
+Portfolio and sitemap include public partner records; drafts remain private.
+
+Admin Events and Content include five owner-supplied editable brief templates.
+Starting a template does not persist or publish it. Saving uses the existing
+authenticated, module-permission-gated admin routes. Missing original artwork,
+Freshers Bash’s year, and unconfirmed new-event roles are not fabricated.
+
 ### Additional server configuration
 
 The batch uses existing `DATABASE_URL`, `SESSION_SECRET`, `RESEND_API_KEY` and
