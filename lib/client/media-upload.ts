@@ -15,11 +15,13 @@ export interface MediaUploadResult {
 }
 
 export async function upload(pathname: string, file: File, opts: MediaUploadOptions): Promise<MediaUploadResult> {
-  const url = `${opts.handleUploadUrl}?pathname=${encodeURIComponent(pathname)}`;
+  const separator = opts.handleUploadUrl.includes('?') ? '&' : '?';
+  const url = `${opts.handleUploadUrl}${separator}pathname=${encodeURIComponent(pathname)}`;
 
   return new Promise<MediaUploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
+    xhr.timeout = 60000;
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
     xhr.upload.onprogress = (ev) => {
       if (ev.lengthComputable && opts.onUploadProgress) {
@@ -40,6 +42,8 @@ export async function upload(pathname: string, file: File, opts: MediaUploadOpti
       }
     };
     xhr.onerror = () => reject(new Error('network_error'));
+    xhr.ontimeout = () => reject(new Error('upload_timeout'));
+    xhr.onabort = () => reject(new Error('upload_cancelled'));
     xhr.send(file);
   });
 }

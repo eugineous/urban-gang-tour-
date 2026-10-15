@@ -38,6 +38,7 @@ import {
 import { isEventStatus } from "@/lib/server/event-lifecycle";
 import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
+import { changeEventStatus, parseEventStatusChange } from '@/lib/server/admin-event-status';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -367,7 +368,7 @@ export async function GET(req: Request) {
         // event_date::text — plain 'YYYY-MM-DD' for the admin form's <input
         // type="date">, never a local-midnight Date object that would print
         // wrong (see lib/server/db.ts's note on pg's DATE parser).
-        const cols = `id, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, recovery, created_at, updated_at`;
+        const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, recovery, previous_start_at, created_at, updated_at::text AS updated_at`;
         const kindFilter = url.searchParams.get("kind");
         const rows = kindFilter
           ? await q(
@@ -698,6 +699,7 @@ const KIND_PERM: Record<string, string> = {
   "promo.save": "ops_promos",
   "promo.delete": "ops_promos",
   "tourEvent.save": "events",
+  "tourEvent.status": "events",
   "tourEvent.delete": "events",
   "tourEvent.recoverLegacyEvents": "events",
   "tourEvent.verifyRecovery": "events",
@@ -1513,6 +1515,21 @@ export async function POST(req: Request) {
       // The single DB source app/api/site-data/events/route.ts, the shop/ticket
       // checkout pricing layer (lib/server/catalog.ts) and the /events JSON-LD
       // (app/_lib/jsonld.ts eventsFromDb) all read from this same table.
+      case "tourEvent.status": {
+        const input=parseEventStatusChange(d);
+        if(!input)return bad('invalid_status_change');
+        try {
+          const row=await changeEventStatus(input,adminActor(req));
+          bumpEventPublicTruth(input.id);
+          return NextResponse.json({ok:true,row});
+        } catch(error) {
+          const code=error instanceof Error?error.message:'';
+          if(code==='event_conflict')return bad(code,409);
+          if(code==='not_found')return bad(code,404);
+          if(['event_details_required','event_review_required'].includes(code))return bad(code);
+          throw error;
+        }
+      }
       case "tourEvent.save": {
         const kind = ["ticketed", "school", "past"].includes(d.kind)
           ? d.kind

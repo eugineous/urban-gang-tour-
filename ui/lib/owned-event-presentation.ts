@@ -19,10 +19,11 @@ export function ownedEventPresentation(event: OwnedEvent, now: number) {
   const status = text(event.status);
   const publicEvent = isPubliclyVisible(status) && (school || event.kind === 'ticketed');
   const datePassed = date !== null && Date.parse(date.value + 'T23:59:59+03:00') < now;
-  const past = status === 'completed' || (datePassed && status !== 'postponed');
+  const past = status === 'completed' || (datePassed && !['postponed','ongoing'].includes(status));
   const sellable = publicEvent && isSellable(status) && !school && !past && event.sellable === true;
   const labels: Record<string, string> = {
     published: past ? 'Date passed' : school ? 'School tour stop' : sellable ? 'Tickets on sale' : 'Details published',
+    ongoing: 'Happening now',
     sales_paused: 'Ticket sales paused',
     sold_out: 'Sold out',
     postponed: 'Postponed',
@@ -31,6 +32,7 @@ export function ownedEventPresentation(event: OwnedEvent, now: number) {
   };
   const notes: Record<string, string> = {
     published: past ? 'This date has passed. View the event record.' : school ? 'A school tour stop. Public tickets are not sold here.' : sellable ? 'View ticket options and the latest availability.' : 'Ticket sales are not open. Check the event details for updates.',
+    ongoing: 'This event is in progress. Online ticket sales are closed.',
     sales_paused: school ? 'Check the school tour for the latest updates.' : 'Ticket sales are paused. Event details remain available.',
     sold_out: school ? 'Check the school tour for the latest updates.' : 'Tickets are sold out. View the event details.',
     postponed: 'The event has been postponed. Check for a confirmed new date.',

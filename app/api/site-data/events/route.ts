@@ -55,7 +55,9 @@ function publicRow(r: any, truth?: EventTruth) {
   };
 }
 
-const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' };
+// Lifecycle updates must not sit in an intermediary cache after staff pause or
+// close an event. Coalesce DB work internally; never renew a stale snapshot.
+const CACHE_HEADERS = { 'Cache-Control': 'no-store' };
 
 export async function GET(req: Request) {
   // Loose: a public read that every page load makes, and a whole venue shares
@@ -67,12 +69,12 @@ export async function GET(req: Request) {
   if (kind && !['ticketed', 'school', 'past'].includes(kind)) {
     return NextResponse.json({ error: 'invalid_kind' }, { status: 400 });
   }
-  if (!hasDb()) return NextResponse.json({ ok: true, events: [] }, { headers: CACHE_HEADERS });
+  if (!hasDb()) return NextResponse.json({ ok: false, events: [], error:'events_unavailable' }, { status:503,headers: CACHE_HEADERS });
   try {
     // Cached per `kind` in-isolate with request coalescing: this is the
     // heaviest of the four per-page-load reads and the answer is the same for
     // everyone. See lib/server/microcache.ts.
-    const events = await cached(`site-events:${kind || 'all'}`, 60_000, async () => {
+    const snapshot = await cached(`site-events:${kind || 'all'}`, 5_000, async () => {
       const cols = `id, slug, kind, name, event_date::text AS event_date, date_label, event_time, venue, city, accent, image, description, tiers, logo, testimonial, priority, status`;
       const rows = kind
         ? await q<any>(
@@ -87,12 +89,13 @@ export async function GET(req: Request) {
         rows.filter((row: { kind: string }) => row.kind === 'ticketed').map((row: { slug?: string }) => row.slug || ''),
       );
       const truthBySlug = new Map(truths.map((truth) => [truth.slug, truth]));
-      return rows.map((row) => publicRow(row, truthBySlug.get(row.slug)));
+      return {events:rows.map((row) => publicRow(row, truthBySlug.get(row.slug))),expires:Date.now()+15000};
     });
-    return NextResponse.json({ ok: true, events }, { headers: CACHE_HEADERS });
+    if(snapshot.expires<=Date.now())throw new Error('snapshot_expired');
+    return NextResponse.json({ ok: true, events:snapshot.events }, { headers: CACHE_HEADERS });
   } catch {
     // DB hiccup — the desktop bridge renders an explicit unpublished state,
     // so an empty list is safe and never revives stale event details.
-    return NextResponse.json({ ok: true, events: [] });
+    return NextResponse.json({ ok: false, events: [], error:'events_unavailable' }, {status:503,headers:CACHE_HEADERS});
   }
 }
