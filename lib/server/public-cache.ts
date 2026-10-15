@@ -18,6 +18,8 @@ export function bumpEventPublicTruth(eventId?: string | null): void {
   try {
     revalidatePath('/events');
     revalidatePath('/experience');
+    revalidatePath('/');
+    revalidatePath('/tour-stops');
     revalidatePath('/sitemap.xml');
     revalidateTag('sitemap');
     revalidateTag('events');

@@ -8,8 +8,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { EVENT_STATUSES, isPubliclyVisible, type EventStatus } from '@/lib/server/event-lifecycle';
+import ImageUploadField from '../ImageUploadField';
+import styles from './Events.module.css';
 import {
-  OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
+  OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3,
   Chip, fmtDate, opsGet, opsPost, Toast, useToast,
   SearchBox, useSearch,
 } from './ui';
@@ -31,7 +33,7 @@ interface RecoveryInfo {
 }
 
 interface TourEvent {
-  id: string; kind: Kind; name: string; event_date: string | null; date_label: string;
+  id: string; slug?: string; updated_at: string; kind: Kind; name: string; event_date: string | null; date_label: string;
   event_time: string; venue: string; city: string; accent: string; status: Status;
   priority: number; image: string; description: string; tiers: Tier[] | string;
   logo: string; testimonial: string;
@@ -49,13 +51,14 @@ const EMPTY = {
 const KIND_LABEL: Record<Kind, string> = { ticketed: 'Ticketed', school: 'School Tour', past: 'Past Client' };
 const KIND_TABS: (Kind | 'all')[] = ['all', 'ticketed', 'school', 'past'];
 const STATUS_LABEL: Record<Status, string> = {
-  draft: 'Draft', pending_review: 'Pending review', published: 'Published',
+  draft: 'Draft', pending_review: 'Pending review', published: 'Upcoming · published', ongoing: 'Happening now',
   sales_paused: 'Sales paused', sold_out: 'Sold out', postponed: 'Postponed',
   rescheduled: 'Rescheduled', cancelled: 'Cancelled', completed: 'Completed', archived: 'Archived',
 };
 
 function visibilityNote(status: Status, kind: Kind): string {
   if (!isPubliclyVisible(status)) return 'Hidden from the public site';
+  if (status === 'ongoing') return 'Public · happening now · online sales closed';
   if (status === 'completed') return 'Public history · no ticket sales';
   if (kind !== 'ticketed') return 'Public information · no ticket sales';
   if (status !== 'published') return 'Public event · ticket sales closed';
@@ -92,6 +95,9 @@ export default function Events() {
   const [showCancelled, setShowCancelled] = useState(false);
   const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
+  const [imageBusy,setImageBusy]=useState(false);
+  const [statusFilter,setStatusFilter]=useState('all');
+  const [pendingStatus,setPendingStatus]=useState<{row:TourEvent;status:Status}|null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [toast, say] = useToast();
@@ -142,19 +148,17 @@ export default function Events() {
     }
   };
 
-  const cancelEvent = async (r: TourEvent) => {
-    if (!confirm(`Cancel "${r.name}"? It stops appearing on the site but stays in order history.`)) return;
+
+  const updateStatus=async()=>{
+    if(!pendingStatus||busy)return;
     setBusy(true);
-    try {
-      const { status, data } = await opsPost('tourEvent.delete', { id: r.id });
-      if (status >= 400 || data.error) { say('Failed: ' + (data.error || 'event could not be cancelled')); return; }
-      say('Cancelled');
-      await reload();
-    } catch {
-      say('Could not cancel the event. Check your connection and retry.');
-    } finally {
-      setBusy(false);
-    }
+    try{
+      const {row,status:next}=pendingStatus;
+      const result=await opsPost('tourEvent.status',{id:row.id,status:next,expectedStatus:row.status,updatedAt:row.updated_at});
+      if(result.status>=400||result.data.error){say(result.status===409?'This event changed. Reload and review before trying again.':result.data.error==='event_review_required'?'Open Edit and review this recovered record before publishing.':result.data.error==='event_details_required'?'Add a venue and ticketed event date before publishing.':'Status could not be changed. Your current event is unchanged.');return}
+      setPendingStatus(null);say('Status updated. Public pages will refresh shortly.');await reload();
+    }catch{say('Connection interrupted. Reload to check the saved status before retrying.')}
+    finally{setBusy(false)}
   };
 
   // One-time recovery of the three LEGACY ticketed events that shipped before
@@ -217,7 +221,7 @@ export default function Events() {
     setEdit({ ...edit, tiers });
   };
 
-  const byKind = rows.filter((r) => (kindTab === 'all' || r.kind === kindTab) && (showCancelled || r.status !== 'cancelled'));
+  const byKind = rows.filter((r) => (kindTab === 'all' || r.kind === kindTab) && (showCancelled || statusFilter==='cancelled' || r.status !== 'cancelled') && (statusFilter==='all'||r.status===statusFilter));
   const visible = useSearch(byKind, qy);
   const publicCount = rows.filter(r => isPubliclyVisible(r.status)).length;
   const reviewCount = rows.filter(r => r.status === 'draft' || r.status === 'pending_review').length;
@@ -225,7 +229,7 @@ export default function Events() {
 
   if (edit) {
     return (
-      <div style={card}>
+      <div style={{...card,minWidth:0}} className={styles.editor}>
         <Toast msg={toast} />
         <h3 style={h3}>{edit.id ? 'EDIT EVENT' : 'NEW EVENT'}</h3>
 
@@ -307,12 +311,12 @@ export default function Events() {
         <div style={{ marginBottom: 18 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Media</p>
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-            <div><label style={label} htmlFor="tour-event-image">Image path</label><input id="tour-event-image" style={inp} value={edit.image} onChange={(e) => setEdit({ ...edit, image: e.target.value })} placeholder="/assets/gal/lari.jpg" /></div>
+            <ImageUploadField label="Event artwork" purpose="events" value={edit.image} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,image:url}:current)}/>
             {edit.kind === 'ticketed' && (
               <div><label style={label} htmlFor="tour-event-accent">Accent colour (hex)</label><input id="tour-event-accent" style={inp} value={edit.accent} onChange={(e) => setEdit({ ...edit, accent: e.target.value })} placeholder="#E6218C" /></div>
             )}
             {edit.kind === 'past' && (
-              <div><label style={label} htmlFor="tour-event-logo">Logo path</label><input id="tour-event-logo" style={inp} value={edit.logo} onChange={(e) => setEdit({ ...edit, logo: e.target.value })} placeholder="/assets/partners/logo.png" /></div>
+              <ImageUploadField label="Client logo" purpose="events" value={edit.logo} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,logo:url}:current)}/>
             )}
           </div>
         </div>
@@ -335,28 +339,26 @@ export default function Events() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <button style={btnMagenta} disabled={busy} onClick={save}>{busy ? 'Saving…' : 'Save event'}</button>
-          <button style={btnDark} disabled={busy} onClick={() => setEdit(null)}>Cancel</button>
+        <div className={styles.savebar}>
+          <button style={btnMagenta} disabled={busy||imageBusy} onClick={save}>{imageBusy?'Wait for artwork…':busy ? 'Saving…' : 'Save event'}</button>
+          <button style={btnDark} disabled={busy||imageBusy} onClick={() => setEdit(null)}>Cancel</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
+    <div className={styles.workspace}>
       <Toast msg={toast} />
-      <div style={card}>
+      <div style={{...card,minWidth:0}}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
           <h3 style={{ ...h3, marginBottom: 0 }}>TOUR EVENTS</h3>
           <div style={{ flex: 1 }} />
           <SearchBox value={qy} onChange={setQy} placeholder="Search events..." />
-          {!loading && !loadError && !rows.some((r) => r.kind === 'ticketed') && (
-            <button style={{ ...btn, background: '#111', color: '#fff' }} disabled={busy} onClick={recoverLegacyEvents} title="One-time recovery of the 3 legacy ticketed events from source history">Recover legacy events</button>
-          )}
           <button style={btn} disabled={busy || loading || !!loadError} onClick={() => openEdit()}>+ New event</button>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          <label style={{width:'100%',maxWidth:320}}>Status filter <select style={inp} aria-label="Filter events by status" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">All statuses</option>{EVENT_STATUSES.map(status=><option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label>
           {KIND_TABS.map((k) => (
             <button key={k} style={{ ...btnSmall, background: kindTab === k ? OC.magenta : '#fff', color: kindTab === k ? '#fff' : '#111' }} onClick={() => setKindTab(k)}>
               {k === 'all' ? 'All' : KIND_LABEL[k]}
@@ -372,55 +374,32 @@ export default function Events() {
           <Chip text={`${publishedTicketCount} published ticketed events`} />
         </div>}
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          These records supply the public event feed and ticket prices. Published school stops are informational; only ticketed events can offer tickets, subject to available inventory and the sale window. Priority orders the feed within each kind. Cancel keeps the record for order history and hides it from public views. The recorded tour-history archive is maintained separately.
+          Publish confirmed events, update their status, and manage artwork here. Ticket sales also require available inventory.
         </div>
         {loading && <p role="status">Loading tour events…</p>}
         {loadError && <div role="alert" style={{ background: '#FBE7E7', padding: 14, borderRadius: 10, marginBottom: 14 }}><p style={{ margin: '0 0 10px' }}>{loadError}</p><button style={btnSmall} onClick={reload}>Retry loading events</button></div>}
-        {!loading && !loadError && !rows.some((r) => r.kind === 'ticketed') && (
-          <div style={{ fontSize: 12, color: '#7A4F1A', background: '#FDF2D9', border: '1px solid #EBD9A8', padding: '10px 12px', marginBottom: 10 }}>
-            <b>No ticketed events — nothing can be sold and /events/[id] has no live page.</b>{' '}
-            &quot;Recover legacy events&quot; copies the three ticketed events that shipped before the DB cutover
-            (The Experience Hub Dance Event · KICC, Urban Festival Of Colours · Uhuru Gardens, Campus Rave · Carnivore Grounds)
-            out of source history. This is <b>evidence recovery, not verification</b>: names, venues and tier prices come from
-            an old commit that nobody has confirmed against today&apos;s reality. Past dates are recorded as
-            <b> completed</b> (history, never sellable); the future one stays a <b>draft</b>. Each row is tagged
-            <b> UNVERIFIED</b> until a person confirms it and publishes it. Recovery is transactional and repeat-safe —
-            it will never overwrite or duplicate an event you have already edited.
-          </div>
-        )}
-        {!loading && !loadError && <div style={{ overflowX: 'auto' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead><tr>{['kind', 'name', 'date', 'venue / location', 'priority', 'status', ''].map((c) => <th key={c} style={th}>{c}</th>)}</tr></thead>
-            <tbody>
-              {visible.map((r) => (
-                <tr key={r.id}>
-                  <td style={td}><Chip text={KIND_LABEL[r.kind]} /></td>
-                  <td style={td}><b>{r.name}</b>{r.recovery && r.recovery.verification_status !== 'verified' ? <Chip text={'recovered · ' + r.recovery.verification_status} bg="#FBE7E7" color={OC.red} /> : null}{r.recovery?.verification_status === 'verified' ? <Chip text="recovered · verified" bg="#E7F5EE" color={OC.green} /> : null}{r.kind === 'ticketed' ? <div style={{ fontSize: 11, color: '#888' }}>{parseTiers(r.tiers).map((t) => `${t.name} KES ${t.price.toLocaleString()}`).join(' · ')}</div> : null}</td>
-                  <td style={td}>{r.event_date ? fmtDate(r.event_date) : (r.date_label || '—')}{r.event_time ? ` · ${r.event_time}` : ''}{r.previous_start_at && r.previous_start_at !== r.event_date ? <div style={{ fontSize: 11, color: '#B26A00' }}>was {fmtDate(r.previous_start_at)}</div> : null}</td>
-                  <td style={td}>{r.venue}{r.city ? `, ${r.city}` : ''}</td>
-                  <td style={td}>{r.priority}</td>
-                  <td style={td}>
-                    <Chip text={STATUS_LABEL[r.status] || r.status}
-                      bg={r.status === 'published' ? '#E7F5EE' : r.status === 'cancelled' ? '#FBE7E7' : '#eee'}
-                      color={r.status === 'published' ? OC.green : r.status === 'cancelled' ? OC.red : '#333'} />
-                    <div style={{ fontSize: 11, color: '#666', marginTop: 6 }}>{visibilityNote(r.status, r.kind)}</div>
-                  </td>
-                  <td style={td}>
-                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                      <button style={btnSmall} disabled={busy} onClick={() => openEdit(r)}>Edit</button>
-                      <button style={btnSmall} disabled={busy} onClick={() => setPriority(r, maxPriorityFor(r.kind) + 10)} title="Prioritize in the public feed while keeping this event's date, venue and media">↑ Pin</button>
-                      {r.priority > 0 && <button style={btnSmall} disabled={busy} onClick={() => setPriority(r, 0)} title="Remove feed priority while keeping this event's details">↓ Unpin</button>}
-                      {r.kind === 'ticketed' && isPubliclyVisible(r.status) && <a style={{ ...btnSmall, textDecoration: 'none' }} href={`/events/${encodeURIComponent(r.id)}`} target="_blank" rel="noopener noreferrer">View event</a>}
-                      {r.status === 'cancelled'
-                        ? <button style={btnSmall} disabled={busy} onClick={() => openEdit(r)} title="Review the existing details and choose a lifecycle status before saving">Review to restore</button>
-                        : <button style={{ ...btnSmall, background: '#111', color: '#fff' }} disabled={busy} onClick={() => cancelEvent(r)}>Cancel</button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!visible.length && <tr><td style={td} colSpan={7}>{byKind.length ? 'No events match your search.' : 'No events in this filter.'}</td></tr>}
-            </tbody>
-          </table>
+        {!loading&&!loadError&&!rows.some(r=>r.kind==='ticketed')&&<details className={styles.summary}><summary>Legacy event recovery · advanced</summary><p>Restore old source records for review. Nothing is put on sale, and existing records are not overwritten.</p><button style={btnSmall} disabled={busy} onClick={()=>void recoverLegacyEvents()}>Recover legacy events</button></details>}
+        <nav className={styles.tools} aria-label="Event tools"><a href="/admin?tab=Promos">Checkout discounts</a><a href="/admin?tab=Campaigns">Banners & pop-ups</a><a href="/admin?tab=Event%20Operations">Event operations</a></nav>
+        {!loading && !loadError && <div className={styles.cards}>
+          {visible.map(r=><article key={r.id} className={styles.event}>
+            {r.image&&<img src={r.image} alt="" className={styles.cover}/>}
+            <div className={styles.content}>
+              <div className={styles.tags}><Chip text={KIND_LABEL[r.kind]}/><Chip text={r.status==='published'&&r.event_date&&Date.parse(fmtDate(r.event_date)+'T23:59:59+03:00')<Date.now()?'Date passed · review status':STATUS_LABEL[r.status]||r.status}/>{r.priority>0&&<Chip text="Featured"/>}</div>
+              <h3>{r.name}</h3>
+              <p>{r.event_date?fmtDate(r.event_date):r.date_label||'Date to be confirmed'}{r.event_time?' · '+r.event_time:''}<br/>{[r.venue,r.city].filter(Boolean).join(', ')||'Venue to be confirmed'}</p>
+              {r.kind==='ticketed'&&<p>{parseTiers(r.tiers).map(t=>t.name+' · KES '+t.price.toLocaleString()).join(' / ')}</p>}
+              <p>{visibilityNote(r.status,r.kind)}</p>
+              {r.recovery&&r.recovery.verification_status!=='verified'&&<p>Recovered record · review its details before publishing.</p>}
+              <label>Event status<select aria-label={'Status for '+r.name} disabled={busy} value={pendingStatus?.row.id===r.id?pendingStatus.status:r.status} onChange={e=>setPendingStatus({row:r,status:e.target.value as Status})}>{EVENT_STATUSES.map(status=><option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label>
+              {pendingStatus?.row.id===r.id&&<section className={styles.confirm} aria-label="Confirm event status"><strong>Change to {STATUS_LABEL[pendingStatus.status]}?</strong><p>{visibilityNote(pendingStatus.status,r.kind)}. This does not send messages or issue refunds.</p><div className={styles.actions}><button style={btnMagenta} disabled={busy} onClick={()=>void updateStatus()}>Confirm status</button><button style={btnSmall} disabled={busy} onClick={()=>setPendingStatus(null)}>Keep current</button></div></section>}
+              <div className={styles.actions}>
+                <button style={btnSmall} disabled={busy} onClick={()=>openEdit(r)}>Edit event</button>
+                <button style={btnSmall} disabled={busy} onClick={()=>setPriority(r,r.priority>0?0:maxPriorityFor(r.kind)+10)}>{r.priority>0?'Unfeature':'Feature'}</button>
+                {isPubliclyVisible(r.status)&&<a href={r.kind==='ticketed'?'/events/'+encodeURIComponent(r.slug||r.id):r.kind==='school'?'/tour-stops':'/clients'} target="_blank" rel="noopener noreferrer">View public page</a>}
+              </div>
+            </div>
+          </article>)}
+          {!visible.length&&<p>No events match this view. Adjust the filters or create an event.</p>}
         </div>}
       </div>
     </div>

@@ -141,6 +141,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const soldOut = status === 'sold_out' || truth?.isSoldOut === true;
   const prev = event.previous_start_at ? String(event.previous_start_at).slice(0, 10) : null;
   const statusNote: Record<string, { title: string; body: string }> = {
+    ongoing: { title: 'Happening Now', body: 'This event is in progress. Online ticket sales are closed.' },
     sales_paused: { title: 'Sales Paused', body: 'Ticket sales are paused for this event. Check back soon.' },
     sold_out: { title: 'Sold Out', body: 'This event is sold out. Check back for future dates or related events.' },
     postponed: { title: 'Postponed', body: 'This event has been postponed. A new date will be announced — your tickets stay valid.' },

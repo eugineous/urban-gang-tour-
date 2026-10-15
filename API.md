@@ -612,6 +612,34 @@ This is a reporting window, not a promise that older stored rows are deleted.
 
 ### Event tier availability and staff editing
 
+`POST /api/admin/media/upload?purpose=events|stories|campaigns` requires a current
+admin with the matching `events`, `content` or `ops_promos` permission and a
+trusted Origin. Accepts raw JPG/PNG/WebP, maximum 8 MiB of actual streamed bytes,
+with a thirty-second read deadline and MIME/signature checks. Twenty uploads
+per minute/IP. Server generates the storage key under its purpose prefix; client
+filenames/pathnames cannot select arbitrary storage. Success returns `{url}`
+with no-store; 401/403 access, 400 invalid media, 413 size, 408 timeout, 503 storage
+failure. Uploads alone do not publish an event/story/campaign. Raw media URLs
+are publicly retrievable; this endpoint is not for private customer documents.
+
+`POST /api/admin/ops`, kind `tourEvent.status`, requires Events permission and
+trusted Origin. Data is exactly `{id,status,expectedStatus,updatedAt}`. Version
+is the exact server-provided timestamp (preserve microseconds). A stale state
+or timestamp returns 409 `event_conflict`. Status and audit are atomic and do
+not replace schedule, artwork, ticket prices or inventory. Public transitions
+require relevant event details; recovered records need explicit editor review.
+The canonical lifecycle includes `ongoing`: visible as Happening now, but not
+sellable. Schema bootstrap expands the existing CHECK constraint accordingly.
+Status changes invalidate event, home and school-tour caches. They do not send
+messages, issue refunds or cancel already-issued tickets.
+
+The public event feed coalesces database reads for five seconds and returns
+no-store. Cached fallbacks expire fifteen seconds after a successful read;
+unavailable/expired snapshots return 503 `{ok:false,events:[],error}`. Discovery
+refreshes owned events every twenty seconds while visible, independently of
+external-listing refreshes. Its first successful load establishes the change
+notification baseline; stale cards are removed on an unavailable response.
+
 Public `/api/site-data/events` includes authoritative per-tier availability,
 remaining capacity and per-order minimum/maximum where available. Unknown
 capacity is not treated as unlimited. A tier must satisfy its minimum order

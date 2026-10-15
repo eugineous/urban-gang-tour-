@@ -69,6 +69,7 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
   const [ownState, setOwnState] = useState('Checking Urban Gang Tour updates…');
   const [notice, setNotice] = useState('');
   const lastOwn = useRef(ownedEventSignature(ownEvents));
+  const ownLoaded = useRef(false);
   const [interest, setInterest] = useState<Record<string,{value:number; capturedAt:string}>>({});
   const counted = useRef(new Set<string>());
   function consented() { try { return localStorage.getItem('ugt-consent') === 'yes'; } catch { return false; } }
@@ -116,7 +117,25 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
   const setSource = (source:string) => updateFilters({source});
   const setSort = (sort:string) => updateFilters({sort});
   useEffect(() => {
-    let stopped = false, controller:AbortController | undefined, retry:ReturnType<typeof setTimeout> | undefined;
+    let stopped = false, controller:AbortController | undefined, ownController:AbortController | undefined, retry:ReturnType<typeof setTimeout> | undefined;
+    async function refreshOwn() {
+      if(document.hidden)return;
+      ownController?.abort();
+      const request=new AbortController();ownController=request;
+      const timeout=setTimeout(()=>request.abort(),10000);
+      try{
+        const response=await fetch('/api/site-data/events',{signal:request.signal,cache:'no-store'});
+        if(!response.ok)throw new Error('Unavailable');
+        const data=await response.json();
+        if(!Array.isArray(data.events))throw new Error('Invalid event data');
+        if(stopped||request.signal.aborted)return;
+        const events=data.events.filter((event:unknown):event is OwnedEvent=>Boolean(event)&&typeof event==='object');
+        const key=ownedEventSignature(events);
+        if(ownLoaded.current&&key!==lastOwn.current)setNotice('Event details updated. Check the latest status below.');
+        ownLoaded.current=true;lastOwn.current=key;setLiveOwn(events);setOwnState('');
+      }catch{if(!stopped&&ownController===request){setLiveOwn([]);setOwnState('Updates are unavailable. Check the event details before booking.');}}
+      finally{clearTimeout(timeout)}
+    }
     async function refresh() {
       if (document.hidden) return;
       controller?.abort();
@@ -124,18 +143,6 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
       controller = request;
       void updateInterest(request.signal);
       const timeout = setTimeout(() => request.abort(), 12000);
-      void fetch('/api/site-data/events', {signal:AbortSignal.any([request.signal, AbortSignal.timeout(10000)])}).then(async response => {
-        if (!response.ok) throw new Error('Unavailable');
-        const data = await response.json();
-        if (!Array.isArray(data.events)) throw new Error('Invalid event data');
-        if (stopped || request.signal.aborted) return;
-        const events = data.events.filter((event:unknown):event is OwnedEvent => Boolean(event) && typeof event === 'object');
-        setLiveOwn(events);
-        setOwnState('Urban Gang Tour details refreshed. Availability is confirmed again at checkout.');
-        const key = ownedEventSignature(events);
-        if (key !== lastOwn.current) setNotice('Urban Gang Tour event details have changed. Check the latest status below.');
-        lastOwn.current = key;
-      }).catch(() => { if (!stopped && !request.signal.aborted) setOwnState('Urban Gang Tour updates are unavailable. Check the event details for the latest status.'); });
       try {
         const response = await fetch(endpoint, {signal:request.signal});
         if (!response.ok) throw new Error('Unavailable');
@@ -148,11 +155,12 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
       } catch { if (!stopped) setState('Showing saved listings · live update unavailable'); }
       finally { clearTimeout(timeout); }
     }
-    refresh();
+    void refreshOwn();refresh();
     const poll = setInterval(refresh, 180000), clock = setInterval(() => setNow(Date.now()), 60000);
-    const onVisible = () => { if (!document.hidden) refresh(); };
+    const ownPoll=setInterval(()=>void refreshOwn(),20000);
+    const onVisible = () => { if (!document.hidden) {void refreshOwn();refresh();} };
     document.addEventListener('visibilitychange', onVisible);
-    return () => { stopped = true; controller?.abort(); clearInterval(poll); clearInterval(clock); clearTimeout(retry); document.removeEventListener('visibilitychange', onVisible); };
+    return () => { stopped = true; controller?.abort();ownController?.abort();clearInterval(ownPoll); clearInterval(poll); clearInterval(clock); clearTimeout(retry); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
   useEffect(() => {
     if (!search.trim()) return;
@@ -218,7 +226,7 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
         return <li key={String(event.id)}><Link href={view.href}><div><span className={styles.status}>{view.label}</span><strong>{String(event.name)}</strong><small>{view.dateLabel}{event.venue ? ' · ' + String(event.venue) : ''}</small></div><span>View school tour <span aria-hidden="true">→</span></span></Link></li>;
       })}</ul></details>}
       {pastOwn.length > 0 && <details className={styles.pastEvents}><summary>Past Urban Gang Tour events ({pastOwn.length})</summary><div className={styles.ownedGrid}>{pastOwn.map(event => <OwnedCard key={String(event.id)} event={event} now={now}/>)}</div></details>}
-      <p className={styles.ownedCheck} role="status">{ownState}</p>
+      {ownState&&<p className={styles.ownedCheck} role="status">{ownState}</p>}
     </section>
     </div><div id="kenya-panel" role="tabpanel" aria-labelledby="kenya-tab" hidden={filters.view!=='kenya'}>
     <div className="wrap event-search-first"><div className={styles.searchHeading} id="discover-events"><div><h2>Discover events around Kenya.</h2><p>Concerts, festivals and nights out from independent sellers and event guides. Links open the source’s website.</p></div><Link href="#event-sources" className="text-link">Browse sources <span aria-hidden="true">↓</span></Link></div>

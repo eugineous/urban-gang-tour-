@@ -9,7 +9,7 @@ interface MediaStore {
   getWithMetadata<T>(key: string, type: 'arrayBuffer'): Promise<{ value: ArrayBuffer | null; metadata: T | null }>;
   delete(key: string): Promise<void>;
 }
-const PREFIXES = ['gallery', 'promo-hero', 'promo-partner', 'documents', 'organizer-events'];
+const PREFIXES = ['gallery', 'promo-hero', 'promo-partner', 'documents', 'organizer-events', 'admin-events', 'admin-stories', 'admin-campaigns'];
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
 const MAX_BYTES = 15 * 1024 * 1024;
 function store(): MediaStore | null {

@@ -1,0 +1,16 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+const state=vi.hoisted(()=>({q:vi.fn()}));
+vi.mock('@/lib/server/db',()=>({q:state.q}));
+import {changeEventStatus,parseEventStatusChange} from '@/lib/server/admin-event-status';
+import {isPubliclyVisible,isEventIndexable,isEventSellable} from '@/lib/server/event-lifecycle';
+import {ownedEventPresentation} from '@/ui/lib/owned-event-presentation';
+const input={id:'fixture-event',status:'ongoing' as const,expectedStatus:'published' as const,updatedAt:'2026-10-15 10:12:00.123456+00'};
+const row={id:input.id,status:'published',kind:'ticketed',name:'Fixture',venue:'Nairobi',event_date:'2026-10-15',tiers:[],recovery:null};
+beforeEach(()=>{vi.clearAllMocks();state.q.mockResolvedValueOnce([row]).mockResolvedValueOnce([{...row,status:'ongoing'}])});
+it('validates narrow changes and retains the exact microsecond version',()=>{expect(parseEventStatusChange(input)).toEqual(input);for(const v of [{...input,price:1},{...input,status:'failed'},{...input,id:'../event'},{...input,updatedAt:'invalid'}])expect(parseEventStatusChange(v)).toBeNull()});
+it('changes state and audit atomically without overwriting ticket prices or media',async()=>{await changeEventStatus(input,'owner');const [sql,args]=state.q.mock.calls[1];expect(sql).toContain('updated_at=$4::timestamptz');expect(sql).toContain('INSERT INTO audit_log');expect(sql).not.toMatch(/SET.*(?:tiers|image|price)=/);expect(args).toEqual([input.id,'ongoing','published',input.updatedAt,'owner'])});
+it('rejects a concurrently changed record rather than reporting success',async()=>{state.q.mockReset().mockResolvedValueOnce([row]).mockResolvedValueOnce([]);await expect(changeEventStatus(input,'owner')).rejects.toThrow('event_conflict')});
+it('requires current lifecycle state to match',async()=>{state.q.mockReset().mockResolvedValue([{...row,status:'completed'}]);await expect(changeEventStatus(input,'owner')).rejects.toThrow('event_conflict');expect(state.q).toHaveBeenCalledTimes(1)});
+it('requires missing event details before opening a public event',async()=>{state.q.mockReset().mockResolvedValue([{...row,venue:''}]);await expect(changeEventStatus(input,'owner')).rejects.toThrow('event_details_required')});
+it('keeps recovered records behind explicit editor review',async()=>{state.q.mockReset().mockResolvedValue([{...row,recovery:{verification_status:'unverified'}}]);await expect(changeEventStatus(input,'owner')).rejects.toThrow('event_review_required')});
+it('makes ongoing events public but never automatically sellable',()=>{expect(isPubliclyVisible('ongoing')).toBe(true);expect(isEventIndexable('ongoing')).toBe(true);expect(isEventSellable({status:'ongoing',kind:'ticketed',tiers:[{name:'General',price:500}]})).toBe(false);expect(ownedEventPresentation({kind:'ticketed',status:'ongoing',slug:'fixture',eventDate:'2026-10-15',sellable:true},Date.now())).toMatchObject({label:'Happening now',sellable:false,past:false})});

@@ -201,11 +201,11 @@ ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS sales_start_at TIMESTAMPTZ;
 ALTER TABLE tour_events ADD COLUMN IF NOT EXISTS sales_end_at TIMESTAMPTZ;
 -- Expand the status CHECK constraint to support the full event lifecycle
 -- (lib/server/event-lifecycle.ts). The original constraint only allowed 4
--- values; the lifecycle defines 10. Without this migration the DB rejects
+-- values; the lifecycle now also includes ongoing. Without this migration the DB rejects
 -- valid statuses like sold_out, postponed, rescheduled.
 ALTER TABLE tour_events DROP CONSTRAINT IF EXISTS tour_events_status_check;
 ALTER TABLE tour_events ADD CONSTRAINT tour_events_status_check
-  CHECK (status IN ('draft','pending_review','published','sales_paused','sold_out','postponed','rescheduled','cancelled','completed','archived'));
+  CHECK (status IN ('draft','pending_review','published','ongoing','sales_paused','sold_out','postponed','rescheduled','cancelled','completed','archived'));
 -- Slug is the public URL identifier. Unique where non-empty (legacy rows
 -- may have empty slugs until backfilled).
 CREATE UNIQUE INDEX IF NOT EXISTS idx_tour_events_slug ON tour_events (slug) WHERE slug != '';

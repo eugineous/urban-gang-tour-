@@ -1,0 +1,16 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+const state=vi.hoisted(()=>({admin:true,perm:true,configured:true,put:vi.fn(),limit:true,permission:vi.fn()}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>state.admin,hasPerm:(_req:Request,key:string)=>{state.permission(key);return state.perm}}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>state.limit,clientIp:()=> 'fixture'}));
+vi.mock('@/lib/server/media',()=>({mediaConfigured:()=>state.configured,mediaPut:state.put}));
+import {POST} from '@/app/api/admin/media/upload/route';
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jOAAAAABJRU5ErkJggg==','base64');
+const req=(purpose='events',origin='https://urbangangtour.co.ke',body:BodyInit=png,extra:Record<string,string>={})=>new Request('https://urbangangtour.co.ke/api/admin/media/upload?purpose='+purpose,{method:'POST',headers:{origin,'content-type':'image/png',...extra},body});
+beforeEach(()=>{vi.clearAllMocks();state.admin=true;state.perm=true;state.configured=true;state.limit=true;state.put.mockResolvedValue({url:'/media/admin-events/fixture/image.png'})});
+it('blocks anonymous and wrong-module uploads before storage',async()=>{state.admin=false;expect((await POST(req())).status).toBe(401);state.admin=true;state.perm=false;expect((await POST(req())).status).toBe(403);expect(state.put).not.toHaveBeenCalled()});
+it.each([['events','events'],['stories','content'],['campaigns','ops_promos']])('uses the %s module permission',async(purpose,permission)=>{expect((await POST(req(purpose))).status).toBe(200);expect(state.permission).toHaveBeenCalledWith(permission);expect(state.put.mock.calls[0][0]).toMatch(new RegExp('^admin-'+purpose+'/[a-f0-9-]+\\.png$'))});
+it('rejects unknown purpose and foreign Origin',async()=>{expect((await POST(req('documents'))).status).toBe(400);expect((await POST(req('events','https://evil.test'))).status).toBe(403);expect(state.put).not.toHaveBeenCalled()});
+it('rejects SVG and fake image bytes',async()=>{expect((await POST(req('events',undefined,'<svg/>',{'content-type':'image/svg+xml'}))).status).toBe(400);expect((await POST(req('events',undefined,'not a PNG'))).status).toBe(400);expect(state.put).not.toHaveBeenCalled()});
+it('bounds actual bytes even when length is absent or misleading',async()=>{expect((await POST(req('events',undefined,Buffer.alloc(8*1024*1024+1),{'content-length':'1'}))).status).toBe(413);expect(state.put).not.toHaveBeenCalled()});
+it('reports storage outages without leaking errors or claiming success',async()=>{state.put.mockRejectedValue(new Error('private provider detail'));const response=await POST(req());expect(response.status).toBe(503);expect(await response.json()).toEqual({error:'upload_unavailable'})});
+it('returns only the stored URL with no-store headers',async()=>{const response=await POST(req());expect(await response.json()).toEqual({url:'/media/admin-events/fixture/image.png'});expect(response.headers.get('cache-control')).toBe('no-store')});

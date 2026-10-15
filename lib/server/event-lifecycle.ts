@@ -14,6 +14,7 @@ export const EVENT_STATUSES = [
   'draft',
   'pending_review',
   'published',
+  'ongoing',
   'sales_paused',
   'sold_out',
   'postponed',
@@ -41,6 +42,7 @@ export function isEventStatus(v: unknown): v is EventStatus {
  */
 export const PUBLIC_EVENT_STATUSES: readonly EventStatus[] = [
   'published',
+  'ongoing',
   'sales_paused',
   'sold_out',
   'postponed',
@@ -60,6 +62,7 @@ export const PUBLIC_EVENT_STATUSES: readonly EventStatus[] = [
  */
 export const INDEXABLE_EVENT_STATUSES: readonly EventStatus[] = [
   'published',
+  'ongoing',
   'sales_paused',
   'sold_out',
   'postponed',

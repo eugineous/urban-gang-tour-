@@ -56,7 +56,7 @@ const nextConfig = {
       // stylesheet (https://accounts.google.com/gsi/style) separately from
       // the script - found live while testing the connect-src fix above.
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
-      "img-src 'self' data: https:",
+      "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
       // Google Identity Services makes its own credential/config fetches
       // directly from the client library (not just the script-src/frame-src

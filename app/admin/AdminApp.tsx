@@ -1,4 +1,5 @@
 "use client";
+import ImageUploadField from './ImageUploadField';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useEffect, useState, useCallback } from "react";
@@ -956,6 +957,10 @@ function Shell({
       "Track orders, receipts and gate-ready tickets.",
     ],
     System: ["System tools", "Access, backups and maintenance live here."],
+    Events: ["Events", "Create, publish and run your events."],
+    Content: ["Stories", "Write, add photos and publish when ready."],
+    Promos: ["Discounts", "Manage codes, dates and eligible products."],
+    Campaigns: ["Campaigns", "Schedule banners and pop-ups."],
   };
   const [title, subtitle] = labels[tab] || [
     tab,
@@ -1006,7 +1011,7 @@ function Shell({
             Start with bookings and inbox. Use system tools for access and maintenance.
           </div>
         </aside>
-        <main className="cr-main">
+        <div className="cr-main">
           {tab!=='Dashboard'&&canSee('Dashboard')&&<button className="cr-back" onClick={()=>setTab('Dashboard')}>Back to Today</button>}
           <div className="cr-page-head">
             <div>
@@ -1023,7 +1028,7 @@ function Shell({
             )}
           </div>
           {children}
-        </main>
+        </div>
       </div>
     </div>
   );
@@ -1039,7 +1044,7 @@ function LoginShell({ children }: { children: React.ReactNode }) {
         />
         <strong>CONTROL ROOM</strong>
       </header>
-      <main className="cr-login-main">{children}</main>
+      <div className="cr-login-main">{children}</div>
     </div>
   );
 }
@@ -2077,6 +2082,7 @@ function Table({
 }
 
 function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish }: any) {
+  const [imageBusy,setImageBusy]=useState(false);
   if (editPost) {
     const p = editPost;
     const set = (k: string, v: any) => setEditPost({ ...p, [k]: v });
@@ -2100,7 +2106,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
               gap: 10,
             }}
           >
@@ -2110,12 +2116,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
               value={p.section || ""}
               onChange={(e) => set("section", e.target.value)}
             />
-            <input
-              style={inp}
-              placeholder="Image path e.g. /assets/gal/lari.jpg"
-              value={p.image || ""}
-              onChange={(e) => set("image", e.target.value)}
-            />
+            <ImageUploadField label="Story cover image" value={p.image||''} purpose="stories" onChange={url=>setEditPost((current:any)=>current?{...current,image:url}:current)} onBusyChange={setImageBusy}/>
             <input
               style={inp}
               placeholder="Date YYYY-MM-DD"
@@ -2151,20 +2152,20 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
           ) : null}
           <div style={{ display: "flex", gap: 10 }}>
             {canPublish ? (
-              <button style={btn} onClick={() => onSave(p)}>
+              <button style={btn} disabled={imageBusy} onClick={() => onSave(p)}>
                 💾 Save post
               </button>
             ) : (
               <>
-                <button style={btnDark} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
+                <button style={btnDark} disabled={imageBusy} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
                   Save draft
                 </button>
-                <button style={btn} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
+                <button style={btn} disabled={imageBusy} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
                   Send for review
                 </button>
               </>
             )}
-            <button style={btnDark} onClick={() => setEditPost(null)}>
+            <button style={btnDark} disabled={imageBusy} onClick={() => setEditPost(null)}>
               Cancel
             </button>
           </div>
@@ -2181,7 +2182,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
             : <>Create a story for the Urban News desk. Published stories cannot be changed from this account.</>}
         </div>
         <div style={{ flex: 1 }} />
-        <button style={btn} onClick={() => setEditPost({ published: canPublish })}>
+        <button style={btn} onClick={() => setEditPost({ published: false })}>
           ＋ New post
         </button>
       </div>
