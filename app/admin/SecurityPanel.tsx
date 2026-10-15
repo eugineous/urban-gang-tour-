@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import GmailConnectButton from './GmailConnectButton';
+import AdminSessions from './AdminSessions';
+import { fetchWithTimeout } from '@/lib/client/fetch-with-timeout';
 
 const card: React.CSSProperties = { background: '#fff', border: '1px solid #d8d2d6', borderRadius: 14, boxShadow: '0 3px 14px #19001605', padding: 24 };
 const field: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #c4bbc1', borderRadius: 10, fontSize: 16, minHeight: 48, fontFamily: 'inherit', boxSizing: 'border-box' };
@@ -13,19 +15,24 @@ export default function SecurityPanel({ googleClientId, say }: { googleClientId:
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const load = () => fetch('/api/admin/security').then((response) => response.json()).then(setStatus);
+  const load = async () => { try { const response=await fetchWithTimeout('/api/admin/security',{cache:'no-store'});if(!response.ok)throw new Error();setStatus(await response.json()); } catch { say('Security settings are temporarily unavailable. Retry shortly.'); } };
   useEffect(() => { load(); }, []);
 
   const savePassword = async () => {
     if (password !== confirmPassword) { say('Passwords do not match'); return; }
     setSaving(true);
-    const response = await fetch('/api/admin/security', {
+    try {
+    const response = await fetchWithTimeout('/api/admin/security', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }),
     });
     const data = await response.json().catch(() => ({}));
     setSaving(false);
     if (!response.ok) { say(data.hint || data.error || 'Could not save password'); return; }
-    setPassword(''); setConfirmPassword(''); load(); say('Control Room password updated');
+    setPassword(''); setConfirmPassword('');
+    if (data.reauthenticate) { location.assign('/admin'); return; }
+    load(); say('Control Room password updated; other password sessions ended');
+    } catch { say('Connection interrupted. Check your password before retrying.'); }
+    finally { setSaving(false); }
   };
 
   const disconnect = async () => {
@@ -36,10 +43,11 @@ export default function SecurityPanel({ googleClientId, say }: { googleClientId:
   };
 
   return <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,320px),1fr))' }}>
+    <AdminSessions/>
     <section style={card}>
       <div style={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 22 }}>Control Room password</div>
       <p style={{ color: '#666', fontSize: 15, lineHeight: 1.6 }}>Choose your own password. It is stored as a salted hash, never as readable text. Your server access code remains an emergency backup until you rotate or remove it.</p>
-      <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 10 }}>{status?.customPasswordSet ? 'Custom password is active' : 'No custom password set yet'} · {status?.envBackupSet ? 'Backup code active' : 'No backup code'}</div>
+      <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 10 }}>{status ? <>{status.customPasswordSet ? 'Custom password is active' : 'No custom password set yet'} · {status.envBackupSet ? 'Backup code active' : 'No backup code'}</> : 'Loading security settings…'}</div>
       <div style={{ display: 'grid', gap: 9 }}>
         <input aria-label="New password" style={field} type="password" autoComplete="new-password" placeholder="New password (12+ characters)" value={password} onChange={(event) => setPassword(event.target.value)} />
         <input style={field} type="password" autoComplete="new-password" placeholder="Confirm new password" aria-label="Confirm new password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />

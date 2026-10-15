@@ -20,7 +20,7 @@ import {
   validatePromoCode,
   discountFromCodeRow,
 } from './promos';
-import { q, db } from './db';
+import { q, hasDb } from './db';
 
 // ---------------------------------------------------------------------------
 // Cached read layer. 45s TTL: an admin price/event edit goes live within
@@ -32,20 +32,19 @@ const CACHE_TTL_MS = 45_000;
 interface ProductCacheRow { name: string; price: number }
 let productsCache: { at: number; data: Record<string, ProductCacheRow> } | null = null;
 
-export async function getProducts(): Promise<Record<string, ProductCacheRow>> {
-  if (productsCache && Date.now() - productsCache.at < CACHE_TTL_MS) return productsCache.data;
-  if (!db()) return productsCache?.data || {};
+export async function getProducts(fresh = false): Promise<Record<string, ProductCacheRow>> {
+  if (!fresh && productsCache && Date.now() - productsCache.at < CACHE_TTL_MS) return productsCache.data;
+  if (!hasDb()) return {};
   try {
     const rows = await q<{ id: string; name: string; price: number }>(
       `SELECT id, name, price FROM products WHERE active ORDER BY id`
     );
-    if (!rows.length) return productsCache?.data || {};
     const map: Record<string, ProductCacheRow> = {};
     for (const r of rows) map[r.id] = { name: r.name, price: Number(r.price) };
     productsCache = { at: Date.now(), data: map };
     return map;
   } catch {
-    return productsCache?.data || {};
+    return {};
   }
 }
 
@@ -86,9 +85,9 @@ export function invalidateCatalogCaches(): void {
 // ordered priority DESC then event_date — the single source both
 // getTicketTiers()/getTicketTier() (pricing) and lib/server/tickets.ts's
 // getEventMeta()/getEventName() (display) read from.
-export async function getTicketedEvents(): Promise<CatalogEvent[]> {
-  if (ticketedCache && Date.now() - ticketedCache.at < CACHE_TTL_MS) return ticketedCache.data;
-  if (!db()) return ticketedCache?.data || [];
+export async function getTicketedEvents(fresh = false): Promise<CatalogEvent[]> {
+  if (!fresh && ticketedCache && Date.now() - ticketedCache.at < CACHE_TTL_MS) return ticketedCache.data;
+  if (!hasDb()) return [];
   try {
     // event_date::text — see lib/server/db.ts's note on pg's DATE parser: cast
     // to text at the SQL level so the value is a plain 'YYYY-MM-DD' string,
@@ -99,7 +98,6 @@ export async function getTicketedEvents(): Promise<CatalogEvent[]> {
        FROM tour_events WHERE kind='ticketed' AND status='published'
        ORDER BY priority DESC, event_date ASC NULLS LAST`
     );
-    if (!rows.length) return ticketedCache?.data || [];
     const list: CatalogEvent[] = rows.map((r: any) => ({
       id: r.id,
       name: r.name,
@@ -115,12 +113,12 @@ export async function getTicketedEvents(): Promise<CatalogEvent[]> {
     ticketedCache = { at: Date.now(), data: list };
     return list;
   } catch {
-    return ticketedCache?.data || [];
+    return [];
   }
 }
 
 export async function getTicketTiers(): Promise<Record<string, { name: string; tiers: { name: string; price: number }[] }>> {
-  const events = await getTicketedEvents();
+  const events = await getTicketedEvents(true);
   const map: Record<string, { name: string; tiers: { name: string; price: number }[] }> = {};
   for (const e of events) map[e.id] = { name: e.name, tiers: e.tiers };
   return map;
@@ -166,7 +164,7 @@ export async function serverTotalWithPromos(
   promoCode?: string | null
 ): Promise<PromoTotalResult> {
   const [prices, promos, codeRow] = await Promise.all([
-    getProducts(),
+    getProducts(true),
     getActivePromos(),
     promoCode ? validatePromoCode(promoCode) : Promise.resolve(null),
   ]);

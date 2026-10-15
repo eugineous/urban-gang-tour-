@@ -25,6 +25,7 @@ const opsLoading = () => (
     Loading tool...
   </div>
 );
+const Campaigns = dynamic(() => import('./Campaigns'), { ssr: false, loading: opsLoading });
 const PerformancePanel=dynamic(()=>import("./PerformancePanel"),{ssr:false,loading:opsLoading});
 const Budgeter = dynamic(() => import("./ops/Budgeter"), {
   ssr: false,
@@ -201,6 +202,7 @@ const OPS_TABS = [
   "Expenses",
   "Pipeline",
   "Promos",
+  "Campaigns",
   "Checklists",
   "Reviews",
 ] as const;
@@ -237,6 +239,7 @@ const NAV_GROUPS: {
       { tab: "Content", icon: "✎", label: "Stories" },
       { tab: "Newsroom", icon: "▤", label: "Newsroom" },
       { tab: "Comms", icon: "◒", label: "Comms" },
+      { tab: "Campaigns", icon: "★", label: "Campaigns" },
       { tab: "Products", icon: "□", label: "Products" },
       { tab: "Merch Desk", icon: "◈", label: "Merch desk" },
       { tab: "Marketplace", icon: "▥", label: "Marketplace" },
@@ -299,6 +302,7 @@ const TAB_PERM: Partial<Record<Tab, string | string[]>> = {
   Expenses: "ops_expenses",
   Pipeline: "ops_pipeline",
   Promos: "ops_promos",
+  Campaigns: "ops_promos",
   Checklists: "ops_checklists",
   Reviews: "reviews",
 };
@@ -720,6 +724,7 @@ export default function AdminApp({
       {tab === "Expenses" && <Expenses />}
       {tab === "Pipeline" && <Pipeline />}
       {tab === "Promos" && <Promos />}
+      {tab === "Campaigns" && <Campaigns />}
       {tab === "Checklists" && <Checklists />}
       {tab === "Reviews" && <Reviews />}
       {tab === "Bookings" && (

@@ -4,7 +4,7 @@ const mocks=vi.hoisted(()=>({q:vi.fn(),db:true,admin:false,perm:false}));
 vi.mock('@/lib/server/db',()=>({q:mocks.q,hasDb:()=>mocks.db}));
 vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>mocks.admin,hasPerm:()=>mocks.perm,adminActor:()=> 'test'}));
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test'}));
-vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true}));
+vi.mock('@/lib/server/origin',()=>({sameOrigin:()=>true,requireOrigin:()=>true}));
 vi.mock('@/lib/server/microcache',()=>({cached:(_key:string,_ttl:number,fn:()=>Promise<unknown>)=>fn(),invalidate:vi.fn()}));
 import {GET,POST} from '@/app/api/captions/route';
 const video=library.assets.find(a=>a.kind==='video'&&!a.adult)!;

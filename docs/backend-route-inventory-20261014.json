@@ -1,0 +1,1446 @@
+{
+  "schemaVersion": 1,
+  "assurance": "Static inventory only; guards must be traced per method and branch.",
+  "routeCount": 101,
+  "handlerCount": 130,
+  "routes": [
+    {
+      "route": "/api/account/preferences",
+      "file": "app/api/account/preferences/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/account/privacy",
+      "file": "app/api/account/privacy/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "requireOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/account/recovery",
+      "file": "app/api/account/recovery/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "requireOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/account",
+      "file": "app/api/account/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/accounts",
+      "file": "app/api/admin/accounts/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/affiliates/payouts",
+      "file": "app/api/admin/affiliates/payouts/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "ops_payouts"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/affiliates/program",
+      "file": "app/api/admin/affiliates/program/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "people"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/affiliates",
+      "file": "app/api/admin/affiliates/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "people"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/backup",
+      "file": "app/api/admin/backup/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "rateLimit",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/bookings/reply",
+      "file": "app/api/admin/bookings/reply/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "bookings"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/broadcast",
+      "file": "app/api/admin/broadcast/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/campaigns",
+      "file": "app/api/admin/campaigns/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "ops_promos"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/data",
+      "file": "app/api/admin/data/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "isSuperAdmin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "bookings",
+        "comms",
+        "content",
+        "events",
+        "gallery",
+        "newsroom",
+        "ops_checklists",
+        "ops_merch",
+        "ops_school_contacts",
+        "ops_talent_partners",
+        "orders",
+        "people",
+        "site_seo",
+        "traffic"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/docs/batch",
+      "file": "app/api/admin/docs/batch/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "documents"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/docs/generate",
+      "file": "app/api/admin/docs/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "documents"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/docs/hero-upload",
+      "file": "app/api/admin/docs/hero-upload/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "documents"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/docs/list",
+      "file": "app/api/admin/docs/list/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "documents"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/docs/preview",
+      "file": "app/api/admin/docs/preview/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "documents"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/docs/void",
+      "file": "app/api/admin/docs/void/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "documents"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/email-delivery",
+      "file": "app/api/admin/email-delivery/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/export",
+      "file": "app/api/admin/export/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/gallery",
+      "file": "app/api/admin/gallery/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "gallery"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/gallery/upload",
+      "file": "app/api/admin/gallery/upload/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "gallery"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/gmail/connect",
+      "file": "app/api/admin/gmail/connect/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/gmail/messages",
+      "file": "app/api/admin/gmail/messages/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/gmail",
+      "file": "app/api/admin/gmail/route.ts",
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/google",
+      "file": "app/api/admin/google/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "requireOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/login",
+      "file": "app/api/admin/login/route.ts",
+      "methods": [
+        "POST",
+        "DELETE"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "requireOrigin",
+        "timingSafeEqual"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/me",
+      "file": "app/api/admin/me/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/ops/pdf",
+      "file": "app/api/admin/ops/pdf/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "isSuperAdmin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "ops_budgeter",
+        "ops_invoices"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/ops",
+      "file": "app/api/admin/ops/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "ops_budgeter",
+        "ops_checklists",
+        "ops_contacts",
+        "ops_expenses",
+        "ops_invoices",
+        "ops_payments",
+        "ops_payouts",
+        "ops_school_contacts",
+        "ops_talent_partners",
+        "orders"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/privacy",
+      "file": "app/api/admin/privacy/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/reviews",
+      "file": "app/api/admin/reviews/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "reviews"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/save",
+      "file": "app/api/admin/save/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "bookings",
+        "content",
+        "newsroom",
+        "orders",
+        "site_seo"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/search-console",
+      "file": "app/api/admin/search-console/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/security",
+      "file": "app/api/admin/security/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/sessions",
+      "file": "app/api/admin/sessions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/setup",
+      "file": "app/api/admin/setup/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/social",
+      "file": "app/api/admin/social/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "isSuperAdmin",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "comms"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/tickets/[code]/holder",
+      "file": "app/api/admin/tickets/[code]/holder/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "rateLimit",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "gate_scanner"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/admin/tickets/comp",
+      "file": "app/api/admin/tickets/comp/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/affiliates/program",
+      "file": "app/api/affiliates/program/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/affiliates/referral",
+      "file": "app/api/affiliates/referral/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/affiliates",
+      "file": "app/api/affiliates/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/affiliates/terms",
+      "file": "app/api/affiliates/terms/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/auth/google",
+      "file": "app/api/auth/google/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/auth",
+      "file": "app/api/auth/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/bookings",
+      "file": "app/api/bookings/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/bookings/status",
+      "file": "app/api/bookings/status/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "verifyToken"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/campaigns",
+      "file": "app/api/campaigns/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/captions",
+      "file": "app/api/captions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "gallery"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/checkout/fulfillment",
+      "file": "app/api/checkout/fulfillment/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/checkout/quote",
+      "file": "app/api/checkout/quote/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/client-error",
+      "file": "app/api/client-error/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/event-interest",
+      "file": "app/api/event-interest/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/health/media",
+      "file": "app/api/health/media/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/health",
+      "file": "app/api/health/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/internal/cron/content-announcements",
+      "file": "app/api/internal/cron/content-announcements/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "timingSafeEqual"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/internal/cron/email-delivery",
+      "file": "app/api/internal/cron/email-delivery/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "timingSafeEqual"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/internal/cron/payment-reconcile",
+      "file": "app/api/internal/cron/payment-reconcile/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "timingSafeEqual"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/internal/cron/ticket-sweeper",
+      "file": "app/api/internal/cron/ticket-sweeper/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "timingSafeEqual"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/marketplace/checkout",
+      "file": "app/api/marketplace/checkout/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/mpesa/callback",
+      "file": "app/api/mpesa/callback/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/orders",
+      "file": "app/api/orders/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/orders/status",
+      "file": "app/api/orders/status/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/orders/tracking",
+      "file": "app/api/orders/tracking/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/banks",
+      "file": "app/api/organizer/banks/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/events/[id]/design",
+      "file": "app/api/organizer/events/[id]/design/route.ts",
+      "methods": [
+        "PUT"
+      ],
+      "namedGuards": [
+        "currentApprovedOrganizer",
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/events/[id]",
+      "file": "app/api/organizer/events/[id]/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "currentApprovedOrganizer",
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/events/[id]/stats",
+      "file": "app/api/organizer/events/[id]/stats/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "currentApprovedOrganizer",
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/events",
+      "file": "app/api/organizer/events/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "currentApprovedOrganizer",
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/events/upload-image",
+      "file": "app/api/organizer/events/upload-image/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "currentApprovedOrganizer",
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/forgot",
+      "file": "app/api/organizer/forgot/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/google",
+      "file": "app/api/organizer/google/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/login",
+      "file": "app/api/organizer/login/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/logout",
+      "file": "app/api/organizer/logout/route.ts",
+      "methods": [
+        "POST",
+        "DELETE"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "requireOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/me",
+      "file": "app/api/organizer/me/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "currentApprovedOrganizer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/reset",
+      "file": "app/api/organizer/reset/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/signup",
+      "file": "app/api/organizer/signup/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/organizer/verify",
+      "file": "app/api/organizer/verify/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/paystack/checkout",
+      "file": "app/api/paystack/checkout/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/paystack/webhook",
+      "file": "app/api/paystack/webhook/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/performance",
+      "file": "app/api/performance/route.ts",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "namedGuards": [
+        "isSuperAdmin",
+        "rateLimit",
+        "sameOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/promos",
+      "file": "app/api/promos/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/receipts/[id]/pdf",
+      "file": "app/api/receipts/[id]/pdf/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/reviews",
+      "file": "app/api/reviews/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/site-data/events",
+      "file": "app/api/site-data/events/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/site-data/gallery",
+      "file": "app/api/site-data/gallery/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/site-data/posts",
+      "file": "app/api/site-data/posts/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/site-data/products",
+      "file": "app/api/site-data/products/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/site-info",
+      "file": "app/api/site-info/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/social-wall",
+      "file": "app/api/social-wall/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/stripe/checkout",
+      "file": "app/api/stripe/checkout/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/stripe/webhook",
+      "file": "app/api/stripe/webhook/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/submissions",
+      "file": "app/api/submissions/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin",
+        "validatedCurrentBuyer"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/subscribe",
+      "file": "app/api/subscribe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/tickets/[code]/pdf",
+      "file": "app/api/tickets/[code]/pdf/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "namedGuards": [
+        "rateLimit"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/tickets/resend",
+      "file": "app/api/tickets/resend/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/tickets/verify",
+      "file": "app/api/tickets/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "hasPerm",
+        "rateLimit",
+        "requireOrigin",
+        "verifyAdminSession"
+      ],
+      "permissionKeys": [
+        "gate_scanner"
+      ],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/track",
+      "file": "app/api/track/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "namedGuards": [
+        "rateLimit",
+        "sameOrigin"
+      ],
+      "permissionKeys": [],
+      "reviewRequired": true
+    },
+    {
+      "route": "/api/whatsapp/webhook",
+      "file": "app/api/whatsapp/webhook/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "namedGuards": [],
+      "permissionKeys": [],
+      "reviewRequired": true
+    }
+  ]
+}

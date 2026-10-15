@@ -36,6 +36,14 @@ service = "urban-gang-tour"
 binding = "UGT_MEDIA"
 id = "3f75011384624e01b1da3baeed95f6b1"
 
+[[durable_objects.bindings]]
+name = "UGT_RATE_LIMITER"
+class_name = "SharedRateLimiter"
+
+[[migrations]]
+tag = "backend-shared-rate-v1"
+new_sqlite_classes = ["SharedRateLimiter"]
+
 [[routes]]
 pattern = "urbangangtour.co.ke"
 custom_domain = true

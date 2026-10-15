@@ -2,7 +2,7 @@
 // applies and how big it is. lib/server/catalog.ts's serverTotalWithPromos()
 // is the sole caller checkout routes should use; never trust a price or
 // discount the browser claims.
-import { q, db } from './db';
+import { q, hasDb } from './db';
 import { ensureOpsSchema } from './ops';
 
 export interface PromoRow {
@@ -84,13 +84,13 @@ function toActiveDiscount(p: PromoRow): ActiveDiscount {
 // db()==null (no DATABASE_URL) resolves to "no promos" rather than throwing,
 // so every caller (public API, checkout routes) degrades gracefully.
 export async function getActivePromos(): Promise<PromoRow[]> {
-  if (!db()) return [];
+  if (!hasDb()) return [];
   await ensureOpsSchema();
   const rows = await q(`
     SELECT * FROM ops_promos
     WHERE active
-      AND (starts_on IS NULL OR starts_on <= CURRENT_DATE)
-      AND (ends_on IS NULL OR ends_on >= CURRENT_DATE)
+      AND (starts_on IS NULL OR starts_on <= (now() AT TIME ZONE 'Africa/Nairobi')::date)
+      AND (ends_on IS NULL OR ends_on >= (now() AT TIME ZONE 'Africa/Nairobi')::date)
     ORDER BY id DESC
   `);
   return rows.map(normalizeRow);
@@ -155,14 +155,14 @@ export function applyDiscount(basePrice: number, discount: ActiveDiscount | null
 // that blocks checkout.
 export async function validatePromoCode(code: string): Promise<PromoRow | null> {
   const clean = String(code || '').trim().slice(0, 60);
-  if (!clean || !db()) return null;
+  if (!clean || !hasDb()) return null;
   await ensureOpsSchema();
   const rows = await q(
     `SELECT * FROM ops_promos
      WHERE active AND code IS NOT NULL AND code <> ''
        AND UPPER(code) = UPPER($1)
-       AND (starts_on IS NULL OR starts_on <= CURRENT_DATE)
-       AND (ends_on IS NULL OR ends_on >= CURRENT_DATE)
+       AND (starts_on IS NULL OR starts_on <= (now() AT TIME ZONE 'Africa/Nairobi')::date)
+       AND (ends_on IS NULL OR ends_on >= (now() AT TIME ZONE 'Africa/Nairobi')::date)
        AND (max_uses IS NULL OR uses < max_uses)
      LIMIT 1`,
     [clean]

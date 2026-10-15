@@ -2,6 +2,8 @@
 import { createHmac, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { hasDb } from './db';
 import { findAdminAccount } from './admin-accounts';
+import { verifySignedEnvelope } from './token-envelope';
+import { adminSessionActive, legacyAdminSessionAllowed, recoveryStamp } from './admin-sessions';
 
 // A public development value must never sign a production administrator
 // cookie. Local development stays convenient, while production fails closed
@@ -32,19 +34,9 @@ export function signToken(payload: object, days = 30): string {
 }
 
 export function verifyToken<T = any>(token: string | undefined | null): T | null {
-  if (!token) return null;
   const tokenSecret = secret();
   if (!tokenSecret) return null;
-  if(token.split('.').length!==2)return null;
-  const [body, sig] = token.split('.');
-  if (!body || !sig) return null;
-  const expect = createHmac('sha256', tokenSecret).update(body).digest('base64url');
-  if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
-  try {
-    const data = JSON.parse(Buffer.from(body, 'base64url').toString());
-    if (data.exp && Date.now() > data.exp) return null;
-    return data as T;
-  } catch { return null; }
+  return verifySignedEnvelope(token, tokenSecret) as T | null;
 }
 
 export function hashPassword(pw: string): string {
@@ -89,13 +81,25 @@ export interface AdminTokenPayload {
   // cannot turn a database-scoped account into an environment owner account.
   authSource?: 'access_code' | 'google_db' | 'google_env';
   exp?: number;
+  sid?: string;
+  recovery?: boolean;
+  recoveryStamp?: string;
+  iat?: number;
 }
 
 const verifiedAdminSessions = new WeakMap<Request, AdminTokenPayload | null>();
 
 function adminToken(req: Request): AdminTokenPayload | null {
   const t = verifyToken<AdminTokenPayload>(cookieVal(req, 'ugt_admin'));
-  return t && t.role === 'admin' ? t : null;
+  if (!t || t.role !== 'admin') return null;
+  if (t.scope !== undefined && !['super_admin', 'crew_admin'].includes(t.scope)) return null;
+  if (t.perms !== undefined && (!Array.isArray(t.perms) || !t.perms.every(p => typeof p === 'string'))) return null;
+  if (t.authSource !== undefined && !['access_code', 'google_db', 'google_env'].includes(t.authSource)) return null;
+  if (t.email !== undefined && (typeof t.email !== 'string' || !t.email.includes('@') || t.email.length > 320)) return null;
+  if ((t.authSource === 'google_db' || t.authSource === 'google_env') && !t.email) return null;
+  if (t.sid !== undefined && (typeof t.sid !== 'string' || !/^[a-f0-9]{64}$/.test(t.sid))) return null;
+  if (t.recovery !== undefined && t.recovery !== true) return null;
+  return t;
 }
 
 function envAllowsAdmin(email: string): boolean {
@@ -120,6 +124,18 @@ export async function verifyAdminSession(req: Request): Promise<boolean> {
   if (!token) {
     verifiedAdminSessions.set(req, null);
     return false;
+  }
+
+  const passwordSession = !token.email || token.authSource === 'access_code';
+  if (token.recovery) {
+    const stamp = recoveryStamp();
+    if (!passwordSession || token.sid || !stamp || token.recoveryStamp !== stamp ||
+        !Number.isSafeInteger(token.iat) || (token.iat as number) > Date.now() ||
+        (token.exp as number) - (token.iat as number) > 15 * 60000) {
+      verifiedAdminSessions.set(req, null); return false;
+    }
+  } else if (!(token.sid ? await adminSessionActive(token.sid) : await legacyAdminSessionAllowed(passwordSession))) {
+    verifiedAdminSessions.set(req, null); return false;
   }
 
   // Access-code sessions have no individual account record. They remain
@@ -179,7 +195,7 @@ function resolvedAdminToken(req: Request): AdminTokenPayload | null {
   // Do not let a Google cookie reach a route that forgot to call
   // verifyAdminSession. This fail-closed default keeps future endpoints from
   // reintroducing the stale-session vulnerability.
-  return token?.email ? null : token;
+  return token?.email || token?.sid || token?.recovery ? null : token;
 }
 
 // True for ANY signed-in admin session, super_admin or crew_admin alike.
@@ -229,8 +245,30 @@ export function adminActor(req: Request): string {
   return t?.email ? t.email : 'admin';
 }
 
-export function currentUser(req: Request): { id: number; email: string; name?: string } | null {
-  return verifyToken(cookieVal(req, 'ugt_user'));
+export function signedAdminSessionId(req: Request): string | null {
+  return adminToken(req)?.sid || null;
+}
+
+export interface BuyerTokenPayload {
+  id: number;
+  email?: string | null;
+  phone?: string | null;
+  name?: string | null;
+  sessionVersion?: number;
+}
+
+export function currentUser(req: Request): BuyerTokenPayload | null {
+  const claim = verifyToken<Record<string, unknown>>(cookieVal(req, 'ugt_user'));
+  const validEmail = typeof claim?.email === 'string' && claim.email.includes('@') && claim.email.length <= 320;
+  const validPhone = typeof claim?.phone === 'string' && /^(\+?254|0)(7|1)\d{8}$/.test(claim.phone);
+  if (!claim || !Number.isSafeInteger(claim.id) || (claim.id as number) <= 0 ||
+      (!validEmail && !validPhone) ||
+      (claim.email !== undefined && claim.email !== null && claim.email !== '' && !validEmail) ||
+      (claim.phone !== undefined && claim.phone !== null && claim.phone !== '' && !validPhone) ||
+      claim.role !== undefined || claim.scope !== undefined || claim.ctx !== undefined ||
+      (claim.name !== undefined && claim.name !== null && typeof claim.name !== 'string') ||
+      (claim.sessionVersion !== undefined && (!Number.isSafeInteger(claim.sessionVersion) || (claim.sessionVersion as number) < 0))) return null;
+  return claim as unknown as BuyerTokenPayload;
 }
 
 export function sessionCookie(name: string, token: string, days = 30): string {

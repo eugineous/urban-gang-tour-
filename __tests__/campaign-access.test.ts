@@ -1,0 +1,12 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+const state=vi.hoisted(()=>({admin:false,perm:false,list:vi.fn(),save:vi.fn(),public:vi.fn()}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>state.admin,hasPerm:()=>state.perm,adminActor:()=> 'fixture'}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'fixture',PUBLIC_READ_NETWORK_LIMIT:20000}));
+vi.mock('@/lib/server/marketing-campaigns',()=>({listCampaigns:state.list,saveCampaign:state.save,publicCampaigns:state.public}));
+import {GET,POST} from '@/app/api/admin/campaigns/route';
+import {GET as publicGet} from '@/app/api/campaigns/route';
+const req=(origin?:string)=>new Request('https://urbangangtour.co.ke/api/admin/campaigns',{method:'POST',headers:origin?{origin}:{},body:'{}'});
+beforeEach(()=>{vi.clearAllMocks();state.admin=false;state.perm=false});
+it('rejects anonymous users and unrelated crew before reading or writing campaigns',async()=>{expect((await GET(req())).status).toBe(401);state.admin=true;expect((await POST(req())).status).toBe(403);expect(state.list).not.toHaveBeenCalled();expect(state.save).not.toHaveBeenCalled()});
+it('requires an explicit trusted origin for scoped writes',async()=>{state.admin=true;state.perm=true;expect((await POST(req())).status).toBe(403);expect((await POST(req('https://evil.example.test'))).status).toBe(403);expect(state.save).not.toHaveBeenCalled()});
+it('hides campaigns during an outage rather than advertising stale offers',async()=>{state.public.mockRejectedValue(new Error('fixture outage'));const r=await publicGet(new Request('https://urbangangtour.co.ke/api/campaigns'));expect(r.status).toBe(503);expect(await r.json()).toMatchObject({campaigns:[],validForMs:0});expect(r.headers.get('cache-control')).toBe('no-store')});

@@ -10,13 +10,65 @@ external request per DDL statement. Failures roll back and log only a validated
 SQLSTATE; existing endpoint error contracts and customer-data rules are unchanged.
 
 Cross-site protection (`lib/server/origin.ts`): public POSTs answer 403
-`bad_origin` when the browser sends an Origin header that is not
-urbangangtour.co.ke, an explicitly configured preview host, or localhost (a
-missing Origin is tolerated for beacons/native apps). Admin mutations
-(`/api/admin/*` POST) REQUIRE a matching Origin outright. Exempt:
+`bad_origin` when a supplied Origin does not exactly match an approved HTTPS
+origin. Production permits `https://urbangangtour.co.ke`,
+`https://www.urbangangtour.co.ke`, and the explicitly configured HTTPS
+`SITE_URL` origin. Request Host/forwarded headers never expand the allowlist;
+localhost is permitted only outside production. Missing Origin remains tolerated
+for public beacons/native clients. Admin mutations (POST/PUT/PATCH/DELETE),
+caption imports and organizer logout REQUIRE a matching Origin outright. Exempt:
 `/api/mpesa/callback` and `/api/whatsapp/webhook` (server-to-server; the
 WhatsApp webhook is HMAC signature-verified) and `/api/client-error`
 (sendBeacon may omit headers; it keeps its own flood guard).
+
+Session envelopes require a bounded base64url HMAC token containing an object
+and a safe-integer, future millisecond `exp`. Malformed signatures fail closed
+without throwing. Buyer cookies accept email or Kenyan phone identities, never
+administrator/booking/organizer claims; organizer tokens retain their separate
+HMAC context. Google admin requests resolve current directory permissions and
+revocations. Unexpected persisted admin roles never default to owner access;
+configured-directory errors during Google admin login return 503 rather than
+falling back to elevated environment-owner permissions. The emergency owner
+password login remains available. New admin sessions are registered, expire in
+one day and can be revoked by the owner at `/api/admin/sessions` (GET/POST).
+Mutations require a trusted Origin; only super-admin can list/revoke sessions.
+Password changes revoke other password sessions. Registry outages permit only
+a verified environment-backup-code recovery session lasting fourteen minutes.
+Legacy sessions can be disabled through the owner session controls.
+
+Admin password login, Google admin login and password changes accept at most
+8192 streamed body bytes within five seconds and require a JSON object.
+400 `invalid_request` · 413 `body_too_large` · 408 `request_timeout`.
+Field-specific validation and credential rate limits still apply.
+
+Sensitive admin/account/auth/organizer/order/booking/transaction API responses
+carry no-store headers. The Worker independently enforces no-store for private
+routes, authenticated requests, mutations and responses setting cookies, even
+if a route accidentally supplies public cache headers. Shared Worker counters
+now supplement application-local limits using persistent SQLite Durable Objects.
+Credential budgets use only trusted CF-Connecting-IP, never device cookies or
+forwarded headers. A limiter outage blocks credentials/purchases/writes with
+503; public reads retain local guards. Venue traffic has wider aggregate budgets.
+
+### Marketing campaigns
+
+`GET /api/admin/campaigns` and `POST /api/admin/campaigns` require a current admin
+with `ops_promos` permission (or owner). POST additionally requires trusted Origin,
+bounded 16 KiB JSON and the campaign schema. Updates require id/version; stale
+versions return 409. Saves and audit entries are atomic. Draft, live, scheduled
+and paused states, owned image URLs, internal CTAs, Nairobi schedules, page
+targets, priority, cooldown and popup delay are supported. A published deal
+requires an active checkout promotion; campaign copy never changes prices.
+
+`GET /api/campaigns` returns public campaigns only, serverTime and a publication
+lease of at most 15 seconds. No internal name/promo ID is exposed. Responses are
+no-store; database reads coalesce for five seconds. Failures return 503 with an
+empty lease. Browser polls every ten seconds and expires unavailable campaigns;
+sensitive payment/account/booking pages do not display or fetch campaigns.
+There are no automatically published example campaigns.
+
+Checkout quotes and payment creation read current merchandise and ticket prices
+from the database, independently of display caches. Removed items fail closed.
 
 Critical alerts (`lib/server/alert.ts`): M-Pesa reconciliation failures, order
 ledger write failures and WhatsApp signature-failure bursts email the owner via

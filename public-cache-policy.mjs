@@ -5,6 +5,18 @@ const publicPages = new Set([
   '/shop/lookbook',
 ]);
 
+// Defence in depth for JSON/PDF responses as well as private HTML. A browser
+// must not retain account or transaction responses after a shared-device logout.
+export function mustNotStoreResponse(request, response) {
+  const path = new URL(request.url).pathname;
+  return request.method !== 'GET' && request.method !== 'HEAD' ||
+    /^\/(?:admin|account|organizer|checkout|cart|pay|receipt|receipts|tickets|t|verify)(?:\/|$)/.test(path) ||
+    /^\/api\/(?:admin|account|auth|organizer|orders|bookings|checkout|marketplace\/checkout|receipts|tickets|internal)(?:\/|$)/.test(path) ||
+    request.headers.has('Authorization') ||
+    /(?:^|;\s*)ugt_(?:admin|user|organizer|org)=/.test(request.headers.get('cookie') || '') ||
+    response.headers.has('Set-Cookie');
+}
+
 // Never cache customer, sale, authentication, payment or RSC responses. The
 // allowlist contains only public content, and authenticated requests bypass it.
 export function canCachePublicPage(request) {

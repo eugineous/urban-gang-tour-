@@ -5,8 +5,9 @@
 // replayed as an admin or buyer session even though both may share
 // SESSION_SECRET. Reuses the same scrypt password hashing
 // (hashPassword/checkPassword) from session.ts — no new crypto primitive.
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 import { hasDb, q } from '@/lib/server/db';
+import { verifySignedEnvelope } from './token-envelope';
 
 const SECRET = () => {
  if(process.env.SESSION_SECRET)return process.env.SESSION_SECRET;
@@ -38,19 +39,14 @@ export function signOrganizerToken(payload: OrganizerSession, days = 30): string
 }
 
 export function verifyOrganizerToken(token: string | undefined | null): OrganizerSession | null {
-  if (!token) return null;
-  if(token.split('.').length!==2)return null;
-  const [body, sig] = token.split('.');
-  if (!body || !sig) return null;
-  let expect:string;try{expect=createHmac('sha256', SECRET()).update('org:' + body).digest('base64url')}catch{return null}
-  if (sig.length !== expect.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
-  try {
-    const data = JSON.parse(Buffer.from(body, 'base64url').toString());
-    if (data.ctx !== 'org' || (data.exp && Date.now() > data.exp)) return null;
-    return { id: data.id, email: data.email, businessName: data.businessName, pwdv: data.pwdv };
-  } catch {
-    return null;
-  }
+  let key: string;
+  try { key = SECRET(); } catch { return null; }
+  const data = verifySignedEnvelope(token, key, 'org:');
+  if (!data || data.ctx !== 'org' || typeof data.id !== 'string' || !data.id || data.id.length > 256 ||
+      typeof data.email !== 'string' || !data.email.includes('@') || data.email.length > 320 ||
+      typeof data.businessName !== 'string' || data.businessName.length > 300 ||
+      (data.pwdv !== undefined && (!Number.isSafeInteger(data.pwdv) || (data.pwdv as number) < 0))) return null;
+  return { id: data.id, email: data.email, businessName: data.businessName, pwdv: data.pwdv as number | undefined };
 }
 
 function cookieVal(req: Request, name: string): string | null {
