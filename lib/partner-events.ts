@@ -12,6 +12,10 @@ export type PartnerDetails = {
 };
 
 export const EMPTY_PARTNER: PartnerDetails = {organizer:'',client:'',role:'',admission:'external',ticketUrl:'',institutions:[],posters:[],newsSlug:'',posterCaption:''};
+/** Missing legacy metadata is unknown, not an invented organiser or seller. */
+export function publicPartnerDetails(value:unknown):PartnerDetails|null{
+  return value==null?{...EMPTY_PARTNER,admission:'unconfirmed'}:parsePartnerDetails(value);
+}
 const plain = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 // Links are rendered, never fetched server-side. Still reject credentials,
@@ -64,11 +68,9 @@ export function parsePartnerDetails(value: unknown): PartnerDetails | null {
 
 export function partnerPublicationError(details: PartnerDetails | null, row: {status: unknown; image?: unknown; eventDate?: unknown; venue?: unknown}): string | null {
   if (!details) return 'invalid_partner_details';
-  if (!['published','ongoing','completed','sales_paused','sold_out','postponed','rescheduled'].includes(String(row.status))) return null;
-  const issues=partnerPublicationIssues(details,row);
-  if(issues.some(issue=>issue.field!=='ticketUrl'))return 'partner_details_required';
-  if(issues.some(issue=>issue.field==='ticketUrl'))return 'partner_ticket_url_required';
-  return null;
+  // Publishing information is not activating ticket sales. Missing optional
+  // attribution, media or schedules must not force administrators to invent it.
+  return partnerPublicationIssues(details,row).length?'invalid_partner_artwork':null;
 }
 
 export type PartnerPublicationField = 'organizer'|'client'|'role'|'image'|'eventDate'|'venue'|'ticketUrl'|'details';
@@ -91,8 +93,8 @@ export function partnerPublicationChecks(details:PartnerDetails|null,row:Partner
 }
 export function partnerPublicationIssues(details:PartnerDetails|null,row:PartnerPublicationRow):PartnerPublicationIssue[]{
   if(!details)return [{field:'details',label:'Partner details',message:'Check partner details, ticket link and additional poster captions.'}];
-  if(!['published','ongoing','completed','sales_paused','sold_out','postponed','rescheduled'].includes(String(row.status)))return [];
-  return partnerPublicationChecks(details,row).filter(check=>!check.ready).map(({field,label,message})=>({field,label,message}));
+  if(row.image!=null&&row.image!==''&&(typeof row.image!=='string'||row.image.length>400||!posterUrl(row.image)))return [{field:'image',label:'Main event artwork',message:'Use an uploaded image or a safe HTTPS artwork link, or leave it empty.'}];
+  return [];
 }
 
 export function partnerAdmission(details: PartnerDetails) {

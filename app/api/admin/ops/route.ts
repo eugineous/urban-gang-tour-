@@ -39,7 +39,7 @@ import { isEventStatus } from "@/lib/server/event-lifecycle";
 import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
 import { changeEventStatus, parseEventStatusChange,EventPublicationError } from '@/lib/server/admin-event-status';
-import { parsePartnerDetails, partnerPublicationError,partnerPublicationIssues } from '@/lib/partner-events';
+import { publicPartnerDetails, partnerPublicationError,partnerPublicationIssues } from '@/lib/partner-events';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -1544,10 +1544,11 @@ export async function POST(req: Request) {
         // permissive one: a malformed payload must never be able to publish
         // an event or make it sellable.
         const status = isEventStatus(d.status) ? d.status : "draft";
+        if(kind==='ticketed'&&['published','ongoing'].includes(status)&&(!dateOrNull(d.eventDate)||!s(d.venue,300)))return bad('event_details_required');
         const tierInput = validateEventTiers(kind === 'ticketed' ? d.tiers : []);
         if (!tierInput.ok) return bad(tierInput.error);
         const tiers = tierInput.tiers;
-        const partner = kind === 'partner' ? parsePartnerDetails(d.partnerDetails) : null;
+        const partner = kind === 'partner' ? publicPartnerDetails(d.partnerDetails) : null;
         if (kind === 'partner') {
           const error = partnerPublicationError(partner, {status, image:d.image, eventDate:dateOrNull(d.eventDate), venue:s(d.venue,300)});
           if (error) return NextResponse.json({error,fields:partnerPublicationIssues(partner,{status,image:d.image,eventDate:dateOrNull(d.eventDate),venue:s(d.venue,300)})},{status:400});
@@ -1638,7 +1639,7 @@ export async function POST(req: Request) {
         // who did it and when — a published recovered event must never still
         // be labelled unverified. This is the whole point of keeping
         // "recovered from history" and "confirmed commercially" apart.
-        if (status === "published") {
+        if (status === "published"||status==='announced') {
           let prior: any = row[0]?.recovery;
           if (typeof prior === "string") {
             try { prior = JSON.parse(prior); } catch { prior = null; }
@@ -1663,7 +1664,7 @@ export async function POST(req: Request) {
           name,
           status,
         });
-        if (status === "published" || (kind === 'partner' && status === 'completed'))
+        if (status === "published" ||status==='announced'||status==='completed')
           after(() => pingIndexNow(["/events", "/experience", "/portfolio",`/events/${row[0]?.slug || id}`]));
         // Commercial mutation: the public list, leaf, sitemap and JSON-LD must
         // drop what they were serving now, not on the next deploy.

@@ -1,5 +1,44 @@
 # Urban Gang Tour reconstruction checkpoint
 
+## 16 October 2026 — new briefs, first reconstruction slice (not deployed)
+
+Branch: `feat/content-discovery-reconstruction-20261016`, based on main after
+PR #73. The supplied three files are overlapping briefs; execution starts with
+publishing/discovery, preserving production data and existing authentication.
+No new main-site release authorization was inferred from “now start on this”.
+
+Implemented: public non-selling announcements; optional partner media/schedule/
+credits; shared whitelisted SSR/API event reader; searchable upcoming/past/type
+views; Tour Stops redirect to the live school archive; canonical school/past
+event records; completed-event portfolio/sitemap discovery; honest text artwork
+fallbacks; commercial resolver rejects incomplete/past schedules. Existing
+curated media collections are preserved. No manufactured event facts or stock.
+
+The local, network-isolated Postgres 16 schema regression passed: actual event
+DDL preserves legacy records, accepts title-only announced rows, tolerates
+repeat migration and rejects invalid states. The disposable database was stopped.
+All 684 standard tests and TypeScript passed; six opt-in story database cases
+remain skipped in the standard run. Scoped lint has zero errors, 41 warnings.
+Source/SSR tests are not physical-device or signed-in production acceptance.
+Product Design's browser connection and some bundled audit references were
+unavailable; no new completed screenshot/accessibility audit is claimed.
+
+Research: Google Event structured-data guidance informed omitting rich Event
+markup when schedule/location are absent; W3C cognitive accessibility guidance
+informed explicit states and short actions. DICE returned 403 and the referenced
+Eventbrite help page was inaccessible; no competitor admin audit is claimed.
+Sources: https://developers.google.com/search/docs/appearance/structured-data/event
+and https://www.w3.org/WAI/WCAG2/supplemental/patterns/o1p04-clear-steps/.
+
+Migration/release warning: `announced` expands the existing event status CHECK
+inside the existing transaction/advisory-lock bootstrap; it does not rewrite
+records. Before any future public rollout, retain a compatible rollback build.
+An older bootstrap recreates the old CHECK and cannot safely run after new
+announced rows exist. Do not delete or downgrade those records for rollback.
+The fully separate visibility/lifecycle model, extensible categories, structured
+case-study editing, media-rights library, new public shell and full admin rebuild
+remain later slices, not features claimed complete here.
+
 11 October 2026 · Africa/Nairobi. This is a tested implementation bundle, not a declaration that the entire reconstruction directive or live operating system is complete.
 
 ## Execution scope

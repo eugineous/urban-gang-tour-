@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {EVENT_STATUSES, PUBLIC_EVENT_STATUSES} from '@/lib/server/event-lifecycle';
-import {ownedEventPresentation, ownedEventSignature, publicOwnedEvents} from '@/ui/lib/owned-event-presentation';
+import {ownedEventPresentation, ownedEventSignature, publicOwnedEvents,filterOwnedEvents} from '@/ui/lib/owned-event-presentation';
 
 const now = Date.parse('2026-10-11T12:00:00+03:00');
 const event = {id:'test-event', kind:'ticketed', name:'Test event', slug:'test-event', status:'published', eventDate:'2026-10-12', sellable:true};
@@ -23,11 +23,11 @@ describe('owned event presentation respects public and commercial truth', () => 
       expect(view.action).toBe('View event details');
     }
   });
-  it('routes school stops to the tour rather than a ticket detail or checkout', () => {
+  it('gives a school stop its own detail page without ticket checkout', () => {
     const view = ownedEventPresentation({...event, kind:'school'}, now);
     expect(view.sellable).toBe(false);
-    expect(view.href).toBe('/tour-stops');
-    expect(view.action).toBe('View the school tour');
+    expect(view.href).toBe('/events/test-event');
+    expect(view.action).toBe('View event details');
   });
   it('keeps postponed records visible after the previous date without advertising that date', () => {
     const view = ownedEventPresentation({...event, status:'postponed', eventDate:'2026-10-01'}, now);
@@ -56,5 +56,11 @@ describe('owned event presentation respects public and commercial truth', () => 
     expect(ownedEventSignature([event])).not.toBe(ownedEventSignature([{...event, sellable:false}]));
     expect(ownedEventSignature([event])).not.toBe(ownedEventSignature([]));
     expect(ownedEventSignature([event, {...event, id:'second'}])).toBe(ownedEventSignature([{...event, id:'second'}, event]));
+  });
+  it('searches the live school archive and keeps private rows out of all filter views',()=>{
+    const rows=[{...event,id:'school',kind:'school',name:'Fixture school'},{...event,id:'old',status:'completed',kind:'partner',name:'Previous campus event',partnerDetails:null},{...event,id:'private',status:'draft',name:'Private school'}];
+    expect(filterOwnedEvents(rows,{kind:'school',period:'all',q:' SCHOOL '},now).map(row=>row.id)).toEqual(['school']);
+    expect(filterOwnedEvents(rows,{kind:'all',period:'past',q:'campus'},now).map(row=>row.id)).toEqual(['old']);
+    expect(filterOwnedEvents(rows,{kind:'all',period:'all',q:'private'},now)).toEqual([]);
   });
 });

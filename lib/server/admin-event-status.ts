@@ -1,6 +1,6 @@
 import { q } from './db';
 import { isEventStatus, type EventStatus } from './event-lifecycle';
-import { parsePartnerDetails, partnerPublicationError,partnerPublicationIssues,type PartnerPublicationIssue } from '../partner-events';
+import { publicPartnerDetails, partnerPublicationError,partnerPublicationIssues,type PartnerPublicationIssue } from '../partner-events';
 
 export class EventPublicationError extends Error {
   constructor(code:string,public readonly fields:PartnerPublicationIssue[]){super(code)}
@@ -22,11 +22,12 @@ export async function changeEventStatus(input:EventStatusChange,actor:string) {
   if(!row)throw new Error('not_found');
   if(row.status!==input.expectedStatus)throw new Error('event_conflict');
   if(row.kind==='partner'){
-    const error=partnerPublicationError(parsePartnerDetails(row.partner_details),{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue});
-    if(error)throw new EventPublicationError(error,partnerPublicationIssues(parsePartnerDetails(row.partner_details),{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue}));
+    const details=publicPartnerDetails(row.partner_details);
+    const error=partnerPublicationError(details,{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue});
+    if(error)throw new EventPublicationError(error,partnerPublicationIssues(details,{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue}));
   }
-  if(['published','ongoing'].includes(input.status)){
-    if(!row.name||!String(row.venue||'').trim()||(row.kind==='ticketed'&&!row.event_date))throw new Error('event_details_required');
+  if(['announced','published','ongoing'].includes(input.status)){
+    if(!row.name||(row.kind==='ticketed'&&input.status!=='announced'&&(!String(row.venue||'').trim()||!row.event_date)))throw new Error('event_details_required');
     let recovery=row.recovery;
     if(typeof recovery==='string'){try{recovery=JSON.parse(recovery)}catch{throw new Error('event_review_required')}}
     if(recovery&&recovery.verification_status!=='verified')throw new Error('event_review_required');

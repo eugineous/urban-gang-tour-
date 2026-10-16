@@ -11,7 +11,9 @@ import { PUBLIC_EVENT_STATUSES, isEventIndexable, eventSchemaStatus } from '@/li
 import { matchEventRoute } from '@/lib/server/event-route';
 import { resolveEventTruth } from '@/lib/server/event-truth';
 import PartnerEventDetails from '@/app/_components/PartnerEventDetails';
-import {parsePartnerDetails} from '@/lib/partner-events';
+import {publicPartnerDetails} from '@/lib/partner-events';
+import {InformationalEventDetails} from '@/app/_components/InformationalEventDetails';
+import {EventArtwork} from '@/app/_components/EventArtwork';
 
 // Event pages include sellability and Offer markup, so serve them on demand.
 // This avoids a stale ISR page advertising a show after an authoritative
@@ -41,7 +43,7 @@ type TicketedEvent = {
   id: string;
   slug: string;
   name: string;
-  event_date: string;
+  event_date: string|null;
   event_time: string;
   venue: string;
   city: string;
@@ -65,11 +67,11 @@ const eventForPage = cache(async (slug: string): Promise<RoutedEvent | null> => 
   const rows = await q<TicketedEvent>(
     `SELECT id, slug, kind, to_jsonb(tour_events)->'partner_details' AS partner_details, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
             status, previous_start_at::text AS previous_start_at
-     FROM tour_events WHERE slug=$1 AND kind IN ('ticketed','partner') AND status = ANY($2) LIMIT 1`,
+     FROM tour_events WHERE slug=$1 AND kind IN ('ticketed','partner','school','past') AND status = ANY($2) LIMIT 1`,
     [slug, [...PUBLIC_EVENT_STATUSES]]
   );
   const direct = rows[0];
-  if (direct) return direct.kind==='partner'&&!parsePartnerDetails(direct.partner_details)?null:{ event: direct, canonical: true };
+  if (direct) return direct.kind==='partner'&&!publicPartnerDetails(direct.partner_details)?null:{ event: direct, canonical: true };
 
   // Legacy ids are resolved only after canonical slug lookup fails. A blank
   // legacy slug intentionally remains a 404; inventing a redirect would hide
@@ -77,7 +79,7 @@ const eventForPage = cache(async (slug: string): Promise<RoutedEvent | null> => 
   const legacyRows = await q<TicketedEvent>(
     `SELECT id, slug, kind, to_jsonb(tour_events)->'partner_details' AS partner_details, name, event_date::text AS event_date, event_time, venue, city, accent, image, description, tiers,
             status, previous_start_at::text AS previous_start_at
-     FROM tour_events WHERE id=$1 AND slug != '' AND kind IN ('ticketed','partner') AND status = ANY($2) LIMIT 1`,
+     FROM tour_events WHERE id=$1 AND slug != '' AND kind IN ('ticketed','partner','school','past') AND status = ANY($2) LIMIT 1`,
     [slug, [...PUBLIC_EVENT_STATUSES]],
   );
   const match = matchEventRoute(slug, null, legacyRows[0]);
@@ -116,8 +118,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!resolved) return {};
   const event = resolved.event;
   const path = `/events/${event.slug}`;
-  const description = event.description || `${event.name} at ${event.venue}${event.city ? `, ${event.city}` : ''}.`;
-  const indexable = isEventIndexable(event.status) || (event.kind==='partner'&&event.status==='completed');
+  const description = event.description || `${event.name}${event.venue?' at '+event.venue:''}${event.city ? `, ${event.city}` : ''}. Event details from Urban Gang Tour.`;
+  const indexable = isEventIndexable(event.status) || event.status==='completed';
   return {
     title: `${event.name} | Urban Gang Tour`,
     description,
@@ -134,6 +136,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   if (!resolved.canonical) permanentRedirect(`/events/${resolved.event.slug}`);
   const event = resolved.event;
   if(event.kind==='partner')return <PartnerEventDetails event={event}/>;
+  if(event.kind==='school'||event.kind==='past')return <InformationalEventDetails event={event}/>;
   const truth = await resolveEventTruth(event.slug);
   // A page may render public event information when availability lookup is
   // unavailable, but it must never claim tickets can be bought in that case.
@@ -143,9 +146,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const path = `/events/${event.slug}`;
   const status = String(event.status || 'published');
   const sellable = availabilityKnown && truth.isSellable;
-  const soldOut = status === 'sold_out' || truth?.isSoldOut === true;
+  const soldOut = status === 'sold_out' || (status!=='announced'&&truth?.isSoldOut === true);
   const prev = event.previous_start_at ? String(event.previous_start_at).slice(0, 10) : null;
   const statusNote: Record<string, { title: string; body: string }> = {
+    announced:{title:'Announced',body:'More details will be added here. Ticket sales are not open.'},
     ongoing: { title: 'Happening Now', body: 'This event is in progress. Online ticket sales are closed.' },
     sales_paused: { title: 'Sales Paused', body: 'Ticket sales are paused for this event. Check back soon.' },
     sold_out: { title: 'Sold Out', body: 'This event is sold out. Check back for future dates or related events.' },
@@ -176,7 +180,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       .map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
   } : null;
   const accent = /^#[0-9A-F]{6}$/i.test(event.accent) ? event.accent : '#E6218C';
-  const eventDate = formatEventDate(event.event_date);
+  const eventDate = event.event_date?formatEventDate(event.event_date):'Date to be confirmed';
   const shareText = encodeURIComponent(`${event.name} — ${event.venue || ''} ${eventDate}`.trim());
   const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
   const ticketHref = `/events?event=${encodeURIComponent(event.id)}`;
@@ -185,7 +189,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     {eventJsonLd&&<JsonLd data={eventJsonLd}/>}
     <EventsAnalytics eventSlug={event.slug} eventNames={[{slug:event.slug,name:event.name}]}/>
     <div className="detail-breadcrumbs"><a href="/events">All events</a><span>/</span><span>{event.name}</span></div>
-    <section className="event-detail-hero"><div><p className="eyebrow">Urban Gang Tour presents</p><h1>{event.name}</h1><p>{event.description||'Event details and ticket options are below.'}</p><p>{eventDate} · {event.venue}</p></div>{event.image&&<img src={event.image} alt={event.name+' event poster'}/>}</section>
+    <section className="event-detail-hero"><div><p className="eyebrow">Urban Gang Tour presents</p><h1>{event.name}</h1><p>{event.description||'More event details will be added here.'}</p><p>{eventDate} · {event.venue||'Venue to be confirmed'}</p></div><EventArtwork name={event.name} image={event.image}/></section>
     {currentStatus.body&&<p className="modern-alert" role="status">{currentStatus.body}</p>}
     <section className="event-detail-grid"><div><h2>Plan your visit.</h2><dl>{[['Date',eventDate],['Time',event.event_time||'To be confirmed'],['Venue',event.venue||'To be confirmed'],['City',event.city||'Kenya']].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on WhatsApp</a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on X</a>{/^\d{4}-\d{2}-\d{2}$/.test(String(event.event_date).slice(0,10))&&<EventCalendar name={event.name} date={String(event.event_date).slice(0,10)} start={startDate} venue={event.venue||''} url={`${SITE.domain}${path}`}/>}</div></div>
     <aside className="modern-card"><h2>Ticket options.</h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt>{tier.name}</dt><dd>{money(tier.price)}</dd></div>)}</dl>:<p>Ticket options have not been published yet.</p>}{sellable?<a className="button" href={ticketHref}>Get tickets</a>:<p role="status">{soldOut?'Sold out':'Tickets not on sale'}</p>}<p className="form-note">Ticket availability is checked again at checkout.</p><a href="/book">Plan your own event with us</a></aside></section>

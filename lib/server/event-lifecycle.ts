@@ -13,6 +13,7 @@
 export const EVENT_STATUSES = [
   'draft',
   'pending_review',
+  'announced',
   'published',
   'ongoing',
   'sales_paused',
@@ -41,6 +42,7 @@ export function isEventStatus(v: unknown): v is EventStatus {
  * their event. They are simply not buyable — see SELLABLE_STATUSES.
  */
 export const PUBLIC_EVENT_STATUSES: readonly EventStatus[] = [
+  'announced',
   'published',
   'ongoing',
   'sales_paused',
@@ -61,6 +63,7 @@ export const PUBLIC_EVENT_STATUSES: readonly EventStatus[] = [
  * will reject.
  */
 export const INDEXABLE_EVENT_STATUSES: readonly EventStatus[] = [
+  'announced',
   'published',
   'ongoing',
   'sales_paused',

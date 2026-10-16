@@ -16,7 +16,7 @@ export type PublicTourEvent = {
 /** A published date is required; planning records never become announcements. */
 export function nextTourEvent(events: PublicTourEvent[], now: number): PublicTourEvent | undefined {
   return events.filter(event => {
-    if (!['school', 'ticketed', 'partner'].includes(event.kind) || !['published', 'ongoing', 'rescheduled', 'sold_out', 'sales_paused'].includes(event.status)) return false;
+    if (!['school', 'ticketed', 'partner'].includes(event.kind) || !['announced','published', 'ongoing', 'rescheduled', 'sold_out', 'sales_paused'].includes(event.status)) return false;
     if (!event.eventDate || !/^\d{4}-\d{2}-\d{2}$/.test(event.eventDate)) return false;
     const date = new Date(event.eventDate + 'T12:00:00+03:00');
     if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== event.eventDate) return false;

@@ -144,6 +144,7 @@ describe('event lifecycle: public visibility vs sellability', () => {
 
   it('keeps search-discovery statuses narrower than public holder access', () => {
     expect([...INDEXABLE_EVENT_STATUSES]).toEqual([
+      'announced',
       'published',
       'ongoing',
       'sales_paused',

@@ -26,8 +26,8 @@ it('saves credited metadata but strips all local ticket tiers',async()=>{
   expect(sql).toContain('partner_details');expect(params[13]).toBe('[]');expect(JSON.parse(params[16])).toEqual(partner);
   expect(state.audit).toHaveBeenCalledWith('ops.tourEvent.save',expect.objectContaining({kind:'partner'}));expect(state.bump).toHaveBeenCalledWith('partner-fixture');
 });
-it('does not publish an external event without its official seller',async()=>{
-  const result=await POST(request({...data,partnerDetails:{...partner,ticketUrl:''}}));expect(result.status).toBe(400);expect(await result.json()).toMatchObject({error:'partner_ticket_url_required'});expect(state.q).not.toHaveBeenCalled();
+it('can publish an external listing before the seller is confirmed without creating local tiers',async()=>{
+  const result=await POST(request({...data,partnerDetails:{...partner,ticketUrl:''}}));expect(result.status).toBe(200);const params=state.q.mock.calls.find(([sql])=>sql.startsWith('INSERT INTO tour_events'))![1];expect(params[13]).toBe('[]');expect(JSON.parse(params[16]).ticketUrl).toBe('');
 });
 it('allows incomplete drafts and genuinely free listings without a seller',async()=>{
   expect((await POST(request({...data,status:'draft',image:'',eventDate:null,partnerDetails:EMPTY_PARTNER}))).status).toBe(200);
@@ -46,18 +46,19 @@ it('cannot convert existing Urban Gang ticket inventory into a partner record',a
   state.q.mockResolvedValueOnce([{kind:'ticketed',event_date:'2026-11-06'}]);
   const result=await POST(request({...data,id:'owned-show'}));expect(result.status).toBe(400);expect(await result.json()).toMatchObject({error:'event_kind_immutable'});expect(state.q).toHaveBeenCalledTimes(1);
 });
-it('also blocks incomplete public partner status changes',async()=>{
-  state.q.mockResolvedValueOnce([{id:'partner',kind:'partner',status:'draft',name:'Draft partner',event_date:null,venue:'',image:'',partner_details:EMPTY_PARTNER}]);
-  await expect(changeEventStatus({id:'partner',status:'published',expectedStatus:'draft',updatedAt:'2026-10-15T10:00:00Z'},'fixture-owner')).rejects.toThrow('partner_details_required');expect(state.q).toHaveBeenCalledTimes(1);
+it('can publish a partner announcement with incomplete optional details',async()=>{
+  const row={id:'partner',kind:'partner',status:'draft',name:'Draft partner',event_date:null,venue:'',image:'',partner_details:EMPTY_PARTNER};
+  state.q.mockResolvedValueOnce([row]).mockResolvedValueOnce([{...row,status:'announced'}]);
+  expect(await changeEventStatus({id:'partner',status:'announced',expectedStatus:'draft',updatedAt:'2026-10-15T10:00:00Z'},'fixture-owner')).toMatchObject({status:'announced'});expect(state.q).toHaveBeenCalledTimes(2);
 });
-it('returns exact publishing blockers without repeating already entered information',async()=>{
- const result=await POST(request({...data,image:'',partnerDetails:{...partner,admission:'free',ticketUrl:''}}));
- expect(result.status).toBe(400);expect(await result.json()).toMatchObject({error:'partner_details_required',fields:[{field:'image',message:'Upload or select the main event artwork.'}]});expect(state.q).not.toHaveBeenCalled();
+it('still rejects unsafe supplied artwork instead of treating optional as unvalidated',async()=>{
+ const result=await POST(request({...data,image:'javascript:alert(1)',partnerDetails:{...partner,admission:'free',ticketUrl:''}}));
+ expect(result.status).toBe(400);expect(await result.json()).toMatchObject({error:'invalid_partner_artwork',fields:[{field:'image'}]});expect(state.q).not.toHaveBeenCalled();
 });
 it('returns exact blockers through the quick status endpoint too',async()=>{
- state.q.mockResolvedValueOnce([{id:'partner',kind:'partner',status:'pending_review',name:'Entered partner',event_date:'2026-11-08',venue:'Main campus',image:'',partner_details:{...partner,admission:'free',ticketUrl:''}}]);
+ state.q.mockResolvedValueOnce([{id:'partner',kind:'partner',status:'pending_review',name:'Entered partner',event_date:'2026-11-08',venue:'Main campus',image:'javascript:alert(1)',partner_details:{...partner,admission:'free',ticketUrl:''}}]);
  const req=new Request('https://urbangangtour.co.ke/api/admin/ops',{method:'POST',headers:{origin:'https://urbangangtour.co.ke','content-type':'application/json'},body:JSON.stringify({kind:'tourEvent.status',data:{id:'partner',status:'published',expectedStatus:'pending_review',updatedAt:'2026-10-16T00:00:00Z'}})});
- const response=await POST(req);expect(response.status).toBe(400);expect(await response.json()).toMatchObject({error:'partner_details_required',fields:[{field:'image'}]});expect(state.q).toHaveBeenCalledTimes(1);
+ const response=await POST(req);expect(response.status).toBe(400);expect(await response.json()).toMatchObject({error:'invalid_partner_artwork',fields:[{field:'image'}]});expect(state.q).toHaveBeenCalledTimes(1);
 });
 it('guards an entered edit against a newer saved version',async()=>{
  state.q.mockResolvedValueOnce([{kind:'partner',event_date:'2026-11-06'}]).mockResolvedValueOnce([]);

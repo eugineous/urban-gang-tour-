@@ -1,8 +1,4 @@
-import {RenderedPage} from '@/app/_components/RenderedPage';
-import {JsonLd} from '@/app/_components/JsonLd';
-import {metadataForPathDynamic} from '@/app/_lib/seo';
-import {structuredDataForPath} from '@/app/_lib/jsonld';
-const PATH='/tour-stops';
-export const revalidate=300;
-export async function generateMetadata(){return metadataForPathDynamic(PATH)}
-export default function Page(){return <><JsonLd data={structuredDataForPath(PATH)}/><RenderedPage pathName={PATH}/></>}
+import {permanentRedirect} from 'next/navigation';
+// Keep previously shared URLs working; the live archive replaces the static
+// timeline. Approved historical photographs remain in their gallery routes.
+export default function Page(){permanentRedirect('/events?kind=school&period=all')}
