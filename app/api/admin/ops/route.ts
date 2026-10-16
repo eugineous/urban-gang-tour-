@@ -38,8 +38,8 @@ import {
 import { isEventStatus } from "@/lib/server/event-lifecycle";
 import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
-import { changeEventStatus, parseEventStatusChange } from '@/lib/server/admin-event-status';
-import { parsePartnerDetails, partnerPublicationError } from '@/lib/partner-events';
+import { changeEventStatus, parseEventStatusChange,EventPublicationError } from '@/lib/server/admin-event-status';
+import { parsePartnerDetails, partnerPublicationError,partnerPublicationIssues } from '@/lib/partner-events';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -1525,6 +1525,7 @@ export async function POST(req: Request) {
           return NextResponse.json({ok:true,row});
         } catch(error) {
           const code=error instanceof Error?error.message:'';
+          if(error instanceof EventPublicationError)return NextResponse.json({error:code,fields:error.fields},{status:400});
           if(code==='event_conflict')return bad(code,409);
           if(code==='not_found')return bad(code,404);
           if(['event_details_required','event_review_required','invalid_partner_details','partner_details_required','partner_ticket_url_required'].includes(code))return bad(code);
@@ -1549,11 +1550,13 @@ export async function POST(req: Request) {
         const partner = kind === 'partner' ? parsePartnerDetails(d.partnerDetails) : null;
         if (kind === 'partner') {
           const error = partnerPublicationError(partner, {status, image:d.image, eventDate:dateOrNull(d.eventDate), venue:s(d.venue,300)});
-          if (error) return bad(error);
+          if (error) return NextResponse.json({error,fields:partnerPublicationIssues(partner,{status,image:d.image,eventDate:dateOrNull(d.eventDate),venue:s(d.venue,300)})},{status:400});
         } else if (d.partnerDetails != null) return bad('unexpected_partner_details');
         const priority = intOrNull(d.priority) ?? 0;
         let id = s(d.id, 60);
         const isNew = !id;
+        const updatedAt=d.updatedAt===undefined||d.updatedAt===''?null:d.updatedAt;
+        if(updatedAt!==null&&(typeof updatedAt!=='string'||updatedAt.length>50||!Number.isFinite(Date.parse(updatedAt))))return bad('invalid_event_version');
         if (isNew) {
           const base = slugify(name);
           id = base;
@@ -1606,10 +1609,10 @@ export async function POST(req: Request) {
           row = await q(
             `UPDATE tour_events SET kind=$1, name=$2, event_date=$4, date_label=$5, event_time=$6, venue=$7, city=$8, accent=$9,
                status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, partner_details=$17::jsonb, updated_at=now()
-             WHERE id=$3 AND kind=$1 RETURNING *`,
-            fields,
+             WHERE id=$3 AND kind=$1 AND ($18::timestamptz IS NULL OR updated_at=$18::timestamptz) RETURNING *`,
+            [...fields,updatedAt],
           );
-          if (!row.length) return bad("not_found", 404);
+          if (!row.length) return bad("event_conflict", 409);
           const oldDate = before[0]?.event_date
             ? String(before[0].event_date).slice(0, 10)
             : null;

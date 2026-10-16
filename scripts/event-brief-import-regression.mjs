@@ -11,7 +11,7 @@ try{for(const [name,profile]of [['galaxy-s24',devices['Galaxy S24']],['desktop',
  await context.route('**/api/admin/**',route=>{
   const request=route.request(),url=new URL(request.url());
   if(url.pathname==='/api/admin/me')return route.fulfill({json:{ok:true,scope:'super_admin',perms:[]}});
-  if(request.method()==='POST'){saved.push(request.postDataJSON());return route.fulfill({json:{ok:true,row:{id:'fixture'}}})}
+  if(request.method()==='POST'){const body=request.postDataJSON();saved.push(body);return route.fulfill({json:{ok:true,row:{id:'fixture',kind:body.data.kind,status:body.data.status,name:body.data.name,updated_at:'2026-10-16 00:00:00.123456+00'}}})}
   return route.fulfill({json:{ok:true,rows:[]}});
  });
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/admin?tab=Events');
