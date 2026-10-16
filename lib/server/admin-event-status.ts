@@ -1,6 +1,10 @@
 import { q } from './db';
 import { isEventStatus, type EventStatus } from './event-lifecycle';
-import { parsePartnerDetails, partnerPublicationError } from '../partner-events';
+import { parsePartnerDetails, partnerPublicationError,partnerPublicationIssues,type PartnerPublicationIssue } from '../partner-events';
+
+export class EventPublicationError extends Error {
+  constructor(code:string,public readonly fields:PartnerPublicationIssue[]){super(code)}
+}
 
 export type EventStatusChange = {id:string;status:EventStatus;expectedStatus:EventStatus;updatedAt:string};
 export function parseEventStatusChange(value: unknown): EventStatusChange | null {
@@ -19,7 +23,7 @@ export async function changeEventStatus(input:EventStatusChange,actor:string) {
   if(row.status!==input.expectedStatus)throw new Error('event_conflict');
   if(row.kind==='partner'){
     const error=partnerPublicationError(parsePartnerDetails(row.partner_details),{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue});
-    if(error)throw new Error(error);
+    if(error)throw new EventPublicationError(error,partnerPublicationIssues(parsePartnerDetails(row.partner_details),{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue}));
   }
   if(['published','ongoing'].includes(input.status)){
     if(!row.name||!String(row.venue||'').trim()||(row.kind==='ticketed'&&!row.event_date))throw new Error('event_details_required');

@@ -701,6 +701,17 @@ contracting company, credited role, original artwork, venue and confirmed date
 (except postponed dates). Active external-ticket listings also require the
 official seller URL. These checks apply to both full saves and narrow status
 changes. Existing event kinds cannot be changed, preserving ticket ownership.
+Validation failures from both operations now include `fields`, an array of
+`{field,label,message}` describing only the missing publication requirements.
+Entered values are never echoed in these errors. Private drafts remain allowed.
+`tourEvent.save` accepts optional `updatedAt` (the exact loaded `updated_at`
+timestamp, preserving microseconds). An outdated version returns 409
+`event_conflict` without overwriting the event. Omission preserves the legacy
+client contract; the current Events editor sends it for existing records.
+Successful saves/status changes return `{ok:true,row}`. The editor requires
+the confirmed row before clearing entries, retains errors until corrected,
+and disables editing while a save is pending. Network timeouts leave the
+outcome unconfirmed, not labelled as definitely failed or successful.
 Partner tiers are always empty and `sellable` is always false: listing another
 company’s event never enables local payment collection or marketplace splits.
 

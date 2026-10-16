@@ -65,11 +65,34 @@ export function parsePartnerDetails(value: unknown): PartnerDetails | null {
 export function partnerPublicationError(details: PartnerDetails | null, row: {status: unknown; image?: unknown; eventDate?: unknown; venue?: unknown}): string | null {
   if (!details) return 'invalid_partner_details';
   if (!['published','ongoing','completed','sales_paused','sold_out','postponed','rescheduled'].includes(String(row.status))) return null;
-  if (!details.organizer || !details.client || !details.role || !row.venue ||
-    typeof row.image !== 'string' || row.image.length>400 || !posterUrl(row.image) || !row.image ||
-    (row.status !== 'postponed' && !row.eventDate)) return 'partner_details_required';
-  if (details.admission === 'external' && ['published','ongoing','rescheduled'].includes(String(row.status)) && !details.ticketUrl) return 'partner_ticket_url_required';
+  const issues=partnerPublicationIssues(details,row);
+  if(issues.some(issue=>issue.field!=='ticketUrl'))return 'partner_details_required';
+  if(issues.some(issue=>issue.field==='ticketUrl'))return 'partner_ticket_url_required';
   return null;
+}
+
+export type PartnerPublicationField = 'organizer'|'client'|'role'|'image'|'eventDate'|'venue'|'ticketUrl'|'details';
+export type PartnerPublicationIssue = {field:PartnerPublicationField;label:string;message:string};
+export type PartnerPublicationRow = {status:unknown;image?:unknown;eventDate?:unknown;venue?:unknown};
+/** Exact missing fields, shared by the form and server. Never returns entered values. */
+export function partnerPublicationChecks(details:PartnerDetails|null,row:PartnerPublicationRow):Array<PartnerPublicationIssue&{ready:boolean}>{
+  const present=(value:unknown)=>typeof value==='string'?!!value.trim():value instanceof Date&&!Number.isNaN(value.getTime());
+  const checks:Array<PartnerPublicationIssue&{ready:boolean}>=[
+    {field:'organizer',label:'Organiser',message:'Add who presents or organises this event.',ready:!!details?.organizer.trim()},
+    {field:'client',label:'Contracting company',message:'Add the company that contracted us.',ready:!!details?.client.trim()},
+    {field:'role',label:'Our role',message:'Add our role and credited team.',ready:!!details?.role.trim()},
+    {field:'image',label:'Main event artwork',message:'Upload or select the main event artwork.',ready:typeof row.image==='string'&&row.image.length<=400&&!!row.image.trim()&&posterUrl(row.image)},
+    {field:'venue',label:'Venue',message:'Add the venue or location line.',ready:present(row.venue)},
+  ];
+  if(row.status!=='postponed')checks.push({field:'eventDate',label:'Event date',message:'Add a confirmed event date.',ready:present(row.eventDate)});
+  if(details?.admission==='external'&&['published','ongoing','rescheduled'].includes(String(row.status)))checks.push({field:'ticketUrl',label:'Official ticket link',message:'Add the official HTTPS ticket seller link, or choose the correct admission type.',ready:!!details.ticketUrl&&externalTicketUrl(details.ticketUrl)!==null});
+  if(!details)checks.push({field:'details',label:'Partner details',message:'Check partner details, ticket link and additional poster captions.',ready:false});
+  return checks;
+}
+export function partnerPublicationIssues(details:PartnerDetails|null,row:PartnerPublicationRow):PartnerPublicationIssue[]{
+  if(!details)return [{field:'details',label:'Partner details',message:'Check partner details, ticket link and additional poster captions.'}];
+  if(!['published','ongoing','completed','sales_paused','sold_out','postponed','rescheduled'].includes(String(row.status)))return [];
+  return partnerPublicationChecks(details,row).filter(check=>!check.ready).map(({field,label,message})=>({field,label,message}));
 }
 
 export function partnerAdmission(details: PartnerDetails) {

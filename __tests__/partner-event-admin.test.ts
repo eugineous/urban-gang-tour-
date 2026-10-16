@@ -50,3 +50,17 @@ it('also blocks incomplete public partner status changes',async()=>{
   state.q.mockResolvedValueOnce([{id:'partner',kind:'partner',status:'draft',name:'Draft partner',event_date:null,venue:'',image:'',partner_details:EMPTY_PARTNER}]);
   await expect(changeEventStatus({id:'partner',status:'published',expectedStatus:'draft',updatedAt:'2026-10-15T10:00:00Z'},'fixture-owner')).rejects.toThrow('partner_details_required');expect(state.q).toHaveBeenCalledTimes(1);
 });
+it('returns exact publishing blockers without repeating already entered information',async()=>{
+ const result=await POST(request({...data,image:'',partnerDetails:{...partner,admission:'free',ticketUrl:''}}));
+ expect(result.status).toBe(400);expect(await result.json()).toMatchObject({error:'partner_details_required',fields:[{field:'image',message:'Upload or select the main event artwork.'}]});expect(state.q).not.toHaveBeenCalled();
+});
+it('returns exact blockers through the quick status endpoint too',async()=>{
+ state.q.mockResolvedValueOnce([{id:'partner',kind:'partner',status:'pending_review',name:'Entered partner',event_date:'2026-11-08',venue:'Main campus',image:'',partner_details:{...partner,admission:'free',ticketUrl:''}}]);
+ const req=new Request('https://urbangangtour.co.ke/api/admin/ops',{method:'POST',headers:{origin:'https://urbangangtour.co.ke','content-type':'application/json'},body:JSON.stringify({kind:'tourEvent.status',data:{id:'partner',status:'published',expectedStatus:'pending_review',updatedAt:'2026-10-16T00:00:00Z'}})});
+ const response=await POST(req);expect(response.status).toBe(400);expect(await response.json()).toMatchObject({error:'partner_details_required',fields:[{field:'image'}]});expect(state.q).toHaveBeenCalledTimes(1);
+});
+it('guards an entered edit against a newer saved version',async()=>{
+ state.q.mockResolvedValueOnce([{kind:'partner',event_date:'2026-11-06'}]).mockResolvedValueOnce([]);
+ const response=await POST(request({...data,id:'partner-fixture',updatedAt:'2026-10-16 00:00:00.123456+00'}));
+ expect(response.status).toBe(409);expect(await response.json()).toMatchObject({error:'event_conflict'});expect(state.q.mock.calls[1][0]).toContain('updated_at=$18::timestamptz');expect(state.q.mock.calls[1][1][17]).toBe('2026-10-16 00:00:00.123456+00');
+});
