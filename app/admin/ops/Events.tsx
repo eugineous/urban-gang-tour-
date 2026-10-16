@@ -13,6 +13,7 @@ import {EMPTY_PARTNER,parsePartnerDetails,publicPartnerDetails,partnerPublicatio
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
 import EventBriefImport from './EventBriefImport';
+import EventCategoryField from './EventCategoryField';
 import {useUnsavedWarning} from '@/lib/client/use-unsaved-warning';
 import styles from './Events.module.css';
 import {
@@ -45,10 +46,11 @@ interface TourEvent {
   recovery?: RecoveryInfo | null;
   previous_start_at?: string | null;
   partner_details?: PartnerDetails | string | null;
+  category_id?:string|null;
 }
 
 const EMPTY = {
-  id: '' as string, updatedAt:'',kind: 'school' as Kind, name: '', eventDate: '', dateLabel: '',
+  id: '' as string, updatedAt:'',categoryId:'',kind: 'school' as Kind, name: '', eventDate: '', dateLabel: '',
   eventTime: '', venue: '', city: '', accent: '', status: 'draft' as Status,
   priority: 0, image: '', description: '', tiers: [{ name: 'Regular', price: 0 }] as Tier[],
   logo: '', testimonial: '', partnerDetails: {...EMPTY_PARTNER},
@@ -117,6 +119,7 @@ export default function Events() {
   const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [imageBusy,setImageBusy]=useState(false);
+  const [categoryBusy,setCategoryBusy]=useState(false),[categoryDirty,setCategoryDirty]=useState(false),[categoryLoaded,setCategoryLoaded]=useState(false);
   const [statusFilter,setStatusFilter]=useState('all');
   const [pendingStatus,setPendingStatus]=useState<{row:TourEvent;status:Status}|null>(null);
   const [loading, setLoading] = useState(true);
@@ -125,7 +128,7 @@ export default function Events() {
   const [feedback,setFeedback]=useState<Feedback|null>(null);
   const [focusField,setFocusField]=useState<PartnerPublicationField|null>(null);
   const requestPending=useRef(false),initialEdit=useRef('');
-  const beginEdit=(next:typeof EMPTY)=>{initialEdit.current=JSON.stringify(next);setFeedback(null);setPendingStatus(null);setEdit(next)};
+  const beginEdit=(next:typeof EMPTY)=>{initialEdit.current=JSON.stringify(next);setFeedback(null);setPendingStatus(null);setCategoryLoaded(false);setEdit(next)};
   useEffect(()=>{
     if(!edit||!focusField)return;
     const section=document.getElementById(FIELD_IDS[focusField]);
@@ -167,7 +170,8 @@ export default function Events() {
   useEffect(() => { reload(); }, [reload]);
 
   const save = async (asDraft=false,statusOverride?:Status) => {
-    if(requestPending.current||busy||imageBusy)return;
+    if(requestPending.current||busy||imageBusy||categoryBusy)return;
+    if(categoryDirty){setFeedback({kind:'error',message:'Save or cancel your category edit first. Your event entries are still here.'});document.getElementById('category-name')?.focus();return;}
     if (!edit || !edit.name.trim()) { setFeedback({kind:'error',message:'Add the event name. Your other entries are still here.'});document.getElementById('tour-event-name')?.focus();return; }
     const targetStatus=asDraft?'draft':statusOverride||edit.status;
     const partnerDetails=preparedPartner(edit.partnerDetails);
@@ -178,6 +182,7 @@ export default function Events() {
     }
     requestPending.current=true;setFeedback(null);
     setBusy(true);
+    const submittedCategory=categoryLoaded||edit.categoryId?edit.categoryId||null:undefined;
     try {
     const { status, data } = await eventPost('tourEvent.save', {
       id: edit.id || undefined, updatedAt:edit.updatedAt||undefined,kind: edit.kind, name: edit.name, eventDate: edit.eventDate || null,
@@ -186,9 +191,11 @@ export default function Events() {
       description: edit.description, tiers: edit.kind === 'ticketed' ? edit.tiers : [],
       logo: edit.logo, testimonial: edit.testimonial,
       partnerDetails: edit.kind === 'partner' ? partnerDetails : null,
+      categoryId:submittedCategory,
     });
     if (status >= 400 || data.error) { setFeedback({kind:'error',message:status===409?'This event has a newer saved version. Your entries are still here; compare with the current record before trying again.':partnerErrorMessage(data.error || 'save_failed'),fields:Array.isArray(data.fields)?data.fields:undefined});return; }
     if(!data.ok||!confirmedEvent(data.row,edit.kind,targetStatus)||(edit.id&&data.row.id!==edit.id)){setFeedback({kind:'error',message:'The server did not confirm this save. Your entries are still here. Reload the event list in another tab before retrying.'});return}
+    if(submittedCategory!==undefined&&data.row.category_id!==submittedCategory){setFeedback({kind:'error',message:'The server did not confirm the category selection. Your event entries are still here. Check the saved event in another tab before retrying.'});return}
     setRows(current=>[data.row,...current.filter(row=>row.id!==data.row.id)]);
     setFeedback({kind:'success',message:targetStatus==='draft'?'Draft saved. It is not public.':isPubliclyVisible(targetStatus)?'Event saved and published.':'Event saved. It is not public.'});
     setEdit(null);
@@ -264,7 +271,7 @@ export default function Events() {
   const openEdit = (r?: TourEvent,targetStatus?:Status) => {
     if (!r) { beginEdit({ ...EMPTY, kind: kindTab === 'all' ? 'school' : kindTab }); return; }
     beginEdit({
-      id: r.id, updatedAt:r.updated_at,kind: r.kind, name: r.name, eventDate: fmtDate(r.event_date), dateLabel: r.date_label || '',
+      id: r.id, updatedAt:r.updated_at,categoryId:r.category_id||'',kind: r.kind, name: r.name, eventDate: fmtDate(r.event_date), dateLabel: r.date_label || '',
       eventTime: r.event_time || '', venue: r.venue || '', city: r.city || '', accent: r.accent || '',
       status: r.status, priority: r.priority, image: r.image || '', description: r.description || '',
       tiers: parseTiers(r.tiers).length ? parseTiers(r.tiers) : [{ name: 'Regular', price: 0 }],
@@ -315,6 +322,7 @@ export default function Events() {
             <div><label style={label} htmlFor="tour-event-name">Name *</label><input id="tour-event-name" style={inp} maxLength={200} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Lari Boys High School" /></div>
             <div><label style={label} htmlFor="tour-event-priority">Priority (higher shows first)</label><input id="tour-event-priority" style={inp} type="number" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: Number(e.target.value) || 0 })} /></div>
           </div>
+          <EventCategoryField value={edit.categoryId} onChange={categoryId=>setEdit(current=>current?{...current,categoryId}:current)} disabled={busy} onBusy={setCategoryBusy} onDirty={setCategoryDirty} onLoaded={setCategoryLoaded}/>
           <div style={{ marginTop: 10 }}>
             <label style={label} htmlFor="tour-event-description">{edit.kind === 'ticketed' ? 'Tagline' : 'Description'}</label>
             <input id="tour-event-description" style={inp} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
@@ -430,10 +438,10 @@ export default function Events() {
         </div>
 
         <div className={styles.savebar}>
-          <button style={btnMagenta} disabled={busy||imageBusy} onClick={()=>void save()}>{imageBusy?'Wait for artwork…':busy ? 'Saving…' : 'Save event'}</button>
-          {!isPubliclyVisible(edit.status)&&<button style={btn} disabled={busy||imageBusy} onClick={()=>void save(false,'announced')}>Publish announcement</button>}
-          {edit.kind==='partner'&&isPubliclyVisible(edit.status)&&!isPubliclyVisible(rows.find(row=>row.id===edit.id)?.status||'draft')&&<button style={btn} disabled={busy||imageBusy} onClick={()=>void save(true)}>Save private draft</button>}
-          <button style={btnDark} disabled={busy||imageBusy} onClick={() => {if(JSON.stringify(edit)===initialEdit.current||confirm('Close without saving these changes? Cancel to keep your entries.')){setEdit(null);setFeedback(null)}}}>Cancel</button>
+          <button style={btnMagenta} disabled={busy||imageBusy||categoryBusy} onClick={()=>void save()}>{categoryBusy?'Saving category…':imageBusy?'Wait for artwork…':busy ? 'Saving…' : 'Save event'}</button>
+          {!isPubliclyVisible(edit.status)&&<button style={btn} disabled={busy||imageBusy||categoryBusy} onClick={()=>void save(false,'announced')}>Publish announcement</button>}
+          {edit.kind==='partner'&&isPubliclyVisible(edit.status)&&!isPubliclyVisible(rows.find(row=>row.id===edit.id)?.status||'draft')&&<button style={btn} disabled={busy||imageBusy||categoryBusy} onClick={()=>void save(true)}>Save private draft</button>}
+          <button style={btnDark} disabled={busy||imageBusy||categoryBusy} onClick={() => {if((!categoryDirty&&JSON.stringify(edit)===initialEdit.current)||confirm('Close without saving these changes? Cancel to keep your entries.')){setEdit(null);setFeedback(null)}}}>Cancel</button>
         </div>
         </fieldset>
       </div>
@@ -504,6 +512,7 @@ export default function Events() {
 }
 
 function partnerErrorMessage(code:string){
+  if(code==='invalid_event_category'||code==='event_category_unavailable')return 'This category is unavailable for assignment. Refresh categories and choose an active one, or save without a category. Your other entries are kept.';
   if(code==='invalid_partner_artwork')return 'Use an uploaded image or a safe HTTPS artwork link, or leave artwork empty.';
   if(code==='event_details_required')return 'Ticket sales need a confirmed date and venue. Use Publish announcement to share details without opening sales.';
   const messages:Record<string,string>={partner_details_required:'Not published. Complete the missing items listed below; your other entries are kept.',partner_ticket_url_required:'Not published. Add the official ticket link or correct the admission type.',invalid_partner_details:'Check the ticket link and additional poster captions. Your entries are kept.',event_details_required:'Add the venue and event date before publishing.',event_review_required:'Open Edit and review this recovered record before publishing.',event_kind_immutable:'An existing event’s kind cannot change. Create a separate partner listing to preserve ticket history.',unauthorized:'Your session expired. Your entries are still here; sign in again in another tab, then retry.',forbidden:'This account does not have permission to save events.'};

@@ -40,6 +40,8 @@ import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
 import { changeEventStatus, parseEventStatusChange,EventPublicationError } from '@/lib/server/admin-event-status';
 import { publicPartnerDetails, partnerPublicationError,partnerPublicationIssues } from '@/lib/partner-events';
+import {categoryId as isEventCategoryId} from '@/lib/event-categories';
+import {ensureEventCategorySchema} from '@/lib/server/event-categories';
 
 // UGT Ops Suite API. One route, view-based GET + kind-based POST, mirroring
 // the /api/admin/data + /api/admin/save conventions the admin panel already
@@ -1558,6 +1560,16 @@ export async function POST(req: Request) {
         const isNew = !id;
         const updatedAt=d.updatedAt===undefined||d.updatedAt===''?null:d.updatedAt;
         if(updatedAt!==null&&(typeof updatedAt!=='string'||updatedAt.length>50||!Number.isFinite(Date.parse(updatedAt))))return bad('invalid_event_version');
+        const categorySupplied=d.categoryId!==undefined;
+        const category=d.categoryId===null||d.categoryId===''?null:d.categoryId;
+        if(categorySupplied){
+          if(category!==null&&!isEventCategoryId(category))return bad('invalid_event_category');
+          await ensureEventCategorySchema();
+          if(category!==null){
+            const allowed=await q(`SELECT id FROM event_categories WHERE id=$1 AND (active OR EXISTS(SELECT 1 FROM tour_events WHERE id=$2 AND category_id=$1))`,[category,id||null]);
+            if(!allowed.length)return bad('event_category_unavailable');
+          }
+        }
         if (isNew) {
           const base = slugify(name);
           id = base;
@@ -1594,10 +1606,11 @@ export async function POST(req: Request) {
         let row;
         if (isNew) {
           row = await q(
-            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, partner_details)
-             VALUES ($3,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb) RETURNING *`,
-            fields,
+            `INSERT INTO tour_events (id, kind, name, slug, event_date, date_label, event_time, venue, city, accent, status, priority, image, description, tiers, logo, testimonial, partner_details${categorySupplied?', category_id':''})
+             SELECT $3,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb${categorySupplied?',$18::text WHERE $18::text IS NULL OR EXISTS(SELECT 1 FROM event_categories WHERE id=$18 AND active)':''} RETURNING *`,
+            categorySupplied?[...fields,category]:fields,
           );
+          if(!row.length)return bad('event_category_unavailable');
         } else {
           // Read the current date first so a move can be recorded rather than
           // silently overwritten (previous_start_at, below).
@@ -1609,9 +1622,9 @@ export async function POST(req: Request) {
           if (before[0].kind !== kind) return bad('event_kind_immutable');
           row = await q(
             `UPDATE tour_events SET kind=$1, name=$2, event_date=$4, date_label=$5, event_time=$6, venue=$7, city=$8, accent=$9,
-               status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, partner_details=$17::jsonb, updated_at=now()
-             WHERE id=$3 AND kind=$1 AND ($18::timestamptz IS NULL OR updated_at=$18::timestamptz) RETURNING *`,
-            [...fields,updatedAt],
+               status=$10, priority=$11, image=$12, description=$13, tiers=$14, logo=$15, testimonial=$16, partner_details=$17::jsonb${categorySupplied?', category_id=$19::text':''}, updated_at=now()
+             WHERE id=$3 AND kind=$1 AND ($18::timestamptz IS NULL OR updated_at=$18::timestamptz)${categorySupplied?' AND ($19::text IS NULL OR category_id=$19::text OR EXISTS(SELECT 1 FROM event_categories WHERE id=$19 AND active))':''} RETURNING *`,
+            categorySupplied?[...fields,updatedAt,category]:[...fields,updatedAt],
           );
           if (!row.length) return bad("event_conflict", 409);
           const oldDate = before[0]?.event_date
@@ -1663,6 +1676,7 @@ export async function POST(req: Request) {
           kind,
           name,
           status,
+          ...(categorySupplied?{categoryId:category}:{}),
         });
         if (status === "published" ||status==='announced'||status==='completed')
           after(() => pingIndexNow(["/events", "/experience", "/portfolio",`/events/${row[0]?.slug || id}`]));

@@ -738,6 +738,41 @@ Events supports URL-backed `period=upcoming|past|all`, `kind` and text search.
 Homepage/portfolio HTML bypasses intermediary page caching. Public snapshots
 coalesce for five seconds and cannot survive more than fifteen seconds stale.
 
+### Event categories (reconstruction review branch)
+
+`GET /api/admin/event-categories` requires an authenticated admin with `events`
+permission and returns `{ok:true,rows:[{id,name,active,version}]}`. Read/write
+limits are 120/30 requests per IP per minute; every reply is private/no-store.
+`POST` also requires the approved Origin and accepts at most 4 KiB of JSON:
+
+- Create: `{action:"create",name}`.
+- Rename/pause/restore: `{action:"update",id,name,active,version}`.
+
+Names normalize surrounding/repeated whitespace, must be 1–80 characters and
+cannot contain control characters. Unknown fields/actions, malformed IDs and
+invalid versions are rejected. Names are case-insensitively unique. IDs are
+server-generated and stable across renames. Successful writes return
+`{ok:true,row}` and atomically audit that category change. Duplicate names and
+stale versions return 409 `category_exists` / `category_conflict`; unavailable
+storage returns a sanitized 503. There is no delete endpoint or alternate auth.
+
+The additive schema creates `event_categories` and nullable, indexed
+`tour_events.category_id` with a restrictive foreign key; no existing event,
+order, price or ticket row is rewritten. `tourEvent.save` accepts optional
+`categoryId`: a valid ID assigns, `null`/empty clears, omission preserves the
+existing assignment. Paused categories cannot be newly assigned; events already
+using one can retain it. The assignment predicate is checked in the actual
+write as well as preflight. Category editing never changes commercial kind,
+status, prices or ticket inventory. The editor waits for explicit category
+and event-row acknowledgements, retains unconfirmed entries and asks users to
+finish a typed category edit before saving the event.
+
+Public event records expose only category `{id,name}` or `null`, never admin
+versions/audit details. The public read does not initialize schema. Public
+filter choices derive only from visible events; `eventCategory=<stable-id>`
+persists in the Events URL and survives initial loading. Pausing a category
+does not hide existing events or remove their public labels.
+
 Admin Events and Content include five owner-supplied editable brief templates.
 Starting a template does not persist or publish it. Saving uses the existing
 authenticated, module-permission-gated admin routes. Missing original artwork,

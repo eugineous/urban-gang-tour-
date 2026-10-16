@@ -1,5 +1,6 @@
 import {isPubliclyVisible, isSellable} from '../../lib/server/event-lifecycle';
 import {publicPartnerDetails,partnerAdmission} from '../../lib/partner-events';
+import {publicEventCategory} from '../../lib/event-categories';
 
 export type OwnedEvent = Record<string, unknown>;
 
@@ -69,13 +70,19 @@ export function publicOwnedEvents(events: OwnedEvent[], now: number) {
 
 export function ownedEventSignature(events: OwnedEvent[]) {
   return events.filter(event => event && isPubliclyVisible(event.status))
-    .map(event => [event.id, event.kind, event.slug, event.status, event.sellable, event.eventDate, event.name, event.venue, JSON.stringify(event.partnerDetails || null)].join('|'))
+    .map(event => [event.id, event.kind, event.slug, event.status, event.sellable, event.eventDate, event.name, event.venue, JSON.stringify(event.partnerDetails || null),JSON.stringify(publicEventCategory(event.category))].join('|'))
     .sort().join('\n');
 }
 
-export function filterOwnedEvents(events:OwnedEvent[],filters:{kind:string;period:string;q:string},now:number){
+export function filterOwnedEvents(events:OwnedEvent[],filters:{kind:string;period:string;q:string;category?:string},now:number){
   const query=filters.q.trim().toLowerCase().slice(0,200);
   return publicOwnedEvents(events,now).filter(event=>(filters.kind==='all'||event.kind===filters.kind)&&
+    (!filters.category||filters.category==='all'||publicEventCategory(event.category)?.id===filters.category)&&
     (filters.period==='all'||ownedEventPresentation(event,now).past===(filters.period==='past'))&&
-    [event.name,event.venue,event.city,JSON.stringify(event.partnerDetails||{})].join(' ').toLowerCase().includes(query));
+    [event.name,event.venue,event.city,publicEventCategory(event.category)?.name,JSON.stringify(event.partnerDetails||{})].join(' ').toLowerCase().includes(query));
+}
+export function publicEventCategories(events:OwnedEvent[],now:number){
+ const categories=new Map<string,{id:string;name:string}>();
+ for(const event of publicOwnedEvents(events,now)){const category=publicEventCategory(event.category);if(category)categories.set(category.id,category)}
+ return [...categories.values()].sort((a,b)=>a.name.localeCompare(b.name));
 }
