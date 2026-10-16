@@ -1,7 +1,9 @@
 # Story recovery and restored local browser verification
 
 16 October 2026, Africa/Nairobi. Follow-up to `admin-rebuild-20261016.md`.
-This is not the entire admin redesign and is not a production release.
+This is not the entire admin redesign. The owner subsequently authorized the
+current update for main-site deployment on 16 October 2026; production completion
+must be established by the release record, not inferred from this plan.
 
 ## Browser clarification
 
@@ -84,14 +86,22 @@ invalid IDs/revisions, invalid dates and malformed editable content are rejected
   disabled until saved, retry, stale publication rejection, removal and Restore.
 - These browser services are intercepted fictional fixtures. They verify the
   client flow, not SQL execution or real provider connections. SQL/auth tests
-  use mocks; a real isolated Postgres integration run is still required.
+  use mocks. A subsequent isolated Postgres 16 run passed six real integration
+  checks: revision/retry/actor isolation, publishing SQL and stale versions,
+  removal-between-read/write, Trash/Restore publication guards, reused-slug
+  protection, and atomic rollback when snapshot storage fails. The opt-in suite
+  requires the exact fictional container name and verifies it has no network.
 - Fresh screenshots were saved in `/workspace/artifacts/event-brief-import-20261016`
   and `/workspace/artifacts/story-recovery-20261016`. The S24 saved-copy screen
   was inspected. These are independent Chromium Android Chrome emulations,
   not a physical Samsung device, Android OS emulator or Samsung Internet test.
 
-Remaining work: real isolated database integration, signed-in owner acceptance,
+The owner authorized publishing before their own signed-in review. The release
+keeps existing password/Google login and role guards; no credentials are reset,
+no production sessions are minted, and no authentication bypass is introduced.
+
+Remaining work: signed-in owner acceptance,
 selected full-shell redesign, albums/category management beyond simple fields,
-other editor autosaves, actual configured provider checks and explicit release
-approval. No full redesign, universal accessibility compliance or real delivery
+other editor autosaves, and actual configured provider checks. No full redesign,
+universal accessibility compliance or real delivery
 verification is claimed.
