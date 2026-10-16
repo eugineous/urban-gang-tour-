@@ -4,6 +4,13 @@
 record, **not a completed signed-in visual audit or an entire admin redesign**.
 No production content, customer records, provider credentials or messages changed.
 
+Follow-up: the owner asked to recover the earlier isolated Chromium setup. That
+setup is usable for local fixture-based verification; see
+[story recovery and browser clarification](admin-story-recovery-20261016.md).
+The first-batch browser limitation below is historical, not a claim that all
+browser testing is unavailable. A connected personal Chrome session remains
+separate from these independent tests.
+
 ## Goal
 
 Make common tasks obvious, retain work when people get distracted, show clear

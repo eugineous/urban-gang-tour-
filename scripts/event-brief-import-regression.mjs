@@ -3,7 +3,7 @@ import {readFile,mkdir} from 'node:fs/promises';
 import {chromium,devices} from 'playwright';
 const base=process.env.BASE_URL||'http://127.0.0.1:4204';assert.ok(['localhost','127.0.0.1'].includes(new URL(base).hostname),'Local fixtures only');
 const text=await readFile(new URL('../__tests__/fixtures/chatgpt-event-brief.txt',import.meta.url),'utf8');
-const out='/workspace/artifacts/event-brief-import-20261015';await mkdir(out,{recursive:true});
+const out=process.env.OUT_DIR||'/workspace/artifacts/event-brief-import-20261016';await mkdir(out,{recursive:true});
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});let checks=0;
 try{for(const [name,profile]of [['galaxy-s24',devices['Galaxy S24']],['desktop',{viewport:{width:1440,height:1000}}]]){
  const context=await browser.newContext({...profile,serviceWorkers:'block'}),saved=[];

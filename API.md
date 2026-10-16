@@ -726,3 +726,22 @@ The batch uses existing `DATABASE_URL`, `SESSION_SECRET`, `RESEND_API_KEY` and
 `MERCH_DELIVERY_FEE_KES` enables delivery only when it contains a non-negative
 integer fee. No new R2 binding, public storage credential, browser fingerprint
 or unconfigured email/carrier integration is required or implied.
+## Story copies and recovery (16 October 2026, review branch)
+
+`GET/POST /api/admin/story-workspace` is content-permission scoped, verifies the
+current session, requires strict Origin on writes, and returns `private, no-store`.
+GET lists the current actor's copies and permitted removed stories. `?id=<UUID>`
+reads an owned copy plus revision metadata; `&revision=<integer>` reads an older
+snapshot. POST `saveDraft` accepts `{action,id,revision,content}` and uses an
+atomic compare-and-swap plus immutable revision; identical interrupted retries
+reconcile, other stale writes return 409. POST `restoreStory` accepts `{action,slug}`
+and restores only as unpublished, never overwriting a reused slug. Unexpected
+fields/invalid dates/IDs/revisions are rejected; request body limit is 170,000 bytes.
+Editable content: slug, headline, section, image, dek, body, date, published,
+submitForReview, expectedVersion. Private copies do not mutate public stories.
+
+Story writes through `/api/admin/save` require `expectedVersion`: null for a new
+record, exact list `version` for edits/removal. Unversioned writes fail 400; stale
+writes fail 409. `deletePost` now means recoverable removal, not a permanent delete.
+Restore never republishes or restarts article announcements. See
+`docs/admin-story-recovery-20261016.md` for retention, role and verification limits.

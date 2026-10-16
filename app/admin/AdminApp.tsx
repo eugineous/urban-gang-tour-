@@ -3,6 +3,8 @@ import ImageUploadField from './ImageUploadField';
 import {ContactEmail,ContactPhone} from './ContactActions';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
+import StoryRecovery from './StoryRecovery';
+import {storyDraftContent} from '@/lib/story-draft';
 
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -363,7 +365,17 @@ export default function AdminApp({
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
-  const [editPost, setEditPost] = useState<any>(null);
+  const [editPost, setEditPostState] = useState<any>(null);
+  const setEditPost=useCallback((value:any)=>setEditPostState((current:any)=>{
+    const next=typeof value==='function'?value(current):value;
+    return next?{...next,date:next.date?String(next.date).slice(0,10):'',_draftId:next._draftId||crypto.randomUUID(),expectedVersion:Object.hasOwn(next,'expectedVersion')?next.expectedVersion:next.version||null}:null;
+  }),[]);
+  const [storyRefresh,setStoryRefresh]=useState(0);
+  const onStoryListChanged=useCallback(()=>setStoryRefresh(current=>current+1),[]);
+  const [protectedDraft,setProtectedDraft]=useState({id:'',fingerprint:''});
+  const onStoryCopySaved=useCallback((id:string,fingerprint:string)=>setProtectedDraft(current=>current.id===id&&current.fingerprint===fingerprint?current:{id,fingerprint}),[]);
+  let storyCopySaved=false;
+  try{storyCopySaved=!!editPost&&protectedDraft.id===editPost._draftId&&protectedDraft.fingerprint===JSON.stringify(storyDraftContent(editPost))}catch{}
   const [storySaveError,setStorySaveError]=useState('');
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [seoPath, setSeoPath] = useState("/");
@@ -445,7 +457,7 @@ export default function AdminApp({
     void probeSession();
   }, [probeSession]);
   useEffect(()=>{
-    if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setStorySaveError('');setRows([]);setSettings({});setTix({});setStats(null)}return}
+    if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setProtectedDraft({id:'',fingerprint:''});setStorySaveError('');setRows([]);setSettings({});setTix({});setStats(null)}return}
     if(['Events','Products','Gallery','Contacts','Inbox'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
   },[authed,tab]);
   useEffect(()=>{
@@ -501,7 +513,7 @@ export default function AdminApp({
         );
     }
     return()=>{active=false};
-  }, [tab, authed, load, eventTiers.length]);
+  }, [tab, authed, load, eventTiers.length,storyRefresh]);
 
   const login = async () => {
     setErr("");
@@ -579,7 +591,9 @@ export default function AdminApp({
       say("✓ Saved");
       after?.();
     } else {
-      if(kind==='post')setStorySaveError('The story was not saved. Your changes are still here. Check your connection, sign-in and required fields, then retry.');
+      if(kind==='post')setStorySaveError(r.data.error==='story_conflict'
+        ? 'A newer version exists. Your text is still here in its private copy. Open the current story in another tab and compare before publishing; do not overwrite it.'
+        : 'The story was not saved. Your changes are still here. Check your connection, sign-in and required fields, then retry.');
       say("⚠ " + (r.data.error || "failed"));
     }
   };
@@ -868,6 +882,7 @@ export default function AdminApp({
           />
         </>
       )}
+      {canSee('Content')&&(tab==='Content'||editPost)&&<div hidden={tab!=='Content'}><StoryRecovery editor={editPost} onOpen={setEditPost} onSaved={onStoryCopySaved} onRestored={onStoryListChanged} refreshKey={storyRefresh}/></div>}
       {tab === "Content" && (
         <ContentTab
           rows={rows}
@@ -876,15 +891,16 @@ export default function AdminApp({
           canPublish={session?.scope === "super_admin"}
           saving={busy}
           saveError={storySaveError}
+          draftReady={storyCopySaved}
           onSave={(p: any) =>
-            save("post", p, () => {
+            save("post", storyDraftContent(p), () => {
               setEditPost(null);
-              load("posts").then(setRows);
+              setStoryRefresh(current=>current+1);
             })
           }
-          onDelete={(slug: string) => {
-            if (confirm('Permanently delete story "' + slug + '"? This cannot be undone. Cancel to keep it.'))
-              save("deletePost", { slug }, () => load("posts").then(setRows));
+          onDelete={(slug: string,expectedVersion:string) => {
+            if (confirm('Move story "' + slug + '" to Removed stories? It will leave the public site. You can restore it as a draft.'))
+              save("deletePost", { slug,expectedVersion }, onStoryListChanged);
           }}
         />
       )}
@@ -2088,7 +2104,7 @@ function Table({
   );
 }
 
-function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish, saving, saveError }: any) {
+function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish, saving, saveError, draftReady }: any) {
   const [imageBusy,setImageBusy]=useState(false);
   if (editPost) {
     const p = editPost;
@@ -2160,21 +2176,21 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish,
           ) : null}
           <div style={{ display: "flex", gap: 10 }}>
             {canPublish ? (
-              <button style={btn} disabled={imageBusy} onClick={() => onSave(p)}>
+              <button style={btn} disabled={imageBusy||!draftReady} onClick={() => onSave(p)}>
                 {saving?'Saving…':'Save story'}
               </button>
             ) : (
               <>
-                <button style={btnDark} disabled={imageBusy} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
+                <button style={btnDark} disabled={imageBusy||!draftReady} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
                   Save draft
                 </button>
-                <button style={btn} disabled={imageBusy} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
+                <button style={btn} disabled={imageBusy||!draftReady} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
                   Send for review
                 </button>
               </>
             )}
-            <button style={btnDark} disabled={imageBusy} onClick={() => setEditPost(null)}>
-              Cancel
+            <button style={btnDark} disabled={imageBusy} onClick={() => {if(draftReady||confirm('Your latest changes are not confirmed saved. Close anyway? Recent changes may not be available when you reopen. Cancel to keep writing.'))setEditPost(null)}}>
+              Close editor
             </button>
           </div>
         </div></fieldset>
@@ -2279,9 +2295,9 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish,
                     <button
                       style={{ ...btnDark, padding: "5px 9px" }}
                       disabled={!canPublish && r.published}
-                      onClick={() => onDelete(r.slug)}
+                      onClick={() => onDelete(r.slug,r.version)}
                     >
-                      Delete
+                      Move to removed
                     </button>
                   </td>
                 </tr>
