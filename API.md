@@ -655,6 +655,40 @@ restriction, not a server-enforced guarantee.
 
 ### Contracted / partner event listings (15 October 2026)
 
+Admin Events also accepts ChatGPT briefs through **Paste from ChatGPT**. Parsing
+is local to the browser (no AI service or new endpoint): labelled plain text,
+Markdown/code blocks and JSON objects/arrays, up to 60,000 characters / 20 events.
+Choose one event, review the preview, then use it as a new private draft. Import
+never saves, publishes, overwrites records, imports image URLs or ticket prices.
+Normal Save event uses the existing authenticated route and permission checks.
+Unknown placeholders become blanks; invalid dates/URLs are flagged, not invented.
+Optional `partnerDetails.posterCaption` (300 characters) persists accessible
+primary-poster text and remains backward-compatible with existing metadata.
+
+### Admin workflow reliability batch (16 October 2026)
+
+`/api/admin/media/upload?purpose=products` uses Products permission and server-owned
+admin-products storage keys, with the existing image-size/signature/Origin and
+timeout checks. Product editing can create a category by saving a new category
+name; the live shop already derives its category filters from published products.
+
+Gallery multi-file selection uses the existing individual authenticated upload
+and metadata routes. Client batches are serial and bounded to twenty photos;
+errors remain retryable, and successful items are not resent. Metadata INSERT
+uses the existing unique URL index for idempotent retries without overwriting
+caption/category/publication state. It does not create folders or publish photos.
+The public page and public API now share `publishedGallery()`, which reads only
+published rows, whitelists fields, coalesces for five seconds and expires stale
+fallback snapshots after fifteen seconds. Admin mutations invalidate it. Public
+gallery API is no-store; gallery HTML is excluded from the Worker page cache.
+
+Gmail uses bounded requests, per-mailbox/message in-memory reply drafts and
+finally-unlocked loading/sending states. Delivery uncertainty never claims sent.
+Contacts offer validated WhatsApp links and mail-app/Gmail compose choices, not
+automatic sends. No new public contact-data endpoint is introduced. Open editors
+are retained across admin module navigation and cleared on logout; this is not
+server autosave or refresh-proof draft recovery.
+
 `tourEvent.save` accepts `kind: "partner"` with `partnerDetails` containing
 exactly `{organizer,client,role,admission,ticketUrl,institutions,posters,newsSlug}`.
 Admission is `external`, `free`, `invitation` or `unconfirmed`. Institutions
@@ -692,3 +726,22 @@ The batch uses existing `DATABASE_URL`, `SESSION_SECRET`, `RESEND_API_KEY` and
 `MERCH_DELIVERY_FEE_KES` enables delivery only when it contains a non-negative
 integer fee. No new R2 binding, public storage credential, browser fingerprint
 or unconfigured email/carrier integration is required or implied.
+## Story copies and recovery (16 October 2026, review branch)
+
+`GET/POST /api/admin/story-workspace` is content-permission scoped, verifies the
+current session, requires strict Origin on writes, and returns `private, no-store`.
+GET lists the current actor's copies and permitted removed stories. `?id=<UUID>`
+reads an owned copy plus revision metadata; `&revision=<integer>` reads an older
+snapshot. POST `saveDraft` accepts `{action,id,revision,content}` and uses an
+atomic compare-and-swap plus immutable revision; identical interrupted retries
+reconcile, other stale writes return 409. POST `restoreStory` accepts `{action,slug}`
+and restores only as unpublished, never overwriting a reused slug. Unexpected
+fields/invalid dates/IDs/revisions are rejected; request body limit is 170,000 bytes.
+Editable content: slug, headline, section, image, dek, body, date, published,
+submitForReview, expectedVersion. Private copies do not mutate public stories.
+
+Story writes through `/api/admin/save` require `expectedVersion`: null for a new
+record, exact list `version` for edits/removal. Unversioned writes fail 400; stale
+writes fail 409. `deletePost` now means recoverable removal, not a permanent delete.
+Restore never republishes or restarts article announcements. See
+`docs/admin-story-recovery-20261016.md` for retention, role and verification limits.

@@ -6,6 +6,9 @@
 // read side.
 
 import { useCallback, useEffect, useState } from 'react';
+import ImageUploadField from '../ImageUploadField';
+import {productCategories} from '@/lib/contact-actions';
+import {useUnsavedWarning} from '@/lib/client/use-unsaved-warning';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3, td, th,
   Chip, opsGet, opsPost, Toast, useToast,
@@ -18,7 +21,6 @@ interface Product {
 }
 
 const EMPTY = { id: '', name: '', price: 0, costPrice: 0, image: '', category: 'Apparel', description: '', active: true,photos:'',sizeGuide:'',nameOnBackEnabled:false };
-const CATEGORIES = ['Apparel', 'Headwear', 'Accessories'];
 
 // Markup is derived, never stored: (sell - cost) / cost. Zero/blank cost means
 // "not recorded yet" and renders as an em dash rather than a fake 0%.
@@ -31,9 +33,11 @@ function markupOf(p: { price: number; costPrice: number }): string {
 export default function Products() {
   const [rows, setRows] = useState<Product[]>([]);
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
+  useUnsavedWarning(!!edit);
   const [showInactive, setShowInactive] = useState(false);
   const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
+  const [imageBusy,setImageBusy]=useState(false);
   const [toast, say] = useToast();
 
   const reload = useCallback(async () => {
@@ -82,12 +86,10 @@ export default function Products() {
           <div><span style={label}>Name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Magenta Oversized Tee" /></div>
           <div><span style={label}>Price (KES) *</span><input style={inp} type="number" min={0} value={edit.price} onChange={(e) => setEdit({ ...edit, price: Number(e.target.value) || 0 })} /></div>
           <div><span style={label}>Cost (KES)</span><input style={inp} type="number" min={0} value={edit.costPrice} onChange={(e) => setEdit({ ...edit, costPrice: Math.max(0, Number(e.target.value) || 0) })} placeholder="0" /></div>
-          <div><span style={label}>Category</span>
-            <select style={inp} value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+          <div><label style={label} htmlFor="product-category">Category</label>
+            <input id="product-category" list="product-categories" style={inp} maxLength={100} value={edit.category} onChange={e=>setEdit({...edit,category:e.target.value})}/><datalist id="product-categories">{productCategories(rows.map(p=>p.category)).map(c=><option key={c} value={c}/>)}</datalist><small>Choose an existing name or type a new category. It is saved with this product.</small>
           </div>
-          <div><span style={label}>Image path</span><input style={inp} value={edit.image} onChange={(e) => setEdit({ ...edit, image: e.target.value })} placeholder="/assets/merch/tee.png" /></div>
+          <ImageUploadField label="Product image" purpose="products" value={edit.image} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,image:url}:current)}/>
         </div>
         <div style={{ marginTop: 10 }}>
           <span style={label}>Description</span>
@@ -105,8 +107,8 @@ export default function Products() {
           <input type="checkbox" checked={edit.active} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} /> Active (visible in the shop)
         </label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button style={btnMagenta} disabled={busy} onClick={save}>Save product</button>
-          <button style={btnDark} onClick={() => setEdit(null)}>Cancel</button>
+          <button style={btnMagenta} disabled={busy||imageBusy} onClick={save}>{imageBusy?'Wait for image…':busy?'Saving…':'Save product'}</button>
+          <button style={btnDark} disabled={busy||imageBusy} onClick={() => setEdit(null)}>Cancel</button>
         </div>
       </div>
     );

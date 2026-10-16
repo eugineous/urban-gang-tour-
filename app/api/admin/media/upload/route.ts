@@ -5,7 +5,7 @@ import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit,clientIp } from '@/lib/server/ratelimit';
 import { mediaConfigured,mediaPut } from '@/lib/server/media';
 export const runtime='nodejs';
-const purposes={events:'events',stories:'content',campaigns:'ops_promos'} as const;
+const purposes={events:'events',stories:'content',campaigns:'ops_promos',products:'products'} as const;
 const types={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'} as const;
 const maxBytes=8*1024*1024;
 function signature(bytes:Uint8Array,type:string){

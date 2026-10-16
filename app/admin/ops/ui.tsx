@@ -6,6 +6,7 @@
 // and tables scroll inside their card at 375px.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import {whatsappUrl} from '@/lib/contact-actions';
 
 export const OC = {
   magenta: '#ad1264',
@@ -65,9 +66,7 @@ export function fmtDate(v: unknown): string {
 }
 
 export function waLink(phone: string, text?: string): string {
-  const d = String(phone || '').replace(/\D/g, '');
-  const wa = d.startsWith('254') ? d : d.startsWith('0') ? '254' + d.slice(1) : d;
-  return `https://wa.me/${wa}${text ? '?text=' + encodeURIComponent(text) : ''}`;
+  return whatsappUrl(phone,text)||'';
 }
 
 // Numeric input that treats empty as null (renders as TBD in totals).

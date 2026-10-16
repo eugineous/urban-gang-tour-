@@ -1,6 +1,9 @@
 import { NextResponse, after } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { q, db } from '@/lib/server/db';
+import { q, hasDb } from '@/lib/server/db';
+import { trashStory } from '@/lib/server/story-workspace';
+import { invalidate } from '@/lib/server/microcache';
+import {exactKeys,storyDraftContent} from '@/lib/story-draft';
 import { isAdmin, isSuperAdmin, hasPerm, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { notifyPostPublished } from '@/lib/server/notify';
@@ -43,7 +46,7 @@ function validSeoKey(key: string): boolean {
 export async function POST(req: Request) {
   if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   const { kind, data } = await req.json().catch(() => ({}));
   const forbidden = () => NextResponse.json({ error: 'forbidden' }, { status: 403 });
   switch (kind) {
@@ -85,6 +88,14 @@ export async function POST(req: Request) {
   try {
     switch (kind) {
       case 'post': {
+        if (!data || typeof data !== 'object' || !Object.hasOwn(data,'expectedVersion') ||
+          (data.expectedVersion !== null && (typeof data.expectedVersion !== 'string' || data.expectedVersion.length > 50))) {
+          return NextResponse.json({error:'story_version_required'}, {status:400});
+        }
+        try {
+          if (!exactKeys(data,['slug','headline','section','image','dek','body','published','date','submitForReview','expectedVersion'])) throw Error();
+          storyDraftContent(data);
+        } catch {return NextResponse.json({error:'invalid_story'}, {status:400});}
         const slug = data.slug ? slugify(data.slug) : slugify(data.headline || '');
         if (!slug || !data.headline) return NextResponse.json({ error: 'need_headline' }, { status: 400 });
         const body = Array.isArray(data.body)
@@ -93,9 +104,12 @@ export async function POST(req: Request) {
         await Promise.all([ensureContentAutomationSchema(), ensureContentWorkflowSchema()]);
         const actor = adminActor(req);
         const superAdmin = isSuperAdmin(req);
-        const prev = await q<{ published: boolean; social_posted_at: string | null; submitted_by: string; editorial_status: string }>(
-          `SELECT published, social_posted_at, submitted_by, editorial_status FROM posts WHERE slug=$1`, [slug]
+        const prev = await q<{ published: boolean; social_posted_at: string | null; submitted_by: string; editorial_status: string; version: string }>(
+          `SELECT published, social_posted_at, submitted_by, editorial_status, updated_at::text AS version FROM posts WHERE slug=$1`, [slug]
         );
+        if ((prev.length && prev[0].version !== data.expectedVersion) || (!prev.length && data.expectedVersion !== null)) {
+          return NextResponse.json({error:'story_conflict'}, {status:409});
+        }
         // Content-scoped crew can prepare and submit only their own unpublished
         // work. A super admin remains the explicit publishing gate. This is
         // enforced here, not just by the Control Room UI.
@@ -103,21 +117,33 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'review_required' }, { status: 403 });
         }
         const submittedForReview = data.submitForReview === true;
-        const published = superAdmin && data.published !== false;
+        const published = superAdmin && data.published === true;
         const workflow = published ? 'published' : (submittedForReview ? 'in_review' : 'draft');
         const submittedBy = prev[0]?.submitted_by || actor;
         const saved = await q(
-          `INSERT INTO posts (slug, headline, section, image, dek, body, published, date, editorial_status, submitted_by, reviewed_by, reviewed_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,COALESCE($8::date, CURRENT_DATE),$9,$10,$11,CASE WHEN $9='published' THEN now() ELSE NULL END)
-           ON CONFLICT (slug) DO UPDATE SET headline=$2, section=$3, image=$4, dek=$5, body=$6, published=$7,
+          `WITH updated AS (
+           UPDATE posts SET headline=$2, section=$3, image=$4, dek=$5, body=$6::jsonb, published=$7,
              date=COALESCE($8::date, posts.date), editorial_status=$9,
              submitted_by=CASE WHEN posts.submitted_by='' THEN $10 ELSE posts.submitted_by END,
              reviewed_by=CASE WHEN $9='published' THEN $11 ELSE posts.reviewed_by END,
              reviewed_at=CASE WHEN $9='published' THEN now() ELSE posts.reviewed_at END,
              social_automation_claimed_at=NULL, social_automation_result='', updated_at=now()
-           RETURNING date`,
-          [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), published, data.date || null, workflow, submittedBy, published ? actor : '']
+           WHERE slug=$1 AND $12::text IS NOT NULL AND posts.updated_at::text=$12
+             AND ($13::boolean OR (NOT posts.published AND (posts.submitted_by='' OR posts.submitted_by=$10)))
+           RETURNING date, updated_at::text AS version
+           ), inserted AS (
+             INSERT INTO posts (slug, headline, section, image, dek, body, published, date, editorial_status, submitted_by, reviewed_by, reviewed_at)
+             SELECT $1,$2,$3,$4,$5,$6::jsonb,$7,COALESCE($8::date,CURRENT_DATE),$9,$10,$11,CASE WHEN $9='published' THEN now() ELSE NULL END
+             WHERE $12::text IS NULL ON CONFLICT (slug) DO NOTHING
+             RETURNING date, updated_at::text AS version
+           ) SELECT * FROM updated UNION ALL SELECT * FROM inserted`,
+          [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), published, data.date || null, workflow, submittedBy, published ? actor : '', data.expectedVersion, superAdmin]
         );
+        if (!saved.length) return NextResponse.json({error:'story_conflict'}, {status:409});
+        invalidate('blog-published-posts');invalidate('site-posts');
+        revalidatePath('/blog');revalidatePath(`/blog/${slug}`);
+        revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
+        revalidatePath('/sitemap.xml');revalidateTag('sitemap');
         await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'save_post',$2)`, [actor, JSON.stringify({ slug, workflow })]);
         // Social automation is eligible only on FIRST publication, and only
         // while an owner has explicitly enabled the server-side automation
@@ -158,9 +184,12 @@ export async function POST(req: Request) {
           revalidatePath('/sitemap.xml');
           revalidateTag('sitemap');
         }
-        return NextResponse.json({ ok: true, slug });
+        return NextResponse.json({ ok: true, slug, version:saved[0].version });
       }
       case 'deletePost': {
+        if (!data || typeof data.slug!=='string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug) || data.slug.length>70 || typeof data.expectedVersion!=='string' || data.expectedVersion.length>50) {
+          return NextResponse.json({error:'story_version_required'}, {status:400});
+        }
         await ensureContentWorkflowSchema();
         const actor = adminActor(req);
         const existing = await q<{ published: boolean; submitted_by: string }>(
@@ -170,12 +199,16 @@ export async function POST(req: Request) {
         if (!isSuperAdmin(req) && (existing[0].published || !existing[0].submitted_by || existing[0].submitted_by !== actor)) {
           return NextResponse.json({ error: 'review_required' }, { status: 403 });
         }
-        await q(`DELETE FROM posts WHERE slug=$1`, [data.slug]);
-        await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'delete_post',$2)`, [actor, JSON.stringify({ slug: data.slug })]);
+        const removed=await trashStory(data.slug,actor,isSuperAdmin(req),data.expectedVersion);
+        if (!removed.length) return NextResponse.json({error:'story_conflict'}, {status:409});
+        invalidate('blog-published-posts');invalidate('site-posts');
+        revalidatePath('/blog');revalidatePath(`/blog/${data.slug}`);
+        revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
+        revalidatePath('/sitemap.xml');revalidateTag('sitemap');
         // IndexNow handles removals the same as updates - engines re-crawl,
         // see the 404 and drop the URL.
         after(() => pingIndexNow([`/blog/${data.slug}`, '/blog']));
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ ok: true, recoverable:true });
       }
       case 'setting':
         if (data.key === 'whatsapp_number' &&

@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Explicit admin release authorization (16 October 2026)
+- The owner explicitly instructed building and deploying the current admin workflow
+  update to the main site, with owner review after deployment. This authorizes
+  PR #71 through normal tested merge and Cloudflare release. It does not authorize
+  weakening login, creating backdoors or changing credentials. Future unrelated
+  changes remain review-gated.
+
 ## Private review publication
 - On 9 October 2026, the owner requested that every review change be published to the existing owner-private ChatGPT Site. Keep internal navigation inside that review origin. This does not authorize deployment to the public Cloudflare Worker or a main-branch merge.
 

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { q, db } from '@/lib/server/db';
+import {revalidatePath} from 'next/cache';
+import {invalidate} from '@/lib/server/microcache';
+import { q, hasDb } from '@/lib/server/db';
 import { mediaDel, mediaGet, isMediaUrl } from '@/lib/server/media';
 import { hasPerm, isSuperAdmin, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
@@ -16,6 +18,11 @@ export const dynamic = 'force-dynamic';
 
 function bad(error: string, status = 400) {
   return NextResponse.json({ error }, { status });
+}
+function saved(data:unknown){
+  invalidate('site-gallery');
+  try{revalidatePath('/gallery')}catch{/* outside a Next request during tests */}
+  return NextResponse.json(data);
 }
 
 function s(v: unknown, max = 300): string {
@@ -35,7 +42,7 @@ function imageDimension(v: unknown): number | null {
 export async function GET(req: Request) {
   if (!(await verifyAdminSession(req))) return bad('unauthorized', 401);
   if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
-  if (!db()) return bad('db_not_configured', 503);
+  if (!hasDb()) return bad('db_not_configured', 503);
   try {
     await ensureOpsSchema();
     const rows = await q(`SELECT id, url, caption, category, alt_text, width, height, published, sort_order, created_at FROM gallery_photos ORDER BY published ASC, sort_order ASC, id ASC`);
@@ -49,7 +56,7 @@ export async function POST(req: Request) {
   if (!(await verifyAdminSession(req))) return bad('unauthorized', 401);
   if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
-  if (!db()) return bad('db_not_configured', 503);
+  if (!hasDb()) return bad('db_not_configured', 503);
   let body: any;
   try { body = await req.json(); } catch { return bad('invalid_json'); }
   const kind = s(body?.kind, 40);
@@ -74,11 +81,12 @@ export async function POST(req: Request) {
         const next = await q<{ next: number }>(`SELECT COALESCE(MAX(sort_order),0)+10 AS next FROM gallery_photos`);
         const sortOrder = Number(next[0]?.next) || 10;
         const row = await q(
-          `INSERT INTO gallery_photos (url, caption, category, width, height, sort_order) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+          `INSERT INTO gallery_photos (url, caption, category, width, height, sort_order) VALUES ($1,$2,$3,$4,$5,$6)
+           ON CONFLICT (url) DO UPDATE SET url=EXCLUDED.url RETURNING *`,
           [url, caption, category, width, height, sortOrder]
         );
         await opsAudit('gallery.upload', { id: row[0]?.id, actor: adminActor(req) });
-        return NextResponse.json({ ok: true, row: row[0] });
+        return saved({ ok: true, row: row[0] });
       }
       case 'update': {
         const id = intId(d.id);
@@ -89,7 +97,7 @@ export async function POST(req: Request) {
         const row = await q(`UPDATE gallery_photos SET caption=$1, category=$2, alt_text=$3 WHERE id=$4 RETURNING *`, [caption, category, altText, id]);
         if (!row.length) return bad('not_found', 404);
         await opsAudit('gallery.update', { id, actor: adminActor(req) });
-        return NextResponse.json({ ok: true, row: row[0] });
+        return saved({ ok: true, row: row[0] });
       }
       case 'publish': {
         const id = intId(d.id);
@@ -105,7 +113,7 @@ export async function POST(req: Request) {
           return exists.length ? bad('publication_metadata_required') : bad('not_found', 404);
         }
         await opsAudit('gallery.publish', { id, published: d.published, actor: adminActor(req) });
-        return NextResponse.json({ ok: true, row: row[0] });
+        return saved({ ok: true, row: row[0] });
       }
       case 'reorder': {
         const ids: number[] = Array.isArray(d.ids) ? d.ids.map((x: unknown) => intId(x)).filter((x: number | null): x is number => x !== null).slice(0, 500) : [];
@@ -119,7 +127,7 @@ export async function POST(req: Request) {
           await q(`UPDATE gallery_photos SET sort_order=$1 WHERE id=$2`, [(i + 1) * 10, ids[i]]);
         }
         await opsAudit('gallery.reorder', { ids, actor: adminActor(req) });
-        return NextResponse.json({ ok: true });
+        return saved({ ok: true });
       }
       case 'delete': {
         const id = intId(d.id);
@@ -137,7 +145,7 @@ export async function POST(req: Request) {
         }
         await q(`DELETE FROM gallery_photos WHERE id=$1`, [id]);
         await opsAudit('gallery.delete', { id, actor: adminActor(req) });
-        return NextResponse.json({ ok: true });
+        return saved({ ok: true });
       }
       default:
         return bad('unknown_kind');

@@ -1,7 +1,10 @@
 "use client";
 import ImageUploadField from './ImageUploadField';
+import {ContactEmail,ContactPhone} from './ContactActions';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
+import StoryRecovery from './StoryRecovery';
+import {storyDraftContent} from '@/lib/story-draft';
 
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -356,12 +359,24 @@ export default function AdminApp({
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
   const [tab, setTabState] = useState<Tab>("Dashboard");
-  const setTab = (next: Tab) => {setTabState(next);try{const url=new URL(window.location.href);url.searchParams.set('tab',next);history.replaceState(null,'',url)}catch{}};
+  const [openedTools,setOpenedTools]=useState<Tab[]>([]);
+  const setTab = (next: Tab) => {setTabState(next);try{const url=new URL(window.location.href);if(url.searchParams.get('tab')!==next){url.searchParams.set('tab',next);history.pushState(null,'',url)}}catch{}};
   const [rows, setRows] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
-  const [editPost, setEditPost] = useState<any>(null);
+  const [editPost, setEditPostState] = useState<any>(null);
+  const setEditPost=useCallback((value:any)=>setEditPostState((current:any)=>{
+    const next=typeof value==='function'?value(current):value;
+    return next?{...next,date:next.date?String(next.date).slice(0,10):'',_draftId:next._draftId||crypto.randomUUID(),expectedVersion:Object.hasOwn(next,'expectedVersion')?next.expectedVersion:next.version||null}:null;
+  }),[]);
+  const [storyRefresh,setStoryRefresh]=useState(0);
+  const onStoryListChanged=useCallback(()=>setStoryRefresh(current=>current+1),[]);
+  const [protectedDraft,setProtectedDraft]=useState({id:'',fingerprint:''});
+  const onStoryCopySaved=useCallback((id:string,fingerprint:string)=>setProtectedDraft(current=>current.id===id&&current.fingerprint===fingerprint?current:{id,fingerprint}),[]);
+  let storyCopySaved=false;
+  try{storyCopySaved=!!editPost&&protectedDraft.id===editPost._draftId&&protectedDraft.fingerprint===JSON.stringify(storyDraftContent(editPost))}catch{}
+  const [storySaveError,setStorySaveError]=useState('');
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [seoPath, setSeoPath] = useState("/");
   const [setupInfo, setSetupInfo] = useState("");
@@ -441,6 +456,20 @@ export default function AdminApp({
   useEffect(() => {
     void probeSession();
   }, [probeSession]);
+  useEffect(()=>{
+    if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setProtectedDraft({id:'',fingerprint:''});setStorySaveError('');setRows([]);setSettings({});setTix({});setStats(null)}return}
+    if(['Events','Products','Gallery','Contacts','Inbox'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
+  },[authed,tab]);
+  useEffect(()=>{
+    if(!session)return;
+    const restore=()=>{const requested=new URLSearchParams(location.search).get('tab') as Tab|null;setTabState(requested&&([...TABS,...OPS_TABS] as readonly string[]).includes(requested)&&canSee(requested)?requested:startingTab(session.scope,session.perms));};
+    window.addEventListener('popstate',restore);return()=>window.removeEventListener('popstate',restore);
+  },[session,canSee]);
+  useEffect(()=>{
+    if(!editPost)return;
+    const protect=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue=''};
+    window.addEventListener('beforeunload',protect);return()=>window.removeEventListener('beforeunload',protect);
+  },[editPost]);
 
 
   const viewFor: Record<string, string> = {
@@ -454,18 +483,21 @@ export default function AdminApp({
 
   useEffect(() => {
     if (!authed) return;
-    if (tab === "Dashboard") load("stats").then((r) => setStats(r[0] || null));
+    let active=true;
+    if (tab === "Dashboard") load("stats").then((r) => {if(active)setStats(r[0] || null)});
     else if (tab === "Site & SEO" || tab === "Comms")
       load("settings").then((r) => {
+        if(!active)return;
         const map: Record<string, any> = {};
         r.forEach((s: any) => (map[s.key] = s.value));
         setSettings(map);
       });
-    else if (viewFor[tab]) load(viewFor[tab]).then(setRows);
+    else if (viewFor[tab]) {setRows([]);load(viewFor[tab]).then(next=>{if(active)setRows(next)});}
     // e-tickets ride along with the Orders ledger (grouped per order below);
     // silent on error - the table appears after the first ticket sale / setup
     if (tab === "Orders") {
       api("/api/admin/data?view=tickets").then(({ data }) => {
+        if(!active)return;
         const m: Record<string, any[]> = {};
         (data.rows || []).forEach((t: any) => {
           (m[t.order_id] = m[t.order_id] || []).push(t);
@@ -477,10 +509,11 @@ export default function AdminApp({
       });
       if (!eventTiers.length)
         api("/api/admin/data?view=eventTiers").then(({ data }) =>
-          setEventTiers(data.rows || []),
+          active&&setEventTiers(data.rows || []),
         );
     }
-  }, [tab, authed, load, eventTiers.length]);
+    return()=>{active=false};
+  }, [tab, authed, load, eventTiers.length,storyRefresh]);
 
   const login = async () => {
     setErr("");
@@ -547,6 +580,7 @@ export default function AdminApp({
   }, [authed, probeSession, googleClientId]);
 
   const save = async (kind: string, data: any, after?: () => void) => {
+    if(kind==='post')setStorySaveError('');
     setBusy(true);
     const r = await api("/api/admin/save", {
       method: "POST",
@@ -556,7 +590,12 @@ export default function AdminApp({
     if (r.data.ok) {
       say("✓ Saved");
       after?.();
-    } else say("⚠ " + (r.data.error || "failed"));
+    } else {
+      if(kind==='post')setStorySaveError(r.data.error==='story_conflict'
+        ? 'A newer version exists. Your text is still here in its private copy. Open the current story in another tab and compare before publishing; do not overwrite it.'
+        : 'The story was not saved. Your changes are still here. Check your connection, sign-in and required fields, then retry.');
+      say("⚠ " + (r.data.error || "failed"));
+    }
   };
 
   const runSetup = async () => {
@@ -705,22 +744,20 @@ export default function AdminApp({
       {tab === "Dashboard" && (
         <ControlRoomHome stats={stats} scope={session?.scope} perms={session?.perms || []} onOpen={(next) => setTab(next as Tab)} />
       )}
-      {tab === "Inbox" && (
-        <GmailInbox googleClientId={googleClientId} say={say} />
-      )}
-      {tab === "Events" && <Events />}
+      {canSee('Inbox')&&(tab==='Inbox'||openedTools.includes('Inbox'))&&<div hidden={tab!=='Inbox'}><GmailInbox googleClientId={googleClientId} say={say}/></div>}
+      {canSee('Events')&&(tab==='Events'||openedTools.includes('Events'))&&<div hidden={tab!=='Events'}><Events/></div>}
       {tab === "Event Operations" && (
         <EventOperations openChecklist={() => setTab("Checklists")} />
       )}
-      {tab === "Products" && <Products />}
+      {canSee('Products')&&(tab==='Products'||openedTools.includes('Products'))&&<div hidden={tab!=='Products'}><Products/></div>}
       {tab === "Merch Desk" && <MerchDesk />}
-      {tab === "Gallery" && <Gallery />}
+      {canSee('Gallery')&&(tab==='Gallery'||openedTools.includes('Gallery'))&&<div hidden={tab!=='Gallery'}><Gallery/></div>}
       {tab === "Marketplace" && <Marketplace />}
       {tab === "Budgeter" && <Budgeter />}
       {tab === "Invoices" && <Invoices />}
       {tab === "Documents" && <DocGen />}
       {tab === "Payments" && <Payments canExportFinancialReport={session?.scope === "super_admin"} />}
-      {tab === "Contacts" && <Contacts />}
+      {canSee('Contacts')&&(tab==='Contacts'||openedTools.includes('Contacts'))&&<div hidden={tab!=='Contacts'}><Contacts/></div>}
       {tab === "Suppliers" && <Suppliers />}
       {tab === "Payouts" && <Payouts />}
       {tab === "Expenses" && <Expenses />}
@@ -845,21 +882,25 @@ export default function AdminApp({
           />
         </>
       )}
+      {canSee('Content')&&(tab==='Content'||editPost)&&<div hidden={tab!=='Content'}><StoryRecovery editor={editPost} onOpen={setEditPost} onSaved={onStoryCopySaved} onRestored={onStoryListChanged} refreshKey={storyRefresh}/></div>}
       {tab === "Content" && (
         <ContentTab
           rows={rows}
           editPost={editPost}
           setEditPost={setEditPost}
           canPublish={session?.scope === "super_admin"}
+          saving={busy}
+          saveError={storySaveError}
+          draftReady={storyCopySaved}
           onSave={(p: any) =>
-            save("post", p, () => {
+            save("post", storyDraftContent(p), () => {
               setEditPost(null);
-              load("posts").then(setRows);
+              setStoryRefresh(current=>current+1);
             })
           }
-          onDelete={(slug: string) => {
-            if (confirm('Delete post "' + slug + '"?'))
-              save("deletePost", { slug }, () => load("posts").then(setRows));
+          onDelete={(slug: string,expectedVersion:string) => {
+            if (confirm('Move story "' + slug + '" to Removed stories? It will leave the public site. You can restore it as a draft.'))
+              save("deletePost", { slug,expectedVersion }, onStoryListChanged);
           }}
         />
       )}
@@ -1303,28 +1344,9 @@ function renderCell(col: string, v: any): React.ReactNode {
   const s = String(v ?? "").slice(0, 140);
   if (!s) return "";
   if (col === "email" && s.includes("@"))
-    return (
-      <a href={`mailto:${s}`} style={{ color: C.pink, fontWeight: 700 }}>
-        {s}
-      </a>
-    );
+    return <ContactEmail value={s}/>;
   if (col === "phone") {
-    const d = s.replace(/\D/g, "");
-    const wa = d.startsWith("254")
-      ? d
-      : d.startsWith("0")
-        ? "254" + d.slice(1)
-        : d;
-    return (
-      <a
-        href={`https://wa.me/${wa}`}
-        target="_blank"
-        rel="noopener"
-        style={{ color: "#1F8A5B", fontWeight: 700 }}
-      >
-        {s} ↗wa
-      </a>
-    );
+    return <ContactPhone value={s}/>;
   }
   return s;
 }
@@ -2082,13 +2104,14 @@ function Table({
   );
 }
 
-function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish }: any) {
+function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish, saving, saveError, draftReady }: any) {
   const [imageBusy,setImageBusy]=useState(false);
   if (editPost) {
     const p = editPost;
     const set = (k: string, v: any) => setEditPost({ ...p, [k]: v });
     return (
       <div style={card}>
+          {saveError&&<p role="alert" style={{padding:12,border:'1px solid #a11212',borderRadius:8}}>{saveError}</p>}
           <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
             {p.slug ? "EDIT: " + p.slug : "NEW POST"}
           </h3>
@@ -2097,7 +2120,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
               Your work stays private until a super admin reviews and publishes it. Use <b>Save draft</b> while writing, then <b>Send for review</b> when it is ready.
             </div>
           )}
-        <div style={{ display: "grid", gap: 10 }}>
+        <fieldset disabled={saving} style={{border:0,padding:0,margin:0,minWidth:0}}><div style={{ display: "grid", gap: 10 }}>
           <input
             style={inp}
             placeholder="Headline *"
@@ -2117,7 +2140,7 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
               value={p.section || ""}
               onChange={(e) => set("section", e.target.value)}
             />
-            <ImageUploadField label="Story cover image" value={p.image||''} purpose="stories" onChange={url=>setEditPost((current:any)=>current?{...current,image:url}:current)} onBusyChange={setImageBusy}/>
+            <ImageUploadField label="Story cover image" value={p.image||''} purpose="stories" disabled={saving} onChange={url=>setEditPost((current:any)=>current?{...current,image:url}:current)} onBusyChange={setImageBusy}/>
             <input
               style={inp}
               placeholder="Date YYYY-MM-DD"
@@ -2153,24 +2176,24 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
           ) : null}
           <div style={{ display: "flex", gap: 10 }}>
             {canPublish ? (
-              <button style={btn} disabled={imageBusy} onClick={() => onSave(p)}>
-                💾 Save post
+              <button style={btn} disabled={imageBusy||!draftReady} onClick={() => onSave(p)}>
+                {saving?'Saving…':'Save story'}
               </button>
             ) : (
               <>
-                <button style={btnDark} disabled={imageBusy} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
+                <button style={btnDark} disabled={imageBusy||!draftReady} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
                   Save draft
                 </button>
-                <button style={btn} disabled={imageBusy} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
+                <button style={btn} disabled={imageBusy||!draftReady} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
                   Send for review
                 </button>
               </>
             )}
-            <button style={btnDark} disabled={imageBusy} onClick={() => setEditPost(null)}>
-              Cancel
+            <button style={btnDark} disabled={imageBusy} onClick={() => {if(draftReady||confirm('Your latest changes are not confirmed saved. Close anyway? Recent changes may not be available when you reopen. Cancel to keep writing.'))setEditPost(null)}}>
+              Close editor
             </button>
           </div>
-        </div>
+        </div></fieldset>
       </div>
     );
   }
@@ -2272,9 +2295,9 @@ function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish 
                     <button
                       style={{ ...btnDark, padding: "5px 9px" }}
                       disabled={!canPublish && r.published}
-                      onClick={() => onDelete(r.slug)}
+                      onClick={() => onDelete(r.slug,r.version)}
                     >
-                      Delete
+                      Move to removed
                     </button>
                   </td>
                 </tr>

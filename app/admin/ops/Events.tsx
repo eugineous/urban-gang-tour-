@@ -11,6 +11,8 @@ import { EVENT_STATUSES, isPubliclyVisible, type EventStatus } from '@/lib/serve
 import ImageUploadField from '../ImageUploadField';
 import {EMPTY_PARTNER,parsePartnerDetails,partnerPublicationError,partnerAdmission,type PartnerDetails} from '@/lib/partner-events';
 import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
+import EventBriefImport from './EventBriefImport';
+import {useUnsavedWarning} from '@/lib/client/use-unsaved-warning';
 import styles from './Events.module.css';
 import {
   OC, card, btn, btnDark, btnMagenta, btnSmall, inp, label, h3,
@@ -96,6 +98,8 @@ function eventSavePayload(r: TourEvent, priority: number) {
 export default function Events() {
   const [rows, setRows] = useState<TourEvent[]>([]);
   const [edit, setEdit] = useState<typeof EMPTY | null>(null);
+  const [importing,setImporting]=useState(false);
+  useUnsavedWarning(!!edit||importing);
   const [kindTab, setKindTab] = useState<Kind | 'all'>('all');
   const [showCancelled, setShowCancelled] = useState(false);
   const [qy, setQy] = useState('');
@@ -239,6 +243,10 @@ export default function Events() {
   const reviewCount = rows.filter(r => r.status === 'draft' || r.status === 'pending_review').length;
   const publishedTicketCount = rows.filter(r => r.kind === 'ticketed' && r.status === 'published').length;
 
+  if(importing)return <EventBriefImport onCancel={()=>setImporting(false)} onUse={draft=>{
+    setEdit({...EMPTY,...draft,id:'',image:'',status:'draft',tiers:[]});setImporting(false);
+  }}/>;
+
   if (edit) {
     return (
       <div style={{...card,minWidth:0}} className={styles.editor}>
@@ -337,6 +345,7 @@ export default function Events() {
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Media</p>
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             <ImageUploadField label="Event artwork" purpose="events" value={edit.image} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,image:url}:current)}/>
+            {edit.kind==='partner'&&<div><label htmlFor="event-poster-caption">Poster caption / accessible description</label><textarea id="event-poster-caption" style={inp} maxLength={300} value={edit.partnerDetails.posterCaption||''} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posterCaption:e.target.value}})}/></div>}
             {edit.kind === 'ticketed' && (
               <div><label style={label} htmlFor="tour-event-accent">Accent colour (hex)</label><input id="tour-event-accent" style={inp} value={edit.accent} onChange={(e) => setEdit({ ...edit, accent: e.target.value })} placeholder="#E6218C" /></div>
             )}
@@ -389,6 +398,7 @@ export default function Events() {
           <h3 style={{ ...h3, marginBottom: 0 }}>TOUR EVENTS</h3>
           <div style={{ flex: 1 }} />
           <SearchBox value={qy} onChange={setQy} placeholder="Search events..." />
+          <button style={btnMagenta} disabled={busy||loading||!!loadError} onClick={()=>setImporting(true)}>Paste from ChatGPT</button>
           <button style={btn} disabled={busy || loading || !!loadError} onClick={() => openEdit()}>+ New event</button>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>

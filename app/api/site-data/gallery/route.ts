@@ -1,23 +1,16 @@
 import { NextResponse } from 'next/server';
-import { q, hasDb } from '@/lib/server/db';
+import { hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
-import { cached } from '@/lib/server/microcache';
-import { ensureOpsSchema } from '@/lib/server/ops';
+import {publishedGallery} from '@/lib/server/published-gallery';
 import { GALLERY_ARCHIVE } from '@/lib/gallery-archive';
 
-// Public, read-only view of the gallery photo wall — the single DB-backed
-// source app/_components/V25App.tsx bridges into window.__UGT_GALLERY for
-// the v25 template's this.GALLERY (see public/v25-template.html). Only rows
-// in gallery_photos are ever returned, ordered by sort_order (admin drag/
-// move-order), so a re-order is live for every visitor within the cache
-// window below.
-//
-// Cached in-isolate for 60s with request coalescing — see
-// lib/server/microcache.ts for why a plain TTL is not enough under load.
+// Published-only gallery DTO. The page uses the same reader, with five-second
+// coalescing and a fifteen-second absolute stale fallback limit. No retired
+// frontend bridge or intermediary cache is needed to display admin uploads.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' };
+const CACHE_HEADERS = { 'Cache-Control': 'no-store' };
 
 export async function GET(req: Request) {
   // Loose: a public read that every page load makes, and a whole venue shares
@@ -29,20 +22,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, source: 'archive', photos: GALLERY_ARCHIVE }, { headers: CACHE_HEADERS });
   }
   try {
-    const photos = await cached('site-gallery', 60_000, async () => {
-      await ensureOpsSchema();
-      const rows = await q<any>(
-        `SELECT id, url, caption, category, alt_text, sort_order FROM gallery_photos WHERE published=true ORDER BY sort_order ASC, id ASC`,
-      );
-      return rows.map((r) => ({
-        id: r.id,
-        url: r.url || '',
-        caption: r.caption || '',
-        category: r.category || '',
-        altText: r.alt_text || '',
-        sortOrder: Number(r.sort_order) || 0,
-      }));
-    });
+    const photos = await publishedGallery();
     return NextResponse.json({ ok: true, source: 'published', photos }, { headers: CACHE_HEADERS });
   } catch {
     // DB hiccup: the desktop and mobile clients render their explicit empty

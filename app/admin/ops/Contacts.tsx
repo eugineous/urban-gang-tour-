@@ -5,6 +5,7 @@
 // to the top so nothing slips.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {ContactPhone,ContactEmail} from '../ContactActions';
 import {
   OC,
   card,
@@ -441,26 +442,14 @@ export default function Contacts() {
                       </td>
                       <td style={td}>
                         {c.phone ? (
-                          <a
-                            href={waLink(c.phone)}
-                            target="_blank"
-                            rel="noopener"
-                            style={{ color: OC.green, fontWeight: 700 }}
-                          >
-                            {c.phone}
-                          </a>
+                          <ContactPhone value={c.phone}/>
                         ) : (
                           ""
                         )}
                       </td>
                       <td style={td}>
                         {c.email ? (
-                          <a
-                            href={`mailto:${c.email}`}
-                            style={{ color: OC.magenta, fontWeight: 700 }}
-                          >
-                            {c.email}
-                          </a>
+                          <ContactEmail value={c.email}/>
                         ) : (
                           ""
                         )}

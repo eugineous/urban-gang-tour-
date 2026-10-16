@@ -1,0 +1,332 @@
+
+User attachment
+User attachment
+User attachment
+User attachment
+User attachment
+User attachment
+give me all the right words for each poster to fill below some are present others are past. Skip to main content
+
+Urban Gang TourCONTROL ROOMInternal operations
+
+Log out
+
+Find a module
+
+Work now⌂Today◎Bookings✉Inbox▣Orders & payments
+
+Run the tour◉Events◍Event operations↗Leads pipeline◌Contacts⊡Suppliers★Promos✓Checklists
+
+Content & shop✎Stories▤Newsroom◒Comms★Campaigns□Products◈Merch desk▥Marketplace▧Gallery
+
+Business▤Invoices−Expenses↑Payouts≈Budget▱Documents♥Reviews
+
+System⚙System tools♙Audience▥Traffic♟Staff access⌑Security
+
+Start with bookings and inbox. Use system tools for access and maintenance.
+
+Back to Today
+
+Events
+Create, publish and run your events.
+
+⚙ System tools
+
+NEW EVENT
+Overview
+
+Kind *Ticketed concertSchool tour stopPast clientContracted / partner event
+
+Name *
+
+Priority (higher shows first)
+
+Description
+
+Partner & admission
+
+This is your work on another organiser’s event. It never creates Urban Gang tickets or takes payments here.
+
+Presented / organised byContracting companyOur role & credited team
+
+AdmissionTickets sold by organiser / another platformFree admissionBy invitationNot yet confirmed
+
+Official ticket seller URL (HTTPS)Institutions (one per line)Related news story slug (published in Content)
+
+Only verified facts and published stories appear publicly. Past listings keep their credits but do not advertise active ticket sales.
+
+Schedule
+
+Date *
+
+Time
+
+Venue
+
+Location line
+
+City
+
+Media
+
+Event artworkJPG, PNG or WebP · up to 8 MBUse an existing image URLImage URL
+
+Additional original posters
+Poster 2
+
+Additional poster 2JPG, PNG or WebP · up to 8 MBUse an existing image URLImage URL
+
+Caption / accessible descriptionRemove poster
+
++ Add poster variant
+
+Lifecycle
+
+StatusDraft (hidden)Pending review (hidden)Upcoming · published (public)Happening now (public)Sales paused (public)Sold out (public)Postponed (public)Rescheduled (public)Cancelled (hidden)Completed (public)Archived (hidden)
+
+Hidden from the public site. New records start as drafts. Confirm the date, venue, media permissions and commercial details before publishing.
+
+Save eventCancel
+
+…
+
+Worked for 2m 48s
+Eugine, you have 6 posters representing 5 separate events. As of 15 October 2026, three events are upcoming and two are past events.
+
+I've prepared the actual text for your Urban Gang Tour Control Room, including the event names, descriptions, organisers, admission details, team credits, dates, locations, poster captions and recommended settings.
+
+Event status and publishing order
+Event
+
+Date
+
+Event status
+
+Mr & Miss Culture Gala Night, Moi University
+
+30 Oct 2026
+
+Upcoming
+
+SATUK Award Gala
+
+5 Nov 2026
+
+Upcoming
+
+UNI FEST 2026
+
+6 Nov 2026
+
+Upcoming
+
+Mr & Miss Air Travel 2026
+
+18 Sep 2026
+
+Completed
+
+Freshers Bash × Color Blast
+
+25 Sep 2026
+
+Completed
+
+Important: The first three posters do not establish Urban Gang Tour's involvement. Prepare them as drafts until you confirm that UGT is authorised to feature them. The two September posters visibly credit Urban Gang Tour and members of your team.
+
+1. Mr & Miss Culture Gala Night 2026
+Moi University Students Organisation
+
+Friday, 30 October 2026
+
+Upcoming
+Student Centre, Moi University, Kesses/Eldoret
+
+Name: Mr & Miss Culture Gala Night 2026 | Moi University
+
+Kind: Contracted / partner event (only if the partnership is confirmed)
+
+Priority: 60
+
+Description:
+
+A celebration of culture, identity, heritage and unity.
+
+The Moi University Students Organisation presents Mr & Miss Culture Gala Night 2026, an evening dedicated to celebrating cultural diversity and the traditions that bring communities together.
+
+Under the theme "Echoes of Roots: Harmonizing Culture for Peace & National Integration," the gala places cultural identity, elegance and national cohesion at the centre of the experience.
+
+Join the Moi University community for an evening celebrating Kenya's rich cultural heritage.
+
+Dress code: Official.
+
+Presented / organised by: Moi University Students Organisation (MUSO)
+
+Contracting company: Not confirmed
+
+Our role & credited team: Leave blank pending confirmation of Urban Gang Tour's involvement.
+
+Admission: Not yet confirmed
+
+Official ticket seller URL: Leave blank
+
+Institutions:
+Moi University
+
+Related news story slug: Leave blank
+
+Date: 2026-10-30
+
+Time: Not specified. Leave blank.
+
+Venue: Student Centre
+
+Location line: Moi University Main Campus, Kesses
+
+City: Eldoret
+
+Poster caption / accessible description: Black and gold official event poster for Moi University's Mr & Miss Culture Gala Night 2026, scheduled for 30 October at the Student Centre, featuring the theme Echoes of Roots.
+
+Lifecycle: Draft until partnership and publication permission are verified, then Upcoming · published.
+
+2. SATUK Award Gala 2026
+Technical University of Kenya × Sherehe Vibes Africa
+
+Thursday, 5 November 2026
+
+Upcoming
+From 4:00 PM, Nairobi
+
+Name: SATUK Award Gala 2026 | Technical University of Kenya
+
+Kind: Contracted / partner event (subject to confirmation)
+
+Priority: 50
+
+Description:
+
+A celebration of student leadership, achievement and the university community.
+
+The Office of the President of the Students Association of the Technical University of Kenya (SATUK), in collaboration with Sherehe Vibes Africa, presents the SATUK Award Gala 2026.
+
+Scheduled for Thursday, 5 November 2026, the gala brings together members of the university community for an evening of recognition and celebration.
+
+The event begins at 4:00 PM at the Technical University of Kenya, Nairobi.
+
+For event enquiries, contact 0768 879 680 or 0786 612 126.
+
+Presented / organised by: Office of the President, Students Association of the Technical University of Kenya (SATUK) × Sherehe Vibes Africa
+
+Contracting company: Not confirmed
+
+Our role & credited team: Leave blank until UGT's participation is verified.
+
+Admission: Not yet confirmed
+
+Official ticket seller URL: Leave blank
+
+Institutions:
+Technical University of Kenya
+Students Association of the Technical University of Kenya (SATUK)
+
+Related news story slug: Leave blank
+
+Date: 2026-11-05
+
+Time: 16:00
+
+Venue: Technical University of Kenya
+
+Location line: Technical University of Kenya, Nairobi
+
+City: Nairobi
+
+Poster caption / accessible description: Blue, white and gold SATUK Award Gala 2026 poster featuring a suited event representative and gold award trophy. The gala is advertised for 5 November 2026 from 4:00 PM.
+
+Lifecycle: Draft until the partnership is verified, then Upcoming · published.
+
+3. UNI FEST 2026
+University of Embu (@UoEmbu) on X
+
+University of Nairobi
+
+Friday, 6 November 2026
+
+Upcoming
+Graduation Square, free admission
+
+This event has two posters. Use the fourth uploaded image, containing the activity list, as the primary artwork, and the third uploaded image as Poster 2.
+
+Name: UNI FEST 2026 | University of Nairobi
+
+Kind: Contracted / partner event (subject to confirmation)
+
+Priority: 40
+
+Description:
+
+ONE CAMPUS. MANY CULTURES. ONE VIBE.
+
+UNI FEST 2026 brings music, culture, creativity and campus entertainment to the University of Nairobi's Graduation Square on Friday, 6 November 2026.
+
+An event celebrating cultural diversity and inter-university unity, UNI FEST promises a vibrant programme of student talent, performances and interactive experiences.
+
+Event highlights include:
+
+Color Blast
+
+Cultural wear
+
+Campus modelling
+
+Food fest
+
+Live performances
+
+DJs and entertainment
+
+Dance and cultural showcases
+
+Student talent
+
+Creative experiences
+
+Inter-university unity
+
+Admission is FREE.
+
+Venue: University of Nairobi Graduation Square.
+
+For event enquiries, contact 0768 879 680 or 0743 115 184.
+
+Presented / organised by: Sherehe Vibes Africa and credited University of Nairobi event partners. Lead organiser to be confirmed.
+
+Contracting company: Not confirmed
+
+Our role & credited team: Leave blank. Urban Gang Tour is not credited on the supplied artwork.
+
+Admission: Free admission
+
+Official ticket seller URL: Leave blank
+
+Institutions:
+University of Nairobi
+
+Related news story slug: Leave blank
+
+Date: 2026-11-06
+
+Time: Not specified. Leave blank.
+
+Venue: University of Nairobi Graduation Square
+
+Location line: University of Nairobi, Nairobi
+
+City: Nairobi
+
+Primary poster caption / accessible description: UNI FEST 2026 poster featuring a lively concert crowd, bold yellow and white festival typography, a cultur
+
+
+
+
+⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮
