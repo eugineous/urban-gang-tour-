@@ -45,9 +45,10 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
   try {
     const rows = await q<{
       id: string; slug: string; name: string; status: string; tiers: string;
+      event_date:string|null;venue:string|null;
       sales_start_at: string | null; sales_end_at: string | null;
     }>(
-      `SELECT id, slug, name, status, tiers, sales_start_at::text AS sales_start_at,
+      `SELECT id, slug, name, status, tiers, event_date::text AS event_date,venue,sales_start_at::text AS sales_start_at,
               sales_end_at::text AS sales_end_at
        FROM tour_events WHERE slug=$1 AND kind='ticketed' LIMIT 1`,
       [slug]
@@ -59,7 +60,10 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
     if (!isPubliclyVisible(status)) return null;
 
     const tiers = parseTierInventory(row.tiers);
-    const sellable = isEventSellable({ status, kind: 'ticketed', tiers });
+    const date=row.event_date||'';
+    const parsed=/^\d{4}-\d{2}-\d{2}$/.test(date)?new Date(date+'T12:00:00+03:00'):null;
+    const scheduleReady=!!String(row.venue||'').trim()&&!!parsed&&Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===date&&Date.parse(date+'T23:59:59+03:00')>=Date.now();
+    const sellable = scheduleReady&&isEventSellable({ status, kind: 'ticketed', tiers });
 
     // Sale window check
     let saleWindowOpen: boolean | null = null;
@@ -102,7 +106,7 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
       isPublic: true,
       isIndexable: isEventIndexable(status),
       isSellable: tierTruth.some(tier => tier.sellable),
-      isSoldOut: status === 'sold_out' || (totalRemaining !== null && totalRemaining <= 0),
+      isSoldOut: status === 'sold_out' || (status==='published'&&scheduleReady&&totalRemaining !== null && totalRemaining <= 0),
       isCompleted: status === 'completed',
       isCancelled: status === 'cancelled',
       isPostponed: status === 'postponed',

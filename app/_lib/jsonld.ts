@@ -139,6 +139,7 @@ export async function eventsFromDb(): Promise<unknown | null> {
         const {'@context':context,...node}=schema;
         return [node];
       }
+      if(!r.event_date||!String(r.venue||'').trim())return [];
       const truth = truthBySlug.get(r.slug);
       // A rich-result offer must be backed by current commercial truth. If
       // availability cannot be resolved, omit this event rather than assert

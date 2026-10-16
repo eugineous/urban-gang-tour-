@@ -1,5 +1,81 @@
 # Urban Gang Tour reconstruction checkpoint
 
+## 16 October 2026 — new briefs, first reconstruction slice (not deployed)
+
+Branch: `feat/content-discovery-reconstruction-20261016`, based on main after
+PR #73. The supplied three files are overlapping briefs; execution starts with
+publishing/discovery, preserving production data and existing authentication.
+No new main-site release authorization was inferred from “now start on this”.
+
+Implemented: public non-selling announcements; optional partner media/schedule/
+credits; shared whitelisted SSR/API event reader; searchable upcoming/past/type
+views; Tour Stops redirect to the live school archive; canonical school/past
+event records; completed-event portfolio/sitemap discovery; honest text artwork
+fallbacks; commercial resolver rejects incomplete/past schedules. Existing
+curated media collections are preserved. No manufactured event facts or stock.
+
+The local, network-isolated Postgres 16 schema regression passed: actual event
+DDL preserves legacy records, accepts title-only announced rows, tolerates
+repeat migration and rejects invalid states. The disposable database was stopped.
+All 684 standard tests and TypeScript passed; six opt-in story database cases
+remain skipped in the standard run. Scoped lint has zero errors, 41 warnings.
+Source/SSR tests are not physical-device or signed-in production acceptance.
+Product Design's browser connection and some bundled audit references were
+unavailable; no new completed screenshot/accessibility audit is claimed.
+
+Research: Google Event structured-data guidance informed omitting rich Event
+markup when schedule/location are absent; W3C cognitive accessibility guidance
+informed explicit states and short actions. DICE returned 403 and the referenced
+Eventbrite help page was inaccessible; no competitor admin audit is claimed.
+Sources: https://developers.google.com/search/docs/appearance/structured-data/event
+and https://www.w3.org/WAI/WCAG2/supplemental/patterns/o1p04-clear-steps/.
+
+Migration/release warning: `announced` expands the existing event status CHECK
+inside the existing transaction/advisory-lock bootstrap; it does not rewrite
+records. Before any future public rollout, retain a compatible rollback build.
+An older bootstrap recreates the old CHECK and cannot safely run after new
+announced rows exist. Do not delete or downgrade those records for rollback.
+The fully separate visibility/lifecycle model, structured
+case-study editing, media-rights library, new public shell and full admin rebuild
+remain later slices, not features claimed complete here.
+
+### Category continuation — 16 October (review only)
+
+Implemented one optional, extensible event category independently of commercial
+kind: create, assign/clear, rename, pause/restore, URL-backed public filtering and
+category-name search. The existing event editor contains these controls; no
+separate setup wizard or AI service is required. Category creation explicitly
+does not claim to save/publish the event. Unconfirmed responses keep entries;
+an event save also verifies its returned category. Typed category edits must be
+saved or cancelled before the event can close through a successful save.
+
+Schema is additive, nullable and indexed; category mutations are atomically
+audited and version-guarded. Existing assignments survive paused categories and
+legacy callers omitting the field. Public choices come only from public events.
+The new API requires the existing session, Events permission, write Origin,
+bounded validated input and rate limits. No backdoor, MCP access shortcut,
+credential change, production session or production migration was created.
+
+Verification: 709 standard tests pass; seven opt-in database cases are skipped
+in that run. The new opt-in category test passes separately against a disposable,
+network-isolated PostgreSQL 16 container, exercising the actual store and event
+route SQL, repeated DDL, uniqueness, paused assignment rules, exact timestamp
+conflicts, omitted/cleared assignments and restrictive foreign keys. This is
+not signed-in owner acceptance or production database verification.
+
+TypeScript and the normal Cloudflare production build pass. Scoped lint reports
+zero errors / 33 warnings; existing OpenNext/CSS/PDF dependency diagnostics remain.
+Deployment dry-run passes and the bundled `color-string` dependency is present.
+Local production-Worker browser fixtures pass 36 checks across emulated Galaxy
+S24, 320px Android and desktop: create/rename/pause/restore, rejected missing or
+mismatched acknowledgements, preserved entries, reopened assignment, long-name
+wrapping and public deep-link filters. Screenshots are under
+`/workspace/artifacts/event-categories-20261016/`. They use intercepted fictional
+API data, not real admin login, remote storage or physical-device certification.
+
+Draft PR #74 remains the review handoff. This continuation does not deploy the
+public site and does not claim the full reconstruction is finished.
+
 11 October 2026 · Africa/Nairobi. This is a tested implementation bundle, not a declaration that the entire reconstruction directive or live operating system is complete.
 
 ## Execution scope
