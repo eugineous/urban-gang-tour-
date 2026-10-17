@@ -4,7 +4,7 @@ import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { RenderedPage } from '@/app/_components/RenderedPage';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
   return metadataForPathDynamic('/about');
 }

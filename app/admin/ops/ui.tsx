@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {whatsappUrl} from '@/lib/contact-actions';
+import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 export const OC = {
   magenta: '#ad1264',
@@ -42,8 +43,12 @@ export function TbdBadge() {
 }
 
 export async function api(path: string, opts?: RequestInit): Promise<{ status: number; data: any }> {
-  const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  return { status: r.status, data: await r.json().catch(() => ({})) };
+  try{
+    const r = await fetchWithTimeout(path, { headers: { 'Content-Type': 'application/json' }, ...opts },20000);
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||!data.ok)return {status:r.status,data:{...data,error:data.error||'The server did not confirm this change. Check the saved record before retrying.'}};
+    return { status: r.status, data };
+  }catch{return {status:0,data:{error:'The request could not be confirmed. Your entries are kept. Check your connection and the saved record before retrying.'}}}
 }
 
 export function opsGet(view: string, params: Record<string, string | number> = {}) {
@@ -192,7 +197,7 @@ export function SearchBox({ value, onChange, placeholder, style }: {
 export function Toast({ msg }: { msg: string }) {
   if (!msg) return null;
   return (
-    <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 60, ...card, padding: '10px 16px', background: '#FFD400' }}>{msg}</div>
+    <div className="cr-notice" role={/failed|could not|not confirmed|error/i.test(msg)?'alert':'status'}>{msg}</div>
   );
 }
 
@@ -200,7 +205,6 @@ export function useToast(): [string, (m: string) => void] {
   const [msg, setMsg] = useState('');
   const say = useCallback((m: string) => {
     setMsg(m);
-    setTimeout(() => setMsg(''), 3000);
   }, []);
   return [msg, say];
 }

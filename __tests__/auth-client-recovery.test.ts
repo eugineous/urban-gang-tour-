@@ -4,6 +4,7 @@ const hooks = vi.hoisted(() => ({ values: [] as any[], index: 0, effects: [] as 
 vi.mock('react', async (original) => ({ ...await original<any>(),
   useState: (initial: any) => { const i = hooks.index++; if (!(i in hooks.values)) hooks.values[i] = initial; return [hooks.values[i], (v: any) => { hooks.values[i] = v; }]; },
   useCallback: (fn: any) => fn,
+  useRef: (initial:any) => ({current:initial}),
   useEffect: (fn: () => any) => { hooks.effects.push(fn); },
 }));
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('token=test') }));

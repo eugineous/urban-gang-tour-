@@ -130,7 +130,7 @@ Owner-private Sites version 23 published successfully at https://urban-gang-tour
 
 ## Remaining reconstruction work
 
-1. Website Studio: versioned homepage, navigation/footer, biographies, FAQ, legal drafts, archive and portfolio editing with draft/preview/approval/rollback.
+1. Website Studio: the review branch now covers copy/images for homepage, About, biographies and FAQ with draft/preview/owner publication/history-to-draft. Navigation/footer, legal drafts, archive and portfolio editing remain. This is not a whole-site visual layout builder.
 2. Shared event root linking booking, public listing, internal operations, budgets, documents, crew, safety, tickets, communications and media. Immutable commercial tier identities and full sale-window authoring need further work.
 3. Linked school/sponsor/client/performer CRM, follow-up ownership and communication history; crew availability, assignments, call times, transport/equipment and release records.
 4. Governed document/guardian/media permission workflows, actual operational retention/rights execution and qualified Kenyan legal review.
@@ -139,3 +139,66 @@ Owner-private Sites version 23 published successfully at https://urban-gang-tour
 7. Approved current merchandise and biography inputs, resolved live catalogue availability, accessibility/caption coverage, physical-device and measured performance checks.
 
 Use the complete route/module matrix in `reconstruction-route-audit.md` to continue these vertical slices. Existing module presence and old preview screens are not completion evidence.
+
+## Deeper continuation: saved means confirmed (18 October 2026)
+
+The Friday checkout contained unfinished story, media and website editors. This
+continuation finishes those existing paths rather than introducing another suite.
+The professional standard is a traceable content lifecycle, not another dashboard:
+start with actual route SQL, persisted rows, signed-session boundaries and browser
+requests; use versioned writes, immutable history, failure injection and a frozen
+production bundle; judge correctness by saved/reopened content, unchanged public
+drafts, rejected stale writes and recoverable partial failure.
+
+Concrete corrections:
+
+- PostgreSQL JSONB reorders keys. Website publication acknowledgement now
+  normalizes both draft and published content before comparing values, preventing
+  a genuinely saved publication from looking unconfirmed.
+- Private story copies require matching ID/next revision, not merely HTTP 200.
+- The old gallery API cannot bypass new photo version checks. Null legacy photo
+  captions/descriptions no longer make the entire library fail to load.
+- Draft story/page uploads require appropriate admin permission or a published
+  reference. Content is rendered as text, never pasted executable HTML.
+- Persistent errors keep entries; bulk photo failures retain unfinished selections;
+  uploads reuse stored URLs on registration retry; removal is recoverable.
+- Shared navigation uses real module links, current location and a skip link;
+  active editors remain mounted across module changes. Story/media/website editors
+  have focused forms, explicit save states and mobile layouts. Existing operations
+  tables and the full admin redesign are not claimed complete.
+
+Reproducible checks: `npm test`; `npx tsc --noEmit`;
+`UGT_STUDIO_PG_FIXTURE=1 npx vitest run --no-cache __tests__/studio-postgres.integration.test.ts`;
+normal `npm run cf:build`; deployment dry-run; local frozen-Worker
+`scripts/admin-studio-regression.mjs`. The database test runs actual route SQL in
+disposable network-none PostgreSQL 16. Session/Origin tests use real signed cookies
+with fixture authority records. UI tests intercept fictional admin API replies;
+they are not production owner acceptance or physical Samsung certification.
+
+No production records, credentials, provider messages or charges are changed.
+PR74 remains draft/review only: no main merge or public deployment. The new tables
+and columns are additive; preserve them and their histories when rolling back an
+application build. Earlier `announced` lifecycle rollback constraints still apply.
+Any rollback must retain the media version/privacy guards; do not re-enable an
+older unversioned gallery writer alongside the new library.
+
+Verification results for this continuation:
+
+- Standard suite: 107 files / 745 tests passed; eight opt-in cases skipped.
+- Disposable PostgreSQL studio integration: passed separately, executing actual
+  storage/route SQL, including JSONB round-trip acknowledgement, cross-endpoint
+  conflicts and legacy null metadata. Signed-cookie role/Origin tests also pass.
+- TypeScript and normal Cloudflare build passed. Deployment dry-run passed;
+  bundled `color-string` and `SharedRateLimiter` exports were checked. Scoped lint
+  had zero errors and 52 warnings. Inherited CSS/PDF/OpenNext diagnostics remain.
+- The final frozen production-Worker run passed 60 UI checks across Galaxy S24,
+  narrow 320px Android and desktop, including single-main-landmark and keyboard
+  skip-link checks. Earlier production and development runs passed 57 checks.
+  Byte uploads and registration retries, partial bulk selection, input retention,
+  publication confirmation and history-to-private-draft were exercised.
+- **Release risk remains:** other production-Worker runs reported intermittent
+  React hydration error #418, including `/admin?tab=Gallery`. The complete clean
+  run does not establish its cause or resolution. Keep the error assertion active;
+  do not describe this checkpoint as ready for public release. This is consistent
+  with earlier documented protected-route hydration failures, not proof they share
+  one cause. No error was suppressed to obtain a pass.

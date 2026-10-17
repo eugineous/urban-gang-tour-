@@ -320,6 +320,10 @@ continues through `public/assets`, `public/uploads` and the ASSETS binding.
 are public. Gallery drafts require gallery-admin permission; organizer drafts
 require their owning approved organizer or marketplace-admin permission.
 Documents require documents-admin permission and return `private, no-store`.
+Story/website uploads in `admin-stories` require content or website-admin
+permission until referenced by a published, due story or a published website
+snapshot. Anonymous delivery fails closed on database errors. These responses
+remain no-store; publication lookup is coalesced for one second per isolate.
 Promotion artwork is public. Invalid paths return 404; missing storage returns
 503. ETags and MIME headers are enforced without exposing executable uploads.
 
@@ -805,3 +809,54 @@ record, exact list `version` for edits/removal. Unversioned writes fail 400; sta
 writes fail 409. `deletePost` now means recoverable removal, not a permanent delete.
 Restore never republishes or restarts article announcements. See
 `docs/admin-story-recovery-20261016.md` for retention, role and verification limits.
+
+## Website content and photo library (18 October 2026, review branch)
+
+`GET/POST /api/admin/website` requires a current session and `site_seo`
+permission. Writes require trusted Origin; all responses are private/no-store.
+GET accepts `?path=` for exactly `/`, `/about`, `/faq`,
+`/author/eugine-micah`, `/author/lucy-ogunde`, returning `{ok,page,versions,canPublish}`.
+`page` contains `path,draft,published,version`; an untouched page has version 0,
+existing approved default copy and no published override. Last 30 revision
+summaries are returned. Public readers never create tables and read only the
+published snapshot, with existing content as the unavailable/untouched fallback.
+Editable-page HTML is excluded from the Worker public-page cache; published
+content is coalesced for five seconds per isolate, with a 15-second stale ceiling.
+
+POST accepts `{action:'save'|'publish',path,version,content}` or
+`{action:'restore',path,version,sourceVersion}`. Content is strictly typed:
+`title` (120), `summary` (500), `image` (1000, local/HTTPS), `body` (30 paragraphs,
+3000 each), `faqs` (30 complete question/answer pairs, 300/3000 characters).
+Unknown fields and oversized bodies (150,000 bytes) are rejected. Only owners
+publish. Restore changes the private draft only. Snapshot, immutable revision
+and audit are one atomic statement; stale versions return 409. The client
+confirms path, next version and normalized content, not JSON key order.
+This edits page copy/images, not layouts, navigation, legal text or SEO metadata.
+
+`GET/POST /api/admin/media-library` requires a current session and `gallery`
+permission, trusted Origin for writes, private/no-store replies and a 4096-byte
+write limit. GET returns explicit photo fields, folders and owner capabilities.
+Legacy null metadata is normalized for display without rewriting originals.
+POST actions:
+
+- `folder.create` with `name`; `folder.rename` with UUID `id`, `version`, `name`.
+- `photo.save` with integer `id`, `version`, `caption`, `category`, `altText`.
+- `photo.move` with `id`, `version`, `folderId` (UUID or null).
+- `photo.publish`, `photo.unpublish`, `photo.trash`, `photo.restore` with `id`, `version`.
+
+Folder names are case-insensitively unique (80 characters). Photo mutations
+compare the loaded version and commit an audit atomically. Only owners change
+publication, remove/restore or edit already-public photos. Publication requires
+nonblank caption/category/description. Trash preserves row, metadata and original
+bytes; restore is private. Bulk operations are per-photo commits, not one
+transaction: successful items remain saved, failed items remain selected.
+Upload batches retain stored URLs for registration retries, so successful byte
+uploads do not repeat. Refresh/reopen changed records before retrying stale edits.
+
+Legacy `/api/admin/gallery` still supports idempotent upload registration.
+Metadata/publication/removal writes now require a loaded version and delegate to
+the same versioned writer. Unversioned writes and legacy reorder return 409
+`refresh_media_library`; public ordering is unchanged. No unversioned alternate
+writer or destructive file deletion remains in this compatibility endpoint.
+Story private-copy confirmations additionally require matching draft ID and next
+revision before enabling the explicit story save.

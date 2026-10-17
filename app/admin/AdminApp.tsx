@@ -1,12 +1,11 @@
 "use client";
-import ImageUploadField from './ImageUploadField';
 import {ContactEmail,ContactPhone} from './ContactActions';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
-import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
+import ContentTab from './StoryDesk';
 import StoryRecovery from './StoryRecovery';
 import {storyDraftContent} from '@/lib/story-draft';
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback,useRef } from "react";
 import dynamic from "next/dynamic";
 import "./control-room.css";
 import ControlRoomHome from "./ControlRoomHome";
@@ -31,6 +30,7 @@ const opsLoading = () => (
   </div>
 );
 const Campaigns = dynamic(() => import('./Campaigns'), { ssr: false, loading: opsLoading });
+const WebsiteStudio=dynamic(()=>import('./WebsiteStudio'),{ssr:false,loading:opsLoading});
 const PerformancePanel=dynamic(()=>import("./PerformancePanel"),{ssr:false,loading:opsLoading});
 const Budgeter = dynamic(() => import("./ops/Budgeter"), {
   ssr: false,
@@ -88,7 +88,7 @@ const Products = dynamic(() => import("./ops/Products"), {
   ssr: false,
   loading: opsLoading,
 });
-const Gallery = dynamic(() => import("./ops/Gallery"), {
+const Gallery = dynamic(() => import("./MediaDesk"), {
   ssr: false,
   loading: opsLoading,
 });
@@ -181,6 +181,7 @@ const TABS = [
   "Bookings",
   "Orders",
   "Content",
+  "Website",
   "Newsroom",
   "Comms",
   "Site & SEO",
@@ -242,6 +243,7 @@ const NAV_GROUPS: {
     label: "Content & shop",
     items: [
       { tab: "Content", icon: "✎", label: "Stories" },
+      { tab: "Website", icon: "▦", label: "Edit website" },
       { tab: "Newsroom", icon: "▤", label: "Newsroom" },
       { tab: "Comms", icon: "◒", label: "Comms" },
       { tab: "Campaigns", icon: "★", label: "Campaigns" },
@@ -286,6 +288,7 @@ const TAB_PERM: Partial<Record<Tab, string | string[]>> = {
   Bookings: "bookings",
   Orders: "orders",
   Content: "content",
+  Website: "site_seo",
   Newsroom: "newsroom",
   Comms: "comms",
   "Site & SEO": "site_seo",
@@ -377,6 +380,8 @@ export default function AdminApp({
   let storyCopySaved=false;
   try{storyCopySaved=!!editPost&&protectedDraft.id===editPost._draftId&&protectedDraft.fingerprint===JSON.stringify(storyDraftContent(editPost))}catch{}
   const [storySaveError,setStorySaveError]=useState('');
+  const savePending=useRef(false);
+  const [loadError,setLoadError]=useState('');
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [seoPath, setSeoPath] = useState("/");
   const [setupInfo, setSetupInfo] = useState("");
@@ -389,7 +394,6 @@ export default function AdminApp({
 
   const say = (m: string) => {
     setToast(m);
-    setTimeout(() => setToast(""), 3000);
   };
 
   // Client-side visibility only (see TAB_PERM's note above) - while the
@@ -414,14 +418,15 @@ export default function AdminApp({
 
   const load = useCallback(async (view: string) => {
     setBusy(true);
+    setLoadError('');
     const { status, data } = await api(`/api/admin/data?view=${view}`);
     setBusy(false);
     if (status === 401) {
       setAuthed(false);
       return [];
     }
-    if (data.error) {
-      say("⚠ " + data.error);
+    if (status!==200||data.error||!Array.isArray(data.rows)) {
+      setLoadError('This list could not be loaded. Try again; existing records have not been removed.');
       return [];
     }
     return data.rows || [];
@@ -458,7 +463,7 @@ export default function AdminApp({
   }, [probeSession]);
   useEffect(()=>{
     if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setProtectedDraft({id:'',fingerprint:''});setStorySaveError('');setRows([]);setSettings({});setTix({});setStats(null)}return}
-    if(['Events','Products','Gallery','Contacts','Inbox'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
+    if(['Events','Products','Gallery','Contacts','Inbox','Website'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
   },[authed,tab]);
   useEffect(()=>{
     if(!session)return;
@@ -580,6 +585,7 @@ export default function AdminApp({
   }, [authed, probeSession, googleClientId]);
 
   const save = async (kind: string, data: any, after?: () => void) => {
+    if(savePending.current)return;savePending.current=true;
     if(kind==='post')setStorySaveError('');
     setBusy(true);
     const r = await api("/api/admin/save", {
@@ -587,7 +593,10 @@ export default function AdminApp({
       body: JSON.stringify({ kind, data }),
     });
     setBusy(false);
-    if (r.data.ok) {
+    savePending.current=false;
+    const expectedSlug=String(data.slug||data.headline||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,70);
+    const confirmed=r.status>=200&&r.status<300&&r.data.ok&&(kind!=='post'||(r.data.slug===expectedSlug&&typeof r.data.version==='string'&&Number.isFinite(Date.parse(r.data.version))))&&(kind!=='deletePost'||r.data.recoverable===true);
+    if (confirmed) {
       say("✓ Saved");
       after?.();
     } else {
@@ -725,21 +734,7 @@ export default function AdminApp({
         setSession(null);
       }}
     >
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            top: 16,
-            right: 16,
-            zIndex: 50,
-            ...card,
-            padding: "10px 16px",
-            background: C.yellow,
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      {toast&&<div className="cr-notice" role="status">{toast}</div>}
 
       {tab === "Dashboard" && (
         <ControlRoomHome stats={stats} scope={session?.scope} perms={session?.perms || []} onOpen={(next) => setTab(next as Tab)} />
@@ -885,6 +880,9 @@ export default function AdminApp({
       {canSee('Content')&&(tab==='Content'||editPost)&&<div hidden={tab!=='Content'}><StoryRecovery editor={editPost} onOpen={setEditPost} onSaved={onStoryCopySaved} onRestored={onStoryListChanged} refreshKey={storyRefresh}/></div>}
       {tab === "Content" && (
         <ContentTab
+          loading={busy&&!editPost}
+          loadError={loadError}
+          onReload={onStoryListChanged}
           rows={rows}
           editPost={editPost}
           setEditPost={setEditPost}
@@ -904,6 +902,7 @@ export default function AdminApp({
           }}
         />
       )}
+      {openedTools.includes('Website')&&canSee('Website')&&<div hidden={tab!=='Website'}><WebsiteStudio/></div>}
       {tab === "Newsroom" && (
         <>
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>
@@ -1001,6 +1000,7 @@ function Shell({
     System: ["System tools", "Access, backups and maintenance live here."],
     Events: ["Events", "Create, publish and run your events."],
     Content: ["Stories", "Write, add photos and publish when ready."],
+    Website: ["Edit website", "Draft, preview and publish your page content."],
     Promos: ["Discounts", "Manage codes, dates and eligible products."],
     Campaigns: ["Campaigns", "Schedule banners and pop-ups."],
   };
@@ -1010,6 +1010,7 @@ function Shell({
   ];
   return (
     <div className={`cr-shell ${navOpen?"cr-nav-open":""}`}>
+      <a className="cr-skip" href="#control-room-main">Skip to workspace</a>
       <style>{`@media (min-width: 860px){.admin-split{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.65fr);gap:14px;align-items:start}}@media (max-width:859px){.admin-split{display:grid;gap:14px}.admin-split>section:first-child{max-height:420px!important}}`}</style>
       <header className="cr-topbar">
         <div className="cr-brand">
@@ -1035,15 +1036,16 @@ function Shell({
               <div className="cr-nav-group" key={group.label}>
                 <span className="cr-nav-label">{group.label}</span>
                 {items.map((item) => (
-                  <button
+                  <a
                     key={item.tab}
+                    href={'/admin?tab='+encodeURIComponent(item.tab)}
                     className="cr-nav-button"
                     aria-current={tab === item.tab ? "page" : undefined}
-                    onClick={() => {setTab(item.tab);setNavOpen(false);}}
+                    onClick={(event) => {if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;event.preventDefault();setTab(item.tab);setNavOpen(false);window.scrollTo({top:0});}}
                   >
                     <i className="cr-nav-icon">{item.icon}</i>
                     {item.label}
-                  </button>
+                  </a>
                 ))}
               </div>
             );
@@ -1053,14 +1055,14 @@ function Shell({
             Start with bookings and inbox. Use system tools for access and maintenance.
           </div>
         </aside>
-        <div className="cr-main">
+        <div id="control-room-main" className="cr-main" role="region" aria-label="Current admin module" tabIndex={-1}>
           {tab!=='Dashboard'&&canSee('Dashboard')&&<button className="cr-back" onClick={()=>setTab('Dashboard')}>Back to Today</button>}
           <div className="cr-page-head">
             <div>
               <h1>{title}</h1>
               <p>{subtitle}</p>
             </div>
-            {tab !== "System" && (
+            {tab === "Dashboard" && (
               <button
                 className="cr-system-action"
                 onClick={() => setTab("System")}
@@ -2097,212 +2099,6 @@ function Table({
                 </td>
               </tr>
             )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function ContentTab({ rows, editPost, setEditPost, onSave, onDelete, canPublish, saving, saveError, draftReady }: any) {
-  const [imageBusy,setImageBusy]=useState(false);
-  if (editPost) {
-    const p = editPost;
-    const set = (k: string, v: any) => setEditPost({ ...p, [k]: v });
-    return (
-      <div style={card}>
-          {saveError&&<p role="alert" style={{padding:12,border:'1px solid #a11212',borderRadius:8}}>{saveError}</p>}
-          <h3 style={{ fontFamily: "inherit", marginTop: 0 }}>
-            {p.slug ? "EDIT: " + p.slug : "NEW POST"}
-          </h3>
-          {!canPublish && (
-            <div style={{ background: "#FFF3C4", border: "1px solid #E6B800", borderRadius: 9, padding: "9px 11px", fontSize: 12, lineHeight: 1.45 }}>
-              Your work stays private until a super admin reviews and publishes it. Use <b>Save draft</b> while writing, then <b>Send for review</b> when it is ready.
-            </div>
-          )}
-        <fieldset disabled={saving} style={{border:0,padding:0,margin:0,minWidth:0}}><div style={{ display: "grid", gap: 10 }}>
-          <input
-            style={inp}
-            placeholder="Headline *"
-            value={p.headline || ""}
-            onChange={(e) => set("headline", e.target.value)}
-          />
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
-              gap: 10,
-            }}
-          >
-            <input
-              style={inp}
-              placeholder="Section (Tour Recap / Upcoming / Feature)"
-              value={p.section || ""}
-              onChange={(e) => set("section", e.target.value)}
-            />
-            <ImageUploadField label="Story cover image" value={p.image||''} purpose="stories" disabled={saving} onChange={url=>setEditPost((current:any)=>current?{...current,image:url}:current)} onBusyChange={setImageBusy}/>
-            <input
-              style={inp}
-              placeholder="Date YYYY-MM-DD"
-              value={p.date ? String(p.date).slice(0, 10) : ""}
-              onChange={(e) => set("date", e.target.value)}
-            />
-          </div>
-          <div style={{ fontSize: 11, color: "#888", marginTop: -4 }}>
-            Future date schedules this post to go live automatically — it stays
-            hidden from the site, sitemap and socials until that date arrives.
-          </div>
-          <input
-            style={inp}
-            placeholder="Dek — one-line summary shown on cards"
-            value={p.dek || ""}
-            onChange={(e) => set("dek", e.target.value)}
-          />
-          <textarea
-            style={{ ...inp, minHeight: 220 }}
-            placeholder="Full article. Separate paragraphs with a blank line."
-            value={Array.isArray(p.body) ? p.body.join("\n\n") : p.body || ""}
-            onChange={(e) => set("body", e.target.value)}
-          />
-          {canPublish ? (
-            <label style={{ fontSize: 13 }}>
-              <input
-                type="checkbox"
-                checked={p.published === true}
-                onChange={(e) => set("published", e.target.checked)}
-              />{" "}
-              Published (visible on the site + sitemap)
-            </label>
-          ) : null}
-          <div style={{ display: "flex", gap: 10 }}>
-            {canPublish ? (
-              <button style={btn} disabled={imageBusy||!draftReady} onClick={() => onSave(p)}>
-                {saving?'Saving…':'Save story'}
-              </button>
-            ) : (
-              <>
-                <button style={btnDark} disabled={imageBusy||!draftReady} onClick={() => onSave({ ...p, published: false, submitForReview: false })}>
-                  Save draft
-                </button>
-                <button style={btn} disabled={imageBusy||!draftReady} onClick={() => onSave({ ...p, published: false, submitForReview: true })}>
-                  Send for review
-                </button>
-              </>
-            )}
-            <button style={btnDark} disabled={imageBusy} onClick={() => {if(draftReady||confirm('Your latest changes are not confirmed saved. Close anyway? Recent changes may not be available when you reopen. Cancel to keep writing.'))setEditPost(null)}}>
-              Close editor
-            </button>
-          </div>
-        </div></fieldset>
-      </div>
-    );
-  }
-  return (
-    <div style={card}>
-      <div style={{ display: "flex", marginBottom: 10 }}>
-        <div style={{ fontSize: 13 }}>
-          {canPublish
-            ? <>Review submitted stories here, then publish approved work to <b>/blog</b>.</>
-            : <>Create a story for the Urban News desk. Published stories cannot be changed from this account.</>}
-        </div>
-        <div style={{ flex: 1 }} />
-        <button style={btn} onClick={() => setEditPost({ published: false })}>
-          ＋ New post
-        </button>
-      </div>
-      <details style={{marginBottom:20}}><summary>Supplied partner-event news drafts</summary><p>Start an editable, unpublished story. Confirm the brief and add the original cover before publication. Existing stories are not overwritten.</p><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{PARTNER_EVENT_DRAFTS.map(draft=><button key={draft.key} style={btn} disabled={rows.some((r:any)=>r.slug===draft.key)} onClick={()=>setEditPost({published:false,slug:draft.key,headline:draft.news.headline,dek:draft.news.dek,body:draft.news.body,date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Nairobi'}),section:'Events',image:''})}>{draft.name}{rows.some((r:any)=>r.slug===draft.key)?' · already saved':''}</button>)}</div></details>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              {["date", "slug", "headline", "section", "workflow", "contributor", ""].map(
-                (c) => (
-                  <th key={c} style={th}>
-                    {c}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r: any) => {
-              const rDate = String(r.date).slice(0, 10);
-              const todayIso = new Date().toISOString().slice(0, 10);
-              const scheduled = r.published && rDate > todayIso;
-              const workflow = r.editorial_status === "in_review"
-                ? "Needs review"
-                : !r.published
-                  ? "Draft"
-                  : scheduled
-                    ? "Scheduled"
-                    : "Published";
-              const statusStyle = r.editorial_status === "in_review"
-                ? { background: "#E6F7FB", color: "#0B6075", border: "1px solid #7BD1E5" }
-                : scheduled
-                ? {
-                    background: "#FFF3C4",
-                    color: "#7a5b00",
-                    border: "1px solid #E6B800",
-                  }
-                : r.published
-                  ? {
-                      background: "#DCFCE7",
-                      color: "#166534",
-                      border: "1px solid #86EFAC",
-                    }
-                  : {
-                      background: "#EEE",
-                      color: "#666",
-                      border: "1px solid #CCC",
-                    };
-              return (
-                <tr key={r.slug}>
-                  <td style={td}>{rDate}</td>
-                  <td style={td}>
-                    <a
-                      href={`/blog/${r.slug}`}
-                      target="_blank"
-                      style={{ color: C.pink, fontWeight: 700 }}
-                    >
-                      {r.slug}
-                    </a>
-                  </td>
-                  <td style={td}>{r.headline}</td>
-                  <td style={td}>{r.section}</td>
-                  <td style={td}>
-                    <span
-                      style={{
-                        ...statusStyle,
-                        borderRadius: 100,
-                        padding: "3px 10px",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {workflow}
-                    </span>
-                  </td>
-                  <td style={td}>{r.submitted_by || "—"}</td>
-                  <td style={td}>
-                    <button
-                      style={{ ...btn, padding: "5px 9px", marginRight: 6 }}
-                      onClick={() => setEditPost(r)}
-                      disabled={!canPublish && r.published}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      style={{ ...btnDark, padding: "5px 9px" }}
-                      disabled={!canPublish && r.published}
-                      onClick={() => onDelete(r.slug,r.version)}
-                    >
-                      Move to removed
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
           </tbody>
         </table>
       </div>

@@ -49,3 +49,15 @@ it('supports HEAD and conditional requests without disclosing private files', as
   expect((await GET(...request('promo-hero', { 'if-none-match': '"' + hash + '"' }))).status).toBe(304);
   expect((await GET(...request('documents', { 'if-none-match': '"' + hash + '"' }))).status).toBe(401);
 });
+it('keeps story/website draft uploads private, even for conditional requests',async()=>{
+ expect((await GET(...request('admin-stories'))).status).toBe(404);
+ expect((await HEAD(...request('admin-stories',{'if-none-match':'"'+hash+'"'}))).status).toBe(404);
+ mocks.admin=true; mocks.perm=false;
+ expect((await GET(...request('admin-stories'))).status).toBe(404);
+ mocks.perm=true;
+ expect((await GET(...request('admin-stories'))).headers.get('cache-control')).toBe('private, no-store');
+ mocks.admin=false;mocks.rows=[{}];
+ expect((await GET(...request('admin-stories'))).status).toBe(200);
+ mocks.queryFailure=true;
+ expect((await GET(...request('admin-stories'))).status).toBe(404);
+});

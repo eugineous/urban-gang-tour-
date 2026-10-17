@@ -14,10 +14,10 @@ beforeEach(()=>{
 });
 afterEach(()=>vi.unstubAllGlobals());
 it('reuses anonymous public HTML under the deployment-specific key',async()=>{
-  const first=await worker.fetch(request('/about'),{},context());await Promise.all(jobs);
+  const first=await worker.fetch(request('/experience'),{},context());await Promise.all(jobs);
   expect(first.headers.get('cache-control')).toContain('s-maxage=60');
   expect(first.headers.get('x-ugt-release')).toBe('content-discovery-review-20261016-v1');
-  const second=await worker.fetch(request('/about'),{},context());expect(await second.text()).toContain('Public page');
+  const second=await worker.fetch(request('/experience'),{},context());expect(await second.text()).toContain('Public page');
   expect(state.fetch).toHaveBeenCalledTimes(1);
   expect([...entries.keys()][0]).toContain('__ugt_release=content-discovery-review-20261016-v1');
 });
@@ -25,17 +25,17 @@ it.each(['/shop','/checkout','/cart','/account','/admin'])('keeps %s private and
   const response=await worker.fetch(request(path),{},context());expect(response.headers.get('cache-control')).toBe('no-store');expect(jobs).toHaveLength(0);
 });
 it('bypasses authenticated visitors even when anonymous HTML is cached',async()=>{
-  await worker.fetch(request('/about'),{},context());await Promise.all(jobs);
-  await worker.fetch(request('/about',{cookie:'ugt_user=signed-session'}),{},context());expect(state.fetch).toHaveBeenCalledTimes(2);
+  await worker.fetch(request('/experience'),{},context());await Promise.all(jobs);
+  await worker.fetch(request('/experience',{cookie:'ugt_user=signed-session'}),{},context());expect(state.fetch).toHaveBeenCalledTimes(2);
 });
 it('never shares a response that sets a session cookie',async()=>{
   state.fetch.mockResolvedValue(new Response('private',{headers:{'content-type':'text/html','set-cookie':'ugt_user=test'}}));
-  const response=await worker.fetch(request('/about'),{},context());expect(response.headers.get('cache-control')).toBe('no-store');expect(jobs).toHaveLength(0);
+  const response=await worker.fetch(request('/experience'),{},context());expect(response.headers.get('cache-control')).toBe('no-store');expect(jobs).toHaveLength(0);
 });
 it('continues serving pages if Cloudflare cache reads fail',async()=>{
   vi.spyOn(console,'error').mockImplementation(()=>{});
   caches.default.match.mockRejectedValueOnce(new Error('unavailable'));
-  const response=await worker.fetch(request('/about'),{},context());expect(response.status).toBe(200);
+  const response=await worker.fetch(request('/experience'),{},context());expect(response.status).toBe(200);
   vi.restoreAllMocks();
 });
 it.each(['/api/admin/accounts','/api/account','/api/auth','/api/organizer/me','/api/orders/status?id=ORD-TEST','/api/bookings/status?token=test','/api/tickets/verify','/api/receipts/ORD-TEST/pdf','/api/internal/cron/email-delivery'])('prohibits storing sensitive JSON at %s even if a route says public',async path=>{

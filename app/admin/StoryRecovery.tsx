@@ -45,6 +45,7 @@ export default function StoryRecovery({editor,onOpen,onSaved,onRestored,refreshK
       current.running=true;setStatus('Saving private copy…');setError('');
       try{
         const result=await request('',{action:'saveDraft',id,revision:current.revision,content:JSON.parse(fingerprint)});
+        if(result.draft?.id!==id||result.draft.revision!==current.revision+1)throw Error('not_confirmed');
         current.revision=result.draft.revision;current.fingerprint=fingerprint;
         if(alive.current){onSaved(id,fingerprint);setStatus('Private copy saved. The public story has not changed.');void reload()}
       }catch(e){
