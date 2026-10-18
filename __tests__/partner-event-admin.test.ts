@@ -65,3 +65,19 @@ it('guards an entered edit against a newer saved version',async()=>{
  const response=await POST(request({...data,id:'partner-fixture',updatedAt:'2026-10-16 00:00:00.123456+00'}));
  expect(response.status).toBe(409);expect(await response.json()).toMatchObject({error:'event_conflict'});expect(state.q.mock.calls[1][0]).toContain('updated_at=$18::timestamptz');expect(state.q.mock.calls[1][1][17]).toBe('2026-10-16 00:00:00.123456+00');
 });
+it('persists an uploaded poster without a caption privately, and blocks its publication with an exact target',async()=>{
+ const partnerDetails={...partner,posters:[{url:'https://urbangangtour.co.ke/media/admin-events/original.jpg',caption:''}]};
+ const saved=await POST(request({...data,status:'draft',partnerDetails}));expect(saved.status).toBe(200);
+ const params=state.q.mock.calls.find(([sql])=>sql.startsWith('INSERT INTO tour_events'))![1];
+ expect(JSON.parse(params[16]).posters).toEqual([{url:'/media/admin-events/original.jpg',caption:''}]);
+ state.q.mockClear();
+ const rejected=await POST(request({...data,status:'announced',partnerDetails}));expect(rejected.status).toBe(400);
+ expect(await rejected.json()).toMatchObject({error:'invalid_partner_details',fields:[{field:'posters',targetId:'partner-poster-0-caption'}]});
+ expect(state.q).not.toHaveBeenCalled();
+});
+it('keeps exact poster error details through quick publication of a saved draft',async()=>{
+ const row={id:'partner',kind:'partner',status:'draft',name:'Partner',partner_details:{...partner,posters:[{url:'/poster.jpg',caption:''}]}};
+ state.q.mockResolvedValueOnce([row]);
+ await expect(changeEventStatus({id:'partner',status:'announced',expectedStatus:'draft',updatedAt:'2026-10-18T10:00:00Z'},'fixture-owner')).rejects.toMatchObject({fields:[{targetId:'partner-poster-0-caption'}]});
+ expect(state.q).toHaveBeenCalledTimes(1);
+});

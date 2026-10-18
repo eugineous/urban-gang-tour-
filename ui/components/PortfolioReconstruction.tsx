@@ -2,10 +2,10 @@
 import {InlineArrow} from './InlineArrow';
 import Link from './DocumentLink';
 import {MediaFilm,MediaImage,collections} from './MediaLibrary';
-import timeline from '../data/tour-timeline.json';
+import {completedSchoolWork} from '../lib/portfolio-events';
+import {ownedEventPresentation,type OwnedEvent} from '../lib/owned-event-presentation';
 import styles from './PortfolioProfiles.module.css';
 
-const stops=timeline.entries.filter(entry=>entry.status==='completed');
 function Project({slug}:{slug:string}){
   const collection=collections.find(item=>item.slug===slug);
   if(!collection)return null;
@@ -13,10 +13,10 @@ function Project({slug}:{slug:string}){
 }
 function Heading({label,title}:{label:string;title:string}){return <div className="section-title"><p className="eyebrow">{label}</p><h2>{title}</h2></div>}
 
-export function PortfolioPage(){return <>
-  <section className={`page-intro wrap ${styles.portfolioIntro}`}><div><p className="eyebrow">Selected work</p><h1>Our portfolio.</h1></div><div className={styles.introAside}><p>Schools. Campuses. Campaigns. On stage and on screen.</p><Link className="button" href="/book">Book the tour <InlineArrow/></Link></div></section>
+export function PortfolioPage({events=[]}:{events?:OwnedEvent[]}){const stops=completedSchoolWork(events,Date.now());return <>
+  <section className={`page-intro wrap ${styles.portfolioIntro}`}><div><p className="eyebrow">Selected work</p><h1>Our work.</h1></div><div className={styles.introAside}><p>Published Urban Gang Tour event records, alongside the founders’ earlier stage and media archive.</p><Link className="button" href="/book">Discuss your event <InlineArrow/></Link></div></section>
   <nav className={`wrap ${styles.portfolioNavigation}`} aria-label="Portfolio sections">{[['Schools','school-work'],['Campus Rave','campus-work'],['Campaigns','campaign-work'],['Live events','live-work'],['Broadcast','media-work']].map(([label,id])=><Link key={id} href={'#'+id}>{label}</Link>)}</nav>
-  <section id="school-work" className={`section wrap ${styles.portfolioSection}`}><Heading label="01 · School tour" title="School memories."/><div className={styles.schoolProjects}>{stops.map(stop=><article className={styles.schoolProject} key={stop.id}><Link className={styles.schoolImage} href={'/gallery/school-'+stop.id}><img src={stop.image!} alt={'Urban Gang Tour at '+stop.name} loading="lazy" decoding="async"/></Link><div><p className="eyebrow"><time dateTime={stop.date!}>{new Intl.DateTimeFormat('en-KE',{day:'numeric',month:'short',year:'numeric'}).format(new Date(stop.date!+'T12:00:00+03:00'))}</time> · {stop.venue}</p><h3>{stop.name}</h3><Link className="text-link" href={'/gallery/school-'+stop.id}>View photos <InlineArrow/></Link></div></article>)}</div><div className="section-end"><Link className="text-link" href="/tour-stops">All tour stops <InlineArrow/></Link></div></section>
+  <section id="school-work" className={`section wrap ${styles.portfolioSection}`}><Heading label="01 · Urban Gang Tour" title="Completed school events."/><div className={styles.schoolProjects}>{stops.map(stop=><article className={styles.schoolProject} key={String(stop.id)}>{typeof stop.image==='string'&&stop.image&&<Link className={styles.schoolImage} href={'/events/'+String(stop.slug)}><img src={stop.image} alt={'Urban Gang Tour at '+String(stop.name)} loading="lazy" decoding="async"/></Link>}<div><p className="eyebrow">{ownedEventPresentation(stop,Date.now()).dateLabel} · {String(stop.venue||'')}</p><h3>{String(stop.name)}</h3><Link className="text-link" href={'/events/'+String(stop.slug)}>View work record <InlineArrow/></Link></div></article>)}</div>{!stops.length&&<p>Completed school records will appear here when published.</p>}<div className="section-end"><Link className="text-link" href="/events?kind=school&period=all">School event records <InlineArrow/></Link></div></section>
   <section id="campus-work" className={`section wrap ${styles.portfolioSection}`}><Heading label="02 · Campus Rave" title="Campus energy."/><div className={styles.projectGrid}>{['machakos-campus','uon-mr-miss-2022','tibs-campus','kips-campus-rave'].map(slug=><Project key={slug} slug={slug}/>)}</div></section>
   <section id="campaign-work" className={`section wrap ${styles.portfolioSection}`}><Heading label="03 · Campaigns" title="On camera."/><div className={`film-grid ${styles.campaignFilms}`}>{['M210','M213','M215'].map(id=><MediaFilm id={id} key={id}/>)}</div><div className={styles.projectGrid}>{['tecno-uon','infinix-kicc'].map(slug=><Project key={slug} slug={slug}/>)}</div><div className="section-end"><Link className="text-link" href="/work-with-us">All campaign films <InlineArrow/></Link></div></section>
   <section id="live-work" className={`section wrap ${styles.portfolioSection}`}><Heading label="04 · Live events" title="Music. Culture. Connection."/><div className={styles.projectGrid}><Project slug="nairobi-choirs"/><div className={styles.liveProjectCopy}><h3>Your next live moment.</h3><p>Talent nights, colour festivals and celebrations.</p><Link className="button" href="/book?type=public">Plan an event <InlineArrow/></Link></div></div></section>

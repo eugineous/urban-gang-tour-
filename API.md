@@ -696,8 +696,18 @@ server autosave or refresh-proof draft recovery.
 `tourEvent.save` accepts `kind: "partner"` with `partnerDetails` containing
 `{organizer,client,role,admission,ticketUrl,institutions,posters,newsSlug}` plus
 optional `posterCaption`.
-Admission is `external`, `free`, `invitation` or `unconfirmed`. Institutions
-are at most 12 names; posters are at most eight additional `{url,caption}`
+Admission is `external`, `free`, `invitation` or `unconfirmed`. Partner details
+are validated with field-addressable errors. Validation failures return
+`{error,fields:[{field,label,message,targetId?}]}` without echoing entered values.
+`targetId` identifies the specific poster image/caption control. Draft and
+pending-review records may retain empty poster captions or an unfinished empty
+image URL privately; unsafe supplied URLs and oversized metadata remain rejected.
+Publishing, including a quick status change, requires each retained poster row
+to have a safe URL and a nonempty caption. Existing complete records keep their
+schema. Same-site HTTPS artwork URLs normalize to relative paths; copied
+`/blog/slug` or same-site story links normalize to a slug. Seller links retain
+the separate external-HTTPS validation and never become local UGT checkout.
+Institutions are at most 12 names; posters are at most eight additional `{url,caption}`
 objects. HTTPS external seller links reject credentials, local/private IP
 hosts and Urban Gang checkout. Links are never fetched server-side.
 

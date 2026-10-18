@@ -9,24 +9,14 @@ import { SITE } from '@/lib/site';
 import { ProductGallery } from '@/app/_components/ProductGallery';
 import styles from '@/app/_components/Commerce.module.css';
 import { hasDb, q } from '@/lib/server/db';
-import {getMerchProduct,merchProducts,ARTWORK} from '@/data/color-blast';
+import {getMerchProduct,ARTWORK} from '@/data/color-blast';
 import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
+import {ShareActions} from '@/ui/components/ShareActions';
 
-export const revalidate = 300;
-
-// Pre-generate active products for ISR. An unavailable database at build time
-// yields no pre-generated pages (honest empty list); pages are then rendered
-// on demand and cached for the revalidate window.
-export async function generateStaticParams() {
-  const previews=merchProducts.map(p=>({id:p.id}));
-  if (!hasDb()) return previews;
-  try {
-    const rows = await q<{ id: string }>(`SELECT id FROM products WHERE active`);
-    return [...previews,...rows.filter(r=>!getMerchProduct(r.id)).map((r) => ({ id: r.id }))];
-  } catch {
-    return previews;
-  }
-}
+// A design can become a real, owner-approved product. Never bake the build's
+// absent database/stock into a five-minute concept page for that same ID.
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 type Variant = { label: string; priceAdjustment: number; sku: string; stock?:number|null };
 type Product = {
@@ -88,8 +78,8 @@ function imageUrl(value: string) {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const preview=getMerchProduct(id);
-  if(preview)return {title:preview.name+' | Color Blast Design Preview',description:preview.description+' Proposed design; samples and stock unconfirmed.',alternates:{canonical:'/shop/'+id},openGraph:{title:preview.name+' | Color Blast',description:'Design preview, not manufactured stock.',url:'/shop/'+id,images:[{url:ARTWORK}]}};
-  const product = await productForPage(id);
+  const product = await productForPage(id).catch(error=>{if(preview)return null;throw error});
+  if(!product&&preview)return {title:preview.name+' | Color Blast Design Preview',description:preview.description+' Proposed design; samples and stock unconfirmed.',alternates:{canonical:'/shop/'+id},openGraph:{title:preview.name+' | Color Blast',description:'Design preview, not manufactured stock.',url:'/shop/'+id,images:[{url:ARTWORK}]}};
   if (!product) return {};
   const path = `/shop/${product.id}`;
   const description = product.description || `Official Urban Gang Tour ${product.name}.`;
@@ -109,8 +99,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const preview=getMerchProduct(id);
-  if(preview)return <ColorBlastShop product={preview}/>;
-  const product = await productForPage(id);
+  const product = await productForPage(id).catch(error=>{if(preview)return null;throw error});
+  if(!product&&preview)return <ColorBlastShop product={preview}/>;
   if (!product) notFound();
   const variants = safeVariants(product.variants);
   const extra=Array.isArray(product.photos)?product.photos.filter((x):x is string=>typeof x==='string'&&(/^(https?:\/\/|\/(?!\/))/.test(x))):[];
@@ -162,7 +152,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <div className="wrap breadcrumbs"><a href="/shop">Shop</a><span>/</span><span>{product.name}</span></div>
     <section className={`product-detail wrap ${styles.productDetail}`}>
       <ProductGallery photos={photos} name={product.name}/>
-      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category||'Official merchandise'}</p><h1>{product.name}</h1>{product.description&&<p className={styles.description}>{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary>Size guide</summary><p>{product.size_guide}</p></details>}</div>
+      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category||'Official merchandise'}</p><h1>{product.name}</h1><ShareActions title={product.name} path={'/shop/'+product.id} label="Share this product"/>{product.description&&<p className={styles.description}>{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary>Size guide</summary><p>{product.size_guide}</p></details>}</div>
     </section>
     {reviews.length>0&&<section className={`wrap product-reviews ${styles.reviewSection}`}><p className="eyebrow">From the community</p><h2>Customer reviews</h2><div className={styles.reviewGrid}>{reviews.map((review,i)=><article key={i}><h3>{review.author}</h3><p className={styles.rating}>{review.rating} / 5</p><p>{review.body}</p></article>)}</div></section>}
     <section className={`wrap product-reviews ${styles.reviewSection}`}><ProductReviewForm productId={product.id}/></section>

@@ -3,8 +3,7 @@ import {Suspense,useEffect,useRef,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
-const menuGroups=[{title:'Explore',items:[['Experience','/experience','Schools, Campus Rave & live production'],['Tour stops','/tour-stops','Follow the school tour'],['Events','/events','Discover shows & tickets'],['Portfolio','/portfolio','See the work behind the names'],['Shop','/shop','Official Urban Gang Tour merchandise']]},{title:'More',items:[['Gallery','/gallery','Photographs & film archives'],['News','/blog','Stories & updates'],['Reels','/reels','Watch the highlights'],['About','/about','Meet the people behind the tour'],['Partnerships','/partners','Institutions, media & brands'],['Book Urban Gang Tour','/book','Start an event or campaign brief'],['Contact','/contact-us','Get in touch with the team']]}];
-const links=[['Experience','/experience'],['Tour stops','/tour-stops'],['Portfolio','/portfolio'],['Events','/events'],['About','/about'],['Shop','/shop']];
+import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups} from '@/lib/site-navigation';
 export function AppShell({children}:{children:React.ReactNode}){
  const path=usePathname(),[focus,setFocus]=useState(false),[open,setOpen]=useState(false),[scrolled,setScrolled]=useState(false),trigger=useRef<HTMLButtonElement>(null);
  useEffect(()=>{try{const value=JSON.parse(localStorage.getItem('ugt-new-preview-v1focusView')||'false');setFocus(value);document.documentElement.dataset.focusView=String(value)}catch{}},[]);
