@@ -1,0 +1,31 @@
+/* One responsive menu, with native modal focus/inert behaviour. */
+dialog.menu-panel{position:fixed;margin:0 12px 0 auto;inset:84px 0 auto auto;border:1px solid var(--line);color:var(--ink);max-width:calc(100% - 24px);max-height:calc(100dvh - 100px);overscroll-behavior:contain;overflow-y:auto;overflow-x:hidden;padding:0 24px 24px;box-sizing:border-box}
+dialog.menu-panel:not([open]){display:none}
+dialog.menu-panel::backdrop{background:#17101680}
+.menu-dialog-heading{position:sticky;top:0;z-index:1;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:20px}
+.menu-dialog-heading strong{font-size:15px;line-height:1.4}.menu-dialog-heading button{flex-shrink:0;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit;font:inherit}
+dialog.menu-panel .menu-groups nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}
+dialog.menu-panel nav a{min-width:0;gap:12px;overflow-wrap:anywhere}
+dialog.menu-panel .menu-account-links a{min-height:44px}
+dialog.menu-panel :focus-visible{outline:2px solid var(--action);outline-offset:3px}
+@media(max-width:600px), (max-device-width:600px) and (pointer:coarse){
+ dialog.menu-panel{margin:0 8px;inset:68px 0 auto;width:calc(100% - 16px);max-width:calc(100% - 16px);max-height:calc(var(--ugt-screen-height,100dvh)/var(--ugt-phone-zoom,1) - 80px);padding:0 20px 20px}
+ dialog.menu-panel .menu-groups nav{grid-template-columns:minmax(0,1fr)}
+ dialog.menu-panel .menu-groups nav a{font-size:18px;min-height:48px;padding:10px 0}
+ dialog.menu-panel .menu-groups{gap:24px}
+ .site-header .header-actions{flex-wrap:nowrap}.site-header .mobile-about-link{display:none!important}
+}
+@media(max-height:500px) and (orientation:landscape){dialog.menu-panel{inset-block-start:64px!important;max-height:calc(100dvh - 76px)}dialog.menu-panel .menu-groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}dialog.menu-panel .menu-groups nav{grid-template-columns:minmax(0,1fr)}}
+/* Preserve real data tables; scroll their region rather than the entire page. */
+.cr-shell,.cr-main,.cr-panel{min-width:0}
+.cr-shell :is(input,select,textarea){box-sizing:border-box;max-width:100%;min-width:0}
+@media(max-width:760px){
+ .cr-shell :is(button,a[role=button],input:not([type=checkbox]):not([type=radio]),select){min-height:44px}
+ .cr-shell :is(input,select,textarea){font-size:16px!important}
+ .cr-shell :is(h1,h2,h3,p,a,button){overflow-wrap:anywhere}
+ .cr-shell .cr-actions{display:flex;flex-wrap:wrap;gap:8px}
+}
+.route-loading{min-height:40svh;display:grid;place-content:center;justify-items:center;gap:1rem;padding:2rem;text-align:center}
+.route-loading img{object-fit:contain;animation:ugt-loading-turn 1.8s linear infinite}
+@keyframes ugt-loading-turn{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.route-loading img{animation:none}}

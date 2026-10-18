@@ -45,7 +45,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
   }
   if (!t) notFound();
 
-  const paid = t.order_status === 'paid' || t.order_status === 'fulfilled';
+  const paid = !t.voided_at&&(t.order_status === 'paid' || t.order_status === 'fulfilled');
   const used = !!t.used_at;
   const meta = await getEventMeta(t.event_id, t.marketplace_event_id);
   const evName = await getEventName(t.event_id, t.marketplace_event_id);

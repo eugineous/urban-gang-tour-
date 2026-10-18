@@ -87,7 +87,7 @@ export async function dispatchArticleAnnouncement(slug: string): Promise<Dispatc
        SET social_automation_claimed_at=now(), social_automation_result='dispatching'
      WHERE slug=$1
        AND published
-       AND date <= CURRENT_DATE
+       AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date
        AND social_automation_enabled=true
        AND social_posted_at IS NULL
        AND social_automation_claimed_at IS NULL
@@ -131,7 +131,7 @@ export async function dispatchDueArticleAnnouncements(limit = 10): Promise<{ sca
   await ensureContentAutomationSchema();
   const candidates = await q<{ slug: string }>(
     `SELECT slug FROM posts
-     WHERE published AND date <= CURRENT_DATE
+     WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date
        AND social_automation_enabled=true
        AND social_posted_at IS NULL AND social_automation_claimed_at IS NULL
      ORDER BY date ASC, slug ASC LIMIT $1`,

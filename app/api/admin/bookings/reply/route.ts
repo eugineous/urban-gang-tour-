@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasDb, q, qSchema } from '@/lib/server/db';
-import { sendGmailMessage } from '@/lib/server/gmail';
+import {gmailConnection} from '@/lib/server/gmail';
+import {GmailSendUncertain,sendGmailOnce} from '@/lib/server/gmail-send-attempt';
 import { adminActor, hasPerm, isAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 
@@ -21,6 +22,8 @@ function ensureSchema(): Promise<void> {
         created_at TIMESTAMPTZ DEFAULT now()
       );
       CREATE INDEX IF NOT EXISTS idx_booking_replies_booking ON booking_replies (booking_id, created_at DESC);
+      ALTER TABLE booking_replies ADD COLUMN IF NOT EXISTS request_key TEXT;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_booking_reply_request ON booking_replies(request_key);
     `).then(() => undefined).catch((error) => {
       ready = null;
       throw error;
@@ -54,7 +57,8 @@ export async function POST(req: Request) {
   if (!(await canUse(req))) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const payload = await req.json().catch(() => ({}));
-  const allowed = new Set(['id', 'subject', 'body']);
+  if(!payload||typeof payload!=='object'||Array.isArray(payload))return NextResponse.json({error:'invalid_message'},{status:400});
+  const allowed = new Set(['id', 'subject', 'body','requestId']);
   if (Object.keys(payload).some((key) => !allowed.has(key))) {
     return NextResponse.json({ error: 'unexpected_fields' }, { status: 400 });
   }
@@ -62,7 +66,7 @@ export async function POST(req: Request) {
   const subject = String(payload.subject || '').trim();
   const body = String(payload.body || '').trim();
   if (!/^B-[A-Z0-9-]{4,40}$/i.test(id)) return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
-  if (!subject || subject.length > 200 || !body || body.length > 10_000) {
+  if (!subject || subject.length > 200 || /[\r\n]/.test(subject)|| !body || body.length > 10_000 ||typeof payload.requestId!=='string'||!/^[A-Za-z0-9_-]{32,128}$/.test(payload.requestId)) {
     return NextResponse.json({ error: 'invalid_message' }, { status: 400 });
   }
   try {
@@ -73,20 +77,23 @@ export async function POST(req: Request) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(booking.email || ''))) {
       return NextResponse.json({ error: 'booking_has_no_valid_email' }, { status: 400 });
     }
-    const sent = await sendGmailMessage({ to: booking.email, subject, body });
+    if(!(await gmailConnection()).connected)return NextResponse.json({error:'gmail_not_connected'},{status:409});
     const actor = adminActor(req);
+    const sent = await sendGmailOnce(actor,payload.requestId,{to:booking.email,subject,body});
     await q(
-      `INSERT INTO booking_replies (booking_id, sender, recipient, subject, body, gmail_message_id)
-       VALUES ($1,$2,$3,$4,$5,$6)`,
-      [id, actor, booking.email, subject, body, sent.id],
+      `INSERT INTO booking_replies (booking_id, sender, recipient, subject, body, gmail_message_id,request_key)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(request_key) DO NOTHING`,
+      [id, actor, booking.email, subject, body, sent.id,sent.requestKey],
     );
     await q(`UPDATE bookings SET status='replied' WHERE id=$1 AND status IN ('new','review')`, [id]);
     await q(
       `INSERT INTO audit_log (actor, action, detail) VALUES ($1,'booking_reply',$2)`,
       [actor, JSON.stringify({ bookingId: id, to: booking.email, gmailMessageId: sent.id })],
     );
-    return NextResponse.json({ ok: true, ...sent });
+    return NextResponse.json({ok:true,id:sent.id,accepted:true,deduped:sent.deduped});
   } catch (error: any) {
+    if(error instanceof GmailSendUncertain)return NextResponse.json({ok:false,error:'gmail_send_outcome_unknown'},{status:202});
+    if(error?.message==='reply_details_changed')return NextResponse.json({error:'reply_details_changed'},{status:409});
     const message = String(error?.message || error).slice(0, 120);
     const status = message === 'gmail_not_connected' ? 409 : 502;
     return NextResponse.json({ error: message }, { status });

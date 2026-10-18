@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import ImageUploadField from "./ImageUploadField";
 import { PARTNER_EVENT_DRAFTS } from "@/lib/partner-event-drafts";
 import { storyDraftContent } from "@/lib/story-draft";
+import {chronological,type Chronology} from '@/lib/chronology';
 
 type Story = Record<string, any>;
 type Props = {
@@ -48,17 +49,18 @@ export default function StoryDesk({
     [preview, setPreview] = useState(false),
     [paste, setPaste] = useState(""),
     [pasteError, setPasteError] = useState("");
+  const [sort,setSort]=useState<Chronology>('newest');
   const visible = useMemo(
     () =>
-      rows.filter(
+      chronological(rows.filter(
         (row) =>
           (filter === "All" || state(row) === filter) &&
           [row.headline, row.section, row.slug]
             .join(" ")
             .toLowerCase()
             .includes(query.trim().toLowerCase()),
-      ),
-    [rows, query, filter],
+      ),sort,row=>row.date,row=>String(row.headline||''),row=>String(row.slug||'')),
+    [rows, query, filter,sort],
   );
   const create = () => {
     setPreview(false);
@@ -327,6 +329,7 @@ export default function StoryDesk({
         </div>
       )}
       <div className="cr-filter-row">
+        <label className="cr-field">Order<select value={sort} onChange={event=>setSort(event.target.value as Chronology)}><option value="newest">Newest story date</option><option value="oldest">Oldest story date</option><option value="title">Headline A–Z</option></select></label>
         <label className="cr-field">
           Find a story
           <input

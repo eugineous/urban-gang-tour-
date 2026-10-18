@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { randomUUID } from "crypto";
 import { serverTotalWithPromos } from "@/lib/server/catalog";
-import { recordPromoCodeUse } from "@/lib/server/promos";
+import { recordPromoCodeUseOnce } from "@/lib/server/promos";
 import {
   rateLimit,
   clientIp,
@@ -15,21 +15,16 @@ import { applyVerifiedMerchVariants } from "@/lib/server/merch-variants";
 import { applyVerifiedMerchPersonalization } from "@/lib/server/merch-personalization";
 import { normalizePrintableName } from "@/lib/shared/merch-personalization";
 import { assertMerchStockAvailable } from "@/lib/server/inventory";
-import { parseTierInventory, assertTicketAvailable, holdTickets, releaseReservation } from "@/lib/server/ticket-inventory";
+import { parseTierInventory, holdTickets } from "@/lib/server/ticket-inventory";
 import {recordOrderReferral} from '@/lib/server/affiliate-program';
 import {ensureCustomerAccountSchema,validatedCurrentBuyer} from '@/lib/server/customer-account';
-import {resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema,saveCheckoutFulfillment} from '@/lib/server/checkout-fulfillment';
+import {resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema} from '@/lib/server/checkout-fulfillment';
 import { q, hasDb } from "@/lib/server/db";
 import { resolveEventTruth } from "@/lib/server/event-truth";
 
-const seen = new Map<string, { id: string; ts: number }>(); // short-lived retry guard
-const IDEMPOTENCY_TTL_MS = 10 * 60_000;
-
-function pruneSeen(now: number) {
-  for (const [key, value] of seen) {
-    if (now - value.ts >= IDEMPOTENCY_TTL_MS) seen.delete(key);
-  }
-}
+import {checkoutPrincipal} from '@/lib/server/checkout-session';
+import {mpesaAttemptIdentity,recoverMpesaAttempt,prepareMpesaAttempt,savedMpesaPurchase,claimMpesaInitiation,recordMpesaReference,markMpesaInitiationUnknown,MpesaAttemptConflict,type MpesaAttempt} from '@/lib/server/mpesa-attempts';
+const attemptResponse=(attempt:MpesaAttempt)=>NextResponse.json({ok:attempt.state==='reference_recorded',id:attempt.orderId,total:attempt.total,attemptState:attempt.state,payment:'checking'},{status:202,headers:{'Cache-Control':'no-store'}});
 
 export async function POST(req: Request) {
   if (!sameOrigin(req))
@@ -91,6 +86,74 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "items_or_ticket" }, { status: 400 });
   }
 
+  if(items!==undefined){
+    if (!Array.isArray(items) || items.length === 0 || items.length > 30)
+      return NextResponse.json({ error: "invalid_items" }, { status: 400 });
+    for (const it of items) {
+      if (!it || typeof it !== "object" || Array.isArray(it)) {
+        return NextResponse.json({ error: "invalid_item" }, { status: 400 });
+      }
+      for (const k of Object.keys(it)) {
+        if (k !== "id" && k !== "qty" && k !== "variant" && k !== "printableName")
+          return NextResponse.json(
+            { error: `unexpected_field:items.${k}` },
+            { status: 400 },
+          );
+      }
+      if (
+        typeof it.id !== "string" ||
+        (it.variant !== undefined &&
+          (typeof it.variant !== "string" || it.variant.length > 100)) ||
+        !Number.isInteger(it.qty) ||
+        it.qty < 1 ||
+        it.qty > 20
+      ) {
+        return NextResponse.json({ error: "invalid_item" }, { status: 400 });
+      }
+      try { normalizePrintableName(it.printableName); } catch {
+        return NextResponse.json({ error: 'invalid_printable_name' }, { status: 400 });
+      }
+    }
+  }
+
+  if (typeof name !== "string" || name.length < 2 || name.length > 100)
+    return NextResponse.json({ error: "invalid_name" }, { status: 400 });
+  const emailStr = typeof email === "string" && email ? email : "";
+  if (email!==undefined&&typeof email!=='string'||emailStr.length>254||emailStr && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailStr))
+    return NextResponse.json({ error: "invalid_email" }, { status: 400 }); // email OPTIONAL: guests pay via M-Pesa with phone only
+  const msisdn = normalizePhone(String(phone || ""));
+  if (!msisdn)
+    return NextResponse.json(
+      { error: "invalid_phone_use_254" },
+      { status: 400 },
+    );
+
+  if (
+    (!idempotencyKey ||
+    (typeof idempotencyKey !== "string" ||
+      !/^[A-Za-z0-9_-]{32,128}$/.test(idempotencyKey)))
+  ) {
+    return NextResponse.json({ error: "invalid_idempotency_key" }, { status: 400 });
+  }
+
+
+  const principal=checkoutPrincipal(req);
+  if(!principal)return NextResponse.json({error:'checkout_session_required'},{status:428});
+  if(!hasDb())return NextResponse.json({error:'db_not_configured'},{status:503});
+  let buyer:Awaited<ReturnType<typeof validatedCurrentBuyer>>=null;
+  const purchaseInput=Object.fromEntries(Object.entries(body).filter(([key])=>key!=='idempotencyKey'));
+  const identity=mpesaAttemptIdentity(principal,idempotencyKey,{...purchaseInput,phone:msisdn,email:emailStr});
+  let prior:MpesaAttempt|null=null;
+  try{
+    await ensureCustomerAccountSchema();
+    await ensureCheckoutFulfillmentSchema();
+    buyer=await validatedCurrentBuyer(req);
+    prior=await recoverMpesaAttempt(identity);
+    if(prior&&prior.state!=='prepared')return attemptResponse(prior);
+  }catch(error){
+    return NextResponse.json({error:error instanceof MpesaAttemptConflict?'attempt_request_conflict':'recovery_unavailable'},{status:error instanceof MpesaAttemptConflict?409:503});
+  }
+
   // orderItems is what gets persisted; total (and every unit price) comes
   // ONLY from the server — never trust a client-sent price. appliedPromoCode
   // is set when a buyer-supplied promoCode actually won a line's discount,
@@ -135,7 +198,7 @@ export async function POST(req: Request) {
     } catch {
       return NextResponse.json({ error: "inventory_check_failed" }, { status: 503 });
     }
-    const ev = event && truth?.isSellable
+    const ev = event && (truth?.isSellable||prior?.state==='prepared')
       ? { name: event.name, tiers: parseTierInventory(event.tiers) }
       : undefined;
     if (!ev)
@@ -152,24 +215,6 @@ export async function POST(req: Request) {
     }
     const tier = ev.tiers[ticket.tier];
     total = tier.price * ticket.qty;
-    // Capacity guard: a capped tier must not oversell under concurrent
-    // checkout. Capacity is optional — a tier without one sells without a
-    // count check. remaining = capacity - sold(paid) - unexpired holds.
-    try {
-      if (hasDb()) {
-        await assertTicketAvailable({
-          eventId,
-          tierIndex: ticket.tier,
-          tier,
-          qty: ticket.qty,
-        });
-      }
-    } catch (e: any) {
-      const msg = String(e?.message || "sold_out");
-      if (["sold_out", "insufficient_inventory", "below_min", "above_min", "above_max", "invalid_qty"].includes(msg))
-        return NextResponse.json({ error: msg }, { status: 409 });
-      return NextResponse.json({ error: "inventory_check_failed" }, { status: 503 });
-    }
     orderItems = [
       {
         id: "ticket:" + eventId + ":" + ticket.tier,
@@ -179,33 +224,6 @@ export async function POST(req: Request) {
       },
     ];
   } else {
-    if (!Array.isArray(items) || items.length === 0 || items.length > 30)
-      return NextResponse.json({ error: "invalid_items" }, { status: 400 });
-    for (const it of items) {
-      if (!it || typeof it !== "object" || Array.isArray(it)) {
-        return NextResponse.json({ error: "invalid_item" }, { status: 400 });
-      }
-      for (const k of Object.keys(it)) {
-        if (k !== "id" && k !== "qty" && k !== "variant" && k !== "printableName")
-          return NextResponse.json(
-            { error: `unexpected_field:items.${k}` },
-            { status: 400 },
-          );
-      }
-      if (
-        typeof it.id !== "string" ||
-        (it.variant !== undefined &&
-          (typeof it.variant !== "string" || it.variant.length > 100)) ||
-        !Number.isInteger(it.qty) ||
-        it.qty < 1 ||
-        it.qty > 20
-      ) {
-        return NextResponse.json({ error: "invalid_item" }, { status: 400 });
-      }
-      try { normalizePrintableName(it.printableName); } catch {
-        return NextResponse.json({ error: 'invalid_printable_name' }, { status: 400 });
-      }
-    }
     try {
       const priced = await serverTotalWithPromos(items, promoCode);
       total = priced.total;
@@ -241,155 +259,49 @@ export async function POST(req: Request) {
   if (!Number.isSafeInteger(total) || total < 1) {
     return NextResponse.json({ error: "invalid_order_total" }, { status: 400 });
   }
-  if (typeof name !== "string" || name.length < 2 || name.length > 100)
-    return NextResponse.json({ error: "invalid_name" }, { status: 400 });
-  const emailStr = typeof email === "string" && email ? email : "";
-  if (emailStr && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailStr))
-    return NextResponse.json({ error: "invalid_email" }, { status: 400 }); // email OPTIONAL: guests pay via M-Pesa with phone only
-  const msisdn = normalizePhone(String(phone || ""));
-  if (!msisdn)
-    return NextResponse.json(
-      { error: "invalid_phone_use_254" },
-      { status: 400 },
-    );
 
-  if (
-    idempotencyKey !== undefined &&
-    (typeof idempotencyKey !== "string" ||
-      !/^[A-Za-z0-9_-]{8,128}$/.test(idempotencyKey))
-  ) {
-    return NextResponse.json({ error: "invalid_idempotency_key" }, { status: 400 });
-  }
-
-  // Idempotency keys are scoped to the buyer's normalised M-Pesa number, so
-  // one browser cannot learn another buyer's pending order id by reusing a key.
-  const seenKey = idempotencyKey ? `${msisdn}\u0000${idempotencyKey}` : "";
-  const now = Date.now();
-  pruneSeen(now);
-  if (seenKey) {
-    const prev = seen.get(seenKey);
-    if (prev && now - prev.ts < IDEMPOTENCY_TTL_MS)
-      return NextResponse.json({ ok: true, id: prev.id, deduped: true });
-  }
-
-  if (!mpesaConfigured()) {
-    return NextResponse.json(
-      {
-        ok: false,
-        payment: "not_configured",
-        hint: "Configure the MPESA_* Cloudflare Worker secrets to activate live STK push.",
-      },
-      { status: 503 },
-    );
-  }
-
-  const id =
-    "ORD-" +
-    now.toString(36).toUpperCase() +
-    randomUUID().replace(/-/g, "").slice(0, 24).toUpperCase();
-  // persist order (ledger for admin reconciliation)
-  try {
-    // hasDb(), not db(): db() constructs a Pool, and this is only asking
-    // whether DATABASE_URL exists. On the order path that was a throwaway
-    // allocation per purchase. The write itself below goes over q(), which is
-    // stateless HTTP - no connection is held, so concurrent buyers are not
-    // capped by a Postgres connection limit.
-    const { q, hasDb } = await import("@/lib/server/db");
-    if (!hasDb())
-      return NextResponse.json({ error: "db_not_configured" }, { status: 503 });
-    await ensureCustomerAccountSchema();
-    if(resolvedFulfillment)await ensureCheckoutFulfillmentSchema();
-    const buyer=await validatedCurrentBuyer(req);
-    const owner=buyer&&Number.isSafeInteger(buyer.id)?await q('SELECT id FROM users WHERE id=$1',[buyer.id]):[];
-    await q(
-      `INSERT INTO orders (id, items, total, name, email, phone, user_id) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [id, JSON.stringify(orderItems), total, name, emailStr, msisdn,owner[0]?.id??null],
-    );
-    if(resolvedFulfillment)await saveCheckoutFulfillment(id,resolvedFulfillment);
-    if(referralCode)try{await recordOrderReferral(id,referralCode,buyer?.id)}catch{console.error('[affiliate] attribution unavailable for order',id)}
-    // Only a durable order can be retried or sent to a payment provider.
-    if (seenKey) seen.set(seenKey, { id, ts: now });
-    // Hold capped ticket inventory against this order so a second buyer
-    // cannot take the same seats while STK is pending. Uncapped tiers and
-    // merch skip this. The hold is consumed on paid, released on failure.
-    if (ticket !== undefined) {
-      try {
-        await q(
-          `CREATE TABLE IF NOT EXISTS ticket_reservations (
-            id TEXT PRIMARY KEY, event_id TEXT NOT NULL, tier_index INT NOT NULL,
-            qty INT NOT NULL, order_id TEXT NOT NULL, status TEXT DEFAULT 'held',
-            expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
-          )`,
-        );
-        await holdTickets({ eventId: ticket.eventId, tierIndex: ticket.tier, qty: ticket.qty, orderId: id });
-      } catch (e) {
-        console.error("[ticket-hold]", e);
-      }
+  if (!mpesaConfigured()) return NextResponse.json({ok:false,payment:'not_configured',error:'payment_unavailable'},{status:503});
+  let id='ORD-'+Date.now().toString(36).toUpperCase()+randomUUID().replace(/-/g,'').slice(0,24).toUpperCase();
+  let claim:Awaited<ReturnType<typeof claimMpesaInitiation>>=null;
+  let durable=false;
+  try{
+    const owner=buyer?await q('SELECT id FROM users WHERE id=$1',[buyer.id]):[];
+    const prepared=await prepareMpesaAttempt(identity,{
+      id,items:orderItems,total,name,email:emailStr,phone:msisdn,userId:owner[0]?.id??null,
+      fulfillment:resolvedFulfillment?{method:resolvedFulfillment.choice.method,fee:resolvedFulfillment.fee,address:resolvedFulfillment.choice.address??null}:null,
+      context:{promoId:appliedPromoCode?.promoId??null,referralCode:referralCode??null}
+    });
+    id=prepared.attempt.orderId;
+    durable=true;
+    if(prepared.attempt.state!=='prepared')return attemptResponse(prepared.attempt);
+    // Replays use the accepted snapshot, never a newly calculated browser quote.
+    const saved=await savedMpesaPurchase(identity);
+    if(!Array.isArray(saved.items))throw Error('invalid_saved_purchase');
+    orderItems=saved.items;total=saved.total;
+    if(ticket!==undefined)await holdTickets({eventId:ticket.eventId,tierIndex:ticket.tier,qty:ticket.qty,orderId:id});
+    else await assertMerchStockAvailable(orderItems);
+    if(saved.context.promoId)await recordPromoCodeUseOnce(saved.context.promoId,id);
+    if(saved.context.referralCode)await recordOrderReferral(id,saved.context.referralCode,buyer?.id);
+    claim=await claimMpesaInitiation(identity);
+    if(!claim){
+      const current=await recoverMpesaAttempt(identity);
+      return current?attemptResponse(current):NextResponse.json({error:'attempt_unavailable'},{status:503});
     }
-    // Order is now durably created — safe to count the code redemption.
-    // Never on a failed/aborted attempt, only here.
-    if (appliedPromoCode) await recordPromoCodeUse(appliedPromoCode.promoId);
-    // Routine "new order" owner notification (opt-in, OFF by default) -
-    // fires on checkout creation, not payment confirmation, so the owner
-    // hears about a checkout starting even before M-Pesa confirms it.
-    // Fire-and-forget: never blocks or fails the checkout response.
-    after(() =>
-      notifyNewOrder({
-        id,
-        total,
-        name,
-        email: emailStr,
-        phone: msisdn,
-        status: "pending",
-      }),
-    );
-  } catch (e: any) {
-    console.error("[order-db]", e);
-    await alertCritical(
-      "Order creation DB write failed",
-      `order ${id} total ${total}: ${String(e?.message || e)}`,
-    );
-    return NextResponse.json({ error: "order_create_failed" }, { status: 500 });
+    after(()=>notifyNewOrder({id,total,name,email:emailStr,phone:msisdn,status:'pending'}));
+  }catch(error){
+    const code=error instanceof Error?error.message:'order_create_failed';
+    if(error instanceof MpesaAttemptConflict)return NextResponse.json({error:'attempt_request_conflict'},{status:409});
+    const unavailable=['sold_out','insufficient_inventory','below_min','above_max','event_not_sellable','reservation_conflict','out_of_stock','variant_out_of_stock'].includes(code);
+    return NextResponse.json({ok:false,...(durable?{id,total,attemptState:'prepared'}:{}),error:unavailable?code:'order_prepare_unavailable'},{status:unavailable?409:503});
   }
-
-  try {
-    const stk = await stkPush(msisdn, total, id, "UrbanGang");
-    // A successful STK HTTP response is not payment confirmation. Store the
-    // provider reference before acknowledging it to the browser, otherwise a
-    // later callback could not be tied to the durable order ledger.
-    try {
-      const { q, hasDb } = await import("@/lib/server/db");
-      if (!hasDb() || typeof stk?.CheckoutRequestID !== "string")
-        throw new Error("missing_checkout_reference");
-      const updated = await q(
-        `UPDATE orders SET mpesa_ref=$2 WHERE id=$1 AND status='pending' RETURNING id`,
-        [id, stk.CheckoutRequestID],
-      );
-      if (!updated.length) throw new Error("order_not_pending");
-    } catch (e: any) {
-      await alertCritical(
-        "M-Pesa checkout reference was not recorded",
-        `order ${id}: ${String(e?.message || e)}`,
-      );
-      return NextResponse.json(
-        { ok: false, id, total, error: "payment_reference_unavailable" },
-        { status: 503 },
-      );
-    }
-    return NextResponse.json({ ok: true, id, total });
-  } catch (e: any) {
-    if (ticket !== undefined) {
-      try { await releaseReservation(id); } catch { /* hold expires on its own */ }
-    }
-    return NextResponse.json(
-      {
-        ok: false,
-        id,
-        total,
-        error: "stk_failed",
-        detail: String(e.message).slice(0, 200),
-      },
-      { status: 502 },
-    );
+  try{
+    const stk=await stkPush(msisdn,total,id,'UrbanGang');
+    if(String(stk?.ResponseCode)!=='0'||typeof stk?.CheckoutRequestID!=='string')throw Error('provider_outcome_uncertain');
+    if(!await recordMpesaReference(claim.attempt.id,claim.nonce,stk.CheckoutRequestID))throw Error('reference_not_recorded');
+    return NextResponse.json({ok:true,id,total,attemptState:'reference_recorded'},{headers:{'Cache-Control':'no-store'}});
+  }catch{
+    await markMpesaInitiationUnknown(claim.attempt.id,claim.nonce).catch(()=>{});
+    await alertCritical('M-Pesa initiation needs reconciliation','Order '+id+' has an uncertain initiation outcome. Do not automatically resend.').catch(()=>{});
+    return NextResponse.json({ok:false,id,total,error:'payment_outcome_unknown',attemptState:'unknown'},{status:202,headers:{'Cache-Control':'no-store'}});
   }
 }

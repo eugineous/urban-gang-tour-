@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { listGmailMessages, markGmailMessageRead, sendGmailMessage } from '@/lib/server/gmail';
+import { listGmailMessages, markGmailMessageRead,gmailConnection } from '@/lib/server/gmail';
+import {GmailSendUncertain,sendGmailOnce} from '@/lib/server/gmail-send-attempt';
 import { adminActor, isSuperAdmin, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { hasDb, q } from '@/lib/server/db';
@@ -27,7 +28,8 @@ export async function POST(req: Request) {
   if (!(await allowed(req))) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
   const body = await req.json().catch(() => ({}));
-  const allowedFields = new Set(['messageId', 'threadId', 'to', 'subject', 'body', 'inReplyTo', 'references']);
+  if(!body||typeof body!=='object'||Array.isArray(body))return NextResponse.json({error:'invalid_message'},{status:400});
+  const allowedFields = new Set(['messageId', 'threadId', 'to', 'subject', 'body', 'inReplyTo', 'references','requestId']);
   if (Object.keys(body).some((key) => !allowedFields.has(key))) {
     return NextResponse.json({ error: 'unexpected_fields' }, { status: 400 });
   }
@@ -37,11 +39,12 @@ export async function POST(req: Request) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to) || to.length > 200) {
     return NextResponse.json({ error: 'invalid_recipient' }, { status: 400 });
   }
-  if (!subject || subject.length > 200 || !text || text.length > 10_000) {
+  if (!subject || subject.length > 200 || /[\r\n]/.test(subject)||!text || text.length > 10_000||typeof body.requestId!=='string'||!/^[A-Za-z0-9_-]{32,128}$/.test(body.requestId)) {
     return NextResponse.json({ error: 'invalid_message' }, { status: 400 });
   }
   try {
-    const sent = await sendGmailMessage({
+    if(!(await gmailConnection()).connected)return NextResponse.json({error:'gmail_not_connected'},{status:409});
+    const sent = await sendGmailOnce(adminActor(req),body.requestId,{
       to,
       subject,
       body: text,
@@ -49,15 +52,17 @@ export async function POST(req: Request) {
       inReplyTo: typeof body.inReplyTo === 'string' ? body.inReplyTo : undefined,
       references: typeof body.references === 'string' ? body.references : undefined,
     });
-    if (body.messageId) await markGmailMessageRead(String(body.messageId));
+    if (body.messageId) await markGmailMessageRead(String(body.messageId)).catch(()=>{});
     if (hasDb()) {
       await q(
         `INSERT INTO audit_log (actor, action, detail) VALUES ($1,'gmail_reply',$2)`,
         [adminActor(req), JSON.stringify({ to, subject, gmailMessageId: sent.id })],
       );
     }
-    return NextResponse.json({ ok: true, ...sent });
+    return NextResponse.json({ok:true,id:sent.id,accepted:true,deduped:sent.deduped});
   } catch (error: any) {
+    if(error instanceof GmailSendUncertain)return NextResponse.json({ok:false,error:'gmail_send_outcome_unknown'},{status:202});
+    if(error?.message==='reply_details_changed')return NextResponse.json({error:'reply_details_changed'},{status:409});
     return NextResponse.json({ error: String(error?.message || error).slice(0, 120) }, { status: 502 });
   }
 }

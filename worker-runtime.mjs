@@ -1,7 +1,7 @@
 import { canCachePublicPage, mustNotStoreResponse } from './public-cache-policy.mjs';
 import { sharedRateGuard } from './shared-rate-limit.mjs';
 
-const release = 'posters-shop-discovery-20261018-v1';
+const release = 'checkout-operations-mobile-20261018-v1';
 
 // Keep the edge runtime independently testable without generated Next bundles.
 export function createWorker(app) {

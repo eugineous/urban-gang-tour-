@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import {ContactEmail,ContactPhone} from './ContactActions';
+import {clearReplyIntent,replyIntent} from '@/lib/client/reply-intent';
 import GmailConnectButton from './GmailConnectButton';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111', green: '#1F8A5B' };
@@ -12,11 +15,6 @@ function formatDate(value: string) {
   if (!value) return '';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' });
-}
-
-function whatsapp(phone: string) {
-  const digits = String(phone || '').replace(/\D/g, '');
-  return digits.startsWith('254') ? digits : digits.startsWith('0') ? `254${digits.slice(1)}` : digits;
 }
 
 function formatPlainDate(value: string) {
@@ -50,36 +48,40 @@ export default function BookingsInbox({
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
+  const pending=useRef(false),drafts=useRef<Record<string,{subject:string;body:string}>>({}),selection=useRef('');
 
   const shown = useMemo(() => rows.filter((row) => {
     const matchesQuery = !query || JSON.stringify(row).toLowerCase().includes(query.toLowerCase());
     const matchesStatus = status === 'all'
       || (status === 'open' ? !['confirmed', 'closed'].includes(row.status) : row.status === status);
     return matchesQuery && matchesStatus;
-  }), [rows, query, status]);
-  const selected = rows.find((row) => row.id === selectedId) || shown[0] || null;
+  }).sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)||String(a.id).localeCompare(String(b.id))), [rows, query, status]);
+  const selected = shown.find((row) => row.id === selectedId) || shown[0] || null;
 
   useEffect(() => {
-    if (!selectedId && shown[0]) setSelectedId(shown[0].id);
+    if (!shown.some(row=>row.id===selectedId) && shown[0]) setSelectedId(shown[0].id);
   }, [selectedId, shown]);
 
   useEffect(() => {
-    fetch('/api/admin/gmail').then((r) => r.json()).then((data) => {
+    fetchWithTimeout('/api/admin/gmail').then((r) => r.json()).then((data) => {
       if (!data.error) setGmail({ connected: !!data.connected, email: data.email });
-    });
+    }).catch(()=>say('Could not check Gmail. Existing drafts are kept.'));
   }, []);
 
   useEffect(() => {
     if (!selected) return;
-    setSubject(`Re: ${selected.type || 'Your booking'} — Urban Gang Tour`);
+    selection.current=selected.id;const saved=drafts.current[selected.id];
+    setSubject(saved?.subject??`Re: ${selected.type || 'Your booking'} — Urban Gang Tour`);
     const details = [
       selected.preferred_date ? `Preferred date: ${formatPlainDate(selected.preferred_date)}` : '',
       selected.expected_attendance ? `Expected attendance: ${formatAttendance(selected.expected_attendance)}` : '',
       selected.event_brief ? `Brief: ${selected.event_brief}` : '',
     ].filter(Boolean).join('\n');
-    setBody(`Hi ${String(selected.name || '').split(' ')[0] || 'there'},\n\nThanks for reaching out about ${selected.type || 'working with Urban Gang Tour'}. We have received your request${details ? ` with these details:\n\n${details}` : ''}.\n\nWe will review the date, venue, audience size and production needs before confirming anything in writing.\n\nBest,\nUrban Gang Tour`);
-    fetch(`/api/admin/bookings/reply?id=${encodeURIComponent(selected.id)}`)
-      .then((r) => r.json()).then((data) => setReplies(data.replies || []));
+    setBody(saved?.body??`Hi ${String(selected.name || '').split(' ')[0] || 'there'},\n\nThanks for reaching out about ${selected.type || 'working with Urban Gang Tour'}. We have received your request${details ? ` with these details:\n\n${details}` : ''}.\n\nWe will review the date, venue, audience size and production needs before confirming anything in writing.\n\nBest,\nUrban Gang Tour`);
+    const controller=new AbortController();setReplies([]);
+    fetchWithTimeout(`/api/admin/bookings/reply?id=${encodeURIComponent(selected.id)}`,{signal:controller.signal})
+      .then(async r=>{if(!r.ok)throw Error();return r.json()}).then(data=>{if(!controller.signal.aborted)setReplies(data.replies||[])}).catch(()=>{if(!controller.signal.aborted)say('Reply history could not load. Your draft is kept.')});
+    return()=>controller.abort();
   }, [selected?.id]);
 
   const changeStatus = async (next: string) => {
@@ -93,23 +95,21 @@ export default function BookingsInbox({
     else { say('Booking updated'); onChanged(); }
   };
 
-  const sendReply = async () => {
-    if (!selected || !body.trim()) return;
-    setSending(true);
-    const response = await fetch('/api/admin/bookings/reply', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: selected.id, subject, body }),
-    });
-    const data = await response.json().catch(() => ({}));
-    setSending(false);
-    if (!response.ok) {
-      say(data.error === 'gmail_not_connected' ? 'Connect Gmail before sending a reply.' : `Reply failed: ${data.error || response.status}`);
-      return;
-    }
-    say('Reply sent from Gmail');
-    setReplies((current) => [...current, { id: data.id, sender: gmail.email || 'Gmail', recipient: selected.email, subject, body, created_at: new Date().toISOString() }]);
-    setBody('');
-    onChanged();
+  const sendReply=async()=>{
+    if(!selected||!body.trim()||pending.current)return;
+    const booking=selected,sentSubject=subject,sentBody=body;
+    pending.current=true;setSending(true);
+    drafts.current[booking.id]={subject:sentSubject,body:sentBody};
+    try{
+      const response=await fetchWithTimeout('/api/admin/bookings/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:booking.id,subject:sentSubject,body:sentBody,requestId:replyIntent('booking:'+booking.id)})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||data.ok!==true){say(data.error==='gmail_not_connected'?'Connect Gmail before sending. Your draft is kept.':data.error==='gmail_send_outcome_unknown'?'Gmail acceptance is unconfirmed. Check Gmail Sent before retrying. Your draft and send reference are kept.':'Reply not confirmed. Your draft is kept; check Gmail Sent before retrying.');return}
+      clearReplyIntent('booking:'+booking.id);
+      if(drafts.current[booking.id]?.body===sentBody)drafts.current[booking.id]={subject:sentSubject,body:''};
+      if(selection.current===booking.id){setBody(current=>current===sentBody?'':current);setReplies(current=>[...current,{id:data.id,sender:gmail.email||'Gmail',recipient:booking.email,subject:sentSubject,body:sentBody,created_at:new Date().toISOString()}])}
+      say('Gmail accepted your reply. Delivery is not yet confirmed.');onChanged();
+    }catch{say('Could not confirm Gmail acceptance. Your draft is kept. Check Gmail Sent before retrying.')}
+    finally{pending.current=false;setSending(false)}
   };
 
   const selectedDetails = selected ? [
@@ -177,8 +177,8 @@ export default function BookingsInbox({
             </div>
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '16px 0' }}>
-              <a href={`mailto:${selected.email}`} style={{ ...button, textDecoration: 'none' }}>Email {selected.email}</a>
-              {selected.phone && <a href={`https://wa.me/${whatsapp(selected.phone)}`} target="_blank" rel="noopener" style={{ ...button, textDecoration: 'none', background: '#DDF6E8' }}>WhatsApp {selected.phone}</a>}
+              <ContactEmail value={selected.email}/>
+              {selected.phone&&<ContactPhone value={selected.phone}/>}
             </div>
 
             {selectedDetails.length > 0 && (
@@ -209,8 +209,8 @@ export default function BookingsInbox({
               <div style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8 }}>REPLY FROM GMAIL</div>
               {!gmail.connected && <div style={{ background: '#FFF6CC', border: '1px solid #ddd', borderRadius: 10, padding: 12, marginBottom: 10, fontSize: 12 }}>Connect Gmail above to send without leaving the Control Room.</div>}
               <div style={{ display: 'grid', gap: 8 }}>
-                <input style={field} value={subject} onChange={(event) => setSubject(event.target.value)} aria-label="Reply subject" />
-                <textarea style={{ ...field, minHeight: 180, resize: 'vertical' }} value={body} onChange={(event) => setBody(event.target.value)} aria-label="Reply message" />
+                <input style={field} value={subject} onChange={(event) => {setSubject(event.target.value);drafts.current[selected.id]={subject:event.target.value,body}}} aria-label="Reply subject" />
+                <textarea style={{ ...field, minHeight: 180, resize: 'vertical' }} value={body} onChange={(event) => {setBody(event.target.value);drafts.current[selected.id]={subject,body:event.target.value}}} aria-label="Reply message" />
                 <button type="button" style={{ ...button, background: C.ink, color: C.yellow, justifySelf: 'start', opacity: !gmail.connected || sending ? .6 : 1 }} disabled={!gmail.connected || sending || !body.trim()} onClick={sendReply}>{sending ? 'Sending…' : 'Send reply'}</button>
               </div>
             </div>

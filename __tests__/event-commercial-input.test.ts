@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {validateEventTiers} from '@/lib/server/event-tier-input';
 const fixture=vi.hoisted(()=>({q:vi.fn(),hasDb:vi.fn(()=>true),sold:vi.fn(),reserved:vi.fn()}));
 vi.mock('@/lib/server/db',()=>({q:fixture.q,hasDb:fixture.hasDb}));
-vi.mock('@/lib/server/ticket-inventory',async importOriginal=>({...await importOriginal<typeof import('@/lib/server/ticket-inventory')>(),soldCount:fixture.sold,reservedCount:fixture.reserved}));
+vi.mock('@/lib/server/ticket-inventory',async importOriginal=>({...await importOriginal<typeof import('@/lib/server/ticket-inventory')>(),ticketCapacity:async(id:string,index:number,name:string)=>({sold:await fixture.sold(id,name),reserved:await fixture.reserved(id,index)})}));
 import {resolveEventTruth} from '@/lib/server/event-truth';
 
 describe('event tier editing',()=>{

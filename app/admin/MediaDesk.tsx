@@ -4,6 +4,7 @@ import Uploads from "./ops/Gallery";
 import { fetchWithTimeout } from "@/lib/client/fetch-with-timeout";
 import { useUnsavedWarning } from "@/lib/client/use-unsaved-warning";
 import { isDraftId } from "@/lib/story-draft";
+import {chronological,type Chronology} from '@/lib/chronology';
 type Photo = {
   id: number;
   url: string;
@@ -14,6 +15,7 @@ type Photo = {
   folder_id: string | null;
   version: number;
   removed_at: string | null;
+  created_at?:string;
 };
 type Folder = { id: string; name: string; version: number };
 const validFolder = (row: Folder) =>
@@ -73,6 +75,7 @@ export default function MediaDesk() {
       altText: "",
     });
   const pending = useRef(false);
+  const [sort,setSort]=useState<Chronology>('newest');
   const dirty =
     !!edit &&
     (edit.caption !== draft.caption ||
@@ -149,6 +152,9 @@ export default function MediaDesk() {
   }
   async function change(input: Record<string, unknown>) {
     if (pending.current) return;
+    if(dirty && !String(input.action).startsWith('folder.') && input.action!=='photo.save'){
+      setError('Save or close your photo edits first. Your draft is kept.');return;
+    }
     pending.current = true;
     setBusy(true);
     setError("");
@@ -192,6 +198,7 @@ export default function MediaDesk() {
   }
   async function bulk(action: string) {
     if (pending.current || !selected.length) return;
+    if(dirty&&edit&&selected.includes(edit.id)){setError('Save or close your current photo edits before changing selected photos. Your draft is kept.');return}
     if (
       action === "photo.trash" &&
       !confirm(
@@ -234,7 +241,7 @@ export default function MediaDesk() {
     pending.current = false;
     setBusy(false);
   }
-  const shown = rows.filter(
+  const filtered = rows.filter(
     (row) =>
       (view === "removed"
         ? !!row.removed_at
@@ -247,6 +254,7 @@ export default function MediaDesk() {
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
   );
+  const shown=chronological(filtered,sort,row=>row.created_at,row=>row.caption,row=>String(row.id));
   return (
     <div className="cr-media-desk">
       <section className="cr-panel">
@@ -276,6 +284,7 @@ export default function MediaDesk() {
           </p>
         )}
         <div className="cr-filter-row">
+          <label className="cr-field">Order<select value={sort} onChange={event=>setSort(event.target.value as Chronology)}><option value="newest">Newest added</option><option value="oldest">Oldest added</option><option value="title">Caption A–Z</option></select></label>
           <label className="cr-field">
             Find photos
             <input

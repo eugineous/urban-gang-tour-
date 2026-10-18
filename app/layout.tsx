@@ -12,6 +12,7 @@ import './mobile-experience.css';
 import './reconstruction.css';
 import './android-mobile.css';
 import './concise-media.css';
+import './interaction-foundations.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';

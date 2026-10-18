@@ -1,18 +1,60 @@
 "use client";
+import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups} from '@/lib/site-navigation';
+
 export function AppShell({children}:{children:React.ReactNode}){
- const path=usePathname(),[focus,setFocus]=useState(false),[open,setOpen]=useState(false),[scrolled,setScrolled]=useState(false),trigger=useRef<HTMLButtonElement>(null);
+ const path=usePathname();
+ const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[scrolled,setScrolled]=useState(false);
+ const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
  useEffect(()=>{try{const value=JSON.parse(localStorage.getItem('ugt-new-preview-v1focusView')||'false');setFocus(value);document.documentElement.dataset.focusView=String(value)}catch{}},[]);
  useEffect(()=>{setOpen(false)},[path]);
  useEffect(()=>{const update=()=>setScrolled(scrollY>80);update();addEventListener('scroll',update,{passive:true});return()=>removeEventListener('scroll',update)},[]);
- useEffect(()=>{if(!open)return;const previous=document.body.style.overflow;document.body.style.overflow='hidden';const nodes=()=>Array.from(document.querySelectorAll<HTMLElement>('#site-menu a,#site-menu button'));nodes()[0]?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){setOpen(false);trigger.current?.focus()}if(e.key==='Tab'){const items=[trigger.current,...nodes()].filter(Boolean) as HTMLElement[],first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}};addEventListener('keydown',key);return()=>{document.body.style.overflow=previous;removeEventListener('keydown',key)}},[open]);
+ useEffect(()=>{
+  const dialog=menu.current;
+  if(!open||!dialog)return;
+  const previous=document.body.style.overflow;
+  const returnFocus=trigger.current;
+  document.body.style.overflow='hidden';
+  dialog.showModal();
+  window.dispatchEvent(new CustomEvent('ugt-overlay-change',{detail:true}));
+  return()=>{
+   if(dialog.open)dialog.close();
+   document.body.style.overflow=previous;
+   window.dispatchEvent(new CustomEvent('ugt-overlay-change',{detail:false}));
+   returnFocus?.focus();
+  };
+ },[open]);
  function toggleFocus(){const value=!focus;setFocus(value);try{localStorage.setItem('ugt-new-preview-v1focusView',JSON.stringify(value))}catch{}document.documentElement.dataset.focusView=String(value);dispatchEvent(new CustomEvent('ugt-focus-view',{detail:value}))}
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
- if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}>{children}</main>;
+ if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
  const critical=/^\/(shop|checkout|pay|book|account|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
- return <><header className={`site-header ${path==='/'&&!open&&!scrolled?'on-hero':''} ${scrolled?'is-scrolled':''} ${open?'menu-open':''}`}><a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a><nav className="desktop-nav" aria-label="Main navigation">{links.filter(([label])=>!['Account','Book us','Home'].includes(label)).map(([label,href])=><a key={href} href={href} aria-current={path===href?'page':undefined}>{label}</a>)}</nav><div className="header-actions"><a className="mobile-about-link" href="/about" aria-current={path==='/about'?'page':undefined}>About</a><a className="mobile-shop-link" href="/shop">Shop</a><a className="cart-link" href="/cart" aria-label="View your cart">Cart</a><a className="start-link" href="/book">Book <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg></a><button ref={trigger} className="menu-toggle" aria-label={open?'Close menu':'Open menu'} aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(x=>!x)}><span className={open?'burger is-open':'burger'} aria-hidden="true"><i/><i/><i/></span></button></div></header><button className={`menu-shade ${open?'is-open':''}`} aria-label="Close navigation" tabIndex={-1} aria-hidden={!open} onClick={()=>{setOpen(false);trigger.current?.focus()}}/><div id="site-menu" className={`menu-panel ${open?'is-open':''}`} inert={!open} aria-hidden={!open} role="dialog" aria-modal={open||undefined} aria-label="Site navigation"><div className="menu-groups">{menuGroups.map(group=><section key={group.title}><h2>{group.title}</h2><nav aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} aria-current={path===href?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg></a>)}</nav></section>)}</div><div className="menu-bottom"><div className="menu-account-links"><a href="/cart">Your cart</a><a href="/account">Your account</a><a href="/organizer/login">Organizer portal</a></div><button className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div></div><main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<div className="current-state wrap" role="status">Loading your page…</div>}>{children}</Suspense></main><CampaignDisplays path={path} paused={open||focus}/>{path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}</>;
+ return <>
+  <header className={`site-header ${path==='/'&&!open&&!scrolled?'on-hero':''} ${scrolled?'is-scrolled':''} ${open?'menu-open':''}`}>
+   <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
+   <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={path===href?'page':undefined}>{label}</a>)}</nav>
+   <div className="header-actions">
+    <a className="mobile-about-link" href="/about" aria-current={path==='/about'?'page':undefined}>About</a>
+    <a className="mobile-shop-link" href="/shop">Shop</a>
+    <a className="cart-link" href="/cart" aria-label="View your cart">Cart</a>
+    <a className="start-link" href="/book">Book <span aria-hidden="true">↗</span></a>
+    <button ref={trigger} className="menu-toggle" aria-label={open?'Close menu':'Open menu'} aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><span className={open?'burger is-open':'burger'} aria-hidden="true"><i/><i/><i/></span></button>
+   </div>
+  </header>
+  <dialog ref={menu} id="site-menu" className={`menu-panel ${open?'is-open':''}`} aria-label="Site navigation" onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
+   if(event.target!==event.currentTarget)return;
+   const rect=event.currentTarget.getBoundingClientRect();
+   if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
+  }}>
+   <div className="menu-dialog-heading"><strong>Explore Urban Gang Tour</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label="Close navigation">Close ×</button></div>
+   <div className="menu-groups">{menuGroups.map(group=><section key={group.title}><h2>{group.title}</h2><nav aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={path===href?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><span aria-hidden="true">↗</span></a>)}</nav></section>)}</div>
+   <div className="menu-bottom"><div className="menu-account-links"><a href="/cart">Your cart</a><a href="/account">Your account</a><a href="/organizer/login">Organizer portal</a></div><button className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div>
+  </dialog>
+  <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
+  <CampaignDisplays path={path} paused={open||focus}/>
+  {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
+ </>;
 }

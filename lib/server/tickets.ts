@@ -103,17 +103,22 @@ export type TicketRow = {
   used_at: string | Date | null;
   used_by: string;
   created_at: string | Date;
+  voided_at?: string | Date | null;
   marketplace_event_id: string | null;
 };
 
 // The table ships in SCHEMA (applied via /api/admin/setup), but every runtime
 // path also self-heals so a paid order can never lack tickets just because
 // setup was not re-run after deploy.
-let tableReady = false;
-async function ensureTable(): Promise<void> {
-  if (tableReady) return;
+let tableReady:Promise<void>|undefined;
+export function ensureTicketSchema():Promise<void>{
+ if(!tableReady)tableReady=initializeTicketSchema().catch(error=>{tableReady=undefined;throw error});
+ return tableReady;
+}
+async function initializeTicketSchema():Promise<void>{
   const pool = db();
   if (!pool) throw new Error('db_not_configured');
+  try{
   await pool.query(`CREATE TABLE IF NOT EXISTS tickets (
     code TEXT PRIMARY KEY, order_id TEXT NOT NULL, event_id TEXT NOT NULL,
     tier_name TEXT NOT NULL, holder TEXT DEFAULT '', position INT NOT NULL,
@@ -130,12 +135,13 @@ async function ensureTable(): Promise<void> {
   // marketplace_events row rather than a tour_events one - see getEventMeta/
   // getEventName above and lib/server/marketplace.ts.
   await pool.query(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS marketplace_event_id TEXT`);
+  await pool.query(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'internal'`);
   await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS organizer_id TEXT`);
   await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace_event_id TEXT`);
   await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS commission_amount INT`);
   await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS organizer_amount INT`);
-  tableReady = true;
+  }finally{await pool.end();}
 }
 
 type TicketLine = { id: string; qty: number; name?: string };
@@ -180,7 +186,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   if (status !== 'paid' && status !== 'fulfilled') return [];
   const lines = ticketLinesOf(order);
   if (!lines?.length) return [];
-  await ensureTable();
+  await ensureTicketSchema();
   const marketplaceEventId: string | null = order.marketplace_event_id || null;
   // Marketplace orders resolve tier names from marketplace_events.tiers
   // instead of the tour_events-backed catalog — the eventId embedded in the
@@ -237,9 +243,10 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
 export async function ticketsForOrder(orderId: string): Promise<TicketRow[]> {
   const pool = db();
   if (!pool) return [];
-  await ensureTable();
-  const r = await pool.query('SELECT * FROM tickets WHERE order_id=$1 ORDER BY position', [orderId]);
-  return r.rows as TicketRow[];
+  try{await ensureTicketSchema();
+   const r = await pool.query('SELECT * FROM tickets WHERE order_id=$1 ORDER BY position', [orderId]);
+   return r.rows as TicketRow[];
+  }finally{await pool.end();}
 }
 
 // One ticket joined with its order's live payment status (the /t/[code] page
@@ -251,7 +258,8 @@ export async function getTicket(
 ): Promise<(TicketRow & { order_status: string; pay_method: string }) | null> {
   const pool = db();
   if (!pool) return null;
-  await ensureTable();
+  try{
+  await ensureTicketSchema();
   const r = await pool.query(
     `SELECT t.*, COALESCE(o.status,'') AS order_status, COALESCE(o.pay_method,'') AS pay_method
        FROM tickets t LEFT JOIN orders o ON o.id = t.order_id
@@ -259,6 +267,7 @@ export async function getTicket(
     [code]
   );
   return (r.rows[0] as TicketRow & { order_status: string; pay_method: string }) || null;
+  }finally{await pool.end();}
 }
 
 // ---------------------------------------------------------------------------

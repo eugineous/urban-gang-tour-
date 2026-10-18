@@ -46,6 +46,8 @@ export async function GET(req: Request) {
   if (!rows.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
   const o = rows[0];
+  let attemptState:string|undefined;
+  try{const attempts=await q<{state:string}>('SELECT state FROM mpesa_checkout_attempts WHERE order_id=$1',[id]);if(['prepared','initiating','reference_recorded','unknown','closed'].includes(attempts[0]?.state))attemptState=attempts[0].state}catch{/* Historical orders may predate durable attempt storage. */}
   const paid = o.status === 'paid' || o.status === 'fulfilled';
   // pay_method / paystack_ref / stripe_payment_intent are added lazily by the
   // card routes' ensureColumns; SELECT * keeps this endpoint tolerant of both
@@ -56,6 +58,7 @@ export async function GET(req: Request) {
   return NextResponse.json(
     {
       status: String(o.status || 'pending'),
+      ...(attemptState?{attemptState}:{}),
       total: Number(o.total) || 0,
       receipt,
       method: String(o.pay_method || 'mpesa'),
