@@ -15,7 +15,7 @@ describe('event tier editing',()=>{
   });
 });
 describe('event availability',()=>{
-  const row={id:'operational-id',slug:'public-slug',name:'Fixture event',status:'published',sales_start_at:null,sales_end_at:null,tiers:[{name:'General',price:500,capacity:10}]};
+  const row={id:'operational-id',slug:'public-slug',name:'Fixture event',status:'published',event_date:'2099-12-20',venue:'Fictional test venue',sales_start_at:null,sales_end_at:null,tiers:[{name:'General',price:500,capacity:10}]};
   beforeEach(()=>{vi.clearAllMocks();fixture.q.mockResolvedValue([row]);fixture.sold.mockResolvedValue(8);fixture.reserved.mockResolvedValue(2)});
   it('counts purchases and holds against the operational event id, not its URL slug',async()=>{
     const truth=await resolveEventTruth('public-slug');
@@ -35,6 +35,12 @@ describe('event availability',()=>{
     expect((await resolveEventTruth('public-slug'))?.isSellable).toBe(false);
     fixture.q.mockResolvedValue([{...row,status:'sales_paused'}]);
     expect((await resolveEventTruth('public-slug'))?.isSellable).toBe(false);
+  });
+  it('does not sell incomplete, announced or past records even with confirmed stock',async()=>{
+    fixture.reserved.mockResolvedValue(0);
+    for(const patch of [{event_date:null},{venue:''},{event_date:'2000-01-01'},{event_date:'2099-02-30'},{status:'announced'}]){
+      fixture.q.mockResolvedValue([{...row,...patch}]);expect(await resolveEventTruth('public-slug')).toMatchObject({isSellable:false,isSoldOut:false});
+    }
   });
   it('does not advertise a tier when its remaining stock cannot meet the minimum order',async()=>{
     fixture.reserved.mockResolvedValue(1);

@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import {revalidatePath} from 'next/cache';
 import {invalidate} from '@/lib/server/microcache';
 import { q, hasDb } from '@/lib/server/db';
-import { mediaDel, mediaGet, isMediaUrl } from '@/lib/server/media';
+import { mediaGet, isMediaUrl } from '@/lib/server/media';
+import {ensureMediaLibrarySchema} from '@/lib/server/media-library';
 import { hasPerm, isSuperAdmin, adminActor, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
+import {POST as mutateLibrary} from '../media-library/route';
+import {readJsonObject} from '@/lib/server/json-body';
 
 // Authenticated gallery management. Upload bytes are stored before captions
 // and publication state are registered here.
@@ -17,12 +20,12 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 function bad(error: string, status = 400) {
-  return NextResponse.json({ error }, { status });
+  return NextResponse.json({ error }, { status, headers:{'Cache-Control':'private, no-store'} });
 }
 function saved(data:unknown){
   invalidate('site-gallery');
   try{revalidatePath('/gallery')}catch{/* outside a Next request during tests */}
-  return NextResponse.json(data);
+  return NextResponse.json(data,{headers:{'Cache-Control':'private, no-store'}});
 }
 
 function s(v: unknown, max = 300): string {
@@ -44,9 +47,9 @@ export async function GET(req: Request) {
   if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!hasDb()) return bad('db_not_configured', 503);
   try {
-    await ensureOpsSchema();
-    const rows = await q(`SELECT id, url, caption, category, alt_text, width, height, published, sort_order, created_at FROM gallery_photos ORDER BY published ASC, sort_order ASC, id ASC`);
-    return NextResponse.json({ ok: true, rows, capabilities: { publish: isSuperAdmin(req) } });
+    await ensureMediaLibrarySchema();
+    const rows = await q(`SELECT id, url, caption, category, alt_text, width, height, published, sort_order, created_at, version FROM gallery_photos WHERE removed_at IS NULL ORDER BY published ASC, sort_order ASC, id ASC`);
+    return NextResponse.json({ ok: true, rows, capabilities: { publish: isSuperAdmin(req) } },{headers:{'Cache-Control':'private, no-store'}});
   } catch {
     return bad('server_error', 500);
   }
@@ -57,16 +60,30 @@ export async function POST(req: Request) {
   if (!hasPerm(req, 'gallery')) return bad('forbidden', 403);
   if (!requireOrigin(req)) return bad('bad_origin', 403);
   if (!hasDb()) return bad('db_not_configured', 503);
-  let body: any;
-  try { body = await req.json(); } catch { return bad('invalid_json'); }
+  const parsed=await readJsonObject(req,4096);
+  if(!parsed.ok)return bad(parsed.error,parsed.status);
+  const body=parsed.value;
   const kind = s(body?.kind, 40);
-  const d = body?.data ?? {};
+  const d = (body.data&&typeof body.data==='object'?body.data:{}) as Record<string,unknown>;
   // A photographer can safely add and prepare a private asset. A public
   // release, permanent removal or public-order change is owner review, not
   // an accidental consequence of a limited gallery role.
   if (['publish', 'delete', 'reorder'].includes(kind) && !isSuperAdmin(req)) {
     return bad('super_admin_review_required', 403);
   }
+  // Old open tabs must not bypass the library's version checks or audit trail.
+  if(['update','publish','delete'].includes(kind)){
+    const id=intId(d.id);
+    if(!id)return bad('missing_id');
+    if(!Number.isSafeInteger(d.version)||Number(d.version)<1)return bad('refresh_media_library',409);
+    if(kind==='publish'&&typeof d.published!=='boolean')return bad('invalid_publish_state');
+    const action=kind==='update'?'photo.save':kind==='delete'?'photo.trash':d.published?'photo.publish':'photo.unpublish';
+    const headers=new Headers(req.headers);headers.delete('content-length');headers.set('content-type','application/json');
+    return mutateLibrary(new Request(new URL('/api/admin/media-library',req.url),{method:'POST',headers,body:JSON.stringify({action,id,version:d.version,...(kind==='update'?{caption:d.caption,category:d.category,altText:d.altText}:{})})}));
+  }
+  // Public ordering is unchanged. Unversioned legacy reorder requests cannot
+  // be allowed to overwrite newer photo versions one row at a time.
+  if(kind==='reorder')return bad('refresh_media_library',409);
   try {
     await ensureOpsSchema();
     switch (kind) {
@@ -87,65 +104,6 @@ export async function POST(req: Request) {
         );
         await opsAudit('gallery.upload', { id: row[0]?.id, actor: adminActor(req) });
         return saved({ ok: true, row: row[0] });
-      }
-      case 'update': {
-        const id = intId(d.id);
-        if (!id) return bad('missing_id');
-        const caption = s(d.caption, 300);
-        const category = s(d.category, 120);
-        const altText = s(d.altText, 300);
-        const row = await q(`UPDATE gallery_photos SET caption=$1, category=$2, alt_text=$3 WHERE id=$4 RETURNING *`, [caption, category, altText, id]);
-        if (!row.length) return bad('not_found', 404);
-        await opsAudit('gallery.update', { id, actor: adminActor(req) });
-        return saved({ ok: true, row: row[0] });
-      }
-      case 'publish': {
-        const id = intId(d.id);
-        if (!id || typeof d.published !== 'boolean') return bad('invalid_publish_state');
-        const row = await q(
-          `UPDATE gallery_photos SET published=$1
-            WHERE id=$2 AND ($1=false OR (btrim(caption)<>'' AND btrim(category)<>'' AND btrim(alt_text)<>''))
-          RETURNING *`,
-          [d.published, id],
-        );
-        if (!row.length) {
-          const exists = await q(`SELECT 1 FROM gallery_photos WHERE id=$1`, [id]);
-          return exists.length ? bad('publication_metadata_required') : bad('not_found', 404);
-        }
-        await opsAudit('gallery.publish', { id, published: d.published, actor: adminActor(req) });
-        return saved({ ok: true, row: row[0] });
-      }
-      case 'reorder': {
-        const ids: number[] = Array.isArray(d.ids) ? d.ids.map((x: unknown) => intId(x)).filter((x: number | null): x is number => x !== null).slice(0, 500) : [];
-        if (!ids.length) return bad('missing_ids');
-        const published = await q<{ id: number }>(`SELECT id FROM gallery_photos WHERE published=true ORDER BY sort_order ASC, id ASC`);
-        const known = new Set(published.map((row) => Number(row.id)));
-        if (ids.length !== published.length || ids.some((id) => !known.has(id)) || new Set(ids).size !== ids.length) {
-          return bad('published_order_required');
-        }
-        for (let i = 0; i < ids.length; i++) {
-          await q(`UPDATE gallery_photos SET sort_order=$1 WHERE id=$2`, [(i + 1) * 10, ids[i]]);
-        }
-        await opsAudit('gallery.reorder', { ids, actor: adminActor(req) });
-        return saved({ ok: true });
-      }
-      case 'delete': {
-        const id = intId(d.id);
-        if (!id) return bad('missing_id');
-        const existing = await q<{ url: string }>(`SELECT url FROM gallery_photos WHERE id=$1`, [id]);
-        if (!existing.length) return bad('not_found', 404);
-        const url = existing[0].url || '';
-        // Remove owned media first; failure leaves the record retryable.
-        if (isMediaUrl(url)) {
-          try {
-            await mediaDel(url);
-          } catch {
-            return bad('blob_delete_failed', 502);
-          }
-        }
-        await q(`DELETE FROM gallery_photos WHERE id=$1`, [id]);
-        await opsAudit('gallery.delete', { id, actor: adminActor(req) });
-        return saved({ ok: true });
       }
       default:
         return bad('unknown_kind');

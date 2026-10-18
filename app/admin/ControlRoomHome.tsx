@@ -20,7 +20,7 @@ export default function ControlRoomHome({ stats, scope, perms, onOpen }: Props) 
   const revenue = Number(stats?.revenue || 0);
   const quickActions = [
     allowed('bookings') && has('new_bookings') ? { value: n(newBookings), label: `new booking${newBookings === 1 ? '' : 's'} to work`, tab: 'Bookings' } : null,
-    allowed('bookings') ? { value: '✉', label: 'open the Urban Gang inbox', tab: 'Inbox' } : null,
+    scope==='super_admin' ? { value: '✉', label: 'open the Urban Gang inbox', tab: 'Inbox' } : null,
     allowed('orders') && has('orders') ? { value: n(orders), label: 'orders and payments', tab: 'Orders' } : null,
     allowed('content') ? { value: '✎', label: 'stories to prepare or review', tab: 'Content' } : null,
     allowed('gallery') ? { value: '▧', label: 'gallery photos to manage', tab: 'Gallery' } : null,
@@ -57,7 +57,7 @@ export default function ControlRoomHome({ stats, scope, perms, onOpen }: Props) 
       </div> : <p style={{ marginTop: 17 }}>Your assigned tools are available from the left-hand menu.</p>}
       <div className="cr-worklist">
         {allowed('bookings') && <div className="cr-work-item"><i className="cr-work-dot" /><span>Reply to new enquiries before they go cold.</span><button onClick={() => onOpen('Bookings')}>Open desk</button></div>}
-        {allowed('bookings') && <div className="cr-work-item"><i className="cr-work-dot" /><span>Check any customer messages that need an answer.</span><button onClick={() => onOpen('Inbox')}>Open inbox</button></div>}
+        {scope==='super_admin' && <div className="cr-work-item"><i className="cr-work-dot" /><span>Check messages that need an answer.</span><button onClick={() => onOpen('Inbox')}>Open inbox</button></div>}
         {allowed('ops_pipeline') && <div className="cr-work-item"><i className="cr-work-dot" /><span>Use Pipeline only after an enquiry becomes a real lead.</span><button onClick={() => onOpen('Pipeline')}>Open pipeline</button></div>}
         {allowed('content') && <div className="cr-work-item"><i className="cr-work-dot" /><span>Prepare the next story, then send it for editorial review.</span><button onClick={() => onOpen('Content')}>Open stories</button></div>}
         {allowed('gallery') && <div className="cr-work-item"><i className="cr-work-dot" /><span>Upload and caption the strongest approved gallery images.</span><button onClick={() => onOpen('Gallery')}>Open gallery</button></div>}

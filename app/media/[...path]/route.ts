@@ -28,6 +28,21 @@ async function serve(req: Request, context: Context, head = false): Promise<Resp
         const rows = await cached('media-gallery:' + url, 1000, () => q(`SELECT 1 FROM gallery_photos WHERE url=$1 AND published=true LIMIT 1`, [url]).catch(() => []));
         if (!rows.length) return new Response('Not found', { status: 404 });
       }
+    } else if (scope === 'admin-stories') {
+      // Both story and website editors use this upload scope. Knowing a draft
+      // URL is not publication authority; do not expose private draft images.
+      privateAsset = true; // publication changes must not leave browser caches
+      const admin = await verifyAdminSession(req);
+      if (!(admin && (hasPerm(req, 'content') || hasPerm(req, 'site_seo')))) {
+        if (!hasDb()) return new Response('Not found', {status:404,headers:{'Cache-Control':'no-store'}});
+        const published=await cached('media-story:'+url,1000,async()=>{
+          const posts = await q('SELECT 1 FROM posts WHERE image=$1 AND published AND date<=CURRENT_DATE LIMIT 1',[url]).catch(()=>[]);
+          // Independent reads support installations before the additive CMS schema.
+          const pages = posts.length ? [] : await q("SELECT 1 FROM website_pages WHERE published->>'image'=$1 LIMIT 1",[url]).catch(()=>[]);
+          return posts.length>0||pages.length>0;
+        });
+        if (!published) return new Response('Not found',{status:404,headers:{'Cache-Control':'no-store'}});
+      }
     } else if (scope === 'organizer-events') {
       let published = false;
       if (hasDb()) {

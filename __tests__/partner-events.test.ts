@@ -19,11 +19,11 @@ describe('partner event validation',()=>{
   it.each(['javascript:alert(1)','http://tickets.example','https://user:password@tickets.example/','https://127.0.0.1/','https://0x7f000001/','https://10.1.1.1/','https://172.17.1.1/','https://192.168.1.1/','https://localhost/','https://a.localhost/','https://a.internal/','https://[::1]/','https://urbangangtour.co.ke/events?event=x','https://www.urbangangtour.co.ke/','https://review.chatgpt.site/','https://tickets.example:8443/'])('rejects unsafe or local seller %s',url=>expect(externalTicketUrl(url)).toBeNull());
   it('allows the actual poster seller without treating it as UGT inventory',()=>{expect(externalTicketUrl('https://airtravel.hustlesasa.shop/')).toBe('https://airtravel.hustlesasa.shop/')});
   it('also rejects local-checkout links using a trailing DNS dot',()=>{expect(externalTicketUrl('https://urbangangtour.co.ke./events')).toBeNull()});
-  it('requires publication details but lets incomplete drafts stay private',()=>{
+  it('allows honest incomplete announcements without activating ticket sales',()=>{
     expect(partnerPublicationError(EMPTY_PARTNER,{status:'draft'})).toBeNull();
-    expect(partnerPublicationError(EMPTY_PARTNER,{status:'published'})).toBe('partner_details_required');
+    expect(partnerPublicationError(EMPTY_PARTNER,{status:'published'})).toBeNull();
     expect(partnerPublicationError(details,{status:'published',image:event.image,eventDate:event.eventDate,venue:event.venue})).toBeNull();
-    expect(partnerPublicationError({...details,ticketUrl:''},{status:'published',image:event.image,eventDate:event.eventDate,venue:event.venue})).toBe('partner_ticket_url_required');
+    expect(partnerPublicationError({...details,ticketUrl:''},{status:'published',image:event.image,eventDate:event.eventDate,venue:event.venue})).toBeNull();
     expect(partnerPublicationError({...details,ticketUrl:''},{status:'completed',image:event.image,eventDate:'2026-09-18',venue:event.venue})).toBeNull();
     expect(partnerPublicationError({...details,admission:'free',ticketUrl:''},{status:'published',image:event.image,eventDate:event.eventDate,venue:event.venue})).toBeNull();
   });
@@ -35,7 +35,7 @@ describe('partner event presentation and SEO',()=>{
     expect(tourEventAction(event).label).toBe('View event details');
   });
   it('shows partner dates in discovery and home but keeps drafts out',()=>{
-    expect(publicOwnedEvents([event,{...event,status:'draft'},{...event,partnerDetails:null}],now)).toHaveLength(1);
+    expect(publicOwnedEvents([event,{...event,status:'draft'},{...event,partnerDetails:null}],now)).toHaveLength(2);
     expect(nextTourEvent([event],now)).toEqual(event);
     expect(ownedEventSignature([event])).not.toEqual(ownedEventSignature([{...event,partnerDetails:{...details,ticketUrl:'https://different.example/'}}]));
   });

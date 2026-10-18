@@ -9,10 +9,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EVENT_STATUSES, isPubliclyVisible, type EventStatus } from '@/lib/server/event-lifecycle';
 import ImageUploadField from '../ImageUploadField';
-import {EMPTY_PARTNER,parsePartnerDetails,partnerPublicationError,partnerPublicationChecks,partnerPublicationIssues,partnerAdmission,type PartnerDetails,type PartnerPublicationIssue,type PartnerPublicationField} from '@/lib/partner-events';
+import {EMPTY_PARTNER,parsePartnerDetails,publicPartnerDetails,partnerPublicationError,partnerPublicationChecks,partnerPublicationIssues,partnerAdmission,type PartnerDetails,type PartnerPublicationIssue,type PartnerPublicationField} from '@/lib/partner-events';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
 import EventBriefImport from './EventBriefImport';
+import EventCategoryField from './EventCategoryField';
 import {useUnsavedWarning} from '@/lib/client/use-unsaved-warning';
 import styles from './Events.module.css';
 import {
@@ -45,10 +46,11 @@ interface TourEvent {
   recovery?: RecoveryInfo | null;
   previous_start_at?: string | null;
   partner_details?: PartnerDetails | string | null;
+  category_id?:string|null;
 }
 
 const EMPTY = {
-  id: '' as string, updatedAt:'',kind: 'school' as Kind, name: '', eventDate: '', dateLabel: '',
+  id: '' as string, updatedAt:'',categoryId:'',kind: 'school' as Kind, name: '', eventDate: '', dateLabel: '',
   eventTime: '', venue: '', city: '', accent: '', status: 'draft' as Status,
   priority: 0, image: '', description: '', tiers: [{ name: 'Regular', price: 0 }] as Tier[],
   logo: '', testimonial: '', partnerDetails: {...EMPTY_PARTNER},
@@ -67,13 +69,14 @@ function confirmedEvent(row:TourEvent|undefined,kind:Kind,status:Status):row is 
 const KIND_LABEL: Record<Kind, string> = { ticketed: 'Ticketed', school: 'School Tour', past: 'Past Client', partner:'Contracted / partner event' };
 const KIND_TABS: (Kind | 'all')[] = ['all', 'ticketed', 'partner', 'school', 'past'];
 const STATUS_LABEL: Record<Status, string> = {
-  draft: 'Draft', pending_review: 'Pending review', published: 'Upcoming · published', ongoing: 'Happening now',
+  draft: 'Draft', pending_review: 'Pending review', announced:'Announced · public, no ticket sales', published: 'Upcoming · published', ongoing: 'Happening now',
   sales_paused: 'Sales paused', sold_out: 'Sold out', postponed: 'Postponed',
   rescheduled: 'Rescheduled', cancelled: 'Cancelled', completed: 'Completed', archived: 'Archived',
 };
 
 function visibilityNote(status: Status, kind: Kind): string {
   if (!isPubliclyVisible(status)) return 'Hidden from the public site';
+  if (status==='announced')return 'Public announcement · ticket sales are off';
   if (status === 'ongoing') return 'Public · happening now · online sales closed';
   if (status === 'completed') return 'Public history · no ticket sales';
   if (kind === 'partner') return 'Public partner listing · no Urban Gang checkout';
@@ -116,6 +119,7 @@ export default function Events() {
   const [qy, setQy] = useState('');
   const [busy, setBusy] = useState(false);
   const [imageBusy,setImageBusy]=useState(false);
+  const [categoryBusy,setCategoryBusy]=useState(false),[categoryDirty,setCategoryDirty]=useState(false),[categoryLoaded,setCategoryLoaded]=useState(false);
   const [statusFilter,setStatusFilter]=useState('all');
   const [pendingStatus,setPendingStatus]=useState<{row:TourEvent;status:Status}|null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,7 +128,7 @@ export default function Events() {
   const [feedback,setFeedback]=useState<Feedback|null>(null);
   const [focusField,setFocusField]=useState<PartnerPublicationField|null>(null);
   const requestPending=useRef(false),initialEdit=useRef('');
-  const beginEdit=(next:typeof EMPTY)=>{initialEdit.current=JSON.stringify(next);setFeedback(null);setPendingStatus(null);setEdit(next)};
+  const beginEdit=(next:typeof EMPTY)=>{initialEdit.current=JSON.stringify(next);setFeedback(null);setPendingStatus(null);setCategoryLoaded(false);setEdit(next)};
   useEffect(()=>{
     if(!edit||!focusField)return;
     const section=document.getElementById(FIELD_IDS[focusField]);
@@ -165,10 +169,11 @@ export default function Events() {
   }, []);
   useEffect(() => { reload(); }, [reload]);
 
-  const save = async (asDraft=false) => {
-    if(requestPending.current||busy||imageBusy)return;
+  const save = async (asDraft=false,statusOverride?:Status) => {
+    if(requestPending.current||busy||imageBusy||categoryBusy)return;
+    if(categoryDirty){setFeedback({kind:'error',message:'Save or cancel your category edit first. Your event entries are still here.'});document.getElementById('category-name')?.focus();return;}
     if (!edit || !edit.name.trim()) { setFeedback({kind:'error',message:'Add the event name. Your other entries are still here.'});document.getElementById('tour-event-name')?.focus();return; }
-    const targetStatus=asDraft?'draft':edit.status;
+    const targetStatus=asDraft?'draft':statusOverride||edit.status;
     const partnerDetails=preparedPartner(edit.partnerDetails);
     if(edit.kind==='partner'){
       const row={status:targetStatus,image:edit.image,eventDate:edit.eventDate,venue:edit.venue};
@@ -177,6 +182,7 @@ export default function Events() {
     }
     requestPending.current=true;setFeedback(null);
     setBusy(true);
+    const submittedCategory=categoryLoaded||edit.categoryId?edit.categoryId||null:undefined;
     try {
     const { status, data } = await eventPost('tourEvent.save', {
       id: edit.id || undefined, updatedAt:edit.updatedAt||undefined,kind: edit.kind, name: edit.name, eventDate: edit.eventDate || null,
@@ -185,9 +191,11 @@ export default function Events() {
       description: edit.description, tiers: edit.kind === 'ticketed' ? edit.tiers : [],
       logo: edit.logo, testimonial: edit.testimonial,
       partnerDetails: edit.kind === 'partner' ? partnerDetails : null,
+      categoryId:submittedCategory,
     });
     if (status >= 400 || data.error) { setFeedback({kind:'error',message:status===409?'This event has a newer saved version. Your entries are still here; compare with the current record before trying again.':partnerErrorMessage(data.error || 'save_failed'),fields:Array.isArray(data.fields)?data.fields:undefined});return; }
     if(!data.ok||!confirmedEvent(data.row,edit.kind,targetStatus)||(edit.id&&data.row.id!==edit.id)){setFeedback({kind:'error',message:'The server did not confirm this save. Your entries are still here. Reload the event list in another tab before retrying.'});return}
+    if(submittedCategory!==undefined&&data.row.category_id!==submittedCategory){setFeedback({kind:'error',message:'The server did not confirm the category selection. Your event entries are still here. Check the saved event in another tab before retrying.'});return}
     setRows(current=>[data.row,...current.filter(row=>row.id!==data.row.id)]);
     setFeedback({kind:'success',message:targetStatus==='draft'?'Draft saved. It is not public.':isPubliclyVisible(targetStatus)?'Event saved and published.':'Event saved. It is not public.'});
     setEdit(null);
@@ -202,7 +210,7 @@ export default function Events() {
 
   const updateStatus=async()=>{
     if(!pendingStatus||busy||requestPending.current)return;
-    const details=parsePartnerDetails(pendingStatus.row.partner_details);
+    const details=publicPartnerDetails(pendingStatus.row.partner_details);
     const fields=pendingStatus.row.kind==='partner'?partnerPublicationIssues(details,{status:pendingStatus.status,image:pendingStatus.row.image,eventDate:pendingStatus.row.event_date,venue:pendingStatus.row.venue}):[];
     if(fields.length){setFeedback({kind:'error',message:'Not published. The saved record still needs these items. Open Edit event to add them.',fields});return}
     requestPending.current=true;setFeedback(null);
@@ -263,7 +271,7 @@ export default function Events() {
   const openEdit = (r?: TourEvent,targetStatus?:Status) => {
     if (!r) { beginEdit({ ...EMPTY, kind: kindTab === 'all' ? 'school' : kindTab }); return; }
     beginEdit({
-      id: r.id, updatedAt:r.updated_at,kind: r.kind, name: r.name, eventDate: fmtDate(r.event_date), dateLabel: r.date_label || '',
+      id: r.id, updatedAt:r.updated_at,categoryId:r.category_id||'',kind: r.kind, name: r.name, eventDate: fmtDate(r.event_date), dateLabel: r.date_label || '',
       eventTime: r.event_time || '', venue: r.venue || '', city: r.city || '', accent: r.accent || '',
       status: r.status, priority: r.priority, image: r.image || '', description: r.description || '',
       tiers: parseTiers(r.tiers).length ? parseTiers(r.tiers) : [{ name: 'Regular', price: 0 }],
@@ -296,7 +304,7 @@ export default function Events() {
         <h3 style={h3}>{edit.id ? 'EDIT EVENT' : 'NEW EVENT'}</h3>
         <p role="status">{busy?'Saving your entries…':!edit.id?'New event — not saved yet.':JSON.stringify(edit)!==initialEdit.current?'Unsaved changes — save event to keep them.':'Showing the saved event details.'}</p>
         {showFeedback()}
-        {edit.kind==='partner'&&<section className={styles.readiness} aria-label="Publishing checklist"><strong>{editorChecks.every(check=>check.ready)?'Required details added — ready for a public status.':'Before publishing'}</strong><ul>{editorChecks.map(check=><li key={check.field} data-ready={check.ready}>{check.ready?<span>✓ {check.label}: Added</span>:<button type="button" onClick={()=>setFocusField(check.field)}>{check.label}: {check.field==='details'?'Check details':'Needed'}</button>}</li>)}</ul></section>}
+        {edit.kind==='partner'&&<section className={styles.readiness} aria-label="Event details checklist"><strong>Optional details — add what you know.</strong><p>You can publish an announcement without artwork, a date, venue or credits. Missing details are shown as unconfirmed.</p><ul>{editorChecks.map(check=><li key={check.field} data-ready={check.ready}>{check.ready?<span>✓ {check.label}: Added</span>:<button type="button" onClick={()=>setFocusField(check.field)}>{check.label}: {check.field==='details'?'Check details':'Not added'}</button>}</li>)}</ul></section>}
         <fieldset disabled={busy} className={styles.formFields}>
 
         {/* Overview */}
@@ -314,6 +322,7 @@ export default function Events() {
             <div><label style={label} htmlFor="tour-event-name">Name *</label><input id="tour-event-name" style={inp} maxLength={200} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Lari Boys High School" /></div>
             <div><label style={label} htmlFor="tour-event-priority">Priority (higher shows first)</label><input id="tour-event-priority" style={inp} type="number" value={edit.priority} onChange={(e) => setEdit({ ...edit, priority: Number(e.target.value) || 0 })} /></div>
           </div>
+          <EventCategoryField value={edit.categoryId} onChange={categoryId=>setEdit(current=>current?{...current,categoryId}:current)} disabled={busy} onBusy={setCategoryBusy} onDirty={setCategoryDirty} onLoaded={setCategoryLoaded}/>
           <div style={{ marginTop: 10 }}>
             <label style={label} htmlFor="tour-event-description">{edit.kind === 'ticketed' ? 'Tagline' : 'Description'}</label>
             <input id="tour-event-description" style={inp} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
@@ -429,9 +438,10 @@ export default function Events() {
         </div>
 
         <div className={styles.savebar}>
-          <button style={btnMagenta} disabled={busy||imageBusy} onClick={()=>void save()}>{imageBusy?'Wait for artwork…':busy ? 'Saving…' : 'Save event'}</button>
-          {edit.kind==='partner'&&isPubliclyVisible(edit.status)&&!isPubliclyVisible(rows.find(row=>row.id===edit.id)?.status||'draft')&&<button style={btn} disabled={busy||imageBusy} onClick={()=>void save(true)}>Save private draft</button>}
-          <button style={btnDark} disabled={busy||imageBusy} onClick={() => {if(JSON.stringify(edit)===initialEdit.current||confirm('Close without saving these changes? Cancel to keep your entries.')){setEdit(null);setFeedback(null)}}}>Cancel</button>
+          <button style={btnMagenta} disabled={busy||imageBusy||categoryBusy} onClick={()=>void save()}>{categoryBusy?'Saving category…':imageBusy?'Wait for artwork…':busy ? 'Saving…' : 'Save event'}</button>
+          {!isPubliclyVisible(edit.status)&&<button style={btn} disabled={busy||imageBusy||categoryBusy} onClick={()=>void save(false,'announced')}>Publish announcement</button>}
+          {edit.kind==='partner'&&isPubliclyVisible(edit.status)&&!isPubliclyVisible(rows.find(row=>row.id===edit.id)?.status||'draft')&&<button style={btn} disabled={busy||imageBusy||categoryBusy} onClick={()=>void save(true)}>Save private draft</button>}
+          <button style={btnDark} disabled={busy||imageBusy||categoryBusy} onClick={() => {if((!categoryDirty&&JSON.stringify(edit)===initialEdit.current)||confirm('Close without saving these changes? Cancel to keep your entries.')){setEdit(null);setFeedback(null)}}}>Cancel</button>
         </div>
         </fieldset>
       </div>
@@ -486,7 +496,7 @@ export default function Events() {
               <p>{visibilityNote(r.status,r.kind)}</p>
               {r.recovery&&r.recovery.verification_status!=='verified'&&<p>Recovered record · review its details before publishing.</p>}
               <label>Event status<select aria-label={'Status for '+r.name} disabled={busy} value={pendingStatus?.row.id===r.id?pendingStatus.status:r.status} onChange={e=>{setFeedback(null);setPendingStatus({row:r,status:e.target.value as Status})}}>{EVENT_STATUSES.map(status=><option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label>
-              {pendingStatus?.row.id===r.id&&<section className={styles.confirm} aria-label="Confirm event status"><strong>Change to {STATUS_LABEL[pendingStatus.status]}?</strong><p>Not applied yet. Saved status: {STATUS_LABEL[r.status]}.</p>{r.kind==='partner'&&partnerPublicationIssues(parsePartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).length>0?<div className={styles.error}><p>Not ready to publish. Your saved details are kept.</p><ul>{partnerPublicationIssues(parsePartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).map(issue=><li key={issue.field}>{issue.message}</li>)}</ul><button style={btn} onClick={()=>{const issue=partnerPublicationIssues(parsePartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue})[0];openEdit(r,pendingStatus.status);setFocusField(issue.field)}}>Edit missing details</button></div>:<p>{visibilityNote(pendingStatus.status,r.kind)}. This does not send messages or issue refunds.</p>}<div className={styles.actions}><button style={btnMagenta} disabled={busy} onClick={()=>void updateStatus()}>Confirm status</button><button style={btnSmall} disabled={busy} onClick={()=>{setPendingStatus(null);setFeedback(null)}}>Keep current</button></div></section>}
+              {pendingStatus?.row.id===r.id&&<section className={styles.confirm} aria-label="Confirm event status"><strong>Change to {STATUS_LABEL[pendingStatus.status]}?</strong><p>Not applied yet. Saved status: {STATUS_LABEL[r.status]}.</p>{r.kind==='partner'&&partnerPublicationIssues(publicPartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).length>0?<div className={styles.error}><p>Not ready to publish. Your saved details are kept.</p><ul>{partnerPublicationIssues(publicPartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).map(issue=><li key={issue.field}>{issue.message}</li>)}</ul><button style={btn} onClick={()=>{const issue=partnerPublicationIssues(publicPartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue})[0];openEdit(r,pendingStatus.status);setFocusField(issue.field)}}>Edit missing details</button></div>:<p>{visibilityNote(pendingStatus.status,r.kind)}. This does not send messages or issue refunds.</p>}<div className={styles.actions}><button style={btnMagenta} disabled={busy} onClick={()=>void updateStatus()}>Confirm status</button><button style={btnSmall} disabled={busy} onClick={()=>{setPendingStatus(null);setFeedback(null)}}>Keep current</button></div></section>}
               <div className={styles.actions}>
                 <button style={btnSmall} disabled={busy} onClick={()=>openEdit(r)}>Edit event</button>
                 <button style={btnSmall} disabled={busy} onClick={()=>setPriority(r,r.priority>0?0:maxPriorityFor(r.kind)+10)}>{r.priority>0?'Unfeature':'Feature'}</button>
@@ -502,6 +512,9 @@ export default function Events() {
 }
 
 function partnerErrorMessage(code:string){
+  if(code==='invalid_event_category'||code==='event_category_unavailable')return 'This category is unavailable for assignment. Refresh categories and choose an active one, or save without a category. Your other entries are kept.';
+  if(code==='invalid_partner_artwork')return 'Use an uploaded image or a safe HTTPS artwork link, or leave artwork empty.';
+  if(code==='event_details_required')return 'Ticket sales need a confirmed date and venue. Use Publish announcement to share details without opening sales.';
   const messages:Record<string,string>={partner_details_required:'Not published. Complete the missing items listed below; your other entries are kept.',partner_ticket_url_required:'Not published. Add the official ticket link or correct the admission type.',invalid_partner_details:'Check the ticket link and additional poster captions. Your entries are kept.',event_details_required:'Add the venue and event date before publishing.',event_review_required:'Open Edit and review this recovered record before publishing.',event_kind_immutable:'An existing event’s kind cannot change. Create a separate partner listing to preserve ticket history.',unauthorized:'Your session expired. Your entries are still here; sign in again in another tab, then retry.',forbidden:'This account does not have permission to save events.'};
   return messages[code]||'The event could not be saved. Your entries are still here.';
 }

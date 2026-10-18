@@ -49,15 +49,17 @@ export default function Products() {
 
   const save = async () => {
     if (!edit || !edit.name.trim()) { say('Name is required'); return; }
-    if (edit.price <= 0) { say('Price must be greater than 0'); return; }
+    if (edit.name.length>200) { say('Keep the product name within 200 characters. Your entries are kept.'); return; }
+    if (!Number.isSafeInteger(edit.price)||edit.price <= 0) { say('Enter a positive whole-shilling price. Your entries are kept.'); return; }
+    if (!Number.isSafeInteger(edit.costPrice)||edit.costPrice<0) { say('Enter a whole-shilling cost of zero or more. Your entries are kept.'); return; }
     if (edit.costPrice > edit.price) { say('Cost cannot exceed the sell price'); return; }
     setBusy(true);
-    const { data } = await opsPost('product.save', {
+    const { status,data } = await opsPost('product.save', {
       id: edit.id || undefined, name: edit.name, price: edit.price, costPrice: edit.costPrice, image: edit.image,
       category: edit.category, description: edit.description, active: edit.active,photos:edit.photos.split('\n').map(x=>x.trim()).filter(Boolean),sizeGuide:edit.sizeGuide,nameOnBackEnabled:edit.nameOnBackEnabled,
     });
     setBusy(false);
-    if (data.error) { say('Failed: ' + data.error); return; }
+    if (status<200||status>=300||data.error||!data.ok||!data.row||data.row.name!==edit.name||Number(data.row.price)!==edit.price||(edit.id&&data.row.id!==edit.id)) { say('The server did not confirm this product save. Your entries are kept. Check the product list before retrying.'); return; }
     say('Saved');
     setEdit(null);
     reload();
@@ -108,7 +110,7 @@ export default function Products() {
         </label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button style={btnMagenta} disabled={busy||imageBusy} onClick={save}>{imageBusy?'Wait for image…':busy?'Saving…':'Save product'}</button>
-          <button style={btnDark} disabled={busy||imageBusy} onClick={() => setEdit(null)}>Cancel</button>
+          <button style={btnDark} disabled={busy||imageBusy} onClick={() => {if(confirm('Close this product without saving changes?'))setEdit(null)}}>Cancel</button>
         </div>
       </div>
     );
@@ -128,7 +130,7 @@ export default function Products() {
           <button style={btn} onClick={() => setEdit({ ...EMPTY })}>+ New product</button>
         </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Live: prices here are what every checkout route (M-Pesa, Paystack, Stripe) actually charges — never trust a price the browser sends. A change is live on the site within about a minute. Retiring a product keeps its id so past orders/receipts still resolve correctly.
+          Manage real shop products. Retired products stay on past orders and receipts.
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>

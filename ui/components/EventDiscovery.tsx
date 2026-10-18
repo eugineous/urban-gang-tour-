@@ -7,7 +7,8 @@ import Link from './DocumentLink';
 import seed from '../data/event-discovery.json';
 import timeline from '../data/tour-timeline.json';
 import {rankEvents, reportedSales} from '../lib/event-ranking.mjs';
-import {ownedEventPresentation, ownedEventSignature, publicOwnedEvents, type OwnedEvent} from '../lib/owned-event-presentation';
+import {ownedEventPresentation, ownedEventSignature, filterOwnedEvents,publicEventCategories, type OwnedEvent} from '../lib/owned-event-presentation';
+import {publicEventCategory} from '../../lib/event-categories';
 import styles from './EventDiscovery.module.css';
 
 const endpoint = 'https://urban-gang-tour-events.euginemicah.workers.dev/events';
@@ -52,11 +53,13 @@ function Card({e, onInterest}:{e:Listing; onInterest?:(id:string, kind:string) =
 }
 function OwnedCard({event, now}:{event:OwnedEvent; now:number}) {
   const view = ownedEventPresentation(event, now);
+  const category=publicEventCategory(event.category);
   const name = String(event.name || '');
   return <article className={styles.ownedCard}>
     <Poster e={{image:typeof event.image === 'string' ? event.image : '', title:name, sourceName:'Urban Gang Tour'}}/>
     <div className={styles.ownedCopy}>
       <span className={styles.status} data-sellable={view.sellable}>{view.label}</span>
+      {category&&<small>{category.name}</small>}
       <time dateTime={view.dateTime}>{view.dateLabel}{event.eventTime && view.dateTime ? ' · ' + String(event.eventTime) : ''}</time>
       <h3>{name}</h3><p>{[event.venue, event.city].filter(Boolean).join(', ') || 'Venue to be confirmed'}</p><p>{view.note}</p>
       <Link className={'button ' + (view.sellable ? '' : 'secondary')} href={view.href}>{view.action}<span aria-hidden="true">→</span></Link>
@@ -101,8 +104,8 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
   const [advanced, setAdvanced] = useState(false);
   const [limit, setLimit] = useState(9);
   const [filters, updateFilters] = useUrlFilters(
-    {q:'', when:'72', region:'Nairobi & nearby', category:'All categories', source:'All sources', sort:'recommended', view:'ugt'},
-    {when:['72','168','720','all'], region:['Nairobi & nearby','All Kenya'], category:['All categories','Entertainment',...feed.events.map(e => e.category)], source:['All sources',...feed.sources.map(s => s.id)], sort:['recommended','soonest','booked'],view:['ugt','kenya']}
+    {q:'', when:'72', region:'Nairobi & nearby', category:'All categories', source:'All sources', sort:'recommended', view:'ugt',period:'upcoming',kind:'all',eventCategory:'all'},
+    {when:['72','168','720','all'], region:['Nairobi & nearby','All Kenya'], category:['All categories','Entertainment',...feed.events.map(e => e.category)], source:['All sources',...feed.sources.map(s => s.id)], sort:['recommended','soonest','booked'],view:['ugt','kenya'],period:['upcoming','past','all'],kind:['all','school','partner','ticketed','past']}
   );
   const search = filters.q;
   const period = ['72','168','720','all'].includes(filters.when) ? filters.when : '72';
@@ -188,11 +191,8 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
     && (category === 'All categories' || category === 'Entertainment' && entertainment(e) || e.category === category)
     && (source === 'All sources' || e.sourceId === source)
     && (e.title + ' ' + e.venue + ' ' + e.sourceName).toLowerCase().includes(search.toLowerCase())), {now, region, query:search, mode:sort});
-  const own = publicOwnedEvents(liveOwn, now);
-  const ticketed = own.filter(e => e.kind === 'ticketed' || e.kind === 'partner');
-  const upcomingOwn = ticketed.filter(e => !ownedEventPresentation(e, now).past);
-  const pastOwn = ticketed.filter(e => ownedEventPresentation(e, now).past);
-  const schools = own.filter(e => e.kind === 'school');
+  const ownedCategories=publicEventCategories(liveOwn,now);
+  const visibleOwn=filterOwnedEvents(liveOwn,{kind:filters.kind,period:filters.period,q:search,category:filters.eventCategory},now);
   const heroCandidates = rankEvents(sorted.filter(e => entertainment(e) && e.sourceType === 'Ticket seller' && e.region === 'Nairobi & nearby' && e.venue !== 'Venue on seller’s page' && Date.parse(e.startsAt) < now + 72 * 3600000), {now, region:'Nairobi & nearby'});
   const heroChoices = heroCandidates.filter((e,i,a) => a.findIndex(x => x.sourceId === e.sourceId) === i).slice(0,4);
   const festivals = rankEvents(sorted.filter(e => /festival|solfest|fest\b/i.test(e.title)), {now, region}).slice(0,3);
@@ -219,13 +219,12 @@ export function EventDiscovery({events:ownEvents}:{events:Record<string,any>[]})
 
     <section className={'wrap ' + styles.owned} aria-labelledby="ugt-events-heading">
       <div className={styles.ownedHeading}><div><p className="eyebrow">From Urban Gang Tour</p><h2 id="ugt-events-heading">Our events.</h2></div><Link className="text-link" href="/tour-stops">Follow the school tour <span aria-hidden="true">→</span></Link></div>
-      {upcomingOwn.length > 0 ? <div className={styles.ownedGrid}>{upcomingOwn.map(event => <OwnedCard key={String(event.id)} event={event} now={now}/>)}</div>
-        : <div className={styles.ownedEmpty}><h3>{ownState.startsWith('Checking') ? 'Checking our latest events…' : ownState.includes('unavailable') ? 'Our event updates are unavailable.' : 'New dates are on the way.'}</h3><p>Bring the tour to your school or campus.</p><Link className="button" href="/book">Plan it with us →</Link><button className="text-link" type="button" onClick={()=>updateFilters({view:'kenya'})}>Browse Kenya picks →</button></div>}
-      {schools.length > 0 && <details className={styles.schoolSection}><summary>School tour stops ({schools.length})</summary><ul className={styles.schoolList}>{schools.map(event => {
-        const view = ownedEventPresentation(event, now);
-        return <li key={String(event.id)}><Link href={view.href}><div><span className={styles.status}>{view.label}</span><strong>{String(event.name)}</strong><small>{view.dateLabel}{event.venue ? ' · ' + String(event.venue) : ''}</small></div><span>View school tour <span aria-hidden="true">→</span></span></Link></li>;
-      })}</ul></details>}
-      {pastOwn.length > 0 && <details className={styles.pastEvents}><summary>Past events & collaborations ({pastOwn.length})</summary><div className={styles.ownedGrid}>{pastOwn.map(event => <OwnedCard key={String(event.id)} event={event} now={now}/>)}</div></details>}
+      <div className={styles.ownedFilters}><label>Search our events<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="School, campus, event or venue"/></label>
+      <label>Event type<select aria-label="Event type" value={filters.kind} onChange={event=>updateFilters({kind:event.target.value})}>{[['all','All types'],['school','School tour'],['partner','Partner events'],['ticketed','Ticketed events'],['past','Previous clients']].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+      {(ownedCategories.length>0||filters.eventCategory!=='all')&&<label>Category<select aria-label="Event category" value={filters.eventCategory} onChange={event=>updateFilters({eventCategory:event.target.value})}><option value="all">All categories</option>{filters.eventCategory!=='all'&&!ownedCategories.some(item=>item.id===filters.eventCategory)&&<option value={filters.eventCategory}>Selected category — no current events</option>}{ownedCategories.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}</div>
+      <div className="filter-bar" role="group" aria-label="Event history">{[['upcoming','Upcoming'],['past','Past events'],['all','All events']].map(([value,label])=><button key={value} type="button" aria-pressed={filters.period===value} onClick={()=>updateFilters({period:value})}>{label}</button>)}</div>
+      <p role="status">{visibleOwn.length} {visibleOwn.length===1?'event':'events'}</p>
+      {visibleOwn.length>0?<div className={styles.ownedGrid}>{visibleOwn.map(event=><OwnedCard key={String(event.id)} event={event} now={now}/>)}</div>:<div className={styles.ownedEmpty}><h3>{ownState.includes('unavailable')?'Event updates are unavailable.':'No events match this view.'}</h3><button className="button secondary" type="button" onClick={()=>updateFilters({q:'',kind:'all',period:'all',eventCategory:'all'})}>See all our events</button><Link className="text-link" href="/book">Plan an event with us →</Link></div>}
       {ownState&&<p className={styles.ownedCheck} role="status">{ownState}</p>}
     </section>
     </div><div id="kenya-panel" role="tabpanel" aria-labelledby="kenya-tab" hidden={filters.view!=='kenya'}>

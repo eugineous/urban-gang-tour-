@@ -1,7 +1,7 @@
 const publicPages = new Set([
-  '/', '/about', '/experience', '/tour-stops', '/portfolio', '/clients', '/partners',
-  '/work-with-us', '/press', '/faq', '/privacy-policy', '/cookie-policy',
-  '/terms', '/refund-policy', '/ticket-terms', '/author/eugine-micah', '/author/lucy-ogunde',
+  '/experience', '/clients', '/partners',
+  '/work-with-us', '/press', '/privacy-policy', '/cookie-policy',
+  '/terms', '/refund-policy', '/ticket-terms',
   '/shop/lookbook',
 ]);
 

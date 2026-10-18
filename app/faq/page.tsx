@@ -3,6 +3,6 @@ import {JsonLd} from '@/app/_components/JsonLd';
 import {metadataForPathDynamic} from '@/app/_lib/seo';
 import {structuredDataForPath} from '@/app/_lib/jsonld';
 const PATH='/faq';
-export const revalidate=300;
+export const dynamic='force-dynamic';
 export async function generateMetadata(){return metadataForPathDynamic(PATH)}
 export default function Page(){return <><JsonLd data={structuredDataForPath(PATH)}/><RenderedPage pathName={PATH}/></>}

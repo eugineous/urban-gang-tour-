@@ -3,8 +3,8 @@ import publicDesignRoutes from '@/data/public-page-routes.json';
 import { ROUTES, SITE } from '@/lib/site';
 import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';
-import { INDEXABLE_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
-import {parsePartnerDetails} from '@/lib/partner-events';
+import { PUBLIC_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
+import {publicPartnerDetails} from '@/lib/partner-events';
 
 // Product and ticket URLs are owner-managed database records. The sitemap
 // must read them at request time instead of capturing a build-time snapshot.
@@ -74,15 +74,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       const rows = await q<{ slug: string; kind:string; partner_details:unknown; updated_at: string }>(
         `SELECT slug,kind,to_jsonb(tour_events)->'partner_details' AS partner_details, updated_at::text AS updated_at FROM tour_events
-         WHERE ((kind='ticketed' AND status = ANY($1)
-           AND (event_date >= CURRENT_DATE OR status IN ('postponed','rescheduled')))
-           OR (kind='partner' AND (status = ANY($1) OR status='completed')
-             AND to_jsonb(tour_events)->'partner_details' IS NOT NULL))
+         WHERE kind IN ('ticketed','partner','school','past') AND status=ANY($1)
            AND slug != ''
          ORDER BY event_date ASC`,
-        [[...INDEXABLE_EVENT_STATUSES]]
+        [[...PUBLIC_EVENT_STATUSES]]
       );
-      ticketedEvents = rows.filter(event=>event.kind!=='partner'||parsePartnerDetails(event.partner_details)).map((event) => ({
+      ticketedEvents = rows.filter(event=>event.kind!=='partner'||publicPartnerDetails(event.partner_details)).map((event) => ({
         url: `${SITE.domain}/events/${encodeURIComponent(event.slug)}`,
         lastModified: event.updated_at ? new Date(event.updated_at) : undefined,
         changeFrequency: 'weekly' as const,

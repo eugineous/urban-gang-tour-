@@ -320,6 +320,10 @@ continues through `public/assets`, `public/uploads` and the ASSETS binding.
 are public. Gallery drafts require gallery-admin permission; organizer drafts
 require their owning approved organizer or marketplace-admin permission.
 Documents require documents-admin permission and return `private, no-store`.
+Story/website uploads in `admin-stories` require content or website-admin
+permission until referenced by a published, due story or a published website
+snapshot. Anonymous delivery fails closed on database errors. These responses
+remain no-store; publication lookup is coalesced for one second per isolate.
 Promotion artwork is public. Invalid paths return 404; missing storage returns
 503. ETags and MIME headers are enforced without exposing executable uploads.
 
@@ -690,19 +694,24 @@ are retained across admin module navigation and cleared on logout; this is not
 server autosave or refresh-proof draft recovery.
 
 `tourEvent.save` accepts `kind: "partner"` with `partnerDetails` containing
-exactly `{organizer,client,role,admission,ticketUrl,institutions,posters,newsSlug}`.
+`{organizer,client,role,admission,ticketUrl,institutions,posters,newsSlug}` plus
+optional `posterCaption`.
 Admission is `external`, `free`, `invitation` or `unconfirmed`. Institutions
 are at most 12 names; posters are at most eight additional `{url,caption}`
 objects. HTTPS external seller links reject credentials, local/private IP
 hosts and Urban Gang checkout. Links are never fetched server-side.
 
-Drafts can be incomplete. Public partner transitions require the organiser,
-contracting company, credited role, original artwork, venue and confirmed date
-(except postponed dates). Active external-ticket listings also require the
-official seller URL. These checks apply to both full saves and narrow status
-changes. Existing event kinds cannot be changed, preserving ticket ownership.
-Validation failures from both operations now include `fields`, an array of
-`{field,label,message}` describing only the missing publication requirements.
+Drafts can be incomplete. The reconstruction review branch adds `announced`:
+a public announcement that never activates Urban Gang checkout. A valid title,
+authenticated Events permission and Origin are sufficient to save a basic
+announcement. Partner artwork, attribution, date, venue and seller link are
+optional; supplied metadata and links are still strictly validated. Missing
+values stay unknown, not invented. Ticketed transitions to published/ongoing
+require a confirmed date and venue; the commercial resolver also refuses past
+or incomplete schedules. Inventory and sale-window checks remain mandatory.
+Existing event kinds cannot be changed, preserving ticket ownership.
+Partner validation failures from both operations include `fields`, an array of
+`{field,label,message}` describing corrections to supplied invalid values.
 Entered values are never echoed in these errors. Private drafts remain allowed.
 `tourEvent.save` accepts optional `updatedAt` (the exact loaded `updated_at`
 timestamp, preserving microseconds). An outdated version returns 409
@@ -723,6 +732,50 @@ partner pages remain indexable portfolio work (CreativeWork), not live offers.
 Upcoming Event schema credits the actual organiser and does not invent seller
 stock. Published matching news slugs provide bidirectional event/story links.
 Portfolio and sitemap include public partner records; drafts remain private.
+
+In the reconstruction review branch, `readPublicEvents()` is shared by SSR,
+the no-store public API and the dynamic event portfolio. Public school/past
+records have canonical `/events/[slug]` pages, and completed records of all
+kinds stay discoverable. `/tour-stops` permanently redirects to
+`/events?kind=school&period=all`; owned photo archives are not deleted.
+Events supports URL-backed `period=upcoming|past|all`, `kind` and text search.
+Homepage/portfolio HTML bypasses intermediary page caching. Public snapshots
+coalesce for five seconds and cannot survive more than fifteen seconds stale.
+
+### Event categories (reconstruction review branch)
+
+`GET /api/admin/event-categories` requires an authenticated admin with `events`
+permission and returns `{ok:true,rows:[{id,name,active,version}]}`. Read/write
+limits are 120/30 requests per IP per minute; every reply is private/no-store.
+`POST` also requires the approved Origin and accepts at most 4 KiB of JSON:
+
+- Create: `{action:"create",name}`.
+- Rename/pause/restore: `{action:"update",id,name,active,version}`.
+
+Names normalize surrounding/repeated whitespace, must be 1–80 characters and
+cannot contain control characters. Unknown fields/actions, malformed IDs and
+invalid versions are rejected. Names are case-insensitively unique. IDs are
+server-generated and stable across renames. Successful writes return
+`{ok:true,row}` and atomically audit that category change. Duplicate names and
+stale versions return 409 `category_exists` / `category_conflict`; unavailable
+storage returns a sanitized 503. There is no delete endpoint or alternate auth.
+
+The additive schema creates `event_categories` and nullable, indexed
+`tour_events.category_id` with a restrictive foreign key; no existing event,
+order, price or ticket row is rewritten. `tourEvent.save` accepts optional
+`categoryId`: a valid ID assigns, `null`/empty clears, omission preserves the
+existing assignment. Paused categories cannot be newly assigned; events already
+using one can retain it. The assignment predicate is checked in the actual
+write as well as preflight. Category editing never changes commercial kind,
+status, prices or ticket inventory. The editor waits for explicit category
+and event-row acknowledgements, retains unconfirmed entries and asks users to
+finish a typed category edit before saving the event.
+
+Public event records expose only category `{id,name}` or `null`, never admin
+versions/audit details. The public read does not initialize schema. Public
+filter choices derive only from visible events; `eventCategory=<stable-id>`
+persists in the Events URL and survives initial loading. Pausing a category
+does not hide existing events or remove their public labels.
 
 Admin Events and Content include five owner-supplied editable brief templates.
 Starting a template does not persist or publish it. Saving uses the existing
@@ -756,3 +809,54 @@ record, exact list `version` for edits/removal. Unversioned writes fail 400; sta
 writes fail 409. `deletePost` now means recoverable removal, not a permanent delete.
 Restore never republishes or restarts article announcements. See
 `docs/admin-story-recovery-20261016.md` for retention, role and verification limits.
+
+## Website content and photo library (18 October 2026, review branch)
+
+`GET/POST /api/admin/website` requires a current session and `site_seo`
+permission. Writes require trusted Origin; all responses are private/no-store.
+GET accepts `?path=` for exactly `/`, `/about`, `/faq`,
+`/author/eugine-micah`, `/author/lucy-ogunde`, returning `{ok,page,versions,canPublish}`.
+`page` contains `path,draft,published,version`; an untouched page has version 0,
+existing approved default copy and no published override. Last 30 revision
+summaries are returned. Public readers never create tables and read only the
+published snapshot, with existing content as the unavailable/untouched fallback.
+Editable-page HTML is excluded from the Worker public-page cache; published
+content is coalesced for five seconds per isolate, with a 15-second stale ceiling.
+
+POST accepts `{action:'save'|'publish',path,version,content}` or
+`{action:'restore',path,version,sourceVersion}`. Content is strictly typed:
+`title` (120), `summary` (500), `image` (1000, local/HTTPS), `body` (30 paragraphs,
+3000 each), `faqs` (30 complete question/answer pairs, 300/3000 characters).
+Unknown fields and oversized bodies (150,000 bytes) are rejected. Only owners
+publish. Restore changes the private draft only. Snapshot, immutable revision
+and audit are one atomic statement; stale versions return 409. The client
+confirms path, next version and normalized content, not JSON key order.
+This edits page copy/images, not layouts, navigation, legal text or SEO metadata.
+
+`GET/POST /api/admin/media-library` requires a current session and `gallery`
+permission, trusted Origin for writes, private/no-store replies and a 4096-byte
+write limit. GET returns explicit photo fields, folders and owner capabilities.
+Legacy null metadata is normalized for display without rewriting originals.
+POST actions:
+
+- `folder.create` with `name`; `folder.rename` with UUID `id`, `version`, `name`.
+- `photo.save` with integer `id`, `version`, `caption`, `category`, `altText`.
+- `photo.move` with `id`, `version`, `folderId` (UUID or null).
+- `photo.publish`, `photo.unpublish`, `photo.trash`, `photo.restore` with `id`, `version`.
+
+Folder names are case-insensitively unique (80 characters). Photo mutations
+compare the loaded version and commit an audit atomically. Only owners change
+publication, remove/restore or edit already-public photos. Publication requires
+nonblank caption/category/description. Trash preserves row, metadata and original
+bytes; restore is private. Bulk operations are per-photo commits, not one
+transaction: successful items remain saved, failed items remain selected.
+Upload batches retain stored URLs for registration retries, so successful byte
+uploads do not repeat. Refresh/reopen changed records before retrying stale edits.
+
+Legacy `/api/admin/gallery` still supports idempotent upload registration.
+Metadata/publication/removal writes now require a loaded version and delegate to
+the same versioned writer. Unversioned writes and legacy reorder return 409
+`refresh_media_library`; public ordering is unchanged. No unversioned alternate
+writer or destructive file deletion remains in this compatibility endpoint.
+Story private-copy confirmations additionally require matching draft ID and next
+revision before enabling the explicit story save.

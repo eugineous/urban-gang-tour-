@@ -61,7 +61,7 @@ function frameLabel(photo: Photo): string {
   return `${photo.width} × ${photo.height}, ${shape}`;
 }
 
-export default function Gallery() {
+export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boolean;onComplete?:()=>void}) {
   const [rows, setRows] = useState<Photo[]>([]);
   const [busy, setBusy] = useState(false);
   const uploading=useRef(false);
@@ -78,6 +78,7 @@ export default function Gallery() {
   const shown = useSearch(rows, qy);
 
   const reload = useCallback(async () => {
+    if(uploadsOnly)return;
     const { data } = await galleryGet();
     if (data.error) { say('Load failed: ' + data.error); return; }
     const list: Photo[] = data.rows || [];
@@ -90,7 +91,7 @@ export default function Gallery() {
       }
       return next;
     });
-  }, [say]);
+  }, [say,uploadsOnly]);
   useEffect(() => { reload(); }, [reload]);
 
   const doBatch = async (items:QueueItem[]) => {
@@ -109,10 +110,11 @@ export default function Gallery() {
         });
         update(item.id,{url:blob.url});
         const {status,data}=await galleryPost('upload',{url:blob.url,caption:'',category:item.category,...dimensions});
-        if(status<200||status>=300||!data.ok)throw new Error('record_not_confirmed');
+        if(status<200||status>=300||!data.ok||!Number.isInteger(data.row?.id)||data.row.url!==blob.url)throw new Error('record_not_confirmed');
       },update);
       say(items.length===1?'Photo upload checked':'Batch finished. Check each photo below.');
       await reload();
+      onComplete?.();
     } finally {
       uploading.current=false;
       setBusy(false);setUploadPct(null);
@@ -185,12 +187,12 @@ export default function Gallery() {
       <Toast msg={toast} />
       <div style={card}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
-          <h3 style={{ ...h3, marginBottom: 0 }}>GALLERY / PHOTO WALL</h3>
+          <h3 style={{ ...h3, marginBottom: 0 }}>{uploadsOnly?'Upload photos':'Gallery / photo wall'}</h3>
           <div style={{ flex: 1 }} />
-          <SearchBox value={qy} onChange={setQy} placeholder="Search by caption or category..." />
+          {!uploadsOnly&&<SearchBox value={qy} onChange={setQy} placeholder="Search by caption or category..." />}
         </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Review the original frame first, then publish. Drafts stay private in this desk. Publishing requires a caption, category and an image description written from what is actually visible. Only the super admin can release, remove or order public media. Reordering is disabled while searching.
+          Uploads stay private. Add captions and descriptions in the photo library before publishing.
         </div>
         {!canPublish && <div style={{ fontSize: 12, color: OC.magenta, fontWeight: 800, marginBottom: 10 }}>You can upload and prepare private media. A super admin completes public review.</div>}
         <div
@@ -217,7 +219,7 @@ export default function Gallery() {
       </div>
       {queue.length>0&&<section style={card} aria-label="Photo upload progress"><h3>Upload progress</h3><ul style={{paddingLeft:20}}>{queue.map(item=><li key={item.id} style={{overflowWrap:'anywhere',marginBottom:10}}>{item.file.name} — {item.state==='done'?'Saved privately':item.state==='failed'?item.error:item.state==='uploading'?`Uploading ${item.progress}%`:'Waiting'}{item.state==='uploading'&&<progress value={item.progress} max={100} aria-label={'Upload progress for '+item.file.name}/>}</li>)}</ul><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button style={btnSmall} disabled={busy||!queue.some(item=>item.state==='failed')} onClick={()=>void doBatch(queue.filter(item=>item.state==='failed'))}>Retry unfinished photos</button><button style={btnSmall} disabled={busy} onClick={()=>setQueue(current=>current.filter(item=>item.state!=='done'))}>Clear finished from this list</button><button style={btnSmall} disabled={busy} onClick={()=>{if(confirm('Remove unfinished photos from this upload list? Saved gallery photos will not be deleted.'))setQueue(current=>current.filter(item=>item.state==='done'))}}>Remove unfinished from this list</button></div></section>}
 
-      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+      {!uploadsOnly&&<div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
         {shown.map((p) => {
           const d = drafts[p.id] || { caption: '', category: '', altText: '' };
           const publishedRows = rows.filter((row) => row.published);
@@ -261,7 +263,7 @@ export default function Gallery() {
           );
         })}
         {!shown.length && <div style={{ ...card, gridColumn: '1 / -1' }}>{rows.length ? 'No photos match your search.' : 'No photos yet — upload the first one above.'}</div>}
-      </div>
+      </div>}
     </div>
   );
 }
