@@ -1,4 +1,4 @@
-const CACHE = 'ugt-admin-studio-release-20261018-v1';
+const CACHE = 'ugt-posters-shop-discovery-20261018-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

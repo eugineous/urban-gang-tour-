@@ -12,7 +12,7 @@ export async function RenderedPage({pathName}:{pathName:string}){
  // article bodies into the home page's hydration payload.
  const posts=(pathName==='/'?published.slice(0,3):published).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description}));
  let events:PublicEvent[]=[];
- if(['/', '/events'].includes(pathName))try{events=await readPublicEvents()}catch{/* unavailable is not fabricated inventory */}
+ if(['/', '/events', '/portfolio', '/about', '/the-gang', '/proof'].includes(pathName))try{events=await readPublicEvents()}catch{/* unavailable is not fabricated inventory */}
  const pageContent=await readWebsiteContent(pathName==='/the-gang'?'/about':pathName);
  return <HostedSite path={pathName} screens={[]} products={[]} events={events} posts={posts} pageContent={pageContent}/>;
 }

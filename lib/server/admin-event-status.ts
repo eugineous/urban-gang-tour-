@@ -1,6 +1,6 @@
 import { q } from './db';
 import { isEventStatus, type EventStatus } from './event-lifecycle';
-import { publicPartnerDetails, partnerPublicationError,partnerPublicationIssues,type PartnerPublicationIssue } from '../partner-events';
+import { EMPTY_PARTNER, partnerPublicationError,partnerPublicationIssues,type PartnerPublicationIssue } from '../partner-events';
 
 export class EventPublicationError extends Error {
   constructor(code:string,public readonly fields:PartnerPublicationIssue[]){super(code)}
@@ -22,7 +22,7 @@ export async function changeEventStatus(input:EventStatusChange,actor:string) {
   if(!row)throw new Error('not_found');
   if(row.status!==input.expectedStatus)throw new Error('event_conflict');
   if(row.kind==='partner'){
-    const details=publicPartnerDetails(row.partner_details);
+    const details=row.partner_details??{...EMPTY_PARTNER,admission:'unconfirmed'};
     const error=partnerPublicationError(details,{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue});
     if(error)throw new EventPublicationError(error,partnerPublicationIssues(details,{status:input.status,image:row.image,eventDate:row.event_date,venue:row.venue}));
   }

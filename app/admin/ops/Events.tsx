@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EVENT_STATUSES, isPubliclyVisible, type EventStatus } from '@/lib/server/event-lifecycle';
 import ImageUploadField from '../ImageUploadField';
-import {EMPTY_PARTNER,parsePartnerDetails,publicPartnerDetails,partnerPublicationError,partnerPublicationChecks,partnerPublicationIssues,partnerAdmission,type PartnerDetails,type PartnerPublicationIssue,type PartnerPublicationField} from '@/lib/partner-events';
+import {EMPTY_PARTNER,parsePartnerDetails,normalizePosterUrl,partnerPublicationError,partnerPublicationChecks,partnerPublicationIssues,partnerAdmission,type PartnerDetails,type PartnerPublicationIssue,type PartnerPublicationField} from '@/lib/partner-events';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {PARTNER_EVENT_DRAFTS} from '@/lib/partner-event-drafts';
 import EventBriefImport from './EventBriefImport';
@@ -57,7 +57,7 @@ const EMPTY = {
 };
 
 type Feedback={kind:'error'|'success';message:string;fields?:PartnerPublicationIssue[]};
-const FIELD_IDS:Record<PartnerPublicationField,string>={organizer:'partner-organizer',client:'partner-client',role:'partner-role',image:'event-main-artwork',eventDate:'tour-event-date',venue:'tour-event-venue',ticketUrl:'partner-ticket-url',details:'event-partner-details'};
+const FIELD_IDS:Record<PartnerPublicationField,string>={organizer:'partner-organizer',client:'partner-client',role:'partner-role',image:'event-main-artwork',eventDate:'tour-event-date',venue:'tour-event-venue',ticketUrl:'partner-ticket-url',details:'event-partner-details',posters:'event-additional-posters',newsSlug:'partner-news-slug',posterCaption:'event-poster-caption',institutions:'partner-institutions',admission:'partner-admission'};
 function preparedPartner(details:PartnerDetails):PartnerDetails{return {...details,institutions:details.institutions.map(value=>value.trim()).filter(Boolean),posters:details.posters.filter(poster=>poster.url.trim()||poster.caption.trim())}}
 async function eventRequest(body?:unknown){
   const response=await fetchWithTimeout('/api/admin/ops'+(body?'':'?view=tourEvents'),body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'},20000);
@@ -105,7 +105,7 @@ function eventSavePayload(r: TourEvent, priority: number) {
     accent: r.accent || '', status: r.status, priority, image: r.image || '',
     description: r.description || '', tiers: parseTiers(r.tiers),
     logo: r.logo || '', testimonial: r.testimonial || '',
-    partnerDetails: r.kind === 'partner' ? parsePartnerDetails(r.partner_details) : null,
+    partnerDetails: r.kind === 'partner' ? parsePartnerDetails(r.partner_details,{draft:true}) : null,
   };
 }
 
@@ -126,23 +126,26 @@ export default function Events() {
   const [loadError, setLoadError] = useState('');
   const [toast, say] = useToast();
   const [feedback,setFeedback]=useState<Feedback|null>(null);
-  const [focusField,setFocusField]=useState<PartnerPublicationField|null>(null);
+  const [focusField,setFocusField]=useState<string|null>(null);
   const requestPending=useRef(false),initialEdit=useRef('');
   const beginEdit=(next:typeof EMPTY)=>{initialEdit.current=JSON.stringify(next);setFeedback(null);setPendingStatus(null);setCategoryLoaded(false);setEdit(next)};
   useEffect(()=>{
     if(!edit||!focusField)return;
-    const section=document.getElementById(FIELD_IDS[focusField]);
+    const section=document.getElementById(FIELD_IDS[focusField as PartnerPublicationField]||focusField);
+    for(let ancestor=section?.parentElement;ancestor;ancestor=ancestor.parentElement)if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;
     const control=section?.matches('input,select,textarea')?section:section?.querySelector<HTMLElement>('input,select,textarea');
     if(control){(control as HTMLElement).focus();control.scrollIntoView({block:'center',behavior:'smooth'});setFocusField(null)}
   },[edit,focusField]);
   const editorPartner=edit?preparedPartner(edit.partnerDetails):null;
   const editorChecks=edit?.kind==='partner'?partnerPublicationChecks(editorPartner,{status:isPubliclyVisible(edit.status)?edit.status:'published',image:edit.image,eventDate:edit.eventDate,venue:edit.venue}):[];
-  if(edit?.kind==='partner'&&!parsePartnerDetails(editorPartner))editorChecks.push({field:'details',label:'Additional partner details',message:'Check the ticket link and additional poster captions.',ready:false});
+  const editorIssues=edit?.kind==='partner'?partnerPublicationIssues(editorPartner,{status:'announced',image:edit.image}):[];
+  const issueKey=(issue:PartnerPublicationIssue)=>issue.targetId||issue.field;
+  const fieldError=(target:string)=>!!feedback?.fields?.some(issue=>issueKey(issue)===target)&&editorIssues.some(issue=>issueKey(issue)===target);
   const showFeedback=()=>{
     if(!feedback)return null;
-    const fields=(feedback.fields||[]).filter(issue=>!edit||!editorChecks.find(check=>check.field===issue.field)?.ready);
+    const fields=(feedback.fields||[]).filter(issue=>!edit||editorIssues.some(current=>issueKey(current)===issueKey(issue)));
     const corrected=!!feedback.fields?.length&&!fields.length&&!!edit;
-    return <section className={feedback.kind==='error'&&!corrected?styles.error:styles.success} role={feedback.kind==='error'&&!corrected?'alert':'status'} aria-live="polite"><p>{corrected?'Required details are filled in. Save event to confirm the change.':feedback.message}</p>{!!fields.length&&<ul>{fields.map(issue=><li key={issue.field}>{edit?<button type="button" onClick={()=>setFocusField(issue.field)}>{issue.message}</button>:issue.message}</li>)}</ul>}</section>;
+    return <section className={feedback.kind==='error'&&!corrected?styles.error:styles.success} role={feedback.kind==='error'&&!corrected?'alert':'status'} aria-live="polite"><p>{corrected?'The highlighted details are corrected. Save or publish to confirm the change.':feedback.message}</p>{!!fields.length&&<ul>{fields.map(issue=><li key={issueKey(issue)}>{edit?<button type="button" onClick={()=>setFocusField(issueKey(issue))}>{issue.message}</button>:issue.message}</li>)}</ul>}</section>;
   };
 
   const reload = useCallback(async () => {
@@ -177,8 +180,8 @@ export default function Events() {
     const partnerDetails=preparedPartner(edit.partnerDetails);
     if(edit.kind==='partner'){
       const row={status:targetStatus,image:edit.image,eventDate:edit.eventDate,venue:edit.venue};
-      const error=partnerPublicationError(parsePartnerDetails(partnerDetails),row);
-      if(error){const fields=partnerPublicationIssues(parsePartnerDetails(partnerDetails),row);setFeedback({kind:'error',message:'Not published. Complete only the items listed below; your other entries are kept.',fields});setFocusField(fields[0]?.field||'details');return}
+      const error=partnerPublicationError(partnerDetails,row);
+      if(error){const fields=partnerPublicationIssues(partnerDetails,row);setFeedback({kind:'error',message:'Not saved. Correct the highlighted fields; your entries and uploaded images are kept. Unfinished poster captions can be saved as a draft.',fields});setFocusField(fields[0]?issueKey(fields[0]):'details');return}
     }
     requestPending.current=true;setFeedback(null);
     setBusy(true);
@@ -187,7 +190,7 @@ export default function Events() {
     const { status, data } = await eventPost('tourEvent.save', {
       id: edit.id || undefined, updatedAt:edit.updatedAt||undefined,kind: edit.kind, name: edit.name, eventDate: edit.eventDate || null,
       dateLabel: edit.dateLabel, eventTime: edit.eventTime, venue: edit.venue, city: edit.city,
-      accent: edit.accent, status: targetStatus, priority: edit.priority, image: edit.image,
+      accent: edit.accent, status: targetStatus, priority: edit.priority, image: normalizePosterUrl(edit.image),
       description: edit.description, tiers: edit.kind === 'ticketed' ? edit.tiers : [],
       logo: edit.logo, testimonial: edit.testimonial,
       partnerDetails: edit.kind === 'partner' ? partnerDetails : null,
@@ -210,7 +213,7 @@ export default function Events() {
 
   const updateStatus=async()=>{
     if(!pendingStatus||busy||requestPending.current)return;
-    const details=publicPartnerDetails(pendingStatus.row.partner_details);
+    const details=pendingStatus.row.partner_details??{...EMPTY_PARTNER,admission:'unconfirmed'};
     const fields=pendingStatus.row.kind==='partner'?partnerPublicationIssues(details,{status:pendingStatus.status,image:pendingStatus.row.image,eventDate:pendingStatus.row.event_date,venue:pendingStatus.row.venue}):[];
     if(fields.length){setFeedback({kind:'error',message:'Not published. The saved record still needs these items. Open Edit event to add them.',fields});return}
     requestPending.current=true;setFeedback(null);
@@ -276,7 +279,7 @@ export default function Events() {
       status: r.status, priority: r.priority, image: r.image || '', description: r.description || '',
       tiers: parseTiers(r.tiers).length ? parseTiers(r.tiers) : [{ name: 'Regular', price: 0 }],
       logo: r.logo || '', testimonial: r.testimonial || '',
-      partnerDetails: parsePartnerDetails(r.partner_details) || {...EMPTY_PARTNER},
+      partnerDetails: parsePartnerDetails(r.partner_details,{draft:true}) || {...EMPTY_PARTNER},
     });
     if(targetStatus)setEdit(current=>current?{...current,status:targetStatus}:current);
   };
@@ -342,8 +345,8 @@ export default function Events() {
           {([['organizer','Presented / organised by'],['client','Contracting company'],['role','Our role & credited team']] as const).map(([key,title])=><div key={key}><label htmlFor={'partner-'+key}>{title}</label><input id={'partner-'+key} style={inp} value={edit.partnerDetails[key]} aria-invalid={!!feedback?.fields?.some(issue=>issue.field===key)&&!edit.partnerDetails[key].trim()} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,[key]:e.target.value}})}/></div>)}
           <div><label htmlFor="partner-admission">Admission</label><select id="partner-admission" style={inp} value={edit.partnerDetails.admission} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,admission:e.target.value as PartnerDetails['admission']}})}><option value="external">Tickets sold by organiser / another platform</option><option value="free">Free admission</option><option value="invitation">By invitation</option><option value="unconfirmed">Not yet confirmed</option></select></div>
           {edit.partnerDetails.admission==='external'&&<div><label htmlFor="partner-ticket-url">Official ticket seller URL (HTTPS)</label><input id="partner-ticket-url" style={inp} type="url" placeholder="https://official-ticket-seller.example/event" value={edit.partnerDetails.ticketUrl} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,ticketUrl:e.target.value}})}/></div>}
-          <label>Institutions (one per line)<textarea style={inp} value={edit.partnerDetails.institutions.join('\n')} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,institutions:e.target.value.split('\n')}})}/></label>
-          <label>Related news story slug (published in Content)<input style={inp} value={edit.partnerDetails.newsSlug} placeholder="unifest-2026-university-of-nairobi" onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,newsSlug:e.target.value}})}/></label>
+          <label htmlFor="partner-institutions">Institutions (one per line)<textarea id="partner-institutions" style={inp} value={edit.partnerDetails.institutions.join('\n')} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,institutions:e.target.value.split('\n')}})}/></label>
+          <label htmlFor="partner-news-slug">Related story (slug or Urban Gang story link)<input id="partner-news-slug" style={inp} value={edit.partnerDetails.newsSlug} aria-invalid={fieldError('newsSlug')||undefined} placeholder="unifest-2026-university-of-nairobi" onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,newsSlug:e.target.value}})}/></label>
           <p>Only verified facts and published stories appear publicly. Past listings keep their credits but do not advertise active ticket sales.</p>
         </fieldset>}
 
@@ -408,11 +411,13 @@ export default function Events() {
               <ImageUploadField label="Client logo" purpose="events" value={edit.logo} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,logo:url}:current)}/>
             )}
           </div>
-          {edit.kind==='partner'&&<div className={styles.partnerFields}>
+          {edit.kind==='partner'&&<div id="event-additional-posters" className={styles.partnerFields}>
             <h4>Additional original posters</h4>
+            <p>Upload each poster and add a short caption before publishing. Unfinished rows can be saved privately as a draft.</p>
             {edit.partnerDetails.posters.map((poster,index)=><fieldset key={index}><legend>Poster {index+2}</legend>
-              <ImageUploadField label={`Additional poster ${index+2}`} purpose="events" value={poster.url} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,partnerDetails:{...current.partnerDetails,posters:current.partnerDetails.posters.map((p,i)=>i===index?{...p,url}:p)}}:current)}/>
-              <label>Caption / accessible description<input style={inp} value={poster.caption} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:edit.partnerDetails.posters.map((p,i)=>i===index?{...p,caption:e.target.value}:p)}})}/></label>
+              <ImageUploadField inputId={`partner-poster-${index}`} validationError={fieldError(`partner-poster-${index}-url`)?'Use an uploaded image or a safe HTTPS image link.':undefined} label={`Additional poster ${index+2}`} purpose="events" value={poster.url} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,partnerDetails:{...current.partnerDetails,posters:current.partnerDetails.posters.map((p,i)=>i===index?{...p,url}:p)}}:current)}/>
+              <label htmlFor={`partner-poster-${index}-caption`}>Caption / accessible description<input id={`partner-poster-${index}-caption`} style={inp} maxLength={300} aria-invalid={fieldError(`partner-poster-${index}-caption`)||undefined} aria-describedby={fieldError(`partner-poster-${index}-caption`)?`partner-poster-${index}-caption-error`:undefined} value={poster.caption} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:edit.partnerDetails.posters.map((p,i)=>i===index?{...p,caption:e.target.value}:p)}})}/></label>
+              {fieldError(`partner-poster-${index}-caption`)&&<p id={`partner-poster-${index}-caption-error`}>Add a short caption for Poster {index+2}, or save this event as a draft.</p>}
               <button style={btnSmall} disabled={busy||imageBusy} onClick={()=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:edit.partnerDetails.posters.filter((_,i)=>i!==index)}})}>Remove poster</button>
             </fieldset>)}
             <button style={btnSmall} disabled={busy||imageBusy||edit.partnerDetails.posters.length>=8} onClick={()=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posters:[...edit.partnerDetails.posters,{url:'',caption:''}]}})}>+ Add poster variant</button>
@@ -496,7 +501,7 @@ export default function Events() {
               <p>{visibilityNote(r.status,r.kind)}</p>
               {r.recovery&&r.recovery.verification_status!=='verified'&&<p>Recovered record · review its details before publishing.</p>}
               <label>Event status<select aria-label={'Status for '+r.name} disabled={busy} value={pendingStatus?.row.id===r.id?pendingStatus.status:r.status} onChange={e=>{setFeedback(null);setPendingStatus({row:r,status:e.target.value as Status})}}>{EVENT_STATUSES.map(status=><option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label>
-              {pendingStatus?.row.id===r.id&&<section className={styles.confirm} aria-label="Confirm event status"><strong>Change to {STATUS_LABEL[pendingStatus.status]}?</strong><p>Not applied yet. Saved status: {STATUS_LABEL[r.status]}.</p>{r.kind==='partner'&&partnerPublicationIssues(publicPartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).length>0?<div className={styles.error}><p>Not ready to publish. Your saved details are kept.</p><ul>{partnerPublicationIssues(publicPartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).map(issue=><li key={issue.field}>{issue.message}</li>)}</ul><button style={btn} onClick={()=>{const issue=partnerPublicationIssues(publicPartnerDetails(r.partner_details),{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue})[0];openEdit(r,pendingStatus.status);setFocusField(issue.field)}}>Edit missing details</button></div>:<p>{visibilityNote(pendingStatus.status,r.kind)}. This does not send messages or issue refunds.</p>}<div className={styles.actions}><button style={btnMagenta} disabled={busy} onClick={()=>void updateStatus()}>Confirm status</button><button style={btnSmall} disabled={busy} onClick={()=>{setPendingStatus(null);setFeedback(null)}}>Keep current</button></div></section>}
+              {pendingStatus?.row.id===r.id&&<section className={styles.confirm} aria-label="Confirm event status"><strong>Change to {STATUS_LABEL[pendingStatus.status]}?</strong><p>Not applied yet. Saved status: {STATUS_LABEL[r.status]}.</p>{r.kind==='partner'&&partnerPublicationIssues(r.partner_details??{...EMPTY_PARTNER,admission:'unconfirmed'},{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).length>0?<div className={styles.error}><p>Not ready to publish. Your saved details are kept.</p><ul>{partnerPublicationIssues(r.partner_details??{...EMPTY_PARTNER,admission:'unconfirmed'},{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue}).map(issue=><li key={issueKey(issue)}>{issue.message}</li>)}</ul><button style={btn} onClick={()=>{const issue=partnerPublicationIssues(r.partner_details??{...EMPTY_PARTNER,admission:'unconfirmed'},{status:pendingStatus.status,image:r.image,eventDate:r.event_date,venue:r.venue})[0];openEdit(r,pendingStatus.status);setFocusField(issueKey(issue))}}>Edit missing details</button></div>:<p>{visibilityNote(pendingStatus.status,r.kind)}. This does not send messages or issue refunds.</p>}<div className={styles.actions}><button style={btnMagenta} disabled={busy} onClick={()=>void updateStatus()}>Confirm status</button><button style={btnSmall} disabled={busy} onClick={()=>{setPendingStatus(null);setFeedback(null)}}>Keep current</button></div></section>}
               <div className={styles.actions}>
                 <button style={btnSmall} disabled={busy} onClick={()=>openEdit(r)}>Edit event</button>
                 <button style={btnSmall} disabled={busy} onClick={()=>setPriority(r,r.priority>0?0:maxPriorityFor(r.kind)+10)}>{r.priority>0?'Unfeature':'Feature'}</button>

@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Explicit poster and discovery release authorization (18 October 2026)
+- The owner instructed merging and deploying the completed poster feedback,
+  unified shop discovery, navigation and payment-status presentation update,
+  then continuing remaining work strategically. Use the tested PR/Cloudflare
+  path and read-only production checks. This release does not change payment
+  initiation logic, credentials, access controls or customer records. Subsequent
+  finance repairs remain separately tested and review-gated; no backdoors.
+
 ## Explicit release authorization (18 October 2026, Nairobi)
 - The owner explicitly instructed pushing, merging PR #74 and deploying the
   current reconstruction/admin update to urbangangtour.co.ke after the known

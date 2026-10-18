@@ -3,7 +3,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {afterEach,expect,it,vi} from 'vitest';
 import {LiveCommerce} from '@/app/_components/LiveCommerce';
 afterEach(()=>vi.unstubAllGlobals());
-it.each([['shop','Wear the culture.'],['cart','Your cart.'],['checkout','Checkout.']] as const)('server-renders a stable %s heading without reading browser storage', (view,title)=>{
+it.each([['shop','Shop.'],['cart','Your cart.'],['checkout','Checkout.']] as const)('server-renders a stable %s heading without reading browser storage', (view,title)=>{
  const getItem=vi.fn(()=>{throw new Error('Browser storage is unavailable on the server')});
  vi.stubGlobal('localStorage',{getItem});
  const html=renderToStaticMarkup(createElement(LiveCommerce,{view}));

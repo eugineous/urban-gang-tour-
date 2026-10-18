@@ -39,7 +39,7 @@ import { isEventStatus } from "@/lib/server/event-lifecycle";
 import { validateEventTiers } from '@/lib/server/event-tier-input';
 import { bumpEventPublicTruth } from "@/lib/server/public-cache";
 import { changeEventStatus, parseEventStatusChange,EventPublicationError } from '@/lib/server/admin-event-status';
-import { publicPartnerDetails, partnerPublicationError,partnerPublicationIssues } from '@/lib/partner-events';
+import { EMPTY_PARTNER,parsePartnerDetails,isPartnerDraft,normalizePosterUrl,partnerPublicationError,partnerPublicationIssues } from '@/lib/partner-events';
 import {categoryId as isEventCategoryId} from '@/lib/event-categories';
 import {ensureEventCategorySchema} from '@/lib/server/event-categories';
 
@@ -1550,10 +1550,12 @@ export async function POST(req: Request) {
         const tierInput = validateEventTiers(kind === 'ticketed' ? d.tiers : []);
         if (!tierInput.ok) return bad(tierInput.error);
         const tiers = tierInput.tiers;
-        const partner = kind === 'partner' ? publicPartnerDetails(d.partnerDetails) : null;
+        const rawPartner=d.partnerDetails??{...EMPTY_PARTNER,admission:'unconfirmed'};
+        const partner = kind === 'partner' ? parsePartnerDetails(rawPartner,{draft:isPartnerDraft(status)}) : null;
         if (kind === 'partner') {
-          const error = partnerPublicationError(partner, {status, image:d.image, eventDate:dateOrNull(d.eventDate), venue:s(d.venue,300)});
-          if (error) return NextResponse.json({error,fields:partnerPublicationIssues(partner,{status,image:d.image,eventDate:dateOrNull(d.eventDate),venue:s(d.venue,300)})},{status:400});
+          const error = partnerPublicationError(rawPartner, {status, image:d.image, eventDate:dateOrNull(d.eventDate), venue:s(d.venue,300)});
+          if (error) return NextResponse.json({error,fields:partnerPublicationIssues(rawPartner,{status,image:d.image,eventDate:dateOrNull(d.eventDate),venue:s(d.venue,300)})},{status:400});
+          if(typeof d.image==='string')d.image=normalizePosterUrl(d.image);
         } else if (d.partnerDetails != null) return bad('unexpected_partner_details');
         const priority = intOrNull(d.priority) ?? 0;
         let id = s(d.id, 60);
