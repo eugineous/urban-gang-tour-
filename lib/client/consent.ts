@@ -1,5 +1,10 @@
 export const CONSENT_EVENT = 'ugt:consent-changed';
 let visitChoice: boolean | undefined;
+export function hasConsentChoice():boolean{
+ if(typeof window==='undefined')return false;
+ try{const value=localStorage.getItem('ugt-consent');if(value==='yes'||value==='no')return true}catch{}
+ return visitChoice!==undefined;
+}
 export function hasOptionalConsent(): boolean {
   if (typeof window === 'undefined') return false;
   try {const choice=localStorage.getItem('ugt-consent');if(choice==='yes'||choice==='no')return choice==='yes'} catch {}

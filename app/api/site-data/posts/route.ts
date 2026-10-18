@@ -21,7 +21,7 @@ export async function GET(req: Request) {
       const rows = await q<any>(
         `SELECT slug, headline, section, image, dek, date::text AS date
          FROM posts
-         WHERE published AND date <= CURRENT_DATE
+         WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date
          ORDER BY date DESC, slug ASC`
       );
       return rows.map((row) => ({
@@ -35,6 +35,6 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({ ok: true, posts }, { headers: CACHE_HEADERS });
   } catch {
-    return NextResponse.json({ ok: true, posts: [] }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ ok: false, error: 'stories_temporarily_unavailable' }, { status: 503, headers: {'Cache-Control':'no-store','Retry-After':'5'} });
   }
 }

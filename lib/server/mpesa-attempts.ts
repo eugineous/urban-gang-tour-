@@ -1,4 +1,4 @@
-// Persistence primitive only. Not yet wired into checkout or deployed.
+// Durable checkout initiation ledger. Provider uncertainty never permits resend.
 // The caller must authenticate the owner scope and validate/price the purchase
 // before calling this module. A hash is not authentication or payment evidence.
 import {createHash,randomUUID} from 'node:crypto';
@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS mpesa_checkout_attempts (
  request_hash TEXT NOT NULL CHECK(request_hash ~ '^[a-f0-9]{64}$'),
  order_id TEXT NOT NULL UNIQUE REFERENCES orders(id) DEFERRABLE INITIALLY DEFERRED,
  total INTEGER NOT NULL CHECK(total>0),
+ context JSONB NOT NULL DEFAULT '{}'::jsonb,
  state TEXT NOT NULL DEFAULT 'prepared' CHECK(state IN ('prepared','initiating','reference_recorded','unknown','closed')),
  claim_nonce TEXT,
  provider_reference TEXT,
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS mpesa_checkout_attempts (
 );
 CREATE INDEX IF NOT EXISTS idx_mpesa_attempts_unresolved
  ON mpesa_checkout_attempts(updated_at) WHERE state IN ('initiating','unknown');
+ALTER TABLE mpesa_checkout_attempts ADD COLUMN IF NOT EXISTS context JSONB NOT NULL DEFAULT '{}'::jsonb;
 `;
 let schema:Promise<void>|undefined;
 export function ensureMpesaAttemptSchema(){
@@ -62,6 +64,7 @@ export class MpesaAttemptConflict extends Error{constructor(){super('attempt_req
 export type AttemptOrder={
  id:string;items:unknown[];total:number;name:string;email:string;phone:string;userId:number|null;
  fulfillment:{method:'pickup'|'delivery';fee:number;address:unknown|null}|null;
+ context?:{promoId:number|null;referralCode:string|null};
 };
 /** Prerequisites: existing orders.user_id and order_delivery_preferences schema.
  * This single SQL statement atomically creates the attempt, ledger and delivery
@@ -78,8 +81,8 @@ export async function prepareMpesaAttempt(identity:AttemptIdentity,order:Attempt
  const candidate=randomUUID();
  const rows=await q<{attempt:StoredAttempt}>(`
  WITH claimed AS (
-  INSERT INTO mpesa_checkout_attempts(id,scope_hash,token_hash,request_hash,order_id,total)
-  VALUES($1,$2,$3,$4,$5,$6)
+  INSERT INTO mpesa_checkout_attempts(id,scope_hash,token_hash,request_hash,order_id,total,context)
+  VALUES($1,$2,$3,$4,$5,$6,$15::jsonb)
   ON CONFLICT(scope_hash,token_hash) DO UPDATE
    SET updated_at=mpesa_checkout_attempts.updated_at
    WHERE mpesa_checkout_attempts.request_hash=EXCLUDED.request_hash
@@ -94,7 +97,7 @@ export async function prepareMpesaAttempt(identity:AttemptIdentity,order:Attempt
   RETURNING order_id
  )
  SELECT row_to_json(claimed) AS attempt FROM claimed`,
- [candidate,identity.scopeHash,identity.tokenHash,identity.requestHash,order.id,order.total,JSON.stringify(order.items),order.name,order.email,order.phone,order.userId,fulfillment?.method??null,fulfillment?.fee??0,fulfillment?.address==null?null:JSON.stringify(fulfillment.address)]);
+ [candidate,identity.scopeHash,identity.tokenHash,identity.requestHash,order.id,order.total,JSON.stringify(order.items),order.name,order.email,order.phone,order.userId,fulfillment?.method??null,fulfillment?.fee??0,fulfillment?.address==null?null:JSON.stringify(fulfillment.address),JSON.stringify(order.context??{})]);
  if(!rows[0])throw new MpesaAttemptConflict();
  return {attempt:snapshot(rows[0].attempt),created:rows[0].attempt.id===candidate};
 }
@@ -105,6 +108,25 @@ export async function recoverMpesaAttempt(identity:AttemptIdentity):Promise<Mpes
  if(!rows[0])return null;
  if(rows[0].attempt.request_hash!==identity.requestHash)throw new MpesaAttemptConflict();
  return snapshot(rows[0].attempt);
+}
+/** Owner-authenticated recovery exposes only the order capability and state. */
+export async function findOwnedMpesaAttempt(owner:string,token:string):Promise<(MpesaAttempt&{paymentStatus:string})|null>{
+ const identity=mpesaAttemptIdentity(owner,token,null);await ensureMpesaAttemptSchema();
+ const rows=await q<{attempt:StoredAttempt&{payment_status:string}}>(`SELECT row_to_json(found) AS attempt FROM (
+  SELECT a.*,o.status AS payment_status FROM mpesa_checkout_attempts a JOIN orders o ON o.id=a.order_id
+  WHERE a.scope_hash=$1 AND a.token_hash=$2
+ ) found`,[identity.scopeHash,identity.tokenHash]);
+ return rows[0]?{...snapshot(rows[0].attempt),paymentStatus:rows[0].attempt.payment_status}:null;
+}
+/** Internal only: persisted pricing/lines/context for a matching prepared retry. */
+export async function savedMpesaPurchase(identity:AttemptIdentity){
+ validateIdentity(identity);await ensureMpesaAttemptSchema();
+ const rows=await q<{attempt:{items:unknown;total:number;context:{promoId?:number;referralCode?:string}}}>(`SELECT row_to_json(found) AS attempt FROM (
+  SELECT o.items,a.total,a.context FROM mpesa_checkout_attempts a JOIN orders o ON o.id=a.order_id
+  WHERE a.scope_hash=$1 AND a.token_hash=$2 AND a.request_hash=$3
+ ) found`,[identity.scopeHash,identity.tokenHash,identity.requestHash]);
+ const row=rows[0]?.attempt;if(!row)throw Error('attempt_not_found');
+ return {...row,items:typeof row.items==='string'?JSON.parse(row.items):row.items};
 }
 /** One durable winner may send. There is intentionally NO lease/reclaim of an
  * initiating/unknown attempt: a dead worker might already have sent the request.

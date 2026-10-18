@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Current operations release authorization (18 October 2026)
+- The owner explicitly requested deploying the current checkout recovery,
+  ticket reservation, publishing, contact and responsive workflow repairs to
+  the main site after verification. Use feature branch, tested PR and Cloudflare
+  deployment with bindings preserved. No production test purchases, messages,
+  backdoors or credential changes. Capacity claims require measured evidence.
+
 ## Explicit poster and discovery release authorization (18 October 2026)
 - The owner instructed merging and deploying the completed poster feedback,
   unified shop discovery, navigation and payment-status presentation update,

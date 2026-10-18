@@ -30,6 +30,7 @@ const nextConfig = {
       { source: '/tickets', destination: '/events', permanent: true },
       { source: '/contact', destination: '/contact-us', permanent: true },
       { source: '/tour', destination: '/experience', permanent: true },
+      { source: '/tour-stops', destination: '/events?kind=school&period=all', permanent: true },
       { source: '/gang', destination: '/the-gang', permanent: true },
       { source: '/the-gang', destination: '/about', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },

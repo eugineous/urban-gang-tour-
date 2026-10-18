@@ -870,3 +870,34 @@ the same versioned writer. Unversioned writes and legacy reorder return 409
 writer or destructive file deletion remains in this compatibility endpoint.
 Story private-copy confirmations additionally require matching draft ID and next
 revision before enabling the explicit story save.
+# Operations release — 18 October 2026
+
+- `POST /api/checkout/session`: public same-origin, empty body only; creates a
+  signed HttpOnly guest-checkout cookie. Not an account or admin login. No-store.
+- `POST /api/checkout/recovery`: same-origin signed guest scope; `{key}` is an
+  opaque 32–128 character attempt key. Returns only order ID, total, attempt state
+  and payment state. A copied key without the original signed cookie cannot
+  recover the order. Missing = 404, missing scope = 428, unavailable = 503.
+- `POST /api/orders`: requires that guest scope and `idempotencyKey`. Purchase
+  prices remain server-derived. Same key/input recovers the same durable order;
+  changed input conflicts (409). Preparation can return 503 with the retained
+  order ID. Provider acceptance is NOT settlement; uncertain initiation returns
+  202 and is never automatically sent again. Payment state is polled separately.
+- Ticket reservations serialize against the event row and count paid orders
+  before asynchronous ticket minting. Uncertain payment holds do not expire into
+  sellable capacity. Legacy duplicate reservations fail closed for review.
+- Ticket/receipt PDF downloads require confirmed payment; voided tickets cannot
+  download an active PDF. Personalized documents are private, no-store.
+- Admin Gmail sends and booking replies require `requestId` (32–128 opaque
+  characters), server module permission and same-origin checks. Accepted means
+  Gmail accepted the request, NOT recipient delivery. Uncertain sends return
+  202 with `gmail_send_outcome_unknown`; inspect Sent rather than creating a new
+  send reference. Retrying accepted requests repairs local history, not resends.
+- Public bookings reject altered content under an existing request ID. Matching
+  retries return the original status token. Public story scheduling uses Nairobi
+  calendar dates; outages return 503 rather than falsely reporting an empty feed.
+
+Release limits: PostgreSQL contention and fake-provider contracts are tested in
+isolated local fixtures, not live payment sandboxes. Card rail durability remains
+a separate review. A 60,000/min network read budget is not a throughput guarantee;
+40,000/min end-to-end capacity needs staging load, database and provider telemetry.

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { q, db } from '@/lib/server/db';
+import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { maskPhone } from '@/lib/server/receipt-email';
 import { ensureTickets } from '@/lib/server/tickets';
@@ -24,14 +24,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const { id: rawId } = await params;
-  const id = decodeURIComponent(rawId || '');
+  const id = rawId || '';
   if (!ID_RE.test(id)) return new NextResponse('Not found', { status: 404 });
-  if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
 
   try {
     const rows = await q<any>('SELECT * FROM orders WHERE id=$1', [id]);
     const o = rows[0];
     if (!o) return new NextResponse('Not found', { status: 404 });
+    if(!['paid','fulfilled'].includes(o.status))return NextResponse.json({error:'payment_not_confirmed'},{status:409,headers:{'Cache-Control':'no-store'}});
 
     let tickets: { code: string; position: number; ofCount: number; tierName: string }[] = [];
     if (o.status === 'paid' || o.status === 'fulfilled') {

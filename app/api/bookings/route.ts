@@ -45,6 +45,8 @@ export async function POST(req: Request) {
   }
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
+  if(!body||typeof body!=='object'||Array.isArray(body))return NextResponse.json({error:'invalid_body'},{status:400});
+  for(const [field,limit]of [['name',100],['org',200],['email',254],['phone',20],['message',3000],['eventBrief',1000]] as const){if(body[field]!==undefined&&(typeof body[field]!=='string'||body[field].length>limit))return NextResponse.json({error:'invalid_'+field},{status:400});}
 
   // strict schema: reject unexpected fields
   const allowed = new Set([
@@ -65,10 +67,10 @@ export async function POST(req: Request) {
   }
   const name = clean(body.name, 100);
   const org = clean(body.org, 200);
-  const email = clean(body.email, 200).toLowerCase();
+  const email = clean(body.email, 254).toLowerCase();
   const phone = clean(body.phone, 20);
   const type = clean(body.type, 40);
-  const message = clean(body.message, 2000);
+  const message = clean(body.message, 3000);
   const preferredDate = cleanDate(body.preferredDate);
   const expectedAttendance = cleanAttendance(body.expectedAttendance);
   const eventBrief = clean(body.eventBrief, 1000);
@@ -116,7 +118,11 @@ export async function POST(req: Request) {
     );
     // A browser retry with the same random request id is already in the desk.
     // Return the same acknowledgement and do not notify or create another lead.
-    if (!inserted.length) return NextResponse.json({ ok: true, id: booking.id, duplicate: true });
+    if (!inserted.length){
+     const existing=await q<{id:string}>(`SELECT id FROM bookings WHERE id=$1 AND name=$2 AND org=$3 AND email=$4 AND phone=$5 AND type=$6 AND message=$7 AND preferred_date IS NOT DISTINCT FROM $8::date AND expected_attendance IS NOT DISTINCT FROM $9::integer AND event_brief=$10`,[booking.id,name,org,email,phone,type,message,preferredDate,expectedAttendance,eventBrief]);
+     if(!existing.length)return NextResponse.json({error:'request_details_changed'},{status:409});
+     return NextResponse.json({ok:true,id:booking.id,duplicate:true,...(sessionSecretConfigured()?{statusToken:signToken({scope:'booking_status',bookingId:booking.id},30)}:{})});
+    }
   } catch (e) {
     console.error('[booking-db] persistence failed');
     return NextResponse.json({ error: 'booking_unavailable' }, { status: 503 });

@@ -8,7 +8,7 @@
 
 import { q, hasDb } from './db';
 import { isEventSellable, isPubliclyVisible, isEventIndexable } from './event-lifecycle';
-import { soldCount, reservedCount, parseTierInventory } from './ticket-inventory';
+import {ticketCapacity, parseTierInventory } from './ticket-inventory';
 
 export type EventTruth = {
   slug: string;
@@ -80,8 +80,7 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
         if (tier.capacity === null) {
           return { ...tier, remaining: null, sellable: false };
         }
-        const sold = await soldCount(row.id, tier.name);
-        const reserved = await reservedCount(row.id, index);
+        const {sold,reserved} = await ticketCapacity(row.id,index,tier.name);
         const remaining = Math.max(0, tier.capacity - sold - reserved);
         return {
           ...tier,

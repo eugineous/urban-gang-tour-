@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/server/db';
+import { hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket } from '@/lib/server/tickets';
 import { renderTicketPdf } from '@/lib/tickets/pdf';
@@ -23,13 +23,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   const { code: raw } = await params;
-  const code = decodeURIComponent(raw || '').toUpperCase().slice(0, 40);
+  const code = (raw || '').toUpperCase();
   if (!codeAuthentic(code)) return new NextResponse('Not found', { status: 404 });
-  if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
 
   try {
     const t = await getTicket(code);
     if (!t) return new NextResponse('Not found', { status: 404 });
+    if(t.voided_at||!['paid','fulfilled'].includes(t.order_status))return NextResponse.json({error:'ticket_not_active'},{status:409,headers:{'Cache-Control':'no-store'}});
 
     const logo = await getLogoDataUri();
     const buf = await renderTicketPdf({

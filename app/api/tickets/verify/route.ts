@@ -2,8 +2,8 @@ import { NextResponse, after } from 'next/server';
 import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
-import { codeAuthentic, getTicket, getEventName, getEventMeta } from '@/lib/server/tickets';
-import { q, db } from '@/lib/server/db';
+import { codeAuthentic, getTicket, getEventName, getEventMeta,ensureTicketSchema } from '@/lib/server/tickets';
+import { q, hasDb } from '@/lib/server/db';
 import { notifyTicketScan } from '@/lib/server/notify';
 
 // Gate check-in. Roles: any admin session (super_admin or crew_admin) that
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (!rateLimit('gate:' + clientIp(req), 120, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
-  if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
 
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
@@ -63,9 +63,10 @@ export async function POST(req: Request) {
 
   try {
     // Atomic single-use flip: only succeeds while unused AND the order is paid.
+    await ensureTicketSchema();
     const rows = await q(
       `UPDATE tickets SET used_at=now(), used_by='gate'
-        WHERE code=$1 AND used_at IS NULL
+        WHERE code=$1 AND used_at IS NULL AND voided_at IS NULL
           AND EXISTS (SELECT 1 FROM orders o WHERE o.id=tickets.order_id AND o.status IN ('paid','fulfilled'))
         RETURNING *`,
       [code]

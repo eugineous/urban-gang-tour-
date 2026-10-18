@@ -21,7 +21,7 @@ const reply = (body: unknown, status = 200) =>
     headers: { "Cache-Control": "private, no-store" },
   });
 const photoFields =
-  "id,url,COALESCE(caption,'') AS caption,COALESCE(category,'') AS category,COALESCE(alt_text,'') AS alt_text,width,height,published,sort_order,folder_id,version,removed_at";
+  "id,url,COALESCE(caption,'') AS caption,COALESCE(category,'') AS category,COALESCE(alt_text,'') AS alt_text,width,height,published,sort_order,folder_id,version,removed_at,created_at::text AS created_at";
 async function guard(req: Request, write = false) {
   if (!(await verifyAdminSession(req)))
     return reply({ error: "unauthorized" }, 401);

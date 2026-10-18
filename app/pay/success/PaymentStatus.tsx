@@ -1,6 +1,7 @@
 'use client';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {useEffect,useState} from 'react';
+import {clearCheckoutAttempt} from '@/lib/client/checkout-attempt';
 import {paymentPresentation} from '@/lib/client/payment-presentation';
 export default function PaymentStatus({orderId}:{orderId:string}){
  const [status,setStatus]=useState('pending'),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[stopped,setStopped]=useState(false);
@@ -9,7 +10,7 @@ export default function PaymentStatus({orderId}:{orderId:string}){
   setStopped(false);setError('');
   async function check(){
    try{const r=await fetchWithTimeout('/api/orders/status?id='+encodeURIComponent(orderId),{signal:controller.signal,cache:'no-store'});const d=await r.json();if(!r.ok||typeof d.status!=='string')throw Error();
-    if(controller.signal.aborted)return;setStatus(d.status);setError('');
+    if(controller.signal.aborted)return;setStatus(d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status);setError('');if(paymentPresentation(d.status).terminal)clearCheckoutAttempt(orderId);
     if(d.status==='paid'||d.status==='fulfilled'){try{const order=JSON.parse(sessionStorage.getItem('ugt-checkout-order')||'null');if(order?.id===orderId&&!order.eventId&&JSON.stringify(order.items)===localStorage.getItem('ugt-live-cart-v1')){localStorage.setItem('ugt-live-cart-v1','[]');localStorage.removeItem('ugt_cart')}sessionStorage.removeItem('ugt-checkout-order')}catch{}}
     if(paymentPresentation(d.status).terminal){setStopped(true);return}
    }catch{if(controller.signal.aborted)return;setError('We could not check your payment. Your order reference is safe. Try again before starting another payment.')}

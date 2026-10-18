@@ -46,6 +46,8 @@ export async function stkPush(phone: string, amount: number, ref: string, desc: 
   const res = await fetch(`${BASE()}/mpesa/stkpush/v1/processrequest`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(12000),
     body: JSON.stringify({
       BusinessShortCode: shortcode,
       Password: password,
@@ -61,6 +63,7 @@ export async function stkPush(phone: string, amount: number, ref: string, desc: 
       TransactionDesc: desc.slice(0, 13),
     }),
   });
+  if(!res.ok)throw Error('daraja_request_uncertain');
   return res.json();
 }
 

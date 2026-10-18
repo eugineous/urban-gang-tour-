@@ -162,7 +162,9 @@ export function rateLimit(
  * this volume is a network-layer problem and belongs to Cloudflare's DDoS and
  * Bot Fight protection, not to a counter in a Worker isolate.
  */
-export const PUBLIC_READ_NETWORK_LIMIT = 20_000;
+// Match the shared public-read policy; a network's 40k/min legitimate traffic
+// must not hit a lower isolate budget. This is a budget, not a capacity claim.
+export const PUBLIC_READ_NETWORK_LIMIT = 60_000;
 
 /**
  * Network budget for the purchase endpoints.

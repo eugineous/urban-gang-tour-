@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GmailConnectButton from './GmailConnectButton';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import {clearReplyIntent,replyIntent} from '@/lib/client/reply-intent';
 import {clearSentReply} from '@/lib/contact-actions';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6' };
@@ -67,6 +68,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
     const response = await fetchWithTimeout('/api/admin/gmail/messages', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        requestId:replyIntent('gmail:'+sentKey),
         messageId: message.id,
         threadId: message.threadId,
         to: recipient,
@@ -77,9 +79,10 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
       }),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok||data.ok!==true) { say(`Reply failed: ${data.error || response.status}. Your draft is unchanged.`); return; }
+    if (!response.ok||data.ok!==true) { say(data.error==='gmail_send_outcome_unknown'?'Gmail acceptance is unconfirmed. Check Gmail Sent before retrying. Your draft and send reference are kept.':`Reply not confirmed: ${data.error || response.status}. Your draft is unchanged.`); return; }
+    clearReplyIntent('gmail:'+sentKey);
     setDrafts(current=>clearSentReply(current,sentKey,sentText));
-    say('Email reply sent');
+    say('Gmail accepted your reply. Delivery is not yet confirmed.');
     setMessages((current) => current.map((m) => m.id === message.id ? { ...m, unread: false } : m));
     }catch{say('Could not confirm delivery. Your draft is kept. Check Gmail Sent before retrying to avoid a duplicate.')}
     finally{sendingRef.current=false;setSending(false)}

@@ -84,7 +84,6 @@ async function notifyViaWhatsApp(body: string): Promise<void> {
   try {
     const adminTo = process.env.META_WA_SELF || process.env.WHATSAPP_SELF || '';
     if (!isWhatsAppConfigured() || !adminTo) {
-      console.log('[notify:wa] skipped: whatsapp not configured or META_WA_SELF not set');
       return;
     }
     // Strip non-digits from the number before sending (E.164 without plus)
@@ -92,7 +91,6 @@ async function notifyViaWhatsApp(body: string): Promise<void> {
     if (!to) return;
     const result = await sendWhatsAppText(to, body);
     if (result.ok) {
-      console.log('[notify:wa] sent');
     } else {
       console.warn('[notify:wa] failed:', result.error);
     }
@@ -126,7 +124,6 @@ export type NewSignupRow = { id: string | number; email?: string | null; phone?:
 export async function notifyNewSignup(user: NewSignupRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_signup'))) {
-      console.log('[notify] new-signup skipped (toggle off):', user.id);
       return;
     }
     const rows: [string, string][] = [['Name', user.name || ''], ['Email', user.email || ''], ['Phone', user.phone || '']];
@@ -135,7 +132,6 @@ export async function notifyNewSignup(user: NewSignupRow): Promise<void> {
       card('New Account', rows),
       textLines('New account created', rows)
     );
-    console.log('[notify]', ok ? 'new-signup sent:' : 'new-signup failed:', user.id);
   } catch (e) {
     console.error('[notify] new-signup error', e);
   }
@@ -146,7 +142,6 @@ export type AdminLoginEvent = { email: string; method: 'google' | 'access_code';
 export async function notifyAdminLogin(ev: AdminLoginEvent): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_admin_login'))) {
-      console.log('[notify] admin-login skipped (toggle off):', ev.email || ev.method);
       return;
     }
     const rows: [string, string][] = [['Method', ev.method], ['Email', ev.email || '(access code)'], ['Scope', ev.scope], ['IP', ev.ip || '']];
@@ -155,7 +150,6 @@ export async function notifyAdminLogin(ev: AdminLoginEvent): Promise<void> {
       card('Control Room Sign-In', rows),
       textLines('Control Room sign-in', rows)
     );
-    console.log('[notify]', ok ? 'admin-login sent:' : 'admin-login failed:', ev.email || ev.method);
   } catch (e) {
     console.error('[notify] admin-login error', e);
   }
@@ -166,7 +160,6 @@ export type FailedAdminLoginEvent = { method: 'google' | 'access_code'; reason: 
 export async function notifyFailedAdminLogin(ev: FailedAdminLoginEvent): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_failed_admin_login'))) {
-      console.log('[notify] failed-admin-login skipped (toggle off):', ev.reason);
       return;
     }
     const rows: [string, string][] = [['Method', ev.method], ['Reason', ev.reason], ['Email tried', ev.email || ''], ['IP', ev.ip || '']];
@@ -175,7 +168,6 @@ export async function notifyFailedAdminLogin(ev: FailedAdminLoginEvent): Promise
       card('Failed Sign-In Attempt', rows),
       textLines('Failed Control Room sign-in attempt', rows)
     );
-    console.log('[notify]', ok ? 'failed-admin-login sent:' : 'failed-admin-login failed:', ev.reason);
   } catch (e) {
     console.error('[notify] failed-admin-login error', e);
   }
@@ -186,7 +178,6 @@ export type PostPublishedRow = { slug: string; headline: string; section?: strin
 export async function notifyPostPublished(post: PostPublishedRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_post_published'))) {
-      console.log('[notify] post-published skipped (toggle off):', post.slug);
       return;
     }
     const rows: [string, string][] = [['Headline', post.headline], ['Section', post.section || ''], ['URL', `https://urbangangtour.co.ke/blog/${post.slug}`]];
@@ -195,7 +186,6 @@ export async function notifyPostPublished(post: PostPublishedRow): Promise<void>
       card('Blog Post Published', rows),
       textLines('Blog post published', rows)
     );
-    console.log('[notify]', ok ? 'post-published sent:' : 'post-published failed:', post.slug);
   } catch (e) {
     console.error('[notify] post-published error', e);
   }
@@ -204,7 +194,6 @@ export async function notifyPostPublished(post: PostPublishedRow): Promise<void>
 export async function notifyNewSubscriber(email: string): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_subscriber'))) {
-      console.log('[notify] new-subscriber skipped (toggle off):', email);
       return;
     }
     const rows: [string, string][] = [['Email', email]];
@@ -213,7 +202,6 @@ export async function notifyNewSubscriber(email: string): Promise<void> {
       card('New Newsletter Subscriber', rows),
       textLines('New newsletter subscriber', rows)
     );
-    console.log('[notify]', ok ? 'new-subscriber sent:' : 'new-subscriber failed:', email);
   } catch (e) {
     console.error('[notify] new-subscriber error', e);
   }
@@ -224,7 +212,6 @@ export type NewReviewRow = { product: string; author: string; rating: number; bo
 export async function notifyNewReview(rev: NewReviewRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_review'))) {
-      console.log('[notify] new-review skipped (toggle off):', rev.product);
       return;
     }
     const rows: [string, string][] = [
@@ -238,7 +225,6 @@ export async function notifyNewReview(rev: NewReviewRow): Promise<void> {
       card('New Product Review', rows, esc(rev.body).slice(0, 1000)),
       textLines('New product review', rows, rev.body)
     );
-    console.log('[notify]', ok ? 'new-review sent:' : 'new-review failed:', rev.product);
   } catch (e) {
     console.error('[notify] new-review error', e);
   }
@@ -249,7 +235,6 @@ export type NewOrganizerRow = { businessName: string; contactName?: string | nul
 export async function notifyNewOrganizer(org: NewOrganizerRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_organizer'))) {
-      console.log('[notify] new-organizer skipped (toggle off):', org.email);
       return;
     }
     const rows: [string, string][] = [
@@ -264,7 +249,6 @@ export async function notifyNewOrganizer(org: NewOrganizerRow): Promise<void> {
       card('New Marketplace Organizer', rows),
       textLines('New marketplace organizer application', rows)
     );
-    console.log('[notify]', ok ? 'new-organizer sent:' : 'new-organizer failed:', org.email);
   } catch (e) {
     console.error('[notify] new-organizer error', e);
   }
@@ -275,7 +259,6 @@ export type NewSubmissionRow = { name: string; school?: string | null; title: st
 export async function notifyNewSubmission(sub: NewSubmissionRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_submission'))) {
-      console.log('[notify] new-submission skipped (toggle off):', sub.title);
       return;
     }
     const rows: [string, string][] = [['Name', sub.name], ['School', sub.school || ''], ['Title', sub.title]];
@@ -284,7 +267,6 @@ export async function notifyNewSubmission(sub: NewSubmissionRow): Promise<void> 
       card('New Story Pitch (Newsroom)', rows, sub.pitch ? esc(sub.pitch).slice(0, 1000) : undefined),
       textLines('New story pitch', rows, sub.pitch || '')
     );
-    console.log('[notify]', ok ? 'new-submission sent:' : 'new-submission failed:', sub.title);
   } catch (e) {
     console.error('[notify] new-submission error', e);
   }
@@ -295,7 +277,6 @@ export type PaymentEvent = { gateway: 'mpesa' | 'paystack' | 'stripe'; orderId: 
 export async function notifyPaymentSuccess(ev: PaymentEvent): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_payment_success'))) {
-      console.log('[notify] payment-success skipped (toggle off):', ev.orderId);
       return;
     }
     const rows: [string, string][] = [['Gateway', ev.gateway], ['Order', ev.orderId], ['Amount', ev.amount ? fmtKes(ev.amount) : '']];
@@ -304,7 +285,6 @@ export async function notifyPaymentSuccess(ev: PaymentEvent): Promise<void> {
       card('Payment Received', rows),
       textLines('Payment received', rows)
     );
-    console.log('[notify]', ok ? 'payment-success sent:' : 'payment-success failed:', ev.orderId);
     await notifyViaWhatsApp(
       `✅ Payment confirmed: ${ev.orderId}\nGateway: ${ev.gateway}\nAmount: KES ${Number(ev.amount || 0).toLocaleString('en-US')}`
     );
@@ -316,7 +296,6 @@ export async function notifyPaymentSuccess(ev: PaymentEvent): Promise<void> {
 export async function notifyPaymentFailure(ev: PaymentEvent): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_payment_failure'))) {
-      console.log('[notify] payment-failure skipped (toggle off):', ev.orderId);
       return;
     }
     const rows: [string, string][] = [['Gateway', ev.gateway], ['Order', ev.orderId], ['Reason', ev.reason || '']];
@@ -325,7 +304,6 @@ export async function notifyPaymentFailure(ev: PaymentEvent): Promise<void> {
       card('Payment Failed', rows),
       textLines('Payment failed', rows)
     );
-    console.log('[notify]', ok ? 'payment-failure sent:' : 'payment-failure failed:', ev.orderId);
   } catch (e) {
     console.error('[notify] payment-failure error', e);
   }
@@ -336,7 +314,6 @@ export type TicketScanRow = { code: string; event?: string; holder?: string };
 export async function notifyTicketScan(t: TicketScanRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_ticket_scan'))) {
-      console.log('[notify] ticket-scan skipped (toggle off):', t.code);
       return;
     }
     const rows: [string, string][] = [['Ticket', t.code], ['Event', t.event || ''], ['Holder', t.holder || '']];
@@ -345,7 +322,6 @@ export async function notifyTicketScan(t: TicketScanRow): Promise<void> {
       card('Ticket Scanned At Gate', rows),
       textLines('Ticket scanned at gate', rows)
     );
-    console.log('[notify]', ok ? 'ticket-scan sent:' : 'ticket-scan failed:', t.code);
   } catch (e) {
     console.error('[notify] ticket-scan error', e);
   }
@@ -356,7 +332,6 @@ export type WhatsAppMessageEvent = { from: string; text: string };
 export async function notifyWhatsAppMessage(ev: WhatsAppMessageEvent): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_whatsapp_message'))) {
-      console.log('[notify] whatsapp-message skipped (toggle off):', ev.from);
       return;
     }
     const rows: [string, string][] = [['From', ev.from]];
@@ -365,7 +340,6 @@ export async function notifyWhatsAppMessage(ev: WhatsAppMessageEvent): Promise<v
       card('New WhatsApp Message', rows, esc(ev.text).slice(0, 1000)),
       textLines('New WhatsApp message', rows, ev.text)
     );
-    console.log('[notify]', ok ? 'whatsapp-message sent:' : 'whatsapp-message failed:', ev.from);
   } catch (e) {
     console.error('[notify] whatsapp-message error', e);
   }
@@ -383,7 +357,6 @@ export type NewOrderRow = {
 export async function notifyNewOrder(order: NewOrderRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_order'))) {
-      console.log('[notify] new-order skipped (toggle off):', order.id);
       return;
     }
     const subject = `New order: ${fmtKes(order.total)}`;
@@ -402,7 +375,6 @@ export async function notifyNewOrder(order: NewOrderRow): Promise<void> {
   </div>
 </div>`;
     const ok = await sendNotify(subject, html, text);
-    console.log('[notify]', ok ? 'new-order sent:' : 'new-order failed:', order.id);
     await notifyViaWhatsApp(
       `🎟 New order: ${order.id}\nAmount: KES ${Number(order.total || 0).toLocaleString('en-US')}\nName: ${order.name || ''}\nPhone: ${order.phone || ''}`
     );
@@ -424,7 +396,6 @@ export type NewBookingRow = {
 export async function notifyNewBooking(booking: NewBookingRow): Promise<void> {
   try {
     if (!(await notifyEnabled('notify_on_new_booking'))) {
-      console.log('[notify] new-booking skipped (toggle off):', booking.id);
       return;
     }
     const subject = `New booking: ${booking.name}`;
@@ -443,7 +414,6 @@ export async function notifyNewBooking(booking: NewBookingRow): Promise<void> {
   </div>
 </div>`;
     const ok = await sendNotify(subject, html, text);
-    console.log('[notify]', ok ? 'new-booking sent:' : 'new-booking failed:', booking.id);
   } catch (e) {
     console.error('[notify] new-booking error', e);
   }

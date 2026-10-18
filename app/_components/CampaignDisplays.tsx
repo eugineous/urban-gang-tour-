@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { campaignIsLive, campaignTargets, campaignsAllowedOn, safeCampaignImage, safeCampaignLink, type Campaign } from '@/lib/marketing-campaigns';
 import { fetchWithTimeout } from '@/lib/client/fetch-with-timeout';
+import {hasConsentChoice} from '@/lib/client/consent';
+import {campaignCanInterrupt} from '@/lib/client/campaign-interruption';
 import styles from './CampaignDisplays.module.css';
 export type PublicCampaign = Omit<Campaign, 'name' | 'promoId'>;
 const storageKey = (id: string) => 'ugt-campaign-dismiss-' + id;
@@ -13,6 +15,7 @@ export function CampaignCreative({ campaign, preview = false, headingId }: { cam
 }
 export default function CampaignDisplays({ path, paused }: { path: string; paused: boolean }) {
   const [campaigns,setCampaigns] = useState<PublicCampaign[]>([]), [tick,setTick] = useState(0), [closed,setClosed] = useState<string[]>([]), [privacyReady,setPrivacyReady] = useState(false);
+  const [uninterrupted,setUninterrupted]=useState(false);
   const lease = useRef(0), serverClock = useRef({ time: 0, at: 0 }), loadedAt = useRef(0), popupShown = useRef(false), dialog = useRef<HTMLDialogElement>(null);
   const allowed = campaignsAllowedOn(path);
   useEffect(() => {
@@ -49,17 +52,19 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
   useEffect(() => {
     if (!allowed || !haveCampaigns) return;
     const watch = setInterval(() => {
+      if(document.hidden)return;
       if (lease.current && performance.now()>=lease.current) { lease.current=0; setCampaigns([]); }
-      let choice: string | null = null;
-      try { choice=localStorage.getItem('ugt-consent'); } catch {}
-      setPrivacyReady((choice==='yes'||choice==='no') && !document.querySelector('aside[aria-label="Privacy preferences"]'));
+      const consentReady=hasConsentChoice()&&!document.querySelector('aside[aria-label="Privacy preferences"]');
+      setPrivacyReady(consentReady);
+      const otherOverlay=Array.from(document.querySelectorAll('dialog[open],.lightbox,.film-viewer,.modal-backdrop')).some(element=>element!==dialog.current);
+      setUninterrupted(campaignCanInterrupt({hidden:document.hidden,editing:!!document.activeElement?.matches('input,textarea,select,[contenteditable=true]'),otherOverlay,privacyReady:consentReady,paused:false}));
       setTick(value=>value+1);
     }, 500);
     return () => clearInterval(watch);
   }, [allowed,haveCampaigns]);
   const now = serverClock.current.time + performance.now()-serverClock.current.at;
   const candidates = allowed && !paused && privacyReady && lease.current>performance.now() ? campaigns.filter(c=>campaignTargets(c,path)&&campaignIsLive(c,now)&&!closed.includes(c.id)&&!recentlySeen(c)).sort((a,b)=>b.priority-a.priority||a.id.localeCompare(b.id)) : [];
-  const popup = candidates.find(c=>c.format==='popup' && performance.now()-loadedAt.current>=c.delaySeconds*1000 && (!popupShown.current || dialog.current?.open));
+  const popup = uninterrupted?candidates.find(c=>c.format==='popup' && performance.now()-loadedAt.current>=c.delaySeconds*1000 && (!popupShown.current || dialog.current?.open)):undefined;
   const banner = candidates.find(c=>c.format==='banner');
   function dismiss(campaign: PublicCampaign) {
     try { localStorage.setItem(storageKey(campaign.id),String(Date.now())); } catch {}

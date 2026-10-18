@@ -186,3 +186,11 @@ export async function recordPromoCodeUse(promoId: number): Promise<void> {
     // non-fatal — a missed usage-counter increment must never fail an order
   }
 }
+/** Durable retry accounting: one accepted order consumes a code at most once. */
+export async function recordPromoCodeUseOnce(promoId:number,orderId:string){
+ await q(`CREATE TABLE IF NOT EXISTS promo_order_redemptions(order_id TEXT PRIMARY KEY REFERENCES orders(id),promo_id INTEGER NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
+ await q(`WITH recorded AS (
+  INSERT INTO promo_order_redemptions(order_id,promo_id) VALUES($1,$2)
+  ON CONFLICT(order_id) DO NOTHING RETURNING promo_id
+ ) UPDATE ops_promos SET uses=uses+1 WHERE id IN (SELECT promo_id FROM recorded)`,[orderId,promoId]);
+}
