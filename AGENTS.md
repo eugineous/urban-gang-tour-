@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Explicit release authorization (18 October 2026, Nairobi)
+- The owner explicitly instructed pushing, merging PR #74 and deploying the
+  current reconstruction/admin update to urbangangtour.co.ke after the known
+  intermittent hydration risk was disclosed. Use the tested GitHub/Cloudflare
+  release path, preserve bindings/data and record the risk and live smoke checks.
+  This is not permission for backdoors, credential changes or future releases.
+
 ## Explicit admin release authorization (16 October 2026)
 - The owner explicitly instructed building and deploying the current admin workflow
   update to the main site, with owner review after deployment. This authorizes
