@@ -2,7 +2,7 @@ import { getBlogPosts } from '@/app/_lib/blog';
 import { SITE } from '@/lib/site';
 import {publicationInstant} from '@/lib/editorial-time';
 
-export const revalidate = 900; // regenerate every 15 minutes
+export const dynamic = 'force-dynamic';
 
 // Google News sitemap (https://support.google.com/news/publisher-center).
 // Per spec it lists only articles published in the last 48 hours — Google
@@ -11,7 +11,7 @@ export const revalidate = 900; // regenerate every 15 minutes
 export async function GET() {
   const posts = await getBlogPosts();
   const now=Date.now(),cutoff = now - 48 * 3600_000;
-  const fresh = posts.filter((p) => {const time=publicationInstant(p.datePublished).getTime();return time>=cutoff&&time<=now;});
+  const fresh = posts.filter((p) => {const time=publicationInstant(p.datePublished).getTime();return p.schemaType!=='BlogPosting'&&time>=cutoff&&time<=now;});
 
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -35,6 +35,6 @@ ${urls}
 </urlset>`;
 
   return new Response(xml, {
-    headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=900' },
+    headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }

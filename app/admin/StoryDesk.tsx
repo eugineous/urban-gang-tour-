@@ -4,6 +4,7 @@ import ImageUploadField from "./ImageUploadField";
 import { PARTNER_EVENT_DRAFTS } from "@/lib/partner-event-drafts";
 import { storyDraftContent } from "@/lib/story-draft";
 import {chronological,type Chronology} from '@/lib/chronology';
+import EditorialCalendar from './EditorialCalendar';
 
 type Story = Record<string, any>;
 type Props = {
@@ -306,6 +307,7 @@ export default function StoryDesk({
   }
   return (
     <section className="cr-panel" aria-label="Stories desk">
+      <EditorialCalendar canPublish={canPublish}/>
       <div className="cr-toolbar">
         <div>
           <h2>Your stories</h2>

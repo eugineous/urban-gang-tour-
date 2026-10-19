@@ -4,6 +4,7 @@ import { currentApprovedOrganizer } from '@/lib/server/organizer-session';
 import { hasDb, q } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
+import {PUBLIC_POST_PREDICATE} from '@/lib/server/editorial-publication';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,11 +37,11 @@ async function serve(req: Request, context: Context, head = false): Promise<Resp
       if (!(admin && (hasPerm(req, 'content') || hasPerm(req, 'site_seo')))) {
         if (!hasDb()) return new Response('Not found', {status:404,headers:{'Cache-Control':'no-store'}});
         const published=await cached('media-story:'+url,1000,async()=>{
-          const posts = await q('SELECT 1 FROM posts WHERE image=$1 AND published AND date<=CURRENT_DATE LIMIT 1',[url]).catch(()=>[]);
+          const posts = await q(`SELECT 1 FROM posts WHERE (image=$1 OR to_jsonb(posts)->'asset_manifest'->>'og'=$1) AND ${PUBLIC_POST_PREDICATE} LIMIT 1`,[url]).catch(()=>[]);
           // Independent reads support installations before the additive CMS schema.
           const pages = posts.length ? [] : await q("SELECT 1 FROM website_pages WHERE published->>'image'=$1 LIMIT 1",[url]).catch(()=>[]);
           return posts.length>0||pages.length>0;
-        });
+        },false);
         if (!published) return new Response('Not found',{status:404,headers:{'Cache-Control':'no-store'}});
       }
     } else if (scope === 'organizer-events') {

@@ -8,7 +8,7 @@ import { ensureBookingsSchema } from '@/lib/server/bookings-schema';
 const VIEWS: Record<string, string> = {
   bookings: `SELECT * FROM bookings ORDER BY created_at DESC LIMIT 500`,
   orders: `SELECT * FROM orders ORDER BY created_at DESC LIMIT 500`,
-  posts: `SELECT slug, headline, section, image, dek, body, published, date, editorial_status, submitted_by, reviewed_by, reviewed_at, updated_at::text AS version FROM posts ORDER BY date DESC LIMIT 500`,
+  posts: `SELECT slug, headline, section, image, dek, body, published, date, editorial_status, submitted_by, reviewed_by, reviewed_at, updated_at::text AS version FROM posts WHERE COALESCE(to_jsonb(posts)->>'editorial_managed','false')<>'true' ORDER BY date DESC LIMIT 500`,
   users: `SELECT id, email, phone, name, role, created_at FROM users ORDER BY created_at DESC LIMIT 500`,
   submissions: `SELECT * FROM submissions ORDER BY created_at DESC LIMIT 500`,
   subscribers: `SELECT * FROM subscribers ORDER BY created_at DESC LIMIT 1000`,

@@ -11,6 +11,7 @@ describe('public search discovery', () => {
 
   it('advertises current gallery collections and valid absolute, escaped image URLs', async () => {
     vi.mocked(q)
+      .mockResolvedValueOnce([]) // Only eligible published articles enter the image sitemap.
       .mockResolvedValueOnce([{ url: '/media-library/custom.webp?crop=1&size=2', caption: 'School & campus' }])
       .mockResolvedValueOnce([{ id: 'tee', name: 'Black & magenta tee', image_url: '/media-library/tee.webp' }]);
     const response = await GET();

@@ -18,3 +18,9 @@ it('uses actual instants for the inclusive 48h boundary and excludes future entr
  const xml=await (await news()).text();expect(xml).toContain('/blog/exact-boundary');
  for(const slug of ['too-old','legacy-old','future'])expect(xml).not.toContain('/blog/'+slug);
 });
+it('keeps analytical guides out of the news-only sitemap but in RSS',async()=>{
+ vi.spyOn(Date,'now').mockReturnValue(Date.parse('2026-10-20T04:00:00Z'));
+ state.posts=[{...post('analytical-guide','2026-10-20T03:07:00Z'),schemaType:'BlogPosting'}];
+ expect(await (await news()).text()).not.toContain('/blog/analytical-guide');
+ expect(await (await feed()).text()).toContain('/blog/analytical-guide');
+});
