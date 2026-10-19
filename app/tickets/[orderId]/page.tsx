@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ensureTickets, getEventMeta, getEventName, type TicketRow } from '@/lib/server/tickets';
+import { ensureTickets,ticketsForOrder, getEventMeta, getEventName, type TicketRow } from '@/lib/server/tickets';
 
 // All e-tickets of one order. Roles: public (anon) - the unguessable ORD- id
 // is the bearer, same model as /receipt/[id]. This page is also the lazy-mint
@@ -39,10 +39,11 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
   const o = await getOrder(id);
   if (!o) notFound();
 
-  const paid = o.status === 'paid' || o.status === 'fulfilled';
+  const paid = ticketIsActive({order_status:o.status,ticket_refund_policy:o.ticket_refund_policy});
   let tickets: TicketRow[] = [];
   try {
-    tickets = await ensureTickets(o); // lazy mint: paid order can never lack tickets
+    tickets = o.status==='partially_refunded'?await ticketsForOrder(o.id):await ensureTickets(o);
+    tickets=tickets.filter(ticket=>ticketIsActive({...ticket,order_status:o.status,ticket_refund_policy:o.ticket_refund_policy}));
   } catch (e) {
     console.error('[tickets-page]', e);
   }
@@ -120,3 +121,4 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
     </div>
   );
 }
+import {ticketIsActive} from '@/lib/server/ticket-entitlement';

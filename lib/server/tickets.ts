@@ -204,6 +204,10 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   try {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['tickets:' + order.id]);
+    // Recheck after acquiring the order lock: an old paid callback must not
+    // mint tickets after a concurrent refund has committed.
+    const current=await client.query('SELECT status FROM orders WHERE id=$1 FOR UPDATE',[order.id]);
+    if(!['paid','fulfilled'].includes(current.rows[0]?.status)){await client.query('COMMIT');return []}
     const existing = await client.query('SELECT * FROM tickets WHERE order_id=$1 ORDER BY position', [order.id]);
     if (existing.rows.length) {
       await client.query('COMMIT');
@@ -255,13 +259,13 @@ export async function ticketsForOrder(orderId: string): Promise<TicketRow[]> {
 // admin-issued free tickets without a second query.
 export async function getTicket(
   code: string
-): Promise<(TicketRow & { order_status: string; pay_method: string }) | null> {
+): Promise<(TicketRow & { order_status: string; pay_method: string;ticket_refund_policy?:string }) | null> {
   const pool = db();
   if (!pool) return null;
   try{
   await ensureTicketSchema();
   const r = await pool.query(
-    `SELECT t.*, COALESCE(o.status,'') AS order_status, COALESCE(o.pay_method,'') AS pay_method
+    `SELECT t.*, COALESCE(o.status,'') AS order_status, COALESCE(o.pay_method,'') AS pay_method,to_jsonb(o)->>'ticket_refund_policy' AS ticket_refund_policy
        FROM tickets t LEFT JOIN orders o ON o.id = t.order_id
       WHERE t.code=$1`,
     [code]

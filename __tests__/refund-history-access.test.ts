@@ -1,0 +1,11 @@
+import {beforeEach,it,expect,vi} from 'vitest';
+const f=vi.hoisted(()=>({auth:true,orders:true,q:vi.fn(),schema:vi.fn()}));
+vi.mock('@/lib/server/db',()=>({q:f.q}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>f.auth,hasPerm:()=>f.orders}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'fixture'}));
+vi.mock('@/lib/server/refunds',()=>({ensureRefundSchema:f.schema}));
+import {GET} from '@/app/api/admin/refunds/route';
+const request=(id='ORD-TEST')=>new Request('https://fixture.test/api/admin/refunds?orderId='+id);
+beforeEach(()=>{f.auth=true;f.orders=true;f.q.mockReset();f.schema.mockReset();f.schema.mockResolvedValue(undefined)});
+it('rejects unsigned and wrongly scoped reads before storage access',async()=>{f.auth=false;expect((await GET(request())).status).toBe(401);f.auth=true;f.orders=false;expect((await GET(request())).status).toBe(403);expect(f.q).not.toHaveBeenCalled();expect(f.schema).not.toHaveBeenCalled()});
+it('validates identifiers and scopes the no-store history lookup',async()=>{expect((await GET(request('invalid'))).status).toBe(400);f.q.mockResolvedValue([]);const response=await GET(request());expect(response.status).toBe(200);expect(response.headers.get('cache-control')).toBe('private, no-store');expect(f.q.mock.calls[0][1]).toEqual(['ORD-TEST']);expect(f.q.mock.calls[0][0]).not.toContain('request_hash')});

@@ -872,6 +872,38 @@ Story private-copy confirmations additionally require matching draft ID and next
 revision before enabling the explicit story save.
 # Operations release — 18 October 2026
 
+## External return accounting — 19 October 2026
+
+`POST /api/admin/save`, kind `orderStatus`, with refund status now requires typed
+integer `refundAmount`, `refundReason`, opaque `requestId` (32–128 characters),
+`externalReference`, `externalConfirmed:true` and `ticketCodes:[]`. Existing
+signed session, orders permission and same-origin gates remain; writes are
+rate-limited. This records operator-attested money ALREADY returned outside this
+website. It does not call or independently verify a provider refund API.
+
+The order is locked before checking the cumulative budget. Ledger insertion,
+ticket revocation, derived full/partial status and audit commit together. Exact
+retries return the same refund ID, including after a lost acknowledgement; a
+changed request or conflicting external reference returns 409. References are
+case-normalized and unique per order. Legacy ledger rows are preserved.
+
+Partial ticket refunds must select exact unused, unvoided tickets at the original
+saved unit values. The original position/allocation must be complete and
+verifiable. Mixed ticket/merch allocations and historical unallocated partial
+refunds require review rather than guessing. A cumulative full return revokes
+all remaining tickets. Recording a merchandise return does not automatically
+restock an item or promise physical return/exchange handling.
+
+Only new explicitly allocated partial refunds preserve unvoided remaining
+tickets in gate checks, PDFs, buyer wallet and ticket pages. Legacy partial
+refunds stay blocked. Ticket minting rechecks the locked live order so stale
+paid callbacks cannot mint after a refund. No new tickets mint for partials.
+
+`GET /api/admin/refunds?orderId=ORD-...` is orders-permission-only and private,
+no-store. It exposes the authorized order's recorded amounts, references and
+reasons, not request fingerprints. Receipt PDFs remain limited to paid/fulfilled
+orders; a post-refund web record is not a new receipt or provider refund proof.
+
 ## Private reply drafts — 19 October 2026
 
 `GET /api/admin/reply-drafts?channel=booking|gmail&context=...` reads only the

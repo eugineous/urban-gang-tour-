@@ -2,8 +2,10 @@ import { createHmac } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 
 const stored: any[] = [];
+let liveOrderStatus='paid';
 const client = {
   query: vi.fn(async (sql: string, params: any[] = []) => {
+    if(sql.startsWith('SELECT status FROM orders'))return {rows:[{status:liveOrderStatus}]};
     if (sql.startsWith('SELECT * FROM tickets WHERE order_id=')) {
       return { rows: stored.filter((ticket) => ticket.order_id === params[0]) };
     }
@@ -40,6 +42,7 @@ const paidOrder = {
 };
 
 describe('ticket issuance and authenticity', () => {
+  it('does not mint from a stale paid snapshot after refund',async()=>{stored.length=0;liveOrderStatus='refunded';try{expect(await ensureTickets(paidOrder)).toEqual([]);expect(stored).toEqual([])}finally{liveOrderStatus='paid'}});
   it('mints one stable ticket set when the same paid order is replayed', async () => {
     stored.length = 0;
     client.query.mockClear();

@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Financial correctness continuation (19 October 2026)
+- The owner approved the prioritized audit repairs. This release covers atomic,
+  idempotent recording of externally completed refunds and explicit partial
+  ticket allocation. Do not initiate any live refund, payment or test financial
+  transaction. Preserve legacy records; never auto-reactivate unallocated legacy
+  partial refunds. Deploy through the tested feature branch/PR/Cloudflare path.
+
 ## Continued workflow release (19 October 2026)
 - The owner instructed continuing the remaining operational repairs and deploying
   tested changes to the main site. This continuation adds private staff-scoped

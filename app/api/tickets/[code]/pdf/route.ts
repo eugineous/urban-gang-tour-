@@ -4,6 +4,7 @@ import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket } from '@/lib/server/tickets';
 import { renderTicketPdf } from '@/lib/tickets/pdf';
 import { getLogoDataUri } from '@/lib/ops/pdf';
+import {ticketIsActive} from '@/lib/server/ticket-entitlement';
 
 // Downloadable PDF twin of the /t/[code] web ticket. Public bearer route -
 // same trust model as the web page: the TKT- code is unguessable AND its
@@ -30,7 +31,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
   try {
     const t = await getTicket(code);
     if (!t) return new NextResponse('Not found', { status: 404 });
-    if(t.voided_at||!['paid','fulfilled'].includes(t.order_status))return NextResponse.json({error:'ticket_not_active'},{status:409,headers:{'Cache-Control':'no-store'}});
+    if(!ticketIsActive(t))return NextResponse.json({error:'ticket_not_active'},{status:409,headers:{'Cache-Control':'no-store'}});
 
     const logo = await getLogoDataUri();
     const buf = await renderTicketPdf({

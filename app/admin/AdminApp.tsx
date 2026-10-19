@@ -3,6 +3,7 @@ import {ContactEmail,ContactPhone} from './ContactActions';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import ContentTab from './StoryDesk';
 import StoryRecovery from './StoryRecovery';
+import RefundRecorder from './RefundRecorder';
 import {storyDraftContent} from '@/lib/story-draft';
 
 import { useEffect, useState, useCallback,useRef } from "react";
@@ -362,10 +363,12 @@ export default function AdminApp({
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
   const [tab, setTabState] = useState<Tab>("Dashboard");
+  const currentTab=useRef<Tab>(tab);currentTab.current=tab;
   const [openedTools,setOpenedTools]=useState<Tab[]>([]);
   const setTab = (next: Tab) => {setTabState(next);try{const url=new URL(window.location.href);if(url.searchParams.get('tab')!==next){url.searchParams.set('tab',next);history.pushState(null,'',url)}}catch{}};
   const [rows, setRows] = useState<any[]>([]);
   const [bookingRows,setBookingRows]=useState<any[]>([]);
+  const [refundOrder,setRefundOrder]=useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
@@ -734,9 +737,11 @@ export default function AdminApp({
         }
         setAuthed(false);
         setSession(null);
+        setRefundOrder(null);
       }}
     >
       {toast&&<div className="cr-notice" role="status">{toast}</div>}
+      {canSee('Orders')&&refundOrder&&<div hidden={tab!=='Orders'}><RefundRecorder key={refundOrder.id} order={refundOrder} onClose={()=>setRefundOrder(null)} onSaved={()=>{void load('orders').then(next=>{if(currentTab.current==='Orders')setRows(next)})}}/></div>}
 
       {tab === "Dashboard" && (
         <ControlRoomHome stats={stats} scope={session?.scope} perms={session?.perms || []} onOpen={(next) => setTab(next as Tab)} />
@@ -800,19 +805,6 @@ export default function AdminApp({
                   style={{ ...inp, width: 110, padding: 6 }}
                   onChange={(e) => {
                     const next = e.target.value;
-                    // Refunds must carry money truth (amount + reason) — the
-                    // backend rejects a bare flip. Prompt inline; cancel aborts.
-                    if (next === "refunded" || next === "partially_refunded") {
-                      const amountRaw = window.prompt(
-                        `Refund amount in KES (order total ${Number(r.total).toLocaleString()}). Full refund records "${next === "refunded" ? "refunded" : "partial"}":`,
-                        String(r.total),
-                      );
-                      if (amountRaw === null) { e.target.value = r.status; return; }
-                      const reason = window.prompt("Refund reason (required, recorded in the ledger):", "");
-                      if (!reason || reason.trim().length < 3) { window.alert("A reason of at least 3 characters is required."); e.target.value = r.status; return; }
-                      save("orderStatus", { id: r.id, status: next, refundAmount: amountRaw, refundReason: reason }, () => {});
-                      return;
-                    }
                     save(
                       "orderStatus",
                       { id: r.id, status: next },
@@ -820,12 +812,13 @@ export default function AdminApp({
                     );
                   }}
                 >
-                  {["pending", "paid", "failed", "fulfilled", "refunded", "partially_refunded"].map(
+                  {Array.from(new Set([r.status,"pending", "paid", "failed", "fulfilled"])).map(
                     (s) => (
                       <option key={s}>{s}</option>
                     ),
                   )}
                 </select>
+                {['paid','fulfilled','partially_refunded'].includes(r.status)&&<button type="button" style={btn} onClick={()=>{if(!refundOrder)setRefundOrder(r);else say('Finish or close the current refund form first.')}}>Record money returned</button>}
                 <button
                   style={{ ...btn, padding: "6px 8px" }}
                   onClick={() => {
