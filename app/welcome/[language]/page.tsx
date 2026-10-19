@@ -3,6 +3,8 @@ import {notFound} from 'next/navigation';
 import {SITE} from '@/lib/site';
 import {WELCOME_LANGUAGES,isWelcomeLanguage,welcomeAlternates} from '@/lib/welcome-languages';
 
+// Reject unsupported URLs before a streamed layout can commit HTTP 200.
+export const dynamicParams=false;
 export function generateStaticParams(){return Object.keys(WELCOME_LANGUAGES).map(language=>({language}));}
 export async function generateMetadata({params}:{params:Promise<{language:string}>}):Promise<Metadata>{
  const {language}=await params;if(!isWelcomeLanguage(language))notFound();
