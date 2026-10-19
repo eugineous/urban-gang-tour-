@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { receiptLines } from '@/lib/server/receipt-lines';
 import {PrintDocumentButton} from '@/app/_components/PrintDocumentButton';
 import QRCode from 'qrcode';
+import {ticketIsActive} from '@/lib/server/ticket-entitlement';
 import { maskPhone } from '@/lib/server/receipt-email';
 
 // Printable order receipt. Roles: public (anon) - the unguessable ORD- id is
@@ -53,6 +54,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const lines = await receiptLines(o);
   const paid = o.status === 'paid' || o.status === 'fulfilled';
   const failed = o.status === 'failed';
+  const refunded=['refunded','partially_refunded'].includes(o.status);
   const isComp = o.pay_method === 'comp';
   const method = isComp ? 'Complimentary (no charge)' : o.pay_method === 'card' ? 'Card' : 'M-Pesa';
   const reference = String(o.mpesa_receipt || o.paystack_ref || o.stripe_payment_intent || '');
@@ -67,10 +69,11 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   // e-tickets strip: paid ticket orders link every /t/<code>. ensureTickets is
   // the lazy-mint safety net - a paid order viewed here can never lack tickets.
   let tickets: import('@/lib/server/tickets').TicketRow[] = [];
-  if (paid || o.status === 'fulfilled') {
+  if (paid || (o.status==='partially_refunded'&&o.ticket_refund_policy==='allocated')) {
     try {
       const { ensureTickets } = await import('@/lib/server/tickets');
-      tickets = await ensureTickets(o);
+      tickets = o.status==='partially_refunded'?await (await import('@/lib/server/tickets')).ticketsForOrder(o.id):await ensureTickets(o);
+      tickets=tickets.filter(ticket=>ticketIsActive({...ticket,order_status:o.status,ticket_refund_policy:o.ticket_refund_policy}));
     } catch (e) {
       console.error('[receipt-tickets]', e);
     }
@@ -78,10 +81,10 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
   const banner = paid
     ? { bg: isComp ? '#B7860B' : '#1F8A5B', label: isComp ? 'PAID · COMPLIMENTARY' : 'PAID' }
-    : failed
+    : refunded ? {bg:'#B7860B',label:o.status==='refunded'?'FULL RETURN RECORDED':'PARTIAL RETURN RECORDED'} : failed
       ? { bg: '#C62828', label: 'NOT COMPLETED' }
       : { bg: '#B7860B', label: 'PENDING' };
 
   const qr=await QRCode.toString(`https://urbangangtour.co.ke/verify/order/${encodeURIComponent(id)}`,{type:'svg',margin:4,errorCorrectionLevel:'M'});
-  return <section className="document-stage"><article className="document-card receipt-card"><a className="document-brand" href="/"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour" width={72}/><span>Official receipt</span></a><p className={`document-status ${paid?'valid':failed?'void':'pending'}`} role="status">{banner.label}</p><h1>Your order receipt.</h1><dl className="document-details"><div><dt>Order</dt><dd>{o.id}</dd></div>{reference&&<div><dt>Payment reference</dt><dd>{reference}</dd></div>}<div><dt>Date</dt><dd>{dateStr}</dd></div><div><dt>Payment method</dt><dd>{method}</dd></div>{(o.name||phone)&&<div><dt>Billed to</dt><dd>{o.name}{phone?` (${phone})`:''}</dd></div>}</dl><div className="receipt-lines">{lines.map((l,i)=><div key={i}><span>{l.name} × {l.qty}{l.unit&&!isComp?<small> @ {fmtKes(l.unit)}</small>:null}</span><strong>{isComp?'FREE':fmtKes(l.total)}</strong></div>)}</div><div className="receipt-total"><span>{isComp?'Complimentary':'Total'}</span><strong>{isComp?'KES 0':fmtKes(Number(o.total)||0)}</strong></div>{isComp&&<p className="document-note">Issued free of charge. KES 0 due.</p>}{!paid&&!failed&&<p className="document-note" role="status">Payment has not been confirmed. Refresh to check the latest server status before attempting another purchase.</p>}{failed&&<p className="document-note" role="status">Payment was cancelled or failed. Check your provider’s payment record before retrying.</p>}{tickets.length>0&&<section className="receipt-tickets"><h2>Your tickets</h2><p>Each ticket admits one person.</p>{tickets.map(t=><a key={t.code} href={`/t/${encodeURIComponent(t.code)}`}>Ticket {t.position} of {t.of_count} · {t.tier_name}{t.used_at?' · Admitted':''} →</a>)}<a href={`/tickets/${encodeURIComponent(id)}`}>View all tickets</a></section>}<div className="receipt-qr" dangerouslySetInnerHTML={{__html:qr}}/><p className="document-note">Scan to verify the order status.</p><address className="document-note">{BIZ.name}<br/>{BIZ.addr}<br/>{BIZ.box}<br/>{BIZ.phone} · {BIZ.email}</address><div className="current-actions no-print"><a className="button" href={`/api/receipts/${encodeURIComponent(id)}/pdf`}>Download receipt</a><PrintDocumentButton/></div><p className="document-note">Thank you for supporting the culture.</p></article></section>;
+  return <section className="document-stage"><article className="document-card receipt-card"><a className="document-brand" href="/"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour" width={72}/><span>{refunded?'Order record':'Official receipt'}</span></a><p className={`document-status ${paid?'valid':failed?'void':'pending'}`} role="status">{banner.label}</p><h1>{refunded?'Your order and return record.':'Your order receipt.'}</h1><dl className="document-details"><div><dt>Order</dt><dd>{o.id}</dd></div>{reference&&<div><dt>Payment reference</dt><dd>{reference}</dd></div>}<div><dt>Date</dt><dd>{dateStr}</dd></div><div><dt>Payment method</dt><dd>{method}</dd></div>{(o.name||phone)&&<div><dt>Billed to</dt><dd>{o.name}{phone?` (${phone})`:''}</dd></div>}</dl><div className="receipt-lines">{lines.map((l,i)=><div key={i}><span>{l.name} × {l.qty}{l.unit&&!isComp?<small> @ {fmtKes(l.unit)}</small>:null}</span><strong>{isComp?'FREE':fmtKes(l.total)}</strong></div>)}</div><div className="receipt-total"><span>{isComp?'Complimentary':'Total'}</span><strong>{isComp?'KES 0':fmtKes(Number(o.total)||0)}</strong></div>{isComp&&<p className="document-note">Issued free of charge. KES 0 due.</p>}{!paid&&!failed&&!refunded&&<p className="document-note" role="status">Payment has not been confirmed. Refresh to check the latest server status before attempting another purchase.</p>}{refunded&&<p className="document-note" role="status">An external money return is recorded. This is an order record, not a new payment or proof of provider execution. Contact the team about the return and any remaining tickets.</p>}{failed&&<p className="document-note" role="status">Payment was cancelled or failed. Check your provider’s payment record before retrying.</p>}{tickets.length>0&&<section className="receipt-tickets"><h2>Your tickets</h2><p>Each ticket admits one person.</p>{tickets.map(t=><a key={t.code} href={`/t/${encodeURIComponent(t.code)}`}>Ticket {t.position} of {t.of_count} · {t.tier_name}{t.used_at?' · Admitted':''} →</a>)}<a href={`/tickets/${encodeURIComponent(id)}`}>View all tickets</a></section>}<div className="receipt-qr" dangerouslySetInnerHTML={{__html:qr}}/><p className="document-note">Scan to verify the order status.</p><address className="document-note">{BIZ.name}<br/>{BIZ.addr}<br/>{BIZ.box}<br/>{BIZ.phone} · {BIZ.email}</address><div className="current-actions no-print">{paid&&<a className="button" href={`/api/receipts/${encodeURIComponent(id)}/pdf`}>Download receipt</a>}<PrintDocumentButton/></div><p className="document-note">Thank you for supporting the culture.</p></article></section>;
 }

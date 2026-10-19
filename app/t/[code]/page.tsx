@@ -45,7 +45,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
   }
   if (!t) notFound();
 
-  const paid = !t.voided_at&&(t.order_status === 'paid' || t.order_status === 'fulfilled');
+  const paid = ticketIsActive(t);
   const used = !!t.used_at;
   const meta = await getEventMeta(t.event_id, t.marketplace_event_id);
   const evName = await getEventName(t.event_id, t.marketplace_event_id);
@@ -120,8 +120,8 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
           {!paid ? (
             <div className="tk-pending" role="status">
               <div>
-                <b>Pending payment</b>
-                <p>This ticket activates the moment payment is confirmed. If you just paid, refresh in a few seconds.</p>
+                <b>{t.voided_at||['refunded','partially_refunded'].includes(t.order_status)?'Ticket inactive':'Pending payment'}</b>
+                <p>{t.voided_at||['refunded','partially_refunded'].includes(t.order_status)?'This ticket is refunded, voided or awaiting refund allocation review. It cannot be used for entry. Contact the team with your order reference.':'This ticket activates when payment is confirmed. If you just paid, refresh in a few seconds.'}</p>
               </div>
             </div>
           ) : null}
@@ -136,3 +136,4 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
     </div>
   );
 }
+import {ticketIsActive} from '@/lib/server/ticket-entitlement';

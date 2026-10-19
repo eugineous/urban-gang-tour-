@@ -26,3 +26,9 @@ it('confirmed receipts are private and not cached',async()=>{
  f.q.mockResolvedValue([{id:'ORD-ABCD',status:'paid',phone:'254700000000'}]);const res=await receiptPdf(new Request('https://example.test'),{params:Promise.resolve({id:'ORD-ABCD'})});
  expect(res.status).toBe(200);expect(res.headers.get('cache-control')).toBe('private, no-store');expect(res.headers.get('content-type')).toBe('application/pdf');
 });
+it('serves only unvoided explicitly allocated partial-refund tickets',async()=>{
+ f.ticket.mockResolvedValue({order_status:'partially_refunded',ticket_refund_policy:'allocated',code:'TKT-FIXTURE'});
+ expect((await ticketPdf(new Request('https://example.test'),{params:Promise.resolve({code:'TKT-FIXTURE'})})).status).toBe(200);
+ f.ticket.mockResolvedValue({order_status:'partially_refunded',code:'TKT-FIXTURE'});
+ expect((await ticketPdf(new Request('https://example.test'),{params:Promise.resolve({code:'TKT-FIXTURE'})})).status).toBe(409);
+});

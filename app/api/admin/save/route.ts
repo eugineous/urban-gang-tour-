@@ -11,6 +11,7 @@ import { pingIndexNow } from '@/lib/server/indexnow';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 import { isOrderStatus, canAdminSetOrderStatus } from '@/lib/server/payment-status';
 import { contentAutomationReady, dispatchArticleAnnouncement, ensureContentAutomationSchema } from '@/lib/server/content-automation';
+import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
@@ -252,19 +253,23 @@ export async function POST(req: Request) {
         // transition is rejected here so "refunded" cannot exist without money
         // truth behind it.
         if (data.status === 'refunded' || data.status === 'partially_refunded') {
+          if(!rateLimit('refund-record:'+clientIp(req),20,60000))return NextResponse.json({error:'too_many_requests'},{status:429});
+          if(!exactKeys(data,['id','status','refundAmount','refundReason','requestId','externalReference','externalConfirmed','ticketCodes']))return NextResponse.json({error:'unexpected_refund_fields'},{status:400});
           const { recordRefund } = await import('@/lib/server/refunds');
           try {
             const out = await recordRefund({
               orderId: data.id,
-              amountKes: Math.round(Number(data.refundAmount)),
-              reason: String(data.refundReason || ''),
+              amountKes: data.refundAmount,
+              reason: data.refundReason,
               actor: adminActor(req),
+              requestId:data.requestId,externalReference:data.externalReference,externalConfirmed:data.externalConfirmed,ticketCodes:data.ticketCodes,
             });
-            return NextResponse.json({ ok: true, status: out.status, refundId: out.refundId });
+            return NextResponse.json({ ok: true,...out });
           } catch (e: any) {
             const msg = String(e?.message || 'refund_failed');
-            const status = msg === 'order_not_found' ? 404 : msg === 'order_not_refundable' ? 409 : 400;
-            return NextResponse.json({ error: msg }, { status });
+            const known=/^(invalid_|refund_|external_|ticket_|legacy_|mixed_|order_not_)/.test(msg);
+            const status = msg === 'order_not_found' ? 404 : ['order_not_refundable','refund_request_conflict'].includes(msg) ? 409 : known?400:503;
+            return NextResponse.json({ error: known?msg:'refund_record_unconfirmed' }, { status });
           }
         }
         const cur = await q<{ status: string }>(`SELECT status FROM orders WHERE id=$1`, [data.id]);

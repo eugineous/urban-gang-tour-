@@ -17,7 +17,9 @@ export async function GET(req: Request) {
     const orders=await customerOrders(user.id,download);
     const tickets=await q(`SELECT t.code,t.event_id,t.tier_name,t.holder,t.used_at,t.order_id
       FROM tickets t JOIN orders o ON o.id=t.order_id
-      WHERE o.user_id=$1 AND o.status IN ('paid','fulfilled') ORDER BY t.created_at DESC ${download ? '' : 'LIMIT 300'}`, [user.id]);
+      WHERE o.user_id=$1 AND to_jsonb(t)->>'voided_at' IS NULL
+       AND (o.status IN ('paid','fulfilled') OR (o.status='partially_refunded' AND to_jsonb(o)->>'ticket_refund_policy'='allocated'))
+       ORDER BY t.created_at DESC ${download ? '' : 'LIMIT 300'}`, [user.id]);
     const requests=await q('SELECT id,kind,status,created_at FROM customer_privacy_requests WHERE user_id=$1 ORDER BY created_at DESC', [user.id]);
     const body={profile:profile[0], orders, tickets, requests};
     if (download) return new NextResponse(JSON.stringify(body,null,2), {headers:{'Content-Type':'application/json','Content-Disposition':'attachment; filename="urban-gang-account.json"','Cache-Control':'private, no-store'}});

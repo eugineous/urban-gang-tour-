@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     const rows = await q(
       `UPDATE tickets SET used_at=now(), used_by='gate'
         WHERE code=$1 AND used_at IS NULL AND voided_at IS NULL
-          AND EXISTS (SELECT 1 FROM orders o WHERE o.id=tickets.order_id AND o.status IN ('paid','fulfilled'))
+          AND EXISTS (SELECT 1 FROM orders o WHERE o.id=tickets.order_id AND (o.status IN ('paid','fulfilled') OR (o.status='partially_refunded' AND to_jsonb(o)->>'ticket_refund_policy'='allocated')))
         RETURNING *`,
       [code]
     );

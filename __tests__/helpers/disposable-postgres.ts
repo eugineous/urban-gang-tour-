@@ -12,7 +12,7 @@ function csv(text:string):string[][]{
  }
  if(field||row.length){row.push(field);rows.push(row)}return rows;
 }
-const literal=(value:unknown)=>value==null?'NULL':typeof value==='number'||typeof value==='boolean'?String(value):"'"+String(value).replaceAll("'","''")+"'";
+const literal=(value:unknown):string=>value==null?'NULL':Array.isArray(value)?(value.length?'ARRAY['+value.map(literal).join(',')+']':'ARRAY[]::text[]'):typeof value==='number'||typeof value==='boolean'?String(value):"'"+String(value).replaceAll("'","''")+"'";
 export class DisposablePostgres{
  readonly name='ugt-operations-fixture-'+randomUUID();private created=false;
  start(){docker(['info','--format','{{.ServerVersion}}']);docker(['run','--rm','-d','--network','none','--name',this.name,'-e','POSTGRES_HOST_AUTH_METHOD=trust','postgres:16-alpine']);this.created=true;if(docker(['inspect',this.name,'--format','{{.HostConfig.NetworkMode}}'])!=='none')throw Error('fixture_not_isolated')}
