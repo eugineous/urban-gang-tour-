@@ -162,7 +162,7 @@ export default function Suppliers() {
           style={{
             display: 'grid',
             gap: 10,
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
           }}
         >
           <div>

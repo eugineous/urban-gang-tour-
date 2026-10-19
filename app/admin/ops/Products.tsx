@@ -84,7 +84,7 @@ export default function Products() {
       <div style={card}>
         <Toast msg={toast} />
         <h3 style={h3}>{edit.id ? 'EDIT PRODUCT' : 'NEW PRODUCT'}</h3>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
           <div><span style={label}>Name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Magenta Oversized Tee" /></div>
           <div><span style={label}>Price (KES) *</span><input style={inp} type="number" min={0} value={edit.price} onChange={(e) => setEdit({ ...edit, price: Number(e.target.value) || 0 })} /></div>
           <div><span style={label}>Cost (KES)</span><input style={inp} type="number" min={0} value={edit.costPrice} onChange={(e) => setEdit({ ...edit, costPrice: Math.max(0, Number(e.target.value) || 0) })} placeholder="0" /></div>

@@ -243,7 +243,7 @@ export default function OpsDashboard() {
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       <ExportPanel />
-      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' }}>
+      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
         <div style={{ ...card, textAlign: 'center' }}>
           <div style={{ fontFamily: 'inherit', fontSize: 26, color: d.outstanding > 0 ? OC.orange : OC.green }}>{fmtKES(d.outstanding)}</div>
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#666', fontWeight: 700 }}>Outstanding on invoices</div>

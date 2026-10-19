@@ -100,7 +100,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
 
   return <div>
     <div style={{ ...card, padding: 14, marginBottom: 14, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-      <div style={{ flex: 1, minWidth: 220 }}><div style={{ fontFamily: 'inherit', fontSize: 22 }}>GMAIL INBOX</div><div style={{ fontSize: 12, color: '#666' }}>{connection.email || 'Loading connection…'}</div></div>
+      <div style={{ flex: 1, minWidth: "min(100%, 220px)" }}><div style={{ fontFamily: 'inherit', fontSize: 22 }}>GMAIL INBOX</div><div style={{ fontSize: 12, color: '#666' }}>{connection.email || 'Loading connection…'}</div></div>
       <form onSubmit={(event) => { event.preventDefault(); load(search); }} style={{ display: 'flex', gap: 7, flex: '1 1 360px' }}>
         <input aria-label="Search Gmail" style={field} placeholder="Search Gmail (name, subject, from:)" value={search} onChange={(event) => setSearch(event.target.value)} />
         <button style={button} type="submit">Search</button>

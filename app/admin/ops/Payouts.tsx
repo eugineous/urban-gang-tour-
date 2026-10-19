@@ -112,7 +112,7 @@ export default function Payouts() {
             style={{
               display: "grid",
               gap: 14,
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
             }}
           >
             <div style={{ ...card, textAlign: "center" }}>
@@ -198,7 +198,7 @@ export default function Payouts() {
               style={{
                 display: "grid",
                 gap: 10,
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))",
               }}
             >
               <div>

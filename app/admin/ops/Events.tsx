@@ -313,7 +313,7 @@ export default function Events() {
         {/* Overview */}
         <div style={{ marginBottom: 18 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Overview</p>
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
             <div><label style={label} htmlFor="tour-event-kind">Kind *</label>
               <select id="tour-event-kind" style={inp} value={edit.kind} disabled={!!edit.id} onChange={(e) => setEdit({ ...edit, kind: e.target.value as Kind })}>
                 <option value="ticketed">Ticketed concert</option>
@@ -354,7 +354,7 @@ export default function Events() {
         {edit.kind !== 'past' && (
           <div style={{ marginBottom: 18 }}>
             <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Schedule</p>
-            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
               <div><label style={label} htmlFor="tour-event-date">Date {edit.kind === 'school' ? '(leave blank if TBA)' : '*'}</label><input id="tour-event-date" style={inp} type="date" value={edit.eventDate} onChange={(e) => setEdit({ ...edit, eventDate: e.target.value })} /></div>
               {edit.kind === 'school' && !edit.eventDate && (
                 <div><label style={label} htmlFor="tour-event-date-label">Date label (shown instead, e.g. &quot;Date to be confirmed&quot;)</label><input id="tour-event-date-label" style={inp} value={edit.dateLabel} onChange={(e) => setEdit({ ...edit, dateLabel: e.target.value })} placeholder="Date to be confirmed" /></div>
@@ -369,7 +369,7 @@ export default function Events() {
         {/* Venue */}
         <div style={{ marginBottom: 18 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Venue</p>
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
             <div><label style={label} htmlFor="tour-event-venue">{edit.kind === 'ticketed' ? 'Venue' : 'Location line'}</label><input id="tour-event-venue" style={inp} value={edit.venue} onChange={(e) => setEdit({ ...edit, venue: e.target.value })} placeholder={edit.kind === 'ticketed' ? 'KICC Grounds' : 'Kimende, Lari, Kiambu County'} /></div>
             {(edit.kind === 'ticketed'||edit.kind==='partner') && (
               <div><label style={label} htmlFor="tour-event-city">City</label><input id="tour-event-city" style={inp} value={edit.city} onChange={(e) => setEdit({ ...edit, city: e.target.value })} placeholder="Nairobi" /></div>
@@ -383,7 +383,7 @@ export default function Events() {
             <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Tickets</p>
             <span style={label}>Ticket tiers (real prices — checkout charges exactly this)</span>
             {edit.tiers.map((t, i) => (
-              <fieldset key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginBottom: 12, padding: 12, border: '1px solid #ddd', borderRadius: 8 }}>
+              <fieldset key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 8, marginBottom: 12, padding: 12, border: '1px solid #ddd', borderRadius: 8 }}>
                 <legend>Tier {i + 1}</legend>
                 <label style={label}>Name<input aria-label={`Ticket tier ${i + 1} name`} style={inp} value={t.name} onChange={(e) => setTier(i, { name: e.target.value })} placeholder="Tier name" /></label>
                 <label style={label}>Price · KES<input aria-label={`Ticket tier ${i + 1} price in KES`} style={inp} type="number" min={0} step={1} value={t.price} onChange={(e) => setTier(i, { price: Number(e.target.value) || 0 })} /></label>
@@ -401,7 +401,7 @@ export default function Events() {
         {/* Media */}
         <div style={{ marginBottom: 18 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Media</p>
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
             <div id="event-main-artwork"><ImageUploadField label="Event artwork" purpose="events" value={edit.image} disabled={busy||imageBusy} onBusyChange={setImageBusy} onChange={url=>setEdit(current=>current?{...current,image:url}:current)}/></div>
             {edit.kind==='partner'&&<div><label htmlFor="event-poster-caption">Poster caption / accessible description</label><textarea id="event-poster-caption" style={inp} maxLength={300} value={edit.partnerDetails.posterCaption||''} onChange={e=>setEdit({...edit,partnerDetails:{...edit.partnerDetails,posterCaption:e.target.value}})}/></div>}
             {edit.kind === 'ticketed' && (
@@ -427,7 +427,7 @@ export default function Events() {
         {/* Lifecycle */}
         <div style={{ marginBottom: 18 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: OC.magenta }}>Lifecycle</p>
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
             <div><label style={label} htmlFor="tour-event-status">Status</label>
               <select id="tour-event-status" style={inp} value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as Status })} aria-describedby="tour-event-visibility">
                 {EVENT_STATUSES.map(status => <option value={status} key={status}>{STATUS_LABEL[status]} ({isPubliclyVisible(status) ? 'public' : 'hidden'})</option>)}

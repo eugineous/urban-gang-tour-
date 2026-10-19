@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Responsive/language/editorial continuation (19 October 2026)
+- Owner requests responsive repairs across phone/foldable/tablet/desktop sizes,
+  a browser-aware language chooser and Issue #81 preparation. Deploy tested work
+  through PR/Cloudflare, preserving bindings and auth. Do not label source checks
+  as physical-device/browser verification. Never send private, booking or payment
+  URLs to a translation proxy. Missing editorial ZIP is a real dependency; no
+  invented/imported articles, schedule times, rights or live publication claims.
+
 ## International-readiness release (19 October 2026)
 - The owner authorizes tested positioning, language-entry, accessibility and
   editorial-integrity improvements and deployment through the PR/Cloudflare path.

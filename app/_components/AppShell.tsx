@@ -6,6 +6,7 @@ import {ContactFooter} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
+import LanguageChooser from './LanguageChooser';
 
 export function AppShell({children}:{children:React.ReactNode}){
  const path=usePathname();
@@ -43,6 +44,7 @@ export function AppShell({children}:{children:React.ReactNode}){
    <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
    <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={path===href?'page':undefined}>{label}</a>)}</nav>
    <div className="header-actions">
+    <LanguageChooser path={path}/>
     <a className="mobile-about-link" href="/about" aria-current={path==='/about'?'page':undefined}>About</a>
     <a className="mobile-shop-link" href="/shop">Shop</a>
     <a className="cart-link" href="/cart" aria-label="View your cart">Cart</a>

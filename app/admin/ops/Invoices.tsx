@@ -324,7 +324,7 @@ export default function Invoices() {
             style={{
               display: "grid",
               gap: 10,
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
             }}
           >
             <div>
@@ -533,7 +533,7 @@ export default function Invoices() {
         style={{
           display: "grid",
           gap: 14,
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
         }}
       >
         <div style={{ ...card, textAlign: "center" }}>
@@ -622,7 +622,7 @@ export default function Invoices() {
           }}
         >
           <span style={{ fontWeight: 700 }}>From budget:</span>
-          <div style={{ minWidth: 220 }}>
+          <div style={{ minWidth: "min(100%, 220px)" }}>
             <EventSelect
               events={events.filter((e) => e.latest_budget_version)}
               value={null}

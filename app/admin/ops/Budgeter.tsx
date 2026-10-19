@@ -93,7 +93,7 @@ export default function Budgeter() {
 
       <div style={card}>
         <h3 style={h3}>EVENT BUDGETER</h3>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))' }}>
           <div>
             <span style={label}>Event</span>
             <FilterableEventSelect events={events} value={eventId} onChange={loadEvent} allowNone noneLabel="+ New event (start blank)" />
@@ -133,7 +133,7 @@ export default function Budgeter() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', alignItems: 'start' }}>
         {/* -------- inputs column -------- */}
         <div style={{ display: 'grid', gap: 14 }}>
           <div style={card}>
@@ -185,7 +185,7 @@ export default function Budgeter() {
 
           <div style={card}>
             <h3 style={h3}>CREW, TEACHER, CONTINGENCY</h3>
-            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))' }}>
               <div>
                 <span style={label}>Crew count (per event)</span>
                 <input style={inp} type="number" inputMode="numeric" min={0} value={b.crewCount} onChange={(e) => set('crewCount', Math.max(0, Math.floor(Number(e.target.value) || 0)))} />

@@ -107,7 +107,7 @@ export default function SearchConsolePanel() {
     </div>
     {error ? <p style={{ margin: '14px 0 0', color: '#9D1428', fontWeight: 700 }}>Could not load status: {error}</p> : null}
     {overview ? <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10, marginTop: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 180px), 1fr))', gap: 10, marginTop: 16 }}>
         <div style={{ border: '1px solid #ddd', borderRadius: 10, padding: 11 }}><b>Connection</b><div style={{ marginTop: 5, fontSize: 13 }}>{overview.state.replace(/_/g, ' ')}</div></div>
         <div style={{ border: '1px solid #ddd', borderRadius: 10, padding: 11 }}><b>Property</b><div style={{ marginTop: 5, fontSize: 13, overflowWrap: 'anywhere' }}>{overview.property || 'Not configured'}</div></div>
         <div style={{ border: '1px solid #ddd', borderRadius: 10, padding: 11 }}><b>Access</b><div style={{ marginTop: 5, fontSize: 13 }}>{overview.permissionLevel || 'Not reported'}</div></div>
@@ -115,7 +115,7 @@ export default function SearchConsolePanel() {
       <p style={{ margin: '12px 0 0', color: '#555', fontSize: 13, lineHeight: 1.5 }}>{stateCopy} Checked {formatWhen(overview.checkedAt)}.</p>
       {overview.performance ? <div style={{ marginTop: 16 }}>
         <h4 style={{ margin: '0 0 8px', fontSize: 14, textTransform: 'uppercase' }}>Search performance, {overview.performance.startDate} to {overview.performance.endDate}</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(135px,1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 135px), 1fr))', gap: 10 }}>
           {[["Clicks", overview.performance.clicks], ["Impressions", overview.performance.impressions], ["CTR", pct(overview.performance.ctr)], ["Average position", overview.performance.position ?? 'Not reported'], ["Days reported", overview.performance.daysWithData]].map(([label, value]) => <div key={String(label)} style={{ background: '#FFF8D8', border: '1px solid #ddd', borderRadius: 10, padding: 10 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>{label}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{value}</div></div>)}
         </div>
         {!overview.performance.daysWithData ? <p style={{ color: '#666', fontSize: 12, marginBottom: 0 }}>Google returned no daily rows for this completed period. That can mean no reportable data, it is not a forecast or a zero-traffic claim.</p> : null}

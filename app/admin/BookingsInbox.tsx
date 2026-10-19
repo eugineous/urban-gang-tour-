@@ -130,7 +130,7 @@ export default function BookingsInbox({
   return (
     <div>
       <div style={{ ...card, padding: 16, marginBottom: 14, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 240 }}>
+        <div style={{ flex: 1, minWidth: "min(100%, 240px)" }}>
           <div style={{ fontFamily: 'inherit', fontSize: 22 }}>BOOKING DESK</div>
           <div style={{ fontSize: 12, color: '#666' }}>Review requests, reply from Gmail, and keep every decision in one place.</div>
         </div>
@@ -174,7 +174,7 @@ export default function BookingsInbox({
         <section style={{ ...card, padding: 18, minWidth: 0 }}>
           {!selected ? <div style={{ color: '#666' }}>Select a booking to open it.</div> : <>
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ flex: 1, minWidth: "min(100%, 220px)" }}>
                 <div style={{ color: C.pink, fontSize: 12, fontWeight: 900, textTransform: 'uppercase' }}>{selected.type}</div>
                 <h2 style={{ fontFamily: 'inherit', fontSize: 28, margin: '3px 0' }}>{selected.name}</h2>
                 <div style={{ fontSize: 13, color: '#666' }}>{selected.org || 'No organisation supplied'} · {formatDate(selected.created_at)}</div>
@@ -190,7 +190,7 @@ export default function BookingsInbox({
             </div>
 
             {selectedDetails.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, margin: '8px 0 16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 10, margin: '8px 0 16px' }}>
                 {selectedDetails.map(([label, value]) => (
                   <div key={label} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 10, background: '#FFF8D8' }}>
                     <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.06em', color: '#666' }}>{label}</div>

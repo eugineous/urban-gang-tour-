@@ -4367,7 +4367,7 @@ function ProductionLibrary({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(170px,1fr))",
+          gridTemplateColumns: "repeat(auto-fill,minmax(min(100%, 170px), 1fr))",
           gap: 8,
           marginTop: 14,
         }}

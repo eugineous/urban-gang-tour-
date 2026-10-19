@@ -1,5 +1,7 @@
 import { getBlogPosts } from '@/app/_lib/blog';
 import { SITE } from '@/lib/site';
+import {publicationInstant} from '@/lib/editorial-time';
+import {publicImageUrl} from '@/lib/public-image-url';
 
 export const revalidate = 900; // match news-sitemap: fresh within 15 minutes
 
@@ -19,10 +21,10 @@ export async function GET() {
       <title>${esc(p.headline)}</title>
       <link>${url}</link>
       <guid isPermaLink="true">${url}</guid>
-      <pubDate>${new Date(p.datePublished + 'T06:00:00Z').toUTCString()}</pubDate>
+      <pubDate>${publicationInstant(p.datePublished).toUTCString()}</pubDate>
       <description>${esc(p.description)}</description>
       <category>${esc(p.section)}</category>
-      <media:content url="${SITE.domain}${esc(p.image)}" medium="image" />
+      <media:content url="${esc(publicImageUrl(p.image))}" medium="image" />
     </item>`;
   }).join('\n');
 
@@ -32,7 +34,7 @@ export async function GET() {
     <title>Urban News — Urban Gang Tour</title>
     <link>${SITE.domain}/blog</link>
     <atom:link href="${SITE.domain}/feed.xml" rel="self" type="application/rss+xml" />
-    <description>Kenya's school-talent paper of record: tour stops, talent features and culture from Urban Gang Tour.</description>
+    <description>Published school and campus event updates, culture and stories from Urban Gang Tour.</description>
     <language>en-ke</language>
 ${items}
   </channel>

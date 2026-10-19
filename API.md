@@ -1,5 +1,18 @@
 # API Contracts — Urban Gang Tour
 
+## Public feed and language handoff (19 October 2026)
+
+- `/feed.xml`: RSS dates preserve precise ISO instants when available. Legacy
+  date-only posts use Nairobi midnight as a documented day-precision fallback,
+  not a fabricated 06:00 UTC time. Absolute image URLs are resolved safely.
+- `/news-sitemap.xml`: freshness uses those same instants, excluding future items.
+  This does not enable Issue #81's timestamp-aware publication engine.
+- The header language chooser creates no API endpoint or background translation
+  requests. Google opens only on an explicit visitor click, with a validated
+  canonical public information URL and catalogue language code. No private,
+  staff, booking, shopping, receipt, ticket, payment, query or hash URL is sent.
+  Six local welcome translations remain distinct from external machine translation.
+
 All endpoints: JSON in/out. Public POSTs are IP rate-limited (never user-ID for
 anonymous traffic). Strict schemas — unknown fields are rejected with
 `unexpected_field:<name>`. Production secrets live in Cloudflare Worker secrets only.
