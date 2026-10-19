@@ -46,6 +46,9 @@ workflow is blocked; no claim of Android/iPhone, zoom, dark-mode or screen-reade
 visual sign-off. Regression tests cover rendered welcome markup, navigation,
 metadata, language validation, preference storage failure and cache isolation.
 Build and read-only main-site checks are required before calling this deployed.
+The first live pass exposed an unsupported-language soft-404 (HTTP 200). The
+follow-up restricts generation to the six known language parameters; an actual
+HTTP 404 for `/welcome/de` is a mandatory release gate, not just not-found text.
 
 Availability in China, Russia, USA and France needs probes from those countries
 and their actual networks. A .co.ke domain and globally reachable HTML are not

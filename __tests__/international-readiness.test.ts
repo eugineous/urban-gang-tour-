@@ -2,7 +2,7 @@ import {afterEach,describe,expect,it,vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {readFileSync} from 'node:fs';
 import {WELCOME_LANGUAGES,isWelcomeLanguage,welcomeAlternates} from '@/lib/welcome-languages';
-import Welcome,{generateMetadata} from '@/app/welcome/[language]/page';
+import Welcome,{generateMetadata,generateStaticParams,dynamicParams} from '@/app/welcome/[language]/page';
 import {SITE} from '@/lib/site';
 import {SITE_MENU_GROUPS} from '@/lib/site-navigation';
 import {metadataForPath} from '@/app/_lib/seo';
@@ -19,6 +19,8 @@ describe('actual translated welcome pages',()=>{
   expect(html).toContain('KES');expect(html).toContain('href="/contact-us"');expect(html).not.toContain('<iframe');
  });
  it('does not claim arbitrary languages exist or accept inherited object names',async()=>{
+  expect(dynamicParams).toBe(false);
+  expect(generateStaticParams()).toEqual(Object.keys(WELCOME_LANGUAGES).map(language=>({language})));
   for(const code of ['de','../admin','__proto__','constructor','EN','zh'])expect(isWelcomeLanguage(code)).toBe(false);
   await expect(Welcome({params:Promise.resolve({language:'de'})})).rejects.toThrow();
  });
