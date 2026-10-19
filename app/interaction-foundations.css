@@ -29,3 +29,5 @@ dialog.menu-panel :focus-visible{outline:2px solid var(--action);outline-offset:
 .route-loading img{object-fit:contain;animation:ugt-loading-turn 1.8s linear infinite}
 @keyframes ugt-loading-turn{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.route-loading img{animation:none}}
+.reply-draft-status{padding:12px;border:1px solid #ddd;border-radius:10px;background:#f8f8f8;min-width:0;overflow-wrap:anywhere}
+.reply-draft-status p{margin:0 0 8px}.reply-draft-status>div{display:flex;flex-wrap:wrap;gap:8px}.reply-draft-status small{display:block;margin-top:8px;line-height:1.5}

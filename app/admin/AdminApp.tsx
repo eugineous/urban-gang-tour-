@@ -365,6 +365,7 @@ export default function AdminApp({
   const [openedTools,setOpenedTools]=useState<Tab[]>([]);
   const setTab = (next: Tab) => {setTabState(next);try{const url=new URL(window.location.href);if(url.searchParams.get('tab')!==next){url.searchParams.set('tab',next);history.pushState(null,'',url)}}catch{}};
   const [rows, setRows] = useState<any[]>([]);
+  const [bookingRows,setBookingRows]=useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
@@ -429,6 +430,7 @@ export default function AdminApp({
       setLoadError('This list could not be loaded. Try again; existing records have not been removed.');
       return [];
     }
+    if(view==='bookings')setBookingRows(data.rows);
     return data.rows || [];
   }, []);
 
@@ -462,8 +464,8 @@ export default function AdminApp({
     void probeSession();
   }, [probeSession]);
   useEffect(()=>{
-    if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setProtectedDraft({id:'',fingerprint:''});setStorySaveError('');setRows([]);setSettings({});setTix({});setStats(null)}return}
-    if(['Events','Products','Gallery','Contacts','Inbox','Website'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
+    if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setProtectedDraft({id:'',fingerprint:''});setStorySaveError('');setRows([]);setBookingRows([]);setSettings({});setTix({});setStats(null)}return}
+    if(['Events','Products','Gallery','Contacts','Inbox','Bookings','Website'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
   },[authed,tab]);
   useEffect(()=>{
     if(!session)return;
@@ -761,14 +763,14 @@ export default function AdminApp({
       {tab === "Campaigns" && <Campaigns />}
       {tab === "Checklists" && <Checklists />}
       {tab === "Reviews" && <Reviews />}
-      {tab === "Bookings" && (
+      {canSee('Bookings')&&(tab==='Bookings'||openedTools.includes('Bookings'))&&<div hidden={tab!=='Bookings'}>
         <BookingsInbox
-          rows={rows}
+          rows={bookingRows}
           googleClientId={googleClientId}
           say={say}
-          onChanged={() => load("bookings").then(setRows)}
+          onChanged={() => {void load("bookings")}}
         />
-      )}
+      </div>}
       {tab === "Orders" && (
         <>
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>

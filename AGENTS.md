@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Continued workflow release (19 October 2026)
+- The owner instructed continuing the remaining operational repairs and deploying
+  tested changes to the main site. This continuation adds private staff-scoped
+  reply-draft recovery and booking failure feedback. Preserve permissions,
+  bindings, content and existing payment safeguards. No production test messages,
+  purchases, credential changes or browser/authentication bypasses.
+
 ## Current operations release authorization (18 October 2026)
 - The owner explicitly requested deploying the current checkout recovery,
   ticket reservation, publishing, contact and responsive workflow repairs to

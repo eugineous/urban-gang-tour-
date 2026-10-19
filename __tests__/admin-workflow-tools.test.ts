@@ -35,5 +35,6 @@ it('never reuploads completed photos and allows a failed photo to retain its sto
 });
 it('keeps navigation, stale-response protection and per-message drafts wired into the real modules',()=>{
  const admin=readFileSync(new URL('../app/admin/AdminApp.tsx',import.meta.url),'utf8');expect(admin).toContain('history.pushState');expect(admin).toContain("addEventListener('popstate'");expect(admin).toContain('if(active)setRows(next)');expect(admin).toContain("openedTools.includes('Events')");expect(admin).toContain('The story was not saved. Your changes are still here.');
- const gmail=readFileSync(new URL('../app/admin/GmailInbox.tsx',import.meta.url),'utf8');expect(gmail).not.toContain("useEffect(() => { setReply(''); }");expect(gmail).toContain('clearSentReply(current,sentKey,sentText)');expect(gmail).toContain('sendingRef.current=false;setSending(false)');expect(gmail).toContain('fetchWithTimeout');
+ const gmail=readFileSync(new URL('../app/admin/GmailInbox.tsx',import.meta.url),'utf8');expect(gmail).not.toContain("useEffect(() => { setReply(''); }");expect(gmail).toContain("draft.store.clear(sentKey,{subject:'',body:sentText})");expect(gmail).toContain('draft.store.sendReference');expect(gmail).toContain('sendingRef.current=false;setSending(false)');expect(gmail).toContain('fetchWithTimeout');
+ expect(admin).toContain("openedTools.includes('Bookings')");expect(admin).toContain('rows={bookingRows}');
 });

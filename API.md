@@ -872,6 +872,31 @@ Story private-copy confirmations additionally require matching draft ID and next
 revision before enabling the explicit story save.
 # Operations release — 18 October 2026
 
+## Private reply drafts — 19 October 2026
+
+`GET /api/admin/reply-drafts?channel=booking|gmail&context=...` reads only the
+current signed-in staff member's draft. Booking drafts require `bookings` module
+permission; Gmail drafts require super-admin. Every response is private/no-store.
+`PUT` accepts channel, context, subject (200), body (10,000) and expectedVersion
+(null for first save, otherwise the server's version). It rejects unexpected
+fields, cross-origin writes and bodies over 50,000 bytes. Compare-and-swap
+prevents stale tabs overwriting newer edits (409). Identical lost-ack retries
+return the existing acknowledgement rather than manufacturing a new revision.
+
+`DELETE` accepts channel, context, expectedVersion only. It clears the text and
+keeps a content-free version tombstone so delayed requests cannot restore it.
+Private drafts persist until cleared; they do not send, publish or take payments.
+Text is stored in the database, not browser localStorage. Logout removes mounted
+editor memory, not another staff member's server drafts or permissions.
+
+Each draft has a stable opaque `sendKey` independent of autosave revisions. Gmail
+send requests reuse it across refresh, edits and new tabs. An uncertain send is
+never automatically resent under a fresh key; changed content under that key
+still conflicts. A new key follows explicit draft clearing and new writing.
+For migration, a first PUT may include a validated `legacySendKey` from the old
+tab's opaque recovery record; subsequent writes cannot change it. Provider
+acceptance is distinct from delivery. Draft clearing is distinct from cancellation.
+
 - `POST /api/checkout/session`: public same-origin, empty body only; creates a
   signed HttpOnly guest-checkout cookie. Not an account or admin login. No-store.
 - `POST /api/checkout/recovery`: same-origin signed guest scope; `{key}` is an

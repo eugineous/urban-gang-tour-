@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {ContactEmail,ContactPhone} from './ContactActions';
-import {clearReplyIntent,replyIntent} from '@/lib/client/reply-intent';
 import GmailConnectButton from './GmailConnectButton';
+import {useReplyDraft} from '@/lib/client/use-reply-draft';
+import ReplyDraftStatus from './ReplyDraftStatus';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', ink: '#111', green: '#1F8A5B' };
 const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd', borderRadius: 14, boxShadow: 'none' };
@@ -45,10 +46,10 @@ export default function BookingsInbox({
   const [status, setStatus] = useState('open');
   const [replies, setReplies] = useState<any[]>([]);
   const [gmail, setGmail] = useState<{ connected: boolean; email?: string }>({ connected: false });
-  const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
-  const pending=useRef(false),drafts=useRef<Record<string,{subject:string;body:string}>>({}),selection=useRef('');
+  const [statusBusy,setStatusBusy]=useState(false);
+  const statusPending=useRef(false);
+  const pending=useRef(false),selection=useRef('');
 
   const shown = useMemo(() => rows.filter((row) => {
     const matchesQuery = !query || JSON.stringify(row).toLowerCase().includes(query.toLowerCase());
@@ -57,6 +58,15 @@ export default function BookingsInbox({
     return matchesQuery && matchesStatus;
   }).sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)||String(a.id).localeCompare(String(b.id))), [rows, query, status]);
   const selected = shown.find((row) => row.id === selectedId) || shown[0] || null;
+  const details=selected?[
+    selected.preferred_date?`Preferred date: ${formatPlainDate(selected.preferred_date)}`:'',
+    selected.expected_attendance?`Expected attendance: ${formatAttendance(selected.expected_attendance)}`:'',
+    selected.event_brief?`Brief: ${selected.event_brief}`:'',
+  ].filter(Boolean).join('\n'):'';
+  const defaults={subject:`Re: ${selected?.type||'Your booking'} — Urban Gang Tour`,body:selected?`Hi ${String(selected.name||'').split(' ')[0]||'there'},\n\nThanks for reaching out about ${selected.type||'working with Urban Gang Tour'}. We have received your request${details?` with these details:\n\n${details}`:''}.\n\nWe will review the date, venue, audience size and production needs before confirming anything in writing.\n\nBest,\nUrban Gang Tour`:''};
+  const draft=useReplyDraft('booking',selected?.id||'',defaults);
+  const {subject,body}=draft.entry||defaults;
+
 
   useEffect(() => {
     if (!shown.some(row=>row.id===selectedId) && shown[0]) setSelectedId(shown[0].id);
@@ -70,14 +80,7 @@ export default function BookingsInbox({
 
   useEffect(() => {
     if (!selected) return;
-    selection.current=selected.id;const saved=drafts.current[selected.id];
-    setSubject(saved?.subject??`Re: ${selected.type || 'Your booking'} — Urban Gang Tour`);
-    const details = [
-      selected.preferred_date ? `Preferred date: ${formatPlainDate(selected.preferred_date)}` : '',
-      selected.expected_attendance ? `Expected attendance: ${formatAttendance(selected.expected_attendance)}` : '',
-      selected.event_brief ? `Brief: ${selected.event_brief}` : '',
-    ].filter(Boolean).join('\n');
-    setBody(saved?.body??`Hi ${String(selected.name || '').split(' ')[0] || 'there'},\n\nThanks for reaching out about ${selected.type || 'working with Urban Gang Tour'}. We have received your request${details ? ` with these details:\n\n${details}` : ''}.\n\nWe will review the date, venue, audience size and production needs before confirming anything in writing.\n\nBest,\nUrban Gang Tour`);
+    selection.current=selected.id;
     const controller=new AbortController();setReplies([]);
     fetchWithTimeout(`/api/admin/bookings/reply?id=${encodeURIComponent(selected.id)}`,{signal:controller.signal})
       .then(async r=>{if(!r.ok)throw Error();return r.json()}).then(data=>{if(!controller.signal.aborted)setReplies(data.replies||[])}).catch(()=>{if(!controller.signal.aborted)say('Reply history could not load. Your draft is kept.')});
@@ -85,29 +88,34 @@ export default function BookingsInbox({
   }, [selected?.id]);
 
   const changeStatus = async (next: string) => {
-    if (!selected) return;
-    const response = await fetch('/api/admin/save', {
+    if (!selected||statusPending.current) return;
+    statusPending.current=true;setStatusBusy(true);
+    try{
+    const response = await fetchWithTimeout('/api/admin/save', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind: 'bookingStatus', data: { id: selected.id, status: next } }),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) say(`Could not update booking: ${data.error || response.status}`);
+    if (!response.ok||!data.ok) say('Booking status was not confirmed. Your saved draft is unchanged.');
     else { say('Booking updated'); onChanged(); }
+    }catch{say('Could not confirm the booking status. Refresh before retrying. Your draft is kept.')}
+    finally{statusPending.current=false;setStatusBusy(false)}
   };
 
   const sendReply=async()=>{
     if(!selected||!body.trim()||pending.current)return;
     const booking=selected,sentSubject=subject,sentBody=body;
     pending.current=true;setSending(true);
-    drafts.current[booking.id]={subject:sentSubject,body:sentBody};
+
     try{
-      const response=await fetchWithTimeout('/api/admin/bookings/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:booking.id,subject:sentSubject,body:sentBody,requestId:replyIntent('booking:'+booking.id)})});
+      if(!await draft.store.save(booking.id,true)){say('Save your draft before sending. Your text is kept.');return}
+      const requestId=draft.store.sendReference(booking.id,{subject:sentSubject,body:sentBody});if(!requestId){say('Your draft changed while saving. Review it before sending.');return}
+      const response=await fetchWithTimeout('/api/admin/bookings/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:booking.id,subject:sentSubject,body:sentBody,requestId})});
       const data=await response.json().catch(()=>({}));
       if(!response.ok||data.ok!==true){say(data.error==='gmail_not_connected'?'Connect Gmail before sending. Your draft is kept.':data.error==='gmail_send_outcome_unknown'?'Gmail acceptance is unconfirmed. Check Gmail Sent before retrying. Your draft and send reference are kept.':'Reply not confirmed. Your draft is kept; check Gmail Sent before retrying.');return}
-      clearReplyIntent('booking:'+booking.id);
-      if(drafts.current[booking.id]?.body===sentBody)drafts.current[booking.id]={subject:sentSubject,body:''};
-      if(selection.current===booking.id){setBody(current=>current===sentBody?'':current);setReplies(current=>[...current,{id:data.id,sender:gmail.email||'Gmail',recipient:booking.email,subject:sentSubject,body:sentBody,created_at:new Date().toISOString()}])}
-      say('Gmail accepted your reply. Delivery is not yet confirmed.');onChanged();
+      const cleared=await draft.store.clear(booking.id,{subject:sentSubject,body:sentBody});
+      if(selection.current===booking.id){setReplies(current=>current.some(row=>row.id===data.id)?current:[...current,{id:data.id,sender:gmail.email||'Gmail',recipient:booking.email,subject:sentSubject,body:sentBody,created_at:new Date().toISOString()}])}
+      say(cleared?'Gmail accepted your reply. Delivery is not yet confirmed.':'Gmail accepted the reply, but clearing its saved draft is unconfirmed. Check Sent before sending again.');onChanged();
     }catch{say('Could not confirm Gmail acceptance. Your draft is kept. Check Gmail Sent before retrying.')}
     finally{pending.current=false;setSending(false)}
   };
@@ -171,7 +179,7 @@ export default function BookingsInbox({
                 <h2 style={{ fontFamily: 'inherit', fontSize: 28, margin: '3px 0' }}>{selected.name}</h2>
                 <div style={{ fontSize: 13, color: '#666' }}>{selected.org || 'No organisation supplied'} · {formatDate(selected.created_at)}</div>
               </div>
-              <select aria-label="Booking status" style={{ ...field, width: 150 }} value={selected.status} onChange={(event) => changeStatus(event.target.value)}>
+              <select aria-label="Booking status" disabled={statusBusy} style={{ ...field, width: 150 }} value={selected.status} onChange={(event) => changeStatus(event.target.value)}>
                 {['new', 'review', 'replied', 'confirmed', 'closed'].map((value) => <option key={value}>{value}</option>)}
               </select>
             </div>
@@ -209,8 +217,9 @@ export default function BookingsInbox({
               <div style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8 }}>REPLY FROM GMAIL</div>
               {!gmail.connected && <div style={{ background: '#FFF6CC', border: '1px solid #ddd', borderRadius: 10, padding: 12, marginBottom: 10, fontSize: 12 }}>Connect Gmail above to send without leaving the Control Room.</div>}
               <div style={{ display: 'grid', gap: 8 }}>
-                <input style={field} value={subject} onChange={(event) => {setSubject(event.target.value);drafts.current[selected.id]={subject:event.target.value,body}}} aria-label="Reply subject" />
-                <textarea style={{ ...field, minHeight: 180, resize: 'vertical' }} value={body} onChange={(event) => {setBody(event.target.value);drafts.current[selected.id]={subject,body:event.target.value}}} aria-label="Reply message" />
+                <input style={field} value={subject} onChange={(event) => draft.edit({subject:event.target.value})} aria-label="Reply subject" />
+                <textarea style={{ ...field, minHeight: 180, resize: 'vertical' }} value={body} onChange={(event) => draft.edit({body:event.target.value})} aria-label="Reply message" />
+                <ReplyDraftStatus entry={draft.entry} onSave={()=>void draft.store.save(selected.id,true)} onClear={()=>{if(confirm('Clear this private draft? This does not cancel or resend an email.'))void draft.store.clear(selected.id)}} onRetry={()=>void draft.store.load(selected.id,defaults)}/>
                 <button type="button" style={{ ...button, background: C.ink, color: C.yellow, justifySelf: 'start', opacity: !gmail.connected || sending ? .6 : 1 }} disabled={!gmail.connected || sending || !body.trim()} onClick={sendReply}>{sending ? 'Sending…' : 'Send reply'}</button>
               </div>
             </div>

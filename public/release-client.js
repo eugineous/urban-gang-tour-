@@ -2,7 +2,7 @@
 (() => {
   if (window.__ugtReleaseStarted || !('serviceWorker' in navigator)) return;
   window.__ugtReleaseStarted = true;
-  const release = 'checkout-operations-mobile-20261018-v1';
+  const release = 'admin-draft-recovery-20261019-v1';
   const hadController = Boolean(navigator.serviceWorker.controller);
   // A replaced old controller needs one reload to discard its in-memory runtime.
   // Do not reload while a visitor is entering a form or payment details.
