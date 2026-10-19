@@ -73,6 +73,8 @@ describe.skipIf(!container)('isolated Postgres editorial workflow',()=>{
   expect(await releaseDueEditorial()).toMatchObject({released:1});expect(await releaseDueEditorial()).toMatchObject({released:0});
   expect(await holdEditorial(item.slug,99,'fixture-owner')).toEqual([]);expect(await holdEditorial(item.slug,1,'fixture-owner')).toEqual([{slug:item.slug}]);
   expect(await holdEditorial(item.slug,1,'fixture-owner')).toEqual([]);expect((await query(PUBLIC_POST_SELECT)).map(r=>r.slug)).not.toContain(item.slug);
+  const evidence=(await query(`SELECT detail->'review'->>'disclosure' AS disclosure,detail->'assets'->>'rights' AS rights FROM editorial_audit WHERE slug=$1 AND action='approve_schedule'`,[item.slug]))[0];
+  expect(evidence).toEqual({disclosure:review.disclosure,rights:assets.rights});
   expect(await releaseDueEditorial()).toMatchObject({released:0});
  });
  it('edits a brief only with its current revision, retaining it privately',async()=>{

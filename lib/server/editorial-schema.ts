@@ -20,6 +20,7 @@ export const EDITORIAL_SCHEMA=`
   CREATE TABLE IF NOT EXISTS editorial_monitor (
     id INTEGER PRIMARY KEY CHECK(id=1), checked_at TIMESTAMPTZ NOT NULL, released INTEGER NOT NULL DEFAULT 0
   );
+  CREATE INDEX IF NOT EXISTS editorial_audit_story ON editorial_audit(slug,created_at DESC);
 `;
 let ready:Promise<void>|null=null;
 export async function ensureEditorialSchema(){
