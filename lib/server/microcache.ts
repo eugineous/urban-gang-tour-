@@ -38,7 +38,7 @@ const store = new Map<string, Entry<unknown>>();
  * error, so a brief database wobble degrades to slightly stale content instead
  * of an empty shop grid.
  */
-export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
+export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>, serveStaleOnError = true): Promise<T> {
   const now = Date.now();
   const hit = store.get(key) as Entry<T> | undefined;
 
@@ -58,7 +58,7 @@ export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Pro
     .catch((err) => {
       // Serve the previous good answer if we have one; otherwise the caller's
       // own catch decides what an empty result looks like.
-      if (entry.last !== undefined) return entry.last;
+      if (serveStaleOnError && entry.last !== undefined) return entry.last;
       // Do not let a failure sit in the cache for the full TTL.
       store.delete(key);
       throw err;

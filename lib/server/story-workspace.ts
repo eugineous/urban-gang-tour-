@@ -58,6 +58,7 @@ export async function trashStory(slug: string, actor: string, owner: boolean, ve
   return q<{slug: string}>(`
     WITH removed AS (
       DELETE FROM posts AS post WHERE slug=$1 AND updated_at::text=$4
+        AND COALESCE(to_jsonb(post)->>'editorial_managed','false')<>'true'
         AND ($3::boolean OR (NOT published AND submitted_by=$2))
         AND NOT EXISTS (SELECT 1 FROM admin_story_trash WHERE slug=$1)
       RETURNING post.*

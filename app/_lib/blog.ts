@@ -3,6 +3,7 @@ import {publicImageUrl} from '@/lib/public-image-url';
 import { cached } from '@/lib/server/microcache';
 import { q, hasDb } from '@/lib/server/db';
 import { NEWS_PUBLISHER_ID } from './jsonld';
+import {PUBLIC_POST_SELECT} from '@/lib/server/editorial-publication';
 
 export type BlogPost = {
   slug: string;
@@ -13,17 +14,25 @@ export type BlogPost = {
   image: string;
   description: string;
   body: string[];
+  author?:string;
+  schemaType?:'BlogPosting'|'NewsArticle';
+  imageAlt?:string;
+  imageCaption?:string;
+  ogImage?:string;
+  disclosure?:string;
 };
 
 // DB-backed posts, edited and published through the Control Room. A missing
 // database or an empty newsroom is an honest empty feed, never a prewritten
 // article presented as a current report.
-export async function getBlogPosts(): Promise<BlogPost[]> {
+export async function getBlogPosts(throwOnError=false): Promise<BlogPost[]> {
   try {
     if (hasDb()) {
       // Match the public feed and the editor's Nairobi publication day, not
       // the database session's timezone. Stable slug order for date ties.
-      const rows = await cached('blog-published-posts', 60_000, () => q(`SELECT slug, headline, section, image, dek, body, date, updated_at FROM posts WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date ORDER BY date DESC, slug ASC`));
+      // Coalesce bursts for one second, never serve stale approved/retracted
+      // snapshots during an outage. Public HTML/XML have no outer story cache.
+      const rows = await cached('blog-published-posts', 1_000, () => q(PUBLIC_POST_SELECT), false);
       if (rows.length) {
         // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
         // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.
@@ -31,16 +40,18 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         return rows.map((r: any) => ({
           slug: r.slug,
           headline: r.headline,
-          datePublished: iso(r.date),
-          dateModified: r.updated_at ? new Date(r.updated_at).toISOString() : iso(r.date),
+          datePublished: r.publication_time ? new Date(r.publication_time).toISOString() : iso(r.date),
+          dateModified: r.updated_at ? new Date(Math.max(new Date(r.updated_at).getTime(),r.publication_time?new Date(r.publication_time).getTime():0)).toISOString() : iso(r.date),
           section: r.section || 'News',
           image: r.image || '/assets/poster.png',
           description: r.dek || '',
           body: Array.isArray(r.body) ? r.body : [],
+          author:r.author||undefined,schemaType:r.schema_type||'NewsArticle',imageAlt:r.public_asset?.alt,
+          imageCaption:r.public_asset?.caption,ogImage:r.public_asset?.og,disclosure:r.disclosure||undefined,
         }));
       }
     }
-  } catch { /* an unavailable newsroom has no public posts */ }
+  } catch(error) { if(throwOnError)throw error; /* no stale approvals on failure */ }
   return [];
 }
 
@@ -52,7 +63,7 @@ export function articleJsonLd(post: BlogPost) {
   const url = `${SITE.domain}/blog/${post.slug}`;
   return {
     '@context': 'https://schema.org',
-    '@type': 'NewsArticle',
+    '@type': post.schemaType||'NewsArticle',
     headline: post.headline,
     datePublished: post.datePublished,
     dateModified: post.dateModified,
@@ -64,7 +75,7 @@ export function articleJsonLd(post: BlogPost) {
     url,
     // The current Content desk has no verified per-article author field.
     // Do not turn the founders or an article's subject into its author.
-    author: { '@type': 'Organization', name: 'Urban Gang Tour Newsroom', url: `${SITE.domain}/blog` },
+    author: { '@type': 'Organization', name: post.author||'Urban Gang Tour Newsroom', url: `${SITE.domain}/blog` },
     publisher: { '@id': NEWS_PUBLISHER_ID },
   };
 }

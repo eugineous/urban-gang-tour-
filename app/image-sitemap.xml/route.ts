@@ -2,6 +2,7 @@ import { SITE } from '@/lib/site';
 import { hasDb, q } from '@/lib/server/db';
 import mediaLibrary from '@/ui/data/media-library.json';
 import publicRoutes from '@/data/public-page-routes.json';
+import {getBlogPosts} from '@/app/_lib/blog';
 export const dynamic = 'force-dynamic';
 
 const escapeXml = (value: string) => value.replace(/[<>&"']/g, char => ({
@@ -18,6 +19,9 @@ function publicImageUrl(raw: string): string | null {
 export async function GET() {
   const base = SITE.domain;
   const entries: { pageUrl: string; imageUrl: string; title: string }[] = [];
+  for(const post of await getBlogPosts())for(const image of new Set([post.image,post.ogImage].filter(Boolean) as string[])){
+    const imageUrl=publicImageUrl(image);if(imageUrl)entries.push({pageUrl:`${base}/blog/${post.slug}`,imageUrl,title:post.headline});
+  }
 
   // Index the same approved archive rendered by the current gallery. The old
   // hardcoded list described retired template photographs and omitted the
@@ -74,7 +78,7 @@ export async function GET() {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml',
-      'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+      'Cache-Control': 'no-store',
     },
   });
 }

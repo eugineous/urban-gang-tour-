@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { q, hasDb } from '@/lib/server/db';
+import { hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
-import { cached } from '@/lib/server/microcache';
+import {getBlogPosts} from '@/app/_lib/blog';
 
 // The browser news rail consumes this read-only feed. It intentionally returns
 // only articles whose Content desk publication date has arrived. Drafts,
@@ -9,7 +9,7 @@ import { cached } from '@/lib/server/microcache';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' };
+const CACHE_HEADERS = { 'Cache-Control': 'no-store' };
 
 export async function GET(req: Request) {
   if (!rateLimit('site-posts:' + clientIp(req), 60, 60_000, req, PUBLIC_READ_NETWORK_LIMIT)) {
@@ -17,22 +17,7 @@ export async function GET(req: Request) {
   }
   if (!hasDb()) return NextResponse.json({ ok: true, posts: [] }, { headers: CACHE_HEADERS });
   try {
-    const posts = await cached('site-posts', 60_000, async () => {
-      const rows = await q<any>(
-        `SELECT slug, headline, section, image, dek, date::text AS date
-         FROM posts
-         WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date
-         ORDER BY date DESC, slug ASC`
-      );
-      return rows.map((row) => ({
-        id: String(row.slug),
-        headline: String(row.headline || ''),
-        date: String(row.date || '').slice(0, 10),
-        section: String(row.section || 'News'),
-        img: String(row.image || '/assets/poster.png'),
-        dek: String(row.dek || ''),
-      })).filter((post) => post.id && post.headline && /^\d{4}-\d{2}-\d{2}$/.test(post.date));
-    });
+    const posts=(await getBlogPosts(true)).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished.slice(0,10),section:p.section,img:p.image,dek:p.description}));
     return NextResponse.json({ ok: true, posts }, { headers: CACHE_HEADERS });
   } catch {
     return NextResponse.json({ ok: false, error: 'stories_temporarily_unavailable' }, { status: 503, headers: {'Cache-Control':'no-store','Retry-After':'5'} });

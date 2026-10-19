@@ -1,5 +1,14 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Editorial library integration (19 October 2026)
+- Owner provided the private Drive ZIP and authorizes a tested feature-branch
+  release of the existing newsroom's import/schedule/image/monitoring workflow.
+  Never commit unpublished files or publish reporting briefs. Authenticated
+  owner approval/evidence and private image gates remain required. Operator
+  staging through existing private KV and authenticated cron imports drafts
+  only; it is not an agent login, unrestricted webhook or backdoor. Preserve
+  existing CMS, live articles, commerce, bindings and dashboard-managed cron.
+
 ## Responsive/language/editorial continuation (19 October 2026)
 - Owner requests responsive repairs across phone/foldable/tablet/desktop sizes,
   a browser-aware language chooser and Issue #81 preparation. Deploy tested work

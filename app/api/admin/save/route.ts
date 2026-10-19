@@ -105,9 +105,10 @@ export async function POST(req: Request) {
         await Promise.all([ensureContentAutomationSchema(), ensureContentWorkflowSchema()]);
         const actor = adminActor(req);
         const superAdmin = isSuperAdmin(req);
-        const prev = await q<{ published: boolean; social_posted_at: string | null; submitted_by: string; editorial_status: string; version: string }>(
-          `SELECT published, social_posted_at, submitted_by, editorial_status, updated_at::text AS version FROM posts WHERE slug=$1`, [slug]
+        const prev = await q<{ published: boolean; social_posted_at: string | null; submitted_by: string; editorial_status: string; version: string; managed?:string }>(
+          `SELECT published, social_posted_at, submitted_by, editorial_status, updated_at::text AS version,to_jsonb(posts)->>'editorial_managed' AS managed FROM posts WHERE slug=$1`, [slug]
         );
+        if(prev[0]?.managed==='true')return NextResponse.json({error:'use_editorial_calendar'}, {status:409});
         if ((prev.length && prev[0].version !== data.expectedVersion) || (!prev.length && data.expectedVersion !== null)) {
           return NextResponse.json({error:'story_conflict'}, {status:409});
         }
@@ -130,6 +131,7 @@ export async function POST(req: Request) {
              reviewed_at=CASE WHEN $9='published' THEN now() ELSE posts.reviewed_at END,
              social_automation_claimed_at=NULL, social_automation_result='', updated_at=now()
            WHERE slug=$1 AND $12::text IS NOT NULL AND posts.updated_at::text=$12
+             AND COALESCE(to_jsonb(posts)->>'editorial_managed','false')<>'true'
              AND ($13::boolean OR (NOT posts.published AND (posts.submitted_by='' OR posts.submitted_by=$10)))
            RETURNING date, updated_at::text AS version
            ), inserted AS (
@@ -193,9 +195,10 @@ export async function POST(req: Request) {
         }
         await ensureContentWorkflowSchema();
         const actor = adminActor(req);
-        const existing = await q<{ published: boolean; submitted_by: string }>(
-          `SELECT published, submitted_by FROM posts WHERE slug=$1`, [data.slug]
+        const existing = await q<{ published: boolean; submitted_by: string; managed?:string }>(
+          `SELECT published, submitted_by,to_jsonb(posts)->>'editorial_managed' AS managed FROM posts WHERE slug=$1`, [data.slug]
         );
+        if(existing[0]?.managed==='true')return NextResponse.json({error:'use_editorial_calendar'}, {status:409});
         if (!existing.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
         if (!isSuperAdmin(req) && (existing[0].published || !existing[0].submitted_by || existing[0].submitted_by !== actor)) {
           return NextResponse.json({ error: 'review_required' }, { status: 403 });

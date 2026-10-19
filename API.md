@@ -971,3 +971,45 @@ Release limits: PostgreSQL contention and fake-provider contracts are tested in
 isolated local fixtures, not live payment sandboxes. Card rail durability remains
 a separate review. A 60,000/min network read budget is not a throughput guarantee;
 40,000/min end-to-end capacity needs staging load, database and provider telemetry.
+# Editorial library (October 2026)
+
+- `GET /api/admin/editorial[?slug=...]`: current verified Content-permitted
+  administrator session required; private/no-store. Lists calendar, due holds
+  and scheduler heartbeat, or returns one private source/review/asset record.
+- `POST /api/admin/editorial`: verified **super-admin** plus Content permission,
+  strict deployment Origin, IP limit 30/minute and streamed 2 MiB/5s JSON limit.
+  Unknown fields rejected. No per-agent credentials or anonymous writes.
+  - `{action:"preview"|"import",bundle:{version:1,source_sha256,items:[...]}}`.
+    Items are strict data with slug, date, offset-aware schedule, title, section,
+    description, author, kind (`article`/`assignment`), Markdown, art prompt and
+    source metadata. Preview does not write content. Import adds only private
+    rows in existing `posts`; matching hashes are unchanged, conflicts reported
+    (including concurrent conflicts). No overwrite or automatic approval.
+  - `{action:"update",slug,revision,bundle}`: exactly one full item, private
+    prepublication rows only; compare-and-swap, clears approval, increments revision.
+  - `{action:"approve",slug,revision,review,assets}`: saved full article only.
+    Recorded owner checks for facts, rights, originality and safeguarding;
+    timestamped HTTPS source notes and public disclosure. Private uploaded
+    WebP hero 1600×900 and OG 1200×630, nonempty alt/caption/rights/provenance.
+    Illustration caption must identify it. Verifies asset presence/signature/
+    dimensions; no remote URL fetching. Exact title/body duplicate screening.
+  - `{action:"hold",slug,revision}`: immediately clears approval/publication and
+    advances revision. Public read freshness is bounded by one second; private
+    media checks likewise. No stale-on-error approval snapshots.
+- `/api/internal/cron/editorial` POST: existing `UGT_CRON_SECRET` only, timing-safe
+  comparison. Adds one job to the existing quarter-hour scheduled handler,
+  **without altering Cloudflare cron configuration**. Imports an operator-staged
+  private KV bundle (`editorial-library/pending-v1`) as drafts only; records due
+  releases and private heartbeat (`editorial-library/status-v1`). No social,
+  email, TV, AI-generation or external model calls. Existing legacy announcements
+  explicitly exclude editorial-managed posts even if a flag is mistakenly set.
+
+Publication is based on saved approval revision/hash and UTC due instant, not
+the quarter-hour heartbeat. First visibility is within the documented one-second
+server read-cache tolerance. No outer HTML/RSS/news/image-sitemap story cache.
+Late approvals use their actual approval instant rather than backdating.
+Unchanged legacy dates retain day precision. Full articles, all discovery
+surfaces and private media share one SQL eligibility predicate. Analysis uses
+BlogPosting and is excluded from the news-only sitemap; normal RSS/sitemap still
+include it after release. Published URLs receive actual author/disclosure and
+separate OG metadata. No automatic factual certification is claimed.

@@ -4,7 +4,7 @@ vi.mock('@/app/_lib/jsonld',()=>({NEWS_PUBLISHER_ID:'ugt'}));
 import {q} from '@/lib/server/db';
 import {getBlogPosts,articleJsonLd} from '@/app/_lib/blog';
 describe('published newsroom reads',()=>{
- it('coalesces reads and retains articles through a transient database failure',async()=>{
+ it('coalesces reads but fails closed after the one-second editorial freshness window',async()=>{
   const clock=vi.spyOn(Date,'now').mockReturnValue(1_000_000);
   try{
    vi.mocked(q).mockResolvedValueOnce([{slug:'published-story',headline:'Published story',date:'2026-10-08',updated_at:'2026-10-19T10:00:00Z',section:'News',image:'/assets/photo.jpg',dek:'A published recap',body:['A real article.']}]);
@@ -16,7 +16,7 @@ describe('published newsroom reads',()=>{
    expect(vi.mocked(q).mock.calls[0][0]).toContain('ORDER BY date DESC, slug ASC');
    expect(articleJsonLd(first[0]).author).toEqual({'@type':'Organization',name:'Urban Gang Tour Newsroom',url:'https://urbangangtour.co.ke/blog'});
    clock.mockReturnValue(1_061_000);vi.mocked(q).mockRejectedValueOnce(new Error('temporary database failure'));
-   expect(await getBlogPosts()).toEqual(first);
+   expect(await getBlogPosts()).toEqual([]);
   }finally{clock.mockRestore();}
  });
 });

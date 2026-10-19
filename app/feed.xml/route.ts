@@ -3,7 +3,7 @@ import { SITE } from '@/lib/site';
 import {publicationInstant} from '@/lib/editorial-time';
 import {publicImageUrl} from '@/lib/public-image-url';
 
-export const revalidate = 900; // match news-sitemap: fresh within 15 minutes
+export const dynamic = 'force-dynamic';
 
 // RSS 2.0 feed for Urban News. Complements /news-sitemap.xml (Google News,
 // 48h window) with the full recent archive for RSS readers, Google Publisher
@@ -41,6 +41,6 @@ ${items}
 </rss>`;
 
   return new Response(xml, {
-    headers: { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'public, max-age=900' },
+    headers: { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
