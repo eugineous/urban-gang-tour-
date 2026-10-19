@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GmailConnectButton from './GmailConnectButton';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
-import {clearReplyIntent,replyIntent} from '@/lib/client/reply-intent';
-import {clearSentReply} from '@/lib/contact-actions';
+import {useReplyDraft} from '@/lib/client/use-reply-draft';
+import ReplyDraftStatus from './ReplyDraftStatus';
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6' };
 const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd', borderRadius: 14, boxShadow: 'none' };
@@ -21,14 +21,14 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
   const [selectedId, setSelectedId] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [drafts,setDrafts]=useState<Record<string,string>>({});
   const [loadError,setLoadError]=useState('');
   const sendingRef=useRef(false),loadVersion=useRef(0);
   const [sending, setSending] = useState(false);
   const selected = useMemo(() => messages.find((message) => message.id === selectedId) || messages[0] || null, [messages, selectedId]);
   const draftKey=selected?(connection.email||'')+':'+selected.id:'';
-  const reply=drafts[draftKey]||'';
-  const setReply=(text:string)=>setDrafts(current=>({...current,[draftKey]:text}));
+  const draft=useReplyDraft('gmail',draftKey,{subject:'',body:''});
+  const reply=draft.entry?.body||'';
+  const setReply=(body:string)=>draft.edit({body});
 
   const load = async (query = '') => {
     const version=++loadVersion.current;
@@ -55,7 +55,6 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
   };
 
   useEffect(() => { load(); }, []);
-  useEffect(()=>{if(!Object.values(drafts).some(value=>value.trim()))return;const protect=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue=''};window.addEventListener('beforeunload',protect);return()=>window.removeEventListener('beforeunload',protect)},[drafts]);
 
   const send = async () => {
     if (!selected || !reply.trim()||sendingRef.current) return;
@@ -65,10 +64,13 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
     sendingRef.current=true;
     setSending(true);
     try{
+    if(!await draft.store.save(sentKey,true)){say('Save your reply draft before sending. Your text is kept.');return}
+    const requestId=draft.store.sendReference(sentKey,{subject:'',body:sentText});
+    if(!requestId){say('Your draft changed while saving. Review it before sending.');return}
     const response = await fetchWithTimeout('/api/admin/gmail/messages', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        requestId:replyIntent('gmail:'+sentKey),
+        requestId,
         messageId: message.id,
         threadId: message.threadId,
         to: recipient,
@@ -80,9 +82,8 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok||data.ok!==true) { say(data.error==='gmail_send_outcome_unknown'?'Gmail acceptance is unconfirmed. Check Gmail Sent before retrying. Your draft and send reference are kept.':`Reply not confirmed: ${data.error || response.status}. Your draft is unchanged.`); return; }
-    clearReplyIntent('gmail:'+sentKey);
-    setDrafts(current=>clearSentReply(current,sentKey,sentText));
-    say('Gmail accepted your reply. Delivery is not yet confirmed.');
+    const cleared=await draft.store.clear(sentKey,{subject:'',body:sentText});
+    say(cleared?'Gmail accepted your reply. Delivery is not yet confirmed.':'Gmail accepted the reply, but clearing its saved draft is unconfirmed. Check Sent before sending again.');
     setMessages((current) => current.map((m) => m.id === message.id ? { ...m, unread: false } : m));
     }catch{say('Could not confirm delivery. Your draft is kept. Check Gmail Sent before retrying to avoid a duplicate.')}
     finally{sendingRef.current=false;setSending(false)}
@@ -125,7 +126,7 @@ export default function GmailInbox({ googleClientId, say }: { googleClientId: st
           <div style={{ margin: '16px 0', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: 14, border: '1px solid #ddd', background: '#F8F8F8', borderRadius: 12, padding: 14, maxHeight: 350, overflowY: 'auto' }}>{selected.body}</div>
           <div style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8 }}>REPLY</div>
           <textarea aria-label="Email reply" style={{ ...field, minHeight: 180, resize: 'vertical' }} placeholder={`Reply to ${address(selected.from)}`} value={reply} onChange={(event) => setReply(event.target.value)} />
-          <p style={{fontSize:12}}>Drafts stay while you switch messages or admin sections. Copy or send before closing this browser tab.</p>
+          <ReplyDraftStatus entry={draft.entry} onSave={()=>void draft.store.save(draftKey,true)} onClear={()=>{if(confirm('Clear this private draft? This does not cancel or resend an email.'))void draft.store.clear(draftKey)}} onRetry={()=>void draft.store.load(draftKey,{subject:'',body:''})}/>
           <button type="button" style={{ ...button, background: '#111', color: C.yellow, marginTop: 9, opacity: sending || !reply.trim() ? .6 : 1 }} disabled={sending || !reply.trim()} onClick={send}>{sending ? 'Sending…' : 'Send reply'}</button>
         </>}
       </section>

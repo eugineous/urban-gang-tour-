@@ -1,0 +1,15 @@
+import {beforeEach,it,expect,vi} from 'vitest';
+const f=vi.hoisted(()=>({verified:true,super:false,bookings:false,actor:'staff-one',read:vi.fn(),write:vi.fn()}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>f.verified,adminActor:()=>f.actor,hasPerm:()=>f.bookings,isSuperAdmin:()=>f.super}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true}));
+vi.mock('@/lib/server/reply-drafts',()=>({readReplyDraft:f.read,writeReplyDraft:f.write,ReplyDraftConflict:class extends Error{}}));
+import {GET,PUT,DELETE} from '@/app/api/admin/reply-drafts/route';
+const url='https://urbangangtour.co.ke/api/admin/reply-drafts';
+const request=(body:unknown,method='PUT',origin='https://urbangangtour.co.ke')=>new Request(url,{method,headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
+const input={channel:'booking',context:'B-ABCD',subject:'Reply',body:'Hello',expectedVersion:null};
+beforeEach(()=>{f.verified=true;f.super=false;f.bookings=false;f.read.mockReset();f.write.mockReset()});
+it('blocks unsigned access before touching storage',async()=>{f.verified=false;expect((await GET(new Request(url+'?channel=gmail&context=a'))).status).toBe(401);expect((await PUT(request(input))).status).toBe(401);expect(f.read).not.toHaveBeenCalled();expect(f.write).not.toHaveBeenCalled()});
+it('booking staff cannot access owner-only Gmail drafts',async()=>{f.bookings=true;expect((await GET(new Request(url+'?channel=gmail&context=a'))).status).toBe(403);expect((await PUT(request({...input,channel:'gmail'}))).status).toBe(403);expect(f.read).not.toHaveBeenCalled();expect(f.write).not.toHaveBeenCalled()});
+it('own permitted reads and writes are private and actor scoped',async()=>{f.bookings=true;f.read.mockResolvedValue(null);f.write.mockResolvedValue({subject:'Reply',body:'Hello',version:'saved',deleted:false});const res=await GET(new Request(url+'?channel=booking&context=B-ABCD'));expect(res.headers.get('cache-control')).toBe('private, no-store');expect(f.read).toHaveBeenCalledWith('staff-one','booking','B-ABCD');expect((await PUT(request(input))).status).toBe(200);expect(f.write).toHaveBeenCalledWith('staff-one','booking','B-ABCD',null,{subject:'Reply',body:'Hello'},undefined)});
+it('rejects cross-origin mutation and unexpected fields before storage',async()=>{f.bookings=true;expect((await PUT(request(input,'PUT','https://untrusted.test'))).status).toBe(403);expect((await PUT(request({...input,actor:'other'}))).status).toBe(400);expect((await DELETE(request(input,'DELETE'))).status).toBe(400);expect(f.write).not.toHaveBeenCalled()});
+it('rejects invalid text and bounded byte excess',async()=>{f.bookings=true;for(const body of [{...input,body:10},{...input,subject:'line\nbreak'},{...input,body:'x'.repeat(10001)},{...input,expectedVersion:3}])expect((await PUT(request(body))).status).toBe(400);expect((await PUT(request({...input,body:'x'.repeat(50001)}))).status).toBe(413);expect(f.write).not.toHaveBeenCalled()});
