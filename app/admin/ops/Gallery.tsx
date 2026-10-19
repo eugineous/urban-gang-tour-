@@ -219,7 +219,7 @@ export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boo
       </div>
       {queue.length>0&&<section style={card} aria-label="Photo upload progress"><h3>Upload progress</h3><ul style={{paddingLeft:20}}>{queue.map(item=><li key={item.id} style={{overflowWrap:'anywhere',marginBottom:10}}>{item.file.name} — {item.state==='done'?'Saved privately':item.state==='failed'?item.error:item.state==='uploading'?`Uploading ${item.progress}%`:'Waiting'}{item.state==='uploading'&&<progress value={item.progress} max={100} aria-label={'Upload progress for '+item.file.name}/>}</li>)}</ul><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button style={btnSmall} disabled={busy||!queue.some(item=>item.state==='failed')} onClick={()=>void doBatch(queue.filter(item=>item.state==='failed'))}>Retry unfinished photos</button><button style={btnSmall} disabled={busy} onClick={()=>setQueue(current=>current.filter(item=>item.state!=='done'))}>Clear finished from this list</button><button style={btnSmall} disabled={busy} onClick={()=>{if(confirm('Remove unfinished photos from this upload list? Saved gallery photos will not be deleted.'))setQueue(current=>current.filter(item=>item.state==='done'))}}>Remove unfinished from this list</button></div></section>}
 
-      {!uploadsOnly&&<div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+      {!uploadsOnly&&<div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))' }}>
         {shown.map((p) => {
           const d = drafts[p.id] || { caption: '', category: '', altText: '' };
           const publishedRows = rows.filter((row) => row.published);

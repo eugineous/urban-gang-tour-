@@ -120,7 +120,7 @@ export default function Pipeline() {
       <div style={card}>
         <Toast msg={toast} />
         <h3 style={h3}>{edit.id ? 'EDIT LEAD' : 'NEW LEAD'}</h3>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))' }}>
           <div><span style={label}>Contact name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></div>
           <div><span style={label}>School / org</span><input style={inp} value={edit.org} onChange={(e) => setEdit({ ...edit, org: e.target.value })} /></div>
           <div><span style={label}>Phone</span><input style={inp} value={edit.phone} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} /></div>

@@ -23,7 +23,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
     if (hasDb()) {
       // Match the public feed and the editor's Nairobi publication day, not
       // the database session's timezone. Stable slug order for date ties.
-      const rows = await cached('blog-published-posts', 60_000, () => q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date ORDER BY date DESC, slug ASC`));
+      const rows = await cached('blog-published-posts', 60_000, () => q(`SELECT slug, headline, section, image, dek, body, date, updated_at FROM posts WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date ORDER BY date DESC, slug ASC`));
       if (rows.length) {
         // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
         // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.
@@ -32,7 +32,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
           slug: r.slug,
           headline: r.headline,
           datePublished: iso(r.date),
-          dateModified: iso(r.date),
+          dateModified: r.updated_at ? new Date(r.updated_at).toISOString() : iso(r.date),
           section: r.section || 'News',
           image: r.image || '/assets/poster.png',
           description: r.dek || '',

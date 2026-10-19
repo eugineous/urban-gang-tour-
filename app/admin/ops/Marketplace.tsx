@@ -215,7 +215,7 @@ export default function Marketplace() {
         <div style={card}>
           <h3 style={h3}>MARKETPLACE ORDERS (read-only ledger)</h3>
           {totals && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(100%, 160px), 1fr))', gap: 10, marginBottom: 12 }}>
               <div style={{ ...card, textAlign: 'center', padding: 10 }}><div style={{ fontFamily: 'inherit', fontSize: 20 }}>{totals.count}</div><div style={{ fontSize: 11, color: '#666' }}>Paid orders</div></div>
               <div style={{ ...card, textAlign: 'center', padding: 10 }}><div style={{ fontFamily: 'inherit', fontSize: 18 }}>{fmtKES(Number(totals.commission))}</div><div style={{ fontSize: 11, color: '#666' }}>Commission earned</div></div>
               <div style={{ ...card, textAlign: 'center', padding: 10 }}><div style={{ fontFamily: 'inherit', fontSize: 18 }}>{fmtKES(Number(totals.organizer_share))}</div><div style={{ fontSize: 11, color: '#666' }}>Paid out to organizers</div></div>

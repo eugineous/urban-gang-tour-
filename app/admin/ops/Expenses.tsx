@@ -156,7 +156,7 @@ export default function Expenses() {
             style={{
               display: "grid",
               gap: 14,
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
             }}
           >
             <div style={{ ...card, textAlign: "center" }}>
@@ -231,7 +231,7 @@ export default function Expenses() {
               style={{
                 display: "grid",
                 gap: 10,
-                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 150px), 1fr))",
               }}
             >
               <div>
@@ -292,7 +292,7 @@ export default function Expenses() {
             style={{
               display: "grid",
               gap: 14,
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
               alignItems: "start",
             }}
           >

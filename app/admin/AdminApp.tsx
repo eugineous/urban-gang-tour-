@@ -1109,7 +1109,7 @@ function Dashboard({ stats }: { stats: any }) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))",
+        gridTemplateColumns: "repeat(auto-fill,minmax(min(100%, 180px), 1fr))",
         gap: 14,
       }}
     >

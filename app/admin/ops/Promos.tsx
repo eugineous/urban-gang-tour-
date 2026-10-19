@@ -62,7 +62,7 @@ export default function Promos() {
       <div style={card}>
         <Toast msg={toast} />
         <h3 style={h3}>{edit.id ? 'EDIT PROMO' : 'NEW PROMO'}</h3>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))' }}>
           <div><span style={label}>Name *</span><input style={inp} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Back to school" /></div>
           <div><span style={label}>Type</span>
             <select style={inp} value={edit.promoType} onChange={(e) => setEdit({ ...edit, promoType: e.target.value as 'percent' | 'fixed' })}>

@@ -133,7 +133,7 @@ export default function EventOperations({
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <div>

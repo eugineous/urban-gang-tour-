@@ -1,5 +1,6 @@
 import { getBlogPosts } from '@/app/_lib/blog';
 import { SITE } from '@/lib/site';
+import {publicationInstant} from '@/lib/editorial-time';
 
 export const revalidate = 900; // regenerate every 15 minutes
 
@@ -9,8 +10,8 @@ export const revalidate = 900; // regenerate every 15 minutes
 // stories stay in /sitemap.xml.
 export async function GET() {
   const posts = await getBlogPosts();
-  const cutoff = Date.now() - 48 * 3600_000;
-  const fresh = posts.filter((p) => new Date(p.datePublished).getTime() >= cutoff);
+  const now=Date.now(),cutoff = now - 48 * 3600_000;
+  const fresh = posts.filter((p) => {const time=publicationInstant(p.datePublished).getTime();return time>=cutoff&&time<=now;});
 
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

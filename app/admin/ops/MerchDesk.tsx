@@ -366,7 +366,7 @@ export default function MerchDesk() {
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <div>
@@ -443,7 +443,7 @@ export default function MerchDesk() {
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <div>
@@ -624,7 +624,7 @@ export default function MerchDesk() {
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <div>
@@ -723,7 +723,7 @@ export default function MerchDesk() {
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <div>
@@ -831,7 +831,7 @@ export default function MerchDesk() {
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <Field
@@ -929,7 +929,7 @@ export default function MerchDesk() {
           style={{
             display: "grid",
             gap: 10,
-            gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
+            gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 210px), 1fr))",
           }}
         >
           <div>
@@ -1100,7 +1100,7 @@ export default function MerchDesk() {
             style={{
               display: "grid",
               gap: 14,
-              gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+              gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 180px), 1fr))",
             }}
           >
             <Metric
