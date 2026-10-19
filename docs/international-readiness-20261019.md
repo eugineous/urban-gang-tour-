@@ -47,12 +47,20 @@ visual sign-off. Regression tests cover rendered welcome markup, navigation,
 metadata, language validation, preference storage failure and cache isolation.
 Build and read-only main-site checks are required before calling this deployed.
 The first live pass exposed an unsupported-language soft-404 (HTTP 200). The
-follow-up restricts generation to the six known language parameters; an actual
-HTTP 404 for `/welcome/de` is a mandatory release gate, not just not-found text.
+initial dynamicParams restriction passed local Next tests but blocked supported
+locales in Cloudflare; that deployment was restored to the working v1 version.
+The correction validates the finite language namespace in the outer Worker,
+before streaming starts. Both all six valid URLs and HTTP 404 for `/welcome/de`
+must pass in the actual Worker runtime and production, not just local Next.
 
 Availability in China, Russia, USA and France needs probes from those countries
 and their actual networks. A .co.ke domain and globally reachable HTML are not
 proof of local reach, search ranking, payment acceptance or legal availability.
+On 19 October at 20:32 UTC, five anonymous Globalping HTTPS HEAD measurements
+of the homepage returned HTTP 200 from one selected probe each in Shenzhen (CN),
+Buffalo (US), Moscow (RU), Roubaix (FR) and Nairobi (KE). They observed the restored
+v1 release. This establishes a narrow network-reachability sample, not a browser,
+asset, payment or countrywide test. No overseas availability guarantee follows.
 Cloudflare's China Network is a separate Enterprise subscription; this release
 does not purchase it, change DNS, claim an ICP approval, or guarantee YouTube,
 Google, Meta or card access in mainland China. Essential welcome text does not
@@ -124,6 +132,7 @@ booking enquiries. More routes alone do not establish business progress.
 - [W3C cognitive motion guidance](https://www.w3.org/WAI/WCAG2/supplemental/patterns/o8p01-motion/): visitor control over moving/changing content.
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/): accessibility acceptance target.
 - [Cloudflare China Network](https://developers.cloudflare.com/china-network/), [FAQ](https://developers.cloudflare.com/china-network/faq/): separate service and regional limitations.
+- [Globalping API](https://api.globalping.io/v1/spec.yaml): anonymous public HTTPS HEAD probes; response code alone is not an end-user journey test.
 - [Chrome Translator API](https://developer.chrome.com/docs/ai/translator-api): local translation capability with availability checks.
 - [Ticketsasa buying guide](https://bookings.ticketsasa.com/events/buy-ticket): published Kenyan buyer journey.
 - [Eventbrite organiser help](https://www.eventbrite.com.au/help/en-us/articles/742680/how-to-sell-tickets-at-your-event-with-eventbrite-organizer/): receipt/ticket/check-in tasks. Some main organiser pages returned 429; no interactive competitor audit claimed.

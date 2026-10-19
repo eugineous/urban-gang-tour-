@@ -1,4 +1,4 @@
-const CACHE = 'ugt-international-readiness-20261019-v2';
+const CACHE = 'ugt-international-readiness-20261019-v3';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
