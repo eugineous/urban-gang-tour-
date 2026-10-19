@@ -3,6 +3,8 @@ const publicPages = new Set([
   '/work-with-us', '/press', '/privacy-policy', '/cookie-policy',
   '/terms', '/refund-policy', '/ticket-terms',
   '/shop/lookbook',
+  '/international', '/accessibility',
+  '/welcome/en', '/welcome/sw', '/welcome/fr', '/welcome/zh-Hans', '/welcome/ru', '/welcome/es',
 ]);
 
 // Defence in depth for JSON/PDF responses as well as private HTML. A browser

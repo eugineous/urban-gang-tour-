@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## International-readiness release (19 October 2026)
+- The owner authorizes tested positioning, language-entry, accessibility and
+  editorial-integrity improvements and deployment through the PR/Cloudflare path.
+  Preserve visual identity, owner content, customer data, credentials and bindings.
+  Translated welcome pages are not a claim of fully translated checkout or legal
+  terms. No invented overseas operations, geographic availability guarantees,
+  synthetic event reporting or live financial test transactions.
+
 ## Financial correctness continuation (19 October 2026)
 - The owner approved the prioritized audit repairs. This release covers atomic,
   idempotent recording of externally completed refunds and explicit partial

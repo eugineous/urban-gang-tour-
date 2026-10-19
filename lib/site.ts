@@ -25,21 +25,23 @@ export type RouteDef = {
 
 // Every distinct, crawlable URL. Order here drives the sitemap.
 export const ROUTES: RouteDef[] = [
+  {path:'/international',page:'international',title:'International Enquiries — Events & Buying From Abroad',description:'Plan an event in Kenya from abroad. Contact Urban Gang Tour about collaboration, KES pricing, payment options and delivery before buying.',changefreq:'monthly',priority:0.6},
+  {path:'/accessibility',page:'accessibility',title:'Accessibility & Focus View — Urban Gang Tour',description:'Choose a calmer visit with focus view. Learn about keyboard navigation, motion controls, languages and how to report an accessibility problem.',changefreq:'monthly',priority:0.5},
   { path: '/author/eugine-micah', page: 'eugine', title: 'Eugine Micah — Presenter & Urban Gang Tour Co-Founder', description: 'Explore Eugine Micah’s documented presenting, live hosting and Urban Gang Tour work, with archive links and booking enquiries.', changefreq: 'monthly', priority: 0.7 },
   { path: '/author/lucy-ogunde', page: 'lucy', title: 'Lucy Ogunde — Presenter & Urban Gang Tour Co-Founder', description: 'Explore Lucy Ogunde’s documented presenting, live hosting and Urban Gang Tour work, with archive links and booking enquiries.', changefreq: 'monthly', priority: 0.7 },
   { path: '/tour-stops', page: 'stops', nav: 'Tour Stops', title: 'Tour Stops — Upcoming Visits & Tour History', description: 'Explore published Urban Gang Tour school and campus stops, upcoming dates and tour history across Kenya.', changefreq: 'daily', priority: 0.8 },
   {
     path: '/', page: 'home', nav: 'Home',
-    title: 'Urban Gang Tour — Where the Culture Gets Made',
+    title: 'Urban Gang Tour — School & Campus Events, Hosting & Production',
     description:
-      "Kenya's youth talent search, mentorship, and awards concert tour. Live, and on the national screen via Urban News on PPP TV Kenya. From Potential to Purpose.",
+      'School and campus events, live hosting and production in Kenya. Explore our work, find an event or book Urban Gang Tour.',
     changefreq: 'weekly', priority: 1.0,
   },
   {
     path: '/about', page: 'about', nav: 'About',
     title: 'About the Urban Gang Tour — Our Story & Mission',
     description:
-      'How the Urban Gang Tour showcases, mentors and awards young Kenyan talent — travelling the full production to schools and campuses and broadcasting every stop nationally.',
+      'Meet co-founders Eugine Micah and Lucy Ogunde and discover Urban Gang Tour’s school, campus, live hosting and production work in Kenya.',
     changefreq: 'monthly', priority: 0.8,
   },
   {
@@ -50,24 +52,24 @@ export const ROUTES: RouteDef[] = [
     changefreq: 'monthly', priority: 0.7,
   },
   {
-    path: '/experience', page: 'exp', nav: 'Experience',
-    title: 'The Tour Experience — Run of Show, Pods & Talent Stage',
+    path: '/experience', page: 'exp', nav: 'Services',
+    title: 'Services — School & Campus Events, Hosting & Production',
     description:
-      'Inside an Urban Gang Tour day: morning mentorship pods, tree planting, talent competitions, awards and crowning, and hype sets — built to broadcast standard.',
+      'Plan a school or campus event, book live hosts or discuss event production with Urban Gang Tour. Programmes and costs are agreed for your event.',
     changefreq: 'monthly', priority: 0.8,
   },
   {
     path: '/events', page: 'events', nav: 'Events',
-    title: 'Nairobi Events & Tickets — Concerts, Festivals & Live Shows',
+    title: 'Events & Tickets — Upcoming Urban Gang Tour & Partner Events',
     description:
-      'Find concerts, festivals, club nights and live entertainment in Nairobi and across Kenya. Compare event dates, venues and ticket sellers, plus Urban Gang Tour events.',
+      'Explore published Urban Gang Tour and partner events in Kenya. Check dates, venues, organisers and ticket sellers, or browse past event records.',
     changefreq: 'daily', priority: 0.9,
   },
   {
     path: '/shop', page: 'shop', nav: 'Shop',
     title: 'Shop — Urban Gang Merch',
     description:
-      'Official Urban Gang Merch: heavyweight tees, crewnecks, headwear and accessories in signature magenta. What you wear says you were there when it happened.',
+      'Browse Urban Gang Tour merchandise in one shop. Check available sizes, colours, prices in KES and delivery or collection options before checkout.',
     changefreq: 'weekly', priority: 0.9,
   },
   {
@@ -83,19 +85,17 @@ export const ROUTES: RouteDef[] = [
     // (and therefore the sitemap) since a redirecting URL shouldn't be listed
     // as its own canonical.
     path: '/blog', page: 'news', nav: 'News',
-    title: 'Blog — Urban Gang Tour Stories & Recaps',
+    title: 'Urban News — Events, Tour Updates & Stories',
     description:
-      'Longform recaps and student stories from the Urban Gang Tour — school by school, stage by stage. Read the loudest school days of the term.',
+      'Read published Urban Gang Tour news, school and campus event updates, and stories from our work in Kenya.',
     changefreq: 'daily', priority: 0.8,
   },
   {
-    // URL stays /partners - it is indexed and linked. Only the labels change:
-    // PPP TV Kenya is the sole partner, everyone else on this page is an
-    // investor.
-    path: '/partners', page: 'partners', nav: 'Partners & Investors',
-    title: 'Partners & Investors — Get Your Brand in the Moment',
+    // Preserve the indexed URL without inventing current partnership status.
+    path: '/partners', page: 'partners', nav: 'Partners',
+    title: 'Partners — Collaborate With Urban Gang Tour',
     description:
-      'Invest in the Urban Gang Tour. Brands, institutions, campuses and schools put their name inside the culture the whole country is watching.',
+      'Explore collaboration opportunities with Urban Gang Tour for schools, campuses, institutions and brands. Discuss an event or campaign with the team.',
     changefreq: 'monthly', priority: 0.7,
   },
   {
@@ -109,7 +109,7 @@ export const ROUTES: RouteDef[] = [
     path: '/book', page: 'contact', nav: 'Book the Tour',
     title: 'Book the Tour — Bring Urban Gang to Your School or Campus',
     description:
-      'Book the Urban Gang Tour for your school, campus, county or brand activation. Tell us your date and audience and we bring the full broadcast-ready production to you.',
+      'Request Urban Gang Tour for your school, campus or brand event. Share your date, location and audience; the team confirms availability, services and costs.',
     changefreq: 'monthly', priority: 0.9,
   },
   {

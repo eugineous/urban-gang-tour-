@@ -5,6 +5,7 @@ import { getBlogPosts } from './_lib/blog';
 import { hasDb, q } from '@/lib/server/db';
 import { PUBLIC_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
 import {publicPartnerDetails} from '@/lib/partner-events';
+import {WELCOME_LANGUAGES} from '@/lib/welcome-languages';
 
 // Product and ticket URLs are owner-managed database records. The sitemap
 // must read them at request time instead of capturing a build-time snapshot.
@@ -90,6 +91,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  const newPages = [...publicDesignRoutes.filter(path=>!['/the-gang','/tour-stops'].includes(path)),'/shop/lookbook'].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
+  const newPages = [...publicDesignRoutes.filter(path=>!['/the-gang','/tour-stops'].includes(path)),'/shop/lookbook',...Object.keys(WELCOME_LANGUAGES).map(code=>'/welcome/'+code)].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
   return [...new Map([...pages,...authors,...posts,...products,...ticketedEvents,...newPages].map(page=>[page.url,page])).values()];
 }
