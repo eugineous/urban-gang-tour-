@@ -16,10 +16,15 @@ afterEach(()=>vi.unstubAllGlobals());
 it('reuses anonymous public HTML under the deployment-specific key',async()=>{
   const first=await worker.fetch(request('/experience'),{},context());await Promise.all(jobs);
   expect(first.headers.get('cache-control')).toContain('s-maxage=60');
-  expect(first.headers.get('x-ugt-release')).toBe('refund-accounting-20261019-v1');
+  expect(first.headers.get('x-ugt-release')).toBe('international-readiness-20261019-v1');
   const second=await worker.fetch(request('/experience'),{},context());expect(await second.text()).toContain('Public page');
   expect(state.fetch).toHaveBeenCalledTimes(1);
-  expect([...entries.keys()][0]).toContain('__ugt_release=refund-accounting-20261019-v1');
+  expect([...entries.keys()][0]).toContain('__ugt_release=international-readiness-20261019-v1');
+});
+it.each(['/international','/accessibility','/welcome/en','/welcome/sw','/welcome/fr','/welcome/zh-Hans','/welcome/ru','/welcome/es'])('caches the non-personalized %s without locale cookies',async path=>{
+ await worker.fetch(request(path),{},context());await Promise.all(jobs);
+ await worker.fetch(request(path),{},context());expect(state.fetch).toHaveBeenCalledTimes(1);
+ await worker.fetch(request(path,{cookie:'ugt_user=test'}),{},context());expect(state.fetch).toHaveBeenCalledTimes(2);
 });
 it.each(['/shop','/checkout','/cart','/account','/admin'])('keeps %s private and uncached',async path=>{
   const response=await worker.fetch(request(path),{},context());expect(response.headers.get('cache-control')).toBe('no-store');expect(jobs).toHaveLength(0);

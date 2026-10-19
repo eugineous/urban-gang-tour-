@@ -5,12 +5,18 @@ import {usePathname} from 'next/navigation';
 import {ContactFooter} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups} from '@/lib/site-navigation';
+import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 
 export function AppShell({children}:{children:React.ReactNode}){
  const path=usePathname();
  const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[scrolled,setScrolled]=useState(false);
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
- useEffect(()=>{try{const value=JSON.parse(localStorage.getItem('ugt-new-preview-v1focusView')||'false');setFocus(value);document.documentElement.dataset.focusView=String(value)}catch{}},[]);
+ useEffect(()=>{
+  const sync=()=>setFocus(document.documentElement.dataset.focusView==='true');
+  const storage=(event:StorageEvent)=>{if(event.key===FOCUS_VIEW_KEY||event.key===null){let value=false;try{value=JSON.parse(localStorage.getItem(FOCUS_VIEW_KEY)||'false')===true}catch{}setFocusView(value)}};
+  sync();addEventListener('ugt-focus-view',sync);addEventListener('storage',storage);
+  return()=>{removeEventListener('ugt-focus-view',sync);removeEventListener('storage',storage)};
+ },[]);
  useEffect(()=>{setOpen(false)},[path]);
  useEffect(()=>{const update=()=>setScrolled(scrollY>80);update();addEventListener('scroll',update,{passive:true});return()=>removeEventListener('scroll',update)},[]);
  useEffect(()=>{
@@ -28,7 +34,7 @@ export function AppShell({children}:{children:React.ReactNode}){
    returnFocus?.focus();
   };
  },[open]);
- function toggleFocus(){const value=!focus;setFocus(value);try{localStorage.setItem('ugt-new-preview-v1focusView',JSON.stringify(value))}catch{}document.documentElement.dataset.focusView=String(value);dispatchEvent(new CustomEvent('ugt-focus-view',{detail:value}))}
+ function toggleFocus(){setFocusView(!focus)}
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
  const critical=/^\/(shop|checkout|pay|book|account|cart|receipt|tickets|t|verify)(\/|$)/.test(path);

@@ -3,6 +3,7 @@ import ReferralCapture from '@/ui/components/ReferralCapture';
 import {MEDIA_LIFECYCLE_BOOTSTRAP} from '@/lib/client/media-lifecycle';
 
 import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
+import {DISPLAY_PREFERENCES_BOOTSTRAP} from '@/lib/client/display-preferences';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './design.css';
@@ -13,6 +14,7 @@ import './reconstruction.css';
 import './android-mobile.css';
 import './concise-media.css';
 import './interaction-foundations.css';
+import './international.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';
@@ -25,11 +27,11 @@ import { ORG, WEBSITE } from './_lib/jsonld';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.domain),
   title: {
-    default: 'Urban Gang Tour — Where the Culture Gets Made',
+    default: 'Urban Gang Tour — School & Campus Events, Hosting & Production',
     template: '%s',
   },
   description:
-    "Kenya's youth talent search, mentorship, and awards concert tour on Urban News, PPP TV Kenya. From Potential to Purpose.",
+    'School and campus events, live hosting and production in Kenya. Explore our work, find an event or book Urban Gang Tour.',
   applicationName: SITE.name,
   manifest: '/manifest.json',
   icons: {
@@ -69,7 +71,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-KE" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
+      <head><script dangerouslySetInnerHTML={{__html:DISPLAY_PREFERENCES_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
         <link href="/fonts/inter.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />

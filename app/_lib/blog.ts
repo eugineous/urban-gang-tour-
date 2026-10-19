@@ -21,10 +21,9 @@ export type BlogPost = {
 export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
     if (hasDb()) {
-      // AND date <= CURRENT_DATE: a future-dated post is "scheduled", not yet
-      // live. Without this, setting published=true made a post public the
-      // instant it was saved regardless of its date field.
-      const rows = await cached('blog-published-posts', 60_000, () => q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published AND date <= CURRENT_DATE ORDER BY date DESC`));
+      // Match the public feed and the editor's Nairobi publication day, not
+      // the database session's timezone. Stable slug order for date ties.
+      const rows = await cached('blog-published-posts', 60_000, () => q(`SELECT slug, headline, section, image, dek, body, date FROM posts WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date ORDER BY date DESC, slug ASC`));
       if (rows.length) {
         // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
         // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.
@@ -63,10 +62,9 @@ export function articleJsonLd(post: BlogPost) {
     articleBody: post.body.join('\n\n'),
     mainEntityOfPage: url,
     url,
-    author: [
-      { '@type': 'Person', name: 'Eugine Micah', url: `${SITE.domain}/author/eugine-micah` },
-      { '@type': 'Person', name: 'Lucy Ogunde', url: `${SITE.domain}/author/lucy-ogunde` },
-    ],
+    // The current Content desk has no verified per-article author field.
+    // Do not turn the founders or an article's subject into its author.
+    author: { '@type': 'Organization', name: 'Urban Gang Tour Newsroom', url: `${SITE.domain}/blog` },
     publisher: { '@id': NEWS_PUBLISHER_ID },
   };
 }
