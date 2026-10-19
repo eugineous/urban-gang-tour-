@@ -86,9 +86,9 @@ export async function reviewEditorial(slug:string,revision:number,actor:string,r
       editorial_review=$4::jsonb||jsonb_build_object('approved_revision',editorial_revision::text,'approved_hash',editorial_import_hash,'approved_by',$3::text,'approved_at',now()),
       asset_manifest=$5::jsonb,image=$5::jsonb->>'hero',reviewed_by=$3,reviewed_at=now(),updated_at=now(),social_automation_enabled=false
     WHERE slug=$1 AND editorial_managed AND editorial_kind='article' AND editorial_revision=$2 AND NOT published
-      AND editorial_import_hash=$6 RETURNING slug
+      AND editorial_import_hash=$6 RETURNING slug,editorial_review,asset_manifest
   ), audit AS (
-    INSERT INTO editorial_audit(actor,action,slug,detail) SELECT $3,'approve_schedule',slug,jsonb_build_object('revision',$2::int) FROM saved RETURNING id
+    INSERT INTO editorial_audit(actor,action,slug,detail) SELECT $3,'approve_schedule',slug,jsonb_build_object('revision',$2::int,'review',editorial_review,'assets',asset_manifest) FROM saved RETURNING id
   ) SELECT slug FROM saved`,[slug,revision,actor,JSON.stringify(review),JSON.stringify(assets),rows[0].editorial_import_hash]);
 }
 

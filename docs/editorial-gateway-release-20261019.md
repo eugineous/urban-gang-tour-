@@ -20,6 +20,12 @@ No second CMS or post store. Additive metadata lives on existing `posts`.
 `editorial_audit` stores operations, not copies of manuscripts; monitor stores
 the last successful scheduler check. Legacy records remain unmanaged and retain
 their true day-level history. No historical author, content or media is replaced.
+Approval audits retain the reviewed source notes, revision/hash and image rights
+after an item is held. These evidence snapshots remain private and never enter
+public feeds; clearing active approval does not erase the verification history.
+The public leaf eligibility read uses the wide read-only network budget for
+first-time visitors without a device cookie, rather than a venue-wide 60-page
+ceiling. Identified devices retain 60/minute; credential/write limits are unchanged.
 Existing private story uploads are reused; new media URLs are not public until
 their approved article is due. Rights/source records are never returned by public
 feeds. A timed predicate protects previews, leaf routes, JSON-LD, RSS, sitemaps,
