@@ -9,9 +9,9 @@ export function ArticleInline({text}:{text:string}){
     return <Fragment key={index}>{part}</Fragment>;
   })}</>;
 }
-export default function ArticleText({paragraph}:{paragraph:string}){
+export default function ArticleText({paragraph,headingId}:{paragraph:string;headingId?:string}){
   if(paragraph.startsWith('### '))return <h3><ArticleInline text={paragraph.slice(4)}/></h3>;
-  if(paragraph.startsWith('## '))return <h2><ArticleInline text={paragraph.slice(3)}/></h2>;
+  if(paragraph.startsWith('## '))return <h2 id={headingId}><ArticleInline text={paragraph.slice(3)}/></h2>;
   if(paragraph.startsWith('> '))return <blockquote><ArticleInline text={paragraph.slice(2)}/></blockquote>;
   if(paragraph.split('\n').every(line=>/^[-*] /.test(line)))return <ul>{paragraph.split('\n').map((line,i)=><li key={i}><ArticleInline text={line.slice(2)}/></li>)}</ul>;
   return <p><ArticleInline text={paragraph}/></p>;
