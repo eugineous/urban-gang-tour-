@@ -973,6 +973,23 @@ a separate review. A 60,000/min network read budget is not a throughput guarante
 40,000/min end-to-end capacity needs staging load, database and provider telemetry.
 # Editorial library (October 2026)
 
+## Explicit publisher decision (20 October 2026)
+
+The owner explicitly approves publishing/scheduling the ten completed analytical
+drafts without independent fact-checking. An operator may stage a private
+`editorial-library/owner-approval-v1` manifest for the existing secret-authenticated
+cron. This is **not** a public endpoint, session bypass or general auto-approval.
+It accepts at most ten exact saved hashes/revisions from a named source archive,
+only `article` records labelled `Analysis / practical guide`, and expires within
+24 hours. Conflicting/edited/held rows and assignments are not approved. Audit
+receipts make retries harmless and prevent re-publishing a later-held record.
+
+Review metadata honestly records `facts_checked:false` and owner approval mode.
+Existing brand artwork may be reused instead of claiming new image permissions
+or rendering a synthetic event photograph. No social broadcast is triggered;
+past slots publish at their actual release time, future slots retain EAT dates.
+The normal fact/source/image review workflow remains unchanged for other stories.
+
 - `GET /api/admin/editorial[?slug=...]`: current verified Content-permitted
   administrator session required; private/no-store. Lists calendar, due holds
   and scheduler heartbeat, or returns one private source/review/asset record.

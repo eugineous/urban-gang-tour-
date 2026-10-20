@@ -8,7 +8,8 @@ vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:(sql:string,params?:unknown[])=
 vi.mock('@/lib/server/media',()=>({mediaGet:vi.fn()}));
 import {mediaGet} from '@/lib/server/media';
 import {editorialBundle,type EditorialBundle,type EditorialItem} from '@/lib/editorial-import';
-import {importEditorial,reviewEditorial,holdEditorial,updateEditorial,releaseDueEditorial,webpDimensions} from '@/lib/server/editorial';
+import {importEditorial,reviewEditorial,holdEditorial,updateEditorial,releaseDueEditorial,webpDimensions,itemHash} from '@/lib/server/editorial';
+import {applyOwnerEditorialApproval} from '@/lib/server/owner-editorial-release';
 import {PUBLIC_POST_PREDICATE,PUBLIC_POST_SELECT} from '@/lib/server/editorial-publication';
 const container=process.env.UGT_EDITORIAL_SQL_CONTAINER,run=promisify(execFile);
 const fixtureDatabase='editorial_fixture_'+Date.now();
@@ -82,6 +83,23 @@ describe.skipIf(!container)('isolated Postgres editorial workflow',()=>{
   expect(await updateEditorial({...brief,title:'Revised assignment'},1,'fixture-owner')).toEqual([{slug:brief.slug}]);
   const row=(await query('SELECT published,editorial_revision,editorial_review FROM posts WHERE slug=$1',[brief.slug]))[0];expect(row).toMatchObject({published:false,editorial_revision:'2',editorial_review:{}});
  });
+ it('applies explicit publisher approval without inventing fact-checks and never approves briefs',async()=>{
+  const draft={...item,slug:'publisher-approved-fixture',date:'2026-10-22',scheduled_at:'2026-10-22T03:07:00.000Z',metadata:{editorial_type:'Analysis / practical guide'}};
+  await importEditorial({...bundle,items:[draft]},'fixture-owner',false);
+  const request={version:1,mode:'owner_approved_analysis',request_id:'12345678-1234-1234-1234-123456789abc',source_sha256:bundle.source_sha256,requested_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),source_request:'Publish/schedule without independent fact-checking.',targets:[{slug:draft.slug,hash:itemHash(draft),revision:1},{slug:bundle.items[1].slug,hash:itemHash(bundle.items[1]),revision:2}]};
+  expect(await applyOwnerEditorialApproval(request)).toMatchObject({approved:1,conflicts:1});
+  const row=(await query('SELECT published,editorial_review,asset_manifest FROM posts WHERE slug=$1',[draft.slug]))[0];
+  expect(row.published).toBe(true);expect((row.editorial_review as Record<string,unknown>).facts_checked).toBe(false);expect((row.editorial_review as Record<string,unknown>).mode).toBe('owner_approved_analysis');
+  expect((await query(PUBLIC_POST_SELECT)).map(r=>r.slug)).not.toContain(draft.slug);
+  expect(await applyOwnerEditorialApproval(request)).toMatchObject({approved:0,already:1,conflicts:1});
+  await holdEditorial(draft.slug,1,'fixture-owner');
+  expect(await applyOwnerEditorialApproval(request)).toMatchObject({approved:0,already:1});
+  expect((await query('SELECT published FROM posts WHERE slug=$1',[draft.slug]))[0].published).toBe(false);
+ });
+ it('rejects expired publisher approval without modifying records',async()=>{
+  const request={version:1,mode:'owner_approved_analysis',request_id:'22345678-1234-1234-1234-123456789abc',source_sha256:bundle.source_sha256,requested_at:new Date(Date.now()-7200000).toISOString(),expires_at:new Date(Date.now()-3600000).toISOString(),source_request:'Expired fixture',targets:[{slug:item.slug,hash:itemHash(item),revision:1}]};
+  expect(await applyOwnerEditorialApproval(request)).toMatchObject({expired:true,approved:0});
+ });
  it.skipIf(!process.env.UGT_EDITORIAL_LIBRARY_FIXTURE)('validates the actual private 73-slot package without committing or publishing it',async()=>{
   const source=JSON.parse(await readFile(process.env.UGT_EDITORIAL_LIBRARY_FIXTURE!,'utf8'));const data=editorialBundle(source);
   expect(data.items).toHaveLength(73);expect(data.items.filter(i=>i.kind==='article')).toHaveLength(10);expect(data.items.filter(i=>i.kind==='assignment')).toHaveLength(63);
@@ -95,5 +113,12 @@ describe.skipIf(!container)('isolated Postgres editorial workflow',()=>{
   expect(counts[0]).toEqual({total:'73',articles:'10',public:'0'});
   expect((await query(PUBLIC_POST_SELECT)).map(r=>r.slug)).toEqual(['legacy-fixture']);
   expect(webpDimensions(new ArrayBuffer(4))).toBeNull();
+  if(process.env.UGT_EDITORIAL_OWNER_APPROVAL_FIXTURE){
+   const approval=JSON.parse(await readFile(process.env.UGT_EDITORIAL_OWNER_APPROVAL_FIXTURE,'utf8'));
+   expect(await applyOwnerEditorialApproval(approval)).toMatchObject({approved:10,conflicts:0});
+   const published=await query(PUBLIC_POST_SELECT),due=data.items.filter(i=>i.kind==='article'&&Date.parse(i.scheduled_at)<=Date.now()).length;
+   expect(published.filter(r=>r.slug!=='legacy-fixture')).toHaveLength(due);
+   expect((await query(`SELECT count(*)::text AS count FROM posts WHERE editorial_managed AND editorial_kind='assignment' AND published`))[0].count).toBe('0');
+  }
  });
 });

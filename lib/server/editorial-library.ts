@@ -1,6 +1,7 @@
 import {getCloudflareContext} from '@opennextjs/cloudflare';
 import {editorialBundle} from '../editorial-import';
 import {importEditorial} from './editorial';
+import {applyOwnerEditorialApproval} from './owner-editorial-release';
 type LibraryStore={get(key:string):Promise<string|null>;put(key:string,value:string):Promise<void>};
 function libraryStore():LibraryStore|undefined{
   try{return (getCloudflareContext().env as unknown as {UGT_MEDIA?:LibraryStore}).UGT_MEDIA}catch{return undefined}
@@ -23,4 +24,11 @@ export async function importStagedEditorialLibrary(){
 /** Private operational heartbeat. No draft bodies, URLs, contacts or secrets. */
 export async function recordEditorialHeartbeat(result:Record<string,unknown>){
   const store=libraryStore();if(store)await store.put('editorial-library/status-v1',JSON.stringify({checked_at:new Date().toISOString(),...result}));
+}
+/** Separate explicit owner decision, not inferred from a draft import or timer. */
+export async function applyStagedOwnerEditorialApproval(){
+  const store=libraryStore();if(!store)return {staged:false};
+  const raw=await store.get('editorial-library/owner-approval-v1');if(!raw)return {staged:false};
+  if(Buffer.byteLength(raw)>50000)throw Error('approval_too_large');
+  return {staged:true,...await applyOwnerEditorialApproval(JSON.parse(raw))};
 }

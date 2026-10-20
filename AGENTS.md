@@ -1,5 +1,14 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Explicit publisher approval (20 October 2026)
+- Owner directly requests publishing/scheduling the ten complete analytical
+  drafts without independent fact-checking. Record publisher approval honestly;
+  never fabricate completed checks. Keep all 63 unfinished briefs private.
+  A scoped, expiring private operator approval manifest may authorize these
+  exact saved article hashes/revisions through existing authenticated cron.
+  Reuse the existing owner-supplied brand logo rather than inventing image rights
+  or waiting for new illustration work. No global approval/authentication bypass.
+
 ## Editorial library integration (19 October 2026)
 - Owner provided the private Drive ZIP and authorizes a tested feature-branch
   release of the existing newsroom's import/schedule/image/monitoring workflow.
