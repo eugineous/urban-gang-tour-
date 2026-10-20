@@ -8,6 +8,8 @@ import { SITE } from '@/lib/site';
 import {publicImageUrl} from '@/lib/public-image-url';
 import PartnerEventPortfolio from '@/app/_components/PartnerEventPortfolio';
 import ArticleText from '@/app/_components/ArticleText';
+import {URBAN_NEWS_AUTHOR, URBAN_NEWS_AUTHOR_URL, articleSections, readingMinutes} from '@/lib/blog-editorial-format';
+import styles from './editorial.module.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,16 +58,33 @@ export default async function BlogPost(
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
   const related = relatedPosts(posts, post);
+  const sections = articleSections(post.body);
+  const anchorByIndex = new Map(sections.map(section => [section.index, section.id]));
+  const publishedDate = new Intl.DateTimeFormat('en-KE', {day:'numeric', month:'long', year:'numeric', timeZone:'Africa/Nairobi'}).format(new Date(post.datePublished));
+  const updated = Date.parse(post.dateModified) - Date.parse(post.datePublished) > 24 * 60 * 60 * 1000;
+  const modifiedDate = updated ? new Intl.DateTimeFormat('en-KE', {day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Nairobi'}).format(new Date(post.dateModified)) : null;
 
   return <main className="news-article-page wrap">
     <JsonLd data={articleJsonLd(post)}/><JsonLd data={{'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Home',item:SITE.domain+'/'},{'@type':'ListItem',position:2,name:'Urban News',item:SITE.domain+'/blog'},{'@type':'ListItem',position:3,name:post.headline,item:SITE.domain+'/blog/'+post.slug}]}}/>
     <nav className="detail-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/blog">Urban News</a><span aria-hidden="true">/</span><span aria-current="page">{post.headline}</span></nav>
     <article className="news-article">
       <p className="eyebrow">{post.section}</p><h1>{post.headline}</h1>
-      <div className="article-byline"><time dateTime={post.datePublished}>{new Intl.DateTimeFormat('en-KE',{day:'numeric',month:'long',year:'numeric',timeZone:'Africa/Nairobi'}).format(new Date(post.datePublished))}</time><span>By <a href="/blog">{post.author||'Urban Gang Tour Newsroom'}</a></span></div>
-      <p className="article-summary">{post.description}</p><img className="article-cover" src={post.image} alt={post.imageAlt||post.headline}/>
+      {post.subtitle&&<p className={styles.deck}>{post.subtitle}</p>}
+      <div className={styles.meta}>
+        <span>By <a href={URBAN_NEWS_AUTHOR_URL}><strong>{URBAN_NEWS_AUTHOR}</strong></a></span>
+        <span aria-hidden="true">·</span>
+        <time dateTime={post.datePublished}>{publishedDate}</time>
+        <span aria-hidden="true">·</span>
+        <span>{readingMinutes(post.body)} min read</span>
+        {modifiedDate&&<><span aria-hidden="true">·</span><span>Updated <time dateTime={post.dateModified}>{modifiedDate}</time></span></>}
+      </div>
+      <img className="article-cover" src={post.image} alt={post.imageAlt||post.headline}/>
       {post.imageCaption&&<p className="article-caption">{post.imageCaption}</p>}<ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline}/>
-      <div className="article-body">{post.body.map((para,i)=><div key={i}>{i===3&&post.body.length>4&&<ArticleAd/>}<ArticleText paragraph={para}/></div>)}</div>
+      {sections.length>=3&&<nav className={styles.contents} aria-label="In this article">
+        <h2>In this article</h2>
+        <ol>{sections.map(section=><li key={section.id}><a href={'#'+section.id}>{section.label}</a></li>)}</ol>
+      </nav>}
+      <div className="article-body">{post.body.map((para,i)=><div key={i}>{i===3&&post.body.length>4&&<ArticleAd/>}<ArticleText paragraph={para} headingId={anchorByIndex.get(i)}/></div>)}</div>
       {post.disclosure&&<p className="article-disclosure">{post.disclosure}</p>}<div className="modern-actions"><a href="/blog">All stories</a><a href="/book">Plan an event with us</a></div>
     </article>
     <PartnerEventPortfolio newsSlug={post.slug}/>
