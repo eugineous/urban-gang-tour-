@@ -1,4 +1,4 @@
-const CACHE = 'ugt-editorial-gateway-20261019-v2';
+const CACHE = 'ugt-owner-editorial-approval-20261020-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 
