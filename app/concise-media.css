@@ -1,6 +1,5 @@
 /* Editorial and media corrections: loaded last so every public route gets the same rules. */
-.mobile-about-link{display:none}
-@media(max-height:500px) and (orientation:landscape){.site-header.on-hero .mobile-shop-link{color:#fff!important}.hero h1,.hero-bottom{animation:none!important}.hero .button.light{background:#fff!important;color:#171717!important}}
+@media(max-height:500px) and (orientation:landscape){.hero h1,.hero-bottom{animation:none!important}.hero .button.light{background:#fff!important;color:#171717!important}}
 .compact-contact{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:44px 0;border-bottom:1px solid #ffffff30}
 .compact-contact h2{font-size:clamp(40px,6vw,76px)}
 .home-faq-link{padding-block:44px;border-top:1px solid var(--line);text-align:center}
@@ -28,7 +27,6 @@ img.ugt-media-image{max-width:100%;height:auto!important}
 .archiveProject img,.schoolProject img{height:auto}.footer-socials{padding-top:32px}
 @media(max-width:900px), (max-device-width:600px) and (pointer:coarse){.visual-services{grid-template-columns:repeat(2,minmax(0,1fr))}.service-image img{height:230px!important}.experience-next{align-items:flex-start;flex-wrap:wrap}}
 @media(max-width:700px), (max-device-width:600px) and (pointer:coarse){
- .site-header .mobile-about-link{display:inline-flex;align-items:center;min-height:44px;font-size:14px}.site-header .mobile-shop-link{display:none!important}
  .compact-contact{padding:32px 0}.compact-contact h2{font-size:40px}.compact-contact .button{min-width:142px}.contact-footer{padding-top:10px}
  .visual-services{grid-template-columns:1fr!important;gap:14px}.experience-services{padding-top:24px}.visual-services>article{display:grid;grid-template-columns:42% 1fr;min-height:184px}
  .service-image,.service-image img{height:100%!important;min-height:184px}.service-copy{padding:20px 18px;align-content:center;gap:10px}.service-copy h2{font-size:25px}.service-copy p{font-size:15px;line-height:1.45}.service-copy .text-link{font-size:13px}
@@ -40,7 +38,7 @@ img.ugt-media-image{max-width:100%;height:auto!important}
  .video-roll-card{flex-basis:min(calc(100vw/var(--ugt-phone-zoom,1) - 40px),540px)!important}.youtube-panel{width:100%!important;aspect-ratio:16/9!important}
  .reels-frame video{width:100%;height:100%;object-fit:contain!important}
 }
-@media(max-width:370px), (max-device-width:370px) and (pointer:coarse){.site-header .mobile-about-link{display:none}.site-header .mobile-shop-link{display:inline-flex!important}.visual-services>article{grid-template-columns:38% 1fr}}
+@media(max-width:370px), (max-device-width:370px) and (pointer:coarse){.visual-services>article{grid-template-columns:38% 1fr}}
 @media(hover:none) and (pointer:coarse){
  .reels-page{--reels-header:0px!important;height:calc(var(--ugt-screen-height,100dvh)/var(--ugt-phone-zoom,1) - 64px)!important;padding-top:0!important}
  .reels-scroll{height:calc(100% - var(--reels-toolbar) - var(--reels-categories))!important}

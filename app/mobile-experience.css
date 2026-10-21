@@ -1,12 +1,4 @@
 /* Native responsive navigation and event discovery. No second mobile renderer. */
-.site-header .menu-toggle{width:48px;min-width:48px;height:48px;padding:12px;display:grid;place-items:center;border-radius:50%;gap:0}
-.menu-toggle .burger{width:22px}
-.menu-kicker{margin:0 0 12px;font-size:13px;color:var(--muted)}
-.menu-panel{top:84px;bottom:auto;right:12px;padding:24px;max-height:calc(100dvh - 100px);overscroll-behavior:contain;box-shadow:0 16px 60px #0002}
-.menu-panel nav a{justify-content:space-between;min-height:52px;font-size:24px;text-align:left;border-bottom:1px solid var(--line)}
-.menu-panel nav a[aria-current=page]{color:var(--action)}
-.menu-panel nav svg{display:block;flex-shrink:0}.menu-panel nav small{display:none}
-.menu-bottom{margin-top:20px;gap:16px}.menu-bottom a{min-height:44px;display:flex;align-items:center;font-size:16px}
 /* The preview is always a 16:9 frame, even when the phone rotates. */
 .video-roll{align-items:flex-start;scroll-padding-inline:20px;touch-action:pan-x pan-y}
 .video-roll-card{min-width:0;flex-basis:min(520px,82vw,calc((100dvh - 120px)*16/9))}
@@ -41,8 +33,6 @@
 @media(hover:hover){.event-discovery .discovery-card:hover{transform:translateY(-3px);border-color:var(--action)}}
 @media(max-width:1100px), (max-device-width:600px) and (pointer:coarse){.event-discovery .discovery-layout{grid-template-columns:1fr}.event-discovery .discovery-aside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.event-picks-rail{grid-template-columns:none;grid-auto-columns:260px}}
 @media(max-width:700px), (max-device-width:600px) and (pointer:coarse){
- .site-header .menu-toggle{min-width:48px;width:48px;padding:12px}.site-header{padding:10px 12px}.brand{width:52px;height:48px}.brand img{max-height:48px}
- .menu-panel{inset:76px 8px auto;width:calc(100% - 16px);max-height:calc(100dvh - 88px);padding:20px}.menu-panel nav{grid-template-columns:1fr 1fr;gap:0 18px}.menu-panel nav a{font-size:20px;min-height:52px;padding:12px 0}.menu-panel nav svg{width:16px}.menu-bottom{display:grid;grid-template-columns:1fr;gap:8px}.focus-control{min-height:48px}
  .page-intro,.section-title{grid-template-columns:1fr;gap:16px}.page-intro h1{font-size:clamp(34px,10vw,48px);overflow-wrap:anywhere}.section-title h2{font-size:clamp(28px,8vw,40px)}
  .video-roll-card{flex-basis:min(calc(100vw - 48px),calc((100dvh - 120px)*16/9))}.rail-heading h2{font-size:32px}.rail-heading p{font-size:16px}.rail-preview span{padding:8px;font-size:12px;bottom:8px;left:8px}
  .event-discovery .discovery-intro{padding-top:110px;gap:18px;align-items:flex-start}.event-discovery .discovery-intro h1{font-size:42px;margin:10px 0 16px}.event-discovery .discovery-intro p:not(.eyebrow){font-size:16px;line-height:1.5}.event-intro-actions>.button{min-height:44px}
@@ -51,12 +41,12 @@
  .event-discovery .discovery-results-heading h2{font-size:26px}.event-discovery .discovery-results-heading{display:flex;flex-direction:row;flex-wrap:wrap}.event-discovery .discovery-sort{width:auto;max-width:100%}.event-discovery .discovery-selects{grid-template-columns:1fr;gap:16px}.event-discovery .discovery-aside{grid-template-columns:1fr}.event-discovery .own-feature{grid-template-columns:1fr}.event-discovery .own-feature>img{max-height:50dvh;object-fit:contain}.discovery-layout{padding-top:0}
 }
 @media(max-height:500px) and (orientation:landscape){
- .floating-talk{display:none}.site-header{padding:8px 12px}.brand{height:42px}.brand img{max-height:42px}.menu-panel{top:68px;max-height:calc(100dvh - 76px);padding:16px 24px}.menu-panel nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 20px}.menu-panel nav a{font-size:18px;min-height:44px}.menu-bottom{display:flex;align-items:center;justify-content:space-between}.menu-kicker{display:none}
+ .floating-talk{display:none}
  .hero .hero-inner{padding:82px 0 18px}.hero-heading{max-width:60%}.hero-bottom{padding-right:0}.hero-bottom .button{width:auto;min-width:0}.video-roll-card{flex-basis:min(70vw,calc((100dvh - 112px)*16/9))}
  .rail-heading{display:block}.rail-actions{margin-top:16px}.film-viewer{padding:12px;gap:8px}.film-viewer h3{font-size:16px;margin:0}
  .event-discovery .discovery-intro{padding-top:96px}.event-discovery .discovery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.event-picks-rail{grid-auto-columns:260px}
 }
-@media(max-width:340px), (max-device-width:340px) and (pointer:coarse){.event-discovery .discovery-grid{grid-template-columns:1fr}.menu-panel nav{grid-template-columns:1fr}.event-filter-summary{flex-wrap:wrap}.event-discovery .discovery-intro h1{font-size:34px}}
+@media(max-width:340px), (max-device-width:340px) and (pointer:coarse){.event-discovery .discovery-grid{grid-template-columns:1fr}.event-filter-summary{flex-wrap:wrap}.event-discovery .discovery-intro h1{font-size:34px}}
 @media(prefers-reduced-motion:reduce){.event-discovery .discovery-card{transition:none}.event-discovery .discovery-card:hover{transform:none}}
 @media(max-width:700px), (max-device-width:600px) and (pointer:coarse){.hero-heading p{max-width:calc(100% - 94px)}.event-discovery .event-picks-rail .discovery-card-copy h3{font-size:21px}.event-discovery .event-picks-rail .discovery-card-copy>p{font-size:15px}.event-discovery .event-picks-rail .discovery-card-action{font-size:14px}}
 @media(max-height:500px) and (orientation:landscape){.hero-heading p{max-width:100%}}
@@ -67,10 +57,6 @@
 .youtube-panel{aspect-ratio:16/9;width:min(100%,calc((var(--ugt-screen-height,100dvh)/var(--ugt-phone-zoom,1) - 112px)*16/9));margin-inline:auto}
 .youtube-panel iframe,.youtube-panel>button{position:absolute;inset:0;display:block;width:100%;height:100%}
 .youtube-panel>a{max-width:calc(100% - 24px);right:12px;bottom:12px;font-size:12px;line-height:1.4}
-
-.menu-groups{display:grid;gap:24px}.menu-groups h2{font-size:13px;line-height:1.5;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}.menu-panel .menu-groups nav{grid-template-columns:1fr 1fr;gap:0 20px}.menu-panel .menu-groups nav a{min-height:68px;font-size:20px;padding:12px 0}.menu-link-copy{display:grid;gap:4px;min-width:0}.menu-link-copy strong{font-weight:550}.menu-link-copy>span{font-size:13px;line-height:1.4;color:var(--muted)}.menu-account-links{display:flex;gap:24px;flex-wrap:wrap}.menu-panel .menu-bottom{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line);padding-top:16px;margin-top:20px;gap:12px}.header-actions .cart-link{font-size:14px}
-@media(max-height:500px) and (orientation:landscape){.menu-groups{grid-template-columns:2fr 1fr;gap:28px}.menu-panel .menu-groups nav{grid-template-columns:1fr 1fr}.menu-groups section:last-child nav{grid-template-columns:1fr}.menu-panel .menu-groups nav a{min-height:50px;font-size:18px;padding:8px 0}.menu-link-copy>span{font-size:12px}.menu-panel .menu-bottom{display:flex;align-items:center}.menu-link-copy{gap:2px}}
-@media(max-width:340px), (max-device-width:340px) and (pointer:coarse){.menu-panel .menu-groups nav{grid-template-columns:1fr}.menu-link-copy strong{font-size:20px}}
 .referral-disclosure{margin:12px auto;padding:12px 16px;max-width:1180px;display:flex;align-items:center;gap:16px;border:1px solid #ddd;border-radius:12px;background:#fafafa;color:#202020;font-size:14px;line-height:1.45}.referral-disclosure p{margin:0;flex:1}.referral-disclosure button{min-height:44px;border:1px solid #bbb;border-radius:24px;padding:8px 14px;background:white;color:#202020;flex-shrink:0}@media(max-width:600px), (max-device-width:600px) and (pointer:coarse){.referral-disclosure{margin:10px 16px;align-items:flex-start;flex-direction:column;gap:8px}}
 /* Consent and interest controls retain a 44px label target without stretching the checkbox. */
 .booking-form label:has(>input[type=checkbox]){display:flex;align-items:flex-start;gap:12px;min-height:44px;padding-block:8px;cursor:pointer;line-height:1.5;font-size:16px}
@@ -102,8 +88,7 @@
  .modern-page button,.modern-page input:not([type=checkbox]),.modern-page select{min-height:44px}
  .modern-page form input,.modern-page form select,.modern-page form textarea{font-size:16px!important;max-width:100%;min-width:0}
  .modern-page h1,.booking2 h1{font-size:clamp(34px,10vw,42px);overflow-wrap:anywhere}
- .shopping-assurance,.footer-bottom,.footer-secondary,.footer-bottom button,.menu-link-copy>span,.menu-bottom a{font-size:16px;line-height:1.5}
- .menu-panel .menu-groups nav a{min-height:72px}
+ .shopping-assurance,.footer-bottom,.footer-secondary,.footer-bottom button{font-size:16px;line-height:1.5}
  .invitation-film video{aspect-ratio:16/9;object-fit:contain}
 }
 /* A rotated phone still has enough room for two readable result cards. */

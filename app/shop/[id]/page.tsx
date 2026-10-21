@@ -147,7 +147,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     }));
   }
 
-  return <main className={`product-page ${styles.productPage}`}>
+  return <section className={`product-page ${styles.productPage}`}>
     <JsonLd data={productJsonLd} />
     <div className="wrap breadcrumbs"><a href="/shop">Shop</a><span>/</span><span>{product.name}</span></div>
     <section className={`product-detail wrap ${styles.productDetail}`}>
@@ -156,5 +156,5 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     </section>
     {reviews.length>0&&<section className={`wrap product-reviews ${styles.reviewSection}`}><p className="eyebrow">From the community</p><h2>Customer reviews</h2><div className={styles.reviewGrid}>{reviews.map((review,i)=><article key={i}><h3>{review.author}</h3><p className={styles.rating}>{review.rating} / 5</p><p>{review.body}</p></article>)}</div></section>}
     <section className={`wrap product-reviews ${styles.reviewSection}`}><ProductReviewForm productId={product.id}/></section>
-  </main>;
+  </section>;
 }

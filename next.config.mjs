@@ -1,7 +1,7 @@
 import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
 // Provide simulated Cloudflare bindings during local development.
-initOpenNextCloudflareForDev();
+if(process.env.NODE_ENV==='development')initOpenNextCloudflareForDev();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,8 +11,6 @@ const nextConfig = {
   // visitor. A streamed Suspense placeholder needs JavaScript to become the
   // real page, which made otherwise server-rendered routes look blank.
   htmlLimitedBots: /.*/,
-  // Legacy eslint config in the repo isn't for this app; don't let it block builds.
-  eslint: { ignoreDuringBuilds: true },
   // @react-pdf/renderer (pdfkit inside) ships font data that breaks if webpack
   // tries to bundle it; keep it external so Node resolves it normally.
   serverExternalPackages: ['@react-pdf/renderer'],

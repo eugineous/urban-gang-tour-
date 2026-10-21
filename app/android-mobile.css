@@ -2,16 +2,6 @@
    viewport. The bootstrap normalises the content width, not media queries. */
 .live-catalogue-back { padding-top:110px; }
 @media (max-width:700px), (max-device-width:600px) and (pointer:coarse) {
-  .site-header { position:sticky!important; top:0!important; min-height:64px; padding:8px 16px!important; background:#f4f4f4!important; color:#191919!important; backdrop-filter:none!important; border-bottom:1px solid #dedede; }
-  .site-header .brand { width:50px; height:44px; }
-  .site-header .brand img { width:50px; height:44px; object-fit:contain; }
-  .site-header .start-link { display:none!important; }
-  .site-header .desktop-nav { display:none!important; }
-  .site-header .header-actions { gap:6px!important; min-width:0; flex-shrink:0; }
-  .site-header .mobile-shop-link,.site-header .cart-link { min-height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:14px; color:#191919!important; }
-  .site-header .cart-link { padding:0 10px; border:1px solid #d5d5d5; border-radius:24px; }
-  .site-header .menu-toggle { width:44px; min-width:44px; height:44px; color:#191919!important; background:#fff!important; border:1px solid #d5d5d5; }
-  .menu-panel { top:68px!important; max-height:calc(var(--ugt-screen-height, 100svh) / var(--ugt-phone-zoom, 1) - 84px); overflow-y:auto; }
   .booking-invitation { width:calc(100vw / var(--ugt-phone-zoom,1) - 24px); max-width:calc(100vw / var(--ugt-phone-zoom,1) - 24px); max-height:calc(var(--ugt-screen-height,100dvh) / var(--ugt-phone-zoom,1) - 24px); }
   .floating-talk { display:none!important; }
   #main-content { min-width:0; }
@@ -47,10 +37,9 @@
   .filter-bar button { min-height:44px; }
   #main-content :is(input,select,textarea) { font-size:16px; }
   #main-content :is(input:not([type=checkbox]):not([type=radio]),select) { min-height:48px; }
-  .hero-bottom a svg,.site-header a svg { display:inline-block; vertical-align:middle; }
+  .hero-bottom a svg { display:inline-block; vertical-align:middle; }
 }
 @media (max-width:380px), (max-device-width:380px) and (pointer:coarse) {
-  .site-header { padding-inline:12px!important; }
   #main-content h1 { font-size:36px; }
   #main-content .hero h1 { font-size:50px; }
 }

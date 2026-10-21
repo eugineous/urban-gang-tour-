@@ -4,13 +4,17 @@ import {Suspense,useEffect,useRef,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
-import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups} from '@/lib/site-navigation';
+import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups,SITE_UTILITY_NAVIGATION as utilityLinks,isNavigationCurrent} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 import LanguageChooser from './LanguageChooser';
 
 export function AppShell({children}:{children:React.ReactNode}){
  const path=usePathname();
- const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[scrolled,setScrolled]=useState(false);
+ return <PathShell key={path} path={path}>{children}</PathShell>;
+}
+/** A route change closes transient navigation without a cascading state effect. */
+function PathShell({children,path}:{children:React.ReactNode;path:string}){
+ const [focus,setFocus]=useState(false),[open,setOpen]=useState(false);
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
  useEffect(()=>{
   const sync=()=>setFocus(document.documentElement.dataset.focusView==='true');
@@ -18,8 +22,6 @@ export function AppShell({children}:{children:React.ReactNode}){
   sync();addEventListener('ugt-focus-view',sync);addEventListener('storage',storage);
   return()=>{removeEventListener('ugt-focus-view',sync);removeEventListener('storage',storage)};
  },[]);
- useEffect(()=>{setOpen(false)},[path]);
- useEffect(()=>{const update=()=>setScrolled(scrollY>80);update();addEventListener('scroll',update,{passive:true});return()=>removeEventListener('scroll',update)},[]);
  useEffect(()=>{
   const dialog=menu.current;
   if(!open||!dialog)return;
@@ -40,16 +42,13 @@ export function AppShell({children}:{children:React.ReactNode}){
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
  const critical=/^\/(shop|checkout|pay|book|account|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
-  <header className={`site-header ${path==='/'&&!open&&!scrolled?'on-hero':''} ${scrolled?'is-scrolled':''} ${open?'menu-open':''}`}>
+  <header className="site-header">
    <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
-   <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={path===href?'page':undefined}>{label}</a>)}</nav>
+   <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
    <div className="header-actions">
-    <LanguageChooser path={path}/>
-    <a className="mobile-about-link" href="/about" aria-current={path==='/about'?'page':undefined}>About</a>
-    <a className="mobile-shop-link" href="/shop">Shop</a>
-    <a className="cart-link" href="/cart" aria-label="View your cart">Cart</a>
+    <a className="cart-link" href="/cart" aria-label="View your cart" aria-current={path==='/cart'?'page':undefined}>Cart</a>
     <a className="start-link" href="/book">Book <span aria-hidden="true">↗</span></a>
-    <button ref={trigger} className="menu-toggle" aria-label={open?'Close menu':'Open menu'} aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><span className={open?'burger is-open':'burger'} aria-hidden="true"><i/><i/><i/></span></button>
+    <button type="button" ref={trigger} className="menu-toggle" aria-label={open?'Close menu':'Open menu'} aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg><span>Menu</span></button>
    </div>
   </header>
   <dialog ref={menu} id="site-menu" className={`menu-panel ${open?'is-open':''}`} aria-label="Site navigation" onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
@@ -58,8 +57,8 @@ export function AppShell({children}:{children:React.ReactNode}){
    if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
   }}>
    <div className="menu-dialog-heading"><strong>Explore Urban Gang Tour</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label="Close navigation">Close ×</button></div>
-   <div className="menu-groups">{menuGroups.map(group=><section key={group.title}><h2>{group.title}</h2><nav aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={path===href?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><span aria-hidden="true">↗</span></a>)}</nav></section>)}</div>
-   <div className="menu-bottom"><div className="menu-account-links"><a href="/cart">Your cart</a><a href="/account">Your account</a><a href="/organizer/login">Organizer portal</a></div><button className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div>
+   <div className="menu-groups">{menuGroups.map(group=><section key={group.title}><h2>{group.title}</h2><nav aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><span aria-hidden="true">→</span></a>)}</nav></section>)}</div>
+   <div className="menu-bottom"><nav className="menu-account-links" aria-label="Account and help">{utilityLinks.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav><div className="menu-preferences"><LanguageChooser path={path}/><button type="button" className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div></div>
   </dialog>
   <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   <CampaignDisplays path={path} paused={open||focus}/>

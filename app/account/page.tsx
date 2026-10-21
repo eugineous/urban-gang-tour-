@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function AccountPage() {
   return (
-    <main className="modern-page">
+    <section className="modern-page">
       <p className="eyebrow">Your Urban Gang account</p><h1>Your account.</h1>
       <AccountApp />
-    </main>
+    </section>
   );
 }

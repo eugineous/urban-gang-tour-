@@ -16,6 +16,7 @@ import './concise-media.css';
 import './interaction-foundations.css';
 import './international.css';
 import './responsive-continuation.css';
+import './navigation.css';
 import { AppShell } from './_components/AppShell';
 import { SITE } from '@/lib/site';
 import { JsonLd } from './_components/JsonLd';

@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {WELCOME_LANGUAGES,isWelcomeLanguage,welcomeAlternates} from '@/lib/welcome-languages';
 import Welcome,{generateMetadata,generateStaticParams} from '@/app/welcome/[language]/page';
 import {SITE} from '@/lib/site';
-import {SITE_MENU_GROUPS} from '@/lib/site-navigation';
+import {SITE_MENU_GROUPS,SITE_UTILITY_NAVIGATION} from '@/lib/site-navigation';
 import {metadataForPath} from '@/app/_lib/seo';
 import {DISPLAY_PREFERENCES_BOOTSTRAP,FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 
@@ -24,8 +24,9 @@ describe('actual translated welcome pages',()=>{
   await expect(Welcome({params:Promise.resolve({language:'de'})})).rejects.toThrow();
  });
  it('keeps new routes discoverable, distinct and task-led',()=>{
-  const links=SITE_MENU_GROUPS.flatMap(group=>group.items);
-  for(const path of ['/welcome/en','/international','/accessibility'])expect(links.some(([,href])=>href===path)).toBe(true);
+  const links=[...SITE_MENU_GROUPS.flatMap(group=>group.items),...SITE_UTILITY_NAVIGATION];
+  for(const path of ['/international','/accessibility'])expect(links.some(([,href])=>href===path)).toBe(true);
+  expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<LanguageChooser path={path}/>');
   for(const path of ['/international','/accessibility']){
    const m=metadataForPath(path);expect(m.alternates?.canonical).toBe(SITE.domain+path);expect(m.description).toBeTruthy();expect(m.openGraph).toBeTruthy();expect(m.twitter).toBeTruthy();
   }

@@ -185,7 +185,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
   const ticketHref = `/events?event=${encodeURIComponent(event.id)}`;
 
-  return <main className="event-detail-page wrap">
+  return <section className="event-detail-page wrap">
     {eventJsonLd&&<JsonLd data={eventJsonLd}/>}
     <EventsAnalytics eventSlug={event.slug} eventNames={[{slug:event.slug,name:event.name}]}/>
     <div className="detail-breadcrumbs"><a href="/events">All events</a><span>/</span><span>{event.name}</span></div>
@@ -194,5 +194,5 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <section className="event-detail-grid"><div><h2>Plan your visit.</h2><dl>{[['Date',eventDate],['Time',event.event_time||'To be confirmed'],['Venue',event.venue||'To be confirmed'],['City',event.city||'Kenya']].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on WhatsApp</a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on X</a>{/^\d{4}-\d{2}-\d{2}$/.test(String(event.event_date).slice(0,10))&&<EventCalendar name={event.name} date={String(event.event_date).slice(0,10)} start={startDate} venue={event.venue||''} url={`${SITE.domain}${path}`}/>}</div></div>
     <aside className="modern-card"><h2>Ticket options.</h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt>{tier.name}</dt><dd>{money(tier.price)}</dd></div>)}</dl>:<p>Ticket options have not been published yet.</p>}{sellable?<a className="button" href={ticketHref}>Get tickets</a>:<p role="status">{soldOut?'Sold out':'Tickets not on sale'}</p>}<p className="form-note">Ticket availability is checked again at checkout.</p><a href="/book">Plan your own event with us</a></aside></section>
     {sellable&&<div className="event-ticket-dock"><span>{fromPrice!==null?'From '+money(fromPrice):''}</span><a className="button" href={ticketHref}>Get tickets</a></div>}
-  </main>;
+  </section>;
 }
