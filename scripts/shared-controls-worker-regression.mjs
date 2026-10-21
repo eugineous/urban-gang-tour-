@@ -19,9 +19,22 @@ try{
   assert.equal((html.match(/<main(?:\s|>)/g)||[]).length,1,route+' main');
   assert.equal((html.match(/<h1(?:\s|>)/g)||[]).length,1,route+' heading');
   const title=html.match(/<title>(.*?)<\/title>/)?.[1];assert.ok(title,route+' title');assert.ok(!titles.has(title),route+' unique title');titles.add(title);
-  assert.match(html,/aria-label="Open menu"/,route+' menu');assert.match(html,/<span>Menu<\/span>/,route+' visible label');
+  assert.match(html,/aria-controls="site-menu"/,route+' navigation control');assert.match(html,/class="mobile-menu-label">Menu<\/span>/,route+' mobile menu label');
+  assert.match(html,/class="desktop-menu-label">More /,route+' desktop secondary navigation');
+  assert.match(html,/class="start-link" href="\/contact-us">Let’s talk/,route+' direct contact action');
   assert.ok(!html.includes('mobile-shop-link')&&!html.includes('mobile-about-link'),route+' alternate controls removed');
   assert.match(html,/aria-label="Account and help"/,route+' support');
+  if(route!=='/reels'&&route!=='/checkout'){
+   assert.match(html,/data-site-footer/,route+' grouped footer');
+   for(const label of ['Explore','Connect','Help','Policies'])assert.ok(html.includes('aria-label="'+label+'"'),route+' '+label+' footer group');
+  }
+  if(route==='/'){
+   assert.match(html,/data-contact-launcher/,route+' restored contact launcher');
+   assert.match(html,/data-host-invitation/,route+' dormant host invitation');
+   assert.match(html,/aria-label="Booking questions"/,route+' inline FAQ');
+   assert.equal((html.match(/<details(?:\s|>)/g)||[]).length,5,route+' default FAQs');
+   assert.match(html,/Featured work\./,route+' featured archive');
+  }
   console.log('PASS actual Worker shared controls',route);checks++;
  }
  console.log(JSON.stringify({passed:true,checks,remoteBindings:false,browserVerification:false}));

@@ -1,5 +1,14 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Header, footer and motion recovery (21 October 2026)
+- Owner reports desktop hamburger, missing Let's talk/pop-ups, misaligned footer
+  and missing Nixtio-inspired home/FAQ/motion sections. Restore useful original
+  components and responsive navigation, preserve actual owned media/claims,
+  consent/cooldowns, focus/reduced-motion settings and commerce/auth boundaries.
+  Inventory unfinished historical work against current code, not stale reports.
+  Use tested feature branch/PR/Cloudflare release with bindings/cron preserved.
+  No invented ads/client endorsements or claims of unavailable rendered testing.
+
 ## Completed editorial assignments (21 October 2026)
 - Owner requests finishing all remaining briefs under the standing publisher
   instruction to publish or schedule without independent fact-checking. Convert

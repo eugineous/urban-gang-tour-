@@ -4,6 +4,9 @@ import { campaignIsLive, campaignTargets, campaignsAllowedOn, safeCampaignImage,
 import { fetchWithTimeout } from '@/lib/client/fetch-with-timeout';
 import {hasConsentChoice} from '@/lib/client/consent';
 import {campaignCanInterrupt} from '@/lib/client/campaign-interruption';
+import {openCampaignDialog} from '@/lib/client/campaign-dialog';
+import {automaticPopupWasShown,markAutomaticPopupShown} from '@/lib/client/automatic-popup';
+import {campaignSelectionAfterFeed} from '@/lib/client/campaign-selection';
 import styles from './CampaignDisplays.module.css';
 export type PublicCampaign = Omit<Campaign, 'name' | 'promoId'>;
 const storageKey = (id: string) => 'ugt-campaign-dismiss-' + id;
@@ -14,12 +17,12 @@ export function CampaignCreative({ campaign, preview = false, headingId }: { cam
   return <>{campaign.image && safeCampaignImage(campaign.image) && <img className={styles.image} src={campaign.image} alt="" loading="lazy"/>}<div className={styles.copy}><h2 id={headingId}>{campaign.headline}</h2>{campaign.description && <p>{campaign.description}</p>}{preview ? <span className={styles.cta}>{campaign.ctaLabel}</span> : <a className={styles.cta} href={campaign.href}>{campaign.ctaLabel}</a>}</div></>;
 }
 export default function CampaignDisplays({ path, paused }: { path: string; paused: boolean }) {
-  const [campaigns,setCampaigns] = useState<PublicCampaign[]>([]), [tick,setTick] = useState(0), [closed,setClosed] = useState<string[]>([]), [privacyReady,setPrivacyReady] = useState(false);
-  const [uninterrupted,setUninterrupted]=useState(false);
+  const [campaigns,setCampaigns] = useState<PublicCampaign[]>([]), [closed,setClosed] = useState<string[]>([]);
+  const [selection,setSelection]=useState<{popup?:PublicCampaign;banner?:PublicCampaign}>({});
   const lease = useRef(0), serverClock = useRef({ time: 0, at: 0 }), loadedAt = useRef(0), popupShown = useRef(false), dialog = useRef<HTMLDialogElement>(null);
   const allowed = campaignsAllowedOn(path);
   useEffect(() => {
-    setCampaigns([]); loadedAt.current = performance.now();
+    setCampaigns([]); setSelection({}); loadedAt.current = performance.now();
     if (!allowed) return;
     let disposed = false;
     let loading = false;
@@ -37,14 +40,16 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
         const elapsed = performance.now()-started;
         lease.current = performance.now()+Math.max(0,data.validForMs-elapsed);
         serverClock.current = { time: data.serverTime+elapsed, at: performance.now() };
-        try { if (sessionStorage.getItem('ugt-campaign-popup-session')==='shown') popupShown.current=true; } catch {}
-        setCampaigns(rows);
-      } catch { if (!disposed && !controller.signal.aborted) { lease.current=0; setCampaigns([]); } }
+        if(automaticPopupWasShown())popupShown.current=true;
+        const activeRows:PublicCampaign[]=data.validForMs>elapsed?rows:[];
+        setCampaigns(activeRows);
+        setSelection(current=>campaignSelectionAfterFeed(current,activeRows.filter(c=>campaignTargets(c,path)&&campaignIsLive(c,data.serverTime+elapsed))));
+      } catch { if (!disposed && !controller.signal.aborted) { lease.current=0; setCampaigns([]); setSelection({}); } }
       finally { loading=false; }
     }
     void load();
     const refresh = setInterval(() => void load(), 10000);
-    const visibility = () => { if (document.visibilityState==='visible') { if(performance.now()>=lease.current)setCampaigns([]);void load(); } };
+    const visibility = () => { if (document.visibilityState==='visible') { if(performance.now()>=lease.current){setCampaigns([]);setSelection({});}void load(); } };
     document.addEventListener('visibilitychange',visibility);
     return () => { disposed=true; controller.abort(); clearInterval(refresh); document.removeEventListener('visibilitychange',visibility); };
   }, [path,allowed]);
@@ -53,36 +58,42 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
     if (!allowed || !haveCampaigns) return;
     const watch = setInterval(() => {
       if(document.hidden)return;
-      if (lease.current && performance.now()>=lease.current) { lease.current=0; setCampaigns([]); }
+      const clock=performance.now();
+      if(automaticPopupWasShown())popupShown.current=true;
+      if (lease.current && clock>=lease.current) { lease.current=0; setCampaigns([]); setSelection({}); return; }
       const consentReady=hasConsentChoice()&&!document.querySelector('aside[aria-label="Privacy preferences"]');
-      setPrivacyReady(consentReady);
       const otherOverlay=Array.from(document.querySelectorAll('dialog[open],.lightbox,.film-viewer,.modal-backdrop')).some(element=>element!==dialog.current);
-      setUninterrupted(campaignCanInterrupt({hidden:document.hidden,editing:!!document.activeElement?.matches('input,textarea,select,[contenteditable=true]'),otherOverlay,privacyReady:consentReady,paused:false}));
-      setTick(value=>value+1);
+      const uninterrupted=campaignCanInterrupt({hidden:document.hidden,editing:!!document.activeElement?.matches('input,textarea,select,[contenteditable=true]'),otherOverlay,privacyReady:consentReady,paused});
+      const now=serverClock.current.time+clock-serverClock.current.at;
+      const candidates=!paused&&consentReady&&lease.current>clock?campaigns.filter(c=>campaignTargets(c,path)&&campaignIsLive(c,now)&&!closed.includes(c.id)&&!recentlySeen(c)).sort((a,b)=>b.priority-a.priority||a.id.localeCompare(b.id)):[];
+      setSelection({
+        popup:uninterrupted?candidates.find(c=>c.format==='popup'&&clock-loadedAt.current>=c.delaySeconds*1000&&(!popupShown.current||dialog.current?.open)):undefined,
+        banner:candidates.find(c=>c.format==='banner'),
+      });
     }, 500);
     return () => clearInterval(watch);
-  }, [allowed,haveCampaigns]);
-  const now = serverClock.current.time + performance.now()-serverClock.current.at;
-  const candidates = allowed && !paused && privacyReady && lease.current>performance.now() ? campaigns.filter(c=>campaignTargets(c,path)&&campaignIsLive(c,now)&&!closed.includes(c.id)&&!recentlySeen(c)).sort((a,b)=>b.priority-a.priority||a.id.localeCompare(b.id)) : [];
-  const popup = uninterrupted?candidates.find(c=>c.format==='popup' && performance.now()-loadedAt.current>=c.delaySeconds*1000 && (!popupShown.current || dialog.current?.open)):undefined;
-  const banner = candidates.find(c=>c.format==='banner');
+  }, [allowed,haveCampaigns,campaigns,closed,path,paused]);
+  const popup=allowed&&!paused&&selection.popup&&!closed.includes(selection.popup.id)?selection.popup:undefined;
+  const banner=allowed&&!paused&&selection.banner&&!closed.includes(selection.banner.id)?selection.banner:undefined;
   function dismiss(campaign: PublicCampaign) {
     try { localStorage.setItem(storageKey(campaign.id),String(Date.now())); } catch {}
     setClosed(previous=>[...previous,campaign.id]);
   }
+  const popupId=popup?.id;
   useEffect(() => {
     const element = dialog.current;
-    if (!popup || !element || element.open) return;
-    let seen = false;
-    try { seen = sessionStorage.getItem('ugt-campaign-popup-session')==='shown'; } catch {}
-    if (seen) return;
+    if (!popupId || !element || element.open) return;
+    const seen=automaticPopupWasShown();
+    // Effect replay must not strand the same eligible offer in a closed dialog.
+    // A persisted session dismissal still prevents a fresh component from opening it.
+    if (seen && !popupShown.current) return;
+    const close = openCampaignDialog(element);
+    if (!close) return;
     popupShown.current=true;
-    try { sessionStorage.setItem('ugt-campaign-popup-session','shown'); } catch {}
-    element.showModal();
-    return () => { if (element.open) element.close(); };
-  }, [popup?.id]);
-  // Tick keeps delays/expiry reactive; campaign text is always rendered as text.
-  void tick;
+    markAutomaticPopupShown();
+    return close;
+  }, [popupId]);
+  // Eligibility is snapshotted by the timer; render stays pure and text-only.
   if (popup) return <dialog ref={dialog} className={styles.dialog} aria-labelledby="campaign-title" onCancel={event=>{event.preventDefault();dismiss(popup);}}><button className={styles.close} type="button" aria-label="Close offer" onClick={()=>dismiss(popup)}>×</button><div className={styles.creative}><CampaignCreative campaign={popup} headingId="campaign-title"/></div></dialog>;
   if (!banner) return null;
   return <aside className={styles.banner} aria-label="Current campaign"><button className={styles.close} type="button" aria-label="Close announcement" onClick={()=>dismiss(banner)}>×</button><CampaignCreative campaign={banner}/></aside>;

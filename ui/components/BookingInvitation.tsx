@@ -1,43 +1,61 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {useCalmMotion} from './ExperienceRails';
+import {hasConsentChoice} from '@/lib/client/consent';
+import {automaticPopupWasShown,markAutomaticPopupShown} from '@/lib/client/automatic-popup';
+import {openCampaignDialog} from '@/lib/client/campaign-dialog';
+import {INVITATION_DISMISSED_KEY,invitationAllowedOn,invitationCanOpen,invitationWasDismissed} from '@/lib/client/booking-invitation';
+import styles from './BookingInvitation.module.css';
 
-const seenKey='ugt-booking-invitation-seen-v1';
-export function BookingInvitation(){
-  const path=usePathname(),dialog=useRef<HTMLDialogElement>(null),player=useRef<HTMLVideoElement>(null);
-  const [open,setOpen]=useState(false),[paused,setPaused]=useState(false),[manual,setManual]=useState(false),[failed,setFailed]=useState(false);
-  const motion=useCalmMotion();
-  const eligible=!/^\/(admin|organizer|reels|account|book|cart|checkout|pay|receipt|tickets|verify|t|tour-stops|portfolio|proof|experience|author)(\/|$)/.test(path)&&!/^\/gallery\/.+/.test(path);
-  useEffect(()=>{
-    if(!eligible)return;
-    try{if(localStorage.getItem(seenKey))return}catch{}
-    let engaged=false,shown=false,lastActivity=Date.now();const started=Date.now();
-    const consider=()=>{
-      if(shown||!engaged||Date.now()-started<12000||Date.now()-lastActivity<2500||document.fullscreenElement||document.hidden||Math.min(screen.width,innerWidth)<300)return;
-      if(document.querySelector('dialog[open],.menu-panel.is-open,.lightbox,.film-viewer,.modal-backdrop')||document.activeElement?.closest('form')||document.activeElement?.matches('input,textarea,select'))return;
-      shown=true;try{localStorage.setItem(seenKey,'shown')}catch{}setOpen(true);
-    };
-    const activity=()=>{lastActivity=Date.now()};window.addEventListener('pointerdown',activity,{passive:true});window.addEventListener('pointermove',activity,{passive:true});window.addEventListener('keydown',activity);
-    const formInteraction=(e:Event)=>{if((e.target as HTMLElement)?.closest('form'))engaged=false};
-    document.addEventListener('focusin',formInteraction);document.addEventListener('input',formInteraction);
-    const scroll=()=>{activity();if(scrollY>Math.min(400,innerHeight*.35))engaged=true;consider()};
-    const timer=setInterval(consider,1000);window.addEventListener('scroll',scroll,{passive:true});
-    return()=>{clearInterval(timer);window.removeEventListener('scroll',scroll);document.removeEventListener('focusin',formInteraction);document.removeEventListener('input',formInteraction);window.removeEventListener('pointerdown',activity);window.removeEventListener('pointermove',activity);window.removeEventListener('keydown',activity)};
-  },[eligible,path]);
-  useEffect(()=>{
-    if(!open||!dialog.current)return;
-    const previous=document.activeElement as HTMLElement|null,before=document.body.style.overflow;
-    dialog.current.showModal();document.body.style.overflow='hidden';
-    return()=>{dialog.current?.close();document.body.style.overflow=before;previous?.focus()};
-  },[open]);
-  useEffect(()=>{if(open&&(motion||manual)&&!paused)player.current?.play().catch(()=>{});else player.current?.pause()},[open,motion,manual,paused]);
-  useEffect(()=>{const hide=()=>{if(document.hidden)player.current?.pause();else if(open&&(motion||manual)&&!paused)player.current?.play().catch(()=>{})};document.addEventListener('visibilitychange',hide);return()=>document.removeEventListener('visibilitychange',hide)},[open,motion,manual,paused]);
-  if(!eligible)return null;
-  return <dialog ref={dialog} className="booking-invitation" aria-labelledby="invitation-title" onCancel={()=>setOpen(false)} onClick={e=>{if(e.target===e.currentTarget)setOpen(false)}}>
-    {open&&<><button type="button" className="invitation-close" autoFocus aria-label="Close booking invitation" onClick={()=>setOpen(false)}>Close <span aria-hidden="true">×</span></button>
-    <div className="invitation-film"><video ref={player} src="/media-library/hosts-booking-loop-v1.mp4" poster="/media-library/hosts-booking-poster-v1.webp" muted playsInline loop preload="metadata" onError={()=>setFailed(true)} aria-label="Eugine Micah and Lucy Ogunde together"/>{!failed&&<button type="button" onClick={()=>{setManual(true);setPaused(paused||!motion&&!manual?false:true)}}>{(motion||manual)&&!paused?'Pause video':'Play video'}</button>}</div>
-    <div className="invitation-copy"><p className="eyebrow">Meet the people behind the tour</p><h2 id="invitation-title">Your next story.<br/>With Urban Gang Tour.</h2><p>Eugine Micah and Lucy Ogunde introduce the energy behind our school, campus and live experiences. Tell us what you’re planning.</p>
-    <a className="button" href="/book">Book Urban Gang Tour <span aria-hidden="true">↗</span></a><a className="invitation-secondary" href="/about">Meet Eugine & Lucy</a><small>A request starts the conversation. Your programme, quote and date are agreed before confirmation.</small><button className="invitation-dismiss" type="button" onClick={()=>setOpen(false)}>Keep exploring</button></div></>}
-  </dialog>;
+export function BookingInvitation({paused=false}:{paused?:boolean}){
+ const path=usePathname(),dialog=useRef<HTMLDialogElement>(null),player=useRef<HTMLVideoElement>(null),ownedAuto=useRef(false);
+ const [open,setOpen]=useState(false),[videoPaused,setVideoPaused]=useState(false),[manualVideo,setManualVideo]=useState(false),[failed,setFailed]=useState(false),[autoplay,setAutoplay]=useState(false);
+ const eligible=invitationAllowedOn(path);
+ function dismiss(){
+  try{localStorage.setItem(INVITATION_DISMISSED_KEY,String(Date.now()))}catch{}
+  setOpen(false);
+ }
+ useEffect(()=>{
+  if(!eligible||paused)return;
+  let engaged=false,lastActivity=Date.now(),requested=false;
+  const started=Date.now();
+  const consider=()=>{
+   if(requested||!engaged||Date.now()-started<12000||Date.now()-lastActivity<2500||automaticPopupWasShown())return;
+   const safe=invitationCanOpen({eligible,privacyReady:hasConsentChoice()&&!document.querySelector('aside[aria-label="Privacy preferences"]'),hidden:document.hidden,editing:!!document.activeElement?.closest('form,input,textarea,select,[contenteditable=true]'),otherOverlay:!!document.querySelector('dialog[open],.lightbox,.film-viewer,.modal-backdrop'),fullscreen:!!document.fullscreenElement,focusView:document.documentElement.dataset.focusView==='true',width:innerWidth});
+   if(!safe)return;
+   try{if(invitationWasDismissed(localStorage.getItem(INVITATION_DISMISSED_KEY),Date.now()))return}catch{}
+   requested=true;setOpen(true);
+  };
+  const activity=()=>{lastActivity=Date.now()};
+  const scroll=()=>{activity();if(scrollY>Math.min(400,innerHeight*.35))engaged=true};
+  const timer=setInterval(consider,500);
+  window.addEventListener('scroll',scroll,{passive:true});window.addEventListener('pointerdown',activity,{passive:true});window.addEventListener('keydown',activity);
+  return()=>{clearInterval(timer);window.removeEventListener('scroll',scroll);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity)};
+ },[eligible,path,paused]);
+ useEffect(()=>{
+  if(!open||paused||!dialog.current)return;
+  if(!ownedAuto.current&&automaticPopupWasShown()){setOpen(false);return}
+  const close=openCampaignDialog(dialog.current);
+  if(!close){setOpen(false);return}
+  ownedAuto.current=true;markAutomaticPopupShown();
+  return close;
+ },[open,paused]);
+ useEffect(()=>{if(paused)setOpen(false)},[paused]);
+ useEffect(()=>{
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const sync=()=>setAutoplay(!reduced.matches&&document.documentElement.dataset.focusView!=='true'&&!(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData);
+  sync();reduced.addEventListener('change',sync);window.addEventListener('ugt-focus-view',sync);
+  return()=>{reduced.removeEventListener('change',sync);window.removeEventListener('ugt-focus-view',sync)};
+ },[]);
+ useEffect(()=>{
+  const sync=()=>{if(open&&!paused&&!document.hidden&&!videoPaused&&!failed&&(autoplay||manualVideo))player.current?.play().catch(()=>{});else player.current?.pause()};
+  sync();document.addEventListener('visibilitychange',sync);return()=>document.removeEventListener('visibilitychange',sync);
+ },[open,paused,autoplay,manualVideo,videoPaused,failed]);
+ if(!eligible)return null;
+ return <dialog ref={dialog} className={styles.dialog} data-host-invitation aria-labelledby="invitation-title" onCancel={event=>{event.preventDefault();dismiss()}} onClick={event=>{if(event.target!==event.currentTarget)return;const rect=event.currentTarget.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dismiss()}}>
+  {open&&!paused&&<><header className={styles.heading}><span>Meet the hosts</span><button type="button" autoFocus aria-label="Close booking invitation" onClick={dismiss}>Close <span aria-hidden="true">×</span></button></header>
+  <div className={styles.film}><video ref={player} width={768} height={216} src="/media-library/hosts-booking-loop-v1.mp4" poster="/media-library/hosts-booking-poster-v1.webp" muted playsInline loop preload="metadata" onError={()=>setFailed(true)} aria-label="Eugine Micah and Lucy Ogunde together"/>{!failed&&<button type="button" onClick={()=>{setManualVideo(true);setVideoPaused(videoPaused||!autoplay&&!manualVideo?false:true)}}>{(autoplay||manualVideo)&&!videoPaused?'Pause video':'Play video'}</button>}</div>
+  <div className={styles.copy}><p className={styles.eyebrow}>Meet the people behind the tour</p><h2 id="invitation-title">Your next story.<br/>With Urban Gang Tour.</h2><p>Eugine Micah and Lucy Ogunde introduce the energy behind our school, campus and live experiences. Tell us what you’re planning.</p>
+  <a className={styles.primary} href="/book">Book Urban Gang Tour <span aria-hidden="true">↗</span></a><a className={styles.secondary} href="/about">Meet Eugine & Lucy</a><small>A request starts the conversation. Your programme, quote and date are agreed before confirmation.</small><button className={styles.dismiss} type="button" onClick={dismiss}>Keep exploring</button></div></>}
+ </dialog>;
 }
