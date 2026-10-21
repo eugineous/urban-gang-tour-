@@ -57,7 +57,7 @@ export default async function BlogPost(
   if (!post) notFound();
   const related = relatedPosts(posts, post);
 
-  return <main className="news-article-page wrap">
+  return <section className="news-article-page wrap">
     <JsonLd data={articleJsonLd(post)}/><JsonLd data={{'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Home',item:SITE.domain+'/'},{'@type':'ListItem',position:2,name:'Urban News',item:SITE.domain+'/blog'},{'@type':'ListItem',position:3,name:post.headline,item:SITE.domain+'/blog/'+post.slug}]}}/>
     <nav className="detail-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/blog">Urban News</a><span aria-hidden="true">/</span><span aria-current="page">{post.headline}</span></nav>
     <article className="news-article">
@@ -70,5 +70,5 @@ export default async function BlogPost(
     </article>
     <PartnerEventPortfolio newsSlug={post.slug}/>
     {related.length>0&&<section className="related-stories"><h2>More from Urban News.</h2><div className="modern-grid">{related.map(r=><a className="news-card" key={r.slug} href={'/blog/'+r.slug}><img src={r.image} alt="" loading="lazy"/><p className="eyebrow">{r.section}</p><h3>{r.headline}</h3></a>)}</div></section>}
-  </main>;
+  </section>;
 }

@@ -29,9 +29,9 @@ export default async function PaySuccess({
   } catch { /* do not imply success when a provider is unavailable */ }
 
   return (
-    <main className="modern-page"><p className="eyebrow">Your payment</p>
+    <section className="modern-page"><p className="eyebrow">Your payment</p>
       {ref ? <PaymentStatus orderId={ref}/> : <><h1>Check your payment</h1><p>This link does not identify an order. Open the order link from checkout, your email or your account to confirm payment.</p><a href="/account" >Find my order</a></>}
       <div className="modern-actions" style={{marginTop:32}}><a className="button" href="/shop">Continue shopping</a><a href="/">Back home</a></div>
-    </main>
+    </section>
   );
 }

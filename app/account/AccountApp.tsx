@@ -15,6 +15,13 @@ export default function AccountApp() {
   const [wallet, setWallet] = useState<any>(null);
   const [walletError, setWalletError] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
+  const [eligible, setEligible] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [checking, setChecking] = useState(true);
+  const [sessionError, setSessionError] = useState(false);
+  const [probe, setProbe] = useState(0);
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('reset');
     if (token) {
@@ -24,13 +31,6 @@ export default function AccountApp() {
       else setMsg('This reset link is invalid. Request a new password reset.');
     }
   }, []);
-  const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
-  const [eligible, setEligible] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [checking, setChecking] = useState(true);
-  const [sessionError, setSessionError] = useState(false);
-  const [probe, setProbe] = useState(0);
   useEffect(() => {
     setWallet(null); setWalletError('');
     if (!user) return;
@@ -127,11 +127,11 @@ export default function AccountApp() {
               <label>School / campus<input style={inp} maxLength={150} value={sub.school} onChange={(e) => setSub({ ...sub, school: e.target.value })} /></label>
               <label>Story title<input style={inp} required maxLength={150} value={sub.title} onChange={(e) => setSub({ ...sub, title: e.target.value })} /></label>
               <label>Your story<textarea style={{ ...inp, minHeight: 110 }} maxLength={2000} value={sub.pitch} onChange={(e) => setSub({ ...sub, pitch: e.target.value })} /></label>
-              <button style={btn} disabled={busy}>{busy ? 'Sending…' : 'Send to the newsroom'}</button>
+              <button type="submit" style={btn} disabled={busy}>{busy ? 'Sending…' : 'Send to the newsroom'}</button>
             </form>
           )}
         </div>
-        <div style={card}><h2>Your data</h2><p><a href="/account/preferences">Notification preferences</a></p><p><a href="/api/account?download=1">Export profile and linked purchases</a></p><p>Request account deletion. The team reviews the request and retains financial records where legally required.</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setMsg('');try{const r=await fetchWithTimeout('/api/account/privacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirmation:deleteConfirmation})});const d=await r.json();if(!r.ok)throw new Error();setMsg(`Deletion request received. Reference: ${d.request.id}`);setProbe(probe+1);setDeleteConfirmation('');}catch{setMsg('Your request could not be saved. Please try again.');}finally{setBusy(false);}}}><label>Type DELETE MY ACCOUNT to confirm<input style={inp} value={deleteConfirmation} onChange={e=>setDeleteConfirmation(e.target.value)} required /></label><button style={{...btn,marginTop:12}} disabled={busy||deleteConfirmation!=='DELETE MY ACCOUNT'}>Request deletion</button></form>{wallet?.requests.map((r:any)=><p key={r.id}>Request {r.id}: {r.status}</p>)}<p><a href="/privacy-policy">Your privacy rights</a> · <a href="/">Back to the tour</a></p></div>
+        <div style={card}><h2>Your data</h2><p><a href="/account/preferences">Notification preferences</a></p><p><a href="/api/account?download=1">Export profile and linked purchases</a></p><p>Request account deletion. The team reviews the request and retains financial records where legally required.</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setMsg('');try{const r=await fetchWithTimeout('/api/account/privacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirmation:deleteConfirmation})});const d=await r.json();if(!r.ok)throw new Error();setMsg(`Deletion request received. Reference: ${d.request.id}`);setProbe(probe+1);setDeleteConfirmation('');}catch{setMsg('Your request could not be saved. Please try again.');}finally{setBusy(false);}}}><label>Type DELETE MY ACCOUNT to confirm<input style={inp} value={deleteConfirmation} onChange={e=>setDeleteConfirmation(e.target.value)} required /></label><button type="submit" style={{...btn,marginTop:12}} disabled={busy||deleteConfirmation!=='DELETE MY ACCOUNT'}>Request deletion</button></form>{wallet?.requests.map((r:any)=><p key={r.id}>Request {r.id}: {r.status}</p>)}<p><a href="/privacy-policy">Your privacy rights</a> · <a href="/">Back to the tour</a></p></div>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export default function AccountApp() {
         {mode !== 'forgot' && <label>Password<input style={inp} type="password" required minLength={mode === 'reset' ? 8 : 6} maxLength={100} autoComplete={mode !== 'login' ? 'new-password' : 'current-password'} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>}
         {mode === 'signup' && <><p style={{ margin: '4px 0', fontSize: 14, lineHeight: 1.5 }}>Accounts are for adults aged 18 and over. Under 18? Ask a parent or guardian to manage bookings and purchases. You can explore the tour without an account.</p><label className="ugt-account-consent"><input type="checkbox" required checked={eligible} onChange={e => setEligible(e.target.checked)} />I am 18 or older.</label><label className="ugt-account-consent"><input type="checkbox" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label></>}
         {msg && <div role="alert" style={{ color: '#a00', fontSize: 14 }}>{msg}</div>}
-        <button style={btn} disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : mode === 'reset' ? 'Save new password' : 'Create account'}</button>
+        <button type="submit" style={btn} disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : mode === 'reset' ? 'Save new password' : 'Create account'}</button>
         <button type="button" disabled={busy} style={{ background: 'none', border: 'none', color: '#9a145d', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
           onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMsg(''); }}>
           {mode === 'login' ? "New here? Create an account →" : '← Already have an account? Log in'}

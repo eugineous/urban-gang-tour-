@@ -22,7 +22,7 @@ export default function AffiliateProgramme(){
    <div className="booking-form"><p role="status">{message}</p><button className="button secondary" type="button" disabled={busy} onClick={()=>void load()}>Refresh programme</button>
     {application ? <>
       <h2>Application {application.status}.</h2>
-      {application.status==='approved' && program?.enabled && !active && <form onSubmit={acceptTerms}><label><input type="checkbox" required checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> I have read and accept programme terms {program.termsVersion}.</label><button className="button" disabled={!accepted||busy}>Accept terms and activate link</button></form>}
+      {application.status==='approved' && program?.enabled && !active && <form onSubmit={acceptTerms}><label><input type="checkbox" required checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> I have read and accept programme terms {program.termsVersion}.</label><button type="submit" className="button" disabled={!accepted||busy}>Accept terms and activate link</button></form>}
       {active && <><h3>Your referral link</h3><a style={{overflowWrap:'anywhere'}} href={'/events?ref='+application.id}>{'https://urbangangtour.co.ke/events?ref='+application.id}</a><p>Attribution lasts for this browser tab, up to 24 hours. Buyers can remove it before checkout. Self-referrals are excluded.</p></>}
       {earnings && <>
        <h3>Your commission ledger</h3><p>Earned: KES {earnings.earned_kes.toLocaleString()} · Recorded payouts: KES {earnings.recorded_payout_kes.toLocaleString()}</p><p>Balance: KES {earnings.balance_kes.toLocaleString()}</p><p>Refunds can reduce earnings after a payout. A recorded payout is a ledger entry, not an automatic transfer.</p>

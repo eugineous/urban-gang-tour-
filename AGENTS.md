@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Shared controls continuation (21 October 2026)
+- Owner asks to repair navigation, buttons, links and repeated content while
+  continuing the editorial library. Consolidate existing shared controls without
+  changing brand identity or rebuilding the CMS. Use the tested feature-branch,
+  PR and Cloudflare release path under standing deployment authorization.
+  Static/HTTP checks are not visual or physical-device verification. Do not claim
+  every page is fixed while the broader audit or remaining manuscripts are open.
+
 ## Explicit publisher approval (20 October 2026)
 - Owner directly requests publishing/scheduling the ten complete analytical
   drafts without independent fact-checking. Record publisher approval honestly;

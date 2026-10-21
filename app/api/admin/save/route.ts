@@ -146,7 +146,7 @@ export async function POST(req: Request) {
         invalidate('blog-published-posts');invalidate('site-posts');
         revalidatePath('/blog');revalidatePath(`/blog/${slug}`);
         revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
-        revalidatePath('/sitemap.xml');revalidateTag('sitemap');
+        revalidatePath('/sitemap.xml');revalidateTag('sitemap',{expire:0});
         await q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,'save_post',$2)`, [actor, JSON.stringify({ slug, workflow })]);
         // Social automation is eligible only on FIRST publication, and only
         // while an owner has explicitly enabled the server-side automation
@@ -185,7 +185,7 @@ export async function POST(req: Request) {
           after(() => pingIndexNow([`/blog/${slug}`, '/blog', '/feed.xml', '/news-sitemap.xml']));
           // Flush the sitemap cache so the new post URL appears immediately.
           revalidatePath('/sitemap.xml');
-          revalidateTag('sitemap');
+          revalidateTag('sitemap',{expire:0});
         }
         return NextResponse.json({ ok: true, slug, version:saved[0].version });
       }
@@ -208,7 +208,7 @@ export async function POST(req: Request) {
         invalidate('blog-published-posts');invalidate('site-posts');
         revalidatePath('/blog');revalidatePath(`/blog/${data.slug}`);
         revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
-        revalidatePath('/sitemap.xml');revalidateTag('sitemap');
+        revalidatePath('/sitemap.xml');revalidateTag('sitemap',{expire:0});
         // IndexNow handles removals the same as updates - engines re-crawl,
         // see the 404 and drop the URL.
         after(() => pingIndexNow([`/blog/${data.slug}`, '/blog']));

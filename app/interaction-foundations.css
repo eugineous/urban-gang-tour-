@@ -1,21 +1,4 @@
 /* One responsive menu, with native modal focus/inert behaviour. */
-dialog.menu-panel{position:fixed;margin:0 12px 0 auto;inset:84px 0 auto auto;border:1px solid var(--line);color:var(--ink);max-width:calc(100% - 24px);max-height:calc(100dvh - 100px);overscroll-behavior:contain;overflow-y:auto;overflow-x:hidden;padding:0 24px 24px;box-sizing:border-box}
-dialog.menu-panel:not([open]){display:none}
-dialog.menu-panel::backdrop{background:#17101680}
-.menu-dialog-heading{position:sticky;top:0;z-index:1;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:20px}
-.menu-dialog-heading strong{font-size:15px;line-height:1.4}.menu-dialog-heading button{flex-shrink:0;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit;font:inherit}
-dialog.menu-panel .menu-groups nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}
-dialog.menu-panel nav a{min-width:0;gap:12px;overflow-wrap:anywhere}
-dialog.menu-panel .menu-account-links a{min-height:44px}
-dialog.menu-panel :focus-visible{outline:2px solid var(--action);outline-offset:3px}
-@media(max-width:600px), (max-device-width:600px) and (pointer:coarse){
- dialog.menu-panel{margin:0 8px;inset:68px 0 auto;width:calc(100% - 16px);max-width:calc(100% - 16px);max-height:calc(var(--ugt-screen-height,100dvh)/var(--ugt-phone-zoom,1) - 80px);padding:0 20px 20px}
- dialog.menu-panel .menu-groups nav{grid-template-columns:minmax(0,1fr)}
- dialog.menu-panel .menu-groups nav a{font-size:18px;min-height:48px;padding:10px 0}
- dialog.menu-panel .menu-groups{gap:24px}
- .site-header .header-actions{flex-wrap:nowrap}.site-header .mobile-about-link{display:none!important}
-}
-@media(max-height:500px) and (orientation:landscape){dialog.menu-panel{inset-block-start:64px!important;max-height:calc(100dvh - 76px)}dialog.menu-panel .menu-groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}dialog.menu-panel .menu-groups nav{grid-template-columns:minmax(0,1fr)}}
 /* Preserve real data tables; scroll their region rather than the entire page. */
 .cr-shell,.cr-main,.cr-panel{min-width:0}
 .cr-shell :is(input,select,textarea){box-sizing:border-box;max-width:100%;min-width:0}
@@ -31,4 +14,13 @@ dialog.menu-panel :focus-visible{outline:2px solid var(--action);outline-offset:
 @media(prefers-reduced-motion:reduce){.route-loading img{animation:none}}
 .reply-draft-status{padding:12px;border:1px solid #ddd;border-radius:10px;background:#f8f8f8;min-width:0;overflow-wrap:anywhere}
 .reply-draft-status p{margin:0 0 8px}.reply-draft-status>div{display:flex;flex-wrap:wrap;gap:8px}.reply-draft-status small{display:block;margin-top:8px;line-height:1.5}
+/* Stable action geometry: text may wrap; the whole control must not jump. */
+.application-content .button{min-inline-size:0;max-inline-size:100%;min-block-size:48px;gap:12px;padding:12px 20px;font:550 15px/1.5 Inter,Arial,sans-serif;white-space:normal;overflow-wrap:anywhere;text-align:start;border-radius:10px;vertical-align:middle;transform:none;transition:background-color .15s,color .15s}
+.application-content .button:is(:hover,:active,:focus-visible){transform:none}
+.application-content .button>svg{flex:none;width:20px;height:20px}
+.application-content .button:disabled{cursor:not-allowed}
+.application-content :is(.text-link,.current-actions a:not(.button),.modern-actions a:not(.button)){display:inline-flex;align-items:center;gap:8px;min-block-size:44px;max-inline-size:100%;line-height:1.5;overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:4px}
+.application-content :is(.modern-actions,.current-actions,.home-experience-actions,.profile-actions){min-inline-size:0;flex-wrap:wrap;gap:12px}
+.application-content :is(.modern-actions,.current-actions)>.button{justify-content:center}
+@media(max-width:420px){.application-content :is(.modern-actions,.current-actions)>.button{flex:1 1 180px}}
 .cr-refund-recorder{border:1px solid #d8c7d0;border-radius:14px;padding:20px;margin-bottom:20px;max-width:760px;overflow-wrap:anywhere}.cr-refund-recorder fieldset{display:grid;gap:14px;min-width:0;border:1px solid #ddd;padding:14px}.cr-refund-recorder label{display:grid;gap:6px}.cr-refund-recorder input,.cr-refund-recorder textarea{max-width:100%;padding:12px;font:inherit}.cr-refund-recorder textarea{min-height:90px}.cr-refund-recorder button{margin-block:12px;min-height:44px}

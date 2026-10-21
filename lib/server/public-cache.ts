@@ -25,8 +25,10 @@ export function bumpEventPublicTruth(eventId?: string | null): void {
     revalidatePath('/portfolio');
     revalidatePath('/blog', 'layout');
     revalidatePath('/sitemap.xml');
-    revalidateTag('sitemap');
-    revalidateTag('events');
+    // Immediate expiry preserves publish/hide behaviour; SWR could show a
+    // withdrawn event once more after an admin has removed it.
+    revalidateTag('sitemap', {expire:0});
+    revalidateTag('events', {expire:0});
     if (eventId && /^[a-z0-9-]{1,80}$/.test(eventId)) {
       revalidatePath(`/events/${eventId}`);
     }
