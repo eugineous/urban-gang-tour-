@@ -2,7 +2,8 @@
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {ContactFooter} from '@/ui/components/ContactInterface';
+import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
+import {BookingInvitation} from '@/ui/components/BookingInvitation';
 import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups,SITE_UTILITY_NAVIGATION as utilityLinks,isNavigationCurrent} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
@@ -14,8 +15,13 @@ export function AppShell({children}:{children:React.ReactNode}){
 }
 /** A route change closes transient navigation without a cascading state effect. */
 function PathShell({children,path}:{children:React.ReactNode;path:string}){
- const [focus,setFocus]=useState(false),[open,setOpen]=useState(false);
+ const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false);
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
+ useEffect(()=>{
+  const update=()=>setElevated(window.scrollY>24);
+  update();addEventListener('scroll',update,{passive:true});
+  return()=>removeEventListener('scroll',update);
+ },[]);
  useEffect(()=>{
   const sync=()=>setFocus(document.documentElement.dataset.focusView==='true');
   const storage=(event:StorageEvent)=>{if(event.key===FOCUS_VIEW_KEY||event.key===null){let value=false;try{value=JSON.parse(localStorage.getItem(FOCUS_VIEW_KEY)||'false')===true}catch{}setFocusView(value)}};
@@ -40,15 +46,15 @@ function PathShell({children,path}:{children:React.ReactNode;path:string}){
  function toggleFocus(){setFocusView(!focus)}
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
- const critical=/^\/(shop|checkout|pay|book|account|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
+ const critical=/^\/(shop|checkout|pay|book|account|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
-  <header className="site-header">
+  <header className="site-header" data-elevated={elevated}>
    <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
    <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
    <div className="header-actions">
     <a className="cart-link" href="/cart" aria-label="View your cart" aria-current={path==='/cart'?'page':undefined}>Cart</a>
-    <a className="start-link" href="/book">Book <span aria-hidden="true">↗</span></a>
-    <button type="button" ref={trigger} className="menu-toggle" aria-label={open?'Close menu':'Open menu'} aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg><span>Menu</span></button>
+    <a className="start-link" href="/contact-us">Let’s talk <span aria-hidden="true">↗</span></a>
+    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><svg className="mobile-menu-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg><span className="mobile-menu-label">Menu</span><span className="desktop-menu-label">More <span aria-hidden="true">⌄</span></span></button>
    </div>
   </header>
   <dialog ref={menu} id="site-menu" className={`menu-panel ${open?'is-open':''}`} aria-label="Site navigation" onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
@@ -62,6 +68,8 @@ function PathShell({children,path}:{children:React.ReactNode;path:string}){
   </dialog>
   <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   <CampaignDisplays path={path} paused={open||focus}/>
+  {!critical&&path!=='/reels'&&<BookingInvitation paused={open||focus}/>}
+  {!critical&&path!=='/reels'&&!open&&!focus&&<FloatingTalk/>}
   {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;
 }

@@ -1,5 +1,7 @@
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
+import {createElement} from 'react';
+import {ContactFooter} from '@/ui/components/ContactInterface';
 import {readFileSync} from 'node:fs';
 import {WELCOME_LANGUAGES,isWelcomeLanguage,welcomeAlternates} from '@/lib/welcome-languages';
 import Welcome,{generateMetadata,generateStaticParams} from '@/app/welcome/[language]/page';
@@ -52,8 +54,9 @@ describe('calm display preference',()=>{
   setFocusView(false);expect(root.dataset.focusView).toBe('false');expect(FOCUS_VIEW_KEY).toBe('ugt-new-preview-v1focusView');
  });
  it('keeps animation opt-outs, visible text social labels and plain language entry links in the shipped shell',()=>{
-  const css=readFileSync('app/international.css','utf8'),footer=readFileSync('ui/components/ContactInterface.tsx','utf8');
+  const css=readFileSync('app/international.css','utf8'),footer=renderToStaticMarkup(createElement(ContactFooter,{onCookies:()=>{},focusView:false,onFocus:()=>{}}));
   expect(css).toContain('[data-focus-view=true]');expect(css).toContain('prefers-reduced-motion');expect(css).toContain('animation:none!important');
-  expect(footer).toContain('Languages / Lugha');expect(footer).toContain('Accessibility & focus view');expect(footer).toContain('alt=""/>{label}');
+  expect(footer).toContain('Languages / Lugha');expect(footer).toContain('Accessibility');expect(footer).toContain('Focus view: off');
+  for(const label of ['WhatsApp','Instagram','YouTube','TikTok','Facebook','X'])expect(footer).toContain('<span>'+label+'</span>');
  });
 });

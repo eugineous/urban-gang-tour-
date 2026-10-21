@@ -49,9 +49,9 @@ try{for(const [name,profile] of profiles){
  }
  await page.goto(base+'/shop/lookbook',{waitUntil:'networkidle'});
  if(name!=='android-landscape'){
-  await page.getByRole('button',{name:'Open menu',exact:true}).click();
+  await page.locator('button.menu-toggle').click();
   await page.locator('#site-menu').getByRole('link',{name:/Book Urban Gang Tour/}).waitFor();
-  await page.keyboard.press('Escape');assert.equal(await page.getByRole('button',{name:'Open menu',exact:true}).getAttribute('aria-expanded'),'false');
+  await page.keyboard.press('Escape');assert.equal(await page.locator('button.menu-toggle').getAttribute('aria-expanded'),'false');
  }
  const search=page.getByRole('searchbox',{name:'Find your merch'});
  const filterStart=Date.now();
