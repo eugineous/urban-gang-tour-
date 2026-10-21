@@ -1,4 +1,4 @@
-const CACHE = 'ugt-shared-controls-20261021-v1';
+const CACHE = 'ugt-completed-guides-20261021-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

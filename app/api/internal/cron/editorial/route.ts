@@ -1,7 +1,7 @@
 import {NextResponse} from 'next/server';
 import {timingSafeEqual} from 'node:crypto';
 import {releaseDueEditorial} from '@/lib/server/editorial';
-import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval} from '@/lib/server/editorial-library';
+import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval,applyStagedEditorialCompletion} from '@/lib/server/editorial-library';
 import {invalidate} from '@/lib/server/microcache';
 export const dynamic='force-dynamic';
 const reply=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:{'Cache-Control':'private, no-store'}});
@@ -11,11 +11,12 @@ export async function POST(req:Request){
   if(Buffer.byteLength(given)!==Buffer.byteLength(secret)||!timingSafeEqual(Buffer.from(given),Buffer.from(secret)))return reply({error:'unauthorized'},401);
   try{
     const library=await importStagedEditorialLibrary();
+    const completion=await applyStagedEditorialCompletion();
     const ownerApproval=await applyStagedOwnerEditorialApproval();
     const outcome=await releaseDueEditorial();
-    await recordEditorialHeartbeat({ok:true,...outcome,library,ownerApproval});
+    await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval});
     invalidate('blog-published-posts');invalidate('site-posts');
-    return reply({ok:true,...outcome,library,ownerApproval});
+    return reply({ok:true,...outcome,library,completion,ownerApproval});
   }catch{
     await recordEditorialHeartbeat({ok:false,error:'editorial_check_failed'}).catch(()=>{});
     console.error('[editorial-monitor] check failed; no unapproved item released');
