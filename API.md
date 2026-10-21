@@ -973,6 +973,32 @@ a separate review. A 60,000/min network read budget is not a throughput guarante
 40,000/min end-to-end capacity needs staging load, database and provider telemetry.
 # Editorial library (October 2026)
 
+## Completing the remaining assignments (21 October 2026)
+
+The owner's completion request and standing publisher approval authorize the63
+finished analytical guides, not the old research outlines. A separate private
+`editorial-library/completion-v1` manifest is consumed by the existing
+secret-authenticated cron; it is not exposed as an HTTP import/login endpoint.
+It binds each saved assignment's original archive SHA, content hash, revision,
+unpublished researching state and exact existing date/UTC instant. At most63
+full articles in the original30October–31December2026 calendar are accepted.
+
+One ordered, atomic SQL statement registers the immutable manifest digest,
+replaces matching assignments, records explicit owner approval and snapshots
+the original/new source and review in the private audit journal. The request
+expires within24hours. Changed payloads cannot reuse a request UUID; holds,
+edits, published records and deleted/recreated originals cannot be overwritten.
+Exact original assignment imports are reported as `superseded` after completion
+and cannot recreate a deleted finished article. Content, approval and audit roll
+back together on error. No fake fact-check attestations or new image rights.
+
+The private heartbeat binds `request_id`, completed `source_sha256` and
+`manifest_hash` to `completion:{staged,expired,completed,already,conflicts}`.
+Future approved rows remain absent from all public surfaces until
+their original Nairobi schedule instants. No social or customer messages fire.
+Existing CMS, normal verification workflow and the original ten-target approval
+mechanism remain unchanged.
+
 ## Explicit publisher decision (20 October 2026)
 
 The owner explicitly approves publishing/scheduling the ten completed analytical

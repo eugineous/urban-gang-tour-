@@ -1,5 +1,16 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Completed editorial assignments (21 October 2026)
+- Owner requests finishing all remaining briefs under the standing publisher
+  instruction to publish or schedule without independent fact-checking. Convert
+  the63 original assignments to genuinely completed analytical guides, not fake
+  reported news. Preserve original dates/slots and private original manuscripts.
+  Use a separately scoped expiring completion manifest through existing private
+  KV/authenticated cron: exact old source/hash/revision/status, atomic journalled
+  replacement/approval, no holds or edited/recreated/live records overwritten.
+  Record facts_checked:false honestly. Keep unfinished material private and the
+  normal verified review gate unchanged. Test/PR/Cloudflare with bindings kept.
+
 ## Shared controls continuation (21 October 2026)
 - Owner asks to repair navigation, buttons, links and repeated content while
   continuing the editorial library. Consolidate existing shared controls without

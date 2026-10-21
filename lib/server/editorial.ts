@@ -20,11 +20,17 @@ export const itemRecord=(item:EditorialItem,sourceHash:string)=>({
 export async function importEditorial(bundle:EditorialBundle,actor:string,preview:boolean){
   await ensureEditorialSchema();
   const items=bundle.items.map(item=>itemRecord(item,bundle.source_sha256));
+  // The original private ZIP remains recoverable. Once an exact assignment
+  // has been completed, retrying its original import must neither conflict
+  // forever nor recreate a brief after an editor deletes the finished story.
+  const receipts=await q<{slug:string;original_hash:string}>(`SELECT slug,detail->>'original_hash' AS original_hash FROM editorial_audit WHERE action='complete_owner_analysis' AND detail->>'original_source_sha256'=$1 AND slug=ANY($2::text[])`,[bundle.source_sha256,items.map(item=>item.slug)]);
+  const superseded=(item:typeof items[number])=>item.kind==='assignment'&&receipts.some(row=>row.slug===item.slug&&row.original_hash===item.hash);
+  const active=items.filter(item=>!superseded(item));
   const existing=await q<{slug:string;date:string;editorial_import_hash:string|null}>(
     `SELECT slug,date::text,editorial_import_hash FROM posts WHERE slug=ANY($1::text[]) OR (editorial_managed AND date=ANY($2::date[]))`,[items.map(i=>i.slug),items.map(i=>i.date)]);
   const classifications=()=>items.map(item=>{
     const match=existing.find(row=>row.slug===item.slug||row.date===item.date);
-    return {slug:item.slug,kind:item.kind,scheduled_at:item.scheduled_at,state:!match?'new':match.slug===item.slug&&match.editorial_import_hash===item.hash?'unchanged':'conflict'};
+    return {slug:item.slug,kind:item.kind,scheduled_at:item.scheduled_at,state:superseded(item)?'superseded':!match?'new':match.slug===item.slug&&match.editorial_import_hash===item.hash?'unchanged':'conflict'};
   });
   if(preview)return {preview:true,items:classifications()};
   // One statement atomically records new drafts plus the audit trail. Conflicts
@@ -40,10 +46,10 @@ export async function importEditorial(bundle:EditorialBundle,actor:string,previe
   ), audit AS (
     INSERT INTO editorial_audit(actor,action,slug,detail)
     SELECT $2,'import_draft',slug,jsonb_build_object('source_sha256',$3::text) FROM saved RETURNING id
-  ) SELECT slug FROM saved`,[JSON.stringify(items),actor,bundle.source_sha256]);
+  ) SELECT slug FROM saved`,[JSON.stringify(active),actor,bundle.source_sha256]);
   const final=await q<{slug:string;editorial_import_hash:string}>(`SELECT slug,editorial_import_hash FROM posts WHERE slug=ANY($1::text[])`,[items.map(i=>i.slug)]);
-  return {preview:false,inserted:inserted.length,unchanged:items.filter(item=>!inserted.some(r=>r.slug===item.slug)&&final.some(r=>r.slug===item.slug&&r.editorial_import_hash===item.hash)).length,
-    conflicts:items.filter(item=>!final.some(r=>r.slug===item.slug&&r.editorial_import_hash===item.hash)).map(i=>i.slug)};
+  return {preview:false,inserted:inserted.length,unchanged:active.filter(item=>!inserted.some(r=>r.slug===item.slug)&&final.some(r=>r.slug===item.slug&&r.editorial_import_hash===item.hash)).length,superseded:items.length-active.length,
+    conflicts:active.filter(item=>!final.some(r=>r.slug===item.slug&&r.editorial_import_hash===item.hash)).map(i=>i.slug)};
 }
 
 export function webpDimensions(bytes:ArrayBuffer):{width:number;height:number}|null{

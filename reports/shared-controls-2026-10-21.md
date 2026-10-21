@@ -56,5 +56,7 @@ still require rendered testing. Static checks cannot establish those outcomes.
 New React Compiler performance findings about legacy effect hydration remain
 visible lint warnings during the framework migration; they are not claims of
 broken payment logic, nor is this a zero-warning lint release.
-The broader page-by-page design review and 63-article completion are separate
-unfinished workstreams; this release does not approve or publish their drafts.
+At this release cut the broader page-by-page design review and63-article
+completion were separate unfinished workstreams. The subsequent editorial
+completion report records the finished manuscripts and its own scheduling
+checks; this shared-control release itself did not approve their drafts.

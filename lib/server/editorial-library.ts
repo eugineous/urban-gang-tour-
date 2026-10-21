@@ -2,6 +2,7 @@ import {getCloudflareContext} from '@opennextjs/cloudflare';
 import {editorialBundle} from '../editorial-import';
 import {importEditorial} from './editorial';
 import {applyOwnerEditorialApproval} from './owner-editorial-release';
+import {applyEditorialCompletion} from './editorial-completion';
 type LibraryStore={get(key:string):Promise<string|null>;put(key:string,value:string):Promise<void>};
 function libraryStore():LibraryStore|undefined{
   try{return (getCloudflareContext().env as unknown as {UGT_MEDIA?:LibraryStore}).UGT_MEDIA}catch{return undefined}
@@ -31,4 +32,13 @@ export async function applyStagedOwnerEditorialApproval(){
   const raw=await store.get('editorial-library/owner-approval-v1');if(!raw)return {staged:false};
   if(Buffer.byteLength(raw)>50000)throw Error('approval_too_large');
   return {staged:true,...await applyOwnerEditorialApproval(JSON.parse(raw))};
+}
+/** Completed manuscripts plus a separate exact publisher decision, not a timer
+ * promoting raw assignments. Original brief hashes and slots must still match.
+ */
+export async function applyStagedEditorialCompletion(){
+ const store=libraryStore();if(!store)return {staged:false};
+ const raw=await store.get('editorial-library/completion-v1');if(!raw)return {staged:false};
+ if(Buffer.byteLength(raw)>2*1024*1024)throw Error('completion_too_large');
+ return {staged:true,...await applyEditorialCompletion(JSON.parse(raw))};
 }
