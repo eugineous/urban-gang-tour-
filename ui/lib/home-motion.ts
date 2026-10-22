@@ -24,7 +24,7 @@ export function enhanceHomeMotion(root: HTMLElement) {
       animation.addEventListener('finish', () => active.delete(animation), {once: true});
     }
   }, {threshold: .08, rootMargin: '0px 0px -24px 0px'});
-  root.querySelectorAll('.hero-heading,.section-title,.home-experiences>.project-card,.portfolio-highlights .collection-card,.institution-strip').forEach(element => observer.observe(element));
+  root.querySelectorAll('[data-home-reveal],.section-title,.home-experiences>.project-card,.portfolio-highlights .collection-card,.institution-strip').forEach(element => observer.observe(element));
   reduced.addEventListener('change', preferences);
   window.addEventListener('ugt-focus-view', preferences);
   document.addEventListener('visibilitychange', preferences);

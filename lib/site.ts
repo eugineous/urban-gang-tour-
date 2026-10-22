@@ -32,9 +32,9 @@ export const ROUTES: RouteDef[] = [
   { path: '/tour-stops', page: 'stops', nav: 'Tour Stops', title: 'Tour Stops — Upcoming Visits & Tour History', description: 'Explore published Urban Gang Tour school and campus stops, upcoming dates and tour history across Kenya.', changefreq: 'daily', priority: 0.8 },
   {
     path: '/', page: 'home', nav: 'Home',
-    title: 'Urban Gang Tour — School & Campus Events, Hosting & Production',
+    title: 'Urban Gang Tour — Events, Merchandise & Live Hosting',
     description:
-      'School and campus events, live hosting and production in Kenya. Explore our work, find an event or book Urban Gang Tour.',
+      'Explore upcoming events, shop Urban Gang Tour merchandise and book Eugine and Lucy for school, campus and brand experiences in Kenya.',
     changefreq: 'weekly', priority: 1.0,
   },
   {

@@ -97,7 +97,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    <div className="menu-bottom"><nav className="menu-account-links" aria-label="Account and help">{utilityLinks.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav><div className="menu-preferences"><LanguageChooser path={path}/><button type="button" className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div></div>
   </dialog>
   <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
-  {!critical&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
+  {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   <CampaignDisplays path={path} paused={open||focus}/>
   {!critical&&path!=='/reels'&&<BookingInvitation paused={open||focus}/>}
   {!critical&&path!=='/reels'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
