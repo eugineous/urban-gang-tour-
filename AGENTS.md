@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Homepage front door (22 October 2026)
+- Owner requests prominently advertising real events, merchandise and the wider
+  business on the homepage. Use public catalogue data, actual prices/artwork and
+  canonical detail links; preserve CMS copy, profiles and booking workflows.
+  Keep upcoming events distinct from completed work and design-only products.
+  Verify rendered phone/tablet/desktop layouts, empty and stale-data states.
+  Standing permission covers the tested feature-branch/PR/Cloudflare release.
+
 ## Events and discovery release (22 October 2026)
 - Owner approves building and deploying the Mookh-grounded event catalogue,
   calendar, horizontal showcase shelves and AMP-grounded white merchandise shop.

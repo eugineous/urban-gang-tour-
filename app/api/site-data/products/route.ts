@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { q, hasDb } from '@/lib/server/db';
+import { hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
-import { ensureOpsSchema } from '@/lib/server/ops';
-import { cached } from '@/lib/server/microcache';
+import { readPublicProducts, publicCatalogDatabaseErrorCode } from '@/lib/server/public-products';
 
 // Public native catalog. Preserve retired products for historical receipts.
 export const runtime = 'nodejs';
@@ -18,60 +17,12 @@ export async function GET(req: Request) {
   }
   if (!hasDb()) return NextResponse.json({ error: 'catalog_unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   try {
-    const products = await cached('site-products', 60_000, async () => {
-      // A public read must not depend on hundreds of unrelated admin DDL
-      // statements succeeding. Read the existing catalogue first; initialise
-      // only when Postgres reports a genuinely missing table/column.
-      const read = () => q<any>(
-        `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
-                COALESCE((to_jsonb(p)->>'name_on_back_enabled')::boolean, false) AS name_on_back_enabled,
-                CASE WHEN p.inventory_tracked THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
-                COALESCE(
-                  jsonb_agg(jsonb_build_object('label',v.label,'priceAdjustment',v.price_adjustment,'sku',v.sku,'stock',(SELECT CASE WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
-                    ORDER BY v.label) FILTER (WHERE v.id IS NOT NULL),
-                  '[]'::jsonb
-                ) AS variants
-         FROM products p
-         LEFT JOIN merch_variants v ON v.product_id=p.id AND v.active=true
-         WHERE p.active
-         GROUP BY p.id, p.name, p.price, p.image, p.category, p.description, p.inventory_tracked
-         ORDER BY p.id`,
-      );
-      let rows;
-      try { rows = await read(); }
-      catch (error) {
-        const code = databaseErrorCode(error);
-        if (code !== '42P01' && code !== '42703') throw error;
-        await ensureOpsSchema();
-        rows = await read();
-      }
-      return rows.map((r) => ({
-        id: r.id,
-        name: r.name,
-        price: Number(r.price),
-        stock: r.stock===null||r.stock===undefined?null:Math.max(0,Number(r.stock)),
-        image: r.image || '',
-        category: r.category || '',
-        description: r.description || '',
-        name_on_back_enabled: r.name_on_back_enabled === true,
-        variants: Array.isArray(r.variants) ? r.variants.map((v: any) => ({
-          label: String(v.label || ''),
-          priceAdjustment: Number(v.priceAdjustment || 0),
-          sku: String(v.sku || ''),
-          stock: v.stock===null||v.stock===undefined?null:Math.max(0,Number(v.stock)),
-        })).filter((v: any) => v.label) : [],
-      }));
-    });
+    const products = await readPublicProducts();
     return NextResponse.json({ ok: true, products }, { headers: CACHE_HEADERS });
   } catch (error) {
     // Only a validated SQLSTATE is logged: never raw driver messages, SQL,
     // connection strings, credentials or customer records.
-    console.error('public_catalog_read_failed', { code: databaseErrorCode(error) || 'unclassified' });
+    console.error('public_catalog_read_failed', { code: publicCatalogDatabaseErrorCode(error) || 'unclassified' });
     return NextResponse.json({ error: 'catalog_unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
-}
-
-function databaseErrorCode(error: unknown): string | null {
-  if (!error || typeof error !== 'object' || !('code' in error)) return null;
-  return typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code) ? error.code : null;
 }
