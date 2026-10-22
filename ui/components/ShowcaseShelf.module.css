@@ -1,0 +1,58 @@
+.portfolio{container-type:inline-size;min-width:0}
+.intro{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;align-items:end;padding-block:48px 40px}
+.intro h1{font-size:clamp(48px,7cqw,100px);line-height:1.06;margin-top:18px}
+.introAside{display:grid;gap:22px;justify-items:start}
+.introAside p{font-size:18px;line-height:1.65;color:var(--ugt-text-secondary,#565156);max-width:47ch}
+.navigation{display:flex;gap:10px;padding-bottom:32px;overflow-x:auto;scrollbar-width:thin}
+.navigation a{display:inline-flex;align-items:center;gap:18px;min-height:46px;flex-shrink:0;padding:11px 17px;border:1px solid #d7cdd2;border-radius:30px;background:#fff;font-size:14px}
+.navigation a:hover{color:var(--action,#ad1264);border-color:currentColor}
+.shelf{container:showcase-shelf / inline-size;min-width:0;padding-block:38px 42px;border-top:1px solid var(--line,#ddd);scroll-margin-top:125px}
+.shelfHeading{display:flex;justify-content:space-between;align-items:end;gap:28px;margin-bottom:23px}
+.shelfHeading>div:first-child{min-width:0;max-width:760px}
+.shelfLabel{font-size:13px;font-weight:550;color:var(--action,#ad1264);line-height:1.5;margin-bottom:11px}
+.shelfHeading h2{font-size:clamp(30px,3.5cqw,45px);line-height:1.12;letter-spacing:-.05em}
+.shelfDescription{font-size:16px;line-height:1.65;color:var(--ugt-text-secondary,#565156);max-width:66ch;margin-top:13px}
+.shelfControls{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.itemCount{font-size:12px;color:#62565e;white-space:nowrap;margin-right:4px}
+.shelfControls button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:44px;min-height:44px;padding:10px 13px;border:1px solid #cbbfc6;border-radius:25px;background:#fff;font-size:13px;line-height:1.4;cursor:pointer}
+.shelfControls button:hover:not(:disabled){background:#f4e6ed;border-color:var(--action,#ad1264)}
+.shelfControls button:disabled{opacity:.45;cursor:default}
+.scroller{overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;scroll-padding-inline:4px;scrollbar-width:thin;scrollbar-color:#aaa0a6 transparent;border-radius:17px;min-width:0}
+.items{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 40px)/3.15);align-items:stretch;gap:20px;list-style:none;padding:4px 4px 17px;margin:0;min-width:0}
+.items>li{min-width:0;scroll-snap-align:start}
+.card{display:flex;flex-direction:column;height:100%;min-width:0;overflow:hidden;border:1px solid #e1d9de;border-radius:17px;background:#fff;transition:border-color .2s}
+.card:hover{border-color:#aa8b9c}
+.artwork{position:relative;overflow:hidden;background:#e9e2e6;aspect-ratio:16/10}
+.artwork>img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.artwork[data-film=true]{background:#211a1e}
+.artwork[data-film=true]>img{object-fit:contain}
+.card:hover .artwork>img{transform:scale(1.025)}
+.filmBadge{position:absolute;bottom:12px;left:12px;display:inline-flex;align-items:center;gap:7px;max-width:calc(100% - 24px);padding:7px 11px;border:1px solid #ffffff40;border-radius:20px;background:#211a1ee8;color:#fff;font-size:12px;line-height:1.4;letter-spacing:0}
+.missingArtwork{display:flex;flex-direction:column;justify-content:center;gap:8px;height:100%;padding:24px;background:#eee7eb;color:#5e5059;font-size:21px;line-height:1.3}
+.missingArtwork>span{font-size:13px}
+.cardContent{display:flex;flex-direction:column;gap:11px;flex:1;padding:21px}
+.cardLabel{font-size:12px;line-height:1.55;color:#6a5963}
+.cardContent h3{font-size:25px;line-height:1.18;letter-spacing:-.045em;overflow-wrap:break-word}
+.cardDescription{font-size:14px;line-height:1.65;color:var(--ugt-text-secondary,#565156)}
+.cardAction{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:13px;line-height:1.5;padding-top:12px;margin-top:auto;color:var(--action,#ad1264)}
+.shelfFooter{display:flex;align-items:center;flex-wrap:wrap;gap:14px 28px;margin-top:20px;font-size:14px}
+.empty{padding:28px;border:1px solid #d8cbd3;border-radius:17px;font-size:16px;line-height:1.65;color:#5e5059;background:#eee7eb}
+.callout{display:flex;align-items:center;justify-content:space-between;gap:32px;border-top:1px solid var(--line,#ddd);padding-block:45px 64px}
+.callout h2{font-size:clamp(31px,4cqw,50px);line-height:1.12;max-width:17ch}
+.portfolio :is(a,button,[tabindex]):focus-visible{outline:3px solid var(--action,#ad1264);outline-offset:3px}
+.portfolio .card:focus-visible{outline-offset:-4px}
+.scroller:focus-visible{outline-offset:5px}
+.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@media(min-width:1024px) and (hover:hover){.intro{padding-top:152px}}
+@container showcase-shelf (max-width:900px){.shelfHeading{align-items:start;flex-direction:column;gap:18px}.items{grid-auto-columns:calc((100% - 20px)/2.15)}.shelfControls{align-self:end}}
+@container showcase-shelf (max-width:600px){.shelfHeading{gap:16px;margin-bottom:17px}.shelfHeading h2{font-size:30px}.shelfDescription{font-size:15px}.items{grid-auto-columns:84%;gap:14px}.shelfControls{align-self:stretch;justify-content:end}.itemCount{margin-right:auto}.shelfControls button{padding:10px 12px}.cardContent{padding:19px}.cardContent h3{font-size:25px}}
+@container(max-width:700px){.intro{grid-template-columns:1fr;gap:22px;padding-block:28px 28px}.intro h1{font-size:clamp(38px,10cqw,56px);margin-top:14px}.introAside{gap:20px}.introAside p{font-size:17px;max-width:52ch}.navigation{gap:8px;padding-bottom:24px}.navigation a{font-size:13px;padding:10px 14px}.shelf{padding-block:28px 32px;scroll-margin-top:94px}.callout{flex-direction:column;align-items:start;gap:24px;padding-block:32px 44px}}
+:global(html[data-phone-viewport=wide]) .intro{grid-template-columns:1fr;gap:22px;padding-block:28px}
+:global(html[data-phone-viewport=wide]) .intro h1{font-size:48px}
+:global(html[data-phone-viewport=wide]) .shelf{padding-block:28px 32px;scroll-margin-top:94px}
+:global(html[data-phone-viewport=wide]) .shelfHeading{flex-direction:column;align-items:start;gap:16px}
+:global(html[data-phone-viewport=wide]) .shelfControls{align-self:stretch;justify-content:end}
+:global(html[data-phone-viewport=wide]) .itemCount{margin-right:auto}
+:global(html[data-phone-viewport=wide]) .items{grid-auto-columns:84%;gap:14px}
+:global(html[data-phone-viewport=wide]) .callout{flex-direction:column;align-items:start;gap:24px}
+@media(prefers-reduced-motion:reduce){.card,.artwork>img{transition:none}.card:hover .artwork>img{transform:none}.scroller{scroll-behavior:auto}}

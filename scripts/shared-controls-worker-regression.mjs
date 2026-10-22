@@ -12,7 +12,7 @@ const options=convertV4MiniflareOptions({workers:[{
 options.workers[0].config.exports.default={type:'worker'};
 const runtime=new Miniflare(options);let checks=0;const titles=new Set();
 try{
- for(const route of ['/','/experience','/events','/portfolio','/shop','/cart','/checkout','/book','/about','/blog','/gallery','/contact-us','/international','/accessibility','/welcome/en','/account','/organizer/login','/partners','/faq','/privacy-policy','/cookie-policy','/terms','/refund-policy','/ticket-terms','/reels','/press','/work-with-us','/marketplace','/affiliates']){
+ for(const route of ['/','/experience','/events','/tour-stops','/ticketing','/portfolio','/shop','/cart','/checkout','/book','/about','/author/eugine-micah','/author/lucy-ogunde','/blog','/gallery','/contact-us','/international','/accessibility','/welcome/en','/account','/organizer/login','/partners','/faq','/privacy-policy','/cookie-policy','/terms','/refund-policy','/ticket-terms','/reels','/press','/work-with-us','/marketplace','/affiliates']){
   const response=await runtime.dispatchFetch('https://urbangangtour.co.ke'+route);
   const html=await response.text();assert.equal(response.status,200,route);
   assert.equal((html.match(/<header class="site-header"/g)||[]).length,1,route+' header');
@@ -20,8 +20,10 @@ try{
   assert.equal((html.match(/<h1(?:\s|>)/g)||[]).length,1,route+' heading');
   const title=html.match(/<title>(.*?)<\/title>/)?.[1];assert.ok(title,route+' title');assert.ok(!titles.has(title),route+' unique title');titles.add(title);
   assert.match(html,/aria-controls="site-menu"/,route+' navigation control');assert.match(html,/class="mobile-menu-label">Menu<\/span>/,route+' mobile menu label');
-  assert.match(html,/class="desktop-menu-label">More /,route+' desktop secondary navigation');
-  assert.match(html,/class="start-link" href="\/contact-us">Let’s talk/,route+' direct contact action');
+  assert.ok(!html.includes('desktop-menu-label'),route+' no desktop overflow menu');
+  assert.match(html,/class="start-link" href="\/contact-us"/,route+' direct contact action');
+  assert.match(html,/class="header-rolling-label"/,route+' folding contact label');
+  assert.match(html,/class="tickets-link" href="\/account"/,route+' direct ticket access');
   assert.ok(!html.includes('mobile-shop-link')&&!html.includes('mobile-about-link'),route+' alternate controls removed');
   assert.match(html,/aria-label="Account and help"/,route+' support');
   if(route!=='/reels'&&route!=='/checkout'){

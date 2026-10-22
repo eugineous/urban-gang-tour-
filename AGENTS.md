@@ -1,5 +1,15 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Events and discovery release (22 October 2026)
+- Owner approves building and deploying the Mookh-grounded event catalogue,
+  calendar, horizontal showcase shelves and AMP-grounded white merchandise shop.
+  Verify screenshots with the explicitly approved local Playwright browser.
+  Preserve owned artwork, factual profiles, auth/payment/consent boundaries and
+  existing inventory. Recent-event placements must use real public records and
+  withdraw stale advertising. Use a tested feature branch, reviewed PR and
+  Cloudflare release with bindings and cron preserved. No live test purchases,
+  messages, backdoors, invented stock or unsupported competitor/ranking claims.
+
 ## Header, footer and motion recovery (21 October 2026)
 - Owner reports desktop hamburger, missing Let's talk/pop-ups, misaligned footer
   and missing Nixtio-inspired home/FAQ/motion sections. Restore useful original
@@ -200,3 +210,13 @@ Any new endpoint must state which roles may call it and enforce it server-side.
 | /api/submissions | — | pitch stories | approve/reject |
 | Contact info (email/phone) | never visible | own only | all, incl. mailto/wa.me actions |
 | /api/admin/* | 401 | 401 | full for super_admin; crew_admin scoped per-route to their assigned module perms (401/403 outside them) - see the access control matrix above |
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

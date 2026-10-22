@@ -14,6 +14,8 @@ import PartnerEventDetails from '@/app/_components/PartnerEventDetails';
 import {publicPartnerDetails} from '@/lib/partner-events';
 import {InformationalEventDetails} from '@/app/_components/InformationalEventDetails';
 import {EventArtwork} from '@/app/_components/EventArtwork';
+import {discoveryImageUrl} from '@/app/_lib/seo';
+import {eventDiscoveryDate} from '@/app/_lib/jsonld';
 
 // Event pages include sellability and Offer markup, so serve them on demand.
 // This avoids a stale ISR page advertising a show after an authoritative
@@ -87,13 +89,7 @@ const eventForPage = cache(async (slug: string): Promise<RoutedEvent | null> => 
 });
 
 function dateTime(event: TicketedEvent): string | null {
-  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(event.event_time || '').trim());
-  const date = String(event.event_date || '').slice(0, 10);
-  if (!m || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  if (Number(m[1]) < 1 || Number(m[1]) > 12 || Number(m[2]) > 59) return null;
-  let hour = Number(m[1]) % 12;
-  if (/pm/i.test(m[3])) hour += 12;
-  return `${date}T${String(hour).padStart(2, '0')}:${m[2]}:00+03:00`;
+  return eventDiscoveryDate(event.event_date, event.event_time) || null;
 }
 
 function safeTiers(value: TicketedEvent['tiers']): Tier[] {
@@ -120,12 +116,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const path = `/events/${event.slug}`;
   const description = event.description || `${event.name}${event.venue?' at '+event.venue:''}${event.city ? `, ${event.city}` : ''}. Event details from Urban Gang Tour.`;
   const indexable = isEventIndexable(event.status) || event.status==='completed';
+  const title = `${event.name} | Urban Gang Tour`;
+  const image = discoveryImageUrl(event.image) || SITE.defaultOg;
   return {
-    title: `${event.name} | Urban Gang Tour`,
+    title,
     description,
     alternates: { canonical: `${SITE.domain}${path}` },
     robots: indexable ? undefined : { index: false, follow: true },
-    openGraph: { title: `${event.name} | Urban Gang Tour`, description, url: `${SITE.domain}${path}`, images: event.image ? [{ url: event.image }] : undefined },
+    openGraph: { type: 'website', siteName: SITE.name, locale: 'en_KE', title, description, url: `${SITE.domain}${path}`, images: [{ url: image, alt: event.name }] },
+    twitter: { card: 'summary_large_image', title, description, images: [image] },
   };
 }
 
@@ -147,7 +146,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const status = String(event.status || 'published');
   const sellable = availabilityKnown && truth.isSellable;
   const soldOut = status === 'sold_out' || (status!=='announced'&&truth?.isSoldOut === true);
-  const prev = event.previous_start_at ? String(event.previous_start_at).slice(0, 10) : null;
+  const prev = eventDiscoveryDate(event.previous_start_at);
   const statusNote: Record<string, { title: string; body: string }> = {
     announced:{title:'Announced',body:'More details will be added here. Ticket sales are not open.'},
     ongoing: { title: 'Happening Now', body: 'This event is in progress. Online ticket sales are closed.' },
@@ -166,14 +165,16 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const eventJsonLd = startDate && event.venue ? {
     '@context': 'https://schema.org',
     '@type': 'Event',
+    '@id': `${SITE.domain}${path}#event`,
     name: event.name,
+    description: event.description || undefined,
     url: `${SITE.domain}${path}`,
     startDate,
-    ...(status === 'rescheduled' && prev ? { previousStartDate: `${prev}T00:00:00+03:00` } : {}),
+    ...(status === 'rescheduled' && prev && prev !== String(event.event_date).slice(0, 10) ? { previousStartDate: prev } : {}),
     eventStatus: eventSchemaStatus(status),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     location: { '@type': 'Place', name: event.venue, address: { '@type': 'PostalAddress', addressLocality: event.city || undefined, addressCountry: 'KE' } },
-    image: event.image ? [`${SITE.domain}${event.image}`] : undefined,
+    image: discoveryImageUrl(event.image) ? [discoveryImageUrl(event.image)] : undefined,
     organizer: { '@id': `${SITE.domain}/#org` },
     offers: !availabilityKnown || (!sellable && !soldOut) ? undefined : truth.tiers
       .filter((tier) => soldOut || tier.sellable)

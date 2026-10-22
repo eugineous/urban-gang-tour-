@@ -68,4 +68,8 @@ it('keeps completed events of every kind in discovery and the portfolio',async()
  const rows=await readPublicEvents();expect(publicOwnedEvents(rows,Date.now())).toHaveLength(4);const html=renderToStaticMarkup(await Portfolio({}));for(const kind of ['school','partner','ticketed','past'])expect(html).toContain(kind+' completed fixture');expect(html).not.toContain('For </p>');
  expect(await generateMetadata({params:Promise.resolve({slug:'fixture-ticketed'})})).not.toHaveProperty('robots.index',false);
 });
-it('keeps the old Tour Stops address pointed to the real school event archive',()=>{expect(()=>TourStops()).toThrow('redirect:/events?kind=school&period=all')});
+it('renders the Tour Stops calendar from the same published event snapshot',async()=>{
+ const page=await TourStops();const html=renderToStaticMarkup(page);
+ expect(html).toContain('Calendar &amp; tour stops.');expect(html).toContain('role="grid"');
+ expect(html).toContain('An honest announcement');expect(html).toContain('Without a confirmed date');expect(html).not.toContain('private@example.invalid');
+});

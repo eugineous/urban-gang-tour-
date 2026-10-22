@@ -17,6 +17,12 @@ export const dynamic = 'force-dynamic';
 // an on-demand flush from the admin pipeline skip even the SSG grace period.
 export const revalidate = 0;
 
+function modifiedAt(value: unknown): Date | undefined {
+  if (typeof value !== 'string' && !(value instanceof Date)) return undefined;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : undefined;
+}
+
 // Lists every crawlable URL, including each /blog/[slug]. /admin is excluded
 // (noindex). robots.ts points crawlers here.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -24,15 +30,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // definitions do not expose a source-of-truth modification timestamp, so
   // omit it rather than claiming every page changed whenever the sitemap was
   // requested. Database-owned records below retain their real updated_at.
-  const pages = ROUTES.filter((r) => !['/admin','/account','/the-gang','/tour-stops','/shop/available'].includes(r.path)).map((r) => ({
+  const pages = ROUTES.filter((r) => !['/admin','/account','/the-gang','/shop/available'].includes(r.path)).map((r) => ({
     url: SITE.domain + (r.path === '/' ? '' : r.path),
     changeFrequency: r.changefreq,
     priority: r.priority,
   }));
 
   const posts = (await getBlogPosts()).map((p) => ({
-    url: `${SITE.domain}/blog/${p.slug}`,
-    lastModified: new Date(p.dateModified),
+    url: `${SITE.domain}/blog/${encodeURIComponent(p.slug)}`,
+    lastModified: modifiedAt(p.dateModified),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }));
@@ -56,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       products = rows.map((product) => ({
         url: `${SITE.domain}/shop/${encodeURIComponent(product.id)}`,
-        lastModified: product.updated_at ? new Date(product.updated_at) : undefined,
+        lastModified: modifiedAt(product.updated_at),
         changeFrequency: 'weekly' as const,
         priority: 0.7,
       }));
@@ -82,7 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       ticketedEvents = rows.filter(event=>event.kind!=='partner'||publicPartnerDetails(event.partner_details)).map((event) => ({
         url: `${SITE.domain}/events/${encodeURIComponent(event.slug)}`,
-        lastModified: event.updated_at ? new Date(event.updated_at) : undefined,
+        lastModified: modifiedAt(event.updated_at),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
       }));
@@ -91,6 +97,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  const newPages = [...publicDesignRoutes.filter(path=>!['/the-gang','/tour-stops'].includes(path)),'/shop/lookbook',...Object.keys(WELCOME_LANGUAGES).map(code=>'/welcome/'+code)].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
+  const newPages = [...publicDesignRoutes.filter(path=>path!=='/the-gang'),'/shop/lookbook','/ticketing',...Object.keys(WELCOME_LANGUAGES).map(code=>'/welcome/'+code)].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
   return [...new Map([...pages,...authors,...posts,...products,...ticketedEvents,...newPages].map(page=>[page.url,page])).values()];
 }

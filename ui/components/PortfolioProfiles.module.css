@@ -3,3 +3,62 @@
 @media(max-width:700px), (max-device-width:600px) and (pointer:coarse){.portfolioIntro{grid-template-columns:1fr;gap:24px}.portfolioIntro h1{font-size:clamp(34px,9vw,48px)}.introAside p{font-size:18px}.introAside{gap:20px}.portfolioNavigation{gap:8px;padding-bottom:28px;flex-wrap:nowrap;overflow-x:auto}.portfolioNavigation a{flex-shrink:0;font-size:13px;gap:12px;padding:10px 14px}.portfolioInstitutions{padding-block:32px 40px}.portfolioInstitutions h2{font-size:30px}.archiveMarks{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.archiveMarks>a{padding:18px 12px;gap:12px}.archiveMarks img{height:78px}.archiveMarks span{font-size:12px}.sectionIntroduction>p{font-size:17px}.sectionIntroduction{margin-bottom:24px}.schoolProjects,.projectGrid,.liveProject,.mediaFeature,.profileHero,.profileEditorial,.profileWorkGrid,.profilePhotoStory{grid-template-columns:1fr;gap:28px}.schoolProject h3,.projectContent h3{font-size:27px}.schoolProject>div,.projectContent{padding:22px}.schoolProjectHeading img{width:48px;height:48px}.schoolProject dl>div,.projectContent dl>div{grid-template-columns:1fr 1.15fr;font-size:13px}.projectContent dl{margin-bottom:0}.projectContent>p:not(:first-child){font-size:16px}.campaignFilms{margin:28px 0}.liveProjectCopy h3,.mediaFeature h3{font-size:32px}.liveProjectCopy>p:not(:first-child),.mediaFeature p{font-size:17px}.broadcastMarks img{width:78px;height:60px}.profileHero{padding-block:8px 32px;gap:32px}.profileHero>figure>img{aspect-ratio:5/4;max-height:460px}.profileHero h1{font-size:clamp(48px,14vw,70px);margin:18px 0 24px}.profileDeck{font-size:20px}.profileNavigation{flex-wrap:nowrap;overflow-x:auto;gap:24px;padding-block:10px}.profileNavigation a{white-space:nowrap}.profileEditorial{gap:28px}.profileEditorial aside h2{font-size:36px}.profileEditorial aside{gap:14px}.profileArticle .articleLead{font-size:21px;line-height:1.6}.profileArticle p{font-size:17px;line-height:1.8}.profileArticle h3{font-size:28px}.careerBackground{padding:20px}.careerBackground h3{font-size:24px}.profileWorkGrid h3,.profileEventLink h3{font-size:29px}.profileEventLink{padding:24px;margin-top:32px}.profilePhotoStory h2{font-size:36px}.profilePhotoStory>div{gap:18px}.profilePhotoStory p:last-child{font-size:17px;max-width:none}.profileProfessionalLinks{gap:12px;margin-top:20px}.profileSourceNote summary{font-size:14px}.profileSourceNote details p{font-size:13px}}
 @media(max-width:360px), (max-device-width:360px) and (pointer:coarse){.schoolProject dl>div,.projectContent dl>div{grid-template-columns:1fr;gap:4px}.archiveMarks>a{padding:14px 8px}.archiveMarks span{font-size:11px}.profileHero h1{font-size:48px}.profileActions>a{width:100%;font-size:13px;gap:12px}.profileProfessionalLinks{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.archiveMarks>a,.projectImage>img{transition:none}.archiveMarks>a:hover{transform:none}.projectImage:hover>img{transform:none}}
+
+/* Structured biographies: readable article, genuine portrait and concise facts. */
+.biographyPage{padding-block:16px 64px;min-width:0}
+.biographyHeading{padding-block:12px 28px;border-bottom:1px solid var(--line,#ddd);margin-bottom:28px}
+.biographyHeading h1{font-size:clamp(38px,5vw,68px);font-weight:550;line-height:1.08;letter-spacing:-.04em;margin:12px 0 18px;overflow-wrap:break-word}
+.biographyHeading>p:last-child{max-width:70ch;font-size:19px;line-height:1.6;color:var(--muted,#5e545a)}
+.biographyLayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,310px);gap:48px;align-items:start}
+.biographyMain{grid-column:1;grid-row:1;min-width:0;max-width:78ch}
+.biographyContents{padding:18px 20px;background:var(--surface,#f4f0f2);border:1px solid var(--line,#ddd);border-radius:12px;margin-bottom:30px}
+.biographyContents h2{font-size:16px;font-weight:650;line-height:1.5;margin:0 0 10px}
+.biographyContents ol{display:flex;flex-wrap:wrap;gap:4px 24px;list-style:none;margin:0;padding:0}
+.biographyContents a{display:inline-flex;align-items:center;min-height:44px;font-size:15px;line-height:1.4;text-decoration:underline;text-underline-offset:4px}
+.biographySection{scroll-margin-top:120px;padding-bottom:32px;margin-bottom:28px;border-bottom:1px solid var(--line,#ddd);min-width:0}
+.biographySection h2{font-size:clamp(25px,2.6vw,34px);font-weight:550;line-height:1.22;letter-spacing:-.025em;margin:0 0 18px}
+.biographySection>p{font-size:17px;line-height:1.8;margin:0 0 20px;max-width:76ch;overflow-wrap:break-word}
+.biographySection>.biographyLead{font-size:20px;line-height:1.75}
+.biographySection a:not(:global(.button)){text-decoration:underline;text-underline-offset:4px}
+.biographySection a:focus-visible,.biographyFacts a:focus-visible,.biographyContents a:focus-visible{outline:3px solid var(--action,#ad1264);outline-offset:4px}
+.biographyStudio{margin:24px 0 0;max-width:440px}
+.biographyStudio>a{display:block}
+.biographyStudio img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
+.biographyStudio figcaption,.biographyFacts figcaption{font-size:13px;line-height:1.55;color:var(--muted,#5e545a);margin-top:10px}
+.biographyFilms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 18px;min-width:0}
+.biographyFilms>article{min-width:0}
+.biographyFilms :global(.film-stage){width:100%;height:auto!important;aspect-ratio:var(--media-aspect,16/9);overflow:hidden}
+.biographyFilms video{display:block;width:100%!important;height:100%!important;object-fit:contain}
+.biographyFilms :global(.film-caption){align-items:start;gap:12px}
+.biographyFilms :global(.film-caption) h3{font-size:16px;line-height:1.45;overflow-wrap:break-word}
+.biographyPhotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.biographyPhotos>a{display:block;min-width:0}
+.biographyPhotos img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.biographyRecords,.biographyStories{list-style:none;margin:0;padding:0}
+.biographyRecords>li{display:grid;gap:7px;padding-block:15px;border-top:1px solid var(--line,#ddd);min-width:0}
+.biographyRecords>li:first-child{border-top:0;padding-top:0}
+.biographyRecords>li>a{font-size:18px;font-weight:550;line-height:1.45;overflow-wrap:break-word;min-height:44px;align-content:center}
+.biographyRecords>li>span{font-size:14px;line-height:1.6;color:var(--muted,#5e545a)}
+.biographyStories>li{padding-block:6px;line-height:1.6}
+.biographyStories a{display:inline-flex;align-items:center;min-height:44px;font-size:16px;overflow-wrap:break-word}
+.biographyFacts{grid-column:2;grid-row:1;min-width:0;padding:20px;background:var(--surface,#f4f0f2);border:1px solid var(--line,#ddd);border-radius:14px}
+.biographyFacts>h2{font-size:23px;font-weight:600;line-height:1.3;margin-bottom:18px}
+.biographyFacts>figure{margin:0 0 20px}
+.biographyFacts>figure>img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.biographyFacts dl{margin:0 0 20px}
+.biographyFacts dl>div{display:grid;grid-template-columns:90px minmax(0,1fr);gap:10px;padding-block:12px;border-top:1px solid var(--line,#ddd);font-size:14px;line-height:1.6}
+.biographyFacts dt{font-weight:600;color:var(--ink,#171717)}
+.biographyFacts dd{margin:0;min-width:0;overflow-wrap:break-word}
+.biographyFacts dd a{text-decoration:underline;text-underline-offset:3px}
+.biographyFacts .biographyBooking{width:100%;min-width:0;font-size:15px;min-height:48px;gap:16px;padding:12px 16px;justify-content:space-between}
+.biographyPress{display:flex;justify-content:center;align-items:center;min-height:44px;font-size:14px;line-height:1.5;text-decoration:underline;text-underline-offset:4px;margin-top:8px}
+@media(max-width:1000px){.biographyLayout{grid-template-columns:minmax(0,1fr) minmax(230px,275px);gap:28px}.biographyFacts{padding:16px}.biographyFacts dl>div{grid-template-columns:minmax(0,1fr);gap:3px}.biographyFilms{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.biographyPage{padding-block:8px 36px}.biographyHeading{padding-block:8px 22px;margin-bottom:22px}.biographyHeading h1{font-size:clamp(36px,10vw,52px)}.biographyHeading>p:last-child{font-size:17px}.biographyLayout{grid-template-columns:minmax(0,1fr);gap:28px}.biographyMain,.biographyFacts{grid-column:1;grid-row:auto;max-width:none}.biographyFacts{padding:18px;max-width:440px;width:100%;justify-self:center}.biographyFacts>figure{max-width:300px;margin-inline:auto}.biographyFacts dl>div{grid-template-columns:95px minmax(0,1fr);gap:12px}.biographyContents{padding:14px 16px;margin-bottom:26px}.biographyContents ol{column-gap:20px}.biographySection{padding-bottom:24px;margin-bottom:24px;scroll-margin-top:100px}.biographySection>p{font-size:16px;line-height:1.8}.biographySection>.biographyLead{font-size:18px;line-height:1.75}.biographyPhotos{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.biographyPhotos>a:first-child{grid-column:1/-1}.biographyStudio{max-width:none}}
+:global(html[data-phone-viewport=wide]) .biographyLayout{grid-template-columns:minmax(0,1fr);gap:28px}
+:global(html[data-phone-viewport=wide]) .biographyMain,:global(html[data-phone-viewport=wide]) .biographyFacts{grid-column:1;grid-row:auto;max-width:none}
+:global(html[data-phone-viewport=wide]) .biographyFacts{width:100%;max-width:440px;justify-self:center}
+:global(html[data-phone-viewport=wide]) .biographyFacts>figure{max-width:300px;margin-inline:auto}
+:global(html[data-phone-viewport=wide]) .biographyFacts dl>div{grid-template-columns:95px minmax(0,1fr);gap:12px}
+:global(html[data-phone-viewport=wide]) .biographyFilms{grid-template-columns:minmax(0,1fr)}
+:global(html[data-phone-viewport=wide]) .biographyHeading h1{font-size:clamp(36px,10vw,52px)}
+@media(max-width:360px){.biographyFacts dl>div{grid-template-columns:minmax(0,1fr);gap:3px}.biographyContents ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 12px}.biographyContents a{font-size:14px}.biographyFacts{padding:16px}.biographyRecords>li>span{font-size:14px}}

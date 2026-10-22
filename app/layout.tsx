@@ -25,6 +25,8 @@ import { AdSenseLoader } from './_components/Ads';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
+import {readPublicEvents} from '@/lib/server/public-events';
+import {requestTime} from '@/lib/server/request-time';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.domain),
@@ -70,7 +72,9 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const events=await readPublicEvents().catch(()=>[]);
+  const initialNow=requestTime();
   return (
     <html lang="en-KE" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{__html:DISPLAY_PREFERENCES_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
@@ -120,7 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
-        <AppShell>{children}</AppShell>
+        <AppShell events={events} initialNow={initialNow}>{children}</AppShell>
         <InstallableApp />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
             where we can't attach a debugger) in the server logs */}

@@ -1,0 +1,40 @@
+.page{container:ticketing/inline-size;width:min(1280px,calc(100% - 40px));margin-inline:auto;padding:128px 0 64px;color:var(--ink);letter-spacing:-.025em}
+.breadcrumbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:28px;font-size:14px;color:var(--muted)}
+.breadcrumbs a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
+.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:center;gap:56px}
+.eyebrow{font-size:13px;line-height:1.5;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.hero h1{font-size:clamp(48px,7.8vw,104px);line-height:1;letter-spacing:-.065em;max-width:12ch}
+.lead{font-size:21px;line-height:1.5;color:var(--muted);max-width:39ch;margin-top:28px}
+.hero figure{margin:0;min-width:0}
+.hero img{width:100%;height:auto;max-height:520px;aspect-ratio:4/5;object-fit:cover;border-radius:20px}
+.hero figcaption{font-size:12px;line-height:1.5;color:var(--muted);margin-top:10px}
+.actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin-top:28px}
+.textLink{display:inline-flex;align-items:center;min-height:44px;max-width:100%;font-size:15px;text-decoration:underline;text-underline-offset:4px;line-height:1.5}
+.comparison,.journey,.regional,.questions{padding-top:64px;margin-top:64px;border-top:1px solid var(--line)}
+.comparison>div:first-child{max-width:760px}
+.page h2{font-size:clamp(30px,3.5vw,48px);letter-spacing:-.05em;line-height:1.12}
+.comparison>div:first-child>p:last-child,.regional>p{font-size:18px;color:var(--muted);line-height:1.65;margin-top:20px;max-width:72ch}
+.criteria{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:32px}
+.criteria>section{padding:24px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.page h3{font-size:23px;line-height:1.25;letter-spacing:-.035em}
+.criteria p,.journey li p{font-size:16px;line-height:1.65;color:var(--muted);margin-top:12px}
+.platforms{display:flex;align-items:center;flex-wrap:wrap;gap:8px 24px;margin-top:24px;font-size:14px}
+.platforms>span{color:var(--muted)}
+.platforms>a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
+.note{font-size:13px;line-height:1.6;color:var(--muted);max-width:84ch;margin-top:8px}
+.journey ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;padding:0;margin:32px 0 0;list-style:none}
+.journey li{display:flex;align-items:flex-start;gap:18px;min-width:0}
+.journey li>span{font-size:13px;color:var(--action);line-height:2;font-weight:650;flex:none}
+.regional{max-width:880px}.regional .textLink{margin-top:12px}
+.questions{max-width:880px}.questions h2{margin-bottom:24px}
+.questions details{border-bottom:1px solid var(--line);padding-block:4px}
+.questions summary{min-height:56px;padding:16px 24px 16px 0;cursor:pointer;font-size:18px;font-weight:550;line-height:1.5}
+.questions details p{font-size:16px;line-height:1.7;color:var(--muted);padding:0 0 20px;max-width:72ch}
+.callout{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;margin-top:64px;padding:32px;border-radius:20px;background:#eae3e7}
+.callout p{margin-top:12px;color:#635760;font-size:16px;line-height:1.5}
+.page :where(a,summary):focus-visible{outline:3px solid #087b98;outline-offset:4px}
+@container ticketing (max-width:800px){.hero{grid-template-columns:minmax(0,1fr);gap:28px}.hero img{max-height:440px;aspect-ratio:4/3}.lead{font-size:18px}.comparison,.journey,.regional,.questions{padding-top:40px;margin-top:40px}.hero h1{font-size:clamp(44px,10cqw,70px)}}
+@container ticketing (max-width:520px){.criteria,.journey ol{grid-template-columns:minmax(0,1fr)}.criteria>section{padding:20px}.callout{padding:24px}.callout h2{font-size:30px}.platforms{gap:4px 20px}.hero figcaption{font-size:12px}}
+@media(max-width:1023px){.page{padding-top:32px}}
+:global(html[data-phone-viewport=wide]) .page{padding-top:32px}
+@media(prefers-reduced-motion:reduce){.page{scroll-behavior:auto}}
