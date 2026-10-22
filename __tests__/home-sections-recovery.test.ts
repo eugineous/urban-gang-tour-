@@ -31,5 +31,11 @@ it('keeps motion progressive, reduced-motion aware and responsive without hiding
  expect(css).not.toMatch(/opacity\s*:\s*0\b/);
  expect(css).toContain('prefers-reduced-motion:reduce');expect(css).toContain('html[data-focus-view=true]');
  expect(css).toContain('max-width:700px');expect(css).toContain('min-inline-size:0');
- expect(css).not.toMatch(/min-(?:inline-size|width):\s*\d{3,}px/);
+ // A responsive @media(min-width:...) breakpoint is not a fixed-width
+ // declaration. Reject actual declarations without rejecting tablet queries.
+ const fixedMinimum=/(?:^|[;{])\s*min-(?:inline-size|width):\s*\d{3,}px/;
+ expect(css).not.toMatch(fixedMinimum);
+ expect('@media(min-width:701px){.card{min-inline-size:0}}').not.toMatch(fixedMinimum);
+ expect('.card{min-width:701px}').toMatch(fixedMinimum);
+ expect('.card{color:red;min-inline-size:701px}').toMatch(fixedMinimum);
 });
