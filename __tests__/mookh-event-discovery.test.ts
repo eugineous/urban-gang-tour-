@@ -10,6 +10,17 @@ const now=Date.parse('2026-10-22T12:00:00+03:00');
 const event={id:'event',kind:'ticketed',slug:'test-event',name:'A real campus event',status:'published',eventDate:'2026-11-06',image:'/uploads/event.jpg',venue:'Graduation Square',city:'Nairobi',priority:0,sellable:true,tiers:[{name:'Entry',price:750,sellable:true}]};
 
 describe('Mookh-shaped directory preserves Urban Gang event truth',()=>{
+  it('does not present server-rendered filter controls as ready before their handlers attach',()=>{
+    const html=renderToStaticMarkup(createElement(EventDiscovery,{events:[event],initialNow:now}));
+    expect(html).toContain('data-filters-ready="false"');
+    const inputs=[...html.matchAll(/<(?:input|select|button)\b[^>]*>/g)].map(match=>match[0]);
+    expect(inputs.length).toBeGreaterThan(5);
+    for(const input of inputs)expect(input).toContain('disabled');
+    expect(html).toContain('href="/events/test-event"');
+    expect(html).toContain('href="/tour-stops"');
+    const page=readFileSync('app/events/page.tsx','utf8');
+    expect(page).not.toContain('RenderedPage');expect(page).toContain('<EventDiscovery');
+  });
   it('shows prices only for actually sellable tiers, not sold-out cheaper tiers',()=>{
     expect(eventCardPrice({...event,tiers:[{price:100,sellable:false},{price:750,sellable:true},{price:1000,sellable:true}]},now)).toBe('from KES 750.00');
     expect(eventCardPrice({...event,tiers:[{price:0,sellable:true}]},now)).toBe('Free tickets');
