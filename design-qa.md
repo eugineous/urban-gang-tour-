@@ -1,5 +1,5 @@
 # Events, navigation, showcase and shop — design QA
-Date: 22 October 2026. Release: events-library-20261022-v1.
+Date: 22 October 2026. Release: events-library-20261022-v2.
 
 ## Sources and comparison setup
 
@@ -95,6 +95,15 @@ part of the intended reproduction.
    exclusions behind. Both were removed. /tour-stops now has a real calendar,
    canonical metadata, keyboard date controls and an event-directory link.
 
+9. [P1, fixed] The first live cold-load run missed a layout selection while
+   subsequent runs passed. The initial server-rendered filter controls could
+   appear usable before their handlers attached. Initial search/layout/date/type
+   controls now expose an explicit disabled-until-ready state. Native event and
+   calendar links stay usable without scripts. The events route also renders
+   its own directory directly instead of importing the whole-site renderer.
+   A deliberate script-hold browser test proves the before/after interaction
+   states; local-cold-filters.json and ugt-cold-filters-before.png record it.
+
 ## Required fidelity surfaces
 
 - Fonts/typography: large regular event heading, compact navigation and legible
@@ -138,8 +147,8 @@ do not submit payments, emails, WhatsApp messages or admin edits.
 
 ## Engineering evidence and remaining limits
 
-The full suite passes1075 tests with75 explicitly skipped; subsequent focused
-layout regressions cover the final shelf sizing and calendar entry. Typecheck
+The final full suite passes1077 tests with75 explicitly skipped; regressions
+cover the shelf sizing, calendar entry and cold-load readiness. Typecheck
 passes. Changed code has no lint errors. Full-repository lint still reports29
 pre-existing errors in unchanged files; this release does not claim to resolve
 that admin/auth/test debt. No40,000-request/minute or live-payment certification
@@ -160,6 +169,14 @@ Actual production Worker-bundle checks pass33 shared-control routes,9 language
 routes and5 editorial/private-path boundaries (47total). They use local Worker
 bindings, not a claim of live provider-payment verification. Deployment/live
 readback remains an operational release step, not a missing visual comparison.
+The v1 main-site readback passed40 checks with all54 bindings, existing cron,
+113 public posts,11 events and14 products retained. Live browser journeys and
+metadata/XML checks also passed after the cold-load timing observation above.
+The narrowed v2 follow-up passes its build, typecheck, lint, delayed-script
+browser test, fourteen built-server journeys and the same47 Worker checks.
+One existing console policy block remains: Cloudflare's automatically injected
+analytics beacon is blocked by the site's CSP. The policy was not relaxed to
+silence optional tracking; application runtime errors were checked separately.
 No actionable P0/P1/P2 visual issue remains in this scoped release. No P3
 cosmetic follow-up blocks it.
 

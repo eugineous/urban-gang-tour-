@@ -16,6 +16,7 @@ export function readUrlFilters(params: URLSearchParams, defaults: Defaults, allo
 // one navigable entry. Popstate restores the controls from the URL.
 export function useUrlFilters(defaults: Defaults, allowed: Allowed = {}) {
   const [values, setValues] = useState(defaults);
+  const [ready, setReady] = useState(false);
   const signature = JSON.stringify([defaults, allowed]);
   useEffect(() => {
     const [initial, valid] = JSON.parse(signature) as [Defaults, Allowed];
@@ -28,6 +29,7 @@ export function useUrlFilters(defaults: Defaults, allowed: Allowed = {}) {
       }
       if (url.href !== location.href) history.replaceState(history.state, '', url);
       setValues(next);
+      setReady(true);
     };
     read();
     window.addEventListener('popstate', read);
@@ -43,5 +45,5 @@ export function useUrlFilters(defaults: Defaults, allowed: Allowed = {}) {
     if (url.href !== location.href) history[replace ? 'replaceState' : 'pushState'](history.state, '', url);
     setValues(next);
   };
-  return [values, update] as const;
+  return [values, update, ready] as const;
 }

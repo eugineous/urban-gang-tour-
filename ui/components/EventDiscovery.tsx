@@ -30,7 +30,7 @@ export function EventDiscovery({events, initialNow=0}:Props) {
   const [pagination, setPagination] = useState({key:'',limit:12});
   const signature = useRef(ownedEventSignature(events));
   const loaded = useRef(false);
-  const [filters, updateFilters] = useUrlFilters(
+  const [filters, updateFilters, filtersReady] = useUrlFilters(
     {q:'', period:'upcoming', kind:'all', eventCategory:'all', layout:'grid'},
     {period:['upcoming','past','all'], kind:['all','ticketed','partner','school','past'], layout:['grid','list']}
   );
@@ -91,14 +91,14 @@ export function EventDiscovery({events, initialNow=0}:Props) {
   const shown=visible.slice(0, limit);
   function reset() {updateFilters({q:'',period:'upcoming',kind:'all',eventCategory:'all'});}
 
-  return <div className={styles.experience} data-event-directory="owned">
+  return <div className={styles.experience} data-event-directory="owned" data-filters-ready={filtersReady}>
     <div className={styles.page}>
       <section className={styles.intro} aria-labelledby="events-title">
         <h1 id="events-title">Discover your next best event experience.</h1>
         <div className={styles.search}>
           <MagnifyingGlass size={24} weight="regular" aria-hidden="true"/>
           <label className={styles.srOnly} htmlFor="event-search">Search events, schools or venues</label>
-          <input id="event-search" type="search" value={filters.q} onChange={event => updateFilters({q:event.target.value.slice(0,200)}, true)} placeholder="Search events, schools or venues" autoComplete="off"/>
+          <input id="event-search" type="search" disabled={!filtersReady} value={filters.q} onChange={event => updateFilters({q:event.target.value.slice(0,200)}, true)} placeholder="Search events, schools or venues" autoComplete="off"/>
           {filters.q && <button type="button" onClick={() => updateFilters({q:''}, true)} aria-label="Clear event search"><X size={20} aria-hidden="true"/></button>}
         </div>
       </section>
@@ -118,17 +118,17 @@ export function EventDiscovery({events, initialNow=0}:Props) {
           <h2 id="explore-events-title">Explore events</h2>
           <div className={styles.layoutControls} role="group" aria-label="Event layout">
             <Link className={styles.calendarLink} href="/tour-stops" aria-label="Open event calendar" title="Event calendar"><CalendarBlank size={22} aria-hidden="true"/></Link>
-            <button type="button" aria-label="Grid view" aria-pressed={filters.layout==='grid'} onClick={() => updateFilters({layout:'grid'})}><SquaresFour size={22} weight="regular" aria-hidden="true"/></button>
-            <button type="button" aria-label="List view" aria-pressed={filters.layout==='list'} onClick={() => updateFilters({layout:'list'})}><Rows size={22} weight="regular" aria-hidden="true"/></button>
+            <button type="button" disabled={!filtersReady} aria-label="Grid view" aria-pressed={filters.layout==='grid'} onClick={() => updateFilters({layout:'grid'})}><SquaresFour size={22} weight="regular" aria-hidden="true"/></button>
+            <button type="button" disabled={!filtersReady} aria-label="List view" aria-pressed={filters.layout==='list'} onClick={() => updateFilters({layout:'list'})}><Rows size={22} weight="regular" aria-hidden="true"/></button>
           </div>
         </div>
         <div className={styles.filters}>
           <div className={styles.periods} role="group" aria-label="Event dates">
-            {([['upcoming','Upcoming'],['past','Past events'],['all','All events']] as const).map(([value,label]) => <button key={value} type="button" aria-pressed={filters.period===value} onClick={() => updateFilters({period:value})}>{label}</button>)}
+            {([['upcoming','Upcoming'],['past','Past events'],['all','All events']] as const).map(([value,label]) => <button key={value} type="button" disabled={!filtersReady} aria-pressed={filters.period===value} onClick={() => updateFilters({period:value})}>{label}</button>)}
           </div>
           <div className={styles.selects}>
-            <label><span>Event type</span><select value={filters.kind} onChange={event => updateFilters({kind:event.target.value})}><option value="all">All event types</option><option value="ticketed">Ticketed events</option><option value="partner">Partner events</option><option value="school">School tour</option><option value="past">Previous clients</option></select></label>
-            {(categories.length>0 || filters.eventCategory!=='all') && <label><span>Category</span><select value={filters.eventCategory} onChange={event => updateFilters({eventCategory:event.target.value})}><option value="all">All categories</option>{filters.eventCategory!=='all' && !categories.some(category => category.id===filters.eventCategory) && <option value={filters.eventCategory}>Selected category</option>}{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>}
+            <label><span>Event type</span><select disabled={!filtersReady} value={filters.kind} onChange={event => updateFilters({kind:event.target.value})}><option value="all">All event types</option><option value="ticketed">Ticketed events</option><option value="partner">Partner events</option><option value="school">School tour</option><option value="past">Previous clients</option></select></label>
+            {(categories.length>0 || filters.eventCategory!=='all') && <label><span>Category</span><select disabled={!filtersReady} value={filters.eventCategory} onChange={event => updateFilters({eventCategory:event.target.value})}><option value="all">All categories</option>{filters.eventCategory!=='all' && !categories.some(category => category.id===filters.eventCategory) && <option value={filters.eventCategory}>Selected category</option>}{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>}
           </div>
         </div>
         <div className={styles.resultSummary}><p role="status" aria-live="polite">{visible.length} {visible.length===1?'event':'events'}{filters.q.trim()?' matching “'+filters.q.trim()+'”':''}</p>{modified && <button type="button" onClick={reset}>Reset filters</button>}</div>

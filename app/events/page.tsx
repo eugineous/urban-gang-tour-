@@ -3,7 +3,9 @@ import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { eventsFromDb, breadcrumbFor } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { redirect } from 'next/navigation';
-import { RenderedPage } from '@/app/_components/RenderedPage';
+import {EventDiscovery} from '@/ui/components/EventDiscovery';
+import {readPublicEvents} from '@/lib/server/public-events';
+import {requestTime} from '@/lib/server/request-time';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -14,8 +16,9 @@ export default async function EventsPage({searchParams}:{searchParams:Promise<{e
   const query=await searchParams;
   if(query.event)redirect('/checkout?event='+encodeURIComponent(query.event));
   const events = await eventsFromDb();
+  const catalogue=await readPublicEvents().catch(()=>[]);
   return <>
     <JsonLd data={[events, breadcrumbFor('/events')].filter(Boolean)} />
-    <RenderedPage pathName="/events" />
+    <div className="public-page"><EventDiscovery events={catalogue} initialNow={requestTime()}/></div>
   </>;
 }
