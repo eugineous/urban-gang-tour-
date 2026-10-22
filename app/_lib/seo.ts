@@ -1,14 +1,29 @@
 import type { Metadata } from 'next';
 import { ROUTES, SITE, routeByPath } from '@/lib/site';
+import mediaLibrary from '@/ui/data/media-library.json';
 
-// Build per-page Metadata from the central route table. Guarantees a UNIQUE
-// title, description, canonical and OG image for every URL — no two pages
-// share a canonical, which is what stops Google collapsing them as duplicates.
+/** Resolve actual public artwork without substituting a fabricated image. */
+export function discoveryImageUrl(raw: unknown): string | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  try {
+    const url = new URL(raw.trim(), SITE.domain);
+    return /^https?:$/.test(url.protocol) && !url.username && !url.password ? url.href : undefined;
+  } catch { return undefined; }
+}
+
+// The same owned portraits appear on the presenter pages. A shared brand image
+// remains an honest fallback elsewhere; unique URLs do not require fake images.
+export const PRESENTER_DISCOVERY_IMAGES = Object.fromEntries([
+  ['/author/eugine-micah', 'M230'], ['/author/lucy-ogunde', 'M228'],
+].map(([path, id]) => [path, mediaLibrary.assets.find(asset => asset.id === id)?.src || SITE.defaultOg]));
+
+// Build matching per-page titles, descriptions and canonical/social URLs from
+// the central route table. Detail pages supply their own record-specific cards.
 export function metadataForPath(path: string): Metadata {
   const r = routeByPath(path);
   if (!r) return {};
   const url = SITE.domain + (r.path === '/' ? '' : r.path);
-  const og = r.og || SITE.defaultOg;
+  const og = discoveryImageUrl(r.og || PRESENTER_DISCOVERY_IMAGES[path]) || SITE.defaultOg;
   const noindex = r.path === '/admin';
   return {
     title: r.title,
@@ -26,7 +41,7 @@ export function metadataForPath(path: string): Metadata {
       title: r.title,
       description: r.description,
       url,
-      images: [{ url: og }],
+      images: [{ url: og, alt: r.title }],
       locale: 'en_KE',
     },
     twitter: {

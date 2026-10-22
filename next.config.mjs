@@ -6,6 +6,7 @@ if(process.env.NODE_ENV==='development')initOpenNextCloudflareForDev();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
   poweredByHeader: false,
   // Send complete metadata and page HTML in the initial document to every
   // visitor. A streamed Suspense placeholder needs JavaScript to become the
@@ -28,7 +29,6 @@ const nextConfig = {
       { source: '/tickets', destination: '/events', permanent: true },
       { source: '/contact', destination: '/contact-us', permanent: true },
       { source: '/tour', destination: '/experience', permanent: true },
-      { source: '/tour-stops', destination: '/events?kind=school&period=all', permanent: true },
       { source: '/gang', destination: '/the-gang', permanent: true },
       { source: '/the-gang', destination: '/about', permanent: true },
       { source: '/merch', destination: '/shop', permanent: true },

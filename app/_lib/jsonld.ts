@@ -3,6 +3,7 @@ import { SITE, routeByPath } from '@/lib/site';
 import { INDEXABLE_EVENT_STATUSES, eventSchemaStatus } from '@/lib/server/event-lifecycle';
 import { resolveManyEventTruths } from '@/lib/server/event-truth';
 import {partnerEventSchema} from '@/lib/partner-event-schema';
+import {discoveryImageUrl, PRESENTER_DISCOVERY_IMAGES} from './seo';
 
 // v25's structured data, split onto the pages it belongs to.
 // Organization + WebSite are site-wide (rendered in the root layout);
@@ -62,8 +63,8 @@ export function newsIndexJsonLd(posts: NewsIndexItem[]): Record<string, unknown>
 // prices or retired products.
 export async function shopCatalogList(): Promise<unknown | null> {
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (!db()) return null;
+    const { q, hasDb } = await import('@/lib/server/db');
+    if (!hasDb()) return null;
     const rows = await q<{ id: string; name: string }>(
       `SELECT id, name FROM products WHERE active ORDER BY id`
     );
@@ -84,19 +85,20 @@ export async function shopCatalogList(): Promise<unknown | null> {
   }
 }
 
-const PERFORMER = [
-  { '@type': 'PerformingGroup', name: 'Urban Gang Tour' },
-  { '@type': 'Person', name: 'Eugine Micah' },
-  { '@type': 'Person', name: 'Lucy Ogunde' },
-];
-
-function timeTo24h(t: string): string {
-  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(t || '').trim());
-  if (!m) return '00:00:00';
-  let h = Number(m[1]) % 12;
-  if (/pm/i.test(m[3])) h += 12;
-  return `${String(h).padStart(2, '0')}:${m[2]}:00`;
+/** Preserve a confirmed day when a start time is absent or malformed. */
+export function eventDiscoveryDate(raw: unknown, time: unknown = ''): string | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const day = raw.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return undefined;
+  const date = new Date(day + 'T12:00:00Z');
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== day) return undefined;
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(typeof time === 'string' ? time.trim() : '');
+  if (!m || Number(m[1]) < 1 || Number(m[1]) > 12 || Number(m[2]) > 59) return day;
+  const hour = Number(m[1]) % 12 + (/pm/i.test(m[3]) ? 12 : 0);
+  return `${day}T${String(hour).padStart(2, '0')}:${m[2]}:00+03:00`;
 }
+
+type DiscoveryEventRow = Parameters<typeof partnerEventSchema>[0] & {kind: string};
 
 // Live rebuild of the /events JSON-LD @graph straight from the current,
 // publicly ticketed tour_events rows. School events are intentionally left
@@ -118,7 +120,7 @@ export async function eventsFromDb(): Promise<unknown | null> {
     // never points crawlers to rows the detail route intentionally hides.
     // Draft, pending_review, cancelled, completed and archived rows are never
     // queried here.
-    const rows = await q<any>(
+    const rows = await q<DiscoveryEventRow>(
       `SELECT slug, kind, to_jsonb(tour_events)->'partner_details' AS partner_details, name, event_date::text AS event_date, previous_start_at::text AS previous_start_at,
               event_time, venue, city, image, description, tiers, status
        FROM tour_events
@@ -132,19 +134,18 @@ export async function eventsFromDb(): Promise<unknown | null> {
     if (!rows.length) return null;
     const truths = await resolveManyEventTruths(rows.filter(row=>row.kind!=='partner').map((row: { slug: string }) => row.slug));
     const truthBySlug = new Map(truths.map((truth) => [truth.slug, truth]));
-    const graph = rows.flatMap<Record<string,unknown>>((r: any) => {
+    const graph = rows.flatMap<Record<string,unknown>>((r) => {
       if(r.kind==='partner'){
         const schema=partnerEventSchema(r);
         if(!schema)return [];
-        const {'@context':context,...node}=schema;
-        return [node];
+        return [Object.fromEntries(Object.entries(schema).filter(([key]) => key !== '@context'))];
       }
-      if(!r.event_date||!String(r.venue||'').trim())return [];
+      const startDate = eventDiscoveryDate(r.event_date, r.event_time);
+      if (!startDate || !String(r.venue || '').trim()) return [];
       const truth = truthBySlug.get(r.slug);
-      // A rich-result offer must be backed by current commercial truth. If
-      // availability cannot be resolved, omit this event rather than assert
-      // that a ticket is InStock from its lifecycle label alone.
-      if (!truth) return [];
+      // Availability controls Offer markup, not whether confirmed public event
+      // information can be discovered. A failed inventory read must not invent
+      // stock, but need not erase the event's name, artwork, date and venue.
       const dateStr = String(r.event_date).slice(0, 10);
       const desc = String(r.description || '').replace(/—/g, '-');
       const eventUrl = `${SITE.domain}/events/${encodeURIComponent(r.slug)}`;
@@ -154,37 +155,33 @@ export async function eventsFromDb(): Promise<unknown | null> {
       // can actually buy that event's tickets (Google's requirement), or it
       // must not be emitted.
       const status = String(r.status || 'published');
-      const buyable = truth.isSellable;
-      const soldOut = truth.isSoldOut;
-      const prev = r.previous_start_at ? String(r.previous_start_at).slice(0, 10) : null;
-      const startOf = (d: string) =>
-        /^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(String(r.event_time || '').trim())
-          ? `${d}T${timeTo24h(r.event_time)}+03:00`
-          : d;
+      const buyable = truth?.isSellable === true;
+      const soldOut = truth?.isSoldOut === true;
+      const prev = eventDiscoveryDate(r.previous_start_at);
       return [{
         '@type': 'Event',
-        '@id': eventUrl,
+        '@id': eventUrl + '#event',
         url: eventUrl,
         name: r.name,
         // Never invent a midnight start time when the operator has not
         // confirmed one. A date-only event is valid for an all-day/TBA-time
         // listing and remains truthful until the schedule is set.
-        startDate: startOf(dateStr),
+        startDate,
         // Google: keep the original identifying information when an event is
         // rescheduled — previousStartDate carries the old date rather than the
         // record being deleted or silently overwritten.
         previousStartDate:
-          status === 'rescheduled' && prev && prev !== dateStr ? startOf(prev) : undefined,
+          status === 'rescheduled' && prev && prev !== dateStr ? prev : undefined,
         eventStatus: eventSchemaStatus(status),
         eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
         location: { '@type': 'Place', name: r.venue || '', address: { '@type': 'PostalAddress', addressLocality: r.city || '', addressCountry: 'KE' } },
-        image: r.image ? `${SITE.domain}${r.image}` : undefined,
+        image: discoveryImageUrl(r.image),
         organizer: { '@id': `${SITE.domain}/#org` },
-        performer: PERFORMER,
+        // Managed ticket inventory does not prove either presenter performs
+        // at this particular event. Credits belong to its confirmed record.
         description: desc || r.name,
-        offers: !buyable && !soldOut
-          ? undefined
-          : truth.tiers.filter((tier) => soldOut || tier.sellable).map((tier) => ({
+        offers: truth && (buyable || soldOut)
+          ? truth.tiers.filter((tier) => soldOut || tier.sellable).map((tier) => ({
               '@type': 'Offer',
               name: tier.name,
               price: String(tier.price),
@@ -193,7 +190,7 @@ export async function eventsFromDb(): Promise<unknown | null> {
                 ? 'https://schema.org/SoldOut'
                 : 'https://schema.org/InStock',
               url: eventUrl,
-            })),
+            })) : undefined,
       }];
     });
     return { '@context': 'https://schema.org', '@graph': graph };
@@ -212,6 +209,25 @@ export function structuredDataForPath(path: string): unknown[] {
       out.push(PEOPLE); break;
     case '/blog':
       out.push(NEWSORG); break;
+    case '/author/eugine-micah':
+    case '/author/lucy-ogunde': {
+      const lucy = path.endsWith('lucy-ogunde');
+      const url = SITE.domain + path;
+      out.push({
+        '@context': 'https://schema.org', '@type': 'ProfilePage', '@id': url + '#profile',
+        url, name: lucy ? 'Lucy Ogunde' : 'Eugine Micah',
+        description: routeByPath(path)?.description,
+        isPartOf: { '@id': SITE.domain + '/#website' },
+        mainEntity: {
+          '@type': 'Person', '@id': SITE.domain + '/#member-' + (lucy ? 'lucy' : 'eugine'),
+          name: lucy ? 'Lucy Ogunde' : 'Eugine Micah', url,
+          image: discoveryImageUrl(PRESENTER_DISCOVERY_IMAGES[path]),
+          jobTitle: lucy ? ['TV presenter', 'MC', 'Event host'] : ['TV presenter', 'Journalist', 'MC', 'Event host', 'Creative producer'],
+          worksFor: { '@id': SITE.domain + '/#org' },
+        },
+      });
+      break;
+    }
   }
   out.push(breadcrumbFor(path));
   return out.filter(Boolean);

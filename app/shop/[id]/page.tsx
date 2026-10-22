@@ -12,6 +12,7 @@ import { hasDb, q } from '@/lib/server/db';
 import {getMerchProduct,ARTWORK} from '@/data/color-blast';
 import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
 import {ShareActions} from '@/ui/components/ShareActions';
+import {discoveryImageUrl} from '@/app/_lib/seo';
 
 // A design can become a real, owner-approved product. Never bake the build's
 // absent database/stock into a five-minute concept page for that same ID.
@@ -79,20 +80,34 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const preview=getMerchProduct(id);
   const product = await productForPage(id).catch(error=>{if(preview)return null;throw error});
-  if(!product&&preview)return {title:preview.name+' | Color Blast Design Preview',description:preview.description+' Proposed design; samples and stock unconfirmed.',alternates:{canonical:'/shop/'+id},openGraph:{title:preview.name+' | Color Blast',description:'Design preview, not manufactured stock.',url:'/shop/'+id,images:[{url:ARTWORK}]}};
+  if (!product && preview) {
+    const title = preview.name + ' | Color Blast Design Preview';
+    const description = preview.description + ' Proposed design; samples and stock unconfirmed.';
+    const url = `${SITE.domain}/shop/${encodeURIComponent(id)}`;
+    const image = discoveryImageUrl(ARTWORK) || SITE.defaultOg;
+    return {
+      title, description, alternates: {canonical: url},
+      openGraph: {type: 'website', siteName: SITE.name, title, description, url, images: [{url: image, alt: preview.name}]},
+      twitter: {card: 'summary_large_image', title, description, images: [image]},
+    };
+  }
   if (!product) return {};
   const path = `/shop/${product.id}`;
   const description = product.description || `Official Urban Gang Tour ${product.name}.`;
+  const title = `${product.name} | Urban Gang Merch`;
+  const image = discoveryImageUrl(product.image) || SITE.defaultOg;
   return {
-    title: `${product.name} | Urban Gang Merch`,
+    title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: SITE.domain + path },
     openGraph: {
-      title: `${product.name} | Urban Gang Merch`,
+      type: 'website', siteName: SITE.name, locale: 'en_KE',
+      title,
       description,
-      url: path,
-      images: product.image ? [{ url: product.image }] : undefined,
+      url: SITE.domain + path,
+      images: [{ url: image, alt: product.name }],
     },
+    twitter: {card: 'summary_large_image', title, description, images: [image]},
   };
 }
 

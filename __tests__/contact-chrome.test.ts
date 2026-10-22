@@ -36,10 +36,11 @@ describe('recovered public chrome',()=>{
  });
  it('keeps the hamburger icon mobile-only and preserves laptop navigation',()=>{
   const css=readFileSync('app/navigation.css','utf8');
-  expect(css).toContain('.menu-toggle .mobile-menu-icon{display:none;');
-  expect(css).toContain('@media(max-width:900px){.desktop-nav{display:none}');
-  expect(css).toContain('.menu-toggle .mobile-menu-icon{display:block}');
-  expect(css).not.toContain('@media(max-width:1100px){.desktop-nav{display:none}');
+  expect(css).toContain('.desktop-nav{display:none;');
+  expect(css).toContain('@media(min-width:1024px) and (hover:hover)');
+  expect(css).toContain('.desktop-nav{display:flex}');
+  expect(css).toContain('.site-header .menu-toggle{display:none}');
+  expect(css).toContain('html[data-phone-viewport=wide] .desktop-nav{display:none}');
   expect(css).toContain('@media(prefers-reduced-motion:reduce)');expect(css).toContain('html[data-focus-view=true]');
  });
  it.each(['/cart','/checkout','/book','/account','/shop','/reels','/admin','/organizer/dashboard','/organizer/login','/organizer/signup','/organizer/forgot'])('does not place automatic host popups or floating launchers over %s',path=>{
@@ -50,8 +51,8 @@ describe('recovered public chrome',()=>{
  it('gives the scoped footer proper grid tracks and narrow-screen collapse without old global classes',()=>{
   const css=readFileSync('ui/components/ContactChrome.module.css','utf8');
   expect(css).toContain('repeat(3,minmax(0,1fr))');expect(css).toContain('align-items:start');
-  expect(css).toContain('@media(max-width:600px)');expect(css).toContain('@media(max-width:340px)');
-  expect(css).toContain('min-height:44px');expect(css).toContain('flex-wrap:wrap');expect(css).toContain('overflow-wrap:anywhere');
+  expect(css).toContain('@container site-footer (max-width:600px)');expect(css).toContain('@container site-footer (max-width:340px)');
+  expect(css).toContain('min-height:44px');expect(css).toContain('max-height:44px');expect(css).toContain('flex-wrap:wrap');expect(css).toContain('overflow-wrap:break-word');
  });
  it('does not restart the moving client rail while a keyboard user is on a logo',()=>{
   const declarations:string[]=[];

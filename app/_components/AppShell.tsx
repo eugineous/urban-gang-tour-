@@ -1,6 +1,7 @@
 "use client";
 import RouteLoading from './RouteLoading';
-import {Suspense,useEffect,useRef,useState} from 'react';
+import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
+import {List,ArrowUpRight,ShoppingCartSimple,Ticket} from '@phosphor-icons/react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
 import {BookingInvitation} from '@/ui/components/BookingInvitation';
@@ -8,19 +9,41 @@ import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups,SITE_UTILITY_NAVIGATION as utilityLinks,isNavigationCurrent} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 import LanguageChooser from './LanguageChooser';
+import {EventPlacements} from '@/ui/components/EventPlacements';
+import type {OwnedEvent} from '@/ui/lib/owned-event-presentation';
 
-export function AppShell({children}:{children:React.ReactNode}){
+export function AppShell({children,events=[],initialNow=0}:{children:React.ReactNode;events?:OwnedEvent[];initialNow?:number}){
  const path=usePathname();
- return <PathShell key={path} path={path}>{children}</PathShell>;
+ return <PathShell key={path} path={path} events={events} initialNow={initialNow}>{children}</PathShell>;
 }
 /** A route change closes transient navigation without a cascading state effect. */
-function PathShell({children,path}:{children:React.ReactNode;path:string}){
+function PathShell({children,path,events,initialNow}:{children:React.ReactNode;path:string;events:OwnedEvent[];initialNow:number}){
  const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false);
+ const [navWidth,setNavWidth]=useState<number>(),[dark,setDark]=useState(false);
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
+ const header=useRef<HTMLElement>(null),navigation=useRef<HTMLElement>(null);
  useEffect(()=>{
-  const update=()=>setElevated(window.scrollY>24);
-  update();addEventListener('scroll',update,{passive:true});
-  return()=>removeEventListener('scroll',update);
+  let frame=0,active=true;
+  const update=()=>{
+   frame=0;if(!active)return;
+   setElevated(window.scrollY>100);
+   const middle=(header.current?.getBoundingClientRect().height||72)/2;
+   setDark(Array.from(document.querySelectorAll('[data-header-tone="dark"],.hero,.magenta')).some(section=>{const box=section.getBoundingClientRect();return box.top<=middle&&box.bottom>middle}));
+  };
+  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
+  const measure=()=>{
+   const nav=navigation.current;if(!nav)return;
+   const style=getComputedStyle(nav),items=Array.from(nav.children);
+   const width=items.reduce((sum,item)=>sum+item.getBoundingClientRect().width,0)+(parseFloat(style.columnGap)||0)*Math.max(0,items.length-1)+(parseFloat(style.paddingLeft)||0)+(parseFloat(style.paddingRight)||0);
+   if(width>0&&active)setNavWidth(Math.ceil(width));
+   schedule();
+  };
+  const observer=new ResizeObserver(measure);
+  if(navigation.current){observer.observe(navigation.current);Array.from(navigation.current.children).forEach(item=>observer.observe(item))}
+  if(header.current)observer.observe(header.current);
+  void document.fonts?.ready.then(()=>{if(active)measure()});
+  measure();update();addEventListener('scroll',schedule,{passive:true});addEventListener('resize',measure);
+  return()=>{active=false;cancelAnimationFrame(frame);observer.disconnect();removeEventListener('scroll',schedule);removeEventListener('resize',measure)};
  },[]);
  useEffect(()=>{
   const sync=()=>setFocus(document.documentElement.dataset.focusView==='true');
@@ -35,12 +58,16 @@ function PathShell({children,path}:{children:React.ReactNode;path:string}){
   const returnFocus=trigger.current;
   document.body.style.overflow='hidden';
   dialog.showModal();
+  const closeOnDesktop=()=>{if(trigger.current&&getComputedStyle(trigger.current).display==='none')setOpen(false)};
+  window.addEventListener('resize',closeOnDesktop);
   window.dispatchEvent(new CustomEvent('ugt-overlay-change',{detail:true}));
   return()=>{
    if(dialog.open)dialog.close();
    document.body.style.overflow=previous;
+   window.removeEventListener('resize',closeOnDesktop);
    window.dispatchEvent(new CustomEvent('ugt-overlay-change',{detail:false}));
-   returnFocus?.focus();
+   if(returnFocus&&getComputedStyle(returnFocus).display!=='none')returnFocus.focus();
+   else header.current?.querySelector<HTMLAnchorElement>('.brand')?.focus();
   };
  },[open]);
  function toggleFocus(){setFocusView(!focus)}
@@ -48,13 +75,16 @@ function PathShell({children,path}:{children:React.ReactNode;path:string}){
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
  const critical=/^\/(shop|checkout|pay|book|account|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
-  <header className="site-header" data-elevated={elevated}>
+  <header ref={header} className="site-header" data-elevated={elevated} data-dark={dark} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
+   <div className="header-content">
    <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
-   <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
+   <nav ref={navigation} className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
    <div className="header-actions">
-    <a className="cart-link" href="/cart" aria-label="View your cart" aria-current={path==='/cart'?'page':undefined}>Cart</a>
-    <a className="start-link" href="/contact-us">Let’s talk <span aria-hidden="true">↗</span></a>
-    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><svg className="mobile-menu-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg><span className="mobile-menu-label">Menu</span><span className="desktop-menu-label">More <span aria-hidden="true">⌄</span></span></button>
+    <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>My tickets</span></a>
+    <a className="cart-link" href="/cart" aria-label="View your cart" aria-current={path==='/cart'?'page':undefined}><ShoppingCartSimple size={21} aria-hidden="true"/><span>Cart</span></a>
+    <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>Let’s talk</span><span aria-hidden="true">Let’s talk</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
+    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">Menu</span></button>
+   </div>
    </div>
   </header>
   <dialog ref={menu} id="site-menu" className={`menu-panel ${open?'is-open':''}`} aria-label="Site navigation" onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
@@ -67,9 +97,10 @@ function PathShell({children,path}:{children:React.ReactNode;path:string}){
    <div className="menu-bottom"><nav className="menu-account-links" aria-label="Account and help">{utilityLinks.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav><div className="menu-preferences"><LanguageChooser path={path}/><button type="button" className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div></div>
   </dialog>
   <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
+  {!critical&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   <CampaignDisplays path={path} paused={open||focus}/>
   {!critical&&path!=='/reels'&&<BookingInvitation paused={open||focus}/>}
-  {!critical&&path!=='/reels'&&!open&&!focus&&<FloatingTalk/>}
+  {!critical&&path!=='/reels'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
   {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;
 }
