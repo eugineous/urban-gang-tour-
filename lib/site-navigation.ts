@@ -1,15 +1,13 @@
 /** Public tasks, not internal departments. Existing canonical URLs are retained. */
-export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],['Shop','/shop'],['About','/about'],['Services','/experience']];
+export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],['Shop','/shop'],['About','/about'],['Book','/book']];
 export const SITE_MENU_GROUPS=[
- {title:'Explore',items:[...PRIMARY_NAVIGATION,['Book an event','/book']]},
- {title:'Stories & media',items:[['News','/blog'],['Photos & videos','/gallery'],['Partners','/partners'],['Contact','/contact-us']]},
+ {title:'Explore',items:PRIMARY_NAVIGATION},
 ];
-export const SITE_UTILITY_NAVIGATION=[['Orders & receipts','/account'],['International enquiries','/international'],['Accessibility','/accessibility'],['Organizer portal','/organizer/login']];
+export const SITE_UTILITY_NAVIGATION=[['My tickets','/account']];
 /** Footer columns share the same real destinations, rather than a wrapped link wall. */
 export const FOOTER_NAVIGATION=[
- {title:'Explore',items:PRIMARY_NAVIGATION},
- {title:'Connect',items:[['Let’s talk','/contact-us'],['Book an event','/book'],['News','/blog'],['Photos & videos','/gallery'],['Partners','/partners']]},
- {title:'Help',items:[...SITE_UTILITY_NAVIGATION,['Ticketing guide','/ticketing'],['Languages / Lugha','/welcome/en']]},
+ {title:'Explore',items:[['Events','/events'],['Shop','/shop'],['Our work','/portfolio'],['About','/about']]},
+ {title:'Help',items:[['My tickets','/account'],['Sell tickets','/organizer/login'],['Contact','/contact-us'],['Accessibility','/accessibility']]},
 ];
 /** Nested pages retain their section context; query filters are not new sections. */
 export function isNavigationCurrent(path:string,href:string){

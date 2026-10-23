@@ -1,8 +1,10 @@
-import {NextResponse} from 'next/server';
+import {after,NextResponse} from 'next/server';
 import {timingSafeEqual} from 'node:crypto';
 import {releaseDueEditorial} from '@/lib/server/editorial';
 import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval,applyStagedEditorialCompletion} from '@/lib/server/editorial-library';
 import {invalidate} from '@/lib/server/microcache';
+import {editorialSlug} from '@/lib/editorial-import';
+import {pingIndexNow} from '@/lib/server/indexnow';
 export const dynamic='force-dynamic';
 const reply=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:{'Cache-Control':'private, no-store'}});
 export async function POST(req:Request){
@@ -13,7 +15,14 @@ export async function POST(req:Request){
     const library=await importStagedEditorialLibrary();
     const completion=await applyStagedEditorialCompletion();
     const ownerApproval=await applyStagedOwnerEditorialApproval();
-    const outcome=await releaseDueEditorial();
+    const {releasedSlugs,...outcome}=await releaseDueEditorial();
+    const paths=Array.isArray(releasedSlugs)?releasedSlugs.filter(editorialSlug).map(slug=>'/blog/'+slug):[];
+    if(outcome.released>0&&paths.length){
+      // Crawl hints cannot publish, roll back or change the scheduler result.
+      // Neither a future/held brief nor an editorial source payload is sent.
+      try{after(async()=>{try{await pingIndexNow(['/','/blog',...paths]);}catch{console.warn('[editorial-indexing] crawl notification unavailable');}});}
+      catch{console.warn('[editorial-indexing] background notification unavailable');}
+    }
     await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval});
     invalidate('blog-published-posts');invalidate('site-posts');
     return reply({ok:true,...outcome,library,completion,ownerApproval});

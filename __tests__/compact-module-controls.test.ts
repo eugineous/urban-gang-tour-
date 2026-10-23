@@ -35,11 +35,11 @@ describe('compact independent public controls',()=>{
   expect(rule(css,'.purchase select,.purchase input')).toContain('min-height:48px');
  });
 
- it('keeps the footer contact action compact and content-width on narrow screens',()=>{
+ it('keeps the footer direct contact links compact and touchable on narrow screens',()=>{
   const css=read('ui/components/ContactChrome.module.css');
-  const action=rule(css,'.contactButton');
-  for(const value of ['min-height:44px','padding:10px 16px','gap:12px','font-size:14px','line-height:1.4'])expect(action).toContain(value);
-  expect(css).not.toContain('.contactButton{width:100%}');
+  const action=rule(css,'.contactLinks>a');
+  for(const value of ['min-height:44px','max-width:100%','font-size:14px','line-height:1.5'])expect(action).toContain(value);
+  expect(css).not.toContain('.invitation{');
   expect(rule(css,'.socials>a')).toContain('min-width:44px;min-height:44px;max-height:44px');
  });
 
@@ -54,9 +54,9 @@ describe('compact independent public controls',()=>{
 
  it('keeps homepage actions at 44px without changing the hero image or card controls',()=>{
   const css=read('ui/components/HomeSections.module.css');
-  expect(rule(css,'.heroActions>a')).toContain('min-block-size:44px;font-size:14px;line-height:1.4');
-  expect(rule(css,'.heroShop,.heroBook')).toContain('gap:10px;padding:10px 16px');
-  expect(css).toContain('.heroActions>a{padding:10px 12px;font-size:13px;gap:8px;border-radius:12px}');
+  expect(rule(css,'.heroAction')).toContain('min-block-size:44px');
+  expect(rule(css,'.heroAction')).toContain('font:550 14px/1.4');
+  expect(css).toContain('.heroAction{padding:10px;font-size:13px;gap:6px}');
   expect(css).toContain('.heroImage{position:absolute;inset:0;');
   const catalogue=read('app/_components/ShopCatalogue.module.css');
   expect(rule(catalogue,'.cardActions button,.cardActions .designLink')).toContain('min-height:44px');

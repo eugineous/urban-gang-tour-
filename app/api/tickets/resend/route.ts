@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { q, db } from '@/lib/server/db';
+import { q, hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { sameOrigin } from '@/lib/server/origin';
 import { sendReceiptEmail } from '@/lib/server/receipt-email';
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (!rateLimit('ticket-resend:' + clientIp(req), 5, 60_000, req)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
-  if (!db()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
   const id = typeof body?.orderId === 'string' ? body.orderId.trim().slice(0, 60) : '';

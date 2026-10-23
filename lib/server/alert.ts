@@ -6,6 +6,7 @@
 // Reserved for genuinely critical paths (payment reconciliation, order ledger
 // writes, webhook signature-failure bursts). Do not wire into routine errors.
 import { q, hasDb } from './db';
+import {escapeEmailHtml,renderEmailLetterhead,renderEmailRows} from './email-letterhead';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -43,6 +44,11 @@ export async function alertCritical(subject: string, detail: string): Promise<vo
         to,
         subject: `[UGT ALERT] ${subject}`.slice(0, 200),
         text: `${subject}\n\n${String(detail).slice(0, 4000)}\n\nTime: ${new Date().toISOString()}\nSource: urbangangtour.co.ke`,
+        html: renderEmailLetterhead({title:subject,eyebrow:'Operational alert',previewText:'A critical operation needs review.',
+          contentHtml:'<p style="margin:0 0 16px">A critical operation needs attention. Review the details before retrying.</p>'+
+            renderEmailRows([['Summary',subject],['Time',new Date().toISOString()],['Source','urbangangtour.co.ke']])+
+            `<div style="margin-top:20px;padding:16px;border-left:3px solid #941358;background:#f8f1f5;font-family:Consolas,monospace;font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word">${escapeEmailHtml(String(detail).slice(0,4000))}</div>`,
+        }),
       }),
     });
   } catch (e) {

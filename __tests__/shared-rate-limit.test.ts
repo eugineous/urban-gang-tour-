@@ -52,4 +52,11 @@ describe('shared network enforcement', () => {
     expect(await sharedRateGuard(req('/shop'), {})).toBeNull();
     expect(await sharedRateGuard(req('/api/mpesa/callback', {}, {}), {})).toBeNull();
   });
+  it('covers contact submissions with the existing shared public-write backstop', async () => {
+    const fetcher=vi.fn(async(_url:string,_init:RequestInit)=>Response.json({allowed:true,retryAfter:60}));
+    const env={SESSION_SECRET:'fixture-only-key',UGT_RATE_LIMITER:{idFromName:(key:string)=>key,get:()=>({fetch:fetcher})}};
+    expect(await sharedRateGuard(req('/api/contact',{},{}),env)).toBeNull();
+    expect(JSON.parse(String(fetcher.mock.calls[0][1].body))).toEqual({scope:'public-write'});
+    expect((await sharedRateGuard(req('/api/contact',{},{}),{}))?.status).toBe(503);
+  });
 });

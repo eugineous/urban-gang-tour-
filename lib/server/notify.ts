@@ -10,11 +10,12 @@
 // `[notify]` line describing what happened (sent, skipped, or failed).
 import { q, db } from './db';
 import { sendWhatsAppText, isWhatsAppConfigured } from '../whatsapp';
+import {escapeEmailHtml,renderEmailLetterhead,renderEmailRows} from './email-letterhead';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 function esc(s: string): string {
-  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return escapeEmailHtml(s);
 }
 
 function fmtKes(n: number): string {
@@ -99,20 +100,12 @@ async function notifyViaWhatsApp(body: string): Promise<void> {
   }
 }
 
-// Shared card renderer for every notification below - the two originals
-// above (new order/booking) predate this and keep their own inline markup;
-// no need to churn working code just to dedupe it.
+// All routine notifications share one responsive letterhead. Extra message
+// content is pre-escaped by callers; metadata rows are escaped in the renderer.
 function card(title: string, rows: [string, string][], extra?: string): string {
-  return `
-<div style="font-family:'Space Grotesk',Arial,sans-serif;max-width:480px;margin:0 auto;border:2px solid #111;border-radius:12px;overflow:hidden">
-  <div style="background:#111;color:#FFD400;padding:14px 18px;font-weight:900;text-transform:uppercase;letter-spacing:.04em">Urban Gang Tour &middot; ${esc(title)}</div>
-  <div style="padding:18px">
-    <table cellpadding="0" cellspacing="0" style="font-size:13px;color:#333;width:100%">
-      ${rows.map(([k, v]) => `<tr><td style="padding:2px 10px 2px 0;color:#666;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="word-break:break-word">${esc(v)}</td></tr>`).join('')}
-    </table>
-    ${extra ? `<div style="margin-top:12px;font-size:13px;color:#333;white-space:pre-wrap">${extra}</div>` : ''}
-  </div>
-</div>`;
+  return renderEmailLetterhead({title,eyebrow:'Control Room notification',
+    contentHtml:renderEmailRows(rows)+(extra?`<div style="margin-top:20px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word">${extra}</div>`:''),
+  });
 }
 
 function textLines(title: string, rows: [string, string][], extra?: string): string {
@@ -361,19 +354,10 @@ export async function notifyNewOrder(order: NewOrderRow): Promise<void> {
     }
     const subject = `New order: ${fmtKes(order.total)}`;
     const text = `New order ${order.id}\nTotal: ${fmtKes(order.total)}\nStatus: ${order.status || 'pending'}\nCustomer: ${order.name || ''}\nPhone: ${order.phone || ''}\nEmail: ${order.email || ''}\n\nTime: ${new Date().toISOString()}\nSource: urbangangtour.co.ke`;
-    const html = `
-<div style="font-family:'Space Grotesk',Arial,sans-serif;max-width:480px;margin:0 auto;border:2px solid #111;border-radius:12px;overflow:hidden">
-  <div style="background:#111;color:#FFD400;padding:14px 18px;font-weight:900;text-transform:uppercase;letter-spacing:.04em">Urban Gang Tour - New Order</div>
-  <div style="padding:18px">
-    <p style="margin:0 0 8px;font-size:15px"><b>${esc(order.id)}</b> &middot; ${esc(fmtKes(order.total))}</p>
-    <table cellpadding="0" cellspacing="0" style="font-size:13px;color:#333">
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Status</td><td>${esc(order.status || 'pending')}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Customer</td><td>${esc(order.name || '')}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Phone</td><td>${esc(order.phone || '')}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Email</td><td>${esc(order.email || '')}</td></tr>
-    </table>
-  </div>
-</div>`;
+    const html = card('New order',[
+      ['Order reference',order.id],['Total',fmtKes(order.total)],['Status',order.status || 'pending'],
+      ['Customer',order.name || ''],['Phone',order.phone || ''],['Email',order.email || ''],
+    ]);
     const ok = await sendNotify(subject, html, text);
     await notifyViaWhatsApp(
       `🎟 New order: ${order.id}\nAmount: KES ${Number(order.total || 0).toLocaleString('en-US')}\nName: ${order.name || ''}\nPhone: ${order.phone || ''}`
@@ -400,19 +384,10 @@ export async function notifyNewBooking(booking: NewBookingRow): Promise<void> {
     }
     const subject = `New booking: ${booking.name}`;
     const text = `New booking ${booking.id}\nType: ${booking.type}\nName: ${booking.name}\nOrg: ${booking.org || ''}\nEmail: ${booking.email || ''}\nPhone: ${booking.phone || ''}\n\n${booking.message || ''}\n\nTime: ${new Date().toISOString()}\nSource: urbangangtour.co.ke`;
-    const html = `
-<div style="font-family:'Space Grotesk',Arial,sans-serif;max-width:480px;margin:0 auto;border:2px solid #111;border-radius:12px;overflow:hidden">
-  <div style="background:#111;color:#FFD400;padding:14px 18px;font-weight:900;text-transform:uppercase;letter-spacing:.04em">Urban Gang Tour - New Booking</div>
-  <div style="padding:18px">
-    <p style="margin:0 0 8px;font-size:15px"><b>${esc(booking.name)}</b> &middot; ${esc(booking.type)}</p>
-    <table cellpadding="0" cellspacing="0" style="font-size:13px;color:#333">
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Org</td><td>${esc(booking.org || '')}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Email</td><td>${esc(booking.email || '')}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#666">Phone</td><td>${esc(booking.phone || '')}</td></tr>
-    </table>
-    ${booking.message ? `<p style="margin:12px 0 0;font-size:13px;color:#333;white-space:pre-wrap">${esc(booking.message).slice(0, 1000)}</p>` : ''}
-  </div>
-</div>`;
+    const html = card('New booking enquiry',[
+      ['Enquiry reference',booking.id],['Type',booking.type],['Name',booking.name],
+      ['Organisation',booking.org || ''],['Email',booking.email || ''],['Phone',booking.phone || ''],
+    ],booking.message?esc(booking.message).slice(0,1000):undefined);
     const ok = await sendNotify(subject, html, text);
   } catch (e) {
     console.error('[notify] new-booking error', e);

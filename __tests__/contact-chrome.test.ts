@@ -10,7 +10,7 @@ import {AppShell} from '@/app/_components/AppShell';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
 import {FOOTER_NAVIGATION} from '@/lib/site-navigation';
 describe('recovered public chrome',()=>{
- it('organizes footer links into named vertical groups, including News/Gallery/Contact',()=>{
+ it('organizes essential footer links into two compact groups with direct contact and policies',()=>{
   const html=renderToStaticMarkup(createElement(ContactFooter,{onCookies:()=>{},focusView:false,onFocus:()=>{}}));
   for(const group of FOOTER_NAVIGATION){expect(html).toContain('aria-label="'+group.title+'"');for(const [label,href] of group.items){expect(html).toContain('href="'+href+'"');expect(html).toContain(label.replaceAll('&','&amp;'));}}
   expect(html).toContain('aria-label="Policies"');expect(html).toContain('href="/contact-us"');
@@ -18,7 +18,7 @@ describe('recovered public chrome',()=>{
   expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(6);
   expect(html.match(/<button type="button"/g)).toHaveLength(2);
  });
- it('has no repeated destination across the three footer menu groups',()=>{
+ it('has no repeated destination across the two footer menu groups',()=>{
   const links=FOOTER_NAVIGATION.flatMap(group=>group.items).map(([,href])=>href);
   expect(new Set(links).size).toBe(links.length);
  });
@@ -26,18 +26,19 @@ describe('recovered public chrome',()=>{
   const html=renderToStaticMarkup(createElement(FloatingTalk));
   expect(html).toContain('href="/contact-us"');expect(html).toContain('Let’s talk');expect(html).not.toContain('<button');expect(html).not.toContain('<video');
  });
- it.each(['/','/experience','/events'])('mounts the invitation and contact launcher only on eligible public surface %s',path=>{
+ it.each(['/','/experience','/events'])('keeps direct contact and removes the automatic host invitation on %s',path=>{
   vi.mocked(usePathname).mockReturnValue(path);
   const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
-  expect(html).toContain('href="/contact-us">Let’s talk');
-  // Booking invitation is present as a dormant native dialog; no auto-open SSR.
+  expect(html).toContain('class="start-link" href="/contact-us"');
+  expect(html).toContain('Let’s talk');expect(html).not.toContain('data-host-invitation');
   expect(html).not.toMatch(/<dialog[^>]* open(?:[=> ])/);
   expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);
  });
  it('keeps the hamburger icon mobile-only and preserves laptop navigation',()=>{
   const css=readFileSync('app/navigation.css','utf8');
   expect(css).toContain('.desktop-nav{display:none;');
-  expect(css).toContain('@media(min-width:1024px) and (hover:hover)');
+  expect(css).toContain('@media(min-width:1024px){');
+  expect(css).not.toContain('@media(min-width:1024px) and (hover:hover)');
   expect(css).toContain('.desktop-nav{display:flex}');
   expect(css).toContain('.site-header .menu-toggle{display:none}');
   expect(css).toContain('html[data-phone-viewport=wide] .desktop-nav{display:none}');
@@ -50,8 +51,8 @@ describe('recovered public chrome',()=>{
  });
  it('gives the scoped footer proper grid tracks and narrow-screen collapse without old global classes',()=>{
   const css=readFileSync('ui/components/ContactChrome.module.css','utf8');
-  expect(css).toContain('repeat(3,minmax(0,1fr))');expect(css).toContain('align-items:start');
-  expect(css).toContain('@container site-footer (max-width:600px)');expect(css).toContain('@container site-footer (max-width:340px)');
+  expect(css).toContain('repeat(2,minmax(0,1fr))');expect(css).toContain('align-items:start');
+  expect(css).toContain('@container site-footer (min-width:700px)');expect(css).toContain('@container site-footer (max-width:300px)');
   expect(css).toContain('min-height:44px');expect(css).toContain('max-height:44px');expect(css).toContain('flex-wrap:wrap');expect(css).toContain('overflow-wrap:break-word');
  });
  it('does not restart the moving client rail while a keyboard user is on a logo',()=>{

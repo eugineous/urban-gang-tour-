@@ -21,27 +21,25 @@ describe('compact shared controls',()=>{
   expect(shared).not.toContain('flex:1 1 180px');
  });
  it('bounds the privacy panel and places equal consent choices in a compact row',()=>{
-  expect(values(privacy,'.banner','width')).toEqual(['min(400px,calc(100% - 24px))']);
+  expect(values(privacy,'.banner','width')).toEqual(['min(360px,calc(100% - 24px))']);
   expect(values(privacy,'.banner','max-height')).toContain('min(70dvh,520px)');
   expect(values(privacy,'.banner','overflow-y')).toEqual(['auto']);
-  expect(values(privacy,'.actions','grid-template-columns')).toEqual(['repeat(3,minmax(0,1fr))']);
+  expect(values(privacy,'.actions','grid-template-columns')).toEqual(['repeat(2,minmax(0,1fr))']);
   expect(values(privacy,'.actions button','min-height')).toEqual(['44px']);
   expect(values(privacy,'.close','width')).toEqual(['44px']);
   expect(values(privacy,'.close','height')).toEqual(['44px']);
   expect(privacy).not.toContain('button:last-child');
  });
- it('keeps privacy decisions, necessary storage and the preference expander unchanged',()=>{
+ it('keeps meaningful consent and necessary storage with two simple choices',()=>{
   const component=readFileSync('app/_components/CookieConsent.tsx','utf8');
-  for(const text of ['Reject optional','Accept optional','Preferences','Necessary storage','If you’re under 18','aria-expanded={details}','aria-controls="privacy-storage-details"','decide(false)','decide(true)'])expect(component).toContain(text);
+  for(const text of ['>Reject</button>','>Accept</button>','Necessary cookies','If you’re under 18','stays off until you accept','decide(false)','decide(true)'])expect(component).toContain(text);
+  expect(component).not.toContain('privacy-storage-details');
  });
- it('limits the language panel and results instead of removing choices',()=>{
-  expect(values(languages,'.language-dialog','inline-size')).toContain('min(520px,calc(100% - 24px))');
-  expect(values(languages,'.language-dialog','max-block-size')).toContain('min(80dvh,calc(100dvh - 24px))');
-  expect(values(languages,'.language-results','max-block-size')).toContain('min(22dvh,200px)');
-  expect(values(languages,'.language-dialog-head','position')).toContain('sticky');
-  expect(values(languages,'.language-search input','font-size')).toEqual(['16px']);
-  expect(values(languages,'.language-dialog button,.language-dialog a','min-height')).toEqual(['44px']);
-  expect(languages).toContain('.language-dialog:not([open]){display:none}');
+ it('replaces the language modal with a compact readable native selector',()=>{
+  expect(values(languages,'.language-control','inline-size')).toEqual(['96px']);
+  expect(values(languages,'.language-select','block-size')).toEqual(['44px']);
+  expect(values(languages,'.language-select','font')).toEqual(['500 16px/1.4 Inter,Arial,sans-serif']);
+  expect(languages).not.toContain('.language-dialog');
  });
  it('does not introduce a blanket maximum for image, zoom or gallery buttons',()=>{
   expect(shared).not.toMatch(/(?:^|})\s*button\s*\{[^}]*max-(?:block-size|height)/);
@@ -50,8 +48,8 @@ describe('compact shared controls',()=>{
   const navigation=readFileSync('app/navigation.css','utf8');
   expect(values(navigation,'dialog.menu-panel','width')).toEqual(['min(540px,calc(100% - 24px))']);
   expect(values(navigation,'dialog.menu-panel','max-height')).toContain('min(84dvh,calc(100dvh - 24px))');
-  expect(values(navigation,'.menu-groups nav a','min-height')).toEqual(['44px','44px']);
-  expect(values(navigation,'.menu-groups nav a','font-size')).toContain('18px');
+  expect(values(navigation,'.menu-groups nav a','min-height')).toEqual(['48px','44px']);
+  expect(values(navigation,'.menu-groups nav a','font-size')).toContain('20px');
   expect(navigation).toContain('.site-header .menu-toggle{display:none}');
   expect(navigation).toContain('dialog.menu-panel:not([open]){display:none}');
  });

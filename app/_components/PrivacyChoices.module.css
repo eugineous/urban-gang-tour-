@@ -1,9 +1,9 @@
-.banner{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:12px;z-index:10000;box-sizing:border-box;width:min(400px,calc(100% - 24px));max-height:min(70dvh,520px);overflow-y:auto;overscroll-behavior:contain;padding:16px;background:#fff;color:#211a1e;border:1px solid #ddd3d7;border-radius:12px;box-shadow:0 8px 32px #211a1e20;letter-spacing:normal}
+.banner{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:12px;z-index:10000;box-sizing:border-box;width:min(360px,calc(100% - 24px));max-height:min(70dvh,520px);overflow-y:auto;overscroll-behavior:contain;padding:12px 14px;background:#fff;color:#211a1e;border:1px solid #ddd3d7;border-radius:12px;box-shadow:0 8px 32px #211a1e20;letter-spacing:normal}
 .banner>div:first-child{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .banner strong{font-size:15px}
 .banner p{font-size:13px;line-height:1.5;margin:8px 0 12px;color:#655c60}
 .close{width:44px;height:44px;flex-shrink:0;border:1px solid #ddd3d7;border-radius:8px;font-size:22px;background:#fff}
-.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .actions button{min-width:0;min-height:44px;padding:7px 8px;border:1px solid #bfb1b9;border-radius:8px;font:600 13px/1.35 Inter,Arial,sans-serif;white-space:normal;overflow-wrap:normal;background:#fff;color:#211a1e}
 .banner .links{display:flex;flex-wrap:wrap;gap:0 12px;margin:8px 0 0;font-size:12px}
 .links a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px}
