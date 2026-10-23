@@ -76,7 +76,7 @@ export function TourTimeline({events:initialEvents=[],initialNow=0,initialUnavai
   if(next){event.preventDefault();chooseDay(next,true)}
  }
  return <div className={styles.page} data-tour-calendar>
-  <header className={styles.intro}><p className={styles.eyebrow}>Urban Gang Tour</p><h1>Calendar & tour stops.</h1><p>Find the next date. Revisit the moments.</p></header>
+  <header className={styles.intro}><p className={styles.eyebrow}>Urban Gang Tour</p><h1>Calendar & tour stops.</h1><p>School visits, public events and past dates.</p></header>
   <div className={styles.tools}><label className={styles.search}><MagnifyingGlass size={20} aria-hidden="true"/><span className={styles.srOnly}>Search the event calendar</span><input type="search" maxLength={200} value={filters.q} placeholder="Search events, schools or venues" onChange={event=>updateFilters({q:event.target.value},true)}/></label>
    <label className={styles.kind}>Event type<select value={filters.kind} onChange={event=>updateFilters({kind:event.target.value})}><option value="all">All events</option><option value="school">School tour</option><option value="partner">Partner events</option><option value="ticketed">Ticketed events</option><option value="past">Previous clients</option></select></label>
   </div>
@@ -105,7 +105,7 @@ export function TourTimeline({events:initialEvents=[],initialNow=0,initialUnavai
    </section>
   </div>
   {nextDates.length>0&&<section className={styles.section} aria-labelledby="calendar-upcoming-heading"><h2 id="calendar-upcoming-heading">Next dates</h2><div className={styles.related}>{nextDates.map(event=><CalendarRecord event={event} key={event.id}/>)}</div></section>}
-  {unconfirmed.length>0&&<section className={styles.section} aria-labelledby="calendar-unconfirmed-heading"><h2 id="calendar-unconfirmed-heading">Without a confirmed date</h2><p className={styles.context}>These records are not assigned a confirmed calendar date.</p><div className={styles.related}>{unconfirmed.map(event=><CalendarRecord event={event} key={event.id}/>)}</div></section>}
+  {unconfirmed.length>0&&<section className={styles.section} aria-labelledby="calendar-unconfirmed-heading"><h2 id="calendar-unconfirmed-heading">Dates to be confirmed</h2><div className={styles.related}>{unconfirmed.map(event=><CalendarRecord event={event} key={event.id}/>)}</div></section>}
   {completedSchools.length>0&&<section className={styles.section} aria-labelledby="calendar-history-heading"><h2 id="calendar-history-heading">Completed school stops</h2><div className={styles.related}>{completedSchools.map(event=><CalendarRecord event={event} key={event.id}/>)}</div></section>}
   <div className={styles.callout}><div><h2>Bring the tour to your school.</h2><p>Tell us your preferred date and audience.</p></div><Link href="/book?type=school">Plan a school event <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
  </div>;

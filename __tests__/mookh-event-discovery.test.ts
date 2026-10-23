@@ -63,7 +63,7 @@ describe('Mookh-shaped directory preserves Urban Gang event truth',()=>{
   });
   it('renders one search-first owned catalogue, correct filters and no independent seller feed',()=>{
     const html=renderToStaticMarkup(createElement(EventDiscovery,{events:[event,{...event,id:'private',status:'draft',name:'Private event'}],initialNow:now}));
-    expect(html.match(/<h1(?:\s|>)/g)).toHaveLength(1);expect(html).toContain('Discover your next');
+    expect(html.match(/<h1(?:\s|>)/g)).toHaveLength(1);expect(html).toContain('Events &amp; tickets.');
     expect(html).toContain('Search events, schools or venues');expect(html).toContain('aria-label="Grid view"');expect(html).toContain('aria-label="List view"');
     expect(html).toContain('href="/tour-stops"');expect(html).toContain('aria-label="Open event calendar"');
     for(const text of ['Upcoming','Past events','All events','Partner events','School tour'])expect(html).toContain(text);

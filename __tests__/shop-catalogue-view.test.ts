@@ -75,8 +75,8 @@ describe('product-first shop presentation',()=>{
  it('keeps design previews clearly separate from live stock and purchase actions',()=>{
   const design=buildShopCatalogue([])[0];const html=renderToStaticMarkup(createElement(ShopDesignCard,{product:design}));
   expect(html).toContain('data-shop-design="'+design.id+'"');expect(html).toContain('Design · not on sale');
-  expect(html).toContain('Proposed KES');expect(html).toContain('Samples, final price and stock not yet confirmed.');
-  expect(html).toContain('href="/shop/'+design.id+'"');expect(html).toContain('href="/shop/design-bag"');
+  expect(html).toContain('Proposed KES');
+  expect(html).toContain('href="/shop/'+design.id+'"');expect(html).not.toContain('href="/shop/design-bag"');
   expect(html).not.toContain('Add to cart');expect(html).not.toContain('/checkout');expect(html).not.toContain('<button');
  });
  it('renders all fourteen supplied live fixtures alongside every preview in one catalogue',()=>{
@@ -85,6 +85,10 @@ describe('product-first shop presentation',()=>{
   const html=renderToStaticMarkup(createElement(ShopCatalogueView,props));
   expect(products).toHaveLength(14+merchProducts.length);
   expect(html.match(/data-shop-product=/g)).toHaveLength(14);expect(html.match(/data-shop-design=/g)).toHaveLength(24);
+  expect(html.match(/data-design-collection-note/g)).toHaveLength(1);
+  expect(html.match(/href="\/shop\/design-bag"/g)).toHaveLength(1);
+  expect(html).toContain('Designs are not on sale. Samples, final prices and stock are unconfirmed.');
+  expect(html.match(/Design · not on sale/g)).toHaveLength(24);expect(html.match(/Proposed KES/g)).toHaveLength(24);
   expect(html).toContain('id="merchandise-catalogue"');expect(html).toContain('38 products');
   expect(html).toContain('Merchandise categories');expect(html).toContain('All merchandise &amp; designs');
   expect(html).toContain('Price: low to high');expect(html).toContain('Price: high to low');

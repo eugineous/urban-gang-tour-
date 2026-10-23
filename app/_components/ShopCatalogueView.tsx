@@ -20,7 +20,7 @@ export function ShopIntro({cartCount = 0, selected = '', heroProduct}: {
       <p className={styles.eyebrow}>Urban Gang Tour · Official merchandise</p>
       <h1>Shop.</h1>
       <p className={styles.heroLine}>Wear the tour.</p>
-      <p className={styles.heroNote}>Original merchandise and Color Blast designs. One collection.</p>
+      <p className={styles.heroNote}>Merchandise and Color Blast designs.</p>
       <nav className={styles.heroActions} aria-label="Shopping navigation">
         <a className={styles.primaryLink} href="#merchandise-catalogue">Shop all <span aria-hidden="true"><ArrowDownRight size={16} weight="bold" /></span></a>
         <a className={styles.cartLink} href="/cart">View cart ({cartCount})</a>
@@ -95,10 +95,8 @@ export function ShopDesignCard({product}: {product: ShopCatalogueProduct}) {
       <p className={styles.productPrice}>Proposed {money(product.price)}</p>
     </div>
     <div className={styles.productPurchase}>
-      <p className={styles.designNote}>Samples, final price and stock not yet confirmed.</p>
       <div className={styles.cardActions}>
         <a className={styles.designLink} href={href}>Explore design <span aria-hidden="true"><ArrowUpRight size={14} weight="bold" /></span></a>
-        <a href="/shop/design-bag">Saved designs</a>
       </div>
     </div>
   </article>;
@@ -126,9 +124,10 @@ type ShopCatalogueProps = {
 export default function ShopCatalogueView(props: ShopCatalogueProps) {
   return <div className={styles.catalogue} id="merchandise-catalogue">
     <div className={styles.catalogueHeading}><h2>All merchandise</h2><p role="status">{props.products.length} {props.products.length === 1 ? 'product' : 'products'}</p></div>
+    {props.products.some(product=>product.preview)&&<p className={styles.designNote} data-design-collection-note>Designs are not on sale. Samples, final prices and stock are unconfirmed. <a href="/shop/design-bag">Saved designs <span aria-hidden="true"><ArrowUpRight size={14}/></span></a></p>}
     <div className={styles.catalogueTools}>
-      <label className={styles.search}>Search<input type="search" value={props.search} onChange={event => props.onSearch(event.target.value)} placeholder="Find your next favourite" /></label>
-      <label>Collection<select value={props.availability} onChange={event => props.onAvailability(event.target.value)}><option value="all">All merchandise & designs</option><option value="available">Live catalogue</option><option value="designs">Designs · not on sale</option></select></label>
+      <label className={styles.search}>Search<input type="search" value={props.search} onChange={event => props.onSearch(event.target.value)} placeholder="Search merchandise" /></label>
+      <label>Collection<select value={props.availability} onChange={event => props.onAvailability(event.target.value)}><option value="all">All merchandise & designs</option><option value="available">Products</option><option value="designs">Designs · not on sale</option></select></label>
       <label>Sort<select value={props.sort} onChange={event => props.onSort(event.target.value)}><option value="featured">Catalogue order</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
     </div>
     <div className={styles.categories} role="group" aria-label="Merchandise categories">
