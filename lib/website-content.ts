@@ -73,7 +73,7 @@ export const WEBSITE_DEFAULTS: Record<string, WebsiteContent> = {
   "/": {
     title: "Urban Gang Tour.",
     summary:
-      "From Potential to Purpose.\nSchool stages. Campus culture. Live experiences.",
+      "School and campus events, live hosting and brand production in Kenya.",
     body: [],
     image: "",
     faqs: [],
@@ -81,11 +81,11 @@ export const WEBSITE_DEFAULTS: Record<string, WebsiteContent> = {
   "/about": {
     title: "About us.",
     summary:
-      "We bring people together through events, talent, live hosting and the stories that follow.",
+      "Events, hosting and production for schools, campuses and brands in Kenya.",
     image: "",
     body: [
-      "We work with schools, campuses and communities to create experiences shaped around their people. Talent shows. Cultural days. Colour festivals. Live hosting that brings the room together.",
-      "Eugine Micah and Lucy Ogunde bring the tour’s energy to the stage and the screen. Their work connects live hosting and event production with Urban News on PPP TV Kenya. Explore the photographs, films and stories behind it.",
+      "Urban Gang Tour runs talent shows, cultural days, colour festivals and live events for schools and campuses.",
+      "Eugine Micah and Lucy Ogunde host events and co-present Urban News on PPP TV Kenya. See their photographs, films and event credits.",
     ],
     faqs: [],
   },
@@ -125,23 +125,23 @@ export const WEBSITE_DEFAULTS: Record<string, WebsiteContent> = {
 };
 WEBSITE_DEFAULTS["/author/eugine-micah"] = {
   title: "Eugine Micah.",
-  summary: "On screen. On stage. With you.",
+  summary: "Television presenting and live event hosting.",
   image: "",
   faqs: [],
   body: [
     "Eugine Micah is a Kenyan television presenter, journalist and live event host. He co-hosts Urban News on PPP TV Kenya with Lucy Ogunde.",
-    "As Urban Gang Tour’s founder and executive producer, Eugine brings together broadcast storytelling, live production and event coordination. His work connects school and campus experiences with the stories recorded around them.",
-    "His creative practice includes digital media strategy, audience engagement and event supply. Individual hosting appearances and the wider Urban Gang Tour experience are available to discuss with the team.",
+    "He is Urban Gang Tour’s founder and executive producer, coordinating school and campus events, live production and event coverage.",
+    "His work also includes digital media strategy, audience engagement and event supply. Contact the team for individual hosting or event production.",
   ],
 };
 WEBSITE_DEFAULTS["/author/lucy-ogunde"] = {
   title: "Lucy Ogunde.",
-  summary: "On screen. On stage. With you.",
+  summary: "Television presenting and live event hosting.",
   image: "",
   faqs: [],
   body: [
     "Lucy Ogunde is a television presenter, MC and event host. She co-hosts Urban News on PPP TV Kenya with Eugine Micah.",
-    "Her work spans television presenting, live hosting and commercial campaigns. With Urban Gang Tour, she brings that presenting experience to school, campus and public audiences.",
-    "Book Lucy for a programme, interview or campaign, individually or alongside Eugine. The audience, format and production needs shape each appearance.",
+    "She presents on television, hosts school and campus events, and appears in brand campaigns.",
+    "Book Lucy for hosting, interviews or campaigns, individually or with Eugine.",
   ],
 };

@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Plain-language public copy (23 October 2026)
+- Owner asks to reduce wordy, ambiguous and cliché public copy. Tighten factory
+  copy, headings, descriptions and link labels without changing visual identity,
+  factual credits, authored CMS/news content, consent, transaction safeguards or
+  legal terms. Keep one clear purpose per page and preserve necessary warnings.
+  Verify mobile/desktop reflow and tested feature-branch/PR/Cloudflare release.
+
 ## Homepage front door (22 October 2026)
 - Owner requests prominently advertising real events, merchandise and the wider
   business on the homepage. Use public catalogue data, actual prices/artwork and

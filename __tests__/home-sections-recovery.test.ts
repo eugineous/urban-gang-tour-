@@ -22,7 +22,7 @@ it('preserves published home questions and dedicated FAQ editor intent, includin
 });
 it('makes experiences, existing archive projects and collaborators discoverable without invented endorsements',()=>{
  const html=render();
- for(const title of ['The school experience','Campus Rave','Production &amp; campaigns','Featured work.','Schools, brands &amp; collaborators'])expect(html).toContain(title);
+ for(const title of ['School events','Campus Rave','Production &amp; campaigns','Featured work.','Schools, brands &amp; collaborators'])expect(html).toContain(title);
  for(const url of ['/gallery/machakos-campus','/gallery/uon-mr-miss-2022','/gallery/tecno-uon','/portfolio','/clients'])expect(html).toContain('href="'+url+'"');
  expect(html).toContain('Campus · Archive');expect(html).not.toContain('600+');expect(html).not.toContain('Trusted by millions');
 });

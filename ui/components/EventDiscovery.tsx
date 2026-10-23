@@ -94,7 +94,7 @@ export function EventDiscovery({events, initialNow=0}:Props) {
   return <div className={styles.experience} data-event-directory="owned" data-filters-ready={filtersReady}>
     <div className={styles.page}>
       <section className={styles.intro} aria-labelledby="events-title">
-        <h1 id="events-title">Discover your next best event experience.</h1>
+        <h1 id="events-title">Events & tickets.</h1>
         <div className={styles.search}>
           <MagnifyingGlass size={24} weight="regular" aria-hidden="true"/>
           <label className={styles.srOnly} htmlFor="event-search">Search events, schools or venues</label>
@@ -135,14 +135,14 @@ export function EventDiscovery({events, initialNow=0}:Props) {
         {shown.length>0 ? <div className={styles.eventGrid} data-layout={filters.layout}>
           {shown.map(event => <EventPosterCard key={String(event.id)} event={event} now={now} availabilityCurrent={refreshState==='current'}/>)}
         </div> : <div className={styles.empty}>
-          <h3>{refreshState==='stale' && catalogue.length===0 ? 'Events are temporarily unavailable.' : modified ? 'No events match your search.' : 'More events are on the way.'}</h3>
+          <h3>{refreshState==='stale' && catalogue.length===0 ? 'Events are temporarily unavailable.' : modified ? 'No events match your search.' : 'No upcoming events listed.'}</h3>
           <p>{refreshState==='stale' && catalogue.length===0 ? 'Please try again shortly. You can still contact our team.' : 'Explore the archive or change your filters.'}</p>
           <div><button type="button" onClick={() => updateFilters({q:'',period:'all',kind:'all',eventCategory:'all'})}>See all events</button><Link href="/contact-us">Contact the team</Link></div>
         </div>}
         {visible.length>limit && <div className={styles.more}><button type="button" onClick={() => setPagination({key:filterKey,limit:limit+12})}>Show more events <span>({visible.length-limit} more)</span></button></div>}
       </section>
 
-      <aside className={styles.organizer} aria-label="Bring your event to Urban Gang Tour"><div><h2>Your event belongs here.</h2><p>Promote your event or sell tickets with Urban Gang Tour.</p></div><div><Link href="/organizer/signup">Sell tickets</Link><Link href="/contact-us?topic=event-listing">Advertise an event</Link></div></aside>
+      <aside className={styles.organizer} aria-label="Bring your event to Urban Gang Tour"><div><h2>List your event.</h2><p>Advertise an event or sell tickets here.</p></div><div><Link href="/organizer/signup">Sell tickets</Link><Link href="/contact-us?topic=event-listing">Advertise an event</Link></div></aside>
     </div>
   </div>;
 }

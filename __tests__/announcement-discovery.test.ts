@@ -71,5 +71,5 @@ it('keeps completed events of every kind in discovery and the portfolio',async()
 it('renders the Tour Stops calendar from the same published event snapshot',async()=>{
  const page=await TourStops();const html=renderToStaticMarkup(page);
  expect(html).toContain('Calendar &amp; tour stops.');expect(html).toContain('role="grid"');
- expect(html).toContain('An honest announcement');expect(html).toContain('Without a confirmed date');expect(html).not.toContain('private@example.invalid');
+ expect(html).toContain('An honest announcement');expect(html).toContain('Dates to be confirmed');expect(html).not.toContain('private@example.invalid');
 });
