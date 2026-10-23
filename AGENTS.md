@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Compact public controls (23 October 2026)
+- Owner reports oversized buttons and pop-ups. Compact shared and module-specific
+  CTA padding, typography, modal widths/media and unnecessary full-width actions.
+  Preserve 44px touch/close targets, text wrapping, scroll/focus return, consent,
+  cooldowns and all commerce/auth/data behavior. Media zoom remains fit for its
+  purpose. Verify phone/tablet/desktop and short screens before the standing
+  tested feature-branch/PR/Cloudflare release.
+
 ## Plain-language public copy (23 October 2026)
 - Owner asks to reduce wordy, ambiguous and cliché public copy. Tighten factory
   copy, headings, descriptions and link labels without changing visual identity,
