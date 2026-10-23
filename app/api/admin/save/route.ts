@@ -8,6 +8,7 @@ import { isAdmin, isSuperAdmin, hasPerm, adminActor, verifyAdminSession } from '
 import { requireOrigin } from '@/lib/server/origin';
 import { notifyPostPublished } from '@/lib/server/notify';
 import { pingIndexNow } from '@/lib/server/indexnow';
+import { PUBLIC_POST_PREDICATE } from '@/lib/server/editorial-publication';
 import { ensureContentWorkflowSchema } from '@/lib/server/content-workflow';
 import { isOrderStatus, canAdminSetOrderStatus } from '@/lib/server/payment-status';
 import { contentAutomationReady, dispatchArticleAnnouncement, ensureContentAutomationSchema } from '@/lib/server/content-automation';
@@ -195,8 +196,9 @@ export async function POST(req: Request) {
         }
         await ensureContentWorkflowSchema();
         const actor = adminActor(req);
-        const existing = await q<{ published: boolean; submitted_by: string; managed?:string }>(
-          `SELECT published, submitted_by,to_jsonb(posts)->>'editorial_managed' AS managed FROM posts WHERE slug=$1`, [data.slug]
+        const existing = await q<{ published: boolean; submitted_by: string; managed?:string; was_public:boolean }>(
+          `SELECT published, submitted_by,to_jsonb(posts)->>'editorial_managed' AS managed,
+            (${PUBLIC_POST_PREDICATE}) AS was_public FROM posts WHERE slug=$1`, [data.slug]
         );
         if(existing[0]?.managed==='true')return NextResponse.json({error:'use_editorial_calendar'}, {status:409});
         if (!existing.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
@@ -209,9 +211,9 @@ export async function POST(req: Request) {
         revalidatePath('/blog');revalidatePath(`/blog/${data.slug}`);
         revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
         revalidatePath('/sitemap.xml');revalidateTag('sitemap',{expire:0});
-        // IndexNow handles removals the same as updates - engines re-crawl,
-        // see the 404 and drop the URL.
-        after(() => pingIndexNow([`/blog/${data.slug}`, '/blog']));
+        // Only previously public removals are crawl hints. Draft/future slugs
+        // are private even when their published flag is set for scheduling.
+        if (existing[0].was_public === true) after(() => pingIndexNow([`/blog/${data.slug}`, '/blog']));
         return NextResponse.json({ ok: true, recoverable:true });
       }
       case 'setting':

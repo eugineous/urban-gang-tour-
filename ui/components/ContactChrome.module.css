@@ -1,24 +1,23 @@
-.footer{container:site-footer/inline-size;margin:8px;padding:clamp(32px,5vw,72px) 0 20px;border-radius:24px;background:#191317;color:#fff;overflow-wrap:break-word}
-.inner{width:calc(100% - clamp(32px,7vw,112px));max-width:1400px;min-width:0;margin-inline:auto}
-.invitation{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-bottom:40px;margin-bottom:40px;border-bottom:1px solid #ffffff30}
-.invitation p{font-size:15px;line-height:1.5;margin-bottom:12px;color:#ded4da}
-.invitation h2{font-size:clamp(40px,6vw,80px);line-height:1.05;letter-spacing:-.045em}
-.contactButton{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;max-width:100%;padding:10px 16px;border:1px solid #fff;border-radius:10px;background:#fff;color:#231720;font-size:14px;font-weight:600;line-height:1.4}
-.columns{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:28px 24px}
+.footer{container:site-footer/inline-size;margin:8px;padding:28px 0 16px;border-radius:20px;background:#191317;color:#fff;overflow-wrap:break-word}
+.inner{width:calc(100% - 32px);max-width:1280px;min-width:0;margin-inline:auto}
+.columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:24px 20px}
 .columns>*{min-width:0}
+.brand{grid-column:1/-1;display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:8px 12px}
 .brand>a{display:inline-block;min-height:44px}
-.brand>a>img{width:100px;height:75px;object-fit:contain}
-.brand>p{margin-block:16px 20px;color:#ded4da;font-size:15px;line-height:1.65;letter-spacing:0}
-.socials{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:304px}
+.brand>a>img{width:72px;height:54px;object-fit:contain}
+.brand>p{margin:0;color:#ded4da;font-size:13px;line-height:1.5;letter-spacing:0;max-width:28ch}
+.contactLinks{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:0 20px}
+.contactLinks>a{display:inline-flex;align-items:center;min-height:44px;max-width:100%;font-size:14px;line-height:1.5;text-decoration:underline;text-underline-offset:4px}
+.socials{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:100%}
 .socials>a{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;max-height:44px;padding:10px;border:1px solid #ffffff50;border-radius:10px;background:#fff;color:#231720;font-size:12px;line-height:1;letter-spacing:0}
 .socials>a>span{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .socials img{width:22px;height:22px;flex:none;object-fit:contain}
 .linkGroup{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:2px}
-.linkGroup h2{margin:0 0 14px;color:#fff;font-size:16px;line-height:1.5;letter-spacing:0;font-weight:650}
+.linkGroup h2{margin:0 0 6px;color:#fff;font-size:13px;line-height:1.5;letter-spacing:.03em;font-weight:650;text-transform:uppercase}
 .linkGroup>a{display:flex;align-items:center;min-height:44px;padding-block:8px;font-size:14px;line-height:1.5;letter-spacing:0;color:#ded4da}
-.bottom{display:grid;gap:14px;margin-top:40px;padding-top:20px;border-top:1px solid #ffffff30;font-size:13px;line-height:1.5;letter-spacing:0;color:#ded4da}
+.bottom{display:grid;gap:6px;margin-top:24px;padding-top:16px;border-top:1px solid #ffffff30;font-size:12px;line-height:1.5;letter-spacing:0;color:#ded4da}
 .bottom p{line-height:1.5}
-.legal,.preferences{display:flex;align-items:center;flex-wrap:wrap;gap:4px 24px}
+.legal,.preferences{display:flex;align-items:center;flex-wrap:wrap;gap:0 16px}
 .legal a,.preferences button{display:inline-flex;align-items:center;min-height:44px;max-width:100%;padding-block:8px;text-align:start;white-space:normal;font:inherit;letter-spacing:inherit;color:inherit}
 .footer a:hover,.preferences button:hover{text-decoration:underline;text-underline-offset:4px}
 .footer :is(a,button):focus-visible{outline:3px solid #55d9ed;outline-offset:4px}
@@ -27,10 +26,12 @@
 .floatingTalk:hover{background:#faf3f7}
 .floatingTalk[hidden]{display:none}
 .floatingTalk:focus-visible{outline:3px solid #087b98;outline-offset:4px}
-@media(min-width:1200px){.bottom{grid-template-columns:1fr auto;align-items:center}.preferences{grid-column:1/-1}}
+.personLinks{display:grid;grid-template-columns:minmax(0,1fr);justify-items:start;gap:8px;min-width:0}
+.personLinks>a{display:inline-flex;align-items:center;min-width:0;min-height:44px;max-width:100%;font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+.personLinks>a:global(.button){font-size:16px;line-height:1.5}
+.newMessage:global(.button.secondary){width:fit-content;inline-size:fit-content;max-width:100%;min-height:44px;min-block-size:44px;justify-self:start;padding:10px 16px;font-size:14px;line-height:1.4}
+@media(min-width:1100px){.bottom{grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center}}
 @media(min-width:1024px) and (hover:hover){.floatingTalk{display:inline-flex}}
 :global(html[data-phone-viewport=wide]) .floatingTalk{display:none}
-@container site-footer (min-width:350px){.columns{grid-template-columns:repeat(2,minmax(0,1fr))}.brand{grid-column:1/-1}.linkGroup:last-child{grid-column:1/-1}}
-@container site-footer (min-width:840px){.columns{grid-template-columns:minmax(200px,1.5fr) repeat(3,minmax(0,1fr));gap:32px}.brand,.linkGroup:last-child{grid-column:auto}}
-@container site-footer (max-width:600px){.invitation{gap:20px;padding-bottom:28px;margin-bottom:28px}.invitation h2{font-size:44px}.inner{width:calc(100% - 32px)}.bottom{margin-top:28px}.legal,.preferences{gap:4px 16px}}
-@container site-footer (max-width:340px){.invitation h2{font-size:36px}}
+@container site-footer (min-width:700px){.inner{width:calc(100% - 64px)}.columns{grid-template-columns:minmax(220px,1.4fr) repeat(2,minmax(0,1fr));gap:32px}.brand{grid-column:auto}}
+@container site-footer (max-width:300px){.columns{gap:20px 12px}.brand{grid-template-columns:64px minmax(0,1fr)}.brand>a>img{width:64px;height:48px}.linkGroup>a{font-size:13px}.legal,.preferences{gap:0 12px}}

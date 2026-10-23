@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server';
-import { isAdmin, hasPerm, verifyAdminSession } from '@/lib/server/session';
+import { createHash } from 'node:crypto';
+import { adminActor, signedAdminSessionId, hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket, getEventName, getEventMeta,ensureTicketSchema } from '@/lib/server/tickets';
@@ -35,7 +36,13 @@ export async function POST(req: Request) {
   if (!(await verifyAdminSession(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(req, 'gate_scanner')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(req)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
-  if (!rateLimit('gate:' + clientIp(req), 120, 60_000)) {
+  // Authentication and current gate permission come first. Separate signed
+  // scanner sessions on venue Wi-Fi must not share one 120-scan allowance.
+  // Neither a device cookie nor a caller-supplied actor can buy a new bucket.
+  const scanner = signedAdminSessionId(req) || adminActor(req);
+  const scannerKey = createHash('sha256').update('ugt-gate-session:' + scanner).digest('hex');
+  if (!rateLimit('gate-session:' + scannerKey, 120, 60_000) ||
+      !rateLimit('gate-network:' + clientIp(req), 4_800, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });

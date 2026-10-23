@@ -8,7 +8,6 @@ export function CookieConsent() {
   const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [cleanup, setCleanup] = useState(false);
-  const [details,setDetails]=useState(false);
   const resolved = useRef(false);
   const optionalServices = [process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && 'Google Analytics', process.env.NEXT_PUBLIC_ADSENSE_CLIENT && 'Google advertising'].filter(Boolean).join(' and ');
   function pageView() {
@@ -32,16 +31,15 @@ export function CookieConsent() {
   }
   if (!show || pathname?.startsWith('/admin') || /^\/(checkout|pay)(\/|$)/.test(pathname || '')) return null;
   return <aside className={styles.banner} aria-label="Privacy preferences">
-    <div><strong>Your privacy. Your choice.</strong><button className={styles.close} type="button" onClick={()=>setShow(false)} aria-label="Close privacy preferences">×</button></div>
-    {cleanup ? <><p role="status">Your choice is saved. Optional reporting is disabled and new ad requests are paused. Reload to clear services that had already loaded in this page.</p><div className={styles.actions}><button type="button" onClick={()=>location.reload()}>Reload now</button><button type="button" onClick={()=>setShow(false)}>Keep browsing</button></div></> : <>
-      <p>Necessary storage keeps accounts, your cart and security working. Optional usage and performance reporting starts only if you accept.{optionalServices && <> This also enables {optionalServices}.</>} If you’re under 18, choose necessary only.</p>
-      <div className={styles.actions}><button type="button" onClick={()=>decide(false)}>Reject optional</button><button type="button" onClick={()=>decide(true)}>Accept optional</button><button type="button" aria-expanded={details} aria-controls="privacy-storage-details" onClick={()=>setDetails(value=>!value)}>Preferences</button></div>
-      {details&&<div id="privacy-storage-details"><p><strong>Always necessary:</strong> sign-in, security, cart and saved drafts. These keep the site working.</p><p><strong>Optional:</strong> usage and performance reporting{optionalServices?`, ${optionalServices}`:''}. Off until you accept. Rejecting optional storage does not stop you shopping or sending an enquiry.</p></div>}
+    <div><strong>Cookies</strong><button className={styles.close} type="button" onClick={()=>setShow(false)} aria-label="Close privacy preferences">×</button></div>
+    {cleanup ? <><p role="status">Your choice is saved. Optional reporting and ads are disabled. Reload to clear services already loaded.</p><div className={styles.actions}><button type="button" onClick={()=>location.reload()}>Reload now</button><button type="button" onClick={()=>setShow(false)}>Keep browsing</button></div></> : <>
+      <p>Necessary cookies keep the site working. Optional reporting{optionalServices&&<> ({optionalServices})</>} stays off until you accept. If you’re under 18, choose Reject.</p>
+      <div className={styles.actions}><button type="button" onClick={()=>decide(false)}>Reject</button><button type="button" onClick={()=>decide(true)}>Accept</button></div>
       <p className={styles.links}><a href="/cookie-policy">Cookie policy</a><a href="/privacy-policy">Privacy policy</a><span>You can revisit this choice in the footer.</span></p>
     </>}
   </aside>;
 }
 
 export function PrivacyPreferencesButton() {
-  return <button type="button" className="button secondary" onClick={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))}>Review privacy preferences</button>;
+  return <button type="button" className="button secondary" onClick={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))}>Cookie settings</button>;
 }

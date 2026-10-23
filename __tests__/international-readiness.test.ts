@@ -1,12 +1,12 @@
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createElement} from 'react';
-import {ContactFooter} from '@/ui/components/ContactInterface';
+import {ContactFooter,ContactPage} from '@/ui/components/ContactInterface';
 import {readFileSync} from 'node:fs';
 import {WELCOME_LANGUAGES,isWelcomeLanguage,welcomeAlternates} from '@/lib/welcome-languages';
 import Welcome,{generateMetadata,generateStaticParams} from '@/app/welcome/[language]/page';
 import {SITE} from '@/lib/site';
-import {SITE_MENU_GROUPS,SITE_UTILITY_NAVIGATION} from '@/lib/site-navigation';
+import {SITE_MENU_GROUPS,SITE_UTILITY_NAVIGATION,FOOTER_NAVIGATION} from '@/lib/site-navigation';
 import {metadataForPath} from '@/app/_lib/seo';
 import {DISPLAY_PREFERENCES_BOOTSTRAP,FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 
@@ -27,7 +27,9 @@ describe('actual translated welcome pages',()=>{
  });
  it('keeps new routes discoverable, distinct and task-led',()=>{
   const links=[...SITE_MENU_GROUPS.flatMap(group=>group.items),...SITE_UTILITY_NAVIGATION];
-  for(const path of ['/international','/accessibility'])expect(links.some(([,href])=>href===path)).toBe(true);
+  expect(links).toHaveLength(6);
+  expect(FOOTER_NAVIGATION.flatMap(group=>group.items).some(([,href])=>href==='/accessibility')).toBe(true);
+  expect(renderToStaticMarkup(createElement(ContactPage))).toContain('href="/international"');
   expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<LanguageChooser path={path}/>');
   for(const path of ['/international','/accessibility']){
    const m=metadataForPath(path);expect(m.alternates?.canonical).toBe(SITE.domain+path);expect(m.description).toBeTruthy();expect(m.openGraph).toBeTruthy();expect(m.twitter).toBeTruthy();
@@ -56,7 +58,8 @@ describe('calm display preference',()=>{
  it('keeps animation opt-outs, visible text social labels and plain language entry links in the shipped shell',()=>{
   const css=readFileSync('app/international.css','utf8'),footer=renderToStaticMarkup(createElement(ContactFooter,{onCookies:()=>{},focusView:false,onFocus:()=>{}}));
   expect(css).toContain('[data-focus-view=true]');expect(css).toContain('prefers-reduced-motion');expect(css).toContain('animation:none!important');
-  expect(footer).toContain('Languages / Lugha');expect(footer).toContain('Accessibility');expect(footer).toContain('Focus view: off');
-  for(const label of ['WhatsApp','Instagram','YouTube','TikTok','Facebook','X'])expect(footer).toContain('<span>'+label+'</span>');
+  expect(footer).toContain('Accessibility');expect(footer).toContain('Focus view: off');
+  for(const label of ['Instagram','YouTube','TikTok','Facebook','X'])expect(footer).toContain('aria-label="'+label+'"');
+  expect(footer).toContain('WhatsApp');expect(footer).toContain('Email us');
  });
 });

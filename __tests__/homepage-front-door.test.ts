@@ -47,9 +47,9 @@ describe('homepage front-door integration', () => {
     const html = render();
     const hero = html.slice(0, html.indexOf('id="home-events"'));
     expect(hero).toContain('aria-label="Start exploring"');
-    expect(hero).toMatch(/href="\/events"[^>]*>.*?Find an event/s);
-    expect(hero).toMatch(/href="\/shop"[^>]*>Shop merchandise/s);
-    expect(hero).toMatch(/href="\/book"[^>]*>Book the team/s);
+    expect(hero).toMatch(/href="\/events"[^>]*>Events/s);
+    expect(hero).toMatch(/href="\/shop"[^>]*>Shop/s);
+    expect(hero).toMatch(/href="\/book"[^>]*>Book/s);
     expect((html.match(/<h1(?:\s|>)/g) || [])).toHaveLength(1);
   });
 

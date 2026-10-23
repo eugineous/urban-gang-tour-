@@ -1,10 +1,9 @@
 "use client";
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
-import {List,ArrowUpRight,ShoppingCartSimple,Ticket} from '@phosphor-icons/react';
+import {List,ArrowUpRight,ShoppingBag,Ticket} from '@phosphor-icons/react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
-import {BookingInvitation} from '@/ui/components/BookingInvitation';
 import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups,SITE_UTILITY_NAVIGATION as utilityLinks,isNavigationCurrent} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
@@ -19,7 +18,7 @@ export function AppShell({children,events=[],initialNow=0}:{children:React.React
 /** A route change closes transient navigation without a cascading state effect. */
 function PathShell({children,path,events,initialNow}:{children:React.ReactNode;path:string;events:OwnedEvent[];initialNow:number}){
  const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false);
- const [navWidth,setNavWidth]=useState<number>(),[dark,setDark]=useState(false);
+ const [navWidth,setNavWidth]=useState<number>(),[dark,setDark]=useState(path==='/');
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
  const header=useRef<HTMLElement>(null),navigation=useRef<HTMLElement>(null);
  useEffect(()=>{
@@ -80,8 +79,9 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
    <nav ref={navigation} className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
    <div className="header-actions">
+    <LanguageChooser path={path}/>
     <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>My tickets</span></a>
-    <a className="cart-link" href="/cart" aria-label="View your cart" aria-current={path==='/cart'?'page':undefined}><ShoppingCartSimple size={21} aria-hidden="true"/><span>Cart</span></a>
+    <a className="cart-link" href="/shop" aria-label="Shop" aria-current={isNavigationCurrent(path,'/shop')?'page':undefined}><ShoppingBag size={21} aria-hidden="true"/><span>Shop</span></a>
     <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>Let’s talk</span><span aria-hidden="true">Let’s talk</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
     <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">Menu</span></button>
    </div>
@@ -92,14 +92,13 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    const rect=event.currentTarget.getBoundingClientRect();
    if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
   }}>
-   <div className="menu-dialog-heading"><strong>Explore Urban Gang Tour</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label="Close navigation">Close ×</button></div>
-   <div className="menu-groups">{menuGroups.map(group=><section key={group.title}><h2>{group.title}</h2><nav aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><span aria-hidden="true">→</span></a>)}</nav></section>)}</div>
-   <div className="menu-bottom"><nav className="menu-account-links" aria-label="Account and help">{utilityLinks.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav><div className="menu-preferences"><LanguageChooser path={path}/><button type="button" className="focus-control" aria-pressed={focus} onClick={toggleFocus}>Focus view: {focus?'on':'off'}<small>Reduce animation and background video</small></button></div></div>
+   <div className="menu-dialog-heading"><strong>Menu</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label="Close navigation">Close ×</button></div>
+   <div className="menu-groups">{menuGroups.map(group=><nav key={group.title} aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
+   <div className="menu-bottom"><nav className="menu-account-links" aria-label="Account and help">{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav></div>
   </dialog>
   <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   <CampaignDisplays path={path} paused={open||focus}/>
-  {!critical&&path!=='/reels'&&<BookingInvitation paused={open||focus}/>}
   {!critical&&path!=='/reels'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
   {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;

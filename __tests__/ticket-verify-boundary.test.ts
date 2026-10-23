@@ -6,6 +6,8 @@ vi.mock('@/lib/server/session', () => ({
   verifyAdminSession: vi.fn(async () => true),
   hasPerm: vi.fn(() => true),
   isAdmin: vi.fn(() => true),
+  signedAdminSessionId: vi.fn(() => 'fixture-signed-session'),
+  adminActor: vi.fn(() => 'fixture-admin'),
 }));
 vi.mock('@/lib/server/origin', () => ({ requireOrigin: vi.fn(() => true) }));
 vi.mock('@/lib/server/ratelimit', () => ({ rateLimit: vi.fn(() => true), clientIp: vi.fn(() => '127.0.0.1') }));

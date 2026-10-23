@@ -26,8 +26,8 @@ describe('browser-aware language choices',()=>{
  it.each(['/admin','/admin?tab=Content','/organizer/dashboard','/account','/book','/contact-us','/cart','/checkout','/shop','/shop/tee','/pay/success?ref=private','/tickets/private','/receipt/private','/api/orders','/blog/story?token=private','//evil.example','https://evil.example','/blog/%3Fsecret'])('never sends sensitive or arbitrary %s to a translation service',path=>{
   expect(publicTranslationPath(path)).toBeUndefined();expect(googleTranslationUrl(path,'fr')).toBeUndefined();
  });
- it('renders a closed accessible chooser without browser-native name hydration or unsolicited Google scripts',()=>{
+ it('renders all options in an accessible native picker without a modal or unsolicited Google scripts',()=>{
   const html=renderToStaticMarkup(createElement(LanguageChooser,{path:'/about'}));
-  expect(html).toContain('Choose language');expect(html).toContain('aria-haspopup="dialog"');expect(html).not.toContain('<script');expect(html).not.toContain('Afrikaans');expect(html).not.toContain('translate.google.com');
+  expect(html).toContain('Choose language');expect(html).toContain('<select');expect(html.match(/<option\b/g)).toHaveLength(195);expect(html).not.toContain('<dialog');expect(html).not.toContain('<script');expect(html).toContain('only when you click Go');
  });
 });

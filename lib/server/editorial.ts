@@ -135,5 +135,7 @@ export async function releaseDueEditorial(){
   ) SELECT slug FROM saved`);
   await q(`INSERT INTO editorial_monitor(id,checked_at,released) VALUES(1,now(),$1) ON CONFLICT(id) DO UPDATE SET checked_at=excluded.checked_at,released=excluded.released`,[released.length]);
   const held=await q<{count:string}>(`SELECT count(*)::text AS count FROM posts WHERE editorial_managed AND scheduled_at<=now() AND NOT (${PUBLIC_POST_PREDICATE})`);
-  return {released:released.length,held:Number(held[0]?.count||0)};
+  // Only rows committed by the publication statement may become crawl hints.
+  // Keep these internal; the cron's existing response/heartbeat remain counts.
+  return {released:released.length,held:Number(held[0]?.count||0),releasedSlugs:released.map(row=>row.slug)};
 }

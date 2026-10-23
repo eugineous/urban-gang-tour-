@@ -105,6 +105,33 @@ the site.
 
 ## Public
 
+### POST /api/contact
+
+Public create-only endpoint. Body: `{name,email,subject,message,requestId,privacyAccepted:true,website:''}`.
+Any supplied Origin must match a trusted origin; missing Origin follows the
+public native-client policy above. Streamed JSON is limited to16KiB, with exact fields,
+bounded text, valid reply email, no header controls and an empty honeypot.
+Limits: five submissions per device per10minutes,300 per network per10minutes,
+plus the Worker's existing shared public-write backstop. No public read/list.
+
+A single SQL statement inserts a Contact enquiry in the existing Bookings desk
+and an immutable private `contact_email_outbox` job. The client retains its
+random attempt ID across uncertain retries; identical retries deduplicate and
+changed content under that ID returns409. A202 acknowledgement means saved,
+not inbox delivery: `{ok:true,id,delivery:'queued'|'accepted'|'attention'}`.
+Other outcomes:400 invalid,403 untrusted Origin,413 oversized,429 limited,
+503 persistence unavailable. All responses are private/no-store.
+
+Delivery uses Resend asynchronously with a frozen payload, stable provider
+idempotency key, leased claims, bounded attempts and a20-hour retry window.
+The recipient is the owner-saved `notify_email`, otherwise connected Gmail
+metadata. CC uses the configured Urban Gang Tour `BOOKINGS_TO` address or the
+existing public domain-admin mailbox. No personal inbox is compiled in, and
+the submitter is Reply-To, never the verified From address. Authentication and
+recipient configuration remain required; no credentials are created by this
+endpoint. Blocked/failed jobs remain visible to the existing super-admin Email
+delivery panel. Authenticated email cron retries contacts separately from receipts.
+
 ### POST /api/auth
 Body: `{action:'signup'|'login'|'logout', email?, phone?, password?, name?}`
 — email **or** Kenyan phone accepted. Passwords scrypt-hashed. Sets `ugt_user`
@@ -1046,6 +1073,13 @@ The normal fact/source/image review workflow remains unchanged for other stories
   releases and private heartbeat (`editorial-library/status-v1`). No social,
   email, TV, AI-generation or external model calls. Existing legacy announcements
   explicitly exclude editorial-managed posts even if a flag is mistakenly set.
+  After a successful eligible release, a bounded background IndexNow request
+  hints the exact committed public article URLs plus `/` and `/blog`. Held/future
+  briefs, private source payloads and credential URLs are never sent. The existing
+  public domain-verification key is reused. Provider errors and background-task
+  registration failures do not change the committed release or its count-only
+  response/heartbeat. Notifications are best-effort discovery hints, not a search
+  engine's acknowledgement of indexing or a guarantee of Brave/Google ranking.
 
 Publication is based on saved approval revision/hash and UTC due instant, not
 the quarter-hour heartbeat. First visibility is within the documented one-second

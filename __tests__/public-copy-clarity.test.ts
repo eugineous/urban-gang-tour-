@@ -27,17 +27,19 @@ describe('plain-language public copy',()=>{
   for(const text of ['founders’ earlier hosting','Campus events.','Brand campaigns.','Concerts &amp; cultural events.','Urban News.'])expect(html).toContain(text);
   expect(html).not.toContain('Next starts again');expect(html).not.toContain('next moment');
  });
- it('keeps contact consent, private drafts and the real send-in-app handoff',()=>{
+ it('keeps contact consent and browser drafts with direct submission',()=>{
   const html=render(ContactPage);
   expect(html).toContain('Contact the team.');expect(html).toContain('Send an enquiry');
-  expect(html).toContain('href="/privacy-policy"');expect(html).toContain('Nothing is sent until you send it in');
-  expect(html).toContain('Your draft saves in this browser.');expect(html).toContain('https://wa.me/254799886247');expect(html).toContain('mailto:admin@urbangangtour.co.ke');
+  expect(html).toContain('href="/privacy-policy"');expect(html).toContain('type="submit">Send message');
+  expect(html).toContain('Your draft stays in this browser until your enquiry is saved.');expect(html).toContain('https://wa.me/254799886247');expect(html).toContain('mailto:admin@urbangangtour.co.ke');
+  expect(html).not.toContain('Nothing is sent until you send it in');
   expect(html).toContain('We agree the programme, date and quote with you first.');
  });
- it('keeps the restored contact action while giving the footer a concrete invitation',()=>{
+ it('keeps direct contact access without a repeated footer invitation',()=>{
   const html=renderToStaticMarkup(createElement(ContactFooter,{onCookies:()=>{},onFocus:()=>{},focusView:false}));
-  expect(html).toContain('Plan an event with us.');expect(html).toContain('Let’s talk');
-  expect(html).toContain('Cookie preferences');expect(html).toContain('Focus view:');
+  expect(html).toContain('href="/contact-us"');expect(html).toContain('Email us');
+  expect(html).not.toContain('Plan an event with us.');
+  expect(html).toContain('Cookie settings');expect(html).toContain('Focus view:');
  });
  it('keeps booking safeguards and does not describe an enquiry as a reserved date',()=>{
   const html=render(BookingForm);

@@ -53,7 +53,7 @@ describe('plain-language support pages',()=>{
   expect(html).toContain('Payout bank *');
   expect(html).toContain('Bank account number *');
   expect(html).not.toContain('Settlement bank');
-  for(const text of ['pay you out automatically per ticket sold','card payments only, no manual payouts','admin reviews every application','18 or older and authorised','Terms','Privacy Policy'])expect(html).toContain(text);
+  for(const text of ['automatic bank payouts','Card payments only','We review every application','our commission is deducted','18 or older and authorised','Terms','Privacy Policy'])expect(html).toContain(text);
  });
  it('keeps organizer request field names, endpoints and confirmation gates unchanged',()=>{
   const source=readFileSync('app/organizer/signup/SignupForm.tsx','utf8');

@@ -64,56 +64,55 @@ export default function SignupForm() {
         <Toast msg={toast} />
         <h1 style={h1}>Sell tickets through UGT</h1>
         <p style={{ color: '#555', marginBottom: 20, maxWidth: 560 }}>
-          The Urban Gang Tour Marketplace lets any event organizer sell tickets through urbangangtour.co.ke.
-          We collect the payment and pay you out automatically per ticket sold, minus our commission —
-          card payments only, no manual payouts. Apply below; a UGT admin reviews every application.
+          Apply to sell your event tickets through Urban Gang Tour. We review every application.
+          Card payments only; our commission is deducted before automatic bank payouts.
         </p>
         <div style={card}>
-          <div style={{ display: 'grid', gap: 12 }}>
+          <form onSubmit={event=>{event.preventDefault();void submit()}} style={{ display: 'grid', gap: 12 }} aria-label="Apply to sell tickets">
             <div>
               <label htmlFor="org-business-name" style={label}>Business / organizer name *</label>
-              <input id="org-business-name" style={inp} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="e.g. Nairobi Live Events" autoComplete="organization" />
+              <input id="org-business-name" name="businessName" style={inp} required minLength={2} maxLength={200} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="e.g. Nairobi Live Events" autoComplete="organization" />
             </div>
             <div>
               <label htmlFor="org-contact-name" style={label}>Contact person *</label>
-              <input id="org-contact-name" style={inp} value={contactName} onChange={(e) => setContactName(e.target.value)} autoComplete="name" />
+              <input id="org-contact-name" name="contactName" style={inp} required minLength={2} maxLength={200} value={contactName} onChange={(e) => setContactName(e.target.value)} autoComplete="name" />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
                 <label htmlFor="org-email" style={label}>Email *</label>
-                <input id="org-email" style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+                <input id="org-email" name="email" style={inp} required maxLength={254} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
               </div>
               <div>
                 <label htmlFor="org-phone" style={label}>Phone *</label>
-                <input id="org-phone" style={inp} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0712345678" autoComplete="tel" />
+                <input id="org-phone" name="phone" style={inp} required type="tel" maxLength={30} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0712345678" autoComplete="tel" />
               </div>
             </div>
             <div>
               <label htmlFor="org-password" style={label}>Password (min 8 characters) *</label>
-              <input id="org-password" style={inp} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
+              <input id="org-password" name="password" style={inp} required minLength={8} maxLength={200} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
             </div>
             <div style={{ borderTop: '1px dashed #ccc', paddingTop: 12, marginTop: 4 }}>
-              {bankError&&<div><p role="alert">{bankError}</p><button style={btnMagenta} onClick={()=>setBankAttempt(n=>n+1)}>Retry bank list</button></div>}
+              {bankError&&<div><p role="alert">{bankError}</p><button type="button" style={btnMagenta} onClick={()=>setBankAttempt(n=>n+1)}>Retry bank list</button></div>}
               <span style={{ ...label, marginBottom: 8 }}>Payout details — where we send your share automatically per sale</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label htmlFor="org-bank" style={label}>Payout bank *</label>
-                  <select id="org-bank" style={inp} value={settlementBank} onChange={(e) => setSettlementBank(e.target.value)}>
+                  <select id="org-bank" name="settlementBank" style={inp} required value={settlementBank} onChange={(e) => setSettlementBank(e.target.value)}>
                     <option value="">Select bank...</option>
                     {banks.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label htmlFor="org-account" style={label}>Bank account number *</label>
-                  <input id="org-account" style={inp} value={settlementAccount} onChange={(e) => setSettlementAccount(e.target.value)} autoComplete="off" />
+                  <input id="org-account" name="settlementAccount" style={inp} required maxLength={100} value={settlementAccount} onChange={(e) => setSettlementAccount(e.target.value)} autoComplete="off" />
                 </div>
               </div>
             </div>
-            <label className="ugt-account-consent"><input type="checkbox" checked={adultConfirmed} onChange={e => setAdultConfirmed(e.target.checked)} />I am 18 or older and authorised to apply for this business.</label>
-            <label className="ugt-account-consent"><input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label>
-            <button style={{ ...btnMagenta, marginTop: 8 }} disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Apply to sell tickets'}</button>
+            <label className="ugt-account-consent"><input name="adultConfirmed" type="checkbox" required checked={adultConfirmed} onChange={e => setAdultConfirmed(e.target.checked)} />I am 18 or older and authorised to apply for this business.</label>
+            <label className="ugt-account-consent"><input name="termsAccepted" type="checkbox" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label>
+            <button type="submit" style={{ ...btnMagenta, marginTop: 8 }} disabled={busy}>{busy ? 'Submitting…' : 'Apply to sell tickets'}</button>
             <div style={{ fontSize: 12, color: '#595959' }}>Already approved? <a href="/organizer/login" style={{ color: '#ad1264', fontWeight: 700 }}>Log in</a></div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

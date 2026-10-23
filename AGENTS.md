@@ -1,5 +1,25 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Browser/search availability addition (23 October 2026)
+- Owner supplies Brave Search screenshots showing unrelated results and asks
+  for browser availability fixes. Separate search discovery from direct access.
+  Verify real engines where available; UA responses are HTTP evidence only.
+  Repair verified secure-browsing redirects and existing IndexNow publication
+  notifications without altering publication gates, sending test pings,
+  inventing rankings or changing shop-specific sources/data. Preserve OAuth,
+  private-session and internal Worker routes. Search-engine indexing is external.
+
+## Simpler journeys (23 October 2026)
+- Owner approves the compiled refinement brief, then explicitly freezes all
+  shop-page/catalogue changes. Preserve those pages, products and grouping.
+  Simplify shared navigation/footer, hero actions and consent/language controls;
+  remove the automatic host invitation. Preserve the improved header/events UI.
+  Verify ticketing/security and build reliable contact/email workflows using
+  existing authorisation, durable storage and provider settings. No live test
+  transactions/messages, invented campaigns, private competitor access or new
+  credentials. Sticky video awaits the promised reference. Use the standing
+  tested feature-branch/PR/Cloudflare main-site release, keeping bindings/cron.
+
 ## Compact public controls (23 October 2026)
 - Owner reports oversized buttons and pop-ups. Compact shared and module-specific
   CTA padding, typography, modal widths/media and unnecessary full-width actions.

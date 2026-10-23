@@ -28,11 +28,11 @@ try{
   assert.match(html,/aria-label="Account and help"/,route+' support');
   if(route!=='/reels'&&route!=='/checkout'){
    assert.match(html,/data-site-footer/,route+' grouped footer');
-   for(const label of ['Explore','Connect','Help','Policies'])assert.ok(html.includes('aria-label="'+label+'"'),route+' '+label+' footer group');
+   for(const label of ['Explore','Help','Policies'])assert.ok(html.includes('aria-label="'+label+'"'),route+' '+label+' footer group');
   }
   if(route==='/'){
    assert.match(html,/data-contact-launcher/,route+' restored contact launcher');
-   assert.match(html,/data-host-invitation/,route+' dormant host invitation');
+   assert.ok(!html.includes('data-host-invitation'),route+' no automatic host invitation');
    assert.match(html,/aria-label="Booking questions"/,route+' inline FAQ');
    assert.equal((html.match(/<details(?:\s|>)/g)||[]).length,5,route+' default FAQs');
    assert.match(html,/Featured work\./,route+' featured archive');
