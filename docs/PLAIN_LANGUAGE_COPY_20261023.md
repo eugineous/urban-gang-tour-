@@ -52,3 +52,25 @@ content is present; a lower word count alone is not a measure of better copy.
 
 The final release results belong in the accompanying task artifact
 `RELEASE-VERIFIED.md`, not in an unverified completion claim here.
+
+## Continued detail-page pass
+
+Fresh phone/desktop captures of the remaining media, product, cart, account and
+organiser entry pages identified three focused improvements:
+
+- News cards displayed ISO timestamps. A shared date component now uses Nairobi
+  time for human-readable labels and retains the exact source datetime. Invalid
+  values show an unavailable state rather than a fabricated date. No article or
+  publication record is rewritten.
+- Color Blast lookbook/detail prices needed proposed-price labels beside the
+  figures, not only in a later notice. The design bag remains separate from the
+  shopping cart. Concrete headings and shorter empty-state instructions replace
+  slogans; all sample/stock, specification and no-payment boundaries remain.
+- Press and accessibility pages now name their purpose. Organiser signup uses
+  payout-bank terminology and darker text on the existing light background.
+  Payout promises, application payloads, eligibility and consent are unchanged.
+
+The continued pass is verified separately at
+`/workspace/artifacts/ugt-detail-copy-20261023`, including a screenshot review,
+before/after captures, tests and browser-local design-selection checks. It does
+not claim live payout execution, full WCAG compliance or physical-device testing.
