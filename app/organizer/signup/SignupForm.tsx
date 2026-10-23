@@ -22,7 +22,7 @@ export default function SignupForm() {
   const [done, setDone] = useState(false);
   const [toast, say] = useToast();
 
-  useEffect(() => { setBankError('');api('/api/organizer/banks').then(({ status,data }) => {if(status===200 && Array.isArray(data.banks))setBanks(data.banks);else setBankError('Could not load settlement banks. Please retry.');}); }, [bankAttempt]);
+  useEffect(() => { setBankError('');api('/api/organizer/banks').then(({ status,data }) => {if(status===200 && Array.isArray(data.banks))setBanks(data.banks);else setBankError('Could not load payout banks. Please retry.');}); }, [bankAttempt]);
 
   const submit = async () => {
     if (!adultConfirmed || !termsAccepted) return say('Confirm adult authority and accept the terms before applying.');
@@ -31,8 +31,8 @@ export default function SignupForm() {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return say('Enter a valid email');
     if (!phone.trim()) return say('Phone is required');
     if (password.length < 8) return say('Password must be at least 8 characters');
-    if (!settlementBank) return say('Select your settlement bank');
-    if (!settlementAccount.trim()) return say('Enter your settlement account number');
+    if (!settlementBank) return say('Select your payout bank');
+    if (!settlementAccount.trim()) return say('Enter your bank account number');
     setBusy(true);
     const { data } = await api('/api/organizer/signup', {
       method: 'POST',
@@ -51,7 +51,7 @@ export default function SignupForm() {
           <p style={{ color: '#333', lineHeight: 1.6 }}>
             Thanks — your application to sell tickets through the Urban Gang Tour Marketplace is now under review.
             We&apos;ll email <b>{email}</b> once a decision is made. Once approved you can{' '}
-            <a href="/organizer/login" style={{ color: '#E6218C', fontWeight: 700 }}>log in here</a> and submit your first event.
+            <a href="/organizer/login" style={{ color: '#ad1264', fontWeight: 700 }}>log in here</a> and submit your first event.
           </p>
         </div>
       </div></div>
@@ -63,7 +63,7 @@ export default function SignupForm() {
       <div style={wrap}>
         <Toast msg={toast} />
         <h1 style={h1}>Sell tickets through UGT</h1>
-        <p style={{ color: '#bbb', marginBottom: 20, maxWidth: 560 }}>
+        <p style={{ color: '#555', marginBottom: 20, maxWidth: 560 }}>
           The Urban Gang Tour Marketplace lets any event organizer sell tickets through urbangangtour.co.ke.
           We collect the payment and pay you out automatically per ticket sold, minus our commission —
           card payments only, no manual payouts. Apply below; a UGT admin reviews every application.
@@ -97,14 +97,14 @@ export default function SignupForm() {
               <span style={{ ...label, marginBottom: 8 }}>Payout details — where we send your share automatically per sale</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label htmlFor="org-bank" style={label}>Settlement bank *</label>
+                  <label htmlFor="org-bank" style={label}>Payout bank *</label>
                   <select id="org-bank" style={inp} value={settlementBank} onChange={(e) => setSettlementBank(e.target.value)}>
                     <option value="">Select bank...</option>
                     {banks.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="org-account" style={label}>Account number *</label>
+                  <label htmlFor="org-account" style={label}>Bank account number *</label>
                   <input id="org-account" style={inp} value={settlementAccount} onChange={(e) => setSettlementAccount(e.target.value)} autoComplete="off" />
                 </div>
               </div>
@@ -112,7 +112,7 @@ export default function SignupForm() {
             <label className="ugt-account-consent"><input type="checkbox" checked={adultConfirmed} onChange={e => setAdultConfirmed(e.target.checked)} />I am 18 or older and authorised to apply for this business.</label>
             <label className="ugt-account-consent"><input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>I accept the <a href="/terms">Terms</a> and have read the <a href="/privacy-policy">Privacy Policy</a>.</span></label>
             <button style={{ ...btnMagenta, marginTop: 8 }} disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Apply to sell tickets'}</button>
-            <div style={{ fontSize: 12, color: '#888' }}>Already approved? <a href="/organizer/login" style={{ color: '#E6218C', fontWeight: 700 }}>Log in</a></div>
+            <div style={{ fontSize: 12, color: '#595959' }}>Already approved? <a href="/organizer/login" style={{ color: '#ad1264', fontWeight: 700 }}>Log in</a></div>
           </div>
         </div>
       </div>
