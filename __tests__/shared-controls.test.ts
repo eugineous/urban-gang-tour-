@@ -23,7 +23,7 @@ it('ships one labeled menu, no hidden alternate Shop/About controls, and one mai
 it('gives header/menu layout a single stylesheet owner instead of accumulating overrides',()=>{
  const sources=readdirSync('app').filter(f=>f.endsWith('.css')&&f!=='navigation.css');
  for(const file of sources){const root=postcss.parse(readFileSync('app/'+file,'utf8'));root.walkRules(rule=>expect(rule.selector,file).not.toMatch(/\.(?:site-header|desktop-nav|header-actions|menu-panel|menu-toggle)(?![\w-])/));}
- const css=readFileSync('app/navigation.css','utf8');expect(css).toContain('min-height:44px');expect(css).toContain('max-height:calc(100dvh - 24px)');expect(css).toContain('overflow:auto');expect(css).toContain('dialog.menu-panel:not([open])');
+ const css=readFileSync('app/navigation.css','utf8');expect(css).toContain('min-height:44px');expect(css).toContain('max-height:min(84dvh,calc(100dvh - 24px))');expect(css).toContain('overflow:auto');expect(css).toContain('dialog.menu-panel:not([open])');
 });
 it('keeps action text wrapping, stable hit targets and valid admin font declarations',()=>{
  const publicCss=readFileSync('app/interaction-foundations.css','utf8'),admin=readFileSync('app/admin/control-room.css','utf8');

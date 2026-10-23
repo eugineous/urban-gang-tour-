@@ -31,7 +31,7 @@
 .productCard.productCard label{display:grid;gap:7px;font-size:14px;color:#686268;margin-top:8px}
 .productCard select,.productCard input{width:100%;min-height:48px;padding:12px;border:1px solid #bfb6bc;border-radius:8px;background:#fff;color:#171717;font:inherit;font-size:16px}
 .productCard .cardActions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:auto;padding-top:8px}
-.cardActions :global(.button){margin:0;width:100%;font-size:14px;padding:12px 14px;min-height:48px}
+.cardActions :global(.button){margin:0;width:100%;font-size:14px;line-height:1.4;padding:10px 14px;min-height:44px}
 .detailLink{font-size:14px;text-decoration:underline;text-underline-offset:4px;min-height:44px;display:flex;align-items:center}
 .productCard .stockNote{font-size:13px;color:#686268;min-height:21px}
 .empty{padding:48px 0;max-width:620px}
@@ -65,14 +65,14 @@
 .summary dd{margin:0;text-align:right}
 .summary .summaryTotal{font-size:21px;font-weight:550;margin-bottom:16px}
 .summary>p{font-size:14px;color:#686268;margin-top:12px}
-.summary :global(.button){width:100%;justify-content:center;font-size:15px}
+.summary :global(.button){width:100%;justify-content:center;min-height:44px;padding:10px 16px;font-size:14px;line-height:1.4}
 .checkoutForm.checkoutForm{gap:24px;padding:28px;border:1px solid #d8d2d6;border-radius:16px;background:#fff;margin:0;min-width:0}
 .checkoutForm h2{font-size:24px}
 .checkoutForm fieldset{min-width:0;border:0;margin:0;padding:0;display:grid;gap:18px}
 .checkoutForm legend{font-size:22px;letter-spacing:-.03em;margin-bottom:18px}
 .checkoutForm p{font-size:14px;color:#686268}
 .checkoutForm label{font-weight:450}
-.checkoutForm :global(.button){font-size:15px;width:100%;justify-content:center}
+.checkoutForm :global(.button){font-size:14px;line-height:1.4;min-height:44px;padding:10px 16px;width:100%;justify-content:center}
 .checkoutForm .paymentStep{border-top:1px solid #e2dfe1;padding-top:24px}
 .checkoutForm .paymentStep h2{margin-bottom:18px}
 .checkoutForm .paymentStep>label{margin-bottom:18px}
@@ -106,7 +106,7 @@
 .purchase .purchaseTotal{font-size:22px;letter-spacing:-.025em;color:#171717;margin:0}
 .purchase .availability{font-size:14px;color:#686268}
 .purchase .availability[data-unavailable=true]{color:#9a243d}
-.purchase :global(.button){width:100%;justify-content:center;min-height:52px;font-size:15px}
+.purchase :global(.button){width:100%;justify-content:center;min-height:44px;padding:10px 16px;font-size:14px;line-height:1.4}
 .purchase .purchaseNote{font-size:14px;color:#686268;line-height:1.6}
 .purchase .addedStatus{font-size:14px;padding:14px 16px;border:1px solid #d8c6d0;border-radius:10px;background:#efe5eb;color:#503444}
 .personalization{display:grid;gap:10px}

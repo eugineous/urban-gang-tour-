@@ -2,7 +2,7 @@
 (() => {
   if (window.__ugtReleaseStarted || !('serviceWorker' in navigator)) return;
   window.__ugtReleaseStarted = true;
-  const release = 'detail-clarity-20261023-v1';
+  const release = 'compact-controls-20261023-v1';
   const hadController = Boolean(navigator.serviceWorker.controller);
   // A replaced old controller needs one reload to discard its in-memory runtime.
   // Do not reload while a visitor is entering a form or payment details.
