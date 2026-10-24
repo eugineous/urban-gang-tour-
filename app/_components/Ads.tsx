@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {usePathname} from 'next/navigation';
 import {hasOptionalConsent, CONSENT_EVENT} from '@/lib/client/consent';
+import {campaignsAllowedOn} from '@/lib/marketing-campaigns';
 
 // Google AdSense, consent-gated and fully dormant until configured.
 //
@@ -12,11 +13,10 @@ import {hasOptionalConsent, CONSENT_EVENT} from '@/lib/client/consent';
 //      account). Unset = nothing here does anything.
 //   2. The visitor accepted cookies (localStorage 'ugt-consent' === 'yes').
 //      This keeps the site's "no third-party trackers unless you consent"
-    //      promise honest. Legal compliance also requires operational review.
+//      promise honest. Legal compliance also requires operational review.
 //
 // The loader also drives AdSense Auto Ads, so Google can place ads across the
-// whole site (including the v25 SPA pages like /gallery and /urban-news that
-// are not React-owned) with no manual slot markup on those pages.
+// eligible public pages without manual slot markup on each page.
 
 const CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '';
 
@@ -55,10 +55,12 @@ export function AdSenseLoader() {
   const pathname=usePathname();
 
   useEffect(() => {
-    const allowed=consent&&!/^\/(verify|t|tickets|receipt|admin|organizer|account|checkout|cart|pay|orders)(\/|$)/.test(pathname||'');
-    const queue = (window as unknown as {adsbygoogle?: any}).adsbygoogle;
-    if (queue) queue.pauseAdRequests = allowed ? 0 : 1;
-    if (!CLIENT || !allowed || injected.current) return;
+    if (!CLIENT) return;
+    const allowed=consent&&typeof pathname==='string'&&campaignsAllowedOn(pathname);
+    const target=window as unknown as {adsbygoogle?: unknown[]&{pauseAdRequests?:number}};
+    const queue=target.adsbygoogle||(target.adsbygoogle=[]);
+    queue.pauseAdRequests = allowed ? 0 : 1;
+    if (!allowed || injected.current) return;
     if (document.getElementById('ugt-adsense')) { injected.current = true; return; }
     injected.current = true;
     const s = document.createElement('script');
@@ -79,20 +81,22 @@ export function AdSenseLoader() {
 // account is live.
 export function AdSlot({ slot, label = true, style }: { slot?: string; label?: boolean; style?: React.CSSProperties }) {
   const consent = useConsent();
+  const pathname=usePathname();
+  const allowed=consent&&typeof pathname==='string'&&campaignsAllowedOn(pathname);
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (!CLIENT || !slot || !consent || pushed.current) return;
+    if (!CLIENT || !slot || !allowed || pushed.current) return;
     try {
       // AdSense reads the <ins> we rendered and fills it.
       // @ts-expect-error adsbygoogle is injected by the loader script
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch { /* loader not ready yet; a later render will retry */ }
-  }, [consent, slot]);
+  }, [allowed, slot]);
 
-  if (!CLIENT || !slot || !consent) return null;
+  if (!CLIENT || !slot || !allowed) return null;
 
   return (
     <div style={{ margin: '24px 0', textAlign: 'center', ...style }}>
@@ -116,7 +120,7 @@ export function AdSlot({ slot, label = true, style }: { slot?: string; label?: b
 
 // Convenience slots reading their ids from env, so placements across the app
 // stay dormant until each unit is created in the AdSense dashboard and its id
-// is pasted into Vercel. Missing env id = the slot renders nothing.
+// is included in the Cloudflare build. Missing env id = the slot renders nothing.
 export function ArticleAd() {
   return <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE} />;
 }

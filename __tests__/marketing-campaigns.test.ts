@@ -13,7 +13,7 @@ describe('campaign publication contracts',()=>{
   it.each([{href:'javascript:alert(1)'},{href:'//evil.test'},{href:'/\\evil.test'},{image:'https://tracker.example.test/pixel.png'},{image:'data:image/svg+xml,<script/>'},{status:'unexpected'},{price:1},{delaySeconds:0},{cooldownHours:0},{targets:[]},{kind:'deal',promoId:null}])('rejects unsafe/incomplete campaign input %s',patch=>expect(parseCampaign({...valid,...patch})).toBeNull());
   it('uses Nairobi time and rejects invalid rolled-over calendar dates',()=>{expect(fromNairobiInput('2026-10-14T23:30')).toBe('2026-10-14T20:30:00.000Z');expect(()=>fromNairobiInput('2026-02-31T23:30')).toThrow();expect(parseCampaign({...valid,startsAt:'2026-02-31T20:30:00.000Z'})).toBeNull()});
   it('enforces schedules and avoids all sensitive/payment/video pages',()=>{
-    for(const path of ['/checkout','/pay/success','/cart','/book','/account','/admin','/reels','/privacy-policy'])expect(campaignTargets({targets:['*']},path)).toBe(false);
+    for(const path of ['/checkout','/pay/success','/cart','/book','/account','/admin','/reels','/privacy-policy','/orders/track'])expect(campaignTargets({targets:['*']},path)).toBe(false);
     expect(campaignTargets({targets:['/shop']},'/shop')).toBe(true);
     expect(campaignIsLive({...valid,status:'paused'})).toBe(false);
     expect(campaignIsLive({...valid,status:'scheduled',startsAt:'2026-11-01T00:00:00.000Z'},Date.parse('2026-10-14T00:00:00.000Z'))).toBe(false);

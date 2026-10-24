@@ -15,7 +15,7 @@ describe('recovered public chrome',()=>{
   for(const group of FOOTER_NAVIGATION){expect(html).toContain('aria-label="'+group.title+'"');for(const [label,href] of group.items){expect(html).toContain('href="'+href+'"');expect(html).toContain(label.replaceAll('&','&amp;'));}}
   expect(html).toContain('aria-label="Policies"');expect(html).toContain('href="/contact-us"');
   expect(html).not.toContain('footer-secondary');expect(html).not.toContain('footer-socials');
-  expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(6);
+  expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(7);
   expect(html.match(/<button type="button"/g)).toHaveLength(2);
  });
  it('has no repeated destination across the two footer menu groups',()=>{

@@ -27,10 +27,10 @@ describe('actual translated welcome pages',()=>{
  });
  it('keeps new routes discoverable, distinct and task-led',()=>{
   const links=[...SITE_MENU_GROUPS.flatMap(group=>group.items),...SITE_UTILITY_NAVIGATION];
-  expect(links).toHaveLength(6);
+  expect(links).toHaveLength(7);
   expect(FOOTER_NAVIGATION.flatMap(group=>group.items).some(([,href])=>href==='/accessibility')).toBe(true);
   expect(renderToStaticMarkup(createElement(ContactPage))).toContain('href="/international"');
-  expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<LanguageChooser path={path}/>');
+  expect(readFileSync('ui/components/ContactInterface.tsx','utf8')).toContain('<LanguageChooser path={path}/>');
   for(const path of ['/international','/accessibility']){
    const m=metadataForPath(path);expect(m.alternates?.canonical).toBe(SITE.domain+path);expect(m.description).toBeTruthy();expect(m.openGraph).toBeTruthy();expect(m.twitter).toBeTruthy();
   }

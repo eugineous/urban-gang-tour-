@@ -73,7 +73,7 @@ export const WEBSITE_DEFAULTS: Record<string, WebsiteContent> = {
   "/": {
     title: "Urban Gang Tour.",
     summary:
-      "School and campus events, live hosting and brand production in Kenya.",
+      "School shows. Campus concerts. Live hosting. Brand activations.",
     body: [],
     image: "",
     faqs: [],

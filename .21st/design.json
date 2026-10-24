@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "project": {
+    "name": "urban-gang-tour",
+    "productType": "Events, live hosting and brand production website with commerce and staff operations",
+    "stack": [
+      "nextjs",
+      "react"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "app/design.css",
+      "app/navigation.css",
+      "ui/components/HomeSections.module.css"
+    ],
+    "components": ["ui/components", "app/_components"],
+    "assets": [
+      "public/assets",
+      "public/media-library"
+    ],
+    "instructions": [
+      "AGENTS.md"
+    ]
+  },
+  "design": {
+    "colorMode": "light with dark media panels",
+    "colors": {"paper":"#f4f4f4","ink":"#151515","muted":"#686868","action":"#ad1264","magenta":"#e6218c","yellow":"#ffd400","cyan":"#21c7e6"},
+    "typography": {"body":"Inter, Arial, sans-serif","headings":"Inter, compact tracking, responsive size"},
+    "spacing": {},
+    "radius": {"panel":"24px"},
+    "shadows": {},
+    "motion": {"easing":"cubic-bezier(.22,1,.36,1)","accessibility":"Respect reduced motion, focus view and save-data"},
+    "density": "Compact actions with at least 44px touch targets"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": ["DocumentLink","MediaImage","native details and dialog"],
+    "patterns": ["Real crawlable routes","Owned media","Scoped CSS modules","Truthful loading, empty and failure states"]
+  },
+  "constraints": {
+    "must": ["Preserve brand, CMS content, business records and payment/auth safeguards","Use existing configured providers","Verify phone, tablet and desktop reflow"],
+    "avoid": ["Invented client endorsements, campaigns, inventory or rankings","Automatic third-party translation of private URLs","Unlicensed reference-site assets"]
+  },
+  "decisions": [],
+  "evidence": [
+    {
+      "fact": "design.tokens",
+      "source": "app/design.css"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "AGENTS.md"
+    },
+    {
+      "fact": "project.stack:nextjs",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-10-24T03:32:02.533Z"
+}

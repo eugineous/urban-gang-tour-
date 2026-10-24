@@ -9,8 +9,8 @@ import {usePathname} from 'next/navigation';
 import {AppShell} from '@/app/_components/AppShell';
 import {FOOTER_NAVIGATION,PRIMARY_NAVIGATION,SITE_MENU_GROUPS,SITE_UTILITY_NAVIGATION,isNavigationCurrent} from '@/lib/site-navigation';
 
-it('reduces the primary menu to five real destinations and one ticket utility',()=>{
- expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Shop','/shop'],['About','/about'],['Book','/book']]);
+it('keeps Clients discoverable beside the five public tasks and one ticket utility',()=>{
+ expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Clients','/clients'],['Shop','/shop'],['About','/about'],['Book','/book']]);
  expect(SITE_MENU_GROUPS).toHaveLength(1);
  expect(SITE_MENU_GROUPS.flatMap(group=>group.items)).toEqual(PRIMARY_NAVIGATION);
  expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/account']]);
@@ -21,32 +21,43 @@ it('reduces the primary menu to five real destinations and one ticket utility',(
 it('keeps a compact footer with support and seller entry without deleting canonical routes',()=>{
  expect(FOOTER_NAVIGATION.map(group=>group.title)).toEqual(['Explore','Help']);
  const footer=FOOTER_NAVIGATION.flatMap(group=>group.items);
- expect(footer).toHaveLength(8);
- for(const href of ['/events','/shop','/portfolio','/about','/account','/organizer/login','/contact-us','/accessibility'])expect(footer.some(([,target])=>target===href)).toBe(true);
+ expect(footer).toHaveLength(10);
+ for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/account','/organizer/login','/contact-us','/accessibility'])expect(footer.some(([,target])=>target===href)).toBe(true);
 });
 
-it('routes the shopping icon to Shop and renders only five mobile primary links',()=>{
+it('routes the restored shopping cart symbol to Shop and renders six mobile primary links',()=>{
  vi.mocked(usePathname).mockReturnValue('/shop/example');
  const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
  expect(html).toContain('class="cart-link" href="/shop" aria-label="Shop" aria-current="page"');
  expect(html).not.toContain('aria-label="View your cart"');
  const menu=html.slice(html.indexOf('<div class="menu-groups">'),html.indexOf('<div class="menu-bottom">'));
- expect(menu.match(/<a\s/g)).toHaveLength(5);
+ expect(menu.match(/<a\s/g)).toHaveLength(6);
  expect(menu).not.toContain('<h2');
  expect(html).toContain('class="tickets-link" href="/account"');
  expect(html).toContain('class="header-rolling-label"');
  expect(html.match(/<header class="site-header"/g)).toHaveLength(1);
  expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);
+ expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<ShoppingCart size={21}');
 });
 
 it('removes the automatic host invitation rather than hiding its visible box',()=>{
  const source=readFileSync('app/_components/AppShell.tsx','utf8');
  expect(source).not.toContain('BookingInvitation');
- expect(source.match(/<LanguageChooser path=\{path\}/g)).toHaveLength(1);
- expect(source.indexOf('<LanguageChooser path={path}')).toBeLessThan(source.indexOf('<dialog ref={menu}'));
+ expect(source).not.toContain('<LanguageChooser');
  expect(source).toContain('if(dialog.open)dialog.close()');
  expect(source).toContain('document.body.style.overflow=previous');
  expect(source).toContain('returnFocus.focus()');
+});
+
+it('keeps browser-aware language selection in the footer with no header language button',()=>{
+ vi.mocked(usePathname).mockReturnValue('/about');
+ const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
+ const header=html.slice(html.indexOf('<header'),html.indexOf('</header>'));
+ expect(header).not.toContain('data-language-control');
+ expect(html.match(/data-language-control/g)).toHaveLength(1);
+ expect(html.indexOf('data-language-control')).toBeGreaterThan(html.indexOf('data-site-footer'));
+ expect(html).toContain('Google opens separately');
+ expect(html).toContain('Browser language (automatic)');
 });
 
 it('shows desktop navigation by viewport width, including touch laptops, without an overflow-menu fallback',()=>{

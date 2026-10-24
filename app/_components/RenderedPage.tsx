@@ -6,6 +6,7 @@ import {readPublicEvents,type PublicEvent} from '@/lib/server/public-events';
 import {readPublicProducts,type PublicProduct} from '@/lib/server/public-products';
 import {readWebsiteContent} from '@/lib/server/website-content';
 import {requestTime} from '@/lib/server/request-time';
+import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
 export async function RenderedPage({pathName}:{pathName:string}){
  if(pathName==='/shop')return <LiveCommerce/>;
  if(pathName==='/book')return <BookingForm/>;
@@ -19,6 +20,7 @@ export async function RenderedPage({pathName}:{pathName:string}){
  ]);
  // Index cards need excerpts only. Do not serialize the full newsroom and all
  // article bodies into the home page's hydration payload.
- const posts=(pathName==='/'?published.slice(0,3):published).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description}));
+ const ordered=newestPublishedFirst(published);
+ const posts=(home?ordered.slice(0,3):ordered).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description}));
  return <HostedSite path={pathName} screens={[]} products={products} events={events} posts={posts} pageContent={pageContent} initialNow={requestTime()}/>;
 }

@@ -13,6 +13,7 @@ try{
   await page.route('**/api/site-data/products',route=>route.fulfill({json:{ok:true,products:[product]}}));
   await page.route('**/api/checkout/fulfillment',route=>route.fulfill({json:{pickup:{enabled:true,fee:0,location:'Fixture collection desk'},delivery:{enabled:true,fee:300}}}));
   await page.goto(base+'/shop');
+  await page.getByText('Choose options',{exact:true}).click();
   await page.getByLabel('Variation for Fixture shirt').waitFor();
   assert.equal(await page.getByLabel('Variation for Fixture shirt').inputValue(),'Large');
   assert.equal(await page.getByLabel('Variation for Fixture shirt').locator('option').first().evaluate(option=>option.disabled),true);
@@ -23,7 +24,7 @@ try{
   assert.equal(await page.getByRole('link',{name:'Continue to secure checkout'}).count(),0);
   await page.getByLabel('Quantity for Fixture shirt').fill('1');
   await page.getByRole('link',{name:'Continue to secure checkout'}).click();
-  await page.getByLabel('Fulfillment').selectOption('delivery');
+  await page.getByLabel('Pickup or delivery').selectOption('delivery');
   await page.getByLabel('Delivery address',{exact:true}).fill('Fixture road 1');
   await page.getByLabel('Town or city',{exact:true}).fill('Nairobi');
   await page.getByLabel('Payment method').selectOption('card');

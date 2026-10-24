@@ -47,7 +47,7 @@ export function parseCampaign(value: unknown): CampaignInput | null {
   return b as CampaignInput;
 }
 export function campaignsAllowedOn(path: string) {
-  return !/^\/(?:admin|organizer|account|cart|checkout|pay|receipt|receipts|tickets|t|verify|book|reels|privacy-policy|cookie-policy|terms|refund-policy|ticket-terms|offline)(?:\/|$)/.test(path);
+  return !/^\/(?:admin|organizer|account|cart|checkout|pay|orders|receipt|receipts|tickets|t|verify|book|reels|privacy-policy|cookie-policy|terms|refund-policy|ticket-terms|offline)(?:\/|$)/.test(path);
 }
 export function campaignTargets(campaign: Pick<Campaign, 'targets'>, path: string) {
   return campaignsAllowedOn(path) && (campaign.targets.includes('*') || campaign.targets.includes(path));

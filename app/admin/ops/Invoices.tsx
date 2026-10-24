@@ -622,7 +622,7 @@ export default function Invoices() {
           }}
         >
           <span style={{ fontWeight: 700 }}>From budget:</span>
-          <div style={{ minWidth: "min(100%, 220px)" }}>
+          <div style={{ flex: "1 1 220px", minWidth: 0, maxWidth: "100%" }}>
             <EventSelect
               events={events.filter((e) => e.latest_budget_version)}
               value={null}

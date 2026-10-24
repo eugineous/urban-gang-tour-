@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+
+const origin=process.env.QA_ORIGIN||'http://localhost:3010';
+const artifacts='/workspace/artifacts/ugt-home-energy-20261024';
+await mkdir(artifacts,{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
+const context=await browser.newContext({viewport:{width:1024,height:768},locale:'fr-FR'});
+const page=await context.newPage();
+const errors=[],translations=[],results=[];
+page.on('pageerror',error=>errors.push(error.message));
+page.on('request',request=>{if(request.url().includes('translate.google.com'))translations.push(request.url())});
+const ready=async()=>{
+ await page.waitForFunction(()=>typeof window.__ugtResetPageEntryScroll==='function');
+ await page.locator('header.site-header').waitFor();
+};
+const position=()=>page.evaluate(()=>window.scrollY);
+const expectTop=async label=>{
+ await page.waitForFunction(()=>window.scrollY===0);
+ results.push({check:label,scrollY:await position()});
+};
+try{
+ await page.goto(origin+'/about',{waitUntil:'domcontentloaded'});await ready();
+ await expectTop('initial entry');
+ await page.locator('[data-site-footer] select').waitFor();
+ await page.waitForFunction(()=>document.querySelector('[data-site-footer] select')?.selectedOptions[0].textContent.startsWith('FR'));
+ const locale=await page.locator('[data-site-footer] select').evaluate(select=>({value:select.value,title:select.title,selected:select.selectedOptions[0].textContent,htmlLanguage:document.documentElement.lang}));
+ assert.equal(locale.value,'auto');assert.match(locale.selected,/FR/);assert.match(locale.htmlLanguage,/^en(?:-|$)/);
+ results.push({check:'French browser detected without changing English content language',...locale});
+ assert.equal(await page.locator('header [data-language-control]').count(),0);
+ assert.equal(await page.locator('.desktop-nav a').count(),6);
+ assert.equal(await page.locator('.menu-toggle').isVisible(),false);
+ assert.equal(await page.locator('.cart-link').getAttribute('href'),'/shop');
+ const desktop=await page.locator('header').evaluate(header=>({width:innerWidth,headerRight:header.getBoundingClientRect().right,overflow:document.documentElement.scrollWidth>innerWidth,links:[...header.querySelectorAll('.desktop-nav a')].map(a=>({label:a.textContent,left:a.getBoundingClientRect().left,right:a.getBoundingClientRect().right}))}));
+ assert.equal(desktop.overflow,false);assert.ok(desktop.links.every(link=>link.left>=0&&link.right<=1024));results.push({check:'six visible desktop destinations at 1024px',...desktop});
+ await page.screenshot({path:artifacts+'/navigation-desktop-1024.png'});
+ await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+ assert.ok(await position()>300);
+ await page.reload({waitUntil:'domcontentloaded'});await ready();await expectTop('reload after footer');
+ await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+ await page.locator('.desktop-nav a[href="/clients"]').click();await page.waitForURL('**/clients');await ready();await expectTop('new Clients page');
+ await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+ await page.goBack({waitUntil:'domcontentloaded'});await ready();await expectTop('back navigation');
+ await page.goto(origin+'/#experiences',{waitUntil:'domcontentloaded'});await ready();
+ await page.waitForFunction(()=>window.scrollY>150);
+ const hashScroll=await position();assert.equal(new URL(page.url()).hash,'#experiences');
+ await page.reload({waitUntil:'domcontentloaded'});await ready();await page.waitForFunction(()=>window.scrollY>150);
+ results.push({check:'explicit experiences hash survives initial entry and reload',initialScrollY:hashScroll,reloadScrollY:await position()});
+ await page.goto(origin+'/about',{waitUntil:'domcontentloaded'});await ready();
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('.menu-toggle').click();
+ assert.equal(await page.locator('#site-menu').isVisible(),true);assert.equal(await page.locator('#site-menu .menu-groups a').count(),6);
+ await page.getByRole('button',{name:'Close navigation'}).click();
+ await page.locator('[data-site-footer]').scrollIntoViewIfNeeded();
+ await page.screenshot({path:artifacts+'/navigation-footer-390.png',fullPage:false});
+ const phone=await page.locator('[data-site-footer] select').evaluate(select=>({width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,selectWidth:select.getBoundingClientRect().width,helpVisible:getComputedStyle(select.closest('[data-language-control]').querySelector('.language-help')).position==='static'}));
+ assert.equal(phone.overflow,false);assert.equal(phone.helpVisible,true);assert.ok(phone.selectWidth>200);results.push({check:'phone menu and readable footer language controls',...phone});
+ assert.equal(translations.length,0);assert.deepEqual(errors,[]);
+ await writeFile(artifacts+'/page-entry-navigation.json',JSON.stringify({results,automaticTranslationRequests:translations.length,errors},null,2));
+ console.log(JSON.stringify({checks:results.length,automaticTranslationRequests:translations.length,errors,artifacts},null,2));
+}finally{await browser.close()}

@@ -1,0 +1,42 @@
+.clients{container-type:inline-size;min-inline-size:0}
+.intro{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:end;padding-block:48px 32px}
+.intro h1{font-size:clamp(46px,7cqw,96px);line-height:1.06;margin-top:18px}
+.introCopy{display:grid;gap:16px;justify-items:start}
+.introCopy p{max-width:46ch;font-size:18px;line-height:1.65;color:var(--muted)}
+.introCopy a{min-height:44px;font-size:14px}
+.navigation{display:flex;flex-wrap:wrap;gap:10px;padding-bottom:32px}
+.navigation a{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:30px;background:#fff;font-size:14px;line-height:1.5}
+.navigation a:hover{color:var(--action);border-color:currentColor}
+.section{padding-block:30px 36px;border-top:1px solid var(--line);scroll-margin-top:125px}
+.heading{display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-bottom:24px}
+.heading h2{font-size:clamp(28px,3.5cqw,42px);line-height:1.16;letter-spacing:-.04em}
+.heading p{max-width:48ch;font-size:15px;line-height:1.6;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;list-style:none;padding:0;margin:0}
+.grid>li{min-inline-size:0}
+.card{display:flex;flex-direction:column;align-items:center;gap:16px;min-inline-size:0;height:100%;padding:22px 18px 16px;border:1px solid var(--ugt-border);border-radius:16px;background:#fff}
+a.card:hover{border-color:var(--action)}
+.logo{display:grid;place-items:center;width:100%;height:116px}
+/* A definite cap also constrains the shared height:auto responsive-image rule. */
+.logo img{width:100%;max-width:170px;height:100%;max-height:116px;object-fit:contain}
+.card h3{max-width:28ch;font-size:15px;font-weight:500;line-height:1.45;text-align:center;overflow-wrap:anywhere}
+.action{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-size:12px;line-height:1.5;color:var(--muted)}
+a.card .action{color:var(--action)}
+.action svg{flex-shrink:0;width:15px;height:15px}
+.commercial{padding-block:0 30px}
+.commercial details{border-block:1px solid var(--line);padding-block:12px}
+.commercial summary{min-height:44px;align-content:center;font-size:15px;line-height:1.5;cursor:pointer}
+.commercial details>p{font-size:14px;line-height:1.65;color:var(--muted);max-width:70ch;margin-block:10px 20px}
+.commercial .grid{max-width:285px;padding-bottom:12px;grid-template-columns:1fr}
+.callout{display:flex;align-items:center;justify-content:space-between;gap:28px;padding-block:18px 52px}
+.callout h2{font-size:clamp(30px,4cqw,46px);line-height:1.15;letter-spacing:-.04em}
+.callout p{font-size:15px;line-height:1.6;color:var(--muted);margin-top:10px}
+.clients :is(a,summary):focus-visible{outline:3px solid var(--action);outline-offset:4px}
+@media(min-width:1024px) and (hover:hover){.intro{padding-top:96px}}
+@container(max-width:900px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.heading{align-items:start;flex-direction:column;gap:12px}}
+@container(max-width:700px){.intro{grid-template-columns:1fr;gap:20px;padding-block:28px 20px}.intro h1{font-size:clamp(38px,10cqw,56px);margin-top:14px}.introCopy{gap:10px}.introCopy p{font-size:16px}.navigation{gap:8px;padding-bottom:24px}.navigation a{padding:10px 13px;font-size:13px}.section{padding-block:24px 28px;scroll-margin-top:94px}.heading{margin-bottom:20px}.heading h2{font-size:28px}.heading p{font-size:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{padding:18px 12px 12px;gap:13px}.card h3{font-size:14px}.logo{height:100px}.action{gap:7px;font-size:12px}.callout{align-items:start;flex-direction:column;gap:20px;padding-block:12px 36px}}
+:global(html[data-phone-viewport=wide]) .intro{grid-template-columns:1fr;gap:20px;padding-block:28px 20px}
+:global(html[data-phone-viewport=wide]) .intro h1{font-size:48px}
+:global(html[data-phone-viewport=wide]) .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+:global(html[data-phone-viewport=wide]) .commercial .grid{grid-template-columns:1fr}
+:global(html[data-phone-viewport=wide]) .heading,:global(html[data-phone-viewport=wide]) .callout{align-items:start;flex-direction:column;gap:16px}
+@container(max-width:700px){.logo img{max-height:100px}}

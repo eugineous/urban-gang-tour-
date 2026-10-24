@@ -2,11 +2,13 @@
 import {Suspense,useEffect,useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import Site from './Site';
+import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
 function QuerySync({onChange}:{onChange:(q:Record<string,string>)=>void}){const q=useSearchParams();const serialized=q.toString();useEffect(()=>onChange(Object.fromEntries(new URLSearchParams(serialized).entries())),[serialized,onChange]);return null}
 export default function HostedSite(props:Omit<React.ComponentProps<typeof Site>,'query'>){
  const [query,setQuery]=useState<Record<string,string>>({});
  const [events,setEvents]=useState(props.events),[posts,setPosts]=useState(props.posts),[products,setProducts]=useState(props.products);
  const [current,setCurrent]=useState({events:true,products:true});
+ const [newsCurrent,setNewsCurrent]=useState(props.newsCurrent!==false);
  useEffect(()=>{
   if(props.path!=='/'&&props.path!=='/blog')return;
   let stopped=false,controller:AbortController|undefined;
@@ -24,9 +26,10 @@ export default function HostedSite(props:Omit<React.ComponentProps<typeof Site>,
      if(stopped||request.signal.aborted)return;
      if(kind==='events'){setEvents(data.events);setCurrent(value=>({...value,events:true}))}
      if(kind==='products'){setProducts(data.products);setCurrent(value=>({...value,products:true}))}
-     if(kind==='posts')setPosts(home?data.posts.slice(0,3):data.posts);
+     if(kind==='posts'){const ordered=newestPublishedFirst(data.posts);setPosts(home?ordered.slice(0,3):ordered);setNewsCurrent(true)}
     }catch{
      if(!stopped&&controller===request&&(kind==='events'||kind==='products'))setCurrent(value=>({...value,[kind]:false}));
+     if(!stopped&&controller===request&&kind==='posts'){setNewsCurrent(false);setPosts([])}
     }
    }));clearTimeout(timer);
   }
@@ -35,5 +38,5 @@ export default function HostedSite(props:Omit<React.ComponentProps<typeof Site>,
   const visible=()=>{if(!document.hidden)void refresh()};document.addEventListener('visibilitychange',visible);
   return()=>{stopped=true;controller?.abort();clearInterval(timer);document.removeEventListener('visibilitychange',visible)};
  },[props.path]);
- return <><Suspense fallback={null}><QuerySync onChange={setQuery}/></Suspense><Site {...props} events={events} posts={posts} products={products} query={query} homeCurrent={current}/></>;
+ return <><Suspense fallback={null}><QuerySync onChange={setQuery}/></Suspense><Site {...props} events={events} posts={posts} products={products} query={query} homeCurrent={current} newsCurrent={newsCurrent}/></>;
 }

@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   }
   if (!hasDb()) return NextResponse.json({ ok: true, posts: [] }, { headers: CACHE_HEADERS });
   try {
-    const posts=(await getBlogPosts(true)).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished.slice(0,10),section:p.section,img:p.image,dek:p.description}));
+    const posts=(await getBlogPosts(true)).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description,imageAlt:p.imageAlt}));
     return NextResponse.json({ ok: true, posts }, { headers: CACHE_HEADERS });
   } catch {
     return NextResponse.json({ ok: false, error: 'stories_temporarily_unavailable' }, { status: 503, headers: {'Cache-Control':'no-store','Retry-After':'5'} });

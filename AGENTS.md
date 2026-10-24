@@ -1,5 +1,15 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Homepage-first continuation (24 October 2026)
+- Owner prioritizes visible homepage video, aligned compact actions, cart icon,
+  top-on-entry/reload, browser-language detection without a header chooser,
+  restored clients/news journeys, motion, mobile admin and reliable checkout.
+  This latest request reopens shop reliability work, not catalogue/price/stock
+  changes. Preserve authored content, private publication, consent, accessibility,
+  authentication and provider settings. No live test STKs/purchases/messages,
+  invented campaigns/publisher IDs or zero-failure/indexing guarantees. Use the
+  standing tested feature-branch/PR/Cloudflare release, keeping bindings and cron.
+
 ## Browser/search availability addition (23 October 2026)
 - Owner supplies Brave Search screenshots showing unrelated results and asks
   for browser availability fixes. Separate search discovery from direct access.
