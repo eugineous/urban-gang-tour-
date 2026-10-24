@@ -66,10 +66,10 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
       const uninterrupted=campaignCanInterrupt({hidden:document.hidden,editing:!!document.activeElement?.matches('input,textarea,select,[contenteditable=true]'),otherOverlay,privacyReady:consentReady,paused});
       const now=serverClock.current.time+clock-serverClock.current.at;
       const candidates=!paused&&consentReady&&lease.current>clock?campaigns.filter(c=>campaignTargets(c,path)&&campaignIsLive(c,now)&&!closed.includes(c.id)&&!recentlySeen(c)).sort((a,b)=>b.priority-a.priority||a.id.localeCompare(b.id)):[];
-      setSelection({
-        popup:uninterrupted?candidates.find(c=>c.format==='popup'&&clock-loadedAt.current>=c.delaySeconds*1000&&(!popupShown.current||dialog.current?.open)):undefined,
+      setSelection(current=>({
+        popup:uninterrupted?candidates.find(c=>c.format==='popup'&&clock-loadedAt.current>=c.delaySeconds*1000&&(!popupShown.current||(dialog.current?.open&&current.popup?.id===c.id))):undefined,
         banner:candidates.find(c=>c.format==='banner'),
-      });
+      }));
     }, 500);
     return () => clearInterval(watch);
   }, [allowed,haveCampaigns,campaigns,closed,path,paused]);

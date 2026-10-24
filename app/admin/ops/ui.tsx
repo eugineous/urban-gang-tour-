@@ -19,8 +19,8 @@ export const OC = {
   paper: '#fff',
 };
 
-export const card: React.CSSProperties = { background: '#fff', border: '1px solid #d8d2d6', borderRadius: 16, boxShadow: 'none', padding: 24 };
-export const btn: React.CSSProperties = { background: '#f4f1f3', color: '#151515', fontWeight: 600, fontSize: 14, minHeight: 44, padding: '9px 14px', border: '1px solid #bdb4ba', borderRadius: 10, boxShadow: 'none', cursor: 'pointer' };
+export const card: React.CSSProperties = { background: '#fff', border: '1px solid #d8d2d6', borderRadius: 16, boxShadow: 'none', padding: 24, minWidth: 0 };
+export const btn: React.CSSProperties = { background: '#f4f1f3', color: '#151515', fontWeight: 600, fontSize: 14, lineHeight: 1.4, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '9px 14px', border: '1px solid #bdb4ba', borderRadius: 10, boxShadow: 'none', cursor: 'pointer' };
 export const btnDark: React.CSSProperties = { ...btn, background: '#111', color: '#fff' };
 export const btnMagenta: React.CSSProperties = { ...btn, background: OC.magenta, color: '#fff' };
 export const btnSmall: React.CSSProperties = { ...btn, padding: '8px 12px', fontSize: 13 };

@@ -3,10 +3,10 @@ import {PRIMARY_NAVIGATION,SITE_MENU_GROUPS,SITE_UTILITY_NAVIGATION,isNavigation
 import {completedSchoolWork} from '@/ui/lib/portfolio-events';
 const now=Date.parse('2026-10-18T12:00:00+03:00');
 it('names public tasks and keeps services, event discovery, evidence and shopping distinct',()=>{
- expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Shop','/shop'],['About','/about'],['Book','/book']]);
+ expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Clients','/clients'],['Shop','/shop'],['About','/about'],['Book','/book']]);
  const links=SITE_MENU_GROUPS.flatMap(group=>group.items);
  expect(links).toContainEqual(['Shop','/shop']);expect(links).toContainEqual(['Events','/events']);
- expect(links).toHaveLength(5);expect(new Set(links.map(([,href])=>href)).size).toBe(links.length);
+ expect(links).toHaveLength(6);expect(new Set(links.map(([,href])=>href)).size).toBe(links.length);
  expect(links.filter(([,href])=>href.startsWith('/events'))).toHaveLength(1);
  expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/account']]);
  expect(new Set(PRIMARY_NAVIGATION.map(([,href])=>href)).size).toBe(PRIMARY_NAVIGATION.length);

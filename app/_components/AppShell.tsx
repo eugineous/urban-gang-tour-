@@ -1,18 +1,24 @@
 "use client";
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
-import {List,ArrowUpRight,ShoppingBag,Ticket} from '@phosphor-icons/react';
+import {List,ArrowUpRight,ShoppingCart,Ticket} from '@phosphor-icons/react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups,SITE_UTILITY_NAVIGATION as utilityLinks,isNavigationCurrent} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
-import LanguageChooser from './LanguageChooser';
+import {installPageEntryScroll} from '@/lib/client/page-entry-scroll';
 import {EventPlacements} from '@/ui/components/EventPlacements';
 import type {OwnedEvent} from '@/ui/lib/owned-event-presentation';
 
 export function AppShell({children,events=[],initialNow=0}:{children:React.ReactNode;events?:OwnedEvent[];initialNow?:number}){
  const path=usePathname();
+ const previousPath=useRef(path);
+ useEffect(()=>{
+  const reset=installPageEntryScroll(window);
+  // Hydration restores streamed anchors without overriding native text fragments.
+  reset(previousPath.current!==path);previousPath.current=path;
+ },[path]);
  return <PathShell key={path} path={path} events={events} initialNow={initialNow}>{children}</PathShell>;
 }
 /** A route change closes transient navigation without a cascading state effect. */
@@ -79,9 +85,8 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
    <nav ref={navigation} className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
    <div className="header-actions">
-    <LanguageChooser path={path}/>
     <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>My tickets</span></a>
-    <a className="cart-link" href="/shop" aria-label="Shop" aria-current={isNavigationCurrent(path,'/shop')?'page':undefined}><ShoppingBag size={21} aria-hidden="true"/><span>Shop</span></a>
+    <a className="cart-link" href="/shop" aria-label="Shop" aria-current={isNavigationCurrent(path,'/shop')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span>Shop</span></a>
     <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>Let’s talk</span><span aria-hidden="true">Let’s talk</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
     <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">Menu</span></button>
    </div>
@@ -100,6 +105,6 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
   {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   <CampaignDisplays path={path} paused={open||focus}/>
   {!critical&&path!=='/reels'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
-  {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
+  {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter path={path} onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;
 }

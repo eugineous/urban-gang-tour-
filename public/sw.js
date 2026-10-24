@@ -1,4 +1,4 @@
-const CACHE = 'ugt-simpler-journeys-20261023-v1';
+const CACHE = 'ugt-home-energy-20261024-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

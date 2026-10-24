@@ -3113,15 +3113,16 @@ function InvoiceForm({ inv, setInv, rows, setRows, computed }: any) {
           return (
             <div
               key={i}
+              className="cr-doc-line"
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 54px 84px 84px 28px",
                 gap: 6,
                 alignItems: "center",
               }}
             >
               <input
                 style={{ ...inp, padding: "7px 9px" }}
+                aria-label={`Line ${i + 1} description`}
                 placeholder="Description"
                 value={r.description}
                 onChange={setRow(i, "description")}
@@ -3130,6 +3131,7 @@ function InvoiceForm({ inv, setInv, rows, setRows, computed }: any) {
                 style={{ ...inp, padding: "7px 9px" }}
                 type="number"
                 min={0}
+                aria-label={`Line ${i + 1} quantity`}
                 placeholder="Qty"
                 value={r.qty}
                 onChange={setRow(i, "qty")}
@@ -3138,6 +3140,7 @@ function InvoiceForm({ inv, setInv, rows, setRows, computed }: any) {
                 style={{ ...inp, padding: "7px 9px" }}
                 type="number"
                 min={0}
+                aria-label={`Line ${i + 1} rate`}
                 placeholder="Rate"
                 value={r.rate}
                 onChange={setRow(i, "rate")}
@@ -3155,6 +3158,7 @@ function InvoiceForm({ inv, setInv, rows, setRows, computed }: any) {
               <button
                 onClick={() => delRow(i)}
                 title="Remove"
+                aria-label={`Remove line ${i + 1}`}
                 style={{ ...btnSmall, background: "#eee", padding: "5px 7px" }}
               >
                 x

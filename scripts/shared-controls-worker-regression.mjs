@@ -12,7 +12,7 @@ const options=convertV4MiniflareOptions({workers:[{
 options.workers[0].config.exports.default={type:'worker'};
 const runtime=new Miniflare(options);let checks=0;const titles=new Set();
 try{
- for(const route of ['/','/experience','/events','/tour-stops','/ticketing','/portfolio','/shop','/cart','/checkout','/book','/about','/author/eugine-micah','/author/lucy-ogunde','/blog','/gallery','/contact-us','/international','/accessibility','/welcome/en','/account','/organizer/login','/partners','/faq','/privacy-policy','/cookie-policy','/terms','/refund-policy','/ticket-terms','/reels','/press','/work-with-us','/marketplace','/affiliates']){
+ for(const route of ['/','/experience','/events','/tour-stops','/ticketing','/portfolio','/shop','/cart','/checkout','/book','/about','/author/eugine-micah','/author/lucy-ogunde','/blog','/gallery','/contact-us','/international','/accessibility','/welcome/en','/account','/organizer/login','/partners','/clients','/faq','/privacy-policy','/cookie-policy','/terms','/refund-policy','/ticket-terms','/reels','/press','/work-with-us','/marketplace','/affiliates']){
   const response=await runtime.dispatchFetch('https://urbangangtour.co.ke'+route);
   const html=await response.text();assert.equal(response.status,200,route);
   assert.equal((html.match(/<header class="site-header"/g)||[]).length,1,route+' header');

@@ -133,6 +133,7 @@ const card: React.CSSProperties = {
   borderRadius: 14,
   boxShadow: "none",
   padding: 24,
+  minWidth: 0,
 };
 const btn: React.CSSProperties = {
   background: C.yellow,
@@ -144,6 +145,11 @@ const btn: React.CSSProperties = {
   borderRadius: 10,
   boxShadow: "none",
   cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: 44,
+  lineHeight: 1.4,
 };
 const btnDark: React.CSSProperties = {
   ...btn,
@@ -2047,17 +2053,17 @@ function Table({
   );
   return (
     <div style={card}>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+      <div className="cr-table-toolbar">
         <input
           style={{ ...inp, maxWidth: 280 }}
+          aria-label="Search records"
           placeholder="Search…"
           value={qy}
           onChange={(e) => setQy(e.target.value)}
         />
-        <div style={{ flex: 1 }} />
         {exportKind && (
           <a
-            style={{ ...btn, textDecoration: "none" }}
+            style={{ ...btn, textDecoration: "none", marginLeft: "auto" }}
             href={`/api/admin/export?kind=${exportKind}`}
           >
             ⬇ Export CSV

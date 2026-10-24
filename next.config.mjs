@@ -48,9 +48,12 @@ const nextConfig = {
     // guessed): Google Sign-In script, Google Fonts, a YouTube embed. Paystack
     // checkout is a full-page redirect (see app/api/paystack/checkout/route.ts),
     // never an embedded script/iframe, so it needs no CSP allowance at all.
+    // Keep advertising origins dormant until a valid publisher is configured.
+    // The loader separately requires optional consent and an eligible page.
+    const adsConfigured = /^ca-pub-\d{16}$/.test(process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '');
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval' " : ""}https://accounts.google.com https://www.googletagmanager.com`,
+      `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval' " : ""}https://accounts.google.com https://www.googletagmanager.com${adsConfigured ? ' https://pagead2.googlesyndication.com' : ''}`,
       // accounts.google.com is here too: the GIS button loads its own
       // stylesheet (https://accounts.google.com/gsi/style) separately from
       // the script - found live while testing the connect-src fix above.
@@ -68,8 +71,8 @@ const nextConfig = {
       // subdomains like region1.google-analytics.com) plus analytics.google.com
       // - tested against a real config with NEXT_PUBLIC_GA_MEASUREMENT_ID set,
       // not guessed, learning from the connect-src gap Google Sign-In hit today.
-      "connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com https://urban-gang-tour-events.euginemicah.workers.dev",
-      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com",
+      `connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com https://urban-gang-tour-events.euginemicah.workers.dev${adsConfigured ? ' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net' : ''}`,
+      `frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com${adsConfigured ? ' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com' : ''}`,
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "object-src 'none'",

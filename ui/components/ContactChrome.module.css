@@ -17,6 +17,11 @@
 .linkGroup>a{display:flex;align-items:center;min-height:44px;padding-block:8px;font-size:14px;line-height:1.5;letter-spacing:0;color:#ded4da}
 .bottom{display:grid;gap:6px;margin-top:24px;padding-top:16px;border-top:1px solid #ffffff30;font-size:12px;line-height:1.5;letter-spacing:0;color:#ded4da}
 .bottom p{line-height:1.5}
+.language{margin-top:24px;max-width:420px;font-size:12px;line-height:1.5}
+.language :global(.language-control){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;inline-size:100%;color:inherit}
+.language :global(.language-select){inline-size:100%;max-inline-size:100%;font-size:14px}
+.language :global(.language-label),.language :global(.language-help){position:static;grid-column:1/-1;inline-size:auto;block-size:auto;margin:0;overflow:visible;clip-path:none;white-space:normal;color:#ded4da}
+.language :global(.language-label){font-weight:600;color:#fff}
 .legal,.preferences{display:flex;align-items:center;flex-wrap:wrap;gap:0 16px}
 .legal a,.preferences button{display:inline-flex;align-items:center;min-height:44px;max-width:100%;padding-block:8px;text-align:start;white-space:normal;font:inherit;letter-spacing:inherit;color:inherit}
 .footer a:hover,.preferences button:hover{text-decoration:underline;text-underline-offset:4px}

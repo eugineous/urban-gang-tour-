@@ -4,6 +4,7 @@ import {MEDIA_LIFECYCLE_BOOTSTRAP} from '@/lib/client/media-lifecycle';
 
 import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 import {DISPLAY_PREFERENCES_BOOTSTRAP} from '@/lib/client/display-preferences';
+import {PAGE_ENTRY_BOOTSTRAP} from '@/lib/client/page-entry-scroll';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './design.css';
@@ -77,7 +78,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialNow=requestTime();
   return (
     <html lang="en-KE" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{__html:DISPLAY_PREFERENCES_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
+      <head><script dangerouslySetInnerHTML={{__html:PAGE_ENTRY_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:DISPLAY_PREFERENCES_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
         {/* Meta app binding — enables FB share insights + Graph API attribution */}
         <meta property="fb:app_id" content="1338478978482580" />
         <link href="/fonts/inter.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />

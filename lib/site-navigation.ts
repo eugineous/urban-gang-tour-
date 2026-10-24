@@ -1,12 +1,12 @@
 /** Public tasks, not internal departments. Existing canonical URLs are retained. */
-export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],['Shop','/shop'],['About','/about'],['Book','/book']];
+export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],['Clients','/clients'],['Shop','/shop'],['About','/about'],['Book','/book']];
 export const SITE_MENU_GROUPS=[
  {title:'Explore',items:PRIMARY_NAVIGATION},
 ];
 export const SITE_UTILITY_NAVIGATION=[['My tickets','/account']];
 /** Footer columns share the same real destinations, rather than a wrapped link wall. */
 export const FOOTER_NAVIGATION=[
- {title:'Explore',items:[['Events','/events'],['Shop','/shop'],['Our work','/portfolio'],['About','/about']]},
+ {title:'Explore',items:[['Events','/events'],['Shop','/shop'],['Our work','/portfolio'],['Clients','/clients'],['News','/blog'],['About','/about']]},
  {title:'Help',items:[['My tickets','/account'],['Sell tickets','/organizer/login'],['Contact','/contact-us'],['Accessibility','/accessibility']]},
 ];
 /** Nested pages retain their section context; query filters are not new sections. */

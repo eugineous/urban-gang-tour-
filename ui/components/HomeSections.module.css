@@ -1,11 +1,15 @@
 .home{min-inline-size:0;max-inline-size:100%}
-.hero{position:relative;isolation:isolate;min-block-size:640px;block-size:min(82svh,820px);background:#21101d;color:#fff;container-type:inline-size}
+.hero{position:relative;display:grid;isolation:isolate;min-block-size:clamp(640px,82svh,820px);block-size:auto;background:#21101d;color:#fff;container-type:inline-size}
 .heroImage{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:center 45%;z-index:0}
 .hero :global(.hero-video){z-index:1}.hero :global(.video-control){top:116px;left:auto;right:28px;bottom:auto!important;width:auto;height:44px;min-block-size:44px;z-index:4;background:#190b16b8;border-color:#ffffff70}
-.heroShade{position:absolute;inset:0;background:linear-gradient(90deg,#1c001980,#1c001914),linear-gradient(0deg,#1b001cb3,transparent 85%);z-index:2;pointer-events:none}
-.heroInner{position:relative;z-index:3;block-size:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-block:150px 40px;gap:24px;pointer-events:none}
+.heroShade{position:absolute;inset:0;background:linear-gradient(90deg,#1c001940,transparent 75%),linear-gradient(0deg,#1b001ce0,transparent 85%);z-index:2;pointer-events:none}
+.heroInner{position:relative;z-index:3;block-size:auto;min-block-size:inherit;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-block:150px 40px;gap:24px;pointer-events:none}
 .heroInner a{pointer-events:auto}.heroCopy{max-inline-size:850px;min-inline-size:0}
 .heroEyebrow{font-size:14px;font-weight:500;line-height:1.5;letter-spacing:.04em;margin-block-end:22px;color:#fff}
+.heroEyebrow::before{content:'';display:inline-block;inline-size:20px;block-size:20px;margin-inline-end:10px;vertical-align:middle;background:var(--yellow);clip-path:polygon(50% 0,61% 32%,85% 15%,68% 39%,100% 50%,68% 61%,85% 85%,61% 68%,50% 100%,39% 68%,15% 85%,32% 61%,0 50%,32% 39%,15% 15%,39% 32%);animation:tour-spark 14s linear infinite}
+@keyframes tour-spark{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.heroEyebrow::before{animation:none}}
+:global(html[data-focus-view=true]) .heroEyebrow::before{animation:none}
 :global(#main-content) .hero h1{font-size:clamp(64px,9cqw,124px);font-weight:550;line-height:.96;letter-spacing:-.055em;max-inline-size:100%;overflow-wrap:break-word;text-wrap:balance}
 .heroSummary{font-size:clamp(17px,1.6cqw,21px);line-height:1.45;max-inline-size:43ch;margin-block-start:20px;color:#fff}
 .heroActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;inline-size:min(420px,100%);min-inline-size:0}
