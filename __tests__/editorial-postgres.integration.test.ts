@@ -84,7 +84,10 @@ describe.skipIf(!container)('isolated Postgres editorial workflow',()=>{
   const row=(await query('SELECT published,editorial_revision,editorial_review FROM posts WHERE slug=$1',[brief.slug]))[0];expect(row).toMatchObject({published:false,editorial_revision:'2',editorial_review:{}});
  });
  it('applies explicit publisher approval without inventing fact-checks and never approves briefs',async()=>{
-  const draft={...item,slug:'publisher-approved-fixture',date:'2026-10-22',scheduled_at:'2026-10-22T03:07:00.000Z',metadata:{editorial_type:'Analysis / practical guide'}};
+  // Keep this schedule genuinely future-dated as the calendar advances. The
+  // original fixed 22 October slot is now due, so it cannot assert privacy.
+  const futureDate=new Date(Math.max(Date.now()+86400000,Date.parse('2026-10-23'))).toISOString().slice(0,10);
+  const draft={...item,slug:'publisher-approved-fixture',date:futureDate,scheduled_at:futureDate+'T03:07:00.000Z',metadata:{editorial_type:'Analysis / practical guide'}};
   await importEditorial({...bundle,items:[draft]},'fixture-owner',false);
   const request={version:1,mode:'owner_approved_analysis',request_id:'12345678-1234-1234-1234-123456789abc',source_sha256:bundle.source_sha256,requested_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),source_request:'Publish/schedule without independent fact-checking.',targets:[{slug:draft.slug,hash:itemHash(draft),revision:1},{slug:bundle.items[1].slug,hash:itemHash(bundle.items[1]),revision:2}]};
   expect(await applyOwnerEditorialApproval(request)).toMatchObject({approved:1,conflicts:1});

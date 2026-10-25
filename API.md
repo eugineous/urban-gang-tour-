@@ -1000,6 +1000,36 @@ a separate review. A 60,000/min network read budget is not a throughput guarante
 40,000/min end-to-end capacity needs staging load, database and provider telemetry.
 # Editorial library (October 2026)
 
+## Owner-approved published story artwork (25 October 2026)
+
+The existing secret-authenticated editorial cron can consume an explicitly
+owner-approved `editorial-library/story-artwork-v1` private KV manifest. There
+is no new HTTP endpoint, login/session bypass or general content approval.
+Strict data binds at most ten unique slugs to existing headline/date/image,
+full-record version, separate content-hashed WebP hero (1600×900) and OG
+(1200×630), alt text, AI illustration caption, rights and provenance. The request
+expires within 24 hours; arbitrary columns, review claims and external assets
+are rejected. Uploaded metadata, RIFF/VP8 keyframe framing, dimensions and URL
+hashes are verified. This bounded path accepts simple still VP8 WebPs only;
+the operator separately decodes approved derivatives before staging exact hashes.
+
+`phase:preview` returns opaque full-record versions only to the private
+`editorial-library/story-artwork-status-v1` key. `phase:apply` requires those
+exact versions and current public eligibility. One locked SQL statement applies
+the entire batch or none, changing only `image`, `asset_manifest` and `updated_at`.
+Publication dates, schedules, bodies, review/approval, status and social flags
+are untouched. The genuine artwork edit advances modification time and the CMS
+optimistic-concurrency token; it does not pretend the artwork existed earlier.
+An atomic journal preserves prior records and new assets. An immutable request
+UUID/digest plus receipts makes retries harmless; edited, held, deleted/recreated
+or private stories cannot be overwritten or republished by replay.
+
+The cron response/heartbeat contains counts and manifest identity only. Public
+reads expose only alt/caption/OG when the current image matches that manifest's
+hero; ordinary CMS image changes therefore cannot retain stale artwork metadata.
+The existing media publication gate remains unchanged. No social broadcast,
+payment, email or independent fact-check attestation is triggered.
+
 ## Completing the remaining assignments (21 October 2026)
 
 The owner's completion request and standing publisher approval authorize the63
