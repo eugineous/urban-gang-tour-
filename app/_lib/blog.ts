@@ -18,6 +18,7 @@ export type BlogPost = {
   schemaType?:'BlogPosting'|'NewsArticle';
   imageAlt?:string;
   imageCaption?:string;
+  imageIllustration?:boolean;
   ogImage?:string;
   disclosure?:string;
 };
@@ -47,7 +48,7 @@ export async function getBlogPosts(throwOnError=false): Promise<BlogPost[]> {
           description: r.dek || '',
           body: Array.isArray(r.body) ? r.body : [],
           author:r.author||undefined,schemaType:r.schema_type||'NewsArticle',imageAlt:r.public_asset?.alt,
-          imageCaption:r.public_asset?.caption,ogImage:r.public_asset?.og,disclosure:r.disclosure||undefined,
+          imageCaption:r.public_asset?.caption,imageIllustration:r.public_asset?.illustration===true,ogImage:r.public_asset?.og,disclosure:r.disclosure||undefined,
         }));
       }
     }

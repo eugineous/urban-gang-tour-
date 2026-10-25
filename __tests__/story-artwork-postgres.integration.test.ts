@@ -115,7 +115,7 @@ describe.skipIf(!container)('isolated Postgres image-only published story artwor
    expect(preserved(after)).toEqual(preserved(before));expect(after.image).toBe(art.hero);expect(after.asset_manifest).toEqual(art);
    expect(Date.parse(String(after.updated_at))).toBeGreaterThan(Date.parse(String(before.updated_at)));expect(storyArtworkVersion(after)).not.toBe(storyArtworkVersion(before));
    const publicRow=publicRows.find(row=>row.slug===before.slug)!;
-   expect(publicRow).toMatchObject({image:art.hero,public_asset:{alt:art.alt,caption:art.caption,og:art.og}});
+   expect(publicRow).toMatchObject({image:art.hero,public_asset:{alt:art.alt,caption:art.caption,og:art.og,illustration:true}});
    expect(publicRow.public_asset).not.toHaveProperty('rights');expect(publicRow.public_asset).not.toHaveProperty('provenance');
   }
   expect(await snapshot(String(unrelated.slug))).toEqual(unrelated);

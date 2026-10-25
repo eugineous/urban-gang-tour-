@@ -1025,8 +1025,10 @@ UUID/digest plus receipts makes retries harmless; edited, held, deleted/recreate
 or private stories cannot be overwritten or republished by replay.
 
 The cron response/heartbeat contains counts and manifest identity only. Public
-reads expose only alt/caption/OG when the current image matches that manifest's
-hero; ordinary CMS image changes therefore cannot retain stale artwork metadata.
+reads expose only alt/caption/OG and the illustration flag when the current image
+matches that manifest's hero; ordinary CMS image changes therefore cannot retain
+stale artwork metadata. Article covers use the full 16:9/contain frame only for
+approved illustrations; ordinary photograph framing remains unchanged.
 The existing media publication gate remains unchanged. No social broadcast,
 payment, email or independent fact-check attestation is triggered.
 

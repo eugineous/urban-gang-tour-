@@ -16,7 +16,8 @@ export const PUBLIC_POST_SELECT = `SELECT slug,headline,section,image,dek,body,d
   CASE WHEN to_jsonb(posts)->'asset_manifest'->>'hero'=image THEN jsonb_build_object(
     'alt',to_jsonb(posts)->'asset_manifest'->>'alt',
     'caption',to_jsonb(posts)->'asset_manifest'->>'caption',
-    'og',to_jsonb(posts)->'asset_manifest'->>'og') ELSE NULL END AS public_asset,
+    'og',to_jsonb(posts)->'asset_manifest'->>'og',
+    'illustration',to_jsonb(posts)->'asset_manifest'->'illustration') ELSE NULL END AS public_asset,
   CASE WHEN to_jsonb(posts)->>'editorial_managed'='true' THEN to_jsonb(posts)->'editorial_review'->>'disclosure' END AS disclosure,
   CASE WHEN to_jsonb(posts)->>'editorial_managed'='true' THEN 'BlogPosting' ELSE 'NewsArticle' END AS schema_type
   FROM posts WHERE ${PUBLIC_POST_PREDICATE} ORDER BY date DESC, slug ASC`;
