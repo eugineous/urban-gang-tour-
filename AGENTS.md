@@ -1,5 +1,16 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Approved story artwork publication (25 October 2026)
+- Owner explicitly requests publishing the ten generated illustrations for the
+  public stories dated 16–25 October, then approves the small image-only CMS
+  extension. Use exact operator-private KV input through existing authenticated
+  cron; public eligibility, whole-record version, verified media hashes and an
+  expiring immutable journal must guard the atomic batch. Change artwork and
+  genuine modification time only; preserve text, publication dates, schedules,
+  status, content approval and social flags. Keep honest AI illustration captions
+  and existing auth/media gates. Tested branch/PR/Cloudflare release is approved;
+  keep bindings/cron and leave the superseded UI/MOOKH work alone.
+
 ## Homepage-first continuation (24 October 2026)
 - Owner prioritizes visible homepage video, aligned compact actions, cart icon,
   top-on-entry/reload, browser-language detection without a header chooser,
