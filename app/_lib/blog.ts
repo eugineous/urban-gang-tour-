@@ -4,6 +4,7 @@ import { cached } from '@/lib/server/microcache';
 import { q, hasDb } from '@/lib/server/db';
 import { NEWS_PUBLISHER_ID } from './jsonld';
 import {PUBLIC_POST_SELECT} from '@/lib/server/editorial-publication';
+import {URBAN_NEWS_AUTHOR, URBAN_NEWS_AUTHOR_URL, fallbackDeck} from '@/lib/blog-editorial-format';
 
 export type BlogPost = {
   slug: string;
@@ -13,6 +14,7 @@ export type BlogPost = {
   section: string;
   image: string;
   description: string;
+  subtitle: string;
   body: string[];
   author?:string;
   schemaType?:'BlogPosting'|'NewsArticle';
@@ -44,9 +46,10 @@ export async function getBlogPosts(throwOnError=false): Promise<BlogPost[]> {
           dateModified: r.updated_at ? new Date(Math.max(new Date(r.updated_at).getTime(),r.publication_time?new Date(r.publication_time).getTime():0)).toISOString() : iso(r.date),
           section: r.section || 'News',
           image: r.image || '/assets/poster.png',
-          description: r.dek || '',
+          description: fallbackDeck(r.dek, Array.isArray(r.body) ? r.body : []),
+          subtitle: fallbackDeck(r.subtitle || r.dek, Array.isArray(r.body) ? r.body : []),
           body: Array.isArray(r.body) ? r.body : [],
-          author:r.author||undefined,schemaType:r.schema_type||'NewsArticle',imageAlt:r.public_asset?.alt,
+          author:URBAN_NEWS_AUTHOR,schemaType:r.schema_type||'NewsArticle',imageAlt:r.public_asset?.alt,
           imageCaption:r.public_asset?.caption,ogImage:r.public_asset?.og,disclosure:r.disclosure||undefined,
         }));
       }
@@ -73,9 +76,7 @@ export function articleJsonLd(post: BlogPost) {
     articleBody: post.body.join('\n\n'),
     mainEntityOfPage: url,
     url,
-    // The current Content desk has no verified per-article author field.
-    // Do not turn the founders or an article's subject into its author.
-    author: { '@type': 'Organization', name: post.author||'Urban Gang Tour Newsroom', url: `${SITE.domain}/blog` },
+    author: { '@type': 'Person', name: URBAN_NEWS_AUTHOR, url: `${SITE.domain}${URBAN_NEWS_AUTHOR_URL}` },
     publisher: { '@id': NEWS_PUBLISHER_ID },
   };
 }
