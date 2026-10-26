@@ -4,8 +4,20 @@ vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:vi.fn(async()=>{})}));
 vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:vi.fn()}));
 vi.mock('next/navigation',()=>({notFound:()=>{throw Error('not-found')}}));
 import {q} from '@/lib/server/db';
-import ProductPage,{dynamic,revalidate} from '@/app/shop/[id]/page';
+import ProductPage,{dynamic,revalidate,generateMetadata} from '@/app/shop/[id]/page';
 describe('approved product detail flow',()=>{
+ it('rejects a missing or retired product during blocking metadata before the shell can stream',async()=>{
+  vi.mocked(q).mockResolvedValue([]);
+  await expect(generateMetadata({params:Promise.resolve({id:'p1'})})).rejects.toThrow('not-found');
+  expect(vi.mocked(q).mock.calls.at(-1)?.[0]).toContain('p.active');
+  await expect(ProductPage({params:Promise.resolve({id:'p1'})})).rejects.toThrow('not-found');
+ });
+ it('retains public metadata for a design-only preview without claiming sale inventory',async()=>{
+  vi.mocked(q).mockResolvedValue([]);
+  const metadata=await generateMetadata({params:Promise.resolve({id:'cb-hoodie'})});
+  expect(metadata.title).toContain('Design Preview');
+  expect(metadata.description).toContain('samples and stock unconfirmed');
+ });
  it('uses a real live product even when its id also exists in the proposed collection',async()=>{
   expect(dynamic).toBe('force-dynamic');expect(revalidate).toBe(0);
   vi.mocked(q).mockImplementation(async(sql:string)=>sql.includes('product_reviews')?[]:[{id:'cb-hoodie',name:'Approved production hoodie',price:3700,image:'/assets/ugt-logo.png',category:'Apparel',variants:[],stock:5}]);

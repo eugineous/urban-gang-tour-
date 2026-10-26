@@ -1000,6 +1000,42 @@ a separate review. A 60,000/min network read budget is not a throughput guarante
 40,000/min end-to-end capacity needs staging load, database and provider telemetry.
 # Editorial library (October 2026)
 
+## Explicit legacy merchandise retirement (25–26 October 2026)
+
+The owner explicitly authorized retiring all fourteen original `p1`–`p14`
+designs, not deleting their business history. The existing secret-authenticated
+editorial cron may consume `catalogue-retirement/pending-v1` in private KV.
+No public upload/write endpoint, session impersonation or new cron is introduced.
+
+The strict `owner_retire_legacy_merch` manifest accepts only the fourteen known
+ID/legacy-image pairs, current names and integer prices, an immutable UUID,
+explicit source request and a non-future staging cutoff. It expires within six
+hours. Ordered locks, unchanged exact values, non-null creation/update times no
+later than the cutoff, and a post-lock wall-clock expiry check guard one atomic
+batch. Only `active=false` and genuine `updated_at` change. A direct atomic
+`audit_log` journal retains previous records; retries cannot re-retire an item
+later restored by its owner or reuse a UUID for altered targets.
+
+Count-only outcome is stored at private `catalogue-retirement/status-v1` and in
+the cron heartbeat. Public merchandise, checkout catalogue, relevant paths and
+sitemap caches are invalidated after success or a successful replay. Expired
+catalogue snapshots no longer survive database refresh errors. The public products
+JSON also sends no-store to browser/shared caches; only its bounded, coalesced
+server query remains cached. Withdrawn merchandise therefore cannot reappear
+through HTTP stale-while-revalidate or server stale-on-error fallback.
+For the fourteen legacy detail URLs, a GET/HEAD edge check consults that same
+public active catalogue before rendering. Confirmed absence converts a streamed
+200 not-found shell to a noindex 404; the current renderer is preserved. Failed
+catalogue reads return a temporary no-store 503 with Retry-After, not a false
+permanent 404. Active/restored products and unrelated preview URLs are not
+blocked. Other isolates can retain an unexpired query for its 60-second TTL.
+
+Normal product detail, sitemap/schema and new-checkout reads already require
+active records. Accepted pending orders remain eligible for verified settlement;
+historical receipts use their stored names/prices. An order accepted just before
+retirement may still complete; retirement does not initiate or reverse payment.
+Color Blast designs remain previews, with no automatic stock or price approval.
+
 ## Owner-approved published story artwork (25 October 2026)
 
 The existing secret-authenticated editorial cron can consume an explicitly

@@ -1,5 +1,18 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Retire old merchandise (25–26 October 2026)
+- Owner reports old merchandise promoted ahead of the newer approved collection,
+  then explicitly answers "remove em" to retiring all fourteen original p1–p14
+  designs from public sale. Retire via the existing active=false semantics;
+  preserve records, prices, inventory, existing orders, settlement and receipts.
+  Use an exact, expiring, journalled private operator manifest through existing
+  authenticated cron, with no login/session bypass or new public write endpoint.
+  Lead marketing with owned Color Blast previews, honestly not confirmed stock.
+  Do not substitute those previews into sellable SKUs, invent availability or
+  delete masters. Verify current renderer and retired-route guards rather than
+  assuming a cache cause for the supplied historical-style bottom bar. This
+  request takes priority over English-first localization, which remains paused.
+
 ## Approved story artwork publication (25 October 2026)
 - Owner explicitly requests publishing the ten generated illustrations for the
   public stories dated 16–25 October, then approves the small image-only CMS

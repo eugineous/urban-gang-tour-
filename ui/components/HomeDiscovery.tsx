@@ -1,9 +1,11 @@
 'use client';
 
-import {useState} from 'react';
+import type {FC} from 'react';
 import {ArrowUpRight, CalendarBlank} from '@phosphor-icons/react';
 import type {LiveShopProduct} from '@/lib/shop-discovery';
-import {homepageUpcomingEvents, homepageProducts, homepageProductPrice, homepageProductSoldOut} from '../lib/home-discovery';
+import {merchProducts, type MerchProduct} from '@/data/color-blast';
+import GeneratedProductImage from '@/app/_components/merch/GeneratedProductImage';
+import {homepageUpcomingEvents} from '../lib/home-discovery';
 import type {OwnedEvent} from '../lib/owned-event-presentation';
 import {EventPosterCard} from './EventPosterCard';
 import Link from './DocumentLink';
@@ -24,20 +26,20 @@ export function HomeEvents({events, now, current=true}:{events:OwnedEvent[];now:
   </section>;
 }
 
-function HomeProduct({product,current}:{product:LiveShopProduct;current:boolean}) {
-  const [failed,setFailed]=useState('');
-  return <Link href={'/shop/'+encodeURIComponent(product.id)} className={styles.product} data-home-product={product.id} data-home-reveal>
-    <div className={styles.productImage}>{product.image&&failed!==product.image?<img src={product.image} alt={product.name} loading="lazy" decoding="async" width="600" height="700" onError={()=>setFailed(product.image||'')}/>:<span>View product</span>}<span className={styles.productArrow}><ArrowUpRight size={20} aria-hidden="true"/></span>{homepageProductSoldOut(product)&&<span className={styles.soldOut}>Out of stock</span>}</div>
-    <div className={styles.productInfo}><p>{product.category||'Official merchandise'}</p><h3>{product.name}</h3><strong>{current?homepageProductPrice(product):'View latest price'}</strong></div>
+const featuredDesigns=merchProducts.filter(design=>['cb-oversized-tee','cb-hoodie','cb-bucket-hat','cb-tote'].includes(design.id));
+
+function HomeDesign({design}:{design:MerchProduct}) {
+  return <Link href={'/shop/'+encodeURIComponent(design.id)} className={styles.product} data-home-design={design.id} data-home-reveal>
+    <div className={styles.productImage}><GeneratedProductImage id={design.id} colour="Black"/><span className={styles.productArrow}><ArrowUpRight size={20} aria-hidden="true"/></span></div>
+    <div className={styles.productInfo}><p>{design.category}</p><h3>{design.name}</h3><strong>Design preview</strong></div>
   </Link>;
 }
 
-export function HomeMerch({products,current=true}:{products:LiveShopProduct[];current?:boolean}) {
-  const selected=homepageProducts(products,4);
+// Promotion is curated separately from the owner-managed purchase catalogue.
+export const HomeMerch:FC<{products:LiveShopProduct[];current?:boolean}>=()=>{
   return <section className={styles.shop} id="home-shop" aria-labelledby="home-shop-title"><div className="wrap">
-    <div className={styles.heading} data-home-reveal><div><p className={styles.eyebrow}>Official merchandise</p><h2 id="home-shop-title">Wear the tour.</h2></div><Link className={styles.allLink} href="/shop">Shop all merchandise <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
-    {selected.length?<div className={styles.products}>{selected.map(product=><HomeProduct key={product.id} product={product} current={current}/>)}</div>:<div className={styles.empty}><h3>Find your tour essentials.</h3><p>Open the shop to explore the full collection and current prices.</p><Link className="button" href="/shop">Explore the shop <ArrowUpRight size={18} aria-hidden="true"/></Link></div>}
-    <div className={styles.shopFoot}><p>Tees, headwear and everyday essentials.</p><Link href="/shop">Find your favourite <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
-    {!current&&selected.length>0&&<p className={styles.notice} role="status">Open a product to check its latest price and options.</p>}
+    <div className={styles.heading} data-home-reveal><div><p className={styles.eyebrow}>Design previews · not on sale</p><h2 id="home-shop-title">Color Blast.</h2></div><Link className={styles.allLink} href="/shop/lookbook">Explore all designs <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
+    <div className={styles.products}>{featuredDesigns.map(design=><HomeDesign key={design.id} design={design}/>)}</div>
+    <div className={styles.shopFoot}><p>Samples and stock unconfirmed.</p><Link href="/shop">Shop products <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
   </div></section>;
-}
+};

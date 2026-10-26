@@ -7,7 +7,9 @@ import { readPublicProducts, publicCatalogDatabaseErrorCode } from '@/lib/server
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' };
+// The query is coalesced inside the Worker. A separate HTTP stale snapshot
+// must not keep withdrawn merchandise visible after its retirement.
+const CACHE_HEADERS = { 'Cache-Control': 'no-store', 'Cloudflare-CDN-Cache-Control': 'no-store' };
 
 export async function GET(req: Request) {
   // Loose: this is a public read that every page load makes, and a whole

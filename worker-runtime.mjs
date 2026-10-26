@@ -1,7 +1,7 @@
 import { canCachePublicPage, mustNotStoreResponse } from './public-cache-policy.mjs';
 import { sharedRateGuard } from './shared-rate-limit.mjs';
 
-const release = 'story-artwork-20261025-v2';
+const release = 'current-collection-20261026-v1';
 const welcomeLanguages = ['en','sw','fr','zh-Hans','ru','es'];
 const storyNotFound='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Story not available — Urban News</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;background:#f4f4f4;color:#151515;font:18px/1.6 Arial,sans-serif}main{max-width:680px;margin:auto;padding:48px 24px}h1{line-height:1.2}a{color:inherit;display:inline-flex;align-items:center;min-height:44px;margin-right:24px}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}</style></head><body><main id="main-content"><a href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" width="96" height="72" alt="Urban Gang Tour"></a><h1>This story isn’t available.</h1><p>It may be unpublished, moved or removed.</p><nav aria-label="Next steps"><a href="/blog">Read Urban News</a><a href="/">Home</a></nav></main></body></html>';
 const languageNotFound = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Language not available — Urban Gang Tour</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;background:#f4f4f4;color:#151515;font:18px/1.6 Arial,sans-serif}main{max-width:680px;margin:auto;padding:48px 24px}img{object-fit:contain}h1{line-height:1.2}nav{display:flex;flex-wrap:wrap;gap:12px 24px}a{color:inherit;display:inline-flex;align-items:center;min-height:44px}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}</style></head><body><main id="main-content"><a href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" width="96" height="72" alt="Urban Gang Tour"></a><h1>This language page isn’t available.</h1><p>Choose an available welcome page. Booking, checkout and legal pages are currently in English.</p><nav aria-label="Available languages"><a href="/welcome/en" lang="en">English</a><a href="/welcome/sw" lang="sw">Kiswahili</a><a href="/welcome/fr" lang="fr">Français</a><a href="/welcome/zh-Hans" lang="zh-Hans">简体中文</a><a href="/welcome/ru" lang="ru">Русский</a><a href="/welcome/es" lang="es">Español</a></nav><p><a href="/contact-us">Contact the team</a></p></main></body></html>`;
@@ -32,6 +32,27 @@ export function createWorker(app) {
         headers.set('Cloudflare-CDN-Cache-Control','no-store');
         headers.set('X-Content-Type-Options','nosniff');
         return new Response(limited.body,{status:limited.status,headers});
+      }
+      // The owner-retired p1–p14 namespace needs an actual HTTP withdrawal,
+      // not Next's streamed 200 not-found shell. Reuse the same public active
+      // catalogue; never infer absence from a failed read or hardcode retirement.
+      // Its bounded 60s cache can briefly lag both retirement and restoration.
+      let withdrawnLegacyProduct=false;
+      const legacyProduct=/^\/shop\/(p(?:[1-9]|1[0-4]))\/?$/.exec(url.pathname);
+      if(legacyProduct&&['GET','HEAD'].includes(request.method)){
+        let unavailable=false;
+        try{
+          const headers=new Headers(request.headers);headers.set('Accept','application/json');
+          for(const key of ['RSC','Next-Router-State-Tree','Next-Router-Prefetch','Next-Url'])headers.delete(key);
+          const feed=await app.fetch(new Request(new URL('/api/site-data/products',url),{headers}),env,ctx);
+          if(!feed.ok)unavailable=true;
+          else{
+            const data=await feed.json();
+            if(data.ok!==true||!Array.isArray(data.products)||!data.products.every(product=>product&&typeof product==='object'&&!Array.isArray(product)&&typeof product.id==='string'&&product.id.length>0))unavailable=true;
+            else withdrawnLegacyProduct=!data.products.some(product=>product?.id===legacyProduct[1]);
+          }
+        }catch{unavailable=true}
+        if(unavailable)return new Response(request.method==='HEAD'?null:'<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shop temporarily unavailable — Urban Gang Tour</title></head><body><main><h1>Please try again shortly.</h1><p>We couldn’t check this product right now.</p><a href="/shop">Back to the shop</a></main></body></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-UGT-Release':release,'X-Robots-Tag':'noindex','X-Content-Type-Options':'nosniff','Retry-After':'5','Content-Security-Policy':"default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"}});
       }
       // Root loading boundaries can turn Next notFound() into an HTTP 200
       // stream, even when metadata throws. Check the SAME public feed before
@@ -72,18 +93,20 @@ export function createWorker(app) {
       }
       const response = await app.fetch(request,env,ctx);
       const headers = new Headers(response.headers);
+      const status=withdrawnLegacyProduct&&response.status===200?404:response.status;
+      if(withdrawnLegacyProduct)headers.set('X-Robots-Tag','noindex');
       if (mustNotStoreResponse(request, response) || request.headers.get('RSC') === '1' || ['/sw.js','/release-client.js','/manifest.json'].includes(url.pathname) || (headers.get('content-type') || '').includes('text/html')) {
         headers.set('Cache-Control','no-store');
         headers.set('Cloudflare-CDN-Cache-Control','no-store');
       }
       headers.set('X-UGT-Release',release);
-      const safeToStore = cacheable && response.status === 200 &&
+      const safeToStore = cacheable && status === 200 &&
         (headers.get('content-type') || '').includes('text/html') && !headers.has('Set-Cookie');
       if (safeToStore) {
         headers.set('Cache-Control','public, max-age=0, s-maxage=60, must-revalidate');
         headers.set('Cloudflare-CDN-Cache-Control','public, max-age=60');
       }
-      const result = new Response(response.body,{status:response.status,statusText:response.statusText,headers});
+      const result = new Response(response.body,{status,statusText:status===response.status?response.statusText:undefined,headers});
       if (safeToStore) {
         try { ctx.waitUntil(caches.default.put(cacheKey,result.clone()).catch(error=>console.error('[public-cache-write]',error))); }
         catch (error) { console.error('[public-cache-write]',error); }

@@ -4,34 +4,38 @@ import type {LiveShopProduct, ShopCatalogueProduct} from '@/lib/shop-discovery';
 import {PRINTABLE_NAME_MAX_LENGTH} from '@/lib/shared/merch-personalization';
 import {ArrowDownRight, ArrowUpRight, Plus} from '@phosphor-icons/react';
 import GeneratedProductImage from './merch/GeneratedProductImage';
+import Link from '@/ui/components/DocumentLink';
 import styles from './ShopCatalogue.module.css';
 
 const money = (amount: number) => 'KES ' + amount.toLocaleString('en-KE');
 const productHref = (id: string) => '/shop/' + encodeURIComponent(id);
 
 /** Presentation only: availability, cart quantities and prices stay in LiveCommerce. */
-export function ShopIntro({cartCount = 0, selected = '', heroProduct}: {
+export function ShopIntro({cartCount = 0, selected = ''}: {
   cartCount?: number;
   selected?: string;
-  heroProduct?: LiveShopProduct;
 }) {
   return <header className={styles.hero}>
     <div className={styles.heroCopy}>
       <p className={styles.eyebrow}>Urban Gang Tour · Official merchandise</p>
       <h1>Shop.</h1>
-      <p className={styles.heroLine}>Wear the tour.</p>
-      <p className={styles.heroNote}>Merchandise and Color Blast designs.</p>
+      <p className={styles.heroLine}>Color Blast.</p>
+      <p className={styles.heroNote}>Explore the designs or browse the product catalogue.</p>
       <nav className={styles.heroActions} aria-label="Shopping navigation">
         <a className={styles.primaryLink} href="#merchandise-catalogue">Shop all <span aria-hidden="true"><ArrowDownRight size={16} weight="bold" /></span></a>
         <a className={styles.cartLink} href="/cart">View cart ({cartCount})</a>
         {selected && <a className={styles.cartLink} href="/shop">View all merchandise</a>}
       </nav>
     </div>
-    {heroProduct?.image && <a className={styles.heroImage} href={productHref(heroProduct.id)} aria-label={'View ' + heroProduct.name}>
-      <img src={heroProduct.image} alt={heroProduct.name} decoding="async" fetchPriority="high" />
-      <span>{heroProduct.name} <span aria-hidden="true"><ArrowUpRight size={14} weight="bold" /></span></span>
-    </a>}
+    <Link className={styles.heroImage} href="/shop/lookbook" aria-label="Explore Color Blast design previews, not on sale">
+      <div className={styles.heroArtwork}><GeneratedProductImage id="cb-oversized-tee" colour="Black" /></div>
+      <span>Color Blast · design preview · not on sale <span aria-hidden="true"><ArrowUpRight size={14} weight="bold" /></span></span>
+    </Link>
   </header>;
+}
+
+export function ShopNoProductsNotice() {
+  return <><p className="eyebrow">Merchandise</p><h2>No products currently on sale.</h2><p>Explore Color Blast design previews in the <Link href="/shop/lookbook">lookbook</Link>. Samples and stock are unconfirmed.</p><Link className="button" href="/contact-us">Ask about merchandise</Link></>;
 }
 
 export function ShopLiveProductCard({product, variation, full, printableName = '', onVariation, onName, onAdd}: {
@@ -123,7 +127,7 @@ type ShopCatalogueProps = {
 
 export default function ShopCatalogueView(props: ShopCatalogueProps) {
   return <div className={styles.catalogue} id="merchandise-catalogue">
-    <div className={styles.catalogueHeading}><h2>All merchandise</h2><p role="status">{props.products.length} {props.products.length === 1 ? 'product' : 'products'}</p></div>
+    <div className={styles.catalogueHeading}><h2>All merchandise</h2><p role="status">{props.products.length} {props.products.length === 1 ? 'item' : 'items'}</p></div>
     {props.products.some(product=>product.preview)&&<p className={styles.designNote} data-design-collection-note>Designs are not on sale. Samples, final prices and stock are unconfirmed. <a href="/shop/design-bag">Saved designs <span aria-hidden="true"><ArrowUpRight size={14}/></span></a></p>}
     <div className={styles.catalogueTools}>
       <label className={styles.search}>Search<input type="search" value={props.search} onChange={event => props.onSearch(event.target.value)} placeholder="Search merchandise" /></label>

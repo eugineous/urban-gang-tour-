@@ -1,7 +1,7 @@
 import {after,NextResponse} from 'next/server';
 import {timingSafeEqual} from 'node:crypto';
 import {releaseDueEditorial} from '@/lib/server/editorial';
-import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval,applyStagedEditorialCompletion,applyStagedStoryArtwork} from '@/lib/server/editorial-library';
+import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval,applyStagedEditorialCompletion,applyStagedStoryArtwork,applyStagedLegacyMerchRetirement} from '@/lib/server/editorial-library';
 import {invalidate} from '@/lib/server/microcache';
 import {editorialSlug} from '@/lib/editorial-import';
 import {pingIndexNow} from '@/lib/server/indexnow';
@@ -16,6 +16,7 @@ export async function POST(req:Request){
     const completion=await applyStagedEditorialCompletion();
     const ownerApproval=await applyStagedOwnerEditorialApproval();
     const artwork=await applyStagedStoryArtwork();
+    const merchRetirement=await applyStagedLegacyMerchRetirement();
     const {releasedSlugs,...outcome}=await releaseDueEditorial();
     const paths=Array.isArray(releasedSlugs)?releasedSlugs.filter(editorialSlug).map(slug=>'/blog/'+slug):[];
     if(outcome.released>0&&paths.length){
@@ -24,9 +25,9 @@ export async function POST(req:Request){
       try{after(async()=>{try{await pingIndexNow(['/','/blog',...paths]);}catch{console.warn('[editorial-indexing] crawl notification unavailable');}});}
       catch{console.warn('[editorial-indexing] background notification unavailable');}
     }
-    await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval,artwork});
+    await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement});
     invalidate('blog-published-posts');invalidate('site-posts');
-    return reply({ok:true,...outcome,library,completion,ownerApproval,artwork});
+    return reply({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement});
   }catch{
     await recordEditorialHeartbeat({ok:false,error:'editorial_check_failed'}).catch(()=>{});
     console.error('[editorial-monitor] check failed; no unapproved item released');

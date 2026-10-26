@@ -6,6 +6,12 @@ vi.mock('@/lib/server/microcache',()=>({cached:(_key:string,_ttl:number,load:()=
 import {hasDb,q} from '@/lib/server/db';
 import {ensureOpsSchema} from '@/lib/server/ops';
 import {GET} from '@/app/api/site-data/products/route';
+it('does not allow HTTP caches to replay a retired public catalogue',async()=>{
+ vi.mocked(hasDb).mockReturnValue(true);
+ const response=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));
+ expect(response.status).toBe(200);expect(response.headers.get('Cache-Control')).toBe('no-store');
+ expect(response.headers.get('Cloudflare-CDN-Cache-Control')).toBe('no-store');
+});
 beforeEach(()=>{vi.resetAllMocks();vi.mocked(hasDb).mockReturnValue(true);vi.mocked(q).mockResolvedValue([])});
 it('reports a genuine empty catalog as an empty result',async()=>{const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(200);expect(await r.json()).toEqual({ok:true,products:[]})});
 it('does not disguise missing database configuration as no products',async()=>{vi.mocked(hasDb).mockReturnValue(false);const r=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));expect(r.status).toBe(503);expect(await r.json()).toEqual({error:'catalog_unavailable'});expect(r.headers.get('cache-control')).toBe('no-store')});

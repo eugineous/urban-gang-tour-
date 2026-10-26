@@ -12,7 +12,7 @@
 .primaryLink:hover{background:#9b1460;border-color:#9b1460}
 .cartLink{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:600;text-underline-offset:4px}
 .heroImage{position:relative;min-width:0;display:grid;place-items:center;background:#f8f7f5;overflow:hidden;text-decoration:none;min-height:230px;border-top:1px solid var(--shop-line)}
-.heroImage img{width:100%;height:100%;max-height:420px;object-fit:contain;padding:18px}
+.heroArtwork{width:100%;height:300px;padding:18px 18px 64px}
 .heroImage>span{position:absolute;bottom:12px;left:16px;right:16px;display:flex;justify-content:space-between;gap:12px;font-size:11px;line-height:1.5;font-weight:600;background:#fffffff0;padding:9px 12px}
 .catalogue{scroll-margin-top:110px}
 .catalogueHeading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:25px 16px 18px}
@@ -67,14 +67,14 @@
  .page .heroNote{display:none}
  .heroActions{gap:8px;margin-top:16px}
  .heroImage{border-top:0;border-left:1px solid var(--shop-line);min-height:240px}
- .heroImage img{padding:10px;max-height:300px}
+ .heroArtwork{height:300px;padding:10px 10px 64px}
  .heroImage>span{left:8px;right:8px;font-size:10px;padding:6px 8px}
 }
 @container shop (min-width:40rem){
  .hero{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);min-height:360px}
  .heroCopy{padding:42px 6cqi}
  .heroImage{border-top:0;border-left:1px solid var(--shop-line)}
- .heroImage img{max-height:430px;padding:24px}
+ .heroArtwork{height:430px;padding:24px 24px 64px}
  .eyebrow{font-size:11px}
  .page .heroNote{display:block;font-size:14px}
  .heroActions{gap:16px;margin-top:24px}
@@ -97,7 +97,7 @@
 @container shop (min-width:64rem){
  .productGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
  .hero{min-height:410px}
- .heroImage img{max-height:450px}
+ .heroArtwork{height:450px}
  .productImage{aspect-ratio:1/1.12}
 }
 @container shop (min-width:100rem){.productGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}

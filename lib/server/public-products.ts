@@ -72,7 +72,7 @@ export async function readPublicProducts(): Promise<PublicProduct[]> {
         stock: variant.stock === null || variant.stock === undefined ? null : Math.max(0, Number(variant.stock)),
       })).filter((variant) => variant.label) : [],
     }));
-  });
+  }, false);
 }
 
 /** SQLSTATE only: never return or log driver messages, SQL or credentials. */

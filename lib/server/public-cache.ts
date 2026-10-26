@@ -36,3 +36,16 @@ export function bumpEventPublicTruth(eventId?: string | null): void {
     // revalidatePath is a no-op outside a Next request context (unit tests).
   }
 }
+
+/** Retired merchandise must leave discovery and new-checkout snapshots. Stored
+ * orders and inventory history remain authoritative and are never rewritten. */
+export function bumpProductPublicTruth(productIds:readonly string[]=[]):void{
+  invalidateCatalogCaches();
+  invalidate('site-products');
+  try{
+    for(const path of ['/','/shop','/sitemap.xml','/image-sitemap.xml','/api/site-data/products'])revalidatePath(path);
+    for(const id of new Set(productIds))if(/^[a-z0-9][a-z0-9-]{0,79}$/.test(id))revalidatePath('/shop/'+id);
+    revalidateTag('sitemap',{expire:0});
+    revalidateTag('products',{expire:0});
+  }catch{/* Next invalidation is unavailable outside its request context. */}
+}
