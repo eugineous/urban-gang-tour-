@@ -80,7 +80,8 @@ describe('portfolio library shelves', () => {
     const html=renderToStaticMarkup(createElement(PortfolioPage,{events,initialNow:now}));
     const live=shelf(html,'live-work');
     for (const kind of ['ticketed','partner','past']) expect(live).toContain('href="/events/completed-'+kind+'"');
-    for (const credit of ['Live hosting','For Recorded client','Recorded institution']) expect(live).toContain(credit);
+    for (const credit of ['Live hosting','Recorded institution']) expect(live).toContain(credit);
+    expect(live).toContain('<span lang="en">For <span lang="en-KE">Recorded client</span></span>');
     for (const name of ['Completed school record','Elapsed published partner','Private public event','Postponed public event']) expect(live).not.toContain(name);
   });
 

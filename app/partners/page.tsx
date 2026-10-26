@@ -1,3 +1,5 @@
+import {marketingMessages} from '@/ui/i18n/catalogues/marketing';
+import {MessageText} from '@/ui/i18n/MessageText';
 import type { Metadata } from 'next';
 import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
@@ -16,15 +18,15 @@ export default function Page() {
   return (
     <>
       <JsonLd data={structuredDataForPath(PATH)} />
-      <section className="page-intro wrap"><div><p className="eyebrow">Work with Urban Gang Tour</p><h1>Partnerships.</h1></div><p>Event bookings, brand campaigns, sponsorships and media partnerships.</p></section>
+      <section className="page-intro wrap"><div><p className="eyebrow"><MessageText catalogue={marketingMessages} message="partners.eyebrow"/></p><h1><MessageText catalogue={marketingMessages} message="partners.title"/></h1></div><p><MessageText catalogue={marketingMessages} message="partners.summary"/></p></section>
       <section className="wrap current-grid">
         {[
-          {title:'Schools & campuses',copy:'Book talent shows, cultural events or live hosting.',href:'/book?type=school',action:'Plan an event'},
-          {title:'Brands & institutions',copy:'Presenting, brand activations and campaign production.',href:'/work-with-us',action:'Explore campaign work'},
-          {title:'Sponsors & media',copy:'Discuss tour sponsorship or media coverage.',href:'/book?type=partnership',action:'Ask about partnerships'},
-        ].map(item=><article className="current-card" key={item.title}><h2>{item.title}</h2><p>{item.copy}</p><Link className="button" href={item.href}>{item.action} →</Link></article>)}
+          {title:<MessageText catalogue={marketingMessages} message="partners.school.title"/>,copy:<MessageText catalogue={marketingMessages} message="partners.school.text"/>,href:'/book?type=school',action:<MessageText catalogue={marketingMessages} message="planEvent"/>},
+          {title:<MessageText catalogue={marketingMessages} message="partners.brands.title"/>,copy:<MessageText catalogue={marketingMessages} message="partners.brands.text"/>,href:'/work-with-us',action:<MessageText catalogue={marketingMessages} message="partners.brands.action"/>},
+          {title:<MessageText catalogue={marketingMessages} message="partners.media.title"/>,copy:<MessageText catalogue={marketingMessages} message="partners.media.text"/>,href:'/book?type=partnership',action:<MessageText catalogue={marketingMessages} message="partners.media.action"/>},
+        ].map(item=><article className="current-card" key={item.href}><h2>{item.title}</h2><p>{item.copy}</p><Link className="button" href={item.href}>{item.action} →</Link></article>)}
       </section>
-      <section className="section wrap"><div className="section-title"><h2>See who we’ve worked with.</h2></div><Link className="button" href="/clients">Our clients →</Link><Link className="text-link" href="/portfolio">Explore our portfolio →</Link></section>
+      <section className="section wrap"><div className="section-title"><h2><MessageText catalogue={marketingMessages} message="partners.archive"/></h2></div><Link className="button" href="/clients"><MessageText catalogue={marketingMessages} message="partners.clients"/> →</Link><Link className="text-link" href="/portfolio"><MessageText catalogue={marketingMessages} message="partners.portfolio"/> →</Link></section>
     </>
   );
 }

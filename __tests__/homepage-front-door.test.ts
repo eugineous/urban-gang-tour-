@@ -183,10 +183,10 @@ describe('homepage front-door integration', () => {
   it('preserves owner-edited hero copy, image and native FAQs without adding another H1', () => {
     const content = {...WEBSITE_DEFAULTS['/'], title: 'Our live world <together>', summary: 'An owner-written introduction.\nSchool stages & culture.', image: '/uploads/fixture-home-hero.jpg', faqs: [{question: 'Owner question <one>?', answer: 'Owner answer & details.'}]};
     const html = render({pageContent: content});
-    expect(html).toContain('<h1>Our live world &lt;together&gt;</h1>');
+    expect(html).toContain('<h1><span lang="en-KE">Our live world &lt;together&gt;</span></h1>');
     expect(html).toContain('An owner-written introduction.\nSchool stages &amp; culture.');
     expect(html).toContain('src="/uploads/fixture-home-hero.jpg"');
-    expect(html).toContain('<summary><h3>Owner question &lt;one&gt;?</h3>');
+    expect(html).toContain('<summary><h3><span lang="en-KE">Owner question &lt;one&gt;?</span></h3>');
     expect(html).toContain('Owner answer &amp; details.');
     expect(html).toContain('href="/faq"');
     expect((html.match(/<h1(?:\s|>)/g) || [])).toHaveLength(1);

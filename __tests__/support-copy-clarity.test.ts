@@ -23,7 +23,7 @@ describe('plain-language support pages',()=>{
  });
  it('names the press page directly and retains the mission and team roles',()=>{
   const html=renderToStaticMarkup(createElement(PressPage));
-  expect(html).toContain('<h1>Press &amp; media.</h1>');
+  expect(html).toContain('<h1><span lang="en">Press &amp; media.</span></h1>');
   for(const text of ['From Potential to Purpose','Eugine Micah','Lucy Ogunde','TV presenter, MC','hype man','Event coordination and event supply','PPP TV'])expect(html).toContain(text);
   expect(html).not.toContain('The story behind the tour');
   expect(html).not.toContain('bringing conversation and audience connection');

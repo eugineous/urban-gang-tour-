@@ -15,7 +15,7 @@ describe('structured, evidence-linked presenter biographies',()=>{
   const html=renderToStaticMarkup(createElement(PresenterProfile,{lucy,initialNow:now}));
   const record=PRESENTER_BIOGRAPHIES[lucy?'lucy':'eugine'];
   expect(html.match(/<h1(?:\s|>)/g)).toHaveLength(1);
-  expect(html).toContain('id="presenter-name">'+record.name+'</h1>');
+  expect(html).toContain('id="presenter-name"><span lang="en-KE">'+record.name+'</span></h1>');
   for(const anchor of ['biography','broadcasting','selected-work','photographs']){
    expect(html).toContain('href="#'+anchor+'"');
    expect(html).toContain('id="'+anchor+'"');
