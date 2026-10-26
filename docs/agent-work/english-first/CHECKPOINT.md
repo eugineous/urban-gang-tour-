@@ -9,9 +9,10 @@ paused localization/automation work. Approved design is at
 Current phase: owner approved both plans and autonomous execution on 26 October.
 Proceed using the recommended subagent-driven method without further questions.
 Task 1 pure locale/message/format foundation is complete and independently reviewed;
-Task 2 preference store/provider is complete in9f7b44a plus reviewed identity fix
-b4742bc. Task3 shared public UI wiring is next. No public UI is yet wired or
-deployed. Plans:
+Tasks1–3 complete and independently reviewed. Task3 shared UI is908a5d5 plus
+source-language correction145df77. Task4 marketing/business copy is next.
+Nothing has been deployed; native coverage on remaining pages is pending.
+Plans:
 
 1. `docs/superpowers/plans/2026-10-26-native-interface-language.md` — eight tasks.
 2. `docs/superpowers/plans/2026-10-26-maintenance-reliability.md` — seven tasks.
@@ -36,8 +37,9 @@ reconciliation scheduling remain a separate guarded design, not hidden in these
 plans. Authored article/legal text and staff/server-document languages are excluded
 as explicitly stated in the approved design.
 
-Exact next action: execute Task3 shared shell/chooser/privacy wiring, then task
-review before Task4. Use the available Codex
+Exact next action: execute Task4 with its prepared brief/copy map, then independent
+review. Do not redo Tasks1–3. Campaign source-language gap was fixed in145df77 and
+re-review approved. Use the available Codex
 agent tools; specialist Flash routing was not verified (its extra skill resources
 were unavailable). Do not claim another model/provider was used.
 
@@ -75,3 +77,26 @@ Baseline actual-Worker screenshots (390/1440 French-browser/defaultEnglish) are 
 were stopped after capture. Both plans' task briefs/global constraints and
 preflight tables are prepared in their separate ignored SDD workspaces; B has not
 started and its actual base must be captured after A release.
+
+Task3 evidence: initial908a5d5 full suite1569 passed/123 skipped,139 focused,
+tsc0/lint0 with15 existing warnings. Final fix145df77 full suite1577 passed/123
+skipped,45 covering tests, tsc0/lint0 with2 unchanged warnings. Added en-KE only on
+existing original campaign text/CTA div; source/links/preview and translated
+controls outside are tested. Task3 review initially passed, then its final
+addendum correctly found this P2; scoped re-review native_language_task3_rereview
+approved. Quota pause ended after reset; resumed existing RED8 tests, no rework or
+purchase. Both final source/marker guards and English SSR comparisons are in
+private reports. No browser integration/build/deployment claim yet.
+
+Task3 controller rulings (carry to final handoff): narrowly update obsolete
+language-options/contact-page-layout assertions, then compact-shared-controls/
+contact-chrome/responsive-source-contract. Old195-option/Go/fixed96px/literal JSX
+assumptions intentionally retired; exact consent handlers, real destinations,
+noopener/noreferrer,44px/focus/wrapping protections retained and independently
+reviewed. Cost if wrong for each ruling: weaker regression coverage.
+
+Read-only preparation is complete for all remaining scopes: task-4-copy-map.md,
+task-5-boundaries.md, task-6-state-map.md, task-7-boundaries.md in the language SDD
+workspace. Task3 already localized shared ContactInterface labels/error keys;
+Task7 should preserve/audit them rather than duplicate. Feature catalogues live
+at ui/i18n/catalogues, not lib/i18n/catalogues.
