@@ -1,4 +1,4 @@
-import {createElement, type ReactElement, type ReactNode} from 'react';
+import {createElement, isValidElement, type ReactElement, type ReactNode} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {defineCatalogue, type Catalogue} from '@/lib/i18n/messages';
@@ -45,7 +45,7 @@ function renderProvider(children:ReactNode) {
   harness.index = 0;
   return LanguageProvider({children}) as ReactElement<{value:ContextValue;children:ReactNode}>;
 }
-function useFixtureLocale(locale:ContextValue['locale']) {
+function setFixtureLocale(locale:ContextValue['locale']) {
   harness.active = true;
   harness.context = {locale,preferredLocale:locale,persistence:'available',setLocale:() => {},reset:() => {}} satisfies ContextValue;
 }
@@ -97,7 +97,7 @@ describe('language provider and localized leaf rendering', () => {
   });
 
   it('returns localized plain strings for hooks, preserving exact references', () => {
-    useFixtureLocale('fr');
+    setFixtureLocale('fr');
     const t = useMessages(messages);
     expect(t('label',{code:'001234'})).toBe('Référence 001234');
     expect(t('items',{count:2})).toBe('2 articles');
@@ -143,14 +143,44 @@ describe('language provider and localized leaf rendering', () => {
     expect(literal).toContain('Reference {link}');
   });
 
+  it('keeps token keys stable by placeholder occurrence across translated offsets and reordered repeated tokens', () => {
+    const catalogue = defineCatalogue({
+      en:{rich:'Read {link}: {code}; again {link} / {code}'},
+      sw:{rich:'{code}: Soma {link}; {code} / {link}'},
+      fr:{rich:'Lire {code} puis {link}, encore {link} et {code}'},
+      'zh-Hans':{rich:'阅读 {link}：{code}，再次 {link}；{code}'},
+      ru:{rich:'{code}: Читать {link}, ещё {code} / {link}'},
+      es:{rich:'Lee {link}, luego {link}: {code} / {code}'},
+    });
+    const link = createElement('a',{href:'/legal'},'Terms');
+    const code = createElement('input',{defaultValue:'001234'});
+    const keysFor = (locale:ContextValue['locale']) => {
+      setFixtureLocale(locale);
+      const output = MessageText({catalogue,message:'rich',values:{link,code}});
+      const content = output.props.children as ReactNode[];
+      const tokens = content.filter((child):child is ReactElement<{children:ReactNode}> => isValidElement<{children:ReactNode}>(child));
+      expect(tokens).toHaveLength(4);
+      expect(new Set(tokens.map(token => token.key)).size).toBe(4);
+      expect(tokens.every(token => token.key !== null)).toBe(true);
+      const forNode = (node:ReactNode) => tokens.filter(token => token.props.children === node).map(token => token.key);
+      expect(forNode(link)).toHaveLength(2);
+      expect(forNode(code)).toHaveLength(2);
+      return {link:forNode(link),code:forNode(code)};
+    };
+    const english = keysFor('en');
+    for (const locale of ['sw','fr','zh-Hans','ru','es','en'] as const) {
+      expect(keysFor(locale)).toEqual(english);
+    }
+  });
+
   it('uses numeric plural counts and formats numeric tokens in rich messages', () => {
-    useFixtureLocale('fr');
+    setFixtureLocale('fr');
     const output = MessageText({catalogue:messages,message:'items',values:{count:1234.5}});
     expect(renderToStaticMarkup(output)).toContain('1 234,5 articles');
   });
 
   it('declares English fallback language and does not read inherited placeholders', () => {
-    useFixtureLocale('fr');
+    setFixtureLocale('fr');
     const partial = structuredClone(messages);
     Reflect.deleteProperty(partial.fr,'label');
     const node = MessageText({catalogue:partial,message:'label',values:{code:'001234'}});
@@ -161,7 +191,7 @@ describe('language provider and localized leaf rendering', () => {
   });
 
   it('preserves original children exactly and keeps original language on only the source wrapper', () => {
-    useFixtureLocale('en');
+    setFixtureLocale('en');
     const input = createElement('input',{defaultValue:'001234 / Customer input'});
     const source = createElement('article',null,'Original title',input);
     const block = OriginalContent({children:source});
@@ -176,7 +206,7 @@ describe('language provider and localized leaf rendering', () => {
   });
 
   it('keeps the native disclosure outside the source block with its own language and inline semantics', () => {
-    useFixtureLocale('fr');
+    setFixtureLocale('fr');
     const source = createElement('em',null,'Original English legal body');
     const html = renderToStaticMarkup(OriginalContent({children:source,disclose:true}));
     expect(html).toMatch(/lang="fr"/);
