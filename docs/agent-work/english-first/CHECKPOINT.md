@@ -9,9 +9,11 @@ paused localization/automation work. Approved design is at
 Current phase: owner approved both plans and autonomous execution on 26 October.
 Proceed using the recommended subagent-driven method without further questions.
 Task 1 pure locale/message/format foundation is complete and independently reviewed;
-Tasks1–4 complete and independently reviewed. Task3 shared UI is908a5d5 plus
+Tasks1–5 complete and independently reviewed. Task3 shared UI is908a5d5 plus
 source-language correction145df77. Task4 marketing/business copy is3c3536f,
-reviewed PASS/PASS with no findings by native_language_task4_review. Task5 is next.
+reviewed PASS/PASS with no findings by native_language_task4_review. Task5 is
+implemented in5085cdc with fix791eb4b; scoped re-review approved both findings
+with no new issues. Task6 commerce is next.
 Nothing has been deployed; native coverage on remaining pages is pending.
 Plans:
 
@@ -42,8 +44,13 @@ reconciliation scheduling remain a separate guarded design, not hidden in these
 plans. Authored article/legal text and staff/server-document languages are excluded
 as explicitly stated in the approved design.
 
-Exact next action: execute Task5 with its prepared brief/boundary map, then review.
-Do not redo Tasks1–4. Campaign source-language gap was fixed in145df77 and
+Exact next action: dispatch fresh Task6 commerce implementer with the
+prepared task-6-brief.md and task-6-state-map.md. RED16 new cases captured,
+existing38 cases passed; final full suite1639 passed/123 skipped, types0 and scoped
+lint0 errors. Bounded local Chromium media-overlay state checks passed, not an
+actual-Worker/hydration/geometry/device claim. Known approved browser is
+/usr/bin/chromium; whole
+Worker/browser matrix remains Task8. Do not redo Tasks1–4. Campaign gap was fixed in145df77 and
 re-review approved. Use the available Codex
 agent tools; specialist Flash routing was not verified (its extra skill resources
 were unavailable). Do not claim another model/provider was used.
@@ -120,3 +127,26 @@ press-heading assertion in support-copy-clarity. Preserve exact English/source
 lang, biography/readability/identities, links, publication/preview/mission/team/
 contact/rights checks. Cost if wrong for each: weaker data/copy regression coverage;
 independent review confirmed the exact replacements retain those safeguards.
+
+Task5 evidence:5085cdc,28 scoped files; complete discovery/media catalogues,
+canonical filters/status/data/ICS/share bytes and media effect dependencies
+preserved. Transcript source lang includes arbitrary existing tags such as sw-TZ.
+Ticketed postponed factual-day regression caught during self-review and corrected
+with RED/GREEN. Final full suite202 files passed/10 skipped,1639 tests passed/123
+skipped; types0/scoped lint0 errors68 baseline-style warnings. Full review package
+1922 lines/284975 bytes. Review found invalid option span wrappers and a minor
+Swahili contact-direction wording issue; fix791eb4b approved in scoped re-review.
+Final54 covering tests across4 suites/types0/lint0 errors31 existing warnings;
+parsed SSR hydration fixture validates all6 locales/canonical real and unknown
+category selections with no recoverable errors and preserved server-root nodes.
+No full-suite rerun for bounded fix; actualWorker release QA remainsTask8.
+
+Task5 controller rulings for final handoff: two narrow server Date.now purity
+suppressions preserve the baseline server request clock (root confirmed baseline
+errors at9294ce7); cost if wrong is hiding a future client purity defect. Narrowly
+update homepage integer-KES and complete date-placeholder assertions while keeping
+amounts/canonical links/eligibility and stronger absent-machine-date safeguards;
+cost if wrong is weaker price/date regression coverage. Narrowly update the
+Campus/Archive assertion to exact source/native language spans, keeping visible
+words, real links and no invented endorsements; cost if wrong is weaker archive
+copy coverage. All three rulings are included in the independent task review.
