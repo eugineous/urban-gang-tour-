@@ -1,3 +1,7 @@
+import {MessageText} from '@/ui/i18n/MessageText';
+import {discoveryMessages} from '@/ui/i18n/catalogues/discovery';
+import {OriginalContent} from '@/ui/i18n/OriginalContent';
+import {EventDay,EventAmount} from '@/ui/components/PublicationDate';
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -104,10 +108,6 @@ function safeTiers(value: TicketedEvent['tiers']): Tier[] {
   }
 }
 
-function money(value: number) {
-  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(value);
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const resolved = await eventForPage(slug);
@@ -147,17 +147,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const sellable = availabilityKnown && truth.isSellable;
   const soldOut = status === 'sold_out' || (status!=='announced'&&truth?.isSoldOut === true);
   const prev = eventDiscoveryDate(event.previous_start_at);
-  const statusNote: Record<string, { title: string; body: string }> = {
-    announced:{title:'Announced',body:'More details will be added here. Ticket sales are not open.'},
-    ongoing: { title: 'Happening Now', body: 'This event is in progress. Online ticket sales are closed.' },
-    sales_paused: { title: 'Sales Paused', body: 'Ticket sales are paused for this event. Check back soon.' },
-    sold_out: { title: 'Sold Out', body: 'This event is sold out. Check back for future dates or related events.' },
-    postponed: { title: 'Postponed', body: 'This event has been postponed. A new date will be announced — your tickets stay valid.' },
-    rescheduled: { title: 'Rescheduled', body: prev && prev !== String(event.event_date).slice(0, 10) ? `This event was rescheduled (previously ${prev}). Your tickets stay valid for the new date.` : 'This event was rescheduled. Your tickets stay valid for the new date.' },
-    cancelled: { title: 'Cancelled', body: 'This event has been cancelled. Ticket holders will be contacted about refunds.' },
-    completed: { title: 'Event Ended', body: 'This event has already happened. Browse upcoming events for what\'s next.' },
-  };
-  const currentStatus = statusNote[status] || { title: 'Tickets Available', body: '' };
+  const statusMessages={announced:'event.announced',ongoing:'event.ongoing',sales_paused:'event.sales_paused',sold_out:'event.sold_out',postponed:'event.postponed',rescheduled:prev&&prev!==String(event.event_date).slice(0,10)?'event.rescheduledPrevious':'event.rescheduled',cancelled:'event.cancelled',completed:'event.completed'} as const;
+  const currentStatus=statusMessages[status as keyof typeof statusMessages];
   const fromPrice = truth?.minPrice ?? (tiers.length ? Math.min(...tiers.map((t) => t.price)) : null);
   // Offers only where the public can actually buy (Google's requirement):
   // published lists InStock tiers, sold_out lists SoldOut, every other state
@@ -180,7 +171,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       .filter((tier) => soldOut || tier.sellable)
       .map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
   } : null;
-  const accent = /^#[0-9A-F]{6}$/i.test(event.accent) ? event.accent : '#E6218C';
   const eventDate = event.event_date?formatEventDate(event.event_date):'Date to be confirmed';
   const shareText = encodeURIComponent(`${event.name} — ${event.venue || ''} ${eventDate}`.trim());
   const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
@@ -189,11 +179,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   return <section className="event-detail-page wrap">
     {eventJsonLd&&<JsonLd data={eventJsonLd}/>}
     <EventsAnalytics eventSlug={event.slug} eventNames={[{slug:event.slug,name:event.name}]}/>
-    <div className="detail-breadcrumbs"><a href="/events">All events</a><span>/</span><span>{event.name}</span></div>
-    <section className="event-detail-hero"><div><p className="eyebrow">Urban Gang Tour presents</p><h1>{event.name}</h1><p>{event.description||'More event details will be added here.'}</p><p>{eventDate} · {event.venue||'Venue to be confirmed'}</p></div><EventArtwork name={event.name} image={event.image}/></section>
-    {currentStatus.body&&<p className="modern-alert" role="status">{currentStatus.body}</p>}
-    <section className="event-detail-grid"><div><h2>Plan your visit.</h2><dl>{[['Date',eventDate],['Time',event.event_time||'To be confirmed'],['Venue',event.venue||'To be confirmed'],['City',event.city||'Kenya']].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on WhatsApp</a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">Share on X</a>{/^\d{4}-\d{2}-\d{2}$/.test(String(event.event_date).slice(0,10))&&<EventCalendar name={event.name} date={String(event.event_date).slice(0,10)} start={startDate} venue={event.venue||''} url={`${SITE.domain}${path}`}/>}</div></div>
-    <aside className="modern-card"><h2>Ticket options.</h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt>{tier.name}</dt><dd>{money(tier.price)}</dd></div>)}</dl>:<p>Ticket options have not been published yet.</p>}{sellable?<a className="button" href={ticketHref}>Get tickets</a>:<p role="status">{soldOut?'Sold out':'Tickets not on sale'}</p>}<p className="form-note">Ticket availability is checked again at checkout.</p><a href="/book">Plan your own event with us</a></aside></section>
-    {sellable&&<div className="event-ticket-dock"><span>{fromPrice!==null?'From '+money(fromPrice):''}</span><a className="button" href={ticketHref}>Get tickets</a></div>}
+    <div className="detail-breadcrumbs"><a href="/events"><MessageText catalogue={discoveryMessages} message="events.all"/></a><span>/</span><span lang="en-KE">{event.name}</span></div>
+    <section className="event-detail-hero"><div><p className="eyebrow"><MessageText catalogue={discoveryMessages} message="event.presents"/></p><h1 lang="en-KE">{event.name}</h1><p>{event.description?<OriginalContent inline disclose>{event.description}</OriginalContent>:<MessageText catalogue={discoveryMessages} message="event.moreDetails"/>}</p><p><EventDay day={String(event.event_date||'').slice(0,10)} long/> · {event.venue?<span lang="en-KE">{event.venue}</span>:<MessageText catalogue={discoveryMessages} message="card.venue"/>}</p></div><EventArtwork name={event.name} image={event.image}/></section>
+    {currentStatus&&<p className="modern-alert" role="status"><MessageText catalogue={discoveryMessages} message={currentStatus} values={{previous:<span lang="en-KE">{prev}</span>}}/></p>}
+    <section className="event-detail-grid"><div><h2><MessageText catalogue={discoveryMessages} message="event.planVisit"/></h2><dl><div><dt><MessageText catalogue={discoveryMessages} message="details.date"/></dt><dd><EventDay day={String(event.event_date||'').slice(0,10)} long/></dd></div>{([['details.time',event.event_time],['details.venue',event.venue],['details.city',event.city||'Kenya']] as const).map(([label,value])=><div key={label}><dt><MessageText catalogue={discoveryMessages} message={label}/></dt><dd>{value?<span lang="en-KE">{value}</span>:<MessageText catalogue={discoveryMessages} message="details.confirm"/>}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer"><MessageText catalogue={discoveryMessages} message="event.whatsapp"/></a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer"><MessageText catalogue={discoveryMessages} message="event.x"/></a>{/^\d{4}-\d{2}-\d{2}$/.test(String(event.event_date).slice(0,10))&&<EventCalendar name={event.name} date={String(event.event_date).slice(0,10)} start={startDate} venue={event.venue||''} url={`${SITE.domain}${path}`}/>}</div></div>
+    <aside className="modern-card"><h2><MessageText catalogue={discoveryMessages} message="event.options"/></h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt lang="en-KE">{tier.name}</dt><dd><EventAmount value={tier.price}/></dd></div>)}</dl>:<p><MessageText catalogue={discoveryMessages} message="event.noOptions"/></p>}{sellable?<a className="button" href={ticketHref}><MessageText catalogue={discoveryMessages} message="event.getTickets"/></a>:<p role="status"><MessageText catalogue={discoveryMessages} message={soldOut?'status.sold_out':'event.notOnSale'}/></p>}<p className="form-note"><MessageText catalogue={discoveryMessages} message="event.checkoutCheck"/></p><a href="/book"><MessageText catalogue={discoveryMessages} message="event.planOwn"/></a></aside></section>
+    {sellable&&<div className="event-ticket-dock"><span>{fromPrice!==null&&<EventAmount value={fromPrice} from/>}</span><a className="button" href={ticketHref}><MessageText catalogue={discoveryMessages} message="event.getTickets"/></a></div>}
   </section>;
 }

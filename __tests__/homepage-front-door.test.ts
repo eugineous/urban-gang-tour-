@@ -74,7 +74,7 @@ describe('homepage front-door integration', () => {
       expect(events).toContain(`dateTime="${event.eventDate}"`);
       expect(events).toContain(event.venue);
     }
-    expect(events).toContain('from KES 1,200.00');
+    expect(events).toContain('from KES 1,200</p>');
     expect(events).toContain('Free admission');
     expect(events).toContain('Tickets via organiser');
     expect(events.indexOf('data-home-event="fixture-ticketed"')).toBeLessThan(events.indexOf('data-home-event="uni-fest-2026"'));

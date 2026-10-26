@@ -1,4 +1,7 @@
 'use client';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {mediaMessages} from '@/ui/i18n/catalogues/media';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
 import {useEffect,useState} from 'react';
 export type MediaCaption={asset:string;language:string;transcript:string;track:string};
 const known=new Map<string,MediaCaption|null>();
@@ -17,5 +20,5 @@ export function useMediaCaptions(asset:string|undefined,enabled=true){
   },[asset,enabled]);
   return value?.asset===asset?value:null;
 }
-export function VideoCaptionTrack({captions}:{captions:MediaCaption|null}){return captions?<track kind="captions" src={captions.track} srcLang={captions.language} label={captions.language==='en'?'English':captions.language} default/>:null}
-export function VideoTranscript({captions}:{captions:MediaCaption|null}){return captions?<details className="media-transcript"><summary>Read video transcript</summary><p style={{whiteSpace:'pre-wrap',maxHeight:'min(30dvh,240px)',overflowY:'auto'}}>{captions.transcript}</p></details>:null}
+export function VideoCaptionTrack({captions}:{captions:MediaCaption|null}){const t=useMessages(mediaMessages);return captions?<track kind="captions" src={captions.track} srcLang={captions.language} label={captions.language==='en'?t('english'):captions.language} default/>:null}
+export function VideoTranscript({captions}:{captions:MediaCaption|null}){return captions?<details className="media-transcript"><summary><MessageText catalogue={mediaMessages} message="transcript"/></summary><p lang={captions.language} style={{whiteSpace:'pre-wrap',maxHeight:'min(30dvh,240px)',overflowY:'auto'}}>{captions.transcript}</p></details>:null}

@@ -1,4 +1,7 @@
 'use client';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {discoveryMessages} from '@/ui/i18n/catalogues/discovery';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
 
 import {useEffect, useRef, useState} from 'react';
 import {CalendarBlank, MagnifyingGlass, Rows, SquaresFour, X} from '@phosphor-icons/react';
@@ -22,11 +25,11 @@ export function sortEventDirectory(events:OwnedEvent[], now:number) {
 }
 
 /** Only the public, administrator-published catalogue belongs in this directory. */
-export function EventDiscovery({events, initialNow=0}:Props) {
+export function EventDiscovery({events, initialNow=0}:Props) {const t=useMessages(discoveryMessages);
   const [catalogue, setCatalogue] = useState(events);
   const [now, setNow] = useState(initialNow);
   const [refreshState, setRefreshState] = useState<'current'|'stale'>('current');
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState<''|'events.updated'>('');
   const [pagination, setPagination] = useState({key:'',limit:12});
   const signature = useRef(ownedEventSignature(events));
   const loaded = useRef(false);
@@ -51,7 +54,7 @@ export function EventDiscovery({events, initialNow=0}:Props) {
         if (stopped || request.signal.aborted) return;
         const next:OwnedEvent[]=data.events.filter((event:unknown):event is OwnedEvent => !!event && typeof event==='object' && !Array.isArray(event));
         const nextSignature=ownedEventSignature(next);
-        if (loaded.current && nextSignature!==signature.current) setNotice('Event details updated.');
+        if (loaded.current && nextSignature!==signature.current) setNotice('events.updated');
         loaded.current=true;
         signature.current=nextSignature;
         setCatalogue(next);
@@ -94,55 +97,55 @@ export function EventDiscovery({events, initialNow=0}:Props) {
   return <div className={styles.experience} data-event-directory="owned" data-filters-ready={filtersReady}>
     <div className={styles.page}>
       <section className={styles.intro} aria-labelledby="events-title">
-        <h1 id="events-title">Events & tickets.</h1>
+        <h1 id="events-title"><MessageText catalogue={discoveryMessages} message="events.title"/></h1>
         <div className={styles.search}>
           <MagnifyingGlass size={24} weight="regular" aria-hidden="true"/>
-          <label className={styles.srOnly} htmlFor="event-search">Search events, schools or venues</label>
-          <input id="event-search" type="search" disabled={!filtersReady} value={filters.q} onChange={event => updateFilters({q:event.target.value.slice(0,200)}, true)} placeholder="Search events, schools or venues" autoComplete="off"/>
-          {filters.q && <button type="button" onClick={() => updateFilters({q:''}, true)} aria-label="Clear event search"><X size={20} aria-hidden="true"/></button>}
+          <label className={styles.srOnly} htmlFor="event-search"><MessageText catalogue={discoveryMessages} message="events.search"/></label>
+          <input id="event-search" type="search" disabled={!filtersReady} value={filters.q} onChange={event => updateFilters({q:event.target.value.slice(0,200)}, true)} placeholder={t("events.search")} autoComplete="off"/>
+          {filters.q && <button type="button" onClick={() => updateFilters({q:''}, true)} aria-label={t("events.clearSearch")}><X size={20} aria-hidden="true"/></button>}
         </div>
       </section>
 
-      {notice && <div className={styles.notice} role="status"><p>{notice}</p><button type="button" onClick={() => setNotice('')} aria-label="Dismiss event update"><X size={18} aria-hidden="true"/></button></div>}
-      {refreshState==='stale' && <p className={styles.updateNote} role="status">Showing saved events. Open event details for current availability.</p>}
+      {notice && <div className={styles.notice} role="status"><p>{t(notice)}</p><button type="button" onClick={() => setNotice('')} aria-label={t("events.dismissUpdate")}><X size={18} aria-hidden="true"/></button></div>}
+      {refreshState==='stale' && <p className={styles.updateNote} role="status"><MessageText catalogue={discoveryMessages} message="events.stale"/></p>}
 
       {featured.length>0 && !filters.q && <section className={styles.featured} aria-labelledby="featured-events-title">
-        <h2 id="featured-events-title">Featured events</h2>
-        <div className={styles.featuredRail} data-featured-events="true" tabIndex={0} role="region" aria-label="Featured events, scroll to see more">
+        <h2 id="featured-events-title"><MessageText catalogue={discoveryMessages} message="events.featured"/></h2>
+        <div className={styles.featuredRail} data-featured-events="true" tabIndex={0} role="region" aria-label={t("events.featuredScroll")}>
           {featured.map(event => <EventPosterCard key={String(event.id)} event={event} now={now} availabilityCurrent={refreshState==='current'} featured/>)}
         </div>
       </section>}
 
       <section className={styles.directory} aria-labelledby="explore-events-title">
         <div className={styles.sectionHeading}>
-          <h2 id="explore-events-title">Explore events</h2>
-          <div className={styles.layoutControls} role="group" aria-label="Event layout">
-            <Link className={styles.calendarLink} href="/tour-stops" aria-label="Open event calendar" title="Event calendar"><CalendarBlank size={22} aria-hidden="true"/></Link>
-            <button type="button" disabled={!filtersReady} aria-label="Grid view" aria-pressed={filters.layout==='grid'} onClick={() => updateFilters({layout:'grid'})}><SquaresFour size={22} weight="regular" aria-hidden="true"/></button>
-            <button type="button" disabled={!filtersReady} aria-label="List view" aria-pressed={filters.layout==='list'} onClick={() => updateFilters({layout:'list'})}><Rows size={22} weight="regular" aria-hidden="true"/></button>
+          <h2 id="explore-events-title"><MessageText catalogue={discoveryMessages} message="events.explore"/></h2>
+          <div className={styles.layoutControls} role="group" aria-label={t("events.layout")}>
+            <Link className={styles.calendarLink} href="/tour-stops" aria-label={t("events.openCalendar")} title={t("events.calendar")}><CalendarBlank size={22} aria-hidden="true"/></Link>
+            <button type="button" disabled={!filtersReady} aria-label={t("events.grid")} aria-pressed={filters.layout==='grid'} onClick={() => updateFilters({layout:'grid'})}><SquaresFour size={22} weight="regular" aria-hidden="true"/></button>
+            <button type="button" disabled={!filtersReady} aria-label={t("events.list")} aria-pressed={filters.layout==='list'} onClick={() => updateFilters({layout:'list'})}><Rows size={22} weight="regular" aria-hidden="true"/></button>
           </div>
         </div>
         <div className={styles.filters}>
-          <div className={styles.periods} role="group" aria-label="Event dates">
-            {([['upcoming','Upcoming'],['past','Past events'],['all','All events']] as const).map(([value,label]) => <button key={value} type="button" disabled={!filtersReady} aria-pressed={filters.period===value} onClick={() => updateFilters({period:value})}>{label}</button>)}
+          <div className={styles.periods} role="group" aria-label={t("events.dates")}>
+            {([['upcoming','events.upcoming'],['past','events.past'],['all','events.all']] as const).map(([value,label]) => <button key={value} type="button" disabled={!filtersReady} aria-pressed={filters.period===value} onClick={() => updateFilters({period:value})}>{t(label)}</button>)}
           </div>
           <div className={styles.selects}>
-            <label><span>Event type</span><select disabled={!filtersReady} value={filters.kind} onChange={event => updateFilters({kind:event.target.value})}><option value="all">All event types</option><option value="ticketed">Ticketed events</option><option value="partner">Partner events</option><option value="school">School tour</option><option value="past">Previous clients</option></select></label>
-            {(categories.length>0 || filters.eventCategory!=='all') && <label><span>Category</span><select disabled={!filtersReady} value={filters.eventCategory} onChange={event => updateFilters({eventCategory:event.target.value})}><option value="all">All categories</option>{filters.eventCategory!=='all' && !categories.some(category => category.id===filters.eventCategory) && <option value={filters.eventCategory}>Selected category</option>}{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>}
+            <label><span><MessageText catalogue={discoveryMessages} message="events.type"/></span><select disabled={!filtersReady} value={filters.kind} onChange={event => updateFilters({kind:event.target.value})}><option value="all"><MessageText catalogue={discoveryMessages} message="events.allTypes"/></option><option value="ticketed"><MessageText catalogue={discoveryMessages} message="events.ticketed"/></option><option value="partner"><MessageText catalogue={discoveryMessages} message="events.partner"/></option><option value="school"><MessageText catalogue={discoveryMessages} message="events.school"/></option><option value="past"><MessageText catalogue={discoveryMessages} message="events.previousClients"/></option></select></label>
+            {(categories.length>0 || filters.eventCategory!=='all') && <label><span><MessageText catalogue={discoveryMessages} message="events.category"/></span><select disabled={!filtersReady} value={filters.eventCategory} onChange={event => updateFilters({eventCategory:event.target.value})}><option value="all"><MessageText catalogue={discoveryMessages} message="events.allCategories"/></option>{filters.eventCategory!=='all' && !categories.some(category => category.id===filters.eventCategory) && <option value={filters.eventCategory}><MessageText catalogue={discoveryMessages} message="events.selectedCategory"/></option>}{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>}
           </div>
         </div>
-        <div className={styles.resultSummary}><p role="status" aria-live="polite">{visible.length} {visible.length===1?'event':'events'}{filters.q.trim()?' matching “'+filters.q.trim()+'”':''}</p>{modified && <button type="button" onClick={reset}>Reset filters</button>}</div>
+        <div className={styles.resultSummary}><p role="status" aria-live="polite">{t(filters.q.trim()?'events.matching':'events.count',{count:visible.length,query:filters.q.trim()})}</p>{modified && <button type="button" onClick={reset}><MessageText catalogue={discoveryMessages} message="events.reset"/></button>}</div>
         {shown.length>0 ? <div className={styles.eventGrid} data-layout={filters.layout}>
           {shown.map(event => <EventPosterCard key={String(event.id)} event={event} now={now} availabilityCurrent={refreshState==='current'}/>)}
         </div> : <div className={styles.empty}>
-          <h3>{refreshState==='stale' && catalogue.length===0 ? 'Events are temporarily unavailable.' : modified ? 'No events match your search.' : 'No upcoming events listed.'}</h3>
-          <p>{refreshState==='stale' && catalogue.length===0 ? 'Please try again shortly. You can still contact our team.' : 'Explore the archive or change your filters.'}</p>
-          <div><button type="button" onClick={() => updateFilters({q:'',period:'all',kind:'all',eventCategory:'all'})}>See all events</button><Link href="/contact-us">Contact the team</Link></div>
+          <h3>{t(refreshState==='stale'&&catalogue.length===0?'events.unavailable':modified?'events.noMatch':'events.noUpcoming')}</h3>
+          <p>{t(refreshState==='stale'&&catalogue.length===0?'events.retryContact':'events.archiveFilters')}</p>
+          <div><button type="button" onClick={() => updateFilters({q:'',period:'all',kind:'all',eventCategory:'all'})}><MessageText catalogue={discoveryMessages} message="events.seeAll"/></button><Link href="/contact-us"><MessageText catalogue={discoveryMessages} message="events.contact"/></Link></div>
         </div>}
-        {visible.length>limit && <div className={styles.more}><button type="button" onClick={() => setPagination({key:filterKey,limit:limit+12})}>Show more events <span>({visible.length-limit} more)</span></button></div>}
+        {visible.length>limit && <div className={styles.more}><button type="button" onClick={() => setPagination({key:filterKey,limit:limit+12})}><MessageText catalogue={discoveryMessages} message="events.more"/> <span>{t('events.moreCount',{count:visible.length-limit})}</span></button></div>}
       </section>
 
-      <aside className={styles.organizer} aria-label="Bring your event to Urban Gang Tour"><div><h2>List your event.</h2><p>Advertise an event or sell tickets here.</p></div><div><Link href="/organizer/signup">Sell tickets</Link><Link href="/contact-us?topic=event-listing">Advertise an event</Link></div></aside>
+      <aside className={styles.organizer} aria-label={t("events.bring")}><div><h2><MessageText catalogue={discoveryMessages} message="events.listYours"/></h2><p><MessageText catalogue={discoveryMessages} message="events.advertiseSummary"/></p></div><div><Link href="/organizer/signup"><MessageText catalogue={discoveryMessages} message="events.sell"/></Link><Link href="/contact-us?topic=event-listing"><MessageText catalogue={discoveryMessages} message="events.advertise"/></Link></div></aside>
     </div>
   </div>;
 }

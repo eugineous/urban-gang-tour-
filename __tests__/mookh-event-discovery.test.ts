@@ -49,7 +49,7 @@ describe('Mookh-shaped directory preserves Urban Gang event truth',()=>{
     expect(eventDateBadge({...event,status:'postponed'},now)).toBeNull();
     expect(eventDateBadge({...event,eventDate:'2026-02-30'},now)).toBeNull();
     const html=renderToStaticMarkup(createElement(EventPosterCard,{event:{...event,status:'postponed'},now}));
-    expect(html).not.toContain('datetime=');expect(html).toContain('Date<br/>to follow');
+    expect(html).not.toMatch(/datetime=/i);expect(html).toContain('Date to follow');
   });
   it('sorts upcoming chronologically, past newest first, and unconfirmed dates last',()=>{
     const rows=[{...event,id:'late',eventDate:'2026-12-01'},{...event,id:'early',eventDate:'2026-11-01'},{...event,id:'old',status:'completed',eventDate:'2026-07-01'},{...event,id:'recent',status:'completed',eventDate:'2026-09-01'},{...event,id:'unknown',status:'postponed'}];

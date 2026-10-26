@@ -1,4 +1,7 @@
 'use client';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {discoveryMessages} from '@/ui/i18n/catalogues/discovery';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
 
 import {useState} from 'react';
 import type {WebsiteContent} from '@/lib/website-content';
@@ -24,19 +27,19 @@ function StoryCard({story,lead=false}:{story:Story; lead?:boolean}) {
   return <article className={lead?styles.lead:styles.story} data-news-story={story.id}>
     <Link className={styles.storyLink} href={`/blog/${encodeURIComponent(story.id)}`}>
       <div className={styles.storyCopy}>
-        {lead&&<span className={styles.latest}>Latest story</span>}
-        <p className={styles.meta}><span>{storyCategory(story)?.label||story.section||'News'}</span><span aria-hidden="true">·</span><PublicationDate value={story.date}/></p>
-        <h2>{story.headline}</h2>
-        {story.dek&&<p className={styles.dek}>{story.dek}</p>}
-        <span className={styles.read}>Read story <InlineArrow/></span>
+        {lead&&<span className={styles.latest}><MessageText catalogue={discoveryMessages} message="news.latest"/></span>}
+        <p className={styles.meta}><span>{storyCategory(story)?<MessageText catalogue={discoveryMessages} message={newsCategoryMessage[storyCategory(story)!.id as keyof typeof newsCategoryMessage]}/>:story.section?<span lang="en-KE">{story.section}</span>:<MessageText catalogue={discoveryMessages} message="news.news"/>}</span><span aria-hidden="true">·</span><PublicationDate value={story.date}/></p>
+        <h2 lang="en-KE">{story.headline}</h2>
+        {story.dek&&<p className={styles.dek} lang="en-KE">{story.dek}</p>}
+        <span className={styles.read}><MessageText catalogue={discoveryMessages} message="news.read"/> <InlineArrow/></span>
       </div>
-      <div className={styles.image}><img src={story.img||'/assets/poster.png'} alt={story.imageAlt||''} loading={lead?'eager':'lazy'} decoding="async"/></div>
+      <div className={styles.image}><img lang="en-KE" src={story.img||'/assets/poster.png'} alt={story.imageAlt||''} loading={lead?'eager':'lazy'} decoding="async"/></div>
     </Link>
   </article>;
 }
 
 /** Only records from the existing public publication feed enter this index. */
-export function NewsroomIndex({posts,current=true,content=null}:Props) {
+export function NewsroomIndex({posts,current=true,content=null}:Props) {const t=useMessages(discoveryMessages);
   const [filters,updateFilters]=useUrlFilters({q:'',category:'all'},{category:['all',...newsCategories.categories.map(category=>category.id)]});
   const [pagination,setPagination]=useState({key:'',limit:12});
   const filterKey=JSON.stringify([filters.q,filters.category]);
@@ -50,24 +53,26 @@ export function NewsroomIndex({posts,current=true,content=null}:Props) {
 
   return <div className={styles.newsroom}>
     <header className={`wrap ${styles.intro}`}>
-      <div><p className={styles.eyebrow}>News &amp; guides</p><h1>{content?.title||'Urban News'}</h1></div>
-      <div className={styles.introCopy}><p>{content?.summary??'Tour updates, event stories and practical guides for schools, campuses and brands.'}</p><Link href="/book">Book the team <InlineArrow/></Link></div>
+      <div><p className={styles.eyebrow}><MessageText catalogue={discoveryMessages} message="news.guides"/></p><h1>{content?.title?<span lang="en-KE">{content.title}</span>:<MessageText catalogue={discoveryMessages} message="news.title"/>}</h1></div>
+      <div className={styles.introCopy}><p>{content?.summary!==undefined&&content?.summary!==null?<span lang="en-KE">{content.summary}</span>:<MessageText catalogue={discoveryMessages} message="news.summary"/>}</p><Link href="/book"><MessageText catalogue={discoveryMessages} message="news.book"/> <InlineArrow/></Link></div>
     </header>
 
-    <section className={`wrap ${styles.index}`} aria-label="Published stories">
+    <section className={`wrap ${styles.index}`} aria-label={t("news.published")}>
       {current&&published.length>0&&<>
         <div className={styles.tools}>
-          <div className={styles.categories} role="group" aria-label="News categories">{[{id:'all',label:'All stories'},...newsCategories.categories].map(category=><button key={category.id} type="button" aria-pressed={filters.category===category.id} onClick={()=>updateFilters({category:category.id})}>{category.label}</button>)}</div>
-          <label className={styles.search}><span>Search stories</span><input type="search" placeholder="Search a name or topic" value={filters.q} onChange={event=>updateFilters({q:event.target.value},true)}/></label>
+          <div className={styles.categories} role="group" aria-label={t("news.categories")}>{[{id:'all',label:'All stories'},...newsCategories.categories].map(category=><button key={category.id} type="button" aria-pressed={filters.category===category.id} onClick={()=>updateFilters({category:category.id})}>{category.id==='all'?t('news.all'):t(newsCategoryMessage[category.id as keyof typeof newsCategoryMessage])}</button>)}</div>
+          <label className={styles.search}><span><MessageText catalogue={discoveryMessages} message="news.search"/></span><input type="search" placeholder={t("news.searchHint")} value={filters.q} onChange={event=>updateFilters({q:event.target.value},true)}/></label>
         </div>
-        <div className={styles.indexHeading}><p>{modified?'Search results':'Latest stories'}</p><span>Newest first</span></div>
+        <div className={styles.indexHeading}><p>{t(modified?'news.results':'news.latestStories')}</p><span><MessageText catalogue={discoveryMessages} message="news.newest"/></span></div>
         {visible.length>0&&<div className={styles.stories}>{visible.map((story,index)=><StoryCard key={story.id} story={story} lead={index===0&&!modified}/>)}</div>}
-        <div className={styles.results}><p role="status" aria-live="polite">{Math.min(limit,matches.length)} of {matches.length} stories</p>{matches.length>limit&&<button type="button" className="button" onClick={()=>setPagination({key:filterKey,limit:limit+12})}>Show more stories <InlineArrow/></button>}</div>
-        {matches.length===0&&<div className={styles.empty}><h2>No matching stories.</h2><p>Try another name or topic, or browse all stories.</p><button type="button" className="button secondary" onClick={clear}>Clear search</button></div>}
+        <div className={styles.results}><p role="status" aria-live="polite">{t('news.count',{shown:Math.min(limit,matches.length),total:matches.length})}</p>{matches.length>limit&&<button type="button" className="button" onClick={()=>setPagination({key:filterKey,limit:limit+12})}><MessageText catalogue={discoveryMessages} message="news.more"/> <InlineArrow/></button>}</div>
+        {matches.length===0&&<div className={styles.empty}><h2><MessageText catalogue={discoveryMessages} message="news.noMatch"/></h2><p><MessageText catalogue={discoveryMessages} message="news.tryTopic"/></p><button type="button" className="button secondary" onClick={clear}><MessageText catalogue={discoveryMessages} message="news.clear"/></button></div>}
       </>}
-      {!current?<div className={styles.empty} role="status"><h2>Stories are temporarily unavailable.</h2><p>Try again to load the latest published stories.</p><Link className="button" href="/blog">Try again <InlineArrow/></Link></div>:published.length===0&&<div className={styles.empty}><h2>No published stories yet.</h2><p>New stories will appear here when they are published.</p><Link className="button" href="/events">Explore events <InlineArrow/></Link></div>}
+      {!current?<div className={styles.empty} role="status"><h2><MessageText catalogue={discoveryMessages} message="news.unavailable"/></h2><p><MessageText catalogue={discoveryMessages} message="news.retrySummary"/></p><Link className="button" href="/blog"><MessageText catalogue={discoveryMessages} message="news.retry"/> <InlineArrow/></Link></div>:published.length===0&&<div className={styles.empty}><h2><MessageText catalogue={discoveryMessages} message="news.empty"/></h2><p><MessageText catalogue={discoveryMessages} message="news.emptySummary"/></p><Link className="button" href="/events"><MessageText catalogue={discoveryMessages} message="events.explore"/> <InlineArrow/></Link></div>}
     </section>
 
-    <aside className={`wrap ${styles.tourLinks}`} aria-label="More from the tour"><p>See the tour in action.</p><div><Link href="/reels">Watch tour videos <InlineArrow/></Link><Link href="/events">Explore events <InlineArrow/></Link></div></aside>
+    <aside className={`wrap ${styles.tourLinks}`} aria-label={t("news.moreTour")}><p><MessageText catalogue={discoveryMessages} message="news.tourAction"/></p><div><Link href="/reels"><MessageText catalogue={discoveryMessages} message="news.videos"/> <InlineArrow/></Link><Link href="/events"><MessageText catalogue={discoveryMessages} message="events.explore"/> <InlineArrow/></Link></div></aside>
   </div>;
 }
+
+const newsCategoryMessage={schools:'news.category.schools',events:'news.category.events',culture:'news.category.culture',people:'news.category.people',partners:'news.category.partners',updates:'news.category.updates'} as const;
