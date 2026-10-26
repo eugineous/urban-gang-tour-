@@ -12,7 +12,9 @@ const options=convertV4MiniflareOptions({workers:[{
 options.workers[0].config.exports.default={type:'worker'};
 const runtime=new Miniflare(options);let checks=0;
 try{
- for(const [route,method,status] of [['/blog/fictional-unpublished-fixture','GET',404],['/api/admin/editorial','GET',401],['/api/admin/editorial','POST',401],['/api/internal/cron/editorial','POST',503],['/media/editorial-library/pending-v1','GET',404]]){
+ // With no database binding the product check must be 503, not an unchecked
+ // streamed 200 or an invented permanent 404. Live retirement checks assert404.
+ for(const [route,method,status] of [['/blog/fictional-unpublished-fixture','GET',404],['/shop/p1','GET',503],['/api/admin/editorial','GET',401],['/api/admin/editorial','POST',401],['/api/internal/cron/editorial','POST',503],['/media/editorial-library/pending-v1','GET',404],['/media/catalogue-retirement/pending-v1','GET',404],['/media/catalogue-retirement/status-v1','GET',404]]){
   const response=await runtime.dispatchFetch('https://urbangangtour.co.ke'+route,{method});
   const text=await response.text();assert.equal(response.status,status,route);
   assert.ok(!text.includes('source_sha256'),route+' private source');

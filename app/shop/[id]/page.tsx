@@ -91,7 +91,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       twitter: {card: 'summary_large_image', title, description, images: [image]},
     };
   }
-  if (!product) return {};
+  // Metadata is blocking for every visitor (htmlLimitedBots in next.config).
+  // Reject absent/retired products here, before the loading shell sends 200.
+  if (!product) notFound();
   const path = `/shop/${product.id}`;
   const description = product.description || `Official Urban Gang Tour ${product.name}.`;
   const title = `${product.name} | Urban Gang Merch`;

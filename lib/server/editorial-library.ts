@@ -4,6 +4,8 @@ import {importEditorial} from './editorial';
 import {applyOwnerEditorialApproval} from './owner-editorial-release';
 import {applyEditorialCompletion} from './editorial-completion';
 import {applyStoryArtwork} from './story-artwork';
+import {applyLegacyMerchRetirement} from './legacy-merch-retirement';
+import {bumpProductPublicTruth} from './public-cache';
 type LibraryStore={get(key:string):Promise<string|null>;put(key:string,value:string):Promise<void>};
 function libraryStore():LibraryStore|undefined{
   try{return (getCloudflareContext().env as unknown as {UGT_MEDIA?:LibraryStore}).UGT_MEDIA}catch{return undefined}
@@ -54,4 +56,15 @@ export async function applyStagedStoryArtwork(){
  const {targets,...summary}={targets:undefined as unknown,...result};
  void targets;
  return {staged:true,...summary};
+}
+/** A separate explicit owner decision retires exact old merchandise artwork.
+ * Existing authenticated cron only; it cannot approve replacement stock. */
+export async function applyStagedLegacyMerchRetirement(){
+ const store=libraryStore();if(!store)return {staged:false};
+ const raw=await store.get('catalogue-retirement/pending-v1');if(!raw)return {staged:false};
+ if(Buffer.byteLength(raw)>50000)throw Error('legacy_merch_retirement_too_large');
+ const value=JSON.parse(raw),result=await applyLegacyMerchRetirement(value);
+ if(result.retired>0||result.already>0)bumpProductPublicTruth(Array.isArray(value.targets)?value.targets.map((target:{id?:unknown})=>typeof target.id==='string'?target.id:''):[]);
+ await store.put('catalogue-retirement/status-v1',JSON.stringify({checked_at:new Date().toISOString(),...result}));
+ return {staged:true,...result};
 }

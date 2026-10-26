@@ -79,4 +79,13 @@ describe('shared public merchandise source', () => {
     expect(publicCatalogDatabaseErrorCode(error)).toBe('08006');
     expect(publicCatalogDatabaseErrorCode({code: 'password=private'})).toBeNull();
   });
+  it('does not revive a withdrawn catalogue snapshot when the next refresh fails',async()=>{
+    const clock=vi.spyOn(Date,'now').mockReturnValue(1_000_000);
+    try{
+      state.q.mockResolvedValueOnce([{id:'p1',name:'Retired fixture',price:900,image:'/assets/merch/magenta-tee.png'}]);
+      expect(await readPublicProducts()).toHaveLength(1);
+      clock.mockReturnValue(1_060_001);state.q.mockRejectedValueOnce(new Error('fixture catalogue outage'));
+      await expect(readPublicProducts()).rejects.toThrow('fixture catalogue outage');
+    }finally{clock.mockRestore();}
+  });
 });
