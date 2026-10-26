@@ -6,6 +6,7 @@ import postcss from 'postcss';
 import {describe,expect,it} from 'vitest';
 import {ContactPage} from '@/ui/components/ContactInterface';
 import chrome from '@/ui/components/ContactChrome.module.css';
+import {shellMessages} from '@/ui/i18n/catalogues/shell';
 
 const css=postcss.parse(readFileSync('ui/components/ContactChrome.module.css','utf8'));
 function declarations(selector:string){
@@ -29,8 +30,12 @@ describe('scoped contact page layout',()=>{
  });
  it('gives only the saved-message reset control a fit-content 44px target',()=>{
   const source=readFileSync('ui/components/ContactInterface.tsx','utf8');
-  expect(source).toContain('className={`button secondary ${chrome.newMessage}`} type="button" onClick={startNew}>New message');
+  expect(source).toContain('className={`button secondary ${chrome.newMessage}`} type="button" onClick={startNew}');
+  expect(source).toContain("{t('contact.newMessage')}");
+  expect(shellMessages.en['contact.newMessage']).toBe('New message');
+  expect(source).toContain("function startNew(){setDraft(emptyContact);setReference('');setError('');attempt.current=null;}");
   expect(declarations('.newMessage:global(.button.secondary)')).toMatchObject({width:'fit-content','inline-size':'fit-content','min-height':'44px','min-block-size':'44px','justify-self':'start'});
-  expect(source).toContain('Your enquiry is saved for the team.');
+  expect(source).toContain("{t('contact.saved')}");
+  expect(shellMessages.en['contact.saved']).toBe('Your enquiry is saved for the team.');
  });
 });

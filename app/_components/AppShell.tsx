@@ -1,4 +1,6 @@
 "use client";
+import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/catalogues/shell';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
 import {List,ArrowUpRight,ShoppingCart,Ticket} from '@phosphor-icons/react';
@@ -23,6 +25,9 @@ export function AppShell({children,events=[],initialNow=0}:{children:React.React
 }
 /** A route change closes transient navigation without a cascading state effect. */
 function PathShell({children,path,events,initialNow}:{children:React.ReactNode;path:string;events:OwnedEvent[];initialNow:number}){
+ const t=useMessages(shellMessages);
+ const navLabel=(label:string,href:string)=>{const key=navigationMessageKey(href);return key?t(key):label};
+ const groupLabel=(group:string)=>{const key=navigationGroupKey(group);return key?t(key):group};
  const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false);
  const [navWidth,setNavWidth]=useState<number>(),[dark,setDark]=useState(path==='/');
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null);
@@ -82,24 +87,24 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  return <>
   <header ref={header} className="site-header" data-elevated={elevated} data-dark={dark} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
    <div className="header-content">
-   <a className="brand" href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
-   <nav ref={navigation} className="desktop-nav" aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav>
+   <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
+   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
    <div className="header-actions">
-    <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>My tickets</span></a>
-    <a className="cart-link" href="/shop" aria-label="Shop" aria-current={isNavigationCurrent(path,'/shop')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span>Shop</span></a>
-    <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>Let’s talk</span><span aria-hidden="true">Let’s talk</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
-    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">Menu</span></button>
+    <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
+    <a className="cart-link" href="/shop" aria-label={t('nav.shop')} aria-current={isNavigationCurrent(path,'/shop')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span>{t('nav.shop')}</span></a>
+    <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
+    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={()=>setOpen(value=>!value)}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">{t('nav.menu')}</span></button>
    </div>
    </div>
   </header>
-  <dialog ref={menu} id="site-menu" className={`menu-panel ${open?'is-open':''}`} aria-label="Site navigation" onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
+  <dialog ref={menu} id="site-menu" className={`menu-panel ${open?'is-open':''}`} aria-label={t('nav.site')} onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
    if(event.target!==event.currentTarget)return;
    const rect=event.currentTarget.getBoundingClientRect();
    if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
   }}>
-   <div className="menu-dialog-heading"><strong>Menu</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label="Close navigation">Close ×</button></div>
-   <div className="menu-groups">{menuGroups.map(group=><nav key={group.title} aria-label={group.title}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{label}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
-   <div className="menu-bottom"><nav className="menu-account-links" aria-label="Account and help">{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{label}</a>)}</nav></div>
+   <div className="menu-dialog-heading"><strong>{t('nav.menu')}</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label={t('nav.close')}>{t('nav.closeVisible')}</button></div>
+   <div className="menu-groups">{menuGroups.map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
+   <div className="menu-bottom"><nav className="menu-account-links" aria-label={t('nav.accountHelp')}>{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav></div>
   </dialog>
   <main id="main-content" inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}

@@ -2,6 +2,7 @@
 import {readFileSync} from 'node:fs';
 import postcss from 'postcss';
 import {describe,expect,it} from 'vitest';
+import {privacyMessages} from '@/ui/i18n/catalogues/privacy';
 const shared=readFileSync('app/interaction-foundations.css','utf8');
 const privacy=readFileSync('app/_components/PrivacyChoices.module.css','utf8');
 const languages=readFileSync('app/responsive-continuation.css','utf8');
@@ -32,14 +33,20 @@ describe('compact shared controls',()=>{
  });
  it('keeps meaningful consent and necessary storage with two simple choices',()=>{
   const component=readFileSync('app/_components/CookieConsent.tsx','utf8');
-  for(const text of ['>Reject</button>','>Accept</button>','Necessary cookies','If you’re under 18','stays off until you accept','decide(false)','decide(true)'])expect(component).toContain(text);
+  for(const handler of ['onClick={()=>decide(false)}','onClick={()=>decide(true)}','setOptionalConsent(accepted)'])expect(component).toContain(handler);
+  expect(privacyMessages.en['consent.reject']).toBe('Reject');expect(privacyMessages.en['consent.accept']).toBe('Accept');
+  for(const text of ['Necessary cookies','If you’re under 18','stays off until you accept'])expect(privacyMessages.en['consent.disclosure']).toContain(text);
   expect(component).not.toContain('privacy-storage-details');
  });
  it('replaces the language modal with a compact readable native selector',()=>{
-  expect(values(languages,'.language-control','inline-size')).toEqual(['96px']);
-  expect(values(languages,'.language-select','block-size')).toEqual(['44px']);
+  expect(values(languages,'.language-control','flex-wrap')).toEqual(['wrap']);
+  expect(values(languages,'.language-select','inline-size')).toEqual(['160px']);
+  expect(values(languages,'.language-select','min-inline-size')).toEqual(['0']);
+  expect(values(languages,'.language-select','max-inline-size')).toEqual(['100%']);
+  expect(values(languages,'.language-select','min-block-size')).toEqual(['44px']);
   expect(values(languages,'.language-select','font')).toEqual(['500 16px/1.4 Inter,Arial,sans-serif']);
   expect(languages).not.toContain('.language-dialog');
+  expect(languages).toContain(':focus-visible');expect(languages).not.toContain('.language-apply');
  });
  it('does not introduce a blanket maximum for image, zoom or gallery buttons',()=>{
   expect(shared).not.toMatch(/(?:^|})\s*button\s*\{[^}]*max-(?:block-size|height)/);

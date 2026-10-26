@@ -15,7 +15,12 @@ describe('recovered public chrome',()=>{
   for(const group of FOOTER_NAVIGATION){expect(html).toContain('aria-label="'+group.title+'"');for(const [label,href] of group.items){expect(html).toContain('href="'+href+'"');expect(html).toContain(label.replaceAll('&','&amp;'));}}
   expect(html).toContain('aria-label="Policies"');expect(html).toContain('href="/contact-us"');
   expect(html).not.toContain('footer-secondary');expect(html).not.toContain('footer-socials');
-  expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(7);
+  const external=[...html.matchAll(/<a\b([^>]+)>/g)].map(match=>match[1]).filter(attributes=>attributes.includes('href="https://'));
+  expect(external.map(attributes=>attributes.match(/href="([^"]+)"/)?.[1])).toEqual([
+   'https://wa.me/254799886247','https://www.instagram.com/urban_newsgang','https://www.youtube.com/@urban_newsgang','https://www.tiktok.com/@urban_newsgang','https://www.facebook.com/profile.php?id=61572771956199','https://x.com/urban_newsgang',
+  ]);
+  for(const attributes of external){expect(attributes).toContain('target="_blank"');expect(attributes).toContain('rel="noopener noreferrer"');}
+  expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(6);
   expect(html.match(/<button type="button"/g)).toHaveLength(2);
  });
  it('has no repeated destination across the two footer menu groups',()=>{

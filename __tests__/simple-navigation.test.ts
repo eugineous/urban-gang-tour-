@@ -49,15 +49,16 @@ it('removes the automatic host invitation rather than hiding its visible box',()
  expect(source).toContain('returnFocus.focus()');
 });
 
-it('keeps browser-aware language selection in the footer with no header language button',()=>{
+it('keeps explicit native language selection in the footer with no header language button',()=>{
  vi.mocked(usePathname).mockReturnValue('/about');
  const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
  const header=html.slice(html.indexOf('<header'),html.indexOf('</header>'));
  expect(header).not.toContain('data-language-control');
  expect(html.match(/data-language-control/g)).toHaveLength(1);
  expect(html.indexOf('data-language-control')).toBeGreaterThan(html.indexOf('data-site-footer'));
- expect(html).toContain('Google opens separately');
- expect(html).toContain('Browser language (automatic)');
+ expect(html).toContain('Your choice applies immediately.');
+ expect(html.match(/<option\b/g)).toHaveLength(6);
+ expect(html).not.toContain('value="auto"');
 });
 
 it('shows desktop navigation by viewport width, including touch laptops, without an overflow-menu fallback',()=>{
