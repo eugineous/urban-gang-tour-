@@ -6,8 +6,9 @@ The owner explicitly approved the written design after asking to complete the
 paused localization/automation work. Approved design is at
 `docs/superpowers/specs/2026-10-26-english-first-automation-design.md`.
 
-Current phase: implementation plans written and self-reviewed; owner plan review
-and execution-method choice are still required before product code. Plans:
+Current phase: owner approved both plans and autonomous execution on 26 October.
+Proceed using the recommended subagent-driven method without further questions.
+Task 1 is starting; no localization runtime changes are yet complete. Plans:
 
 1. `docs/superpowers/plans/2026-10-26-native-interface-language.md` — eight tasks.
 2. `docs/superpowers/plans/2026-10-26-maintenance-reliability.md` — seven tasks.
@@ -32,8 +33,14 @@ reconciliation scheduling remain a separate guarded design, not hidden in these
 plans. Authored article/legal text and staff/server-document languages are excluded
 as explicitly stated in the approved design.
 
-Exact next action: present both plans to the owner, obtain plan approval plus Native
-or Subagent-driven choice, then read the required execution skill and begin Task1
-of the language plan on the existing isolated worktree. Use the available Codex
+Exact next action: execute Task 1 of the language plan on the existing isolated
+worktree, then independently review it before Task 2. Use the available Codex
 agent tools; specialist Flash routing was not verified (its extra skill resources
 were unavailable). Do not claim another model/provider was used.
+
+Execution base: e8e628e. Fresh baseline suite is running into
+/workspace/artifacts/ugt-english-first-automation-20261026/execution-baseline-tests.log.
+The execution skill's bundled scripts/templates are also unavailable through the
+skill resource reader; use equivalent extracted briefs, bounded diff packages and
+per-plan ledgers under ignored .superpowers/sdd directories. This does not waive
+task reviews or verification.

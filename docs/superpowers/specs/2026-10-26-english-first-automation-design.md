@@ -1,8 +1,8 @@
 # English-first language and maintenance automation
 
-Status: approved by the owner on 26 October 2026. Implementation plans await owner
-review and execution-method choice; no runtime implementation or deployment is
-included in these design/plan commits. Baseline: main `89f8d84` (merch retirement live).
+Status: design and both implementation plans approved by the owner on 26 October
+2026, with autonomous subagent-driven execution authorized. Design/plan commits
+contain no runtime implementation. Baseline: main `89f8d84` (merch retirement live).
 
 Plans: `../plans/2026-10-26-native-interface-language.md` (Delivery A), then
 `../plans/2026-10-26-maintenance-reliability.md` (Delivery B).

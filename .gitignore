@@ -60,6 +60,7 @@ mobile-check-*.png
 node_modules
 
 /evidence/
+/.superpowers/sdd/
 /e2e/evidence/
 /e2e/results/
 /e2e/.e2e/
