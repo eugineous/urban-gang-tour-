@@ -1,9 +1,9 @@
 import {Children,createElement,isValidElement,type ReactNode} from 'react';
-import {renderToStaticMarkup} from 'react-dom/server';
+import {renderToStaticMarkup,renderToString} from 'react-dom/server';
 import {expect,it,vi} from 'vitest';
 import {build} from 'esbuild';
 import {chromium} from 'playwright';
-import {existsSync} from 'node:fs';
+import {existsSync,readFileSync} from 'node:fs';
 const selected=vi.hoisted(()=>({locale:'en'}));
 const authored=vi.hoisted(()=>({post:{slug:'original-story',section:'Original section',headline:'Original headline',description:'Original summary',author:'Original author',image:'/original.jpg',imageAlt:'Original alt',imageCaption:'AI illustration · Credit: Original artist',imageIllustration:'ai-generated',body:['## Original heading','Original **body** [Citation](https://example.com/source)','- Original one\n- Original two'],disclosure:'Original AI disclosure. This illustration is not a documentary photograph.',datePublished:'2026-10-26T21:30:00Z',dateModified:'2026-10-26T22:00:00Z'}}));
 vi.mock('@/app/_lib/blog',()=>({getBlogPosts:async()=>[authored.post],getBlogPost:async()=>authored.post,articleJsonLd:(post:unknown)=>post}));
@@ -28,6 +28,13 @@ import ArticleText from '@/app/_components/ArticleText';
 import BlogPost from '@/app/blog/[slug]/page';
 import {buildEventCalendar} from '@/lib/event-calendar';
 import EventPage from '@/app/events/[slug]/page';
+import {TourTimeline} from '@/ui/components/TourTimeline';
+import directoryStyles from '@/ui/components/EventDiscovery.module.css';
+import calendarStyles from '@/ui/components/TourCalendar.module.css';
+import posterStyles from '@/ui/components/EventPosterCard.module.css';
+import {isPubliclyVisible} from '@/lib/server/event-lifecycle';
+const hydrationEvent={id:'hydration-event',slug:'hydration-event',name:'Fixture source school',kind:'school',status:'announced',eventDate:'2099-11-06',category:{id:'category-campus',name:'Source category'}};
+const hydrationNow=Date.parse('2026-10-26T12:00:00Z');
 const headings={en:'Events &amp; tickets.',sw:'Matukio na tiketi.',fr:'Événements et billets.','zh-Hans':'活动与门票。',ru:'События и билеты.',es:'Eventos y entradas.'};
 const transcriptLabels={en:'Read video transcript',sw:'Soma nakala ya video',fr:'Lire la transcription vidéo','zh-Hans':'阅读视频文字稿',ru:'Читать расшифровку видео',es:'Leer la transcripción del vídeo'};
 it('has complete six-language discovery and media catalogues with matching placeholders',()=>{
@@ -66,6 +73,18 @@ it.each(INTERFACE_LOCALES)('localizes discovery chrome with canonical filters in
  const html=renderToStaticMarkup(createElement(EventDiscovery,{events:[],initialNow:Date.parse('2026-10-26T21:30:00Z')}));
  expect(html).toContain(headings[locale]);
  for(const value of ['all','ticketed','partner','school','past'])expect(html).toContain(`value="${value}"`);
+});
+it.each(INTERFACE_LOCALES)('renders text-only native options on both discovery surfaces in %s',locale=>{
+ selected.locale=locale;
+ for(const component of [createElement(EventDiscovery,{events:[hydrationEvent],initialNow:hydrationNow}),createElement(TourTimeline,{events:[hydrationEvent],initialNow:hydrationNow})]){
+  const html=renderToStaticMarkup(component),options=[...html.matchAll(/<option\b[^>]*>([\s\S]*?)<\/option>/g)];
+  expect(options.length).toBeGreaterThanOrEqual(5);
+  for(const option of options)expect(option[1]).not.toMatch(/<[^>]+>/);
+ }
+});
+it('keeps the Swahili cancellation promise directed to ticket holders without changing eligibility',()=>{
+ expect(formatMessage(discoveryMessages,'sw','event.cancelled').text).toBe('Tukio hili limefutwa. Wenye tiketi wataarifiwa kuhusu kurejeshewa pesa.');
+ expect(isPubliclyVisible('cancelled')).toBe(false);
 });
 it.each(INTERFACE_LOCALES)('keeps transcript language, track and authored bytes under %s controls',locale=>{
  selected.locale=locale;
@@ -184,5 +203,72 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('changes language in mounted photo/f
   const exported=await page.evaluate(async()=>({text:await (window as any).calendarBlob.text(),type:(window as any).calendarBlob.type}));
   expect(exported.type).toBe('text/calendar;charset=utf-8');
   expect(exported.text).toBe(buildEventCalendar({name:'Original event',date:'2026-10-27',venue:'Original venue',url:'http://127.0.0.1/event',start:null}));
+ }finally{await browser.close()}
+},30000);
+
+it.skipIf(!existsSync('/usr/bin/chromium'))('hydrates parsed directory/calendar SSR with text-only options and preserves real or unknown canonical filters through six locale switches',async()=>{
+ selected.locale='en';
+ const markup=renderToString(createElement('main',null,
+  createElement('section',{id:'directory'},createElement(EventDiscovery,{events:[hydrationEvent],initialNow:hydrationNow})),
+  createElement('section',{id:'timeline'},createElement(TourTimeline,{events:[hydrationEvent],initialNow:hydrationNow})),
+ ));
+ // Vitest exposes CSS modules as non-enumerable proxies; materialize their real
+ // property values so browser hydration sees the same server class attributes.
+ const css=Object.fromEntries(Object.entries({'EventDiscovery.module.css':directoryStyles,'TourCalendar.module.css':calendarStyles,'EventPosterCard.module.css':posterStyles}).map(([name,styles])=>[name,Object.fromEntries([...new Set(Array.from(readFileSync('ui/components/'+name,'utf8').matchAll(/\.([A-Za-z_][\w-]*)/g),match=>match[1]))].map(key=>[key,styles[key]]))]));
+ const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
+  import React from 'react';import {hydrateRoot} from 'react-dom/client';
+  import {LanguageProvider,useInterfaceLanguage} from './ui/i18n/LanguageProvider';
+  import {EventDiscovery} from './ui/components/EventDiscovery';import {TourTimeline} from './ui/components/TourTimeline';
+  function Switch(){const language=useInterfaceLanguage();window.chooseLocale=language.setLocale;return null}
+  window.hydrationErrors=[];
+  hydrateRoot(document.getElementById('app'),<LanguageProvider><Switch/><main>
+   <section id="directory"><EventDiscovery events={[${JSON.stringify(hydrationEvent)}]} initialNow={${hydrationNow}}/></section>
+   <section id="timeline"><TourTimeline events={[${JSON.stringify(hydrationEvent)}]} initialNow={${hydrationNow}}/></section>
+  </main></LanguageProvider>,{onRecoverableError:error=>window.hydrationErrors.push(String(error))});
+ `},bundle:true,write:false,jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'local-hydration-fixture',setup(builder){
+  builder.onResolve({filter:/^next\/navigation$/},()=>({path:'navigation',namespace:'local'}));
+  builder.onLoad({filter:/.*/,namespace:'local'},()=>({contents:'export const usePathname=()=>"/events";'}));
+  builder.onLoad({filter:/\.css$/},args=>({contents:'export default '+JSON.stringify(css[args.path.split('/').at(-1)!]??{})+';',loader:'js'}));
+ }}]});
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ try{
+  for(const category of ['category-campus','category-unknown']){
+   const page=await browser.newPage();page.setDefaultTimeout(4000);
+   await page.route('**/*',route=>{
+    const url=new URL(route.request().url());
+    if(url.pathname==='/fixture')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><div id="app">'+markup+'</div>'});
+    if(url.pathname==='/api/site-data/events')return route.fulfill({contentType:'application/json',body:JSON.stringify({events:[hydrationEvent]})});
+    return route.abort();
+   });
+   await page.goto('http://127.0.0.1/fixture?kind=school&period=all&layout=list&eventCategory='+category+'&q=Fixture&day=2099-11-06');
+   const parsedOptions=await page.locator('option').evaluateAll(options=>options.map(option=>option.children.length));
+   expect(parsedOptions.every(count=>count===0)).toBe(true);
+   await page.evaluate(()=>{(window as any).serverNodes=[document.querySelector('#directory [data-event-directory]'),document.querySelector('#timeline [data-tour-calendar]')]});
+   await page.addScriptTag({content:bundle.outputFiles[0].text});
+   await page.waitForFunction(expected=>{
+    const selects=document.querySelectorAll<HTMLSelectElement>('select');
+    return document.querySelector('[data-filters-ready="true"]')&&selects.length===3&&selects[0].value==='school'&&selects[1].value===expected&&selects[2].value==='school';
+   },category);
+   const before=await page.evaluate(()=>({url:location.href,values:Array.from(document.querySelectorAll<HTMLSelectElement>('select'),select=>({value:select.value,options:Array.from(select.options,option=>option.value)}))}));
+   expect(before.values.map(select=>select.value)).toEqual(['school',category,'school']);
+   expect(before.values[0].options).toEqual(['all','ticketed','partner','school','past']);
+   expect(before.values[1].options).toContain('category-campus');
+   if(category==='category-unknown')expect(before.values[1].options).toContain(category);
+   expect(before.values[2].options).toEqual(['all','school','partner','ticketed','past']);
+   for(const locale of INTERFACE_LOCALES){
+    await page.evaluate(locale=>(window as any).chooseLocale(locale),locale);
+    await page.waitForFunction(locale=>document.documentElement.lang===(locale==='en'?'en-KE':locale),locale);
+    const after=await page.evaluate(()=>({url:location.href,values:Array.from(document.querySelectorAll<HTMLSelectElement>('select'),select=>({value:select.value,options:Array.from(select.options,option=>option.value)})),nestedOptions:Array.from(document.querySelectorAll('option'),option=>option.children.length),hydrationErrors:(window as any).hydrationErrors,sameServerNodes:(window as any).serverNodes.every((node:Element,index:number)=>node===document.querySelector(index===0?'#directory [data-event-directory]':'#timeline [data-tour-calendar]'))}));
+    expect(after.url).toBe(before.url);expect(after.values).toEqual(before.values);
+    expect(after.nestedOptions.every(count=>count===0)).toBe(true);
+    expect(after.hydrationErrors).toEqual([]);expect(after.sameServerNodes).toBe(true);
+    const optionLabels=await page.locator('#directory select').first().locator('option').allTextContents();
+    expect(optionLabels[0]).toBe(formatMessage(discoveryMessages,locale,'events.allTypes').text);
+    const calendarLabels=await page.locator('#timeline option').allTextContents();
+    expect(calendarLabels[0]).toBe(formatMessage(discoveryMessages,locale,'events.all').text);
+    if(category==='category-unknown')expect(await page.locator('#directory option[value="category-unknown"]').textContent()).toBe(formatMessage(discoveryMessages,locale,'events.selectedCategory').text);
+   }
+   await page.close();
+  }
  }finally{await browser.close()}
 },30000);
