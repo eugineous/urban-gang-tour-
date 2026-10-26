@@ -110,6 +110,7 @@ it.each(INTERFACE_LOCALES)('preserves original article parsing, citations, photo
 });
 
 it.skipIf(!existsSync('/usr/bin/chromium'))('changes language in mounted photo/film/gallery/reels/transcript/share surfaces without resetting media or focus',async()=>{
+ const calendarNow=new Date('2026-10-26T12:00:00.000Z');
  const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
   import React from 'react';import {createRoot} from 'react-dom/client';
   import {LanguageProvider,useInterfaceLanguage} from './ui/i18n/LanguageProvider';
@@ -135,6 +136,8 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('changes language in mounted photo/f
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
   const page=await browser.newPage();page.setDefaultTimeout(4000);let captionRequests=0;
+  // Date only: retain real timers while exporting and comparing one DTSTAMP.
+  await page.clock.setFixedTime(calendarNow);
   await page.route('**/*',async route=>{
    const url=new URL(route.request().url());
    if(url.pathname==='/fixture')return route.fulfill({contentType:'text/html',body:'<div id="app"></div>'});
@@ -202,7 +205,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('changes language in mounted photo/f
   await page.locator('#calendar button').click();
   const exported=await page.evaluate(async()=>({text:await (window as any).calendarBlob.text(),type:(window as any).calendarBlob.type}));
   expect(exported.type).toBe('text/calendar;charset=utf-8');
-  expect(exported.text).toBe(buildEventCalendar({name:'Original event',date:'2026-10-27',venue:'Original venue',url:'http://127.0.0.1/event',start:null}));
+  expect(exported.text).toBe(buildEventCalendar({name:'Original event',date:'2026-10-27',venue:'Original venue',url:'http://127.0.0.1/event',start:null},calendarNow));
  }finally{await browser.close()}
 },30000);
 

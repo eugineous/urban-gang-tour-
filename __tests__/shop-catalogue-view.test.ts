@@ -5,6 +5,15 @@ import {describe,expect,it,vi} from 'vitest';
 import ShopCatalogueView,{ShopDesignCard,ShopIntro,ShopLiveProductCard,ShopNoProductsNotice} from '@/app/_components/ShopCatalogueView';
 import {buildShopCatalogue,filterShopCatalogue,type LiveShopProduct} from '@/lib/shop-discovery';
 import {merchProducts} from '@/data/color-blast';
+import {formatMessage,type Catalogue,type MessageValues} from '@/lib/i18n/messages';
+
+// These callback-contract tests inspect function output directly. Keep their
+// existing event/payload assertions while supplying the English label hooks.
+vi.mock('@/ui/i18n/LanguageProvider',async original=>({
+ ...await original<typeof import('@/ui/i18n/LanguageProvider')>(),
+ useInterfaceLanguage:()=>({locale:'en'}),
+ useMessages:(catalogue:Catalogue<string>)=>(key:string,values?:MessageValues)=>formatMessage(catalogue,'en',key,values).text,
+}));
 
 const product:LiveShopProduct={
  id:'original tee',name:'Original Tour Tee',price:1500,image:'/uploads/original-tee.jpg',category:'Apparel',

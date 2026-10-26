@@ -1,3 +1,6 @@
+import {MessageText} from '@/ui/i18n/MessageText';
+import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
+import {EventAmount,EventDay} from '@/ui/components/PublicationDate';
 import type { Metadata } from 'next';
 import { SITE } from '@/lib/site';
 import { getPublishedMarketplaceEvents } from '@/lib/server/marketplace';
@@ -20,16 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function fmtDate(v: string | null): string {
-  if (!v) return 'Date TBA';
-  const d = new Date(v + 'T00:00:00Z');
-  if (Number.isNaN(d.getTime())) return 'Date TBA';
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-}
-
 export default async function MarketplacePage() {
   let events: Awaited<ReturnType<typeof getPublishedMarketplaceEvents>> = [];
   try { events = await getPublishedMarketplaceEvents(); } catch { events = []; }
 
-  return <section className="current-reading current-wide wrap"><p className="eyebrow">Ticket marketplace</p><h1>Ticket marketplace.</h1><p>Tickets for events run by independent organisers.</p><a className="button" href="/organizer/signup">Sell tickets for your event</a>{!events.length?<div className="current-card"><h2>No events on sale yet.</h2><p>Browse the event directory for other listings.</p><a href="/events">Explore events</a></div>:<div className="current-grid">{events.map(e=><a className="current-card marketplace-card" href={`/marketplace/${encodeURIComponent(e.id)}`} key={e.id}>{e.image?<img src={e.image} alt={e.name} loading="lazy"/>:<div className="event-image-empty">Ticket marketplace</div>}<h2>{e.name}</h2><p>{fmtDate(e.event_date)} · {e.venue}{e.city?`, ${e.city}`:''}</p><p>Hosted by {e.organizer_business_name}</p><strong>From KES {(e.tiers.length?Math.min(...e.tiers.map(t=>t.price)):0).toLocaleString('en-KE')}</strong></a>)}</div>}</section>;
+  return <section className="current-reading current-wide wrap"><p className="eyebrow"><MessageText catalogue={commerceMessages} message="marketplace.label"/></p><h1><MessageText catalogue={commerceMessages} message="marketplace.heading"/></h1><p><MessageText catalogue={commerceMessages} message="marketplace.intro"/></p><a className="button" href="/organizer/signup"><MessageText catalogue={commerceMessages} message="marketplace.sell"/></a>{!events.length?<div className="current-card"><h2><MessageText catalogue={commerceMessages} message="marketplace.empty"/></h2><p><MessageText catalogue={commerceMessages} message="marketplace.browse"/></p><a href="/events"><MessageText catalogue={commerceMessages} message="marketplace.explore"/></a></div>:<div className="current-grid">{events.map(e=><a className="current-card marketplace-card" href={`/marketplace/${encodeURIComponent(e.id)}`} key={e.id}>{e.image?<img src={e.image} alt={e.name} loading="lazy"/>:<div className="event-image-empty"><MessageText catalogue={commerceMessages} message="marketplace.label"/></div>}<h2 lang="en-KE">{e.name}</h2><p><EventDay day={e.event_date}/> · <span lang="en-KE">{e.venue}{e.city?`, ${e.city}`:''}</span></p><p><MessageText catalogue={commerceMessages} message="marketplace.hosted" values={{name:<span lang="en-KE">{e.organizer_business_name}</span>}}/></p><strong><EventAmount value={e.tiers.length?Math.min(...e.tiers.map(t=>t.price)):0} from/></strong></a>)}</div>}</section>;
 }
