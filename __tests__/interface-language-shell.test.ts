@@ -24,6 +24,7 @@ import LanguageChooser from '@/app/_components/LanguageChooser';
 import {LanguageProvider} from '@/ui/i18n/LanguageProvider';
 import {INTERFACE_LOCALES,NATIVE_NAMES} from '@/lib/i18n/locale';
 import {AppShell} from '@/app/_components/AppShell';
+import CampaignDisplays,{CampaignCreative,type PublicCampaign} from '@/app/_components/CampaignDisplays';
 import {ContactForm,ContactFooter} from '@/ui/components/ContactInterface';
 import {CookieConsent} from '@/app/_components/CookieConsent';
 import {createLanguagePreferenceStore} from '@/lib/client/interface-language';
@@ -43,6 +44,46 @@ function locale(code:typeof INTERFACE_LOCALES[number]='en',persistence='availabl
 }
 beforeEach(()=>{hooks.active=false;hooks.index=0;hooks.refIndex=0;hooks.states=[];hooks.refs=[];hooks.context=undefined;});
 afterEach(()=>{vi.unstubAllGlobals();vi.unstubAllEnvs();});
+
+const originalCampaign:PublicCampaign={
+ id:'CAM-FIXTURE-ORIGINAL',version:1,headline:'Original <headline> & “title”',
+ description:'  Original campaign copy — 001234.\nKeep this text.  ',ctaLabel:'Read original & book',
+ image:'/assets/campaign-fixture.jpg',href:'/events/original?ref=001234',
+ format:'banner',kind:'announcement',status:'live',startsAt:null,endsAt:null,
+ targets:['*'],priority:1,cooldownHours:24,delaySeconds:5,
+};
+it.each([['fr',false],['fr',true],['ru',false],['ru',true]] as const)('marks exact original campaign text and CTA as English under %s (preview %s)',(code,preview)=>{
+ locale(code);
+ const creative=CampaignCreative({campaign:originalCampaign,preview,headingId:'original-heading'});
+ const elements=nodes(creative),copy=elements.find(node=>node.type==='div')!;
+ expect(copy.props.lang).toBe('en-KE');
+ const heading=elements.find(node=>node.type==='h2')!,description=elements.find(node=>node.type==='p')!;
+ expect(heading.props.id).toBe('original-heading');expect(heading.props.children).toBe(originalCampaign.headline);
+ expect(description.props.children).toBe(originalCampaign.description);
+ const cta=elements.find(node=>node.type===(preview?'span':'a'))!;
+ expect(cta.props.children).toBe(originalCampaign.ctaLabel);
+ expect(cta.props.href).toBe(preview?undefined:originalCampaign.href);
+ expect(elements.filter(node=>node.type==='a')).toHaveLength(preview?0:1);
+ const image=elements.find(node=>node.type==='img')!;
+ expect(image.props).toMatchObject({src:originalCampaign.image,alt:'',loading:'lazy'});
+ expect(elements.indexOf(image)).toBeLessThan(elements.indexOf(copy));
+ const html=renderToStaticMarkup(creative);
+ expect(html).toContain('lang="en-KE"');expect(html).toContain('Original &lt;headline&gt; &amp; “title”');
+ expect(html).toContain(originalCampaign.description);expect(html).not.toContain('<headline>');
+});
+it.each([['fr','banner'],['fr','popup'],['ru','banner'],['ru','popup']] as const)('keeps translated %s %s controls outside the original creative boundary',(code,format)=>{
+ locale(code);hooks.states=[[],[],{[format]:{...originalCampaign,format}}];
+ const html=renderToStaticMarkup(renderHook(()=>CampaignDisplays({path:'/about',paused:false})));
+ const close=formatMessage(shellMessages,code,format==='popup'?'campaign.closeOffer':'campaign.closeAnnouncement').text;
+ expect(html).toContain(`aria-label="${close}"`);
+ if(format==='banner')expect(html).toContain(`aria-label="${formatMessage(shellMessages,code,'campaign.current').text}"`);
+ else expect(html).toContain('aria-labelledby="campaign-title"');
+ const copy=html.match(/<div[^>]*lang="en-KE">([\s\S]*?)<\/div>/)?.[1];
+ expect(copy).toBeDefined();expect(copy).toContain('Original &lt;headline&gt; &amp; “title”');
+ expect(copy).toContain(originalCampaign.description);expect(copy).toContain('Read original &amp; book');
+ expect(copy).toContain(`href="${originalCampaign.href}"`);expect(copy).not.toContain('<button');
+ expect(html.indexOf(`aria-label="${close}"`)).toBeLessThan(html.indexOf('lang="en-KE"'));
+});
 
 it.each(['/about','/account','/cart','/checkout','/shop','/book','/contact-us','/admin','/events/public-event?token=private'])('renders six explicit native options and English SSR without translation URLs on %s',path=>{
  const html=renderToStaticMarkup(createElement(LanguageProvider,null,createElement(LanguageChooser,{path})));

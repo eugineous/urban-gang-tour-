@@ -16,7 +16,7 @@ function recentlySeen(campaign: PublicCampaign) {
   try { const at = Number(localStorage.getItem(storageKey(campaign.id))); return Number.isFinite(at) && at>0 && Date.now()-at<campaign.cooldownHours*3600000; } catch { return false; }
 }
 export function CampaignCreative({ campaign, preview = false, headingId }: { campaign: Pick<Campaign,'headline'|'description'|'image'|'href'|'ctaLabel'>; preview?: boolean; headingId?: string }) {
-  return <>{campaign.image && safeCampaignImage(campaign.image) && <img className={styles.image} src={campaign.image} alt="" loading="lazy"/>}<div className={styles.copy}><h2 id={headingId}>{campaign.headline}</h2>{campaign.description && <p>{campaign.description}</p>}{preview ? <span className={styles.cta}>{campaign.ctaLabel}</span> : <a className={styles.cta} href={campaign.href}>{campaign.ctaLabel}</a>}</div></>;
+  return <>{campaign.image && safeCampaignImage(campaign.image) && <img className={styles.image} src={campaign.image} alt="" loading="lazy"/>}<div className={styles.copy} lang="en-KE"><h2 id={headingId}>{campaign.headline}</h2>{campaign.description && <p>{campaign.description}</p>}{preview ? <span className={styles.cta}>{campaign.ctaLabel}</span> : <a className={styles.cta} href={campaign.href}>{campaign.ctaLabel}</a>}</div></>;
 }
 export default function CampaignDisplays({ path, paused }: { path: string; paused: boolean }) {
   const t=useMessages(shellMessages);
