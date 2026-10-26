@@ -9,10 +9,15 @@ paused localization/automation work. Approved design is at
 Current phase: owner approved both plans and autonomous execution on 26 October.
 Proceed using the recommended subagent-driven method without further questions.
 Task 1 pure locale/message/format foundation is complete and independently reviewed;
-Tasks1–3 complete and independently reviewed. Task3 shared UI is908a5d5 plus
-source-language correction145df77. Task4 marketing/business copy is next.
+Tasks1–4 complete and independently reviewed. Task3 shared UI is908a5d5 plus
+source-language correction145df77. Task4 marketing/business copy is3c3536f,
+reviewed PASS/PASS with no findings by native_language_task4_review. Task5 is next.
 Nothing has been deployed; native coverage on remaining pages is pending.
 Plans:
+
+Latest owner priority: finish ONLY this existing language/automation task faster.
+A brief premium-redesign request was immediately superseded; no redesign code or
+new scope was started. Task4 resumed its existing edits/checks, without rediscovery.
 
 1. `docs/superpowers/plans/2026-10-26-native-interface-language.md` — eight tasks.
 2. `docs/superpowers/plans/2026-10-26-maintenance-reliability.md` — seven tasks.
@@ -37,8 +42,8 @@ reconciliation scheduling remain a separate guarded design, not hidden in these
 plans. Authored article/legal text and staff/server-document languages are excluded
 as explicitly stated in the approved design.
 
-Exact next action: execute Task4 with its prepared brief/copy map, then independent
-review. Do not redo Tasks1–3. Campaign source-language gap was fixed in145df77 and
+Exact next action: execute Task5 with its prepared brief/boundary map, then review.
+Do not redo Tasks1–4. Campaign source-language gap was fixed in145df77 and
 re-review approved. Use the available Codex
 agent tools; specialist Flash routing was not verified (its extra skill resources
 were unavailable). Do not claim another model/provider was used.
@@ -100,3 +105,18 @@ task-5-boundaries.md, task-6-state-map.md, task-7-boundaries.md in the language 
 workspace. Task3 already localized shared ContactInterface labels/error keys;
 Task7 should preserve/audit them rather than duplicate. Feature catalogues live
 at ui/i18n/catalogues, not lib/i18n/catalogues.
+
+Task4 evidence:3c3536f,18 scoped files,283 complete typed marketing keys across6
+locales; exact CMS/FAQ/biography/preview records preserved and lang-marked. RED17
+new failures, baseline27 passed. Final focused77 and expanded marketing34 passed;
+final full1611 passed/123 skipped,201 passed/10 skipped files; tsc0/lint0 with6
+baseline warnings. Logs/report paths in task-4-report.md (full final /tmp/task4-full-final.log).
+Independent reviewer read complete1412-line203365-byte package; PASS/PASS, no
+actionable findings. No browser/build/deployment yet.
+
+Task4 controller rulings for final handoff: narrowly update source-span markup
+assertions in homepage-front-door/presenter-biography/showcase-shelves, then the
+press-heading assertion in support-copy-clarity. Preserve exact English/source
+lang, biography/readability/identities, links, publication/preview/mission/team/
+contact/rights checks. Cost if wrong for each: weaker data/copy regression coverage;
+independent review confirmed the exact replacements retain those safeguards.
