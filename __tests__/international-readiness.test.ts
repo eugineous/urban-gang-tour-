@@ -27,7 +27,8 @@ describe('actual translated welcome pages',()=>{
  });
  it('keeps new routes discoverable, distinct and task-led',()=>{
   const links=[...SITE_MENU_GROUPS.flatMap(group=>group.items),...SITE_UTILITY_NAVIGATION];
-  expect(links).toHaveLength(7);
+  expect(links).toHaveLength(8);
+  expect(links.filter(([,href])=>href==='/gallery')).toEqual([['Gallery','/gallery']]);
   expect(FOOTER_NAVIGATION.flatMap(group=>group.items).some(([,href])=>href==='/accessibility')).toBe(true);
   expect(renderToStaticMarkup(createElement(ContactPage))).toContain('href="/international"');
   expect(readFileSync('ui/components/ContactInterface.tsx','utf8')).toContain('<LanguageChooser path={path}/>');

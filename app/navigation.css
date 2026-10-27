@@ -40,7 +40,7 @@ dialog.menu-panel::backdrop{background:#17101680}
 .menu-account-links{display:flex;flex-wrap:wrap;gap:8px 20px}
 .menu-account-links a{display:inline-flex;align-items:center;min-height:44px;font-size:14px;text-decoration:underline;text-underline-offset:4px}
 @media(min-width:1024px){.site-header{position:fixed;background:transparent}.header-content{min-height:88px;padding:24px 28px 12px 34px}.desktop-nav{display:flex}.site-header .menu-toggle{display:none}.site-header .start-link,.site-header .tickets-link{display:inline-flex}.site-header[data-elevated=true] .header-content{padding:16px 26px}.site-header[data-elevated=true] .desktop-nav{max-width:var(--nav-compact-width,51rem);background:#fff;border-color:#0a0a0a0d}.site-header[data-dark=true]:not([data-elevated=true]) .desktop-nav a{color:#fff}}
-@media(min-width:1024px) and (max-width:1199px){.header-content{gap:12px;padding-inline:20px}.desktop-nav{gap:4px;padding-inline:10px}.desktop-nav a{font-size:13px}.header-actions{gap:6px}.site-header .tickets-link{padding-inline:10px}}
+@media(min-width:1024px) and (max-width:1279px){.header-content{gap:12px;padding-inline:20px}.desktop-nav{gap:4px;padding-inline:10px}.desktop-nav a{font-size:13px}.header-actions{gap:6px}.site-header .tickets-link{padding-inline:10px}}
 /* Phone browsers can request a wide desktop viewport while zoom makes the layout narrow. */
 html[data-phone-viewport=wide] .site-header{position:sticky;background:var(--paper)}
 html[data-phone-viewport=wide] .desktop-nav{display:none}

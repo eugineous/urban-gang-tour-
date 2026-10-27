@@ -28,7 +28,7 @@ try{
  await page.locator('main h1').first().waitFor();
  await page.waitForFunction(()=>{const select=document.querySelector('[data-language-control] select');return select&&Object.getOwnPropertyNames(select).some(key=>key.startsWith('__reactProps$')&&typeof select[key]?.onChange==='function')});
  assert.equal(await page.locator('html').getAttribute('lang'),'en-KE');
- for(const width of [390,768,1024,1100,1440]){
+ for(const width of [390,768,1024,1100,1199,1200,1279,1280,1440]){
   await page.setViewportSize({width,height:900});
   for(const [locale,label] of Object.entries(labels)){
    await page.locator('[data-language-control] select').first().selectOption(locale);
@@ -55,7 +55,7 @@ try{
     await page.keyboard.press('Escape');assert.equal(await menu.isVisible(),false);
     assert.equal(await trigger.evaluate(button=>document.activeElement===button),true);
    }
-   if(locale==='en'||locale==='ru'&&width===1024)await page.screenshot({path:`${artifacts}/navigation-${width}-${locale}.png`});
+   if(locale==='en'||locale==='ru'&&[1024,1200,1280].includes(width))await page.screenshot({path:`${artifacts}/navigation-${width}-${locale}.png`});
    checks.push({width,locale,gallery:label,overflow:dimensions.overflow});
   }
  }
