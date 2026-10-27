@@ -67,16 +67,20 @@ export async function deliverReceiptEmailJob(id:string) {
       retryable=response.status===408||response.status===429||response.status>=500;
       throw new Error(error);
     }
-    const data=await response.json().catch(()=>({}));
-    const providerId=typeof data.id==='string'?data.id.slice(0,100):null;
-    await q(`UPDATE email_delivery_outbox SET status='accepted',provider_id=$3,last_error=NULL,
-      lease_until=NULL,lease_token=NULL,updated_at=now() WHERE id=$1 AND lease_token=$2`,[id,token,providerId]);
+    error='provider_acceptance_unconfirmed';
+    const data=await response.json().catch(()=>null);
+    const providerId=typeof data?.id==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(data.id)?data.id:null;
+    if(!providerId)throw new Error(error);
+    const accepted=await q(`UPDATE email_delivery_outbox SET status='accepted',provider_id=$3,last_error=NULL,
+      lease_until=NULL,lease_token=NULL,updated_at=now() WHERE id=$1 AND lease_token=$2 AND status='processing' RETURNING id`,[id,token,providerId]);
+    if(!accepted.length)return 'lease_lost';
     return 'accepted';
   } catch {
     const failed=!retryable||job.attempts>=8;
     const delay=Math.min(3600,30*2**Math.min(job.attempts,7));
-    await q(`UPDATE email_delivery_outbox SET status=$3,last_error=$4,next_attempt_at=now()+($5*interval '1 second'),
-      lease_until=NULL,lease_token=NULL,updated_at=now() WHERE id=$1 AND lease_token=$2`,[id,token,failed?'failed':'queued',error,delay]);
+    const saved=await q(`UPDATE email_delivery_outbox SET status=$3,last_error=$4,next_attempt_at=now()+($5*interval '1 second'),
+      lease_until=NULL,lease_token=NULL,updated_at=now() WHERE id=$1 AND lease_token=$2 AND status='processing' RETURNING id`,[id,token,failed?'failed':'queued',error,delay]);
+    if(!saved.length)return 'lease_lost';
     return failed?'failed':'queued';
   }
 }

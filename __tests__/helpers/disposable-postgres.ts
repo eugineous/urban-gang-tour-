@@ -14,12 +14,24 @@ function csv(text:string):string[][]{
 }
 const literal=(value:unknown):string=>value==null?'NULL':Array.isArray(value)?(value.length?'ARRAY['+value.map(literal).join(',')+']':'ARRAY[]::text[]'):typeof value==='number'||typeof value==='boolean'?String(value):"'"+String(value).replaceAll("'","''")+"'";
 export class DisposablePostgres{
- readonly name='ugt-operations-fixture-'+randomUUID();private created=false;
- start(){docker(['info','--format','{{.ServerVersion}}']);docker(['run','--rm','-d','--network','none','--name',this.name,'-e','POSTGRES_HOST_AUTH_METHOD=trust','postgres:16-alpine']);this.created=true;if(docker(['inspect',this.name,'--format','{{.HostConfig.NetworkMode}}'])!=='none')throw Error('fixture_not_isolated')}
+ private readonly existing=process.env.UGT_EDITORIAL_SQL_CONTAINER;
+ readonly name=this.existing||'ugt-operations-fixture-'+randomUUID();private created=false;
+ private readonly isolatedSchema='ugt_operations_fixture_'+randomUUID().replaceAll('-','');private schemaOwned=false;
+ start(){
+  if(this.existing&&this.existing!=='ugt-editorial-fixture-20261019')throw Error('fixture_target_not_allowlisted');
+  docker(['info','--format','{{.ServerVersion}}']);
+  if(this.existing){
+   if(docker(['inspect',this.name,'--format','{{.HostConfig.NetworkMode}} {{.State.Running}}'])!=='none true')throw Error('fixture_not_running_and_isolated');
+   docker(['exec',this.name,'psql','-X','-q','-U','postgres','-v','ON_ERROR_STOP=1','-c',`CREATE SCHEMA ${this.isolatedSchema}`]);this.schemaOwned=true;return;
+  }
+  docker(['run','--rm','-d','--network','none','--name',this.name,'-e','POSTGRES_HOST_AUTH_METHOD=trust','postgres:16-alpine']);this.created=true;if(docker(['inspect',this.name,'--format','{{.HostConfig.NetworkMode}}'])!=='none')throw Error('fixture_not_isolated');
+ }
  ready(){return docker(['exec',this.name,'pg_isready','-h','127.0.0.1','-U','postgres']).includes('accepting connections')}
- stop(){if(this.created){docker(['stop',this.name]);this.created=false}}
+ stop(){if(this.schemaOwned){docker(['exec',this.name,'psql','-X','-q','-U','postgres','-v','ON_ERROR_STOP=1','-c',`DROP SCHEMA ${this.isolatedSchema} CASCADE`]);this.schemaOwned=false}if(this.created){docker(['stop',this.name]);this.created=false}}
  connect(){
+  if(this.existing&&!this.schemaOwned)throw Error('fixture_schema_not_owned');
   const child=spawn('docker',[...prefix,'exec','-i',this.name,'psql','-X','-q','--csv','-U','postgres','-v','ON_ERROR_STOP=1'],{env,stdio:['pipe','pipe','pipe']});
+  if(this.schemaOwned)child.stdin.write(`SET search_path TO ${this.isolatedSchema};\n`);
   let output='',errors='',ended=false,chain=Promise.resolve(),serial=0;
   let pending:{marker:string;resolve:(value:{rows:Record<string,any>[]})=>void;reject:(error:Error)=>void}|undefined;
   const exit=new Promise<void>(resolve=>child.on('exit',()=>{ended=true;pending?.reject(Error(errors||'fixture_session_closed'));pending=undefined;resolve()}));
