@@ -4,6 +4,10 @@ Owner explicitly supersedes the long per-task execution method: finish essential
 remaining work in one pass, cut nonessentials, address failed pages/Google
 translation. No new approval loop or redesign.
 
+Latest owner order: do not restart the15-block workflow. Resolve the JavaScript
+startup error, finish final browser verification, then merge/deploy these existing
+changes. Premium visuals must wait until after that release is live.
+
 Verified read-only at05:40UTC: home/shop/account/international and release-client
 return200 directly. Live marker is current-collection-20261026-v1 and live chooser
 still links translate.google.com; native feature remains local. HTTP checks are
@@ -69,3 +73,20 @@ ignored per-plan ledgers; preserve them rather than restart completed work.
 - Remaining exact next action: final combined suite/types/lint/build, immutable
   bundle browser smoke + final scoped review, reviewed PR/normal merge/keep-vars
   deployment and read-only marker/binding/schedule/availability verification.
+- c5c95d9 closed both final-review findings (signed-in ticket callback shadow and
+  incorrect cross-domain status labels); review approved. Fresh standard suite
+  1762passed/130skipped, types0, modified147TSfiles lint0errors238warnings, CFbuild
+  and dry bundle exit0. Original combined SQL-enabled suite1843/36 also passed.
+  Whole lint's23errors reproduced on eight byte-identical main files; no clean
+  whole-lint claim. Existing monitor/dashboard/AST work stays deferred.
+- First actualWorker browser pass caught a real pre-existing startup defect:
+  serialized page-entry function contains bundler-only __name references. The
+  live HTML contains the same references. Root changed only the early head script
+  to literal self-contained JavaScript; production keepNames/minified regressions
+  RED2/14→GREEN43 with scroll/viewport/release/HTTPS checks, preserving scroll/hash
+  semantics. An unrelated test variable was renamed for Next's module-name lint.
+- The same browser pass also identified no checkout language chooser because
+  checkout intentionally has no footer. Same native writer owns compact local
+  checkout utility/state-preservation tests only. No new workflow or redesign.
+  Root owns startup files and this note. Rebuild/freeze once these bounded fixes
+  are committed, rerun final native/navigation browser scripts, then PR/release.

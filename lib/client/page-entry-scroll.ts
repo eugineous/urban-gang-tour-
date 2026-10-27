@@ -56,6 +56,46 @@ export function installPageEntryScroll(target:Window):(resetTop?:boolean)=>void 
  return reset;
 }
 
-// Self-contained function: the head script takes control before history restores
-// a saved offset, and AppShell calls the same reset after client route changes.
-export const PAGE_ENTRY_BOOTSTRAP=`(${installPageEntryScroll.toString()})(window);`;
+// Keep the early head script literal. Serializing the compiled function with
+// toString() captures bundler-only name helpers that do not exist in the page.
+// The bundled-script regression exercises the same scroll/hash contract below;
+// AppShell reuses this installed reset instead of adding another listener set.
+export const PAGE_ENTRY_BOOTSTRAP=`(function(target){
+ if(target.__ugtResetPageEntryScroll)return target.__ugtResetPageEntryScroll;
+ let frame=0,mutations,resize;
+ const stopWaiting=()=>{mutations?.disconnect();resize?.disconnect();mutations=undefined;resize=undefined};
+ const position=(resetTop)=>{
+  stopWaiting();
+  const hash=target.location.hash;
+  if(!hash){if(resetTop)target.scrollTo({top:0,left:0,behavior:'instant'});return}
+  if(hash.includes(':~:'))return;
+  let id;try{id=decodeURIComponent(hash.slice(1))}catch{return}
+  const restore=()=>{
+   if(target.location.hash!==hash){stopWaiting();return}
+   const anchor=target.document.getElementById(id);
+   if(!anchor){
+    if(!mutations){mutations=new target.MutationObserver(restore);mutations.observe(target.document,{childList:true,subtree:true})}
+    return;
+   }
+   mutations?.disconnect();mutations=undefined;
+   if(anchor.getClientRects().length){stopWaiting();anchor.scrollIntoView({block:'start',behavior:'instant'});return}
+   if(!resize){resize=new target.ResizeObserver(restore);resize.observe(anchor)}
+  };
+  restore();
+ };
+ const schedule=(resetTop)=>{
+  if(frame)target.cancelAnimationFrame(frame);
+  frame=0;position(resetTop);
+  frame=target.requestAnimationFrame(()=>{frame=0;position(resetTop)});
+ };
+ const reset=(resetTop=true)=>schedule(resetTop),restoreHash=()=>reset(false);
+ const cancel=()=>{if(frame)target.cancelAnimationFrame(frame);frame=0;stopWaiting()};
+ try{target.history.scrollRestoration='manual'}catch{}
+ position(true);target.__ugtResetPageEntryScroll=reset;
+ target.addEventListener('pageshow',restoreHash);
+ target.addEventListener('popstate',()=>reset());
+ target.addEventListener('hashchange',()=>{cancel();restoreHash()});
+ target.addEventListener('pagehide',cancel);
+ target.document.addEventListener('DOMContentLoaded',restoreHash,{once:true});
+ return reset;
+})(window);`;
