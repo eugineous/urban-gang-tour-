@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import {formatMessage,type Catalogue,type MessageValues} from '@/lib/i18n/messages';
+import {organizerAuthMessages} from '@/ui/i18n/catalogues/organizer-auth';
+vi.mock('@/ui/i18n/LanguageProvider',async original=>({...await original<typeof import('@/ui/i18n/LanguageProvider')>(),useInterfaceLanguage:()=>({locale:'en'}),useMessages:(catalogue:Catalogue<string>)=>(key:string,values?:MessageValues)=>formatMessage(catalogue,'en',key,values).text}));
 
 const hooks = vi.hoisted(() => ({ values: [] as any[], index: 0, effects: [] as (() => any)[] }));
 vi.mock('react', async (original) => ({ ...await original<any>(),
@@ -60,7 +63,7 @@ it.each([['login', LoginForm], ['reset', ResetForm]] as const)('unlocks organize
   tree = render(Form);
   expect(find(tree, n => n.type === 'button').props.disabled).toBe(false);
   expect(find(tree, n => n.type === 'input' && n.props.type === 'password').props.value).toBe('eightletters');
-  expect(hooks.values.some(v => typeof v === 'string' && /connection|network|connect/i.test(v))).toBe(true);
+  expect(hooks.values.some(v => v&&typeof v==='object'&&'key' in v&&/connection|network|connect/i.test(formatMessage(organizerAuthMessages,'en',v.key).text))).toBe(true);
 });
 
 it('keeps organizer logout on the dashboard when the server cannot clear its session', async () => {

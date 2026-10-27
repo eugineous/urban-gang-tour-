@@ -1,3 +1,7 @@
+import {DocumentLabel,DocumentStatus} from '@/app/_components/PrintDocumentButton';
+import LanguageChooser from '@/app/_components/LanguageChooser';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {documentsMessages} from '@/ui/i18n/catalogues/documents';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ensureTickets,ticketsForOrder, getEventMeta, getEventName, type TicketRow } from '@/lib/server/tickets';
@@ -62,25 +66,25 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
   );
 
   return (
-    <div className="tks-stage">
+    <div className="tks-stage"><div className="no-print"><LanguageChooser path="/documents"/></div>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="tks-wrap">
         <div className="tks-head">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/ugt-logo.png" alt="Urban Gang Tour" />
-          <h1 className="tks-title">Your tickets</h1>
-          <div className="tks-sub">ORDER <b>{id}</b>{meta ? <> &middot; {meta.date}</> : null}</div>
+          <h1 className="tks-title"><MessageText catalogue={documentsMessages} message="copy.your_tickets"/></h1>
+          <div className="tks-sub"><MessageText catalogue={documentsMessages} message="copy.order_2"/> <b>{id}</b>{meta ? <> &middot; {meta.date}</> : null}</div>
         </div>
 
         {!paid ? (
           <div className="tks-note">
-            <b>Payment pending.</b> Your tickets appear here the moment payment is confirmed.
+            <b><MessageText catalogue={documentsMessages} message="copy.payment_pending"/></b> <span lang="en-KE">Your tickets appear here the moment payment is confirmed.
             If you just completed the M-Pesa prompt, refresh in a few seconds.
-          </div>
+          </span></div>
         ) : tickets.length === 0 ? (
           <div className="tks-note">
-            This order has no event tickets. Check your <a href={`/receipt/${encodeURIComponent(id)}`} style={{ color: '#86104f' }}>receipt</a> for the full order details.
-          </div>
+            <span lang="en-KE">This order has no event tickets. Check your </span><a href={`/receipt/${encodeURIComponent(id)}`} style={{ color: '#86104f' }}><MessageText catalogue={documentsMessages} message="copy.receipt"/></a> <span lang="en-KE">for the full order details.
+          </span></div>
         ) : (
           <div className="tks-grid">
             {tickets.map((t) => {
@@ -89,16 +93,16 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
               return (
                 <div className={'tks-edge' + (used ? ' used' : '')} key={t.code}>
                   <a className="tks-card" href={`/t/${encodeURIComponent(t.code)}`}>
-                    <span className="tks-num"><b>{t.position}</b><span>OF {t.of_count}</span></span>
+                    <span className="tks-num"><b>{t.position}</b><span><MessageText catalogue={documentsMessages} message="copy.of_2"/> {t.of_count}</span></span>
                     <span className="tks-info">
                       <span className="tks-ev">{eventNames[t.event_id]}</span>
                       <br />
                       <span className={'tks-tier' + (vip ? ' gold' : '')}>{t.tier_name}</span>
                       <div className="tks-codeline">{t.code}</div>
                     </span>
-                    {used ? <span className="tks-usedtag">USED</span> : <span className="tks-open">OPEN &rarr;</span>}
+                    {used ? <span className="tks-usedtag"><MessageText catalogue={documentsMessages} message="copy.used"/></span> : <span className="tks-open"><MessageText catalogue={documentsMessages} message="copy.open"/></span>}
                   </a>
-                  <a className="tks-pdfrow" href={`/api/tickets/${encodeURIComponent(t.code)}/pdf`}>Download PDF</a>
+                  <a className="tks-pdfrow" href={`/api/tickets/${encodeURIComponent(t.code)}/pdf`}><MessageText catalogue={documentsMessages} message="copy.download_pdf"/></a>
                 </div>
               );
             })}
@@ -107,16 +111,16 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
 
         {paid && tickets.length > 0 ? (
           <div className="tks-note" style={{ marginTop: 22 }}>
-            Each ticket admits <b>one person</b> and has its own QR code - open it, screenshot it,
+            <span lang="en-KE">Each ticket admits </span><b><span lang="en-KE">one person</span></b> <span lang="en-KE">and has its own QR code - open it, screenshot it,
             or forward the link to whoever is coming with you. It gets scanned once at the gate.
-          </div>
+          </span></div>
         ) : null}
 
         <div className="tks-links">
-          <a href={`/receipt/${encodeURIComponent(id)}`}>View receipt</a>
-          <a href="/events">Events</a>
+          <a href={`/receipt/${encodeURIComponent(id)}`}><MessageText catalogue={documentsMessages} message="copy.view_receipt"/></a>
+          <a href="/events"><MessageText catalogue={documentsMessages} message="copy.events"/></a>
         </div>
-        <div className="tks-slogan">From Potential to Purpose</div>
+        <div className="tks-slogan"><span lang="en-KE">From Potential to Purpose</span></div>
       </div>
     </div>
   );
