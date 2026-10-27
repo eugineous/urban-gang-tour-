@@ -24,7 +24,7 @@ it('makes experiences, existing archive projects and collaborators discoverable 
  const html=render();
  for(const title of ['School events','Campus Rave','Production &amp; campaigns','Featured work.','Schools, brands &amp; collaborators'])expect(html).toContain(title);
  for(const url of ['/gallery/machakos-campus','/gallery/uon-mr-miss-2022','/gallery/tecno-uon','/portfolio','/clients'])expect(html).toContain('href="'+url+'"');
- expect(html).toContain('Campus · Archive');expect(html).not.toContain('600+');expect(html).not.toContain('Trusted by millions');
+ expect(html).toContain('<span lang="en-KE">Campus</span> · <span lang="en">Archive</span>');expect(html).not.toContain('600+');expect(html).not.toContain('Trusted by millions');
 });
 it('keeps motion progressive, reduced-motion aware and responsive without hiding static content',()=>{
  const css=readFileSync('ui/components/HomeSections.module.css','utf8');

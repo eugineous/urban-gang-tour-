@@ -1,3 +1,6 @@
+import {MessageText} from '@/ui/i18n/MessageText';
+import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
+import {EventDay} from '@/ui/components/PublicationDate';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SITE } from '@/lib/site';
@@ -21,13 +24,6 @@ export async function generateMetadata({ params }: { params: Promise<{ eventId: 
   };
 }
 
-function fmtDate(v: string | null): string {
-  if (!v) return 'Date TBA';
-  const d = new Date(v + 'T00:00:00Z');
-  if (Number.isNaN(d.getTime())) return 'Date TBA';
-  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-}
-
 export default async function MarketplaceEventPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = await params;
   let ev;
@@ -37,5 +33,5 @@ export default async function MarketplaceEventPage({ params }: { params: Promise
   // dashboard, not this public page.
   if (!ev || ev.status !== 'published') notFound();
 
-  return <section className="current-reading current-wide wrap"><a href="/marketplace">← All marketplace events</a><div className="current-marketplace-detail"><div>{ev.image&&<img className="marketplace-poster" src={ev.image} alt={ev.name}/>}<p className="eyebrow">Hosted by {ev.organizer_business_name}</p><h1>{ev.name}</h1><p>{fmtDate(ev.event_date)} · {ev.venue}{ev.city?`, ${ev.city}`:''}</p>{ev.description&&<p style={{whiteSpace:'pre-wrap'}}>{ev.description}</p>}<div className="current-card"><h2>Your event organizer</h2><p>{ev.organizer_business_name} runs this event. Urban Gang Tour processes ticket payments on their behalf. Review the ticket details and refund policy before paying.</p></div></div><BuyBox eventId={ev.id} tiers={ev.tiers}/></div></section>;
+  return <section className="current-reading current-wide wrap"><a href="/marketplace"><MessageText catalogue={commerceMessages} message="marketplace.back"/></a><div className="current-marketplace-detail"><div>{ev.image&&<img className="marketplace-poster" src={ev.image} alt={ev.name}/>}<p className="eyebrow"><MessageText catalogue={commerceMessages} message="marketplace.hosted" values={{name:<span lang="en-KE">{ev.organizer_business_name}</span>}}/></p><h1 lang="en-KE">{ev.name}</h1><p><EventDay day={ev.event_date} long/> · <span lang="en-KE">{ev.venue}{ev.city?`, ${ev.city}`:''}</span></p>{ev.description&&<p lang="en-KE" style={{whiteSpace:'pre-wrap'}}>{ev.description}</p>}<div className="current-card"><h2><MessageText catalogue={commerceMessages} message="marketplace.organizer"/></h2><p><MessageText catalogue={commerceMessages} message="marketplace.organizerNote" values={{name:<span lang="en-KE">{ev.organizer_business_name}</span>}}/></p></div></div><BuyBox eventId={ev.id} tiers={ev.tiers}/></div></section>;
 }

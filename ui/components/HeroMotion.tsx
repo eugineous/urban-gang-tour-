@@ -1,7 +1,10 @@
 'use client';
+import {marketingMessages} from '@/ui/i18n/catalogues/marketing';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
+
 import {useEffect,useRef,useState} from 'react';
 
-export function HeroMotion(){
+export function HeroMotion(){const t=useMessages(marketingMessages);
  const video=useRef<HTMLVideoElement>(null);
  const [src,setSrc]=useState<string>();
  const [playing,setPlaying]=useState(false),[visible,setVisible]=useState(false);
@@ -35,5 +38,5 @@ export function HeroMotion(){
   if(failed)video.current?.load();
   video.current?.play().catch(()=>{setFailed(true);setPlaying(false)});
  };
- return <><video ref={video} className={`hero-video ${visible?'is-playing':''}`} style={manual?{visibility:'visible'}:undefined} src={src} muted playsInline loop autoPlay preload="auto" onPlaying={()=>{if(!wanted.current){video.current?.pause();return}setVisible(true);setPlaying(true);setFailed(false)}} onPause={()=>setPlaying(false)} onError={()=>{setFailed(true);setVisible(false);setPlaying(false)}}/><button className="video-control" onClick={toggle} aria-label={playing?'Pause background video':'Play background video'}>{playing?'Pause video':failed?'Retry video':'Play video'}</button>{failed&&<p className="hero-video-error" role="status">Video unavailable. You can still explore and book below.</p>}</>;
+ return <><video ref={video} className={`hero-video ${visible?'is-playing':''}`} style={manual?{visibility:'visible'}:undefined} src={src} muted playsInline loop autoPlay preload="auto" onPlaying={()=>{if(!wanted.current){video.current?.pause();return}setVisible(true);setPlaying(true);setFailed(false)}} onPause={()=>setPlaying(false)} onError={()=>{setFailed(true);setVisible(false);setPlaying(false)}}/><button className="video-control" onClick={toggle} aria-label={playing?t('heroVideo.pauseBackground'):t('heroVideo.playBackground')}>{playing?t('heroVideo.pause'):failed?t('heroVideo.retry'):t('heroVideo.play')}</button>{failed&&<p className="hero-video-error" role="status">{t('heroVideo.unavailable')}</p>}</>;
 }

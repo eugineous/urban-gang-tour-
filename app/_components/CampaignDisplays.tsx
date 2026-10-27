@@ -1,4 +1,6 @@
 'use client';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
+import {shellMessages} from '@/ui/i18n/catalogues/shell';
 import { useEffect, useRef, useState } from 'react';
 import { campaignIsLive, campaignTargets, campaignsAllowedOn, safeCampaignImage, safeCampaignLink, type Campaign } from '@/lib/marketing-campaigns';
 import { fetchWithTimeout } from '@/lib/client/fetch-with-timeout';
@@ -14,9 +16,10 @@ function recentlySeen(campaign: PublicCampaign) {
   try { const at = Number(localStorage.getItem(storageKey(campaign.id))); return Number.isFinite(at) && at>0 && Date.now()-at<campaign.cooldownHours*3600000; } catch { return false; }
 }
 export function CampaignCreative({ campaign, preview = false, headingId }: { campaign: Pick<Campaign,'headline'|'description'|'image'|'href'|'ctaLabel'>; preview?: boolean; headingId?: string }) {
-  return <>{campaign.image && safeCampaignImage(campaign.image) && <img className={styles.image} src={campaign.image} alt="" loading="lazy"/>}<div className={styles.copy}><h2 id={headingId}>{campaign.headline}</h2>{campaign.description && <p>{campaign.description}</p>}{preview ? <span className={styles.cta}>{campaign.ctaLabel}</span> : <a className={styles.cta} href={campaign.href}>{campaign.ctaLabel}</a>}</div></>;
+  return <>{campaign.image && safeCampaignImage(campaign.image) && <img className={styles.image} src={campaign.image} alt="" loading="lazy"/>}<div className={styles.copy} lang="en-KE"><h2 id={headingId}>{campaign.headline}</h2>{campaign.description && <p>{campaign.description}</p>}{preview ? <span className={styles.cta}>{campaign.ctaLabel}</span> : <a className={styles.cta} href={campaign.href}>{campaign.ctaLabel}</a>}</div></>;
 }
 export default function CampaignDisplays({ path, paused }: { path: string; paused: boolean }) {
+  const t=useMessages(shellMessages);
   const [campaigns,setCampaigns] = useState<PublicCampaign[]>([]), [closed,setClosed] = useState<string[]>([]);
   const [selection,setSelection]=useState<{popup?:PublicCampaign;banner?:PublicCampaign}>({});
   const lease = useRef(0), serverClock = useRef({ time: 0, at: 0 }), loadedAt = useRef(0), popupShown = useRef(false), dialog = useRef<HTMLDialogElement>(null);
@@ -61,7 +64,7 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
       const clock=performance.now();
       if(automaticPopupWasShown())popupShown.current=true;
       if (lease.current && clock>=lease.current) { lease.current=0; setCampaigns([]); setSelection({}); return; }
-      const consentReady=hasConsentChoice()&&!document.querySelector('aside[aria-label="Privacy preferences"]');
+      const consentReady=hasConsentChoice()&&!document.querySelector('[data-privacy-preferences]');
       const otherOverlay=Array.from(document.querySelectorAll('dialog[open],.lightbox,.film-viewer,.modal-backdrop')).some(element=>element!==dialog.current);
       const uninterrupted=campaignCanInterrupt({hidden:document.hidden,editing:!!document.activeElement?.matches('input,textarea,select,[contenteditable=true]'),otherOverlay,privacyReady:consentReady,paused});
       const now=serverClock.current.time+clock-serverClock.current.at;
@@ -94,7 +97,7 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
     return close;
   }, [popupId]);
   // Eligibility is snapshotted by the timer; render stays pure and text-only.
-  if (popup) return <dialog ref={dialog} className={styles.dialog} aria-labelledby="campaign-title" onCancel={event=>{event.preventDefault();dismiss(popup);}}><button className={styles.close} type="button" aria-label="Close offer" onClick={()=>dismiss(popup)}>×</button><div className={styles.creative}><CampaignCreative campaign={popup} headingId="campaign-title"/></div></dialog>;
+  if (popup) return <dialog ref={dialog} className={styles.dialog} aria-labelledby="campaign-title" onCancel={event=>{event.preventDefault();dismiss(popup);}}><button className={styles.close} type="button" aria-label={t('campaign.closeOffer')} onClick={()=>dismiss(popup)}>×</button><div className={styles.creative}><CampaignCreative campaign={popup} headingId="campaign-title"/></div></dialog>;
   if (!banner) return null;
-  return <aside className={styles.banner} aria-label="Current campaign"><button className={styles.close} type="button" aria-label="Close announcement" onClick={()=>dismiss(banner)}>×</button><CampaignCreative campaign={banner}/></aside>;
+  return <aside className={styles.banner} aria-label={t('campaign.current')}><button className={styles.close} type="button" aria-label={t('campaign.closeAnnouncement')} onClick={()=>dismiss(banner)}>×</button><CampaignCreative campaign={banner}/></aside>;
 }

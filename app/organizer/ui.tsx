@@ -1,5 +1,7 @@
 'use client';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {organizerAuthMessages,type CustomerIssue} from '@/ui/i18n/catalogues/organizer-auth';
 
 // Shared styling for the organizer portal. On-brand (charcoal/magenta/gold,
 // Readable headings) in the shared current interface and
@@ -47,15 +49,15 @@ export async function api(path: string, opts?: RequestInit) {
   }
 }
 
-export function useToast(): [string, (m: string) => void] {
-  const [msg, setMsg] = useState('');
-  const say = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3500); };
+export function useToast<T extends string|CustomerIssue=string>(): [T|'', (m: T) => void] {
+  const [msg, setMsg] = useState<T|''>('');
+  const say = (m: T) => { setMsg(m); setTimeout(() => setMsg(''), 3500); };
   return [msg, say];
 }
 
-export function Toast({ msg }: { msg: string }) {
+export function Toast({ msg }: { msg: string|CustomerIssue }) {
   if (!msg) return null;
-  return <div role="alert" style={{ position: 'fixed', top: 16, right: 16, zIndex: 60, ...card, padding: '10px 16px', background: OC.gold, maxWidth: 320 }}>{msg}</div>;
+  return <div role="alert" style={{ position: 'fixed', top: 16, right: 16, zIndex: 60, ...card, padding: '10px 16px', background: OC.gold, maxWidth: 320 }}>{typeof msg==='string'?<span lang="en-KE">{msg}</span>:<MessageText catalogue={organizerAuthMessages} message={msg.key} values={msg.values}/>}</div>;
 }
 
 export function organizerAccessMessage(error: unknown): string {

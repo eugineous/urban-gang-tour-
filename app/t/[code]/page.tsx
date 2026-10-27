@@ -1,3 +1,7 @@
+import {DocumentLabel,DocumentStatus} from '@/app/_components/PrintDocumentButton';
+import LanguageChooser from '@/app/_components/LanguageChooser';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {documentsMessages} from '@/ui/i18n/catalogues/documents';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
@@ -64,7 +68,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
   });
 
   return (
-    <div className="tk-stage">
+    <div className="tk-stage"><div className="no-print"><LanguageChooser path="/documents"/></div>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="tk-mid">
       <div className="tk-edge">
@@ -73,12 +77,12 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
             <div className="tk-top">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/ugt-logo.png" alt="Urban Gang Tour" />
-              <span className="tk-lbl">Official e-ticket</span>
+              <span className="tk-lbl"><MessageText catalogue={documentsMessages} message="copy.official_e_ticket"/></span>
             </div>
             <div className="tk-rule" />
             <div className="tk-body">
-              <span className="tk-live">Your entry pass</span>
-              {t.pay_method === 'comp' ? <div><span className="tk-comp">Complimentary ticket</span></div> : null}
+              <span className="tk-live"><MessageText catalogue={documentsMessages} message="copy.your_entry_pass"/></span>
+              {t.pay_method === 'comp' ? <div><span className="tk-comp"><MessageText catalogue={documentsMessages} message="copy.complimentary_ticket"/></span></div> : null}
               <h1 className="tk-event">{evName}</h1>
               <div>
                 <span className={'tk-tier' + (vip ? ' gold' : '')}>{t.tier_name}</span>
@@ -88,49 +92,49 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
                   ? <>{meta.date} &middot; {meta.time} &middot; {meta.venue} &middot; {meta.city}</>
                   : <>Date &amp; venue announced on urbangangtour.co.ke</>}
               </div>
-              {presentedBy ? <div className="tk-meta">Presented by {presentedBy} &middot; ticketed via UGT Marketplace</div> : null}
+              {presentedBy ? <div className="tk-meta"><span lang="en-KE">Presented by </span>{presentedBy} <span lang="en-KE">&middot; ticketed via UGT Marketplace</span></div> : null}
               <div className="tk-issued">
                 <div>
-                  <div className="tk-lbl">Issued to</div>
-                  <div className="tk-holder">{t.holder || 'Ticket Holder'}</div>
+                  <div className="tk-lbl"><MessageText catalogue={documentsMessages} message="copy.issued_to"/></div>
+                  <div className="tk-holder">{t.holder || <DocumentLabel label="Ticket Holder"/>}</div>
                 </div>
-                <span className="tk-pos">{t.position} OF {t.of_count}</span>
+                <span className="tk-pos">{t.position} <MessageText catalogue={documentsMessages} message="copy.of_2"/> {t.of_count}</span>
               </div>
             </div>
             <div className="tk-perf"><i className="l" /><i className="r" /></div>
             <div className="tk-stub">
-              <span className="tk-admit">Admit One</span>
+              <span className="tk-admit"><MessageText catalogue={documentsMessages} message="copy.admit_one"/></span>
               <div className="tk-qrwrap">
                 <div className="tk-qr" dangerouslySetInnerHTML={{ __html: qrSvg }} />
-                <span className="tk-scan">Scan at gate</span>
+                <span className="tk-scan"><MessageText catalogue={documentsMessages} message="copy.scan_at_gate"/></span>
               </div>
             </div>
             <div className="tk-code">{code}</div>
             <div className="tk-foot">
-              <span className="tk-slogan">From Potential to Purpose</span>
-              <span className="tk-biz">urbangangtour.co.ke<br />+254 799 886247</span>
+              <span className="tk-slogan"><span lang="en-KE">From Potential to Purpose</span></span>
+              <span className="tk-biz"><span lang="en-KE">urbangangtour.co.ke</span><br />+254 799 886247</span>
             </div>
           </div>
           {used ? (
             <div className="tk-stamp" role="status">
-              <b>ADMITTED</b>
+              <b><MessageText catalogue={documentsMessages} message="copy.admitted_2"/></b>
               <span>{eatStamp(new Date(t.used_at as any))}</span>
             </div>
           ) : null}
           {!paid ? (
             <div className="tk-pending" role="status">
               <div>
-                <b>{t.voided_at||['refunded','partially_refunded'].includes(t.order_status)?'Ticket inactive':'Pending payment'}</b>
-                <p>{t.voided_at||['refunded','partially_refunded'].includes(t.order_status)?'This ticket is refunded, voided or awaiting refund allocation review. It cannot be used for entry. Contact the team with your order reference.':'This ticket activates when payment is confirmed. If you just paid, refresh in a few seconds.'}</p>
+                <b>{t.voided_at||['refunded','partially_refunded'].includes(t.order_status)?<MessageText catalogue={documentsMessages} message="copy.ticket_inactive"/>:<MessageText catalogue={documentsMessages} message="copy.pending_payment"/>}</b>
+                <p>{t.voided_at||['refunded','partially_refunded'].includes(t.order_status)?<MessageText catalogue={documentsMessages} message="copy.this_ticket_is_refunded_voided_or_awaiting_refund_allocation_review_it"/>:<MessageText catalogue={documentsMessages} message="copy.this_ticket_activates_when_payment_is_confirmed_if_you_just_paid"/>}</p>
               </div>
             </div>
           ) : null}
         </article>
       </div>
       <div className="tk-links">
-        <a href={`/api/tickets/${encodeURIComponent(code)}/pdf`}>Download PDF</a>
-        <a href={`/tickets/${encodeURIComponent(t.order_id)}`}>All tickets in this order</a>
-        <a href={`/receipt/${encodeURIComponent(t.order_id)}`}>Receipt</a>
+        <a href={`/api/tickets/${encodeURIComponent(code)}/pdf`}><MessageText catalogue={documentsMessages} message="copy.download_pdf"/></a>
+        <a href={`/tickets/${encodeURIComponent(t.order_id)}`}><MessageText catalogue={documentsMessages} message="copy.all_tickets_in_this_order"/></a>
+        <a href={`/receipt/${encodeURIComponent(t.order_id)}`}><MessageText catalogue={documentsMessages} message="copy.receipt_2"/></a>
       </div>
       </div>
     </div>

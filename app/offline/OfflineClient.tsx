@@ -1,2 +1,4 @@
 "use client";
-export default function OfflineClient(){return <section className="current-state wrap"><p className="eyebrow">Connection interrupted</p><h1>You’re offline.</h1><p>Check your connection, then try again. Payment and ticket validity still need server confirmation.</p><button className="button" onClick={()=>location.pathname==='/offline'?location.assign('/'):location.reload()}>Try again</button></section>}
+import {useMessages} from '@/ui/i18n/LanguageProvider';
+import {shellMessages} from '@/ui/i18n/catalogues/shell';
+export default function OfflineClient(){const t=useMessages(shellMessages);return <section className="current-state wrap"><p className="eyebrow">{t('offline.label')}</p><h1>{t('offline.title')}</h1><p>{t('offline.description')}</p><button className="button" onClick={()=>location.pathname==='/offline'?location.assign('/'):location.reload()}>{t('offline.retry')}</button></section>}

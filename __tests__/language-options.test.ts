@@ -2,6 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createElement} from 'react';
 import LanguageChooser from '@/app/_components/LanguageChooser';
+import {INTERFACE_LOCALES,NATIVE_NAMES} from '@/lib/i18n/locale';
 import {TRANSLATION_LANGUAGES,translationLanguage,preferredTranslationLanguage,googleTranslationUrl,localWelcomeLanguage,publicTranslationPath} from '@/lib/translation-options';
 describe('browser-aware language choices',()=>{
  it('ships the current published Google NMT catalogue without pretending every choice is a translated local page',()=>{
@@ -26,8 +27,11 @@ describe('browser-aware language choices',()=>{
  it.each(['/admin','/admin?tab=Content','/organizer/dashboard','/account','/book','/contact-us','/cart','/checkout','/shop','/shop/tee','/pay/success?ref=private','/tickets/private','/receipt/private','/api/orders','/blog/story?token=private','//evil.example','https://evil.example','/blog/%3Fsecret'])('never sends sensitive or arbitrary %s to a translation service',path=>{
   expect(publicTranslationPath(path)).toBeUndefined();expect(googleTranslationUrl(path,'fr')).toBeUndefined();
  });
- it('renders all options in an accessible native picker without a modal or unsolicited Google scripts',()=>{
+ it('renders exactly six explicit native options with English SSR and no external translation action',()=>{
   const html=renderToStaticMarkup(createElement(LanguageChooser,{path:'/about'}));
-  expect(html).toContain('Choose language');expect(html).toContain('<select');expect(html.match(/<option\b/g)).toHaveLength(195);expect(html).not.toContain('<dialog');expect(html).not.toContain('<script');expect(html).toContain('only when you click Go');
+  expect(html).toContain('aria-label="Language"');expect(html).toContain('<select');
+  expect(html.match(/<option\b/g)).toHaveLength(6);expect(html).toContain('value="en" selected=""');
+  for(const code of INTERFACE_LOCALES)expect(html).toContain(`value="${code}"${code==='en'?' selected=""':''}>${NATIVE_NAMES[code]}</option>`);
+  expect(html).not.toMatch(/value="auto"|>Go<|translate\.google|<a\b|<dialog|<script/);
  });
 });

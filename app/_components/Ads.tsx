@@ -1,4 +1,6 @@
 'use client';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {shellMessages} from '@/ui/i18n/catalogues/shell';
 
 import { useEffect, useRef, useState } from 'react';
 import {usePathname} from 'next/navigation';
@@ -102,7 +104,7 @@ export function AdSlot({ slot, label = true, style }: { slot?: string; label?: b
     <div style={{ margin: '24px 0', textAlign: 'center', ...style }}>
       {label && (
         <div style={{ fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: '#999', marginBottom: 4 }}>
-          Advertisement
+          <MessageText catalogue={shellMessages} message="advertising.label"/>
         </div>
       )}
       <ins

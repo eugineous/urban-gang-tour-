@@ -39,7 +39,7 @@ export interface ReconcileOutcome {
 
 export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome> {
   const out: ReconcileOutcome = { checked: 0, paid: [], failed: [], stillPending: [], skipped: [] };
-  if (!hasDb()) return out;
+  if (!hasDb()) throw new Error('db_not_configured');
   const rows = await q<{
     id: string; total: number; status: string; mpesa_ref: string | null; paystack_ref: string | null; pay_method: string | null;
   }>(
@@ -51,7 +51,7 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
         AND created_at < now() - interval '2 minutes'
       ORDER BY created_at ASC LIMIT $1`,
     [limit, RECOVERABLE_PAYMENT_STATUSES],
-  ).catch(() => [] as any[]);
+  ).catch(() => { throw new Error('database_unavailable'); });
   for (const o of rows) {
     out.checked++;
     try {

@@ -1,3 +1,5 @@
+import {MessageText} from '@/ui/i18n/MessageText';
+import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
 import {ProductReviewForm} from '@/app/_components/ProductReviewForm';
 import {ensureOpsSchema} from '@/lib/server/ops';
 import {ProductPurchase} from '@/app/_components/ProductPurchase';
@@ -121,7 +123,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
   const variants = safeVariants(product.variants);
   const extra=Array.isArray(product.photos)?product.photos.filter((x):x is string=>typeof x==='string'&&(/^(https?:\/\/|\/(?!\/))/.test(x))):[];
-  const photos=[...new Set([product.image,...extra].filter(Boolean))].map((url,i)=>({id:product.id+'-'+i,url,altText:product.name+' · photograph '+(i+1)}));
+  const photos=[...new Set([product.image,...extra].filter(Boolean))].map((url,i)=>({id:product.id+'-'+i,url,kind:'productPhotograph' as const,ordinal:i+1}));
   const path = `/shop/${product.id}`;
   const reviewRows = await q<{ author: string; rating: number; body: string; created_at: string }>(
     `SELECT author, rating, body, created_at::text AS created_at
@@ -166,12 +168,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return <section className={`product-page ${styles.productPage}`}>
     <JsonLd data={productJsonLd} />
-    <div className="wrap breadcrumbs"><a href="/shop">Shop</a><span>/</span><span>{product.name}</span></div>
+    <div className="wrap breadcrumbs"><a href="/shop"><MessageText catalogue={commerceMessages} message="shop"/></a><span>/</span><span lang="en-KE">{product.name}</span></div>
     <section className={`product-detail wrap ${styles.productDetail}`}>
       <ProductGallery photos={photos} name={product.name}/>
-      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category||'Official merchandise'}</p><h1>{product.name}</h1><ShareActions title={product.name} path={'/shop/'+product.id} label="Share this product"/>{product.description&&<p className={styles.description}>{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary>Size guide</summary><p>{product.size_guide}</p></details>}</div>
+      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category?<span lang="en-KE">{product.category}</span>:<MessageText catalogue={commerceMessages} message="shop.official"/>}</p><h1 lang="en-KE">{product.name}</h1><ShareActions title={product.name} path={'/shop/'+product.id}/>{product.description&&<p className={styles.description} lang="en-KE">{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary><MessageText catalogue={commerceMessages} message="sizeGuide"/></summary><p lang="en-KE">{product.size_guide}</p></details>}</div>
     </section>
-    {reviews.length>0&&<section className={`wrap product-reviews ${styles.reviewSection}`}><p className="eyebrow">From the community</p><h2>Customer reviews</h2><div className={styles.reviewGrid}>{reviews.map((review,i)=><article key={i}><h3>{review.author}</h3><p className={styles.rating}>{review.rating} / 5</p><p>{review.body}</p></article>)}</div></section>}
+    {reviews.length>0&&<section className={`wrap product-reviews ${styles.reviewSection}`}><p className="eyebrow"><MessageText catalogue={commerceMessages} message="review.community"/></p><h2><MessageText catalogue={commerceMessages} message="review.heading"/></h2><div className={styles.reviewGrid}>{reviews.map((review,i)=><article key={i}><h3 lang="">{review.author}</h3><p className={styles.rating}>{review.rating} / 5</p><p lang="">{review.body}</p></article>)}</div></section>}
     <section className={`wrap product-reviews ${styles.reviewSection}`}><ProductReviewForm productId={product.id}/></section>
   </section>;
 }

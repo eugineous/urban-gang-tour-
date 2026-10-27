@@ -1,5 +1,5 @@
 // SSR and CSS contracts only; root separately verifies rendered layouts.
-import {Children,createElement,isValidElement,type ReactElement,type ReactNode} from 'react';
+import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {readFileSync} from 'node:fs';
 import postcss from 'postcss';
@@ -7,12 +7,6 @@ import {describe,expect,it,vi} from 'vitest';
 import {ContactFooter} from '@/ui/components/ContactInterface';
 import {FOOTER_NAVIGATION} from '@/lib/site-navigation';
 
-type ElementProps={children?:ReactNode;[key:string]:unknown};
-function elements(node:ReactNode):ReactElement<ElementProps>[] {
- const result:ReactElement<ElementProps>[]=[];
- Children.forEach(node,child=>{if(isValidElement<ElementProps>(child)){result.push(child);result.push(...elements(child.props.children));}});
- return result;
-}
 const props=()=>({onCookies:vi.fn(),focusView:false,onFocus:vi.fn()});
 const css=readFileSync('ui/components/ContactChrome.module.css','utf8');
 function values(selector:string,property:string){const result:string[]=[];postcss.parse(css).walkRules(selector,rule=>rule.walkDecls(property,decl=>{result.push(decl.value)}));return result;}
@@ -26,26 +20,26 @@ describe('essential public footer',()=>{
   expect(html).not.toContain('Events, hosting &amp; production');
   expect(html).not.toContain('<form');expect(html).not.toContain('<video');
   expect(html).toContain('data-site-footer');
-  expect(html.match(/<a(?:\s|>)/g)).toHaveLength(23);
+  expect(html.match(/<a(?:\s|>)/g)).toHaveLength(22);
  });
  it('preserves direct email, WhatsApp, five social accounts and legal access',()=>{
   const html=renderToStaticMarkup(createElement(ContactFooter,props()));
   for(const value of ['mailto:admin@urbangangtour.co.ke','https://wa.me/254799886247','Email us','WhatsApp','/privacy-policy','/cookie-policy','/terms','/refund-policy'])expect(html).toContain(value);
   for(const name of ['Instagram','YouTube','TikTok','Facebook','X'])expect(html).toContain('aria-label="'+name+'"');
-  expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(7);
+  expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(6);
  });
- it('keeps private and payment pages inside the browser translation boundary',()=>{
+ it('keeps native selection local on private and payment pages',()=>{
   const html=renderToStaticMarkup(createElement(ContactFooter,{...props(),path:'/checkout'}));
-  expect(html).toContain('Private pages and forms are not sent to Google.');
+  expect(html).toContain('Your choice applies immediately.');
   expect(html).not.toContain('translate.google.com');
  });
- it('keeps cookie reopening and focus mode as working explicit controls',()=>{
-  const input=props(),nodes=elements(ContactFooter(input));
-  const cookies=nodes.find(node=>node.type==='button'&&node.props.children==='Cookie settings');
-  const focus=nodes.find(node=>node.type==='button'&&node.props['aria-pressed']===false);
-  expect(cookies).toBeDefined();expect(focus).toBeDefined();
-  (cookies!.props.onClick as ()=>void)();(focus!.props.onClick as ()=>void)();
-  expect(input.onCookies).toHaveBeenCalledOnce();expect(input.onFocus).toHaveBeenCalledOnce();
+ it('keeps cookie reopening and focus mode as explicit rendered controls',()=>{
+  const html=renderToStaticMarkup(createElement(ContactFooter,props()));
+  expect(html).toContain('>Cookie settings</button>');
+  expect(html).toContain('aria-pressed="false">Focus view: off</button>');
+  const source=readFileSync('ui/components/ContactInterface.tsx','utf8');
+  expect(source).toContain('onClick={onCookies}');
+  expect(source).toContain('onClick={onFocus}');
  });
  it('retains compact aligned tracks, wrapping, visible focus and 44px controls',()=>{
   expect(values('.columns','grid-template-columns')).toContain('repeat(2,minmax(0,1fr))');

@@ -5,6 +5,8 @@ import {describe,expect,it} from 'vitest';
 import PressPage from '@/app/press/page';
 import Accessibility from '@/app/accessibility/page';
 import SignupForm from '@/app/organizer/signup/SignupForm';
+import {organizerAuthMessages,factoryIssue} from '@/ui/i18n/catalogues/organizer-auth';
+import {formatMessage} from '@/lib/i18n/messages';
 
 describe('plain-language support pages',()=>{
  it('keeps signup instructions and login links readable on the existing light backgrounds',()=>{
@@ -23,7 +25,7 @@ describe('plain-language support pages',()=>{
  });
  it('names the press page directly and retains the mission and team roles',()=>{
   const html=renderToStaticMarkup(createElement(PressPage));
-  expect(html).toContain('<h1>Press &amp; media.</h1>');
+  expect(html).toContain('<h1><span lang="en">Press &amp; media.</span></h1>');
   for(const text of ['From Potential to Purpose','Eugine Micah','Lucy Ogunde','TV presenter, MC','hype man','Event coordination and event supply','PPP TV'])expect(html).toContain(text);
   expect(html).not.toContain('The story behind the tour');
   expect(html).not.toContain('bringing conversation and audience connection');
@@ -36,7 +38,7 @@ describe('plain-language support pages',()=>{
  });
  it('names accessibility settings directly and keeps the working focus-view control',()=>{
   const html=renderToStaticMarkup(createElement(Accessibility));
-  expect(html).toContain('<h1>Accessibility &amp;<br/>display settings.</h1>');
+  expect(html.replace(/<span\b[^>]*>|<\/span>/g,'')).toContain('<h1>Accessibility &amp;<br/>display settings.</h1>');
   expect(html).toContain('No account needed; change it at any time.');
   expect(html).toContain('aria-pressed="false"');
   expect(html).toContain('Focus view: off');
@@ -44,7 +46,7 @@ describe('plain-language support pages',()=>{
  });
  it('preserves keyboard, media, language and accessibility-testing limitations',()=>{
   const html=renderToStaticMarkup(createElement(Accessibility));
-  for(const text of ['Use Tab','Enter to follow a link','Escape to close the main menu','skips to the main content','browser’s zoom','reduced-motion preference','Some video captions or transcripts may not yet be available.','six languages','Most forms and articles are currently in English.','not a claim of full WCAG compliance','WCAG 2.2 AA','real-device testing are still needed'])expect(html).toContain(text);
+  for(const text of ['Use Tab','Enter to follow a link','Escape to close the main menu','skips to the main content','browser’s zoom','reduced-motion preference','Some video captions or transcripts may not yet be available.','English, Kiswahili, French, Simplified Chinese, Russian and Spanish','English is the default unless you save a choice.','legal terms and server emails/PDFs remain in their original language','not a claim of full WCAG compliance','WCAG 2.2 AA','real-device testing are still needed'])expect(html).toContain(text);
   expect(html).toContain('href="/welcome/en"');
   expect(html).toContain('Report an accessibility problem');
  });
@@ -61,7 +63,8 @@ describe('plain-language support pages',()=>{
   expect(source).toContain("api('/api/organizer/signup'");
   expect(source).toContain('JSON.stringify({ businessName, contactName, email, phone, password, settlementBank, settlementAccount, adultConfirmed, termsAccepted })');
   expect(source).toContain('if (!adultConfirmed || !termsAccepted)');
-  expect(source).toContain('Select your payout bank');
-  expect(source).toContain('Enter your bank account number');
+  for(const text of ['Select your payout bank','Enter your bank account number']){
+   const issue=factoryIssue(text);expect(formatMessage(organizerAuthMessages,'en',issue.key).text).toBe(text);expect(source).toContain(issue.key);
+  }
  });
 });

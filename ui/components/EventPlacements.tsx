@@ -1,4 +1,8 @@
 'use client';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {discoveryMessages} from '@/ui/i18n/catalogues/discovery';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
+import {EventDay} from './PublicationDate';
 import {useEffect,useState} from 'react';
 import {ArrowUpRight} from '@phosphor-icons/react';
 import {recentEventPlacements} from '@/lib/event-placements';
@@ -27,14 +31,15 @@ export function EventPlacements({events:initialEvents,initialNow,path}:{events:O
   const visible=()=>{if(!document.hidden)void refresh()};document.addEventListener('visibilitychange',visible);
   return()=>{stopped=true;controller?.abort();clearInterval(timer);document.removeEventListener('visibilitychange',visible)};
  },[]);
+ const t=useMessages(discoveryMessages);
  const placements=recentEventPlacements(events,now,path);
  if(!placements.length)return null;
  return <aside className={styles.placements} data-event-placements aria-labelledby="recent-events-heading">
-  <div className={styles.heading}><h2 id="recent-events-heading">On our calendar</h2><Link href="/events">All events <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
-  <div className={styles.cards}>{placements.map(event=><Link className={styles.card} href={event.href} key={event.id}>
-   <img src={event.image} alt={event.name+' event artwork'} width="80" height="100" loading="lazy" decoding="async"/>
-   <span className={styles.copy}><small>{event.label}</small><strong>{event.name}</strong><time dateTime={event.dateTime}>{event.date}</time></span>
+  <div className={styles.heading}><h2 id="recent-events-heading"><MessageText catalogue={discoveryMessages} message="calendar.onCalendar"/></h2><Link href="/events"><MessageText catalogue={discoveryMessages} message="events.all"/> <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
+  <div className={styles.cards}>{placements.map(event=>{const source=events.find(source=>String(source.id||source.slug)===event.id);return <Link className={styles.card} href={event.href} key={event.id}>
+   <img src={event.image} alt={t('card.image',{name:event.name})} width="80" height="100" loading="lazy" decoding="async"/>
+   <span className={styles.copy}><small>{t(source?.status==='completed'?'placement.recent':source?.status==='ongoing'?'status.ongoing':source?.status==='announced'?'placement.announced':'placement.coming')}</small><strong lang="en-KE">{event.name}</strong><EventDay day={event.dateTime} fallback={!event.dateTime&&typeof source?.dateLabel==='string'?source.dateLabel:undefined}/></span>
    <ArrowUpRight className={styles.arrow} size={18} aria-hidden="true"/>
-  </Link>)}</div>
+  </Link>})}</div>
  </aside>;
 }

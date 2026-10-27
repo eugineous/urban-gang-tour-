@@ -2,14 +2,19 @@
 import {useEffect, useRef, useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {CONSENT_EVENT,hasConsentChoice,hasOptionalConsent, setOptionalConsent} from '@/lib/client/consent';
+import {privacyMessages} from '@/ui/i18n/catalogues/privacy';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
 import styles from './PrivacyChoices.module.css';
 
 export function CookieConsent() {
+  const t=useMessages(privacyMessages);
   const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [cleanup, setCleanup] = useState(false);
   const resolved = useRef(false);
-  const optionalServices = [process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && 'Google Analytics', process.env.NEXT_PUBLIC_ADSENSE_CLIENT && 'Google advertising'].filter(Boolean).join(' and ');
+  const analytics=process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?'Google Analytics':'';
+  const advertising=process.env.NEXT_PUBLIC_ADSENSE_CLIENT?t('consent.advertising'):'';
+  const optionalServices=analytics&&advertising?t('consent.serviceJoin',{analytics,advertising}):analytics||advertising;
   function pageView() {
     if (!hasOptionalConsent() || /^\/(admin|organizer|account|cart|checkout|pay|receipt|tickets|t|verify|orders|book\/status)(\/|$)/.test(location.pathname)) return;
     void fetch('/api/track', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname}),keepalive:true}).catch(()=>{});
@@ -30,16 +35,17 @@ export function CookieConsent() {
     setShow(!accepted && loaded);
   }
   if (!show || pathname?.startsWith('/admin') || /^\/(checkout|pay)(\/|$)/.test(pathname || '')) return null;
-  return <aside className={styles.banner} aria-label="Privacy preferences">
-    <div><strong>Cookies</strong><button className={styles.close} type="button" onClick={()=>setShow(false)} aria-label="Close privacy preferences">×</button></div>
-    {cleanup ? <><p role="status">Your choice is saved. Optional reporting and ads are disabled. Reload to clear services already loaded.</p><div className={styles.actions}><button type="button" onClick={()=>location.reload()}>Reload now</button><button type="button" onClick={()=>setShow(false)}>Keep browsing</button></div></> : <>
-      <p>Necessary cookies keep the site working. Optional reporting{optionalServices&&<> ({optionalServices})</>} stays off until you accept. If you’re under 18, choose Reject.</p>
-      <div className={styles.actions}><button type="button" onClick={()=>decide(false)}>Reject</button><button type="button" onClick={()=>decide(true)}>Accept</button></div>
-      <p className={styles.links}><a href="/cookie-policy">Cookie policy</a><a href="/privacy-policy">Privacy policy</a><span>You can revisit this choice in the footer.</span></p>
+  return <aside className={styles.banner} data-privacy-preferences aria-label={t('consent.label')}>
+    <div><strong>{t('consent.title')}</strong><button className={styles.close} type="button" onClick={()=>setShow(false)} aria-label={t('consent.close')}>×</button></div>
+    {cleanup ? <><p role="status">{t('consent.cleanup')}</p><div className={styles.actions}><button type="button" onClick={()=>location.reload()}>{t('consent.reload')}</button><button type="button" onClick={()=>setShow(false)}>{t('consent.keepBrowsing')}</button></div></> : <>
+      <p>{t('consent.disclosure',{services:optionalServices?t('consent.services',{names:optionalServices}):''})}</p>
+      <div className={styles.actions}><button type="button" onClick={()=>decide(false)}>{t('consent.reject')}</button><button type="button" onClick={()=>decide(true)}>{t('consent.accept')}</button></div>
+      <p className={styles.links}><a href="/cookie-policy">{t('consent.cookiePolicy')}</a><a href="/privacy-policy">{t('consent.privacyPolicy')}</a><span>{t('consent.revisit')}</span></p>
     </>}
   </aside>;
 }
 
 export function PrivacyPreferencesButton() {
-  return <button type="button" className="button secondary" onClick={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))}>Cookie settings</button>;
+  const t=useMessages(privacyMessages);
+  return <button type="button" className="button secondary" onClick={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))}>{t('consent.settings')}</button>;
 }

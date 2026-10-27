@@ -5,59 +5,58 @@ import {readFileSync} from 'node:fs';
 import postcss from 'postcss';
 import {describe,expect,it} from 'vitest';
 import LanguageChooser from '@/app/_components/LanguageChooser';
-import {TRANSLATION_LANGUAGES} from '@/lib/translation-options';
+import {INTERFACE_LOCALES} from '@/lib/i18n/locale';
+import {privacyMessages} from '@/ui/i18n/catalogues/privacy';
 
 function values(css:string,selector:string,property:string){const found:string[]=[];postcss.parse(css).walkRules(selector,rule=>rule.walkDecls(property,decl=>{found.push(decl.value)}));return found;}
 
 describe('native language switch',()=>{
- it('renders one labelled native select with all 194 choices and a browser-language reset',()=>{
+ it('renders one labelled native select with all six supported explicit choices',()=>{
   const html=renderToStaticMarkup(createElement(LanguageChooser,{path:'/about'}));
   expect(html.match(/<select\b/g)).toHaveLength(1);
-  expect(html).toContain('aria-label="Choose language"');
-  expect(html.match(/<option\b/g)).toHaveLength(TRANSLATION_LANGUAGES.length+1);
-  expect(html).toContain('value="auto" selected=""');
-  for(const item of TRANSLATION_LANGUAGES)expect(html).toContain(`value="${item.code}"`);
-  expect(html).toContain('Browser language (automatic)');
+  expect(html).toContain('aria-label="Language"');
+  expect(html.match(/<option\b/g)).toHaveLength(INTERFACE_LOCALES.length);
+  expect(html).toContain('value="en" selected=""');
+  for(const code of INTERFACE_LOCALES)expect(html).toContain(`value="${code}"`);
+  expect(html).not.toContain('value="auto"');
   expect(html).not.toContain('<dialog');expect(html).not.toContain('<script');
  });
- it('makes translation a separate explicit canonical-public-page link, not a selection side effect',()=>{
+ it('applies native selection locally without an external translation action',()=>{
   const html=renderToStaticMarkup(createElement(LanguageChooser,{path:'/about'}));
-  expect(html).toContain('class="language-apply"');
-  expect(html).toContain('https://translate.google.com/translate?');
-  expect(html).toContain('u=https%3A%2F%2Furbangangtour.co.ke%2Fabout');
-  expect(html).toContain('target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"');
-  expect(html).toContain('only when you click Go');
+  expect(html).not.toMatch(/<a\b|translate.google|>Go</);
+  expect(html).toContain('Your choice applies immediately.');
   const source=readFileSync('app/_components/LanguageChooser.tsx','utf8');
-  expect(source).not.toMatch(/createPortal|showModal|window\.open|location\.(?:assign|replace)|fetch\(/);
-  expect(source).toContain('localStorage.removeItem(LANGUAGE_CHOICE_KEY)');
-  expect(source).toContain("addEventListener('languagechange',sync)");
-  expect(source).toContain("addEventListener('storage',storage)");
+  expect(source).toContain('setLocale(nativeLocale(event.target.value)');
+  expect(source).not.toMatch(/createPortal|showModal|window\.open|location\.(?:assign|replace)|fetch\(|navigator|localStorage/);
  });
  it.each(['/account','/cart','/checkout','/shop','/book','/contact-us','/admin','/events/public-event?token=private'])('does not provide an external translation link for %s',path=>{
   const html=renderToStaticMarkup(createElement(LanguageChooser,{path}));
   expect(html).not.toContain('href="https://translate.google.com');
   expect(html).not.toContain('class="language-apply"');
-  expect(html).toContain('Private pages and forms are not sent to Google.');
+  expect(html).toContain('Your choice applies immediately.');
  });
- it('fits the 96px header slot with readable select text and 44px controls',()=>{
+ it('wraps readable native names and helper text with 44px controls',()=>{
   const css=readFileSync('app/responsive-continuation.css','utf8');
-  expect(values(css,'.language-control','inline-size')).toEqual(['96px']);
-  expect(values(css,'.language-select','inline-size')).toEqual(['48px']);
-  expect(values(css,'.language-select','block-size')).toEqual(['44px']);
+  expect(values(css,'.language-control','flex-wrap')).toEqual(['wrap']);
+  expect(values(css,'.language-select','min-inline-size')).toEqual(['0']);
+  expect(values(css,'.language-select','inline-size')).toEqual(['160px']);
+  expect(values(css,'.language-select','min-block-size')).toEqual(['44px']);
   expect(values(css,'.language-select','font')).toEqual(['500 16px/1.4 Inter,Arial,sans-serif']);
-  expect(values(css,'.language-apply,.language-private','min-block-size')).toEqual(['44px']);
   expect(css).toContain(':focus-visible');expect(css).not.toContain('.language-dialog');
+  expect(css).not.toContain('inline-size:96px');
  });
 });
 
 describe('two-choice cookie panel',()=>{
  it('offers Reject and Accept with a concise disclosure and policy links, not a third preferences step',()=>{
   const source=readFileSync('app/_components/CookieConsent.tsx','utf8');
-  expect(source).toContain('onClick={()=>decide(false)}>Reject</button>');
-  expect(source).toContain('onClick={()=>decide(true)}>Accept</button>');
-  expect(source).toContain('Necessary cookies keep the site working.');
-  expect(source).toContain('stays off until you accept.');
-  expect(source).toContain('If you’re under 18, choose Reject.');
+  expect(source).toContain('onClick={()=>decide(false)}');
+  expect(privacyMessages.en['consent.reject']).toBe('Reject');
+  expect(source).toContain('onClick={()=>decide(true)}');
+  expect(privacyMessages.en['consent.accept']).toBe('Accept');
+  expect(privacyMessages.en['consent.disclosure']).toContain('Necessary cookies keep the site working.');
+  expect(privacyMessages.en['consent.disclosure']).toContain('stays off until you accept.');
+  expect(privacyMessages.en['consent.disclosure']).toContain('If you’re under 18, choose Reject.');
   expect(source).toContain('href="/cookie-policy"');expect(source).toContain('href="/privacy-policy"');
   expect(source).not.toContain('privacy-storage-details');expect(source).not.toContain('setDetails');
  });

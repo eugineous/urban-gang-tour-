@@ -636,6 +636,23 @@ binding. It uses the existing configured cron; deployment does not create a new
 schedule. Automation requires the self-reference binding, secret, database and
 Resend configuration. This does not enable Gmail, SMS or push delivery.
 
+Receipt `accepted` additionally requires a provider ID matching
+`^[a-zA-Z0-9_-]{1,100}$` and a successful lease-owned processing-state database
+acknowledgement. Missing/invalid acknowledgement remains uncertain under the
+original job, payload and provider key; a lost lease cannot mark it accepted.
+The eight-attempt/20-hour limits remain unchanged. There is no historical replay.
+
+`POST /api/internal/cron/payment-reconcile` and
+`POST /api/internal/cron/ticket-sweeper` retain the same constant-time internal
+secret authorization. Every response is private/no-store. Missing or failing
+database work returns 503 `{error:"database_unavailable"}` rather than an empty
+successful run; other execution failures return 503 `{error:"job_failed"}`.
+Missing automation secret returns 503; incorrect secret returns 401. Driver details
+are never returned. Genuine empty successful runs preserve their existing shape.
+The existing five scheduled dispatches report finite HTTP/transport failures to
+Worker logs and reject their background task without logging response bodies or
+retrying jobs. No monitoring dashboard, alerting promise or new schedule is added.
+
 ### POST/GET /api/performance
 
 POST accepts anonymous bounded Web Vitals samples on the same origin, limited

@@ -1,3 +1,6 @@
+import {LanguageProvider} from '@/ui/i18n/LanguageProvider';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {shellMessages} from '@/ui/i18n/catalogues/shell';
 import {PerformanceVitals} from './_components/PerformanceVitals';
 import ReferralCapture from '@/ui/components/ReferralCapture';
 import {MEDIA_LIFECYCLE_BOOTSTRAP} from '@/lib/client/media-lifecycle';
@@ -113,6 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
+        <LanguageProvider>
         {/* Skip-to-content link — first focusable element on every page.
             Uses CSS :focus-within to stay visually hidden until focused,
             implemented via a className toggled by globals.css so no client
@@ -121,7 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           href="#main-content"
           className="skip-to-content"
         >
-          Skip to main content
+          <MessageText catalogue={shellMessages} message="skip.main"/>
         </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
@@ -142,6 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Google Analytics: same dormant-until-configured, consent-gated
             pattern as AdSense above. */}
         <GoogleAnalytics />
+        </LanguageProvider>
       </body>
     </html>
   );

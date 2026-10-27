@@ -8,6 +8,8 @@ import {LiveCommerce} from '@/app/_components/LiveCommerce';
 import {merchProducts} from '@/data/color-blast';
 import {LIVE_CART_KEY as DESIGN_BAG_KEY} from '@/lib/client/merch-preview-cart';
 import {LIVE_CART_KEY as PURCHASE_CART_KEY} from '@/lib/client/live-cart';
+import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
+import {formatMessage} from '@/lib/i18n/messages';
 
 const money=(value:number)=>'KES '+value.toLocaleString('en-KE');
 
@@ -60,8 +62,23 @@ describe('design and checkout copy clarity',()=>{
 
  it('retains checkout recovery, consent and payment-confirmation warnings',()=>{
   const source=readFileSync('app/_components/LiveCommerce.tsx','utf8');
-  for(const text of ['Pickup or delivery','Browse merchandise to add items to your cart.','A saved order is not confirmation of payment.','Your receipt is issued only after payment is confirmed.','Your ticket or receipt is issued only after payment is confirmed.','Check the saved payment before paying again.','href="/terms"','href="/refund-policy"','href="/privacy-policy"'])expect(source).toContain(text);
-  expect(source.match(/Ticket sales are not open\./g)).toHaveLength(1);
+  const warnings=[
+   ['fulfillment.method','Pickup or delivery'],
+   ['cart.browse','Browse merchandise to add items to your cart.'],
+   ['checkout.saved','A saved order is not confirmation of payment.'],
+   ['checkout.cardNote','Your receipt is issued only after payment is confirmed.'],
+   ['checkout.mpesaNote','Your ticket or receipt is issued only after payment is confirmed.'],
+   ['checkout.paymentUncertain','Check the saved payment before paying again.'],
+  ] as const;
+  for(const [key,text]of warnings){
+   expect(formatMessage(commerceMessages,'en',key).text).toContain(text);
+   expect(source).toContain(key==='checkout.saved'?'message="'+key+'"':"'"+key+"'");
+  }
+  // The saved warning is a MessageText slot; consent destinations stay real.
+  expect(source).toContain('message="checkout.saved"');
+  for(const href of ['href="/terms"','href="/refund-policy"','href="/privacy-policy"'])expect(source).toContain(href);
+  expect(formatMessage(commerceMessages,'en','tickets.closed').text).toBe('Ticket sales are not open.');
+  expect(source.match(/t\('tickets.closed'\)/g)).toHaveLength(1);
   expect(source).not.toContain('Find something that feels like you');
  });
 });

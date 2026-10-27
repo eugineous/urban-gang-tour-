@@ -1,3 +1,7 @@
+import {DocumentLabel,DocumentStatus} from '@/app/_components/PrintDocumentButton';
+import LanguageChooser from '@/app/_components/LanguageChooser';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {documentsMessages} from '@/ui/i18n/catalogues/documents';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getDocumentBySerial, ensureDocgenSchema, DOC_TYPES } from '@/lib/server/docgen';
@@ -52,5 +56,5 @@ export default async function VerifyPage({ params }: { params: Promise<{ serial:
   rows.push(['Date issued', fmtDate(doc.created_at)]);
   if (!valid && doc.void_reason) rows.push(['Void reason', doc.void_reason]);
 
-  return <section className="document-stage"><article className="document-card"><a className="document-brand" href="/"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour" width={72}/><span>Document verification</span></a><p className={`document-status ${valid?'valid':'void'}`} role="status">{valid?'Verified document':'Document cancelled'}</p><h1>{typeLabel}</h1><p>{valid?'This document matches our official records.':'This document is no longer valid.'}</p><dl className="document-details">{rows.map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl><p className="document-note">Check these details against the document in your hand. If they differ, contact <a href="mailto:admin@urbangangtour.co.ke">admin@urbangangtour.co.ke</a>.</p><a className="button" href="/">Back to Urban Gang Tour</a></article></section>;
+  return <section className="document-stage"><div className="no-print"><LanguageChooser path="/documents"/></div><article className="document-card"><a className="document-brand" href="/"><img src="/assets/ugt-logo.png" alt="Urban Gang Tour" width={72}/><span><MessageText catalogue={documentsMessages} message="copy.document_verification"/></span></a><p className={`document-status ${valid?'valid':'void'}`} role="status">{valid?<MessageText catalogue={documentsMessages} message="copy.verified_document"/>:<MessageText catalogue={documentsMessages} message="copy.document_cancelled"/>}</p><h1>{typeLabel}</h1><p>{valid?<MessageText catalogue={documentsMessages} message="copy.this_document_matches_our_official_records"/>:<MessageText catalogue={documentsMessages} message="copy.this_document_is_no_longer_valid"/>}</p><dl className="document-details">{rows.map(([k,v])=><div key={String(k)}><dt><DocumentLabel label={k}/></dt><dd lang="en-KE">{v}</dd></div>)}</dl><p className="document-note"><span lang="en-KE">Check these details against the document in your hand. If they differ, contact </span><a href="mailto:admin@urbangangtour.co.ke"><span lang="en-KE">admin@urbangangtour.co.ke</span></a><MessageText catalogue={documentsMessages} message="copy."/></p><a className="button" href="/"><MessageText catalogue={documentsMessages} message="copy.back_to_urban_gang_tour"/></a></article></section>;
 }

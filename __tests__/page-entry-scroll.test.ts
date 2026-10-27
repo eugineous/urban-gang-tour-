@@ -1,4 +1,6 @@
 import vm from 'node:vm';
+import {resolve} from 'node:path';
+import {build} from 'esbuild';
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {PAGE_ENTRY_BOOTSTRAP,installPageEntryScroll} from '@/lib/client/page-entry-scroll';
 
@@ -23,6 +25,20 @@ function browser(hash=''){
 }
 afterEach(()=>vi.restoreAllMocks());
 describe('page entry scroll',()=>{
+ it.each([false,true])('runs the production-bundled head script without module helpers (minify=%s)',async minify=>{
+  const bundle=await build({entryPoints:[resolve('lib/client/page-entry-scroll.ts')],bundle:true,write:false,format:'cjs',platform:'node',target:'es2022',keepNames:true,minify});
+  const commonJs={exports:{} as {PAGE_ENTRY_BOOTSTRAP:string}};
+  vm.runInNewContext(bundle.outputFiles[0].text,{module:commonJs,exports:commonJs.exports});
+  const {target,events,flush,scrollTo,mutations}=browser('#experiences');
+  expect(()=>vm.runInNewContext(commonJs.exports.PAGE_ENTRY_BOOTSTRAP,{window:target})).not.toThrow();
+  expect(target.history.scrollRestoration).toBe('manual');
+  const scrollIntoView=vi.fn();
+  vi.mocked(target.document.getElementById).mockReturnValue({scrollIntoView,getClientRects:()=>[{}]} as unknown as HTMLElement);
+  mutations.at(-1)!.callback();
+  expect(scrollIntoView).toHaveBeenCalledWith({block:'start',behavior:'instant'});
+  target.location.hash='';events.popstate();flush();
+  expect(scrollTo).toHaveBeenCalledWith({top:0,left:0,behavior:'instant'});
+ });
  it('opts out of saved browser positions before resetting a normal or reloaded document',()=>{
   const {target,scrollTo,flush}=browser();
   vm.runInNewContext(PAGE_ENTRY_BOOTSTRAP,{window:target});

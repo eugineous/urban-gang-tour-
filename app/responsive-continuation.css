@@ -6,15 +6,15 @@
 .international-page .button{white-space:normal;gap:12px;text-align:start}
 .international-page .international-actions,.international-page .language-options{gap:8px 16px}
 .international-page .language-options a{padding-block:6px}
-/* A native picker, not another website dialog. Go is the explicit external action. */
-.language-control{position:relative;display:inline-flex;align-items:center;gap:4px;flex:0 0 96px;inline-size:96px;max-inline-size:100%;color:#151515;letter-spacing:normal}
-.language-select{box-sizing:border-box;min-inline-size:0;inline-size:48px;max-inline-size:48px;block-size:44px;padding:0 2px;border:1px solid #cfc7cc;border-radius:8px;background:#fff;color:#151515;font:500 16px/1.4 Inter,Arial,sans-serif;cursor:pointer}
+/* Native interface selection keeps its label and help visible in compact utilities. */
+.language-control{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-inline-size:0;max-inline-size:100%;color:#151515;letter-spacing:normal}
+.language-select{box-sizing:border-box;min-inline-size:0;inline-size:160px;max-inline-size:100%;min-block-size:44px;padding:8px 12px;border:1px solid #cfc7cc;border-radius:8px;background:#fff;color:#151515;font:500 16px/1.4 Inter,Arial,sans-serif;cursor:pointer}
 .language-select option{font-size:16px}
-.language-apply,.language-private{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;inline-size:44px;min-block-size:44px;padding:4px;border:1px solid #cfc7cc;border-radius:8px;background:#fff;color:#151515;font:550 13px/1.3 Inter,Arial,sans-serif;text-decoration:none;white-space:nowrap}
-.language-private{font-size:10px;color:#655c60}
-.language-apply:hover{background:#f3e1eb}
-.language-control :is(select,a):focus-visible{outline:3px solid #087b98;outline-offset:2px}
-.language-label,.language-help{position:absolute;inline-size:1px;block-size:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.language-control select:focus-visible{outline:3px solid #087b98;outline-offset:2px}
+.language-label{font-size:14px;font-weight:550}
+.language-help,.language-storage{flex-basis:100%;max-inline-size:48ch;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.language-control :is(.language-select,.language-storage){grid-column:1/-1}
+[data-site-footer] .language-control .language-select{font-size:16px}
 @media(max-width:700px),(max-device-width:600px) and (pointer:coarse){
  .international-page.wrap{padding-block:40px}.international-page .international-grid{grid-template-columns:minmax(0,1fr)}.international-page :is(.international-grid section,.international-note){padding:18px}.international-page header{margin-bottom:24px}.international-page h1{font-size:clamp(2rem,9cqi,3.25rem)}
 }

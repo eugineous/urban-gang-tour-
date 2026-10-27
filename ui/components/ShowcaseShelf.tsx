@@ -1,4 +1,8 @@
 'use client';
+import {marketingMessages} from '@/ui/i18n/catalogues/marketing';
+import {useMessages} from '@/ui/i18n/LanguageProvider';
+import {OriginalContent} from '@/ui/i18n/OriginalContent';
+
 
 import {useEffect, useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
 import {ArrowLeft, ArrowRight, Play} from '@phosphor-icons/react';
@@ -9,10 +13,11 @@ import styles from './ShowcaseShelf.module.css';
 export type ShowcaseItem = {
   id:string;
   title:string;
+  titleContent?:ReactNode;
   href:string;
-  label:string;
+  label:ReactNode;
   action:string;
-  description?:string;
+  description?:ReactNode;
   mediaId?:string;
   image?:string;
   imageAlt?:string;
@@ -35,28 +40,28 @@ export function shelfScrollBehavior(reducedMotion:boolean, wrapping=false):Scrol
   return reducedMotion || wrapping ? 'instant' : 'smooth';
 }
 
-function ShowcaseCard({item}:{item:ShowcaseItem}) {
+function ShowcaseCard({item}:{item:ShowcaseItem}) {const t=useMessages(marketingMessages);
   const [failedImage, setFailedImage]=useState('');
   const imageAvailable=Boolean(item.mediaId || (item.image && failedImage!==item.image));
-  return <Link href={item.href} className={styles.card} aria-label={item.action+': '+item.title}>
+  return <Link href={item.href} className={styles.card} aria-label={t('shelf.cardName',{action:item.action,title:item.title})}>
     <div className={styles.artwork} data-film={Boolean(item.filmDuration)}>
-      {item.mediaId ? <MediaImage id={item.mediaId} alt={item.imageAlt || item.title}/> : imageAvailable ? <img src={item.image} alt={item.imageAlt || item.title} loading="lazy" decoding="async" onError={() => setFailedImage(item.image || '')}/> : <span className={styles.missingArtwork}>Event record<span>Artwork unavailable</span></span>}
-      {item.filmDuration && <span className={styles.filmBadge}><Play size={15} weight="fill" aria-hidden="true"/>Film · {item.filmDuration}</span>}
+      {item.mediaId ? <MediaImage id={item.mediaId} alt={item.imageAlt || item.title}/> : imageAvailable ? <img src={item.image} alt={item.imageAlt || item.title} loading="lazy" decoding="async" onError={() => setFailedImage(item.image || '')}/> : <span className={styles.missingArtwork}>{t('shelf.eventRecord')}<span>{t('shelf.artwork')}</span></span>}
+      {item.filmDuration && <span className={styles.filmBadge}><Play size={15} weight="fill" aria-hidden="true"/>{t('shelf.film',{duration:item.filmDuration})}</span>}
     </div>
     <div className={styles.cardContent}>
-      <p className={styles.cardLabel}>{item.label}</p>
-      <h3>{item.title}</h3>
-      {item.description && <p className={styles.cardDescription}>{item.description}</p>}
+      <p className={styles.cardLabel}>{typeof item.label==='string'?<OriginalContent inline>{item.label}</OriginalContent>:item.label}</p>
+      <h3>{item.titleContent??<OriginalContent inline>{item.title}</OriginalContent>}</h3>
+      {item.description && <p className={styles.cardDescription}>{typeof item.description==='string'?<OriginalContent inline>{item.description}</OriginalContent>:item.description}</p>}
       <span className={styles.cardAction}>{item.action}<ArrowRight size={19} aria-hidden="true"/></span>
     </div>
   </Link>;
 }
 
-export function ShowcaseShelf({id, label, title, description, items, emptyMessage, footer}:{id:string;label:string;title:string;description:string;items:ShowcaseItem[];emptyMessage?:string;footer?:ReactNode}) {
+export function ShowcaseShelf({id, label, title, description, items, emptyMessage, footer, factoryCopy=false,originalLabel=false,originalTitle=false}:{id:string;label:string;title:string;description:string;items:ShowcaseItem[];emptyMessage?:string;footer?:ReactNode;factoryCopy?:boolean;originalLabel?:boolean;originalTitle?:boolean}) {const t=useMessages(marketingMessages);
   const row=useRef<HTMLDivElement>(null);
   const list=useRef<HTMLUListElement>(null);
   const [overflowing, setOverflowing]=useState(false);
-  const [announcement, setAnnouncement]=useState('');
+  const [announcement, setAnnouncement]=useState<'start'|'end'|''>('');
   const rowId=id+'-items';
   const titleId=id+'-title';
   const instructionsId=id+'-instructions';
@@ -79,7 +84,7 @@ export function ShowcaseShelf({id, label, title, description, items, emptyMessag
     const target=shelfScrollTarget(element, direction);
     const wrapping=direction===1 ? target<element.scrollLeft : target>element.scrollLeft;
     element.scrollTo({left:target, behavior:shelfScrollBehavior(window.matchMedia('(prefers-reduced-motion: reduce)').matches, wrapping)});
-    setAnnouncement(wrapping ? (direction===1 ? 'Back to the start of ' : 'At the end of ')+title : '');
+    setAnnouncement(wrapping ? (direction===1 ? 'start' : 'end') : '');
   };
 
   const onKeyDown=(event:KeyboardEvent<HTMLDivElement>) => {
@@ -97,20 +102,20 @@ export function ShowcaseShelf({id, label, title, description, items, emptyMessag
 
   return <section id={id} className={'wrap '+styles.shelf} aria-labelledby={titleId} data-showcase-shelf="true">
     <div className={styles.shelfHeading}>
-      <div><p className={styles.shelfLabel}>{label}</p><h2 id={titleId}>{title}</h2><p className={styles.shelfDescription}>{description}</p></div>
+      <div><p className={styles.shelfLabel}>{!factoryCopy||originalLabel?<OriginalContent inline>{label}</OriginalContent>:label}</p><h2 id={titleId}>{!factoryCopy||originalTitle?<OriginalContent inline>{title}</OriginalContent>:title}</h2><p className={styles.shelfDescription}>{factoryCopy?description:<OriginalContent inline>{description}</OriginalContent>}</p></div>
       {items.length>0 && <div className={styles.shelfControls}>
-        <span className={styles.itemCount}>{items.length} {items.length===1?'item':'items'}</span>
-        <button type="button" disabled={!overflowing} aria-controls={rowId} aria-label={'Previous items in '+title} onClick={() => move(-1)}><ArrowLeft size={19} aria-hidden="true"/><span>Previous</span></button>
-        <button type="button" disabled={!overflowing} aria-controls={rowId} aria-label={'Next items in '+title} onClick={() => move(1)}><span>Next</span><ArrowRight size={19} aria-hidden="true"/></button>
+        <span className={styles.itemCount}>{t('shelf.count',{count:items.length})}</span>
+        <button type="button" disabled={!overflowing} aria-controls={rowId} aria-label={t('shelf.previousIn',{title})} onClick={() => move(-1)}><ArrowLeft size={19} aria-hidden="true"/><span>{t('shelf.previous')}</span></button>
+        <button type="button" disabled={!overflowing} aria-controls={rowId} aria-label={t('shelf.nextIn',{title})} onClick={() => move(1)}><span>{t('shelf.next')}</span><ArrowRight size={19} aria-hidden="true"/></button>
       </div>}
     </div>
     {items.length>0 ? <>
-      <p id={instructionsId} className={styles.srOnly}>Swipe to browse, or focus this shelf and use Left, Right, Home or End. Next returns to the start after the last item. Tab moves through each item once.</p>
+      <p id={instructionsId} className={styles.srOnly}>{t('shelf.instructions')}</p>
       <div id={rowId} ref={row} className={styles.scroller} role="region" aria-labelledby={titleId} aria-describedby={instructionsId} tabIndex={0} onKeyDown={onKeyDown}>
         <ul ref={list} className={styles.items}>{items.map(item => <li key={item.id}><ShowcaseCard item={item}/></li>)}</ul>
       </div>
-      <p role="status" aria-live="polite" className={styles.srOnly}>{announcement}</p>
-    </> : <p className={styles.empty}>{emptyMessage || 'Published work records will appear here when available.'}</p>}
+      <p role="status" aria-live="polite" className={styles.srOnly}>{announcement?t(announcement==='start'?'shelf.start':'shelf.end',{title}):''}</p>
+    </> : <p className={styles.empty}>{emptyMessage?(factoryCopy?emptyMessage:<OriginalContent inline>{emptyMessage}</OriginalContent>):t('shelf.empty')}</p>}
     {footer && <div className={styles.shelfFooter}>{footer}</div>}
   </section>;
 }

@@ -1,5 +1,34 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Consolidated completion priority (27 October 2026)
+- Owner says too much time/tokens have been spent and directs the remaining work
+  into one pass, trimming nonessentials. Prioritize live page availability and
+  first-party native language switching without the Google translation proxy.
+  Finish essential customer forms/documents and existing cron-dependency/receipt
+  acknowledgement correctness, preserving all auth, payment, consent and data
+  safeguards. Defer the new monitoring dashboard/status API and developer coverage
+  tooling; do not claim those complete. Replace repetitive per-task full-suite/
+  review/report cycles with focused implementation checks and one final combined
+  suite/type/lint/Cloudflare build/browser smoke/review/release. Existing approved
+  feature-branch/normal PR/keep-vars deployment authority and no-live-tests rules
+  remain. No new redesign or paid providers. Evidence is in
+  docs/agent-work/english-first/CONSOLIDATED.md.
+
+## Approved English-first execution (26 October 2026)
+- Owner approved the design and both implementation plans, then instructed work
+  to proceed autonomously without further questions. Execute the native six-language
+  customer interface first, followed by bounded maintenance monitoring and receipt
+  acknowledgement correctness, using task-scoped implementers and independent
+  reviews. English is always the initial/default language; only an explicit saved
+  supported choice overrides it. Preserve authored content, private staff English,
+  consent, roles, commerce payloads, inventory, provider settings and bindings/cron.
+  The completed merchandise retirement is not reopened. No live financial/message
+  tests, historical receipt replay, new paid providers or auth bypasses. Financial
+  consequence recovery remains outside these approved deliveries. Use the standing
+  tested feature-branch/PR/normal merge/Cloudflare keep-vars release workflow.
+  Plans and evidence: docs/superpowers/plans/2026-10-26-{native-interface-language,
+  maintenance-reliability}.md and docs/agent-work/english-first/CHECKPOINT.md.
+
 ## Retire old merchandise (25–26 October 2026)
 - Owner reports old merchandise promoted ahead of the newer approved collection,
   then explicitly answers "remove em" to retiring all fourteen original p1–p14
