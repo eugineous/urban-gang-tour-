@@ -8,6 +8,22 @@ const css=read('app/premium-implementation.css');
 const sheet=postcss.parse(css);
 
 describe('public premium surface boundaries',()=>{
+ it('keeps premium navigation public and screen scoped in the navigation owner',()=>{
+  const navigation=postcss.parse(read('app/navigation.css'));
+  const selectors:string[]=[];
+  navigation.walkRules(rule=>{
+   if(!rule.selector.includes('[data-public-surface]'))return;
+   selectors.push(rule.selector);
+   for(const selector of rule.selectors)expect(selector).toContain('[data-public-surface]');
+   let parent=rule.parent;
+   while(parent&&parent.type!=='atrule')parent=parent.parent;
+   expect(parent?.type).toBe('atrule');
+   expect((parent as postcss.AtRule).params).toMatch(/^screen\b/);
+  });
+  expect(selectors.some(selector=>selector.includes('.desktop-nav'))).toBe(true);
+  expect(selectors.some(selector=>selector.includes('dialog.menu-panel'))).toBe(true);
+ });
+
  it('keeps every override screen-only and scoped to the semantic public shell',()=>{
   sheet.walkRules(rule=>{
    expect(rule.selector).toContain('[data-public-surface]');

@@ -52,3 +52,88 @@ html[data-phone-viewport=wide] dialog.menu-panel{max-height:calc(var(--ugt-scree
 @media(max-height:500px){.menu-groups{margin-block:8px}.menu-groups nav{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}.menu-groups nav a{min-height:44px;font-size:16px;padding-block:8px}.menu-dialog-heading{padding-block:8px}}
 @media(prefers-reduced-motion:reduce){.header-content,.desktop-nav,.desktop-nav a::after,.header-rolling-label>span,dialog.menu-panel[open]{animation:none;transition:none}}
 html[data-focus-view=true] :is(.header-content,.desktop-nav,.desktop-nav a::after,.header-rolling-label>span,dialog.menu-panel[open]){animation:none;transition:none}
+
+/* Premium public navigation remains owned by this stylesheet. Shared public
+   tokens are supplied by premium-implementation.css, only on screen. */
+@media screen {
+  .site-header[data-public-surface] {
+    background: var(--paper);
+  }
+
+  .site-header[data-public-surface] .desktop-nav,
+  .site-header[data-public-surface][data-elevated=true] .desktop-nav {
+    background: var(--ink);
+    border-color: var(--ink);
+    border-radius: 999px;
+    box-shadow: 0 4px 16px #1b191810;
+  }
+
+  .site-header[data-public-surface] .desktop-nav a {
+    color: var(--ugt-surface-raised);
+  }
+
+  .site-header[data-public-surface] .desktop-nav a[aria-current=page] {
+    color: var(--yellow);
+  }
+
+  .site-header[data-public-surface] :is(.cart-link,.tickets-link) {
+    background: var(--ugt-surface-raised);
+    border-color: var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+  }
+
+  .site-header[data-public-surface] :is(.cart-link,.tickets-link):hover {
+    background: var(--yellow);
+    border-color: var(--ink);
+  }
+
+  .site-header[data-public-surface] .cart-link[aria-current=page] {
+    color: var(--action);
+    border-color: var(--action);
+  }
+
+  .site-header[data-public-surface] :is(.menu-toggle,.start-link) {
+    border-radius: 999px;
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--ugt-surface-raised);
+    min-block-size: 44px;
+  }
+
+  dialog.menu-panel[data-public-surface],
+  dialog.menu-panel[data-public-surface] .menu-dialog-heading {
+    background: var(--ugt-surface-raised);
+    color: var(--ink);
+  }
+
+  dialog.menu-panel[data-public-surface] {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 20px 64px #1b191830;
+  }
+
+  dialog.menu-panel[data-public-surface] .menu-dialog-heading button {
+    min-block-size: 44px;
+    background: var(--ink);
+    border-color: var(--ink);
+    border-radius: 999px;
+    color: var(--ugt-surface-raised);
+  }
+
+  dialog.menu-panel[data-public-surface] .menu-groups nav a:is(:hover,[aria-current=page]) {
+    color: var(--action);
+    background: #f8e6ef;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .site-header[data-public-surface] {
+    background: transparent;
+  }
+
+  .site-header[data-public-surface][data-elevated=true] {
+    background: var(--paper);
+    border-block-end: 1px solid var(--line);
+  }
+}
