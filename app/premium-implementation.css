@@ -1,0 +1,86 @@
+/* Public presentation only. Screen scoping leaves documents and print untouched.
+   Semantic shell hooks keep staff routes out of this visual layer. */
+@media screen {
+  [data-public-surface] {
+    --paper: #f2eee7;
+    --ink: #1b1918;
+    --muted: #655e58;
+    --line: #d7cfc5;
+    --ugt-border: #d7cfc5;
+    --ugt-surface-base: #f2eee7;
+    --ugt-surface-raised: #fffcf6;
+    --ugt-surface-stone: #e6dfd4;
+    --ugt-surface-ink: #1b1918;
+    --ugt-reading-width: 68ch;
+  }
+
+  body:has(main[data-public-surface]) {
+    background: #f2eee7;
+  }
+
+  main[data-public-surface] {
+    background: var(--ugt-surface-base);
+    color: var(--ink);
+  }
+
+  main[data-public-surface] :is(.page-intro,.section-title) .eyebrow {
+    color: var(--action);
+    font-weight: 600;
+    letter-spacing: -.015em;
+  }
+
+  main[data-public-surface] .button.secondary {
+    background: var(--ugt-surface-stone);
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  main[data-public-surface] :is(.collection-card,.founders>a,.event-card,.tour-timeline-card,.partner-mark-grid figure) {
+    background: var(--ugt-surface-raised);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow: 0 4px 18px #1b191805;
+  }
+
+  main[data-public-surface] :is(.service-grid article,.proof-metrics article,.school-directory) {
+    background: var(--ugt-surface-stone);
+  }
+
+  main[data-public-surface] .people {
+    background: var(--ugt-surface-ink);
+    color: var(--ugt-surface-raised);
+    border: 1px solid #36302c;
+  }
+
+  main[data-public-surface] .people .section-title .eyebrow {
+    color: var(--cyan);
+  }
+
+  main[data-public-surface] .people .founders>a {
+    --muted: #655e58;
+  }
+
+  main[data-public-surface] .home-merch-callout {
+    border-color: var(--line);
+  }
+
+  main[data-public-surface] :is(.booking-form,.booking2-form,.auth-card,.form-surface,.contact-compose) {
+    background: var(--ugt-surface-raised);
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 28px #1b191806;
+  }
+
+  body:has(main[data-public-surface]) [data-site-footer] {
+    background: #1b1918;
+    border-block-start: 3px solid var(--magenta);
+  }
+
+  [data-public-surface] :is(a,button,input,select,textarea,summary):focus-visible {
+    outline: 3px solid #087b98;
+    outline-offset: 4px;
+  }
+
+  main[data-public-surface] .people :is(a,button):focus-visible {
+    outline-color: var(--cyan);
+  }
+}

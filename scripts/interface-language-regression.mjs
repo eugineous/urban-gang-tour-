@@ -6,7 +6,7 @@ import {chromium} from 'playwright';
 const origin=process.env.QA_ORIGIN||'http://127.0.0.1:4184';
 const target=new URL(origin);
 assert.ok(target.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(target.hostname)&&!target.username&&!target.password&&target.pathname==='/'&&!target.search&&!target.hash,'Fixture mode requires a loopback HTTP origin');
-const artifacts='/workspace/artifacts/ugt-english-first-20261027';
+const artifacts=process.env.ARTIFACT_DIR||'/workspace/artifacts/ugt-english-first-20261027';
 await mkdir(artifacts,{recursive:true});
 const locales=['en','sw','fr','zh-Hans','ru','es'];
 const requests=[],errors=[],checks=[];

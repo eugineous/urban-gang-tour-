@@ -42,7 +42,15 @@
     "must": ["Preserve brand, CMS content, business records and payment/auth safeguards","Use existing configured providers","Verify phone, tablet and desktop reflow"],
     "avoid": ["Invented client endorsements, campaigns, inventory or rankings","Automatic third-party translation of private URLs","Unlicensed reference-site assets"]
   },
-  "decisions": [],
+  "decisions": [
+    {
+      "date": "2026-10-27",
+      "direction": "Owner-selected MOOKH-inspired visual implementation using UGT identity, not a rebuild",
+      "publicSurfaces": "Warm stone #f2eee7, cream #fffcf6 and rich ink #1b1918, with existing magenta/yellow/cyan accents",
+      "heroMedia": "Crop logo-bearing top/bottom edges, soften video and poster with 6px blur, and use a restrained charcoal text scrim",
+      "preserve": "Owned media masters, native language behaviour, business data, 44px controls, auth/payment/consent, reduced motion and white document printing"
+    }
+  ],
   "evidence": [
     {
       "fact": "design.tokens",
