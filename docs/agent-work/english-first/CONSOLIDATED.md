@@ -90,3 +90,11 @@ ignored per-plan ledgers; preserve them rather than restart completed work.
   checkout utility/state-preservation tests only. No new workflow or redesign.
   Root owns startup files and this note. Rebuild/freeze once these bounded fixes
   are committed, rerun final native/navigation browser scripts, then PR/release.
+- Startup isolationef5fca4 and actual checkout utility4a03f00 are committed and
+  approved in the same final review. Focused startup43 and commerce44 passed;
+  whole types0 and scoped lint0errors. No15-block restart or premium work.
+
+Authoritative final release evidence, once present, is
+/workspace/artifacts/ugt-english-first-20261027/PUBLISHED.md. Read that result before
+resuming; the historical execution notes above do not by themselves describe live
+deployment state. Do not repeat finished implementation or the old15-block plan.
