@@ -14,8 +14,8 @@ export function DocumentLabel({label}:{label:ReactNode}){
  const issue=factoryIssue(label);
  return documentsMessages.en[issue.key]===label?<MessageText catalogue={documentsMessages} message={issue.key}/>:<span lang="en-KE">{label}</span>;
 }
-export function DocumentStatus({status}:{status:unknown}){
- return <MessageText catalogue={documentsMessages} message={statusIssue(status).key}/>;
+export function DocumentStatus({status,domain='order'}:{status:unknown;domain?:'order'|'booking'}){
+ return <MessageText catalogue={documentsMessages} message={statusIssue(status,domain).key}/>;
 }
 export function DocumentAmount({value}:{value:number}){return <EventAmount value={value}/>}
 export function DocumentDate({value}:{value:string}){
