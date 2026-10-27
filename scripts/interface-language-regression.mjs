@@ -31,6 +31,9 @@ const makeContext=async options=>{
 };
 const language=async(page,locale)=>{
  const picker=page.locator('[data-language-control] select').first();
+ // Server HTML is useful English before hydration; interact only after React
+ // has attached this control's actual change handler, not merely painted it.
+ await page.waitForFunction(()=>{const select=document.querySelector('[data-language-control] select');return select&&Object.getOwnPropertyNames(select).some(key=>key.startsWith('__reactProps$')&&typeof select[key]?.onChange==='function')});
  await picker.selectOption(locale);
  await page.waitForFunction(expected=>document.documentElement.lang===expected,locale==='en'?'en-KE':locale);
  assert.equal(await picker.inputValue(),locale);
