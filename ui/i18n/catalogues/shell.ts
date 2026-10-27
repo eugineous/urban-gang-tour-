@@ -4,6 +4,7 @@ export const shellMessages = defineCatalogue({
   "en": {
     "nav.events": "Events",
     "nav.work": "Our work",
+    "nav.gallery": "Gallery",
     "nav.clients": "Clients",
     "nav.shop": "Shop",
     "nav.about": "About",
@@ -94,6 +95,7 @@ export const shellMessages = defineCatalogue({
   "sw": {
     "nav.events": "Matukio",
     "nav.work": "Kazi zetu",
+    "nav.gallery": "Picha",
     "nav.clients": "Wateja",
     "nav.shop": "Duka",
     "nav.about": "Kuhusu",
@@ -184,6 +186,7 @@ export const shellMessages = defineCatalogue({
   "fr": {
     "nav.events": "Événements",
     "nav.work": "Nos réalisations",
+    "nav.gallery": "Galerie",
     "nav.clients": "Clients",
     "nav.shop": "Boutique",
     "nav.about": "À propos",
@@ -274,6 +277,7 @@ export const shellMessages = defineCatalogue({
   "zh-Hans": {
     "nav.events": "活动",
     "nav.work": "我们的作品",
+    "nav.gallery": "图库",
     "nav.clients": "客户",
     "nav.shop": "商店",
     "nav.about": "关于我们",
@@ -364,6 +368,7 @@ export const shellMessages = defineCatalogue({
   "ru": {
     "nav.events": "События",
     "nav.work": "Наши работы",
+    "nav.gallery": "Галерея",
     "nav.clients": "Клиенты",
     "nav.shop": "Магазин",
     "nav.about": "О нас",
@@ -454,6 +459,7 @@ export const shellMessages = defineCatalogue({
   "es": {
     "nav.events": "Eventos",
     "nav.work": "Nuestro trabajo",
+    "nav.gallery": "Galería",
     "nav.clients": "Clientes",
     "nav.shop": "Tienda",
     "nav.about": "Nosotros",
@@ -546,7 +552,7 @@ export const shellMessages = defineCatalogue({
 export type ShellMessageKey = keyof typeof shellMessages.en;
 
 const destinationKeys = {
-'/events':'nav.events','/portfolio':'nav.work','/clients':'nav.clients','/shop':'nav.shop','/about':'nav.about','/book':'nav.book','/account':'nav.tickets','/blog':'nav.news','/organizer/login':'nav.sellTickets','/contact-us':'nav.contact','/accessibility':'nav.accessibility','/privacy-policy':'policy.privacy','/cookie-policy':'policy.cookies','/terms':'policy.terms','/refund-policy':'policy.refunds',
+'/events':'nav.events','/portfolio':'nav.work','/gallery':'nav.gallery','/clients':'nav.clients','/shop':'nav.shop','/about':'nav.about','/book':'nav.book','/account':'nav.tickets','/blog':'nav.news','/organizer/login':'nav.sellTickets','/contact-us':'nav.contact','/accessibility':'nav.accessibility','/privacy-policy':'policy.privacy','/cookie-policy':'policy.cookies','/terms':'policy.terms','/refund-policy':'policy.refunds',
 } as const satisfies Record<string,ShellMessageKey>;
 const groupKeys = {Explore:'nav.explore',Help:'nav.help'} as const satisfies Record<string,ShellMessageKey>;
 

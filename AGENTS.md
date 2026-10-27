@@ -1,5 +1,14 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Gallery navigation (27 October 2026)
+- Owner asks for Gallery in the top bar and navigation reordered. Interpret
+  undated links as a visitor journey: Events, Our work, Gallery, Clients, About,
+  Shop, Book; preserve every existing destination and six-language labels.
+  News/video/YouTube questions authorize evidence-backed recommendations here,
+  not unrequested homepage or channel changes. Preserve the deployed premium
+  style and all data/auth/payment/consent. Verify narrow desktop and mobile menu;
+  standing tested PR/normal merge/Cloudflare keep-vars release applies.
+
 ## Premium visual implementation (27 October 2026)
 - Owner explicitly requests concealing logos in the homepage background video,
   gently darkening/quieting it for text legibility, and a MOOKH-inspired premium
