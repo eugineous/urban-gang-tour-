@@ -9,8 +9,8 @@ import {usePathname} from 'next/navigation';
 import {AppShell} from '@/app/_components/AppShell';
 import {FOOTER_NAVIGATION,PRIMARY_NAVIGATION,SITE_MENU_GROUPS,SITE_UTILITY_NAVIGATION,isNavigationCurrent} from '@/lib/site-navigation';
 
-it('keeps Clients discoverable beside the five public tasks and one ticket utility',()=>{
- expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Clients','/clients'],['Shop','/shop'],['About','/about'],['Book','/book']]);
+it('orders discovery, proof and trust before shopping and booking, with Gallery in the main navigation',()=>{
+ expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Gallery','/gallery'],['Clients','/clients'],['About','/about'],['Shop','/shop'],['Book','/book']]);
  expect(SITE_MENU_GROUPS).toHaveLength(1);
  expect(SITE_MENU_GROUPS.flatMap(group=>group.items)).toEqual(PRIMARY_NAVIGATION);
  expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/account']]);
@@ -25,13 +25,17 @@ it('keeps a compact footer with support and seller entry without deleting canoni
  for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/account','/organizer/login','/contact-us','/accessibility'])expect(footer.some(([,target])=>target===href)).toBe(true);
 });
 
-it('routes the restored shopping cart symbol to Shop and renders six mobile primary links',()=>{
+it('routes the restored shopping cart symbol to Shop and renders seven matching desktop/mobile primary links',()=>{
  vi.mocked(usePathname).mockReturnValue('/shop/example');
  const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
  expect(html).toContain('class="cart-link" href="/shop" aria-label="Shop" aria-current="page"');
  expect(html).not.toContain('aria-label="View your cart"');
  const menu=html.slice(html.indexOf('<div class="menu-groups">'),html.indexOf('<div class="menu-bottom">'));
- expect(menu.match(/<a\s/g)).toHaveLength(6);
+ expect(menu.match(/<a\s/g)).toHaveLength(7);
+ expect(menu).toContain('href="/gallery"');
+ const desktop=html.slice(html.indexOf('<nav class="desktop-nav"'),html.indexOf('</nav>'));
+ expect(desktop.match(/<a\s/g)).toHaveLength(7);
+ expect(desktop).toContain('href="/gallery"');
  expect(menu).not.toContain('<h2');
  expect(html).toContain('class="tickets-link" href="/account"');
  expect(html).toContain('class="header-rolling-label"');

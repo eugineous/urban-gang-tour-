@@ -1,5 +1,5 @@
-/** Public tasks, not internal departments. Existing canonical URLs are retained. */
-export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],['Clients','/clients'],['Shop','/shop'],['About','/about'],['Book','/book']];
+/** Visitor journey: discover, explore proof, build trust, then shop or book. */
+export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],['Gallery','/gallery'],['Clients','/clients'],['About','/about'],['Shop','/shop'],['Book','/book']];
 export const SITE_MENU_GROUPS=[
  {title:'Explore',items:PRIMARY_NAVIGATION},
 ];
