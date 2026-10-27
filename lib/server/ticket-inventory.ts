@@ -196,7 +196,7 @@ export async function releaseReservation(orderId: string): Promise<void> {
 }
 
 export async function expireStaleReservations(): Promise<number> {
-  if (!hasDb()) return 0;
+  if (!hasDb()) throw new Error('db_not_configured');
   await ensureTicketInventorySchema();
   const rows = await q<{ id: string }>(
     `UPDATE ticket_reservations r SET status='expired'
@@ -204,6 +204,6 @@ export async function expireStaleReservations(): Promise<number> {
        SELECT 1 FROM orders o WHERE o.id=r.order_id AND (o.status IN ('declined','timed_out','failed','refunded') OR
         o.status='pending' AND o.mpesa_ref IS NULL AND EXISTS(SELECT 1 FROM mpesa_checkout_attempts a WHERE a.order_id=o.id AND a.state='prepared'))
       ) RETURNING r.id`,
-  );
+  ).catch(() => { throw new Error('database_unavailable'); });
   return rows.length;
 }

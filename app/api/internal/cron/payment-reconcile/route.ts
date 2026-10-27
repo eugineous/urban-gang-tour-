@@ -4,6 +4,7 @@ import { reconcileStuckOrders } from '@/lib/server/reconcile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+const headers = { 'Cache-Control': 'private, no-store' };
 
 function sameSecret(given: string, expected: string): boolean {
   const a = Buffer.from(given);
@@ -16,14 +17,15 @@ function sameSecret(given: string, expected: string): boolean {
 // stkpushquery, Paystack verify). Guarded like every other internal cron.
 export async function POST(req: Request) {
   const secret = process.env.UGT_CRON_SECRET || '';
-  if (!secret) return NextResponse.json({ error: 'automation_not_configured' }, { status: 503 });
+  if (!secret) return NextResponse.json({ error: 'automation_not_configured' }, { status: 503, headers });
   if (!sameSecret(req.headers.get('x-ugt-cron') || '', secret)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401, headers });
   }
   try {
     const outcome = await reconcileStuckOrders();
-    return NextResponse.json({ ok: true, ...outcome });
-  } catch (error: any) {
-    return NextResponse.json({ error: String(error?.message || error).slice(0, 200) }, { status: 500 });
+    return NextResponse.json({ ok: true, ...outcome }, { headers });
+  } catch (error: unknown) {
+    const unavailable = error instanceof Error && ['db_not_configured', 'database_unavailable'].includes(error.message);
+    return NextResponse.json({ error: unavailable ? 'database_unavailable' : 'job_failed' }, { status: 503, headers });
   }
 }
