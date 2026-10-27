@@ -1,5 +1,11 @@
 # English-first and maintenance checkpoint
 
+Latest priority27October: consolidated completion supersedes the per-task
+execution/review method below; see CONSOLIDATED.md and top AGENTS.md. Preserve
+all existing evidence. Native writer resumes saved Task6 fix and essential7;
+critical cron/receipt fixes run in an isolated branch. One final combined release
+gate; optional new dashboard/coverage tooling deferred, not complete.
+
 26 October 2026. Branch: `codex/english-first-automation-design-20261026`.
 
 The owner explicitly approved the written design after asking to complete the
@@ -44,8 +50,13 @@ reconciliation scheduling remain a separate guarded design, not hidden in these
 plans. Authored article/legal text and staff/server-document languages are excluded
 as explicitly stated in the approved design.
 
-Exact next action: dispatch fresh Task6 commerce implementer with the
-prepared task-6-brief.md and task-6-state-map.md. RED16 new cases captured,
+Exact next action (27October consolidated override): final combined verification,
+build, actualWorker browser smoke, final review, PR/normal merge/keep-vars release.
+Native photograph fix4a39473 and essential customer controls074ba38 are committed;
+critical server fixes69bcb2f/570e247 integrated. Do not restart Task6/7 or old gates.
+Prepared
+task-6-brief.md/state map and task-7-brief.md/boundary/test-prep maps are ready.
+Task5 RED16 new cases captured,
 existing38 cases passed; final full suite1639 passed/123 skipped, types0 and scoped
 lint0 errors. Bounded local Chromium media-overlay state checks passed, not an
 actual-Worker/hydration/geometry/device claim. Known approved browser is
@@ -150,3 +161,35 @@ cost if wrong is weaker price/date regression coverage. Narrowly update the
 Campus/Archive assertion to exact source/native language spans, keeping visible
 words, real links and no invented endorsements; cost if wrong is weaker archive
 copy coverage. All three rulings are included in the independent task review.
+
+Task6 implementedb6c2703 (19 scoped files). Complete six-language commerce
+catalogue, render-time semantic errors, safe unknown-code fallbacks, all underlying
+cart/quote/attempt/transaction/source values preserved. Focused79, mounted combined
+filled-form/error/approved quote950/saved attempt fixture with6 switches, exact
+request/storage/node/focus continuity. Additional safe-error/uncertain-order cases
+remain conservative. Final full1667 passed/123 skipped,203 passed/10 skipped files;
+types0/scoped lint0 errors85warnings (10 new fixture-any, other categories recorded).
+Review found one P2 generated product photograph label remains English in gallery
+alt/ARIA/caption; original worker fixes explicit factory provenance/native label
+while preserving actual authored caption/name/URL/overlay state. Scoped re-review
+required; no production release yet.
+
+Task6 controller rulings for final handoff: partial English localization-hook
+mocks using real formatMessage for existing direct-function callback tests in
+shop-catalogue-view; all guards retained, cost if wrong is weaker provider
+integration coverage (separate real mounted fixture exists). Move six exact
+detail-commerce-copy warning assertions to real catalogue formatting plus actual
+source-key binding checks, retaining all3 legal hrefs/single closed-ticket guard;
+cost if wrong is weaker warning-binding coverage. Stabilize only Task5 discovery
+fixture's two clocks after confirmed one-second DTSTAMP-only mismatch, with fixed
+browser Date and identical explicit expected Date; preserve full exact ICS/MIME,
+no builder/source clock change; cost if wrong is weaker calendar-time coverage.
+Deterministic RED then74 covering GREEN, final full passed; independent review
+must inspect all three exact test adaptations. Original artwork br restored without
+changing its existing assertion. No scope expansion/redesign/provider calls.
+
+Read-only preparation now also includes task-8-runtime-prep.md (frozen Worker,
+strict loopback fixtures/server document seams), task-8-inventory-prep.md (reviewed
+3–5 bindings and two exact generated-alt candidates) and task-7-test-prep.md
+(additional focused source-contract suites before full run). Not implementation,
+test results or release certification; consume without repeating discovery.

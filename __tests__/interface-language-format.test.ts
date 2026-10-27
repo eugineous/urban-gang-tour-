@@ -7,11 +7,11 @@ afterEach(() => vi.unstubAllEnvs());
 describe('presentation-only native interface formatting', () => {
   it('keeps KES explicit and preserves fractional amounts', () => {
     expect(formatKes(1234.5,'en')).toBe('KES 1,234.5');
+    expect(formatKes(1234.56,'en')).toBe('KES 1,234.56');
     expect(formatKes(1234.5,'fr')).toContain('KES');
     for (const locale of INTERFACE_LOCALES) {
       const amount = 1234.56;
       expect(formatKes(amount,locale)).toBe(`KES ${formatInterfaceNumber(amount,locale)}`);
-      expect(amount).toBe(1234.56);
     }
     expect(formatKes(0,'en')).toBe('KES 0');
     expect(formatKes(-12.5,'en')).toBe('KES -12.5');

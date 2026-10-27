@@ -1,5 +1,19 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Consolidated completion priority (27 October 2026)
+- Owner says too much time/tokens have been spent and directs the remaining work
+  into one pass, trimming nonessentials. Prioritize live page availability and
+  first-party native language switching without the Google translation proxy.
+  Finish essential customer forms/documents and existing cron-dependency/receipt
+  acknowledgement correctness, preserving all auth, payment, consent and data
+  safeguards. Defer the new monitoring dashboard/status API and developer coverage
+  tooling; do not claim those complete. Replace repetitive per-task full-suite/
+  review/report cycles with focused implementation checks and one final combined
+  suite/type/lint/Cloudflare build/browser smoke/review/release. Existing approved
+  feature-branch/normal PR/keep-vars deployment authority and no-live-tests rules
+  remain. No new redesign or paid providers. Evidence is in
+  docs/agent-work/english-first/CONSOLIDATED.md.
+
 ## Approved English-first execution (26 October 2026)
 - Owner approved the design and both implementation plans, then instructed work
   to proceed autonomously without further questions. Execute the native six-language

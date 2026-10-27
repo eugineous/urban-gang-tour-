@@ -181,6 +181,7 @@ const rows = [
  ['artwork.placeholder','{label} for {name}. Artwork has not been added.','{label} kwa {name}. Picha haijaongezwa.','{label} pour {name}. Aucun visuel ajouté.','{name} 的{label}。尚未添加图片。','{label}: {name}. Изображение не добавлено.','{label} de {name}. No se ha añadido imagen.'],
  ['artwork.brand','Urban Gang Tour · Events','Urban Gang Tour · Matukio','Urban Gang Tour · Événements','Urban Gang Tour · 活动','Urban Gang Tour · События','Urban Gang Tour · Eventos'],
  ['artwork.original','View full original poster for {name}','Tazama bango asilia kamili la {name}','Voir l’affiche originale de {name}','查看 {name} 的完整原始海报','Открыть оригинальную афишу: {name}','Ver cartel original completo de {name}'],
+ ['artwork.originalAlt','{name} — original event poster','{name} — bango asilia la tukio','{name} — affiche originale de l’événement','{name} — 活动原始海报','{name} — оригинальная афиша события','{name} — cartel original del evento'],
  ['admission.free','Free admission','Kiingilio bila malipo','Entrée gratuite','免费入场','Вход свободный','Entrada gratuita'],
  ['admission.invitation','By invitation','Kwa mwaliko','Sur invitation','凭邀请入场','По приглашению','Por invitación'],
  ['admission.external','Tickets via organiser','Tiketi kupitia mratibu','Billets auprès de l’organisateur','通过主办方购票','Билеты у организатора','Entradas a través del organizador'],
