@@ -287,6 +287,7 @@ const rows = [
  ['bag.ask','Ask about availability','Ulizia upatikanaji','Se renseigner sur la disponibilité','咨询供货情况','Узнать о наличии','Consultar disponibilidad'],
  ['bag.storage','Your browser could not save the design bag.','Kivinjari hakikuweza kuhifadhi mfuko wa miundo.','Votre navigateur n’a pas pu enregistrer la sélection de créations.','浏览器无法保存设计收藏袋。','Браузер не смог сохранить подборку дизайнов.','Tu navegador no pudo guardar la bolsa de diseños.'],
  ['gallery.enlarge','Enlarge {name}','Kuza {name}','Agrandir {name}','放大 {name}','Увеличить: {name}','Ampliar {name}'],
+ ['gallery.productPhotograph','{name} · photograph {ordinal}','{name} · picha {ordinal}','{name} · photographie {ordinal}','{name} · 第 {ordinal} 张照片','{name} · фотография {ordinal}','{name} · fotografía {ordinal}'],
  ['gallery.photos','Photographs of {name}','Picha za {name}','Photographies de {name}','{name} 的照片','Фотографии: {name}','Fotografías de {name}'],
  ['gallery.show','Show {name}','Onyesha {name}','Afficher {name}','显示 {name}','Показать: {name}','Mostrar {name}'],
  ['gallery.title','{name} photographs','Picha za {name}','Photographies de {name}','{name} 照片','Фотографии: {name}','Fotografías de {name}'],

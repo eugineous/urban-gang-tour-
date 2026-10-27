@@ -123,7 +123,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
   const variants = safeVariants(product.variants);
   const extra=Array.isArray(product.photos)?product.photos.filter((x):x is string=>typeof x==='string'&&(/^(https?:\/\/|\/(?!\/))/.test(x))):[];
-  const photos=[...new Set([product.image,...extra].filter(Boolean))].map((url,i)=>({id:product.id+'-'+i,url,altText:product.name+' · photograph '+(i+1)}));
+  const photos=[...new Set([product.image,...extra].filter(Boolean))].map((url,i)=>({id:product.id+'-'+i,url,kind:'productPhotograph' as const,ordinal:i+1}));
   const path = `/shop/${product.id}`;
   const reviewRows = await q<{ author: string; rating: number; body: string; created_at: string }>(
     `SELECT author, rating, body, created_at::text AS created_at

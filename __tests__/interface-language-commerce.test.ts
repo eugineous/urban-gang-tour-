@@ -5,6 +5,7 @@ import {formatMessage,catalogueProblems,type Catalogue,type MessageValues} from 
 import {formatKes} from '@/lib/i18n/format';
 import {INTERFACE_LOCALES,type InterfaceLocale} from '@/lib/i18n/locale';
 import {ProductPurchase} from '@/app/_components/ProductPurchase';
+import {ProductGallery} from '@/app/_components/ProductGallery';
 import ShopCatalogueView from '@/app/_components/ShopCatalogueView';
 import BuyBox from '@/app/marketplace/[eventId]/BuyBox';
 import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
@@ -25,6 +26,99 @@ vi.mock('@/lib/server/marketplace',()=>({
 }));
 const labels={en:'Add to cart',sw:'Ongeza kwenye kikapu',fr:'Ajouter au panier','zh-Hans':'加入购物车',ru:'Добавить в корзину',es:'Añadir al carrito'};
 const product={id:'approved-original-sku',name:'Original Product',price:0.5,image:'/original.webp',category:'Original Category',description:'Original description',stock:10,name_on_back_enabled:true,variants:[{label:'Original Blue / M',priceAdjustment:0.25,stock:5}]};
+const photoLabels={en:['Original Product · photograph 1','Original Product · photograph 2'],sw:['Original Product · picha 1','Original Product · picha 2'],fr:['Original Product · photographie 1','Original Product · photographie 2'],'zh-Hans':['Original Product · 第 1 张照片','Original Product · 第 2 张照片'],ru:['Original Product · фотография 1','Original Product · фотография 2'],es:['Original Product · fotografía 1','Original Product · fotografía 2']};
+const generatedPhotos=[{id:'original-photo-1',url:'/gallery-original-1.webp',kind:'productPhotograph' as const,ordinal:1},{id:'original-photo-2',url:'/gallery-original-2.webp',kind:'productPhotograph' as const,ordinal:2}];
+it.each(INTERFACE_LOCALES)('localizes generated photo alt and gallery accessibility labels while retaining authored alt in %s',async locale=>{
+ selected.locale=locale;
+ const {commerceMessages}=await import('@/ui/i18n/catalogues/commerce');
+ const html=renderToStaticMarkup(createElement(ProductGallery,{name:'Original Product',photos:generatedPhotos}));
+ expect(html).toContain('alt="'+photoLabels[locale][0]+'"');
+ expect(html).toContain('aria-label="'+formatMessage(commerceMessages,locale,'gallery.enlarge',{name:photoLabels[locale][0]}).text+'"');
+ for(const label of photoLabels[locale])expect(html).toContain('aria-label="'+formatMessage(commerceMessages,locale,'gallery.show',{name:label}).text+'"');
+ expect(html).toContain('aria-label="'+formatMessage(commerceMessages,locale,'gallery.photos',{name:'Original Product'}).text+'"');
+ expect(html).toContain('aria-label="'+formatMessage(commerceMessages,locale,'gallery.title',{name:'Original Product'}).text+'"');
+ for(const photo of generatedPhotos)expect(html).toContain('src="'+photo.url+'"');
+ const authored=renderToStaticMarkup(createElement(ProductGallery,{name:'Original Product',photos:[{id:'authored-photo',url:'/authored-original.webp',altText:'Texte fourni · photograph 9',language:'fr-FR'}]}));
+ expect(authored).toContain('alt="Texte fourni · photograph 9"');expect(authored).toContain('lang="fr-FR"');expect(authored).toContain('src="/authored-original.webp"');
+});
+
+it.skipIf(!existsSync('/usr/bin/chromium'))('switches generated photo labels and authored captions without resetting the selected open image, focus, zoom or requests',async()=>{
+ const {commerceMessages}=await import('@/ui/i18n/catalogues/commerce');
+ const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
+  import React from 'react';import {createRoot} from 'react-dom/client';
+  import {LanguageProvider} from './ui/i18n/LanguageProvider';
+  import LanguageChooser from './app/_components/LanguageChooser';
+  import {ProductGallery} from './app/_components/ProductGallery';
+  createRoot(document.getElementById('app')).render(<LanguageProvider>
+   <LanguageChooser path="/shop/original-product"/>
+   <div id="generated"><ProductGallery name="Original Product" photos={${JSON.stringify(generatedPhotos)}}/></div>
+   <div id="authored"><ProductGallery name="Original Product" photos={[{id:'authored-photo',url:'/authored-original.webp',altText:'Texte fourni · photograph 9',language:'fr-FR'}]}/></div>
+  </LanguageProvider>);
+ `},bundle:true,write:false,jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'isolated-photo-labels',setup(builder){
+  builder.onResolve({filter:/^next\/navigation$/},()=>({path:'navigation',namespace:'fixture'}));
+  builder.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const usePathname=()=>"/shop/original-product";'}));
+  builder.onLoad({filter:/\.css$/},()=>({contents:'export default {};',loader:'js'}));
+ }}]});
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ try{
+  const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage();page.setDefaultTimeout(5000);
+  const requests:string[]=[],unexpected:string[]=[];
+  await context.route('**/*',route=>{
+   const request=route.request(),url=new URL(request.url());requests.push(request.method()+' '+url.pathname);
+   if(url.origin==='http://127.0.0.1'&&url.pathname==='/fixture')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><div id="app"></div>'});
+   if(url.origin!=='http://127.0.0.1'||request.method()!=='GET'||!['/gallery-original-1.webp','/gallery-original-2.webp','/authored-original.webp'].includes(url.pathname))unexpected.push(request.method()+' '+request.url());
+   return route.abort();
+  });
+  await page.goto('http://127.0.0.1/fixture');await page.addScriptTag({content:bundle.outputFiles[0].text});
+  await page.locator('#generated').getByRole('button',{name:'Show Original Product · photograph 2',exact:true}).click();
+  await page.locator('#generated').getByRole('button',{name:'Enlarge Original Product · photograph 2',exact:true}).click();
+  await page.getByRole('button',{name:'Zoom image',exact:true}).click();
+  await page.waitForFunction(()=>[...document.images].every(image=>image.complete));
+  await page.evaluate(()=>{
+   const dialog=document.querySelector('#generated dialog')!,image=dialog.querySelector('img')!,close=dialog.querySelector('.ugt-photo-toolbar button:last-child') as HTMLButtonElement;
+   close.focus();(window as any).photoBefore={dialog,image,close,stage:document.querySelector('#generated button img'),thumbnail:document.querySelector('#generated button[aria-pressed="true"]')};
+  });
+  const baseline=[...requests];
+  for(const locale of INTERFACE_LOCALES){
+   await page.evaluate(locale=>{const chooser=document.querySelector('[data-language-control] select') as HTMLSelectElement;chooser.value=locale;chooser.dispatchEvent(new Event('change',{bubbles:true}))},locale);
+   const message=(key:keyof typeof commerceMessages.en,values?:MessageValues)=>formatMessage(commerceMessages,locale,key,values).text;
+   await page.locator('#generated .ugt-photo-caption p').filter({hasText:photoLabels[locale][1]}).waitFor();
+   expect(await page.locator('#generated .ugt-photo-caption p').textContent()).toBe(photoLabels[locale][1]);
+   expect(await page.locator('#generated .ugt-photo-caption p').getAttribute('lang')).toBe(locale==='en'?'en-KE':locale);
+   expect(await page.locator('#generated dialog').getAttribute('aria-label')).toBe(message('gallery.title',{name:'Original Product'}));
+   expect(await page.locator('#generated [role="group"]').getAttribute('aria-label')).toBe(message('gallery.photos',{name:'Original Product'}));
+   expect(await page.locator('#generated > div > div').first().locator('button').getAttribute('aria-label')).toBe(message('gallery.enlarge',{name:photoLabels[locale][1]}));
+   for(const [index,photo]of generatedPhotos.entries()){
+    const thumbnail=page.locator('#generated button[aria-pressed]').nth(index);
+    expect(await thumbnail.getAttribute('aria-label')).toBe(message('gallery.show',{name:photoLabels[locale][index]}));
+    expect(await thumbnail.locator('img').getAttribute('src')).toBe(photo.url);
+   }
+   for(const image of [page.locator('#generated > div > div').first().locator('img'),page.locator('#generated dialog img')]){
+    expect(await image.getAttribute('alt')).toBe(photoLabels[locale][1]);expect(await image.getAttribute('src')).toBe('/gallery-original-2.webp');
+    expect(await image.getAttribute('lang')).toBe(locale==='en'?'en-KE':locale);
+   }
+   expect(await page.locator('#generated dialog .ugt-photo-toolbar button').first().textContent()).toBe(message('gallery.fit'));
+   expect(await page.locator('#generated .ugt-photo-toolbar button').last().getAttribute('aria-label')).toBe(message('gallery.closePhoto'));
+   expect(await page.locator('#generated .ugt-photo-caption button').allTextContents()).toEqual([message('previous'),message('next')]);
+   expect(await page.evaluate(()=>{const b=(window as any).photoBefore;return b.dialog===document.querySelector('#generated dialog')&&b.dialog.open&&b.image===b.dialog.querySelector('img')&&b.image.isConnected&&b.stage===document.querySelector('#generated button img')&&b.close===document.activeElement&&b.thumbnail===document.querySelector('#generated button[aria-pressed="true"]')&&!!document.querySelector('#generated .ugt-photo-stage.zoomed')&&document.body.style.overflow==='hidden'})).toBe(true);
+   expect(requests).toEqual(baseline);expect(unexpected).toEqual([]);
+  }
+  await page.locator('#generated .ugt-photo-toolbar button').last().click();
+  await page.locator('#authored button').first().click();
+  await page.waitForFunction(()=>[...document.images].every(image=>image.complete));
+  const authoredBaseline=[...requests];
+  for(const locale of INTERFACE_LOCALES){
+   await page.evaluate(locale=>{const chooser=document.querySelector('[data-language-control] select') as HTMLSelectElement;chooser.value=locale;chooser.dispatchEvent(new Event('change',{bubbles:true}))},locale);
+   await page.waitForFunction(locale=>document.documentElement.lang===(locale==='en'?'en-KE':locale),locale);
+   expect(await page.locator('#authored .ugt-photo-caption p').textContent()).toBe('Texte fourni · photograph 9');
+   expect(await page.locator('#authored .ugt-photo-caption p').getAttribute('lang')).toBe('fr-FR');
+   expect(await page.locator('#authored dialog img').getAttribute('alt')).toBe('Texte fourni · photograph 9');
+   expect(await page.locator('#authored dialog img').getAttribute('lang')).toBe('fr-FR');
+   expect(await page.locator('#authored dialog img').getAttribute('src')).toBe('/authored-original.webp');
+   expect(requests).toEqual(authoredBaseline);expect(unexpected).toEqual([]);
+  }
+ }finally{await browser.close()}
+},30000);
 it('provides complete commerce messages and honest preview warnings in all six languages',async()=>{
  const {commerceMessages}=await import('@/ui/i18n/catalogues/commerce');
  expect(catalogueProblems(commerceMessages)).toEqual([]);
