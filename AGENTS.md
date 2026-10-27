@@ -1,5 +1,17 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Premium visual implementation (27 October 2026)
+- Owner explicitly requests concealing logos in the homepage background video,
+  gently darkening/quieting it for text legibility, and a MOOKH-inspired premium
+  visual finish across existing pages using UGT colours with warm white/stone.
+  Existing native language/reliability release is already live (PR103). This is a
+  bounded visual pass, not a new architecture or15-block workflow. Keep owned
+  media masters, factual content, inventory, auth/payment/consent and languages
+  unchanged. Use crop/softening and a restrained scrim for video AND its poster;
+  preserve playback/reduced-motion controls. Private staff/document/print surfaces
+  retain safe contrast/white printing. Standing tested PR/Cloudflare keep-vars
+  release applies; no paid providers, new dependencies or live financial tests.
+
 ## Consolidated completion priority (27 October 2026)
 - Owner says too much time/tokens have been spent and directs the remaining work
   into one pass, trimming nonessentials. Prioritize live page availability and

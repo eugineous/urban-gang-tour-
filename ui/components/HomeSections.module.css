@@ -2,7 +2,8 @@
 .hero{position:relative;display:grid;isolation:isolate;min-block-size:clamp(640px,82svh,820px);block-size:auto;background:#21101d;color:#fff;container-type:inline-size}
 .heroImage{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:center 45%;z-index:0}
 .hero :global(.hero-video){z-index:1}.hero :global(.video-control){top:116px;left:auto;right:28px;bottom:auto!important;width:auto;height:44px;min-block-size:44px;z-index:4;background:#190b16b8;border-color:#ffffff70}
-.heroShade{position:absolute;inset:0;background:linear-gradient(90deg,#1c001940,transparent 75%),linear-gradient(0deg,#1b001ce0,transparent 85%);z-index:2;pointer-events:none}
+.heroImage,.hero :global(.hero-video){inset-block-start:-24%;inset-block-end:auto;block-size:148%;inline-size:100%;object-fit:cover;object-position:center;filter:blur(6px) saturate(.72) brightness(.94);transform:scale(1.02);pointer-events:none}
+.heroShade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(17, 16, 20, .26),rgba(17, 16, 20, .22) 40%,rgba(17, 16, 20, .56));z-index:2;pointer-events:none}
 .heroInner{position:relative;z-index:3;block-size:auto;min-block-size:inherit;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-block:150px 40px;gap:24px;pointer-events:none}
 .heroInner a{pointer-events:auto}.heroCopy{max-inline-size:850px;min-inline-size:0}
 .heroEyebrow{font-size:14px;font-weight:500;line-height:1.5;letter-spacing:.04em;margin-block-end:22px;color:#fff}
@@ -16,6 +17,7 @@
 .heroAction{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-block-size:44px;min-inline-size:0;max-inline-size:100%;padding:10px 14px;border:1px solid #ffffffb3;border-radius:10px;color:#211b20;background:#fff;font:550 14px/1.4 Inter,Arial,sans-serif;text-decoration:none}
 .heroAction svg{flex:none;inline-size:18px;block-size:18px}
 .heroAction:hover{background:#f4eaf0}
+.heroAction:first-child{background:var(--yellow);border-color:var(--yellow);color:#171316}.heroAction:first-child:hover{background:#ffe659;border-color:#ffe659}
 .heroAction:focus-visible{outline:3px solid #fff;outline-offset:4px}
 .home :global(.section){padding-block:76px}.home :global(.section-title){margin-block-end:36px}.home :global(.home-company-intro){margin-block:0 28px;font-size:20px;max-inline-size:46ch}
 .people{padding-block:64px!important}.people :global(.founders>a>img){aspect-ratio:4/3;max-block-size:430px;block-size:auto!important;object-fit:cover;object-position:center 28%}

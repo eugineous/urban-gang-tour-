@@ -1,4 +1,4 @@
-const CACHE = 'ugt-english-first-reliability-20261027-v1';
+const CACHE = 'ugt-premium-surfaces-20261027-v1';
 const OFFLINE = '/offline';
 const PRECACHE = [OFFLINE, '/manifest.json', '/icon-192.png'];
 

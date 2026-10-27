@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 const origin=process.env.QA_ORIGIN||'http://127.0.0.1:4184';
 const parsedOrigin=new URL(origin);
 assert.ok(['127.0.0.1','localhost','[::1]'].includes(parsedOrigin.hostname)&&parsedOrigin.protocol==='http:'&&!parsedOrigin.username&&!parsedOrigin.password&&parsedOrigin.pathname==='/'&&!parsedOrigin.search&&!parsedOrigin.hash,'Fixture runner requires a loopback HTTP origin');
-const artifacts='/workspace/artifacts/ugt-english-first-20261027';
+const artifacts=process.env.ARTIFACT_DIR||'/workspace/artifacts/ugt-english-first-20261027';
 await mkdir(artifacts,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
 const context=await browser.newContext({viewport:{width:1024,height:768},locale:'fr-FR',serviceWorkers:'block'});

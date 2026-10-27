@@ -43,4 +43,7 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
-- None recorded
+- 27 October: MOOKH-inspired public surfaces in warm stone/cream/ink with UGT
+  magenta, yellow and cyan accents. Homepage video/poster crop conceals branded
+  edges; softening and a restrained charcoal scrim keep copy prominent. Existing
+  flows, authored content, media masters, accessibility and document printing stay.
