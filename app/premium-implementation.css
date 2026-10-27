@@ -1,0 +1,167 @@
+/* Public presentation only. Screen scoping leaves documents and print untouched.
+   Semantic shell hooks keep staff routes out of this visual layer. */
+@media screen {
+  [data-public-surface] {
+    --paper: #f2eee7;
+    --ink: #1b1918;
+    --muted: #655e58;
+    --line: #d7cfc5;
+    --ugt-border: #d7cfc5;
+    --ugt-surface-base: #f2eee7;
+    --ugt-surface-raised: #fffcf6;
+    --ugt-surface-stone: #e6dfd4;
+    --ugt-surface-ink: #1b1918;
+    --ugt-reading-width: 68ch;
+  }
+
+  body:has(main[data-public-surface]) {
+    background: #f2eee7;
+  }
+
+  main[data-public-surface] {
+    background: var(--ugt-surface-base);
+    color: var(--ink);
+  }
+
+  .site-header[data-public-surface] {
+    background: var(--paper);
+  }
+
+  .site-header[data-public-surface] .desktop-nav,
+  .site-header[data-public-surface][data-elevated=true] .desktop-nav {
+    background: var(--ink);
+    border-color: var(--ink);
+    border-radius: 999px;
+    box-shadow: 0 4px 16px #1b191810;
+  }
+
+  .site-header[data-public-surface] .desktop-nav a {
+    color: var(--ugt-surface-raised);
+  }
+
+  .site-header[data-public-surface] .desktop-nav a[aria-current=page] {
+    color: var(--yellow);
+  }
+
+  .site-header[data-public-surface] :is(.cart-link,.tickets-link) {
+    background: var(--ugt-surface-raised);
+    border-color: var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+  }
+
+  .site-header[data-public-surface] :is(.cart-link,.tickets-link):hover {
+    background: var(--yellow);
+    border-color: var(--ink);
+  }
+
+  .site-header[data-public-surface] .cart-link[aria-current=page] {
+    color: var(--action);
+    border-color: var(--action);
+  }
+
+  .site-header[data-public-surface] :is(.menu-toggle,.start-link) {
+    border-radius: 999px;
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--ugt-surface-raised);
+    min-block-size: 44px;
+  }
+
+  dialog.menu-panel[data-public-surface],
+  dialog.menu-panel[data-public-surface] .menu-dialog-heading {
+    background: var(--ugt-surface-raised);
+    color: var(--ink);
+  }
+
+  dialog.menu-panel[data-public-surface] {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 20px 64px #1b191830;
+  }
+
+  dialog.menu-panel[data-public-surface] .menu-dialog-heading button {
+    min-block-size: 44px;
+    background: var(--ink);
+    border-color: var(--ink);
+    border-radius: 999px;
+    color: var(--ugt-surface-raised);
+  }
+
+  dialog.menu-panel[data-public-surface] .menu-groups nav a:is(:hover,[aria-current=page]) {
+    color: var(--action);
+    background: #f8e6ef;
+  }
+
+  main[data-public-surface] :is(.page-intro,.section-title) .eyebrow {
+    color: var(--action);
+    font-weight: 600;
+    letter-spacing: -.015em;
+  }
+
+  main[data-public-surface] .button.secondary {
+    background: var(--ugt-surface-stone);
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  main[data-public-surface] :is(.collection-card,.founders>a,.event-card,.tour-timeline-card,.partner-mark-grid figure) {
+    background: var(--ugt-surface-raised);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow: 0 4px 18px #1b191805;
+  }
+
+  main[data-public-surface] :is(.service-grid article,.proof-metrics article,.school-directory) {
+    background: var(--ugt-surface-stone);
+  }
+
+  main[data-public-surface] .people {
+    background: var(--ugt-surface-ink);
+    color: var(--ugt-surface-raised);
+    border: 1px solid #36302c;
+  }
+
+  main[data-public-surface] .people .section-title .eyebrow {
+    color: var(--cyan);
+  }
+
+  main[data-public-surface] .people .founders>a {
+    --muted: #655e58;
+  }
+
+  main[data-public-surface] .home-merch-callout {
+    border-color: var(--line);
+  }
+
+  main[data-public-surface] :is(.booking-form,.booking2-form,.auth-card,.form-surface,.contact-compose) {
+    background: var(--ugt-surface-raised);
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 28px #1b191806;
+  }
+
+  body:has(main[data-public-surface]) [data-site-footer] {
+    background: #1b1918;
+    border-block-start: 3px solid var(--magenta);
+  }
+
+  [data-public-surface] :is(a,button,input,select,textarea,summary):focus-visible {
+    outline: 3px solid #087b98;
+    outline-offset: 4px;
+  }
+
+  main[data-public-surface] .people :is(a,button):focus-visible {
+    outline-color: var(--cyan);
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .site-header[data-public-surface] {
+    background: transparent;
+  }
+
+  .site-header[data-public-surface][data-elevated=true] {
+    background: var(--paper);
+    border-block-end: 1px solid var(--line);
+  }
+}
