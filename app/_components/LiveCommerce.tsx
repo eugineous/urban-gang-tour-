@@ -10,6 +10,7 @@ import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {normalizePrintableName,PRINTABLE_NAME_MAX_LENGTH} from '@/lib/shared/merch-personalization';
 import styles from './Commerce.module.css';
 import {checkoutAttempt,readCheckoutAttempt,rememberCheckoutOrder} from '@/lib/client/checkout-attempt';
+import LanguageChooser from './LanguageChooser';
 import {buildShopCatalogue,filterShopCatalogue,type LiveShopProduct} from '@/lib/shop-discovery';
 import ShopCatalogueView,{ShopIntro,ShopNoProductsNotice} from './ShopCatalogueView';
 import shopStyles from './ShopCatalogue.module.css';
@@ -30,8 +31,7 @@ export function LiveCommerce({view='shop',eventId}:CommerceProps){
  const t=useMessages(commerceMessages);
  const [mounted,setMounted]=useState(false);
  useEffect(()=>setMounted(true),[]);
- if(mounted)return <CommerceClient view={view} eventId={eventId}/>;
- return <section className={view==='shop'?shopStyles.page:`${styles.page} wrap`}><CommerceIntro view={view} eventId={eventId}/><p className={styles.loading} role="status">{t('shop.loading')}</p></section>;
+ return <>{mounted?<CommerceClient view={view} eventId={eventId}/>:<section className={view==='shop'?shopStyles.page:`${styles.page} wrap`}><CommerceIntro view={view} eventId={eventId}/><p className={styles.loading} role="status">{t('shop.loading')}</p></section>}{view==='checkout'&&<div className="wrap"><LanguageChooser path="/checkout"/></div>}</>;
 }
 function CommerceIntro({view,eventId,eventName,selected='',cartCount=0}:{view:'shop'|'cart'|'checkout';eventId?:string;eventName?:string;selected?:string;cartCount?:number}){
  const t=useMessages(commerceMessages);

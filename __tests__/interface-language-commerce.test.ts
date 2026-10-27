@@ -6,6 +6,7 @@ import {formatKes} from '@/lib/i18n/format';
 import {INTERFACE_LOCALES,type InterfaceLocale} from '@/lib/i18n/locale';
 import {ProductPurchase} from '@/app/_components/ProductPurchase';
 import {ProductGallery} from '@/app/_components/ProductGallery';
+import {LiveCommerce} from '@/app/_components/LiveCommerce';
 import ShopCatalogueView from '@/app/_components/ShopCatalogueView';
 import BuyBox from '@/app/marketplace/[eventId]/BuyBox';
 import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
@@ -28,6 +29,14 @@ const labels={en:'Add to cart',sw:'Ongeza kwenye kikapu',fr:'Ajouter au panier',
 const product={id:'approved-original-sku',name:'Original Product',price:0.5,image:'/original.webp',category:'Original Category',description:'Original description',stock:10,name_on_back_enabled:true,variants:[{label:'Original Blue / M',priceAdjustment:0.25,stock:5}]};
 const photoLabels={en:['Original Product · photograph 1','Original Product · photograph 2'],sw:['Original Product · picha 1','Original Product · picha 2'],fr:['Original Product · photographie 1','Original Product · photographie 2'],'zh-Hans':['Original Product · 第 1 张照片','Original Product · 第 2 张照片'],ru:['Original Product · фотография 1','Original Product · фотография 2'],es:['Original Product · fotografía 1','Original Product · fotografía 2']};
 const generatedPhotos=[{id:'original-photo-1',url:'/gallery-original-1.webp',kind:'productPhotograph' as const,ordinal:1},{id:'original-photo-2',url:'/gallery-original-2.webp',kind:'productPhotograph' as const,ordinal:2}];
+it('provides the checkout-only local language utility in its server loading shell',()=>{
+ selected.locale='en';
+ for(const view of ['shop','cart','checkout'] as const){
+  const html=renderToStaticMarkup(createElement(LiveCommerce,{view}));
+  expect((html.match(/data-language-control/g)||[]).length).toBe(view==='checkout'?1:0);
+  if(view==='checkout')expect((html.match(/<option /g)||[]).length).toBe(6);
+ }
+});
 it.each(INTERFACE_LOCALES)('localizes generated photo alt and gallery accessibility labels while retaining authored alt in %s',async locale=>{
  selected.locale=locale;
  const {commerceMessages}=await import('@/ui/i18n/catalogues/commerce');
@@ -139,12 +148,10 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
  const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
   import React from 'react';import {createRoot} from 'react-dom/client';
   import {LanguageProvider} from './ui/i18n/LanguageProvider';
-  import LanguageChooser from './app/_components/LanguageChooser';
   import {LiveCommerce} from './app/_components/LiveCommerce';
   import {ProductPurchase} from './app/_components/ProductPurchase';
   import BuyBox from './app/marketplace/[eventId]/BuyBox';
   createRoot(document.getElementById('app')).render(<LanguageProvider>
-   <LanguageChooser path="/checkout"/>
    <div id="checkout"><LiveCommerce view="checkout"/></div>
    <div id="purchase"><ProductPurchase {...${JSON.stringify(fixtureProduct)}} nameOnBackEnabled/></div>
    <div id="marketplace"><BuyBox eventId="original-event" tiers={[{name:'Original Tier',price:125.5},{name:'Original VIP',price:200.75}]}/></div>
@@ -183,6 +190,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   },{id:fixtureProduct.id,variant:fixtureProduct.variants[0].label});
   await page.addScriptTag({content:bundle.outputFiles[0].text});
   await page.locator('#checkout form input[name="name"]').waitFor();
+  expect(await page.locator('#checkout [data-language-control] select').count()).toBe(1);
   await page.locator('#checkout select').first().selectOption('delivery');
   for(const [name,value]of Object.entries({name:'Original Buyer',phone:'0712345678',email:'buyer@example.test',line1:'Original Road',city:'Nairobi',postalCode:'00100'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
   await page.locator('#checkout input[maxlength="60"]').fill('ORIGINAL-PROMO');
@@ -203,15 +211,15 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   await page.locator('#marketplace [role="alert"]').waitFor();
   await page.locator('#marketplace input[type="checkbox"]').check();
   await page.evaluate(()=>{
-   const nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select,#purchase select,#marketplace select')];
-   (window as any).preserved={nodes,values:nodes.map((n:any)=>[n.value,n.checked]),cart:localStorage.getItem('ugt-live-cart-v1'),attempt:localStorage.getItem('ugt-mpesa-attempt-v1'),events:(window as any).cartEvents};
+   const nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select:not(.language-select),#purchase select,#marketplace select')];
+   (window as any).preserved={nodes,chooser:document.querySelector('#checkout [data-language-control] select'),values:nodes.map((n:any)=>[n.value,n.checked]),cart:localStorage.getItem('ugt-live-cart-v1'),attempt:localStorage.getItem('ugt-mpesa-attempt-v1'),events:(window as any).cartEvents};
   });
   expect(posts).toEqual([{path:'/api/checkout/quote',body:{items:[{id:fixtureProduct.id,variant:'Original Blue / M',printableName:'Amina',qty:1}],promoCode:'ORIGINAL-PROMO',fulfillment:{method:'delivery',address:{line1:'Original Road',city:'Nairobi',postalCode:'00100'}}}}]);
   const baselineGets=[...gets];
   for(const locale of INTERFACE_LOCALES){
    await page.evaluate(locale=>{
     const field=document.querySelector('#checkout input[name="name"]') as HTMLInputElement;field.focus();
-    const chooser=document.querySelector('[data-language-control] select') as HTMLSelectElement;chooser.value=locale;chooser.dispatchEvent(new Event('change',{bubbles:true}));
+    const chooser=document.querySelector('#checkout [data-language-control] select') as HTMLSelectElement;chooser.value=locale;chooser.dispatchEvent(new Event('change',{bubbles:true}));
    },locale);
    await page.waitForFunction(locale=>document.documentElement.lang===(locale==='en'?'en-KE':locale),locale);
    await page.getByText(formatMessage(commerceMessages,locale,'quote.promoNotApplied').text,{exact:true}).waitFor();
@@ -219,13 +227,13 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
    expect(await page.locator('#marketplace [role="alert"]').textContent()).toBe(formatMessage(commerceMessages,locale,'marketplace.acceptTerms').text);
    expect(await page.locator('#checkout aside h2').textContent()).toBe(formatMessage(commerceMessages,locale,'checkout.total',{amount:formatKes(950,locale)!}).text);
    expect(await page.evaluate(()=>{
-    const b=(window as any).preserved,nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select,#purchase select,#marketplace select')];
-    return nodes.length===b.nodes.length&&nodes.every((n:any,i)=>n===b.nodes[i]&&n.isConnected&&n.value===b.values[i][0]&&n.checked===b.values[i][1])&&localStorage.getItem('ugt-live-cart-v1')===b.cart&&localStorage.getItem('ugt-mpesa-attempt-v1')===b.attempt&&(window as any).cartEvents===b.events&&document.activeElement===document.querySelector('#checkout input[name="name"]');
+    const b=(window as any).preserved,nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select:not(.language-select),#purchase select,#marketplace select')];
+    return b.chooser===document.querySelector('#checkout [data-language-control] select')&&b.chooser.isConnected&&nodes.length===b.nodes.length&&nodes.every((n:any,i)=>n===b.nodes[i]&&n.isConnected&&n.value===b.values[i][0]&&n.checked===b.values[i][1])&&localStorage.getItem('ugt-live-cart-v1')===b.cart&&localStorage.getItem('ugt-mpesa-attempt-v1')===b.attempt&&(window as any).cartEvents===b.events&&document.activeElement===document.querySelector('#checkout input[name="name"]');
    })).toBe(true);
    expect(await page.locator('#checkout').textContent()).toContain('Original Product');expect(await page.locator('#checkout').textContent()).toContain('Original Blue / M');
    expect(posts).toHaveLength(1);expect(gets).toEqual(baselineGets);expect(unexpected).toEqual([]);
   }
-  const chooser=page.locator('[data-language-control] select');await chooser.focus();await chooser.press('Home');await chooser.press('ArrowDown');await chooser.press('Enter');
+  const chooser=page.locator('#checkout [data-language-control] select');await chooser.focus();await chooser.press('Home');await chooser.press('ArrowDown');await chooser.press('Enter');
   await page.waitForFunction(()=>document.documentElement.lang==='sw');
   expect(await chooser.evaluate(node=>document.activeElement===node)).toBe(true);
   expect(posts).toHaveLength(1);expect(gets).toEqual(baselineGets);expect(unexpected).toEqual([]);

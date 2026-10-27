@@ -38,7 +38,7 @@ const language=async(page,locale)=>{
 const navigate=async(page,path)=>{
  const response=await page.goto(origin+path,{waitUntil:'domcontentloaded'});
  assert.equal(response.status(),200,path+' must load');
- await page.waitForFunction(()=>document.querySelector('[data-language-control] select')?.value==='en');
+ await page.waitForFunction(()=>document.querySelector('[data-language-control] select')?.value==='en').catch(error=>{throw new Error('English language control did not become ready on '+path,{cause:error})});
  assert.equal(await page.locator('html').getAttribute('lang'),'en-KE');
 };
 try{
