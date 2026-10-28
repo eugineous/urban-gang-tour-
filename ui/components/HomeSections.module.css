@@ -2,7 +2,7 @@
 .hero{position:relative;display:grid;isolation:isolate;min-block-size:clamp(640px,82svh,820px);block-size:auto;background:#21101d;color:#fff;container-type:inline-size}
 .heroImage{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:center 45%;z-index:0}
 .hero :global(.hero-video){z-index:1}.hero :global(.video-control){top:116px;left:auto;right:28px;bottom:auto!important;width:auto;height:44px;min-block-size:44px;z-index:4;background:#190b16b8;border-color:#ffffff70}
-.heroImage,.hero :global(.hero-video){inset-block-start:-24%;inset-block-end:auto;block-size:148%;inline-size:100%;object-fit:cover;object-position:center;filter:blur(6px) saturate(.72) brightness(.94);transform:scale(1.02);pointer-events:none}
+.heroImage,.hero :global(.hero-video){inset-block-start:-24%;inset-block-end:auto;block-size:148%;inline-size:100%;object-fit:cover;object-position:center;filter:none;transform:scale(1.02);pointer-events:none}
 .heroShade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(17, 16, 20, .26),rgba(17, 16, 20, .22) 40%,rgba(17, 16, 20, .56));z-index:2;pointer-events:none}
 .heroInner{position:relative;z-index:3;block-size:auto;min-block-size:inherit;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-block:150px 40px;gap:24px;pointer-events:none}
 .heroInner a{pointer-events:auto}.heroCopy{max-inline-size:850px;min-inline-size:0}

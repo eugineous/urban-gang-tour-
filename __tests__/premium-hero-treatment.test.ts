@@ -8,10 +8,10 @@ const declarations=(selector:string)=>{
  css.walkRules(rule=>{if(rule.selector===selector)rule.walkDecls(declaration=>{found[declaration.prop]=declaration.value})});
  return found;
 };
-it('conceals the logo-bearing video edges and treats the fallback poster identically',()=>{
+it('keeps video and poster sharp while cropping the logo-bearing edges',()=>{
  const media=declarations('.heroImage,.hero :global(.hero-video)');
  expect(media['object-fit']).toBe('cover');
- expect(media.filter).toContain('blur(6px)');
+ expect(media.filter).toBe('none');
  const scale=parseFloat(media['block-size'])/100,offset=-parseFloat(media['inset-block-start'])/100;
  expect(offset/scale).toBeGreaterThan(.15);
  expect((scale-1-offset)/scale).toBeGreaterThan(.15);

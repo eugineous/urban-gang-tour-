@@ -1,5 +1,13 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Hero clarity correction
+- Owner explicitly rejects the blurred homepage video and requests only light
+  shading. Remove blur/desaturation/brightness filters from video and poster;
+  keep the existing text scrim, edge crop, original media and playback controls.
+  Owner also explicitly stops News/YouTube work: no section reordering, channel
+  button, content or channel changes. Scope is this hero presentation correction
+  only, followed by the standing tested PR/normal merge/keep-vars release.
+
 ## Gallery navigation (27 October 2026)
 - Owner asks for Gallery in the top bar and navigation reordered. Interpret
   undated links as a visitor journey: Events, Our work, Gallery, Clients, About,
