@@ -30,6 +30,7 @@ try{
    const reject=page.getByRole('button',{name:'Reject',exact:true});if(await reject.isVisible())await reject.click();
    await page.evaluate(()=>document.fonts.ready);
    const hero=page.locator('[data-home-hero]');
+   assert.equal(await hero.locator('img').first().evaluate(img=>getComputedStyle(img).filter),'none','The fallback poster must remain sharp');
    const video=hero.locator('video.hero-video');
    if(reduced){
     assert.equal(await video.getAttribute('src'),null,'Reduced motion must keep the poster and avoid auto-loading video');
@@ -42,7 +43,7 @@ try{
      await hero.screenshot({path:`${artifacts}/hero-video-${width}-${time}.png`});
     }
     const details=await video.evaluate(video=>({src:new URL(video.currentSrc).pathname,width:video.videoWidth,height:video.videoHeight,filter:getComputedStyle(video).filter,opacity:getComputedStyle(video).opacity}));
-    assert.match(details.filter,/blur\(6px\)/);assert.equal(details.opacity,'1');
+    assert.equal(details.filter,'none');assert.equal(details.opacity,'1');
     const control=hero.locator('button.video-control');const box=await control.boundingBox();assert.ok(box.height>=44);
     await control.click();await page.waitForFunction(()=>!document.querySelector('[data-home-hero] video').paused);
     await control.click();assert.equal(await video.evaluate(video=>video.paused),true);

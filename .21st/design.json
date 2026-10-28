@@ -47,7 +47,7 @@
       "date": "2026-10-27",
       "direction": "Owner-selected MOOKH-inspired visual implementation using UGT identity, not a rebuild",
       "publicSurfaces": "Warm stone #f2eee7, cream #fffcf6 and rich ink #1b1918, with existing magenta/yellow/cyan accents",
-      "heroMedia": "Crop logo-bearing top/bottom edges, soften video and poster with 6px blur, and use a restrained charcoal text scrim",
+      "heroMedia": "Owner correction: keep video and poster sharp with no blur or colour filters; retain the logo-bearing edge crop and restrained charcoal text scrim",
       "preserve": "Owned media masters, native language behaviour, business data, 44px controls, auth/payment/consent, reduced motion and white document printing"
     }
   ],
