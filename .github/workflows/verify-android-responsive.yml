@@ -30,6 +30,9 @@ jobs:
         run: npm ci
       - name: Test viewport and responsive regressions
         run: npx vitest run __tests__/viewport-bootstrap.test.ts __tests__/responsive-source-contract.test.ts
+      - name: Full offline unit suite
+        continue-on-error: true
+        run: npm test
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Lint changed TypeScript files (blocking)
@@ -41,6 +44,7 @@ jobs:
       - name: Test rendered Android and desktop layouts
         run: node scripts/verify-android-layout.mjs
       - name: Build Cloudflare/OpenNext bundle without deploying
+        if: ${{ !cancelled() }}
         run: npm run cf:build
       - name: Save browser screenshots
         if: always()
