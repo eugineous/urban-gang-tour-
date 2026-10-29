@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 
 const origin='http://127.0.0.1:4184';
 await mkdir('artifacts/android-responsive',{recursive:true});
-const server=spawn('npm',['run','start','--','-p','4184'],{
+const server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','-p','4184'],{
   stdio:['ignore','pipe','pipe'],
   env:{...process.env,NEXT_TELEMETRY_DISABLED:'1'},
 });
@@ -104,6 +104,8 @@ try {
 } finally {
   if(browser)await browser.close();
   server.kill('SIGTERM');
+  server.stdout.destroy();
+  server.stderr.destroy();
 }
 if(failures.length){console.error('Responsive verification failures:\n'+failures.join('\n'));process.exitCode=1;}
 else console.log('Responsive smoke verified all '+cases.length+' viewport cases.');
