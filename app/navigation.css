@@ -137,3 +137,12 @@ html[data-focus-view=true] :is(.header-content,.desktop-nav,.desktop-nav a::afte
     border-block-end: 1px solid var(--line);
   }
 }
+
+/* Do not use the unzoomed desktop viewport width for Android modal geometry. */
+html[data-phone-viewport="wide"] dialog.menu-panel{
+ width:calc(100vw / var(--ugt-phone-zoom,1) - 24px);
+ max-width:calc(100vw / var(--ugt-phone-zoom,1) - 24px);
+ max-height:calc(var(--ugt-screen-height,100dvh) / var(--ugt-phone-zoom,1) - 24px);
+}
+html[data-phone-viewport="wide"] .menu-groups nav{grid-template-columns:minmax(0,1fr)}
+html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
