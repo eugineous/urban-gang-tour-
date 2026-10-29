@@ -24,9 +24,33 @@
 //     deliberate business choice, documented here so it is never silently
 //     re-decided by a future edit.
 const API = 'https://api.paystack.co';
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function trustedCheckoutUrl(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  try {
+    const url = new URL(value);
+    // Paystack's documented hosted authorization URL. Exact-host matching
+    // prevents a provider/proxy failure from becoming an arbitrary redirect.
+    return url.protocol === 'https:' && url.hostname === 'checkout.paystack.com'
+      && !url.port && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+export interface PaystackInitResult {
+  ok: boolean;
+  url?: string;
+  error?: string;
+  requestPayload?: Record<string, unknown>;
+  outcome?: 'unknown' | 'rejected';
+}
 
 export function paystackConfigured(): boolean {
-  return Boolean(process.env.PAYSTACK_SECRET_KEY);
+  // The previous merchant account was deleted. Keeping an obsolete secret in
+  // encrypted storage must never silently activate its replacement account.
+  return process.env.PAYSTACK_ENABLED === 'true' && Boolean(process.env.PAYSTACK_SECRET_KEY);
 }
 
 export async function paystackInit(params: {
@@ -39,27 +63,31 @@ export async function paystackInit(params: {
   subaccountCode?: string;
   transactionChargeKes?: number; // goes to the MAIN (UGT) account, in KES (converted to subunits below)
   bearer?: 'account' | 'subaccount';
-}): Promise<{ ok: boolean; url?: string; error?: string; requestPayload?: Record<string, unknown> }> {
+}): Promise<PaystackInitResult> {
   if (!paystackConfigured()) return { ok: false, error: 'not_configured' };
-  try {
-    const payload: Record<string, unknown> = {
-      email: params.email,
-      amount: Math.round(params.amountKes * 100),
-      currency: 'KES',
-      reference: params.reference,
-      callback_url: params.callbackUrl,
-      channels: ['card'],
-      metadata: params.metadata || {},
-    };
-    if (params.subaccountCode) {
-      payload.subaccount = params.subaccountCode;
-      payload.bearer = params.bearer || 'account';
-      if (typeof params.transactionChargeKes === 'number') {
-        payload.transaction_charge = Math.round(params.transactionChargeKes * 100);
-      }
+  const payload: Record<string, unknown> = {
+    email: params.email,
+    amount: Math.round(params.amountKes * 100),
+    currency: 'KES',
+    reference: params.reference,
+    callback_url: params.callbackUrl,
+    channels: ['card'],
+    metadata: params.metadata || {},
+  };
+  if (params.subaccountCode) {
+    payload.subaccount = params.subaccountCode;
+    payload.bearer = params.bearer || 'account';
+    if (typeof params.transactionChargeKes === 'number') {
+      payload.transaction_charge = Math.round(params.transactionChargeKes * 100);
     }
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
     const r = await fetch(`${API}/transaction/initialize`, {
       method: 'POST',
+      redirect: 'error',
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         'Content-Type': 'application/json',
@@ -67,27 +95,46 @@ export async function paystackInit(params: {
       body: JSON.stringify(payload),
     });
     const d: any = await r.json().catch(() => ({}));
-    if (!r.ok || !d.status || !d.data?.authorization_url) {
-      return { ok: false, error: `paystack_${r.status}: ${String(d.message || '').slice(0, 200)}`, requestPayload: payload };
+    if (!r.ok || d.status !== true || !trustedCheckoutUrl(d.data?.authorization_url)) {
+      // Even a 4xx may mean an already-existing reference/session. Once the
+      // request was dispatched, no generic HTTP error proves it cannot pay.
+      return { ok: false, outcome: 'unknown', error: `paystack_${r.status}: ${String(d.message || '').slice(0, 200)}`, requestPayload: payload };
     }
     return { ok: true, url: d.data.authorization_url, requestPayload: payload };
   } catch (e) {
-    return { ok: false, error: String(e).slice(0, 200) };
+    return { ok: false, outcome: 'unknown', error: String(e).slice(0, 200), requestPayload: payload };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
 // Fetch a transaction's status by reference (used by the success page).
-export async function paystackVerify(reference: string): Promise<{ ok: boolean; paid?: boolean; amountKes?: number }> {
+export async function paystackVerify(reference: string): Promise<{
+  ok: boolean; paid?: boolean; amountKes?: number; amountSubunit?: number;
+  reference?: string; currency?: string; status?: string;
+}> {
   if (!paystackConfigured()) return { ok: false };
+  if (!reference || !/^[A-Za-z0-9.=-]{1,100}$/.test(reference)) return { ok: false };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     const r = await fetch(`${API}/transaction/verify/${encodeURIComponent(reference)}`, {
+      redirect: 'error',
+      signal: controller.signal,
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
     const d: any = await r.json().catch(() => ({}));
-    if (!r.ok || !d.status) return { ok: false };
-    return { ok: true, paid: d.data?.status === 'success', amountKes: (d.data?.amount || 0) / 100 };
+    const data = d.data;
+    const statuses = ['abandoned', 'failed', 'ongoing', 'pending', 'processing', 'queued', 'reversed', 'success'];
+    if (!r.ok || d.status !== true || !data || data.reference !== reference || data.currency !== 'KES'
+      || typeof data.amount !== 'number' || !Number.isSafeInteger(data.amount) || data.amount <= 0
+      || !statuses.includes(data.status)) return { ok: false };
+    return { ok: true, paid: data.status === 'success', amountKes: data.amount / 100,
+      amountSubunit: data.amount, reference: data.reference, currency: data.currency, status: data.status };
   } catch {
     return { ok: false };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

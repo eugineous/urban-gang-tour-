@@ -3,33 +3,16 @@ import crypto from "crypto";
 import { alertCritical } from "@/lib/server/alert";
 import { sendReceiptEmail } from "@/lib/server/receipt-email";
 import { ensureTickets } from "@/lib/server/tickets";
-import {
-  notifyPaymentSuccess,
-  notifyPaymentFailure,
-} from "@/lib/server/notify";
+import { notifyPaymentSuccess } from "@/lib/server/notify";
 import { recordPaidMerchOrder } from "@/lib/server/inventory";
 import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 
 // Paystack webhook. Signature: x-paystack-signature = HMAC-SHA512(raw body)
 // keyed with the secret key. charge.success flips the ledger row (order id
-// is the transaction reference) to paid. Always answer 200 fast on handled
-// or ignored events so Paystack does not retry forever.
+// is the transaction reference) to paid. Acknowledge ignored/handled events;
+// retryable ledger failures must return 503 so the provider can redeliver.
 
 export const runtime = "nodejs";
-
-// In-process idempotency guard: prevents the same event from being processed
-// twice within the worker lifetime. Paystack sends each event at least once;
-// a DB-level unique constraint on event_id is the durable solution.
-const processed = new Set<string>();
-const PROCESSED_MAX = 10_000;
-
-function markProcessed(id: string) {
-  if (processed.size >= PROCESSED_MAX) processed.clear();
-  processed.add(id);
-}
-function wasProcessed(id: string) {
-  return processed.has(id);
-}
 
 export async function POST(req: Request) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -55,45 +38,29 @@ export async function POST(req: Request) {
   }
 
   if (event?.event === "charge.success") {
-    const ref = String(event.data?.reference || "");
-    const amountSubunit = Number(event.data?.amount);
+    const ref = event.data?.reference;
+    const amountSubunit = event.data?.amount;
     const amountKes = amountSubunit / 100;
-    const eventId = String(event.data?.id || ref);
 
     if (
-      /^ORD-[A-Z0-9-]{4,40}$/.test(ref) &&
+      typeof ref === "string" && /^ORD-[A-Z0-9-]{4,40}$/.test(ref) &&
+      event.data?.currency === "KES" && event.data?.status === "success" &&
       Number.isSafeInteger(amountSubunit) &&
       amountSubunit > 0 &&
       Number.isSafeInteger(amountKes)
     ) {
-      // Idempotency: skip if we have already processed this exact event.
-      if (wasProcessed(eventId)) {
-        console.log("[paystack] duplicate event skipped", eventId);
-        return new NextResponse("ok", { status: 200 });
-      }
-
       try {
-        const { q, db } = await import("@/lib/server/db");
-        if (db()) {
+        const { q, hasDb } = await import("@/lib/server/db");
+        if (hasDb()) {
           const rows = await q(
             `UPDATE orders SET status='paid'
              WHERE id=$1
                AND status = ANY($3) AND total=$2
+               AND pay_method='card' AND paystack_ref=$1
              RETURNING *`,
             [ref, amountKes, RECOVERABLE_PAYMENT_STATUSES],
           );
           if (rows.length) {
-            markProcessed(eventId);
-            await q(
-              `INSERT INTO audit_log (actor, action, detail) VALUES ('paystack','order_paid',$1)`,
-              [
-                JSON.stringify({
-                  id: ref,
-                  channel: event.data?.channel,
-                  amount: (event.data?.amount || 0) / 100,
-                }),
-              ],
-            );
             console.log("[paystack] order paid", ref);
             // mint e-tickets, then the branded receipt email (which links them)
             // - fire-and-forget after the ack
@@ -122,6 +89,12 @@ export async function POST(req: Request) {
                   orderId: paidRow.id,
                   amount: paidRow.total,
                 });
+                // Best-effort audit follows customer consequences so an audit
+                // outage cannot delay acknowledgement or fulfilment.
+                await q(
+                  `INSERT INTO audit_log (actor, action, detail) VALUES ('paystack','order_paid',$1)`,
+                  [JSON.stringify({ id: ref, channel: event.data?.channel, amount: amountKes })],
+                ).catch(error => console.error("[paystack-audit]", error));
               });
           } else {
             console.log(
@@ -129,41 +102,40 @@ export async function POST(req: Request) {
               ref,
             );
           }
-        }
-      } catch (e: any) {
+        } else return new NextResponse("ledger unavailable", { status: 503 });
+      } catch (e) {
         console.error("[paystack-webhook]", e);
-        await alertCritical(
-          "Paystack payment reconciliation failed",
-          `ref ${ref}: ${String(e?.message || e)}`,
-        );
+        after(async () => {
+          await alertCritical(
+            "Paystack payment reconciliation failed",
+            `ref ${ref}: ${e instanceof Error ? e.message : String(e)}`,
+          ).catch(() => {});
+        });
+        return new NextResponse("ledger unavailable", { status: 503 });
       }
     }
   } else if (event?.event === "charge.failed") {
-    const ref = String(event.data?.reference || "");
-    if (/^ORD-[A-Z0-9-]{4,40}$/.test(ref)) {
+    const ref = event.data?.reference;
+    const amountSubunit = event.data?.amount;
+    const amountKes = amountSubunit / 100;
+    if (typeof ref === "string" && /^ORD-[A-Z0-9-]{4,40}$/.test(ref)
+      && event.data?.currency === "KES" && Number.isSafeInteger(amountSubunit)
+      && amountSubunit > 0 && Number.isSafeInteger(amountKes)) {
       try {
-        const { q, db } = await import("@/lib/server/db");
-        if (db()) {
-          const rows = await q(
-            `UPDATE orders SET status='failed' WHERE id=$1 AND status = ANY($2) RETURNING id, total`,
-            [ref, RECOVERABLE_PAYMENT_STATUSES],
+        const { q, hasDb } = await import("@/lib/server/db");
+        if (hasDb()) {
+          // A failed charge does not prove the hosted session is no longer
+          // payable. Retain its reference and inventory hold for verification.
+          await q(
+            `UPDATE orders SET status='reconciling'
+             WHERE id=$1 AND status = ANY($3) AND total=$2
+               AND pay_method='card' AND paystack_ref=$1`,
+            [ref, amountKes, RECOVERABLE_PAYMENT_STATUSES],
           );
-          if (rows[0])
-            after(async () => {
-              try {
-                const { releaseReservation } = await import("@/lib/server/ticket-inventory");
-                await releaseReservation(rows[0].id);
-              } catch { /* hold expires on its own */ }
-              await notifyPaymentFailure({
-                gateway: "paystack",
-                orderId: rows[0].id,
-                amount: rows[0].total,
-                reason: "charge.failed",
-              });
-            });
-        }
-      } catch {
-        /* logged path only */
+        } else return new NextResponse("ledger unavailable", { status: 503 });
+      } catch (error) {
+        console.error("[paystack-webhook]", error);
+        return new NextResponse("ledger unavailable", { status: 503 });
       }
     }
   }
