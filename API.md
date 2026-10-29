@@ -988,10 +988,33 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
 
 - `POST /api/checkout/session`: public same-origin, empty body only; creates a
   signed HttpOnly guest-checkout cookie. Not an account or admin login. No-store.
-- `POST /api/checkout/recovery`: same-origin signed guest scope; `{key}` is an
+- `POST /api/checkout/recovery`: same-origin signed guest scope; `{key,provider?}` is an
   opaque 32–128 character attempt key. Returns only order ID, total, attempt state
-  and payment state. A copied key without the original signed cookie cannot
+  and payment state. Provider defaults to `mpesa`; `paystack` uses a distinct
+  owner/key namespace and may additionally return the original trusted hosted
+  authorization URL only while its exact bound card order remains recoverable.
+  No contact, address, provider secret or claim nonce is returned. A copied key without the original signed cookie cannot
   recover the order. Missing = 404, missing scope = 428, unavailable = 503.
+- `POST /api/paystack/checkout`: merchandise only, same-origin signed guest scope
+  and opaque `idempotencyKey` required. Existing server pricing, variant, delivery
+  and stock checks remain authoritative. Atomic preparation saves the order and
+  its delivery snapshot before a single durable initiation claim. An unchanged
+  retry recovers its original total/reference/URL rather than starting a second
+  payable transaction; changed input conflicts409. An ambiguous provider or URL
+  persistence outcome returns202 with the retained order reference and is not
+  automatically initialized again. Responses are no-store. Owned-event ticket
+  card checkout is not enabled; hosted session finality/late-payment policy must
+  be established before bounded seat holds can safely launch.
+  The deleted merchant account is not used: outbound integration requires explicit
+  `PAYSTACK_ENABLED=true` and a server secret. Absent/false fails closed before
+  ledger creation/provider dispatch. Replacement credentials alone do not enable
+  checkout. Inbound historical notifications retain their signature/ledger guards.
+- `POST /api/paystack/webhook`: requires the raw-body HMAC signature and exact
+  KES amount, stored card method/reference and recoverable ledger state before
+  settlement. Infrastructure failures before acknowledgement return503 for retry.
+  Failure notifications do not establish hosted-session cancellation: matching
+  `charge.failed` retains the reference/hold and enters reconciliation, not a
+  terminal release. Settlement, provider initialization and delivery are distinct.
 - `POST /api/orders`: requires that guest scope and `idempotencyKey`. Purchase
   prices remain server-derived. Same key/input recovers the same durable order;
   changed input conflicts (409). Preparation can return 503 with the retained

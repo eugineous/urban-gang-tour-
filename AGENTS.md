@@ -1,5 +1,22 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Paystack setup (29 October 2026)
+- Owner subsequently deleted the old Paystack merchant account and requests
+  finishing construction for a future replacement. Outbound Paystack is now
+  opt-in (`PAYSTACK_ENABLED=true` plus a secret); absent/false stays disabled.
+  Do not replace/erase old credentials, change settlements or initiate live tests.
+  Preserve existing orders/receipts and signature-gated inbound notifications.
+- Owner requests configuring Paystack first and confirms saving the live callback
+  and webhook URLs. Preserve existing secrets, merchant settings, prices and
+  provider bindings; no real charges, refunds, STKs or test messages. Complete
+  bounded merchandise retry/recovery and exact KES settlement safeguards through
+  the tested PR/Cloudflare keep-vars path. A saved URL or present key is not proof
+  of live merchant approval or a successful payment.
+- Owned-event card tickets remain disabled until hosted-checkout finality or an
+  explicit late-payment/refund policy establishes safe capacity release. Never
+  release uncertain capacity on browser close, a local timer or abandonment.
+  M-Pesa and marketplace configuration are separate; do not silently change them.
+
 ## Vendor documents and search visibility (28 October 2026)
 - Owner additionally requests an exactly two-page food/vendor application for
   individuals/businesses: Main Vendor KES30,000–45,000, Minor Vendor KES10,000–15,000;

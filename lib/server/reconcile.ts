@@ -96,20 +96,29 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
           await q(`UPDATE orders SET status='unknown' WHERE id=$1 AND status='pending'`, [o.id]).catch(() => {});
           out.stillPending.push(o.id);
         }
-      } else if (o.paystack_ref && paystackConfigured()) {
+      } else if (o.pay_method === 'card' && o.paystack_ref && paystackConfigured()) {
         const v = await paystackVerify(o.paystack_ref);
-        if (!v.ok) { out.stillPending.push(o.id); continue; }
-        if (v.paid && amountsMatch(o.total, v.amountKes)) {
+        if (!v.ok || v.reference !== o.paystack_ref || v.currency !== 'KES'
+          || (v.paid && v.status !== 'success')) { out.stillPending.push(o.id); continue; }
+        if (v.paid && Number.isSafeInteger(v.amountSubunit)
+          && v.amountSubunit === Number(o.total) * 100 && amountsMatch(o.total, v.amountKes)) {
           const paid = await q(
-            `UPDATE orders SET status='paid' WHERE id=$1 AND status = ANY($2) RETURNING *`,
-            [o.id, RECOVERABLE_PAYMENT_STATUSES],
+            `UPDATE orders SET status='paid'
+              WHERE id=$1 AND status = ANY($2)
+                AND pay_method='card' AND paystack_ref=$3 AND total=$4 RETURNING *`,
+            [o.id, RECOVERABLE_PAYMENT_STATUSES, v.reference, o.total],
           );
           if (paid.length) {
             await finishRecoveredOrder(paid[0]);
             out.paid.push(o.id);
           } else out.stillPending.push(o.id);
         } else if (v.paid) {
-          await q(`UPDATE orders SET status='reconciling' WHERE id=$1`, [o.id]).catch(() => {});
+          await q(
+            `UPDATE orders SET status='reconciling'
+              WHERE id=$1 AND status = ANY($2)
+                AND pay_method='card' AND paystack_ref=$3 AND total=$4`,
+            [o.id, RECOVERABLE_PAYMENT_STATUSES, v.reference, o.total],
+          ).catch(() => {});
           out.stillPending.push(o.id);
         } else out.stillPending.push(o.id);
       } else {

@@ -4,6 +4,7 @@ import {accountMessages,type CustomerIssue,factoryIssue} from '@/ui/i18n/catalog
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 import {useEffect,useState} from 'react';
 import {clearCheckoutAttempt} from '@/lib/client/checkout-attempt';
+import {clearPaystackAttempt} from '@/lib/client/paystack-checkout-attempt';
 import {paymentPresentation} from '@/lib/client/payment-presentation';
 export default function PaymentStatus({orderId}:{orderId:string}){
  const t=useMessages(accountMessages);
@@ -14,7 +15,7 @@ export default function PaymentStatus({orderId}:{orderId:string}){
   setStopped(false);setError(null);
   async function check(){
    try{const r=await fetchWithTimeout('/api/orders/status?id='+encodeURIComponent(orderId),{signal:controller.signal,cache:'no-store'});const d=await r.json();if(!r.ok||typeof d.status!=='string')throw Error();
-    if(controller.signal.aborted)return;setRemainingTickets(d.remainingTicketsAvailable===true);setStatus(d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status);setError(null);if(paymentPresentation(d.status).terminal)clearCheckoutAttempt(orderId);
+    if(controller.signal.aborted)return;setRemainingTickets(d.remainingTicketsAvailable===true);setStatus(d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status);setError(null);if(paymentPresentation(d.status).terminal){clearCheckoutAttempt(orderId);clearPaystackAttempt(orderId)}
     if(d.status==='paid'||d.status==='fulfilled'){try{const order=JSON.parse(sessionStorage.getItem('ugt-checkout-order')||'null');if(order?.id===orderId&&!order.eventId&&JSON.stringify(order.items)===localStorage.getItem('ugt-live-cart-v1')){localStorage.setItem('ugt-live-cart-v1','[]');localStorage.removeItem('ugt_cart');window.dispatchEvent(new Event('ugt-cart-changed'))}sessionStorage.removeItem('ugt-checkout-order')}catch{}}
     if(paymentPresentation(d.status).terminal){setStopped(true);return}
    }catch{if(controller.signal.aborted)return;setError({"key":"copy.we_could_not_check_your_payment_your_order_reference_is_safe"})}
