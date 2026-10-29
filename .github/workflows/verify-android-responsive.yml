@@ -34,9 +34,6 @@ jobs:
         run: npx tsc --noEmit
       - name: Lint changed TypeScript files (blocking)
         run: npx eslint lib/client/viewport-bootstrap.ts __tests__/viewport-bootstrap.test.ts __tests__/responsive-source-contract.test.ts
-      - name: Audit existing repository lint (nonblocking baseline)
-        continue-on-error: true
-        run: npm run lint
       - name: Build Next.js
         run: npm run build
       - name: Install Chromium for responsive browser smoke test
