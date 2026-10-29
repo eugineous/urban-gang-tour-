@@ -86,13 +86,17 @@ try {
       }
       if(scenario.forceScreen&&metrics.phoneViewport!=='wide')failures.push(scenario.name+': wide-viewport fallback not activated');
       await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-vendor.png',fullPage:true});
-      await page.locator('.menu-toggle').click();
-      const dialog=page.locator('dialog.menu-panel');
-      await dialog.waitFor({state:'visible',timeout:5000});
-      const dialogRect=await dialog.boundingBox();
-      const view=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
-      if(dialogRect&&(dialogRect.x< -3 || dialogRect.x+dialogRect.width>view.width+5))failures.push(scenario.name+': navigation dialog exceeds viewport');
-      await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-menu.png'});
+      if(scenario.width<1024 || scenario.forceScreen){
+        await page.locator('.menu-toggle').click();
+        const dialog=page.locator('dialog.menu-panel');
+        await dialog.waitFor({state:'visible',timeout:5000});
+        const dialogRect=await dialog.boundingBox();
+        const view=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
+        if(dialogRect&&(dialogRect.x< -3 || dialogRect.x+dialogRect.width>view.width+5))failures.push(scenario.name+': navigation dialog exceeds viewport');
+        await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-menu.png'});
+      }else if(!await page.locator('nav.desktop-nav').isVisible()){
+        failures.push(scenario.name+': desktop navigation should be visible');
+      }
       if(runtimeErrors.length)failures.push(scenario.name+': browser runtime errors: '+runtimeErrors.slice(0,3).join('; '));
     }catch(error){failures.push(scenario.name+': '+String(error));}
     finally{await context.close();}
