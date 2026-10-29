@@ -1,0 +1,56 @@
+name: Verify Android responsive repair
+
+on:
+  push:
+    branches:
+      - fix/android-wide-viewport-recovery-20261029
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-responsive-repair-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Test viewport and responsive regressions
+        run: npx vitest run __tests__/viewport-bootstrap.test.ts __tests__/responsive-source-contract.test.ts
+      - name: Full offline unit suite
+        continue-on-error: true
+        run: npm test
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Lint changed TypeScript files (blocking)
+        run: npx eslint lib/client/viewport-bootstrap.ts __tests__/viewport-bootstrap.test.ts __tests__/responsive-source-contract.test.ts
+      - name: Build Next.js
+        run: npm run build
+      - name: Install Chromium for responsive browser smoke test
+        run: npx playwright install --with-deps chromium
+      - name: Test rendered Android and desktop layouts
+        run: node scripts/verify-android-layout.mjs
+      - name: Build Cloudflare/OpenNext bundle without deploying
+        if: ${{ !cancelled() }}
+        run: npm run cf:build
+      - name: Save browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-responsive-evidence
+          path: artifacts/android-responsive/
+          if-no-files-found: ignore
+          retention-days: 7

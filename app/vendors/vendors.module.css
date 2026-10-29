@@ -52,3 +52,25 @@
 @media(max-width:900px){.hero{gap:30px;grid-template-columns:1.1fr .9fr}.sheet{padding:20px}.fees{padding:30px}.feeGrid{gap:22px}.feeGrid>div+div{padding-left:22px}.application{gap:38px}.sponsors{padding:32px;gap:32px}}
 @media(max-width:650px){.page{padding-block:120px 55px}.hero{grid-template-columns:1fr;gap:35px;padding-bottom:45px}.hero h1{font-size:clamp(43px,10.4vw,64px)}.intro{font-size:17px;margin-block:20px 24px}.preview{width:min(340px,calc(100% - 14px));margin:0 auto;padding:14px}.sheet{min-height:310px}.fees{padding:25px 22px}.feeGrid{grid-template-columns:1fr;gap:24px;margin-block:26px 22px}.feeGrid>div+div{border-left:0;border-top:1px solid #dfd6ca;padding-left:0;padding-top:23px}.feeGrid dd{font-size:34px}.feeNote{font-size:12px}.application{grid-template-columns:1fr;gap:36px;padding-block:45px 32px}.preparation{margin-top:20px}.sponsors{grid-template-columns:1fr;padding:28px 22px;gap:30px}.sponsorIntro h2{font-size:36px}.sponsorActions{grid-column:auto}.sponsorActions>div{gap:6px}.sponsorActions>div>a{width:100%}.privacy{padding-bottom:36px}}
 @media(prefers-reduced-motion:reduce){.preview{transform:none}.preview:before{transform:none}}
+
+/* Android browsers can retain a wide layout viewport even when the content is
+   visually phone-sized. CSS media queries still read the wide viewport, so
+   explicitly stack this route when the stable viewport bootstrap detects it. */
+:global(html[data-phone-viewport="wide"]) .page { padding-block:120px 55px; min-width:0; }
+:global(html[data-phone-viewport="wide"]) .hero,
+:global(html[data-phone-viewport="wide"]) .application,
+:global(html[data-phone-viewport="wide"]) .sponsors { grid-template-columns:minmax(0,1fr); gap:30px; }
+:global(html[data-phone-viewport="wide"]) .hero { padding-bottom:45px; }
+:global(html[data-phone-viewport="wide"]) .hero h1 { font-size:clamp(40px,10vw,60px); overflow-wrap:anywhere; }
+:global(html[data-phone-viewport="wide"]) .intro { font-size:17px; margin-block:20px 24px; }
+:global(html[data-phone-viewport="wide"]) .preview { width:min(340px,calc(100% - 14px)); margin-inline:auto; padding:14px; }
+:global(html[data-phone-viewport="wide"]) .fees { padding:25px 22px; }
+:global(html[data-phone-viewport="wide"]) .feeGrid { grid-template-columns:minmax(0,1fr); gap:24px; margin-block:26px 22px; }
+:global(html[data-phone-viewport="wide"]) .feeGrid>div+div { border-left:0; border-top:1px solid #dfd6ca; padding-left:0; padding-top:23px; }
+:global(html[data-phone-viewport="wide"]) .feeGrid dd { font-size:34px; }
+:global(html[data-phone-viewport="wide"]) .application { padding-block:45px 32px; }
+:global(html[data-phone-viewport="wide"]) .sponsors { padding:28px 22px; }
+:global(html[data-phone-viewport="wide"]) .sponsorIntro h2 { font-size:36px; }
+:global(html[data-phone-viewport="wide"]) .sponsorActions { grid-column:auto; min-width:0; }
+:global(html[data-phone-viewport="wide"]) .sponsorActions>div>a { width:100%; }
+:global(html[data-phone-viewport="wide"]) .page :is(.button,.text-link) { max-width:100%; white-space:normal; overflow-wrap:anywhere; }

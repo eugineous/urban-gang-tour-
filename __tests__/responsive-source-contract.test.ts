@@ -13,3 +13,15 @@ it('uses available container width, zero-minimum tracks and wrapping actions ins
  expect(css).toContain('.language-control{');expect(css).toContain('flex-wrap:wrap');expect(css).toContain('inline-size:160px');expect(css).toContain('min-inline-size:0');expect(css).toContain('min-block-size:44px');expect(css).toContain(':focus-visible');expect(css).not.toContain('inline-size:96px');expect(css).not.toContain('.language-apply');expect(css).not.toContain('.language-dialog');expect(css).not.toContain('overflow-x:hidden');
  expect(admin).toContain('grid-template-columns:minmax(0,1fr) auto auto');expect(admin).toContain('minmax(min(100%,240px),1fr)');
 });
+
+it('keeps wide-layout Android vendor pages and the menu in a narrow readable column',()=>{
+ const vendor=readFileSync('app/vendors/vendors.module.css','utf8');
+ const nav=readFileSync('app/navigation.css','utf8');
+ expect(vendor).toContain(':global(html[data-phone-viewport="wide"]) .hero,');
+ expect(vendor).toContain(':global(html[data-phone-viewport="wide"]) .application,');
+ expect(vendor).toContain(':global(html[data-phone-viewport="wide"]) .sponsors { grid-template-columns:minmax(0,1fr)');
+ expect(vendor).toContain(':global(html[data-phone-viewport="wide"]) .feeGrid { grid-template-columns:minmax(0,1fr)');
+ expect(vendor).toContain(':global(html[data-phone-viewport="wide"]) .page :is(.button,.text-link)');
+ expect(nav).toContain('html[data-phone-viewport="wide"] dialog.menu-panel{');
+ expect(nav).toContain('width:calc(100vw / var(--ugt-phone-zoom,1) - 24px)');
+});
