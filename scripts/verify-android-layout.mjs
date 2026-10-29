@@ -30,7 +30,7 @@ const cases=[
   {name:'phone-430',width:430,height:932,screenWidth:430,screenHeight:932,checkStack:true},
   // Emulates a browser that requests a wide CSS viewport on a physically narrow Android.
   // Unlike normal device emulation, CSS max-device-width must NOT be relied upon.
-  {name:'android-wide-viewport',width:980,height:844,screenWidth:390,screenHeight:844,checkStack:true,forceScreen:true},
+  {name:'android-wide-viewport',width:980,height:1700,screenWidth:390,screenHeight:844,checkStack:true,forceScreen:true},
   {name:'phone-landscape',width:844,height:390,screenWidth:390,screenHeight:844,landscape:true,checkStack:false},
   {name:'tablet-820',width:820,height:1180,screenWidth:820,screenHeight:1180,checkStack:false},
   {name:'desktop-1440',width:1440,height:900,screenWidth:1440,screenHeight:900,checkStack:false},
@@ -59,10 +59,10 @@ try {
     try{
       const response=await page.goto(origin+'/vendors',{waitUntil:'domcontentloaded',timeout:15000});
       if(!response||response.status()>=400)throw Error('GET /vendors returned '+(response?.status()||'no response'));
-      await page.locator('section[aria-labelledby="vendor-title"]').waitFor({timeout:15000});
+      await page.locator('section[aria-labelledby="vendor-title"]:visible').first().waitFor({timeout:15000});
       const metrics=await page.evaluate(()=>{
         const sections=['vendor-title','vendor-preparation','sponsor-title'].map(id=>{
-          const el=document.querySelector('section[aria-labelledby="'+id+'"]');
+          const el=[...document.querySelectorAll('section[aria-labelledby="'+id+'"]')].find(node=>node.getClientRects().length>0);
           return {id,columns:el?getComputedStyle(el).gridTemplateColumns:null,rect:el?.getBoundingClientRect().toJSON()};
         });
         const footer=document.querySelector('footer[data-site-footer]');
