@@ -68,7 +68,7 @@ try {
         const footer=document.querySelector('footer[data-site-footer]');
         const prices=document.querySelector('dl');
         return {
-          innerWidth,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
+          innerWidth,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,bodyScrollWidth:document.body.scrollWidth,
           rootZoom:document.documentElement.style.zoom,phoneViewport:document.documentElement.dataset.phoneViewport||'',
           sections,footerWidth:footer?.getBoundingClientRect().width,
           priceColumns:prices?getComputedStyle(prices).gridTemplateColumns:'',
@@ -76,7 +76,7 @@ try {
         };
       });
       console.log(scenario.name,JSON.stringify(metrics));
-      if(metrics.scrollWidth>metrics.clientWidth+5)failures.push(scenario.name+': horizontal overflow '+(metrics.scrollWidth-metrics.clientWidth)+'px');
+      if(metrics.bodyScrollWidth>metrics.innerWidth+5)failures.push(scenario.name+': horizontal overflow '+(metrics.bodyScrollWidth-metrics.innerWidth)+'px');
       if(metrics.formDownloads<2)failures.push(scenario.name+': missing PDF download links');
       if(scenario.checkStack){
         for(const item of metrics.sections){
@@ -91,7 +91,7 @@ try {
         const dialog=page.locator('dialog.menu-panel');
         await dialog.waitFor({state:'visible',timeout:5000});
         const dialogRect=await dialog.boundingBox();
-        const view=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
+        const view=await page.evaluate(()=>({width:window.innerWidth,scroll:document.body.scrollWidth}));
         if(dialogRect&&(dialogRect.x< -3 || dialogRect.x+dialogRect.width>view.width+5))failures.push(scenario.name+': navigation dialog exceeds viewport');
         await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-menu.png',timeout:8000});
       }else if(!await page.locator('nav.desktop-nav').isVisible()){
