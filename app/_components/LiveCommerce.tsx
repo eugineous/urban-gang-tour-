@@ -33,9 +33,9 @@ export function LiveCommerce({view='shop',eventId}:CommerceProps){
  useEffect(()=>setMounted(true),[]);
  return <>{mounted?<CommerceClient view={view} eventId={eventId}/>:<section className={view==='shop'?shopStyles.page:`${styles.page} wrap`}><CommerceIntro view={view} eventId={eventId}/><p className={styles.loading} role="status">{t('shop.loading')}</p></section>}{view==='checkout'&&<div className="wrap"><LanguageChooser path="/checkout"/></div>}</>;
 }
-function CommerceIntro({view,eventId,eventName,selected='',cartCount=0}:{view:'shop'|'cart'|'checkout';eventId?:string;eventName?:string;selected?:string;cartCount?:number}){
+function CommerceIntro({view,eventId,eventName,selected='',cartCount=0,featuredProduct}:{view:'shop'|'cart'|'checkout';eventId?:string;eventName?:string;selected?:string;cartCount?:number;featuredProduct?:Product}){
  const t=useMessages(commerceMessages);
- if(view==='shop'&&!eventId)return <ShopIntro selected={selected} cartCount={cartCount}/>;
+ if(view==='shop'&&!eventId)return <ShopIntro selected={selected} cartCount={cartCount} featuredProduct={featuredProduct}/>;
  return <header className={styles.intro}><div><p className="eyebrow">{eventId?t('tickets'):t('shop.urbanMerch')}</p><h1>{eventId?(eventName?<span lang="en-KE">{eventName}</span>:t('tickets.heading')):view==='shop'?t('shop.heading'):view==='cart'?t('cart.heading'):t('checkout.heading')}</h1></div><div className={styles.introCopy}><p>{eventId?t('tickets.intro'):view==='shop'?t('shop.fullIntro'):view==='cart'?t('cart.intro'):t('checkout.intro')}</p><nav className={styles.actions} aria-label={t('shop.navigation')}>{selected&&<a href="/shop">{t('shop.viewAll')}</a>}<a href={view==='shop'?'#merchandise-catalogue':'/shop'}>{view==='shop'?t('shop.browse'):t('shop.continue')}</a>{view==='shop'&&<a className="button secondary" href="/cart">{t('cart.viewCount',{count:cartCount})}</a>}{view==='checkout'&&!eventId&&<a href="/cart">{t('cart.review')}</a>}</nav></div></header>;
 }
 function CommerceClient({view='shop',eventId}:CommerceProps){
@@ -96,7 +96,7 @@ function CommerceClient({view='shop',eventId}:CommerceProps){
   <label className="checkbox"><input type="checkbox" required/> <MessageText catalogue={commerceMessages} message="checkout.consent" values={{terms:<a href="/terms" target="_blank" rel="noopener">{t('terms')}</a>,refund:<a href="/refund-policy" target="_blank" rel="noopener">{t('refund')}</a>,privacy:<a href="/privacy-policy" target="_blank" rel="noopener">{t('privacy')}</a>}}/></label><p>{method==='card'?t('checkout.cardNote'):t('checkout.mpesaNote')}</p><button type="submit" className="button" disabled={busy||(!eventId&&(fulfillmentLoading||!!fulfillmentError||!fulfillmentOptions))}>{busy?t('checkout.starting'):method==='card'?t('checkout.continueCard'):t('checkout.payMpesa',{amount:money(total)})}</button>
  </form>:null;
  return <section className={`modern-page ${view==='shop'?shopStyles.page:styles.page}`}>
-  <CommerceIntro view={view} eventId={eventId} eventName={event?.name} selected={selected} cartCount={cartCount}/>
+  <CommerceIntro view={view} eventId={eventId} eventName={event?.name} selected={selected} cartCount={cartCount} featuredProduct={products.find(product=>product.made_to_order&&product.id==='cb-oversized-tee')}/>
   {notice&&<div className={styles.notice} role="status"><span>{t(notice.key,notice.values)}</span><a href="/cart">{t('cart.view')}</a></div>}
   {loading&&<p className={styles.loading} role="status">{t('shop.loading')}</p>}
   {savedAttempt?.orderId&&view==='checkout'&&<p role="status"><MessageText catalogue={commerceMessages} message="checkout.saved" values={{order:<a href={'/pay/success?ref='+encodeURIComponent(savedAttempt.orderId)}>{t('checkout.existing')}</a>}}/></p>}

@@ -11,7 +11,11 @@ import styles from './Commerce.module.css';
 
 type Variant={label:string;priceAdjustment:number;stock?:number|null};
 
-export function ProductPurchase({id,price,variants,stock,nameOnBackEnabled=false}:{id:string;price:number;variants:Variant[];stock?:number|null;nameOnBackEnabled?:boolean}){
+type PurchaseProps={id:string;price:number;variants:Variant[];stock?:number|null;nameOnBackEnabled?:boolean;madeToOrder?:boolean};
+export function ProductPurchase(props:PurchaseProps){
+ return <ProductPurchaseForm {...props} stock={props.madeToOrder?null:props.stock} variants={props.madeToOrder?props.variants.map(variant=>({...variant,stock:null})):props.variants}/>;
+}
+function ProductPurchaseForm({id,price,variants,stock,nameOnBackEnabled=false,madeToOrder=false}:PurchaseProps){
  const t=useMessages(commerceMessages);const {locale}=useInterfaceLanguage();const money=(amount:number)=>formatKes(amount,locale)??'';
  const [variant,setVariant]=useState(variants.find(value=>value.stock!==0)?.label||variants[0]?.label||'');
  const [qty,setQty]=useState(1),[printedName,setPrintedName]=useState(''),[notice,setNotice]=useState<CommerceIssue|null>(null),[error,setError]=useState<CommerceIssue|null>(null),[added,setAdded]=useState(false);
@@ -40,7 +44,8 @@ export function ProductPurchase({id,price,variants,stock,nameOnBackEnabled=false
   <p className={styles.purchaseTotal}>{money(unit)} <span className={styles.availability}>{qty>1?t('each'):''}</span></p>
   <div className={styles.optionRow}>{!!variants.length&&<label>{t('product.chooseOptions')}<select aria-label={t('product.optionsLabel')} value={variant} onChange={event=>{setVariant(event.target.value);resetNotice()}}>{variants.map(value=><option key={value.label} value={value.label} disabled={value.stock===0}>{value.label}{value.stock===0?' · '+t('stock.out'):''}{value.priceAdjustment?' · '+(value.priceAdjustment>0?'+':'')+money(value.priceAdjustment):''}</option>)}</select></label>}<label>{t('quantity')}<input aria-label={t('quantity.product')} type="number" min={1} max={Math.max(1,Math.min(20,stock??20,option?.stock??20))} value={qty} onChange={event=>{setQty(Math.max(1,Math.min(20,Number(event.target.value)||1)));resetNotice()}}/></label></div>
   {nameOnBackEnabled&&<div className={styles.personalization}><label htmlFor={'printed-name-'+id}>{t('personalization.printFree')}<input id={'printed-name-'+id} aria-describedby={'printed-name-help-'+id} maxLength={PRINTABLE_NAME_MAX_LENGTH} autoComplete="off" placeholder={t('personalization.placeholder')} value={printedName} onChange={event=>{setPrintedName(event.target.value);resetNotice()}}/></label><p id={'printed-name-help-'+id} className={styles.purchaseNote}>{t('personalization.help')}</p>{printedName.trim()&&<div className={styles.namePreview} aria-label={t('personalization.preview')}><span>{t('personalization.label')}</span><strong lang="">{printedName.trim()}</strong><small>{t('personalization.spelling')}</small></div>}</div>}
-  <p className={styles.availability} data-unavailable={unavailable}>{unavailable?t('stock.optionOut'):typeof stock==='number'?t('stock.available',{count:stock}):t('stock.check')}</p>
+  <p className={styles.availability} data-unavailable={unavailable}>{madeToOrder?t('stock.madeToOrder'):unavailable?t('stock.optionOut'):typeof stock==='number'?t('stock.available',{count:stock}):t('stock.check')}</p>
+  {madeToOrder&&<p className={styles.purchaseNote}>{t('purchase.madeToOrder')}</p>}
   <button className="button" disabled={unavailable} type="submit">{unavailable?t('stock.out'):t('cart.addAmount',{amount:money(total)})}</button>
   {error&&<p className={styles.error} role="alert">{t(error.key,error.values)}</p>}
   {notice&&<p className={styles.addedStatus} role="status">{t(notice.key,notice.values)}</p>}

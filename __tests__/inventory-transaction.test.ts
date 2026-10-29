@@ -14,7 +14,7 @@ function makeFakePool(calls: QueryCall[]) {
       if (sql.includes('COUNT(*)') && sql.includes('online_sale')) {
         return { rows: [{ n: '0' }] };
       }
-      if (sql.includes('SELECT inventory_tracked FROM products')) {
+      if (sql.includes('FROM products WHERE id=$1 FOR UPDATE')) {
         return { rows: [{ inventory_tracked: true }] };
       }
       if (sql.includes('SELECT id FROM merch_variants')) {
@@ -54,6 +54,32 @@ beforeEach(() => {
 });
 
 describe('recordPaidMerchOrder', () => {
+  it('keeps repeated made-to-order variant purchases available without creating stock movements', async () => {
+    const pool=makeFakePool(calls),client=await pool.connect();
+    const original=client.query.getMockImplementation()!;
+    client.query.mockImplementation(async(sql:string,params:any[]=[])=>{
+      if(sql.includes('FROM products WHERE id=$1 FOR UPDATE')) {
+        calls.push({sql,params});return {rows:[{inventory_tracked:false,made_to_order:true}]};
+      }
+      return original(sql,params);
+    });
+    fakePool=pool;
+    for(const id of ['ORD-MADE-FIRST','ORD-MADE-SECOND'])await recordPaidMerchOrder({id,status:'paid',items:[{id:'cb-hoodie',qty:2,variant:'Black / M'}]});
+    expect(calls.filter(call=>call.sql.includes('INSERT INTO merch_inventory_moves'))).toEqual([]);
+    expect(calls.filter(call=>call.sql.includes('INSERT INTO merch_fulfillments'))).toHaveLength(2);
+    expect(calls.filter(call=>call.sql.includes('INSERT INTO merch_order_settlements'))).toHaveLength(2);
+  });
+
+  it('does not reset fulfillment or repeat a settled made-to-order consequence',async()=>{
+    const pool=makeFakePool(calls),client=await pool.connect();
+    const original=client.query.getMockImplementation()!;
+    client.query.mockImplementation(async(sql:string,params:any[]=[])=>{
+      if(sql.includes('SELECT order_id FROM merch_order_settlements')){calls.push({sql,params});return {rows:[{order_id:'ORD-MADE-REPLAY'}]};}
+      return original(sql,params);
+    });fakePool=pool;
+    await recordPaidMerchOrder({id:'ORD-MADE-REPLAY',status:'paid',items:[{id:'cb-hoodie',qty:2,variant:'Black / M'}]});
+    expect(calls.some(call=>/INSERT INTO merch_(inventory_moves|fulfillments|order_settlements)/.test(call.sql))).toBe(false);
+  });
   it('does nothing for non-confirmed payment status', async () => {
     await recordPaidMerchOrder({ id: 'ORD-1', items: [{ id: 'p1', qty: 1 }], status: 'pending' });
     expect(calls).toHaveLength(0);

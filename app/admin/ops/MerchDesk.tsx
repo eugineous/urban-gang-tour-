@@ -35,6 +35,7 @@ type Product = {
   price: number;
   active: boolean;
   inventory_tracked: boolean;
+  made_to_order: boolean;
   reorder_point: number | null;
   inventory_move_count: number;
   inventory_on_hand: number;
@@ -641,10 +642,12 @@ export default function MerchDesk() {
             >
               {[
                 ["new", "New"],
+                ["in_production", "In production"],
                 ["picking", "Picking"],
                 ["packed", "Packed"],
                 ["dispatch_ready", "Dispatch ready"],
                 ["dispatched", "Dispatched"],
+                ["delivered", "Delivered"],
                 ["collected", "Collected"],
                 ["cancelled", "Cancelled"],
               ].map(([value, text]) => (
@@ -1120,7 +1123,7 @@ export default function MerchDesk() {
               value={String(
                 fulfillments.filter(
                   (f) =>
-                    !["dispatched", "collected", "cancelled"].includes(
+                    !["delivered", "collected", "cancelled"].includes(
                       f.status,
                     ),
                 ).length,
@@ -1513,8 +1516,8 @@ export default function MerchDesk() {
             <h3 style={h3}>STOCK READINESS</h3>
             <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
               Untracked means no verified opening or delivery count has been
-              recorded. It is not the same as zero stock. Paid online orders
-              reduce only tracked products, once per paid order.
+              recorded. It is not the same as zero stock. Made-to-order products
+              are manufactured after purchase and never deduct ready stock.
             </div>
             <div style={{ overflowX: "auto" }}>
               <table style={{ borderCollapse: "collapse", width: "100%" }}>
@@ -1545,7 +1548,7 @@ export default function MerchDesk() {
                           <b>{p.name}</b>
                         </td>
                         <td style={{ ...td, fontWeight: 800 }}>
-                          {p.inventory_tracked
+                          {p.made_to_order?"Made to order":p.inventory_tracked
                             ? p.inventory_on_hand
                             : "Not tracking"}
                         </td>
@@ -1562,7 +1565,7 @@ export default function MerchDesk() {
                               color={needsReorder ? OC.orange : OC.green}
                             />
                           ) : (
-                            <Chip text="not tracking" />
+                            <Chip text={p.made_to_order?"made to order":"not tracking"} />
                           )}
                         </td>
                         <td style={td}>

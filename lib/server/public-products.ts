@@ -11,6 +11,7 @@ export type PublicProduct = {
   category: string;
   description: string;
   name_on_back_enabled: boolean;
+  made_to_order: boolean;
   variants: {label: string; priceAdjustment: number; sku: string; stock: number | null}[];
 };
 
@@ -23,6 +24,7 @@ type ProductRow = {
   category?: string | null;
   description?: string | null;
   name_on_back_enabled?: boolean;
+  made_to_order?: boolean;
   variants?: unknown;
 };
 type VariantRow = {label?: unknown; priceAdjustment?: unknown; sku?: unknown; stock?: unknown};
@@ -36,9 +38,10 @@ export async function readPublicProducts(): Promise<PublicProduct[]> {
     const read = () => q<ProductRow>(
       `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
               COALESCE((to_jsonb(p)->>'name_on_back_enabled')::boolean, false) AS name_on_back_enabled,
-              CASE WHEN p.inventory_tracked THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
+              p.made_to_order,
+              CASE WHEN p.inventory_tracked AND NOT p.made_to_order THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
               COALESCE(
-                jsonb_agg(jsonb_build_object('label',v.label,'priceAdjustment',v.price_adjustment,'sku',v.sku,'stock',(SELECT CASE WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
+                jsonb_agg(jsonb_build_object('label',v.label,'priceAdjustment',v.price_adjustment,'sku',v.sku,'stock',(SELECT CASE WHEN p.made_to_order THEN NULL WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
                   ORDER BY v.label) FILTER (WHERE v.id IS NOT NULL),
                 '[]'::jsonb
               ) AS variants
@@ -60,16 +63,17 @@ export async function readPublicProducts(): Promise<PublicProduct[]> {
       id: row.id,
       name: row.name,
       price: Number(row.price),
-      stock: row.stock === null || row.stock === undefined ? null : Math.max(0, Number(row.stock)),
+      stock: row.made_to_order || row.stock === null || row.stock === undefined ? null : Math.max(0, Number(row.stock)),
       image: row.image || '',
       category: row.category || '',
       description: row.description || '',
       name_on_back_enabled: row.name_on_back_enabled === true,
+      made_to_order: row.made_to_order === true,
       variants: Array.isArray(row.variants) ? row.variants.map((variant: VariantRow) => ({
         label: String(variant.label || ''),
         priceAdjustment: Number(variant.priceAdjustment || 0),
         sku: String(variant.sku || ''),
-        stock: variant.stock === null || variant.stock === undefined ? null : Math.max(0, Number(variant.stock)),
+        stock: row.made_to_order || variant.stock === null || variant.stock === undefined ? null : Math.max(0, Number(variant.stock)),
       })).filter((variant) => variant.label) : [],
     }));
   }, false);

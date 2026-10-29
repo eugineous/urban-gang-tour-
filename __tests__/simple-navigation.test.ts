@@ -21,8 +21,8 @@ it('orders discovery, proof and trust before shopping and booking, with Gallery 
 it('keeps a compact footer with support and seller entry without deleting canonical routes',()=>{
  expect(FOOTER_NAVIGATION.map(group=>group.title)).toEqual(['Explore','Help']);
  const footer=FOOTER_NAVIGATION.flatMap(group=>group.items);
- expect(footer).toHaveLength(10);
- for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/account','/organizer/login','/contact-us','/accessibility'])expect(footer.some(([,target])=>target===href)).toBe(true);
+ expect(footer).toHaveLength(12);
+ for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/account','/organizer/login','/contact-us','/accessibility','/app','/vendors'])expect(footer.some(([,target])=>target===href)).toBe(true);
 });
 
 it('routes the restored shopping cart symbol to Shop and renders seven matching desktop/mobile primary links',()=>{

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { q, hasDb } from '@/lib/server/db';
+import { hasDb } from '@/lib/server/db';
+import { accessibleReceiptOrder } from '@/lib/server/receipt-access';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { maskPhone } from '@/lib/server/receipt-email';
 import { ensureTickets } from '@/lib/server/tickets';
@@ -7,13 +8,14 @@ import { renderReceiptPdf } from '@/lib/tickets/pdf';
 import { getLogoDataUri } from '@/lib/ops/pdf';
 
 // Downloadable PDF twin of the /receipt/[id] web receipt. Public bearer
-// route - the unguessable ORD- id is the bearer, same model as the web page.
-// Rate-limited against id-enumeration attempts.
+// route for new strong random references. Historical weaker references require
+// a database-validated buyer owner or active orders-admin session, as on the web page.
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const ID_RE = /^ORD-[A-Z0-9-]{4,40}$/;
+const PRIVATE_HEADERS={'Cache-Control':'private, no-store','Cloudflare-CDN-Cache-Control':'no-store','Referrer-Policy':'no-referrer'};
 
 function safeName(x: string): string {
   return x.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 80) || 'receipt';
@@ -21,18 +23,17 @@ function safeName(x: string): string {
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!rateLimit('rcpt-pdf:' + clientIp(req), 20, 60_000, req)) {
-    return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
+    return NextResponse.json({ error: 'too_many_requests' }, { status: 429,headers:PRIVATE_HEADERS });
   }
   const { id: rawId } = await params;
   const id = rawId || '';
-  if (!ID_RE.test(id)) return new NextResponse('Not found', { status: 404 });
-  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!ID_RE.test(id)) return new NextResponse('Not found', { status: 404,headers:PRIVATE_HEADERS });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503,headers:PRIVATE_HEADERS });
 
   try {
-    const rows = await q<any>('SELECT * FROM orders WHERE id=$1', [id]);
-    const o = rows[0];
-    if (!o) return new NextResponse('Not found', { status: 404 });
-    if(!['paid','fulfilled'].includes(o.status))return NextResponse.json({error:'payment_not_confirmed'},{status:409,headers:{'Cache-Control':'no-store'}});
+    const o = await accessibleReceiptOrder(req,id);
+    if (!o) return new NextResponse('Not found', { status: 404,headers:PRIVATE_HEADERS });
+    if(!['paid','fulfilled'].includes(o.status))return NextResponse.json({error:'payment_not_confirmed'},{status:409,headers:PRIVATE_HEADERS});
 
     let tickets: { code: string; position: number; ofCount: number; tierName: string }[] = [];
     if (o.status === 'paid' || o.status === 'fulfilled') {
@@ -53,11 +54,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${safeName('UGT-Receipt-' + id)}.pdf"`,
         // Personalized artifacts must not enter shared CDN caches.
-        'Cache-Control': 'private, no-store',
+        ...PRIVATE_HEADERS,
       },
     });
   } catch (e: any) {
     console.error('[receipt-pdf]', e);
-    return NextResponse.json({ error: 'pdf_failed' }, { status: 500 });
+    return NextResponse.json({ error: 'pdf_failed' }, { status: 500,headers:PRIVATE_HEADERS });
   }
 }

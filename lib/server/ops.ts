@@ -230,6 +230,10 @@ CREATE TABLE IF NOT EXISTS products (
 -- receiving movement. This prevents an empty ledger from being misread as
 -- zero stock and avoids publishing invented availability to the shop.
 ALTER TABLE products ADD COLUMN IF NOT EXISTS inventory_tracked BOOLEAN NOT NULL DEFAULT false;
+-- Manufactured after purchase; never a claim of ready stock.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS made_to_order BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE products DROP CONSTRAINT IF EXISTS products_made_to_order_stock_check;
+ALTER TABLE products ADD CONSTRAINT products_made_to_order_stock_check CHECK (NOT (made_to_order AND inventory_tracked));
 ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point INT;
 -- Staff opt in only after confirming the product can be printed. Existing
 -- and newly created products never offer name printing by default.
@@ -283,6 +287,15 @@ CREATE TABLE IF NOT EXISTS merch_fulfillment_events (
   note TEXT DEFAULT '',
   actor TEXT DEFAULT 'admin',
   created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE merch_fulfillments DROP CONSTRAINT IF EXISTS merch_fulfillments_status_check;
+ALTER TABLE merch_fulfillments ADD CONSTRAINT merch_fulfillments_status_check
+ CHECK (status IN ('new','in_production','picking','packed','dispatch_ready','dispatched','delivered','collected','cancelled'));
+-- One durable consequence marker also covers made-to-order orders, which
+-- intentionally create no stock movements. Legacy movement receipts remain valid.
+CREATE TABLE IF NOT EXISTS merch_order_settlements (
+ order_id TEXT PRIMARY KEY REFERENCES orders(id) ON DELETE RESTRICT,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS merch_purchase_orders (
   id BIGSERIAL PRIMARY KEY,

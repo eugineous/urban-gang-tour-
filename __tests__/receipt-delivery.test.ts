@@ -10,6 +10,11 @@ import {sendReceiptEmail,renderReceiptEmailPayload} from '@/lib/server/receipt-e
 beforeEach(()=>vi.clearAllMocks());
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals()});
 describe('payment receipt delivery',()=>{
+ it('gives a merchandise buyer a durable order-tracking link without claiming delivery',async()=>{
+  const payload=JSON.parse(await renderReceiptEmailPayload({id:'ORD-ABC123456789012345678901234',items:[{id:'cb-hoodie',qty:1}],total:3500,email:'sample@example.com',status:'paid'}));
+  expect(payload.html).toContain('https://urbangangtour.co.ke/orders/track?ref=ORD-ABC123456789012345678901234');
+  expect(payload.html).not.toContain('Your order has been delivered');
+ });
  it('persists paid delivery jobs before processing; never enqueues pending orders',async()=>{const base={id:'ORD-EXAMPLE',items:[],total:500,email:'sample@example.com'};await sendReceiptEmail({...base,status:'pending'});expect(outbox.enqueue).not.toHaveBeenCalled();await sendReceiptEmail({...base,status:'paid'});expect(outbox.enqueue).toHaveBeenCalledWith(base.id,'payment');expect(outbox.deliver).toHaveBeenCalledWith('receipt-stable-id');expect(outbox.enqueue.mock.invocationCallOrder[0]).toBeLessThan(outbox.deliver.mock.invocationCallOrder[0]);await sendReceiptEmail({...base,status:'paid'},'resend-123');expect(outbox.enqueue).toHaveBeenLastCalledWith(base.id,'resend-123')});
  it('renders the original receipt attachment and refuses an unpaid payload',async()=>{const base={id:'ORD-EXAMPLE',items:[],total:500,email:'sample@example.com'};await expect(renderReceiptEmailPayload({...base,status:'pending'})).rejects.toThrow('receipt_order_not_paid');const payload=JSON.parse(await renderReceiptEmailPayload({...base,status:'paid'}));expect(payload.to).toBe(base.email);expect(payload.attachments[0].filename).toContain('Receipt');expect(Buffer.from(payload.attachments[0].content,'base64').toString()).toBe('sample-pdf')});
 });

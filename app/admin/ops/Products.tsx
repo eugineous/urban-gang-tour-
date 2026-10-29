@@ -17,10 +17,10 @@ import {
 
 interface Product {
   id: string; name: string; price: number; costPrice: number; image: string; category: string;
-  description: string; active: boolean; photos:string[];sizeGuide:string;nameOnBackEnabled:boolean;
+  description: string; active: boolean; photos:string[];sizeGuide:string;nameOnBackEnabled:boolean;madeToOrder:boolean;inventory_tracked?:boolean;
 }
 
-const EMPTY = { id: '', name: '', price: 0, costPrice: 0, image: '', category: 'Apparel', description: '', active: true,photos:'',sizeGuide:'',nameOnBackEnabled:false };
+const EMPTY = { id: '', name: '', price: 0, costPrice: 0, image: '', category: 'Apparel', description: '', active: true,photos:'',sizeGuide:'',nameOnBackEnabled:false,madeToOrder:false };
 
 // Markup is derived, never stored: (sell - cost) / cost. Zero/blank cost means
 // "not recorded yet" and renders as an em dash rather than a fake 0%.
@@ -43,7 +43,7 @@ export default function Products() {
   const reload = useCallback(async () => {
     const { data } = await opsGet('products');
     if (data.error) say('Load failed: ' + data.error);
-    else setRows((data.rows || []).map((r: any) => ({ ...r, price: Number(r.price), costPrice: Number(r.cost_price || 0),photos:Array.isArray(r.photos)?r.photos:[],sizeGuide:r.size_guide||'',nameOnBackEnabled:r.name_on_back_enabled===true })));
+    else setRows((data.rows || []).map((r: any) => ({ ...r, price: Number(r.price), costPrice: Number(r.cost_price || 0),photos:Array.isArray(r.photos)?r.photos:[],sizeGuide:r.size_guide||'',nameOnBackEnabled:r.name_on_back_enabled===true,madeToOrder:r.made_to_order===true })));
   }, [say]);
   useEffect(() => { reload(); }, [reload]);
 
@@ -56,7 +56,7 @@ export default function Products() {
     setBusy(true);
     const { status,data } = await opsPost('product.save', {
       id: edit.id || undefined, name: edit.name, price: edit.price, costPrice: edit.costPrice, image: edit.image,
-      category: edit.category, description: edit.description, active: edit.active,photos:edit.photos.split('\n').map(x=>x.trim()).filter(Boolean),sizeGuide:edit.sizeGuide,nameOnBackEnabled:edit.nameOnBackEnabled,
+      category: edit.category, description: edit.description, active: edit.active,photos:edit.photos.split('\n').map(x=>x.trim()).filter(Boolean),sizeGuide:edit.sizeGuide,nameOnBackEnabled:edit.nameOnBackEnabled,madeToOrder:edit.madeToOrder,
     });
     setBusy(false);
     if (status<200||status>=300||data.error||!data.ok||!data.row||data.row.name!==edit.name||Number(data.row.price)!==edit.price||(edit.id&&data.row.id!==edit.id)) { say('The server did not confirm this product save. Your entries are kept. Check the product list before retrying.'); return; }
@@ -72,7 +72,7 @@ export default function Products() {
   };
 
   const restore = async (p: Product) => {
-    const { data } = await opsPost('product.save', { id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: true,photos:p.photos,sizeGuide:p.sizeGuide,nameOnBackEnabled:p.nameOnBackEnabled });
+    const { data } = await opsPost('product.save', { id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: true,photos:p.photos,sizeGuide:p.sizeGuide,nameOnBackEnabled:p.nameOnBackEnabled,madeToOrder:p.madeToOrder });
     if (data.error) say('Failed: ' + data.error); else { say('Restored'); reload(); }
   };
 
@@ -102,6 +102,9 @@ export default function Products() {
           Markup: <b>{markupOf(edit)}</b>
           {edit.costPrice > 0 && edit.price > 0 && <span style={{ color: '#888' }}> (KES {edit.price.toLocaleString()} − KES {edit.costPrice.toLocaleString()} = KES {(edit.price - edit.costPrice).toLocaleString()} margin)</span>}
         </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13 }}>
+          <input type="checkbox" checked={edit.madeToOrder} onChange={(e)=>setEdit({...edit,madeToOrder:e.target.checked})}/> Made to order (manufactured after confirmed payment; no ready-stock count)
+        </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13 }}>
           <input type="checkbox" checked={edit.nameOnBackEnabled} onChange={(e) => setEdit({ ...edit, nameOnBackEnabled: e.target.checked })} /> Free name on back (enable after confirming this product can be printed)
         </label>
@@ -147,7 +150,7 @@ export default function Products() {
                   <td style={td}>{p.active ? <Chip text="active" bg="#E7F5EE" color={OC.green} /> : <Chip text="retired" bg="#eee" />}</td>
                   <td style={td}>
                     <div style={{ display: 'flex', gap: 5 }}>
-                      <button style={btnSmall} onClick={() => setEdit({ id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: p.active,photos:p.photos.join('\n'),sizeGuide:p.sizeGuide,nameOnBackEnabled:p.nameOnBackEnabled })}>Edit</button>
+                      <button style={btnSmall} onClick={() => setEdit({ id: p.id, name: p.name, price: p.price, costPrice: p.costPrice, image: p.image, category: p.category, description: p.description, active: p.active,photos:p.photos.join('\n'),sizeGuide:p.sizeGuide,nameOnBackEnabled:p.nameOnBackEnabled,madeToOrder:p.madeToOrder })}>Edit</button>
                       {p.active
                         ? <button style={{ ...btnSmall, background: '#111', color: '#fff' }} onClick={() => retire(p)}>Retire</button>
                         : <button style={btnSmall} onClick={() => restore(p)}>Restore</button>}

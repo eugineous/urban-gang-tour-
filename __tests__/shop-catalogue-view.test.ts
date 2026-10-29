@@ -37,6 +37,17 @@ function catalogueProps(products=buildShopCatalogue([product])){
 }
 
 describe('current collection shop presentation',()=>{
+ it('links an activated Color Blast hero to its real made-to-order product instead of claiming it is not on sale',()=>{
+  const featuredProduct={...product,id:'cb-oversized-tee',name:'Color Blast Oversized Tee',made_to_order:true,stock:null};
+  const html=renderToStaticMarkup(createElement(ShopIntro,{featuredProduct}));
+  expect(html).toContain('href="/shop/cb-oversized-tee"');
+  expect(html).toContain('Made to order');expect(html).not.toContain('not on sale');
+ });
+ it('labels an approved made-to-order product and offers purchase without asserting ready stock',()=>{
+  const html=renderToStaticMarkup(createElement(ShopLiveProductCard,{...productProps(),product:{...product,id:'cb-hoodie',made_to_order:true,stock:null,variants:[{label:'Black / M',priceAdjustment:0,stock:null}]},variation:'Black / M'}));
+  expect(html).toContain('Made to order');expect(html).toContain('Add to cart');expect(html).not.toContain('8 available');expect(html).not.toContain('Out of stock');
+  expect(html).toContain('data-studio-product="cb-hoodie"');
+ });
  it('keeps legacy p1 artwork in its live product card rather than the featured hero',()=>{
   const legacy={...product,id:'p1',name:'Magenta Oversized Tee',image:'/assets/merch/magenta-tee.png',price:900,stock:null,variants:[]};
   const hero=renderToStaticMarkup(createElement(ShopIntro));

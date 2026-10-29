@@ -4,10 +4,12 @@ import {MessageText} from '@/ui/i18n/MessageText';
 import {documentsMessages} from '@/ui/i18n/catalogues/documents';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import {cookies} from 'next/headers';
+import {accessibleReceiptOrder} from '@/lib/server/receipt-access';
 import { ensureTickets,ticketsForOrder, getEventMeta, getEventName, type TicketRow } from '@/lib/server/tickets';
 
-// All e-tickets of one order. Roles: public (anon) - the unguessable ORD- id
-// is the bearer, same model as /receipt/[id]. This page is also the lazy-mint
+// All e-tickets of one order. Strong random references are guest capabilities;
+// legacy references require the buyer owner or orders admin. This is also the lazy-mint
 // safety net: a paid ticket order that somehow missed webhook minting gets its
 // tickets minted right here on first view.
 
@@ -17,6 +19,7 @@ export const metadata: Metadata = {
   title: 'Your Tickets | Urban Gang Tour',
   description: 'Your Urban Gang Tour e-tickets.',
   robots: { index: false, follow: false },
+  referrer:'no-referrer',
 };
 
 const ID_RE = /^ORD-[A-Z0-9-]{4,40}$/;
@@ -27,10 +30,8 @@ const CSS = `
 
 async function getOrder(id: string) {
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (!db()) return null;
-    const rows = await q(`SELECT * FROM orders WHERE id=$1`, [id]);
-    return rows[0] || null;
+    const c=await cookies();
+    return await accessibleReceiptOrder(new Request('https://urbangangtour.co.ke/tickets/'+encodeURIComponent(id),{headers:{cookie:c.toString()}}),id);
   } catch {
     return null;
   }
@@ -45,7 +46,7 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
 
   const paid = ticketIsActive({order_status:o.status,ticket_refund_policy:o.ticket_refund_policy});
   let tickets: TicketRow[] = [];
-  try {
+  if(paid)try {
     tickets = o.status==='partially_refunded'?await ticketsForOrder(o.id):await ensureTickets(o);
     tickets=tickets.filter(ticket=>ticketIsActive({...ticket,order_status:o.status,ticket_refund_policy:o.ticket_refund_policy}));
   } catch (e) {

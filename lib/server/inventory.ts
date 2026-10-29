@@ -32,15 +32,17 @@ export async function assertMerchStockAvailable(items: unknown): Promise<void> {
   if (lines === null) throw new Error("invalid_inventory_line");
   if (!lines.length) return;
   const productQuantities = new Map<string, number>();
+  const madeToOrder = new Set<string>();
   for (const line of lines) productQuantities.set(line.productId, (productQuantities.get(line.productId) || 0) + line.qty);
   for (const [productId, requested] of productQuantities) {
-    const rows = await q<{ inventory_tracked: boolean; on_hand: number }>(
-      `SELECT p.inventory_tracked, COALESCE(SUM(m.quantity),0)::int AS on_hand
+    const rows = await q<{ inventory_tracked: boolean; made_to_order: boolean; on_hand: number }>(
+      `SELECT p.inventory_tracked, p.made_to_order, COALESCE(SUM(m.quantity),0)::int AS on_hand
        FROM products p LEFT JOIN merch_inventory_moves m ON m.product_id=p.id
-       WHERE p.id=$1 GROUP BY p.id, p.inventory_tracked`, [productId],
+       WHERE p.id=$1 GROUP BY p.id, p.inventory_tracked, p.made_to_order`, [productId],
     );
     if (!rows.length) throw new Error("unknown_product");
-    if (rows[0].inventory_tracked && Number(rows[0].on_hand) < requested) throw new Error("insufficient_inventory");
+    if (rows[0].made_to_order) madeToOrder.add(productId);
+    else if (rows[0].inventory_tracked && Number(rows[0].on_hand) < requested) throw new Error("insufficient_inventory");
   }
   for (const line of lines) {
     if (!line.variant) continue;
@@ -50,7 +52,7 @@ export async function assertMerchStockAvailable(items: unknown): Promise<void> {
        WHERE v.product_id=$1 AND v.label=$2 GROUP BY v.id`, [line.productId, line.variant],
     );
     if (!rows.length) throw new Error("unknown_variant");
-    if (Number(rows[0].movement_count) > 0 && Number(rows[0].on_hand) < line.qty) throw new Error("variant_out_of_stock");
+    if (!madeToOrder.has(line.productId) && Number(rows[0].movement_count) > 0 && Number(rows[0].on_hand) < line.qty) throw new Error("variant_out_of_stock");
   }
 }
 
@@ -74,6 +76,8 @@ export async function recordPaidMerchOrder(order: { id: string; items: unknown; 
   try {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`merch:${order.id}`]);
+    const settled = await client.query<{order_id:string}>("SELECT order_id FROM merch_order_settlements WHERE order_id=$1",[order.id]);
+    if(settled.rows.length){await client.query("COMMIT");return;}
     const existing = await client.query<{ n: string }>(
       `SELECT COUNT(*)::text AS n FROM merch_inventory_moves WHERE move_type='online_sale' AND reference=$1`, [order.id],
     );
@@ -87,17 +91,19 @@ export async function recordPaidMerchOrder(order: { id: string; items: unknown; 
     const productQuantities = new Map<string, number>();
     for (const line of lines) productQuantities.set(line.productId, (productQuantities.get(line.productId) || 0) + line.qty);
     const checkedProducts = new Set<string>();
+    const madeToOrder = new Set<string>();
     const resolved: Array<StockLine & { variantId: number | null }> = [];
     for (const line of lines) {
       if (!checkedProducts.has(line.productId)) {
-        const product = await client.query<{ inventory_tracked: boolean }>(
-          "SELECT inventory_tracked FROM products WHERE id=$1 FOR UPDATE", [line.productId],
+        const product = await client.query<{ inventory_tracked: boolean; made_to_order: boolean }>(
+          "SELECT inventory_tracked, made_to_order FROM products WHERE id=$1 FOR UPDATE", [line.productId],
         );
         if (!product.rows.length) throw new Error("unknown_product");
         const productOnHand = await client.query<{ on_hand: number }>(
           "SELECT COALESCE(SUM(quantity),0)::int AS on_hand FROM merch_inventory_moves WHERE product_id=$1", [line.productId],
         );
-        if (product.rows[0].inventory_tracked && Number(productOnHand.rows[0]?.on_hand || 0) < productQuantities.get(line.productId)!) throw new Error("insufficient_inventory");
+        if (product.rows[0].made_to_order) madeToOrder.add(line.productId);
+        else if (product.rows[0].inventory_tracked && Number(productOnHand.rows[0]?.on_hand || 0) < productQuantities.get(line.productId)!) throw new Error("insufficient_inventory");
         checkedProducts.add(line.productId);
       }
 
@@ -112,11 +118,12 @@ export async function recordPaidMerchOrder(order: { id: string; items: unknown; 
           `SELECT COUNT(*)::int AS movement_count, COALESCE(SUM(quantity),0)::int AS on_hand
            FROM merch_inventory_moves WHERE variant_id=$1`, [variantId],
         );
-        if (Number(variantOnHand.rows[0]?.movement_count || 0) > 0 && Number(variantOnHand.rows[0]?.on_hand || 0) < line.qty) throw new Error("variant_out_of_stock");
+        if (!madeToOrder.has(line.productId) && Number(variantOnHand.rows[0]?.movement_count || 0) > 0 && Number(variantOnHand.rows[0]?.on_hand || 0) < line.qty) throw new Error("variant_out_of_stock");
       }
       resolved.push({ ...line, variantId });
     }
     for (const line of resolved) {
+      if(madeToOrder.has(line.productId))continue;
       await client.query(
         `INSERT INTO merch_inventory_moves (product_id, variant_id, quantity, move_type, note, reference)
          VALUES ($1,$2,$3,'online_sale',$4,$5)`,
@@ -124,6 +131,7 @@ export async function recordPaidMerchOrder(order: { id: string; items: unknown; 
       );
     }
     await client.query(`INSERT INTO merch_fulfillments (order_id) VALUES ($1) ON CONFLICT (order_id) DO NOTHING`, [order.id]);
+    await client.query(`INSERT INTO merch_order_settlements (order_id) VALUES ($1) ON CONFLICT (order_id) DO NOTHING`,[order.id]);
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});

@@ -173,7 +173,7 @@ for (const row of rows) {
   console.log(`${row.file}\tkind=${row.kind}\tpage=${row.page}\tfields=${row.fields}\tassets=${row.assets}\t${rationale}\t${assetState}\t${row.issues.join(',') || 'ok'}`);
 }
 for (const issue of registryIssues) console.log(`registry\t${issue}`);
-if (templates.length !== 56) process.exitCode = 1;
+if (templates.length !== 57) process.exitCode = 1;
 if (withIssues.length) process.exitCode = 2;
 if (missingAssetCount) process.exitCode = 3;
 if (registryIssues.length) process.exitCode = 4;

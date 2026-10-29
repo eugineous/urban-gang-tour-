@@ -15,12 +15,14 @@ describe('essential public footer',()=>{
  it('keeps discovery and help groups and removes the repeated event invitation',()=>{
   const html=renderToStaticMarkup(createElement(ContactFooter,props()));
   expect(FOOTER_NAVIGATION).toHaveLength(2);
-  expect(FOOTER_NAVIGATION.map(group=>group.items.length)).toEqual([6,4]);
+  expect(FOOTER_NAVIGATION.map(group=>group.items.length)).toEqual([6,6]);
   expect(html).not.toContain('Plan an event with us.');
   expect(html).not.toContain('Events, hosting &amp; production');
   expect(html).not.toContain('<form');expect(html).not.toContain('<video');
   expect(html).toContain('data-site-footer');
-  expect(html.match(/<a(?:\s|>)/g)).toHaveLength(22);
+  expect(html.match(/<a(?:\s|>)/g)).toHaveLength(24);
+  expect(html).toContain('href="/app"');
+  expect(html).toContain('href="/vendors"');
  });
  it('preserves direct email, WhatsApp, five social accounts and legal access',()=>{
   const html=renderToStaticMarkup(createElement(ContactFooter,props()));

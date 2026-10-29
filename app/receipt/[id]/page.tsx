@@ -4,14 +4,16 @@ import {MessageText} from '@/ui/i18n/MessageText';
 import {documentsMessages} from '@/ui/i18n/catalogues/documents';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import {cookies} from 'next/headers';
+import {accessibleReceiptOrder} from '@/lib/server/receipt-access';
 import { receiptLines } from '@/lib/server/receipt-lines';
 import {PrintDocumentButton} from '@/app/_components/PrintDocumentButton';
 import QRCode from 'qrcode';
 import {ticketIsActive} from '@/lib/server/ticket-entitlement';
 import { maskPhone } from '@/lib/server/receipt-email';
 
-// Printable order receipt. Roles: public (anon) - the unguessable ORD- id is
-// the bearer; the page shows no PII beyond the buyer name and a masked phone.
+// Printable order receipt. Strong random references are guest capabilities;
+// historical weaker references require the buyer owner or an orders admin.
 // Server-rendered on every request (payment status must be live), noindexed.
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +33,7 @@ export const metadata: Metadata = {
   title: 'Receipt | Urban Gang Tour',
   description: 'Your Urban Gang Tour order receipt.',
   robots: { index: false, follow: false },
+  referrer: 'no-referrer',
 };
 
 function fmtKes(n: number): string {
@@ -39,10 +42,8 @@ function fmtKes(n: number): string {
 
 async function getOrder(id: string) {
   try {
-    const { q, db } = await import('@/lib/server/db');
-    if (!db()) return null;
-    const rows = await q(`SELECT * FROM orders WHERE id=$1`, [id]);
-    return rows[0] || null;
+    const c=await cookies();
+    return await accessibleReceiptOrder(new Request('https://urbangangtour.co.ke/receipt/'+encodeURIComponent(id),{headers:{cookie:c.toString()}}),id);
   } catch {
     return null;
   }

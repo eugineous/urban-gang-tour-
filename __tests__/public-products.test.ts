@@ -16,6 +16,11 @@ beforeEach(() => {
 });
 
 describe('shared public merchandise source', () => {
+  it('publishes made-to-order mode without a ready-stock count even when historical movements exist',async()=>{
+    state.q.mockResolvedValue([{id:'cb-hoodie',name:'Color Blast Pullover Hoodie',price:3500,made_to_order:true,stock:-2,variants:[{label:'Black / M',priceAdjustment:0,sku:'UGT-CB-HOODIE-1-3',stock:-2}]}]);
+    const [product]=await readPublicProducts();
+    expect(product).toMatchObject({made_to_order:true,stock:null,variants:[{label:'Black / M',stock:null}]});
+  });
   it('keeps the active-only query and whitelists the same public product and variant fields', async () => {
     state.q.mockResolvedValue([{
       id: 'original-tee', name: 'Original Tee', price: '1500', stock: '4',
@@ -26,7 +31,7 @@ describe('shared public merchandise source', () => {
     expect(await readPublicProducts()).toEqual([{
       id: 'original-tee', name: 'Original Tee', price: 1500, stock: 4,
       image: '/uploads/tee.webp', category: 'Apparel', description: 'Original artwork.',
-      name_on_back_enabled: true,
+      name_on_back_enabled: true, made_to_order:false,
       variants: [{label: 'M', priceAdjustment: 200, sku: 'TEE-M', stock: 0}],
     }]);
     const sql = state.q.mock.calls[0][0];
@@ -40,7 +45,7 @@ describe('shared public merchandise source', () => {
     state.q.mockResolvedValue([{id: 'cap', name: 'Cap', price: 800}]);
     expect(await readPublicProducts()).toEqual([{
       id: 'cap', name: 'Cap', price: 800, stock: null, image: '', category: '', description: '',
-      name_on_back_enabled: false, variants: [],
+      name_on_back_enabled: false, made_to_order:false, variants: [],
     }]);
   });
 

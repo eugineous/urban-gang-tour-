@@ -71,6 +71,8 @@ export async function renderReceiptEmailPayload(order: OrderRow): Promise<string
     const receipt = String(order.mpesa_receipt || order.paystack_ref || order.stripe_payment_intent || '');
     const when = eatDateTime(new Date());
     const link = `${SITE}/receipt/${encodeURIComponent(order.id)}`;
+    const trackingLink=Array.isArray(items)&&items.some((item:any)=>typeof item?.id==='string'&&!item.id.startsWith('ticket:'))
+      ? `${SITE}/orders/track?ref=${encodeURIComponent(order.id)}`:null;
     const phone = maskPhone(String(order.phone || ''));
 
     // e-tickets: minted before this email fires on every paid path, so a paid
@@ -153,6 +155,7 @@ export async function renderReceiptEmailPayload(order: OrderRow): Promise<string
       </table>
       ${isComp ? '<div style="margin-top:8px;font-size:11.5px;color:#8a6d1a">Issued free of charge by Urban Gang Tour admin. This is not a paid transaction - KES 0 due.</div>' : ''}
       ${ticketsHtml}
+      ${trackingLink?`<p style="text-align:center;margin-top:20px"><a href="${trackingLink}" style="color:#111111;font-weight:700">Track your merchandise order</a><br><span style="font-size:12px;color:#555">View recorded production and handover updates. Keep this private order link.</span></p>`:''}
       <div style="text-align:center;margin-top:20px">
         <a href="${link}" style="display:inline-block;background:#E6218C;color:#ffffff;text-decoration:none;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;padding:13px 24px;border:2px solid #111111;border-radius:10px;text-transform:uppercase">View / print full receipt</a>
       </div>

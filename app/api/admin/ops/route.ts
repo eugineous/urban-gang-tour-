@@ -1,5 +1,6 @@
 import {ensureProductPresentationSchema,productPresentation,isProductImageUrl} from '@/lib/server/product-presentation';
 import {ensureCheckoutFulfillmentSchema} from '@/lib/server/checkout-fulfillment';
+import {validateMerchFulfillment,isCompletedMerchFulfillment} from '@/lib/shared/merch-fulfillment';
 import { NextResponse, after } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { q, db, hasDb } from "@/lib/server/db";
@@ -400,7 +401,7 @@ export async function GET(req: Request) {
           purchaseOrders,
         ] = await Promise.all([
           q(
-            `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.reorder_point,
+            `SELECT p.id, p.name, p.price, p.active, p.inventory_tracked, p.made_to_order, p.reorder_point,
                     COUNT(m.id)::int AS inventory_move_count,
                     COALESCE(SUM(m.quantity),0)::int AS inventory_on_hand
              FROM products p
@@ -1820,7 +1821,8 @@ export async function POST(req: Request) {
 
       // ---- Shop products ----
       case "product.save": {
-        if(Object.keys(d).some(k=>!["id","name","price","costPrice","image","category","description","active","photos","sizeGuide","nameOnBackEnabled"].includes(k)))return bad("unexpected_product_field");
+        if(Object.keys(d).some(k=>!["id","name","price","costPrice","image","category","description","active","photos","sizeGuide","nameOnBackEnabled","madeToOrder"].includes(k)))return bad("unexpected_product_field");
+        if(d.madeToOrder!==undefined&&typeof d.madeToOrder!=="boolean")return bad("invalid_made_to_order");
         if(d.nameOnBackEnabled!==undefined&&typeof d.nameOnBackEnabled!=="boolean")return bad("invalid_personalization_eligibility");
         let presentation;try{presentation=productPresentation(d)}catch{return bad("invalid_product_presentation")}
         await ensureProductPresentationSchema();
@@ -1835,6 +1837,7 @@ export async function POST(req: Request) {
         if (costPrice > price) return bad("cost_exceeds_price");
         let id = s(d.id, 60);
         const isNew = !id;
+        if(!isNew&&d.madeToOrder===true){const tracked=await q<{inventory_tracked:boolean}>(`SELECT inventory_tracked FROM products WHERE id=$1`,[id]);if(tracked[0]?.inventory_tracked)return bad("stock_tracked_product_cannot_be_made_to_order",409);}
         if (isNew) {
           const base = slugify(name);
           id = base;
@@ -1856,16 +1859,17 @@ export async function POST(req: Request) {
           JSON.stringify(presentation.photos),
           presentation.sizeGuide,
           d.nameOnBackEnabled ?? null,
+          d.madeToOrder ?? null,
         ];
         let row;
         if (isNew) {
           row = await q(
-            `INSERT INTO products (name, price, image, category, description, active, cost_price, id, photos, size_guide, name_on_back_enabled) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,COALESCE($11::boolean,false)) RETURNING *`,
+            `INSERT INTO products (name, price, image, category, description, active, cost_price, id, photos, size_guide, name_on_back_enabled,made_to_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,COALESCE($11::boolean,false),COALESCE($12::boolean,false)) RETURNING *`,
             fields,
           );
         } else {
           row = await q(
-            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, photos=$9, size_guide=$10, name_on_back_enabled=COALESCE($11::boolean,name_on_back_enabled), updated_at=now() WHERE id=$8 RETURNING *`,
+            `UPDATE products SET name=$1, price=$2, image=$3, category=$4, description=$5, active=$6, cost_price=$7, photos=$9, size_guide=$10, name_on_back_enabled=COALESCE($11::boolean,name_on_back_enabled), made_to_order=COALESCE($12::boolean,made_to_order), updated_at=now() WHERE id=$8 RETURNING *`,
             fields,
           );
           if (!row.length) return bad("not_found", 404);
@@ -2038,10 +2042,11 @@ export async function POST(req: Request) {
           (reorderPoint < 0 || reorderPoint > 100000)
         )
           return bad("invalid_reorder_point");
-        const product = await q<{ id: string; inventory_tracked: boolean }>(`SELECT id, inventory_tracked FROM products WHERE id=$1`, [
+        const product = await q<{ id: string; inventory_tracked: boolean; made_to_order:boolean }>(`SELECT id, inventory_tracked, made_to_order FROM products WHERE id=$1`, [
           productId,
         ]);
         if (!product.length) return bad("unknown_product", 404);
+        if(product[0].made_to_order)return bad("made_to_order_has_no_ready_stock",409);
         if (variantId !== null) {
           const variant = await q(
             `SELECT id FROM merch_variants WHERE id=$1 AND product_id=$2`,
@@ -2108,38 +2113,25 @@ export async function POST(req: Request) {
       case "merchFulfillment.save": {
         const orderId = s(d.orderId, 60);
         const status = s(d.status, 30);
-        const allowed = new Set([
-          "new",
-          "picking",
-          "packed",
-          "dispatch_ready",
-          "dispatched",
-          "collected",
-          "cancelled",
-        ]);
         const handoffMethod = s(d.handoffMethod, 30);
-        const handoffMethods = new Set(["", "collection", "delivery", "courier", "other"]);
-        if (!orderId || !allowed.has(status) || !handoffMethods.has(handoffMethod))
-          return bad("invalid_fulfillment");
-        if (status === "collected" && handoffMethod !== "collection")
-          return bad("collection_handoff_method_required");
-        if (
-          status === "dispatched" &&
-          !new Set(["delivery", "courier", "other"]).has(handoffMethod)
-        )
-          return bad("dispatch_handoff_method_required");
-        const orders = await q<{ id: string; status: string }>(
-          `SELECT id, status FROM orders WHERE id=$1 AND status IN ('paid','fulfilled')
-           AND EXISTS (SELECT 1 FROM jsonb_array_elements(items) AS item WHERE COALESCE(item->>'id','') NOT LIKE 'ticket:%')`,
-          [orderId],
-        );
-        if (!orders.length) return bad("paid_merch_order_not_found", 404);
+        if(!orderId)return bad("invalid_fulfillment");
+        try{validateMerchFulfillment(status,handoffMethod)}catch(error){return bad(error instanceof Error?error.message:'invalid_fulfillment');}
         const row = await q(
-          `INSERT INTO merch_fulfillments (order_id, status, assignee, handoff_method, reference, note)
-           VALUES ($1,$2,$3,$4,$5,$6)
+          `WITH eligible AS MATERIALIZED (
+           SELECT id FROM orders WHERE id=$1 AND status IN ('paid','fulfilled')
+            AND EXISTS (SELECT 1 FROM jsonb_array_elements(items) AS item WHERE COALESCE(item->>'id','') NOT LIKE 'ticket:%')
+           FOR UPDATE
+          ), saved AS (
+           INSERT INTO merch_fulfillments (order_id, status, assignee, handoff_method, reference, note)
+           SELECT id,$2,$3,$4,$5,$6 FROM eligible
            ON CONFLICT (order_id) DO UPDATE SET status=EXCLUDED.status, assignee=EXCLUDED.assignee,
              handoff_method=EXCLUDED.handoff_method, reference=EXCLUDED.reference, note=EXCLUDED.note, updated_at=now()
-           RETURNING *`,
+           RETURNING *
+          ), history AS (
+           INSERT INTO merch_fulfillment_events(order_id,status,note,actor) SELECT order_id,status,note,$7 FROM saved RETURNING id
+          ), completed AS (
+           UPDATE orders SET status='fulfilled' FROM saved WHERE orders.id=saved.order_id AND orders.status='paid' AND $8::boolean RETURNING orders.id
+          ) SELECT * FROM saved`,
           [
             orderId,
             status,
@@ -2147,18 +2139,11 @@ export async function POST(req: Request) {
             handoffMethod,
             s(d.reference, 160),
             s(d.note, 2000),
+            adminActor(req),
+            isCompletedMerchFulfillment(status),
           ],
         );
-        await q(
-          `INSERT INTO merch_fulfillment_events (order_id, status, note, actor) VALUES ($1,$2,$3,$4)`,
-          [orderId, status, s(d.note, 2000), adminActor(req)],
-        );
-        if (status === "dispatched" || status === "collected") {
-          await q(
-            `UPDATE orders SET status='fulfilled' WHERE id=$1 AND status='paid'`,
-            [orderId],
-          );
-        }
+        if(!row.length)return bad('paid_merch_order_not_found',404);
         await opsAudit("ops.merch.fulfillment.save", { orderId, status });
         return NextResponse.json({ ok: true, row: row[0] });
       }

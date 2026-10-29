@@ -3,8 +3,9 @@ import {editorialBundle} from '../editorial-import';
 import {importEditorial} from './editorial';
 import {applyOwnerEditorialApproval} from './owner-editorial-release';
 import {applyEditorialCompletion} from './editorial-completion';
-import {applyStoryArtwork} from './story-artwork';
+import {applyStoryArtwork,applyStoryArtworkQueue} from './story-artwork';
 import {applyLegacyMerchRetirement} from './legacy-merch-retirement';
+import {applyColorBlastActivation} from './color-blast-activation';
 import {bumpProductPublicTruth} from './public-cache';
 type LibraryStore={get(key:string):Promise<string|null>;put(key:string,value:string):Promise<void>};
 function libraryStore():LibraryStore|undefined{
@@ -45,17 +46,18 @@ export async function applyStagedEditorialCompletion(){
  if(Buffer.byteLength(raw)>2*1024*1024)throw Error('completion_too_large');
  return {staged:true,...await applyEditorialCompletion(JSON.parse(raw))};
 }
-/** Explicit image-only owner decision for already-public stories. Opaque
- * preview versions stay in private KV, never the cron response/heartbeat. */
+/** Explicit image-only owner decision or exact approved scheduled inspection.
+ * Opaque versions and per-batch targets stay in private KV only. */
 export async function applyStagedStoryArtwork(){
  const store=libraryStore();if(!store)return {staged:false};
  const raw=await store.get('editorial-library/story-artwork-v1');if(!raw)return {staged:false};
- if(Buffer.byteLength(raw)>100000)throw Error('story_artwork_too_large');
- const result=await applyStoryArtwork(JSON.parse(raw));
+ if(Buffer.byteLength(raw)>500000)throw Error('story_artwork_too_large');
+ const value=JSON.parse(raw);if(value?.mode!=='scheduled_story_artwork_queue'&&Buffer.byteLength(raw)>100000)throw Error('story_artwork_too_large');
+ const result=value?.mode==='scheduled_story_artwork_queue'?await applyStoryArtworkQueue(value):await applyStoryArtwork(value);
  await store.put('editorial-library/story-artwork-status-v1',JSON.stringify({checked_at:new Date().toISOString(),...result}));
- const {targets,...summary}={targets:undefined as unknown,...result};
+ const {targets,batches,...summary}={targets:undefined as unknown,batches:undefined as unknown,...result};
  void targets;
- return {staged:true,...summary};
+ return {staged:true,...summary,...(Array.isArray(batches)?{batches:batches.map(batch=>{const {targets,...counts}=batch;void targets;return counts;})}:{})};
 }
 /** A separate explicit owner decision retires exact old merchandise artwork.
  * Existing authenticated cron only; it cannot approve replacement stock. */
@@ -66,5 +68,16 @@ export async function applyStagedLegacyMerchRetirement(){
  const value=JSON.parse(raw),result=await applyLegacyMerchRetirement(value);
  if(result.retired>0||result.already>0)bumpProductPublicTruth(Array.isArray(value.targets)?value.targets.map((target:{id?:unknown})=>typeof target.id==='string'?target.id:''):[]);
  await store.put('catalogue-retirement/status-v1',JSON.stringify({checked_at:new Date().toISOString(),...result}));
+ return {staged:true,...result};
+}
+
+/** Exact owner-approved Color Blast import only; no generic catalogue write. */
+export async function applyStagedColorBlastActivation(){
+ const store=libraryStore();if(!store)return {staged:false};
+ const raw=await store.get('catalogue-activation/pending-v1');if(!raw)return {staged:false};
+ if(Buffer.byteLength(raw)>100000)throw Error('colour_blast_activation_too_large');
+ const value=JSON.parse(raw),result=await applyColorBlastActivation(value);
+ if(result.activated>0||result.already>0)bumpProductPublicTruth(Array.isArray(value.targets)?value.targets.map((target:{id?:unknown})=>typeof target.id==='string'?target.id:''):[]);
+ await store.put('catalogue-activation/status-v1',JSON.stringify({checked_at:new Date().toISOString(),...result}));
  return {staged:true,...result};
 }
