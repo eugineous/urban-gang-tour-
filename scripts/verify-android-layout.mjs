@@ -57,7 +57,7 @@ try {
     const runtimeErrors=[];
     page.on('pageerror',error=>runtimeErrors.push(error.message));
     try{
-      const response=await page.goto(origin+'/vendors',{waitUntil:'domcontentloaded',timeout:30000});
+      const response=await page.goto(origin+'/vendors',{waitUntil:'domcontentloaded',timeout:15000});
       if(!response||response.status()>=400)throw Error('GET /vendors returned '+(response?.status()||'no response'));
       await page.locator('section[aria-labelledby="vendor-title"]').waitFor({timeout:15000});
       const metrics=await page.evaluate(()=>{
@@ -85,15 +85,15 @@ try {
         if(metrics.priceColumns.trim().split(/\s+/).length!==1)failures.push(scenario.name+': pricing stays multi-column: '+metrics.priceColumns);
       }
       if(scenario.forceScreen&&metrics.phoneViewport!=='wide')failures.push(scenario.name+': wide-viewport fallback not activated');
-      await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-vendor.png',fullPage:true});
+      await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-vendor.png',fullPage:false,timeout:8000});
       if(scenario.width<1024 || scenario.forceScreen){
-        await page.locator('.menu-toggle').click();
+        await page.locator('.menu-toggle').click({timeout:5000});
         const dialog=page.locator('dialog.menu-panel');
         await dialog.waitFor({state:'visible',timeout:5000});
         const dialogRect=await dialog.boundingBox();
         const view=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
         if(dialogRect&&(dialogRect.x< -3 || dialogRect.x+dialogRect.width>view.width+5))failures.push(scenario.name+': navigation dialog exceeds viewport');
-        await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-menu.png'});
+        await page.screenshot({path:'artifacts/android-responsive/'+scenario.name+'-menu.png',timeout:8000});
       }else if(!await page.locator('nav.desktop-nav').isVisible()){
         failures.push(scenario.name+': desktop navigation should be visible');
       }
