@@ -15,7 +15,7 @@ export default function MerchProductGallery({product:p,colour,onSelectColour}:{p
  useEffect(()=>{if(view==='eugine'||view==='lucy'){const t=getGalleryTile(p.id,colour,view);if(t?.colour!==colour)setView('product');}},[colour,p.id]);
  function choose(v:View){if(v==='eugine'||v==='lucy'){const t=getGalleryTile(p.id,colour,v);if(t&&t.colour!==colour)onSelectColour(t.colour);}setView(v);}
  const labels:Record<View,string>={product:t('gallery.product'),eugine:'Eugine',lucy:'Lucy',detail:t('gallery.detail'),art:t('gallery.art'),reference:t('gallery.reference'),original:t('gallery.original')};
- const views:View[]=[...kinds,'art',...(p.shape==='tee'?['reference' as View]:[]),...(p.shape==='hoodie'?['original' as View]:[])];
+ const views:View[]=[...kinds,'art',...(p.shape==='tee'?['reference' as View]:[])];
  let note=view==='art'?t('gallery.artNote'):view==='reference'?t('gallery.referenceNote'):view==='original'?'Eugine & Lucy.':active==='detail'?t('gallery.detailNote'):tile?.kind==='eugine'||tile?.kind==='lucy'?t('gallery.modelNote',{name:tile.kind==='eugine'?'Eugine':'Lucy'}):tile?.source==='supplied'?t('gallery.productNote'):t('gallery.previewNote');
  if(!['art','reference','original','detail'].includes(view)&&tile)note+=' '+(tile.colour===colour?t('gallery.shown',{colour}):t('gallery.example',{example:tile.colour,colour}));
  const render=()=>view==='art'?<img src={ARTWORK} alt={t('image.print')}/>:view==='reference'?<img src="/assets/color-blast/supplied-colourways.jpg" alt={t('image.tees')}/>:view==='original'?<img src="/assets/color-blast/models/eugine-lucy-studio.webp" alt={t('image.team')}/>:<GeneratedProductImage id={p.id} colour={colour} tile={tile}/>;

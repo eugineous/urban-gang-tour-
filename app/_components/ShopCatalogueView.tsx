@@ -29,6 +29,7 @@ export function ShopIntro({cartCount = 0, selected = '', featuredProduct}: {
       <p className={styles.heroNote}>{t('shop.explore')}</p>
       <nav className={styles.heroActions} aria-label={t('shop.navigation')}>
         <a className={styles.primaryLink} href="#merchandise-catalogue">{t('shop.shopAll')} <span aria-hidden="true"><ArrowDownRight size={16} weight="bold" /></span></a>
+        <a className={styles.cartLink} href="/shop/lookbook#original-colourways">Original colourways</a>
         <a className={styles.cartLink} href="/cart">{t('cart.viewCount',{count:cartCount})}</a>
         {selected && <a className={styles.cartLink} href="/shop">{t('shop.viewAll')}</a>}
       </nav>
