@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {storyArtworkManifest,type StoryArtworkManifest} from '../story-artwork';
+import {storyArtworkManifest,storyArtworkInspection,storyArtworkQueue,type StoryArtworkManifest} from '../story-artwork';
 import {q,qSchema} from './db';
 import {ensureEditorialSchema} from './editorial-schema';
 import {PUBLIC_POST_PREDICATE} from './editorial-publication';
@@ -13,6 +13,28 @@ function canonical(value:unknown):unknown{
 }
 /** An opaque full-record version includes creation identity and all editorial state. */
 export const storyArtworkVersion=(value:unknown)=>createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
+// Explicit artwork eligibility is separate from public publication eligibility.
+// It cannot approve a draft, bypass a hold, or bring a publication slot forward.
+const SCHEDULED_ARTWORK_PREDICATE=`published AND editorial_managed AND editorial_kind='article'
+ AND editorial_status='approved_for_auto_release' AND scheduled_at>clock_timestamp() AND published_at IS NULL
+ AND COALESCE(editorial_review->>'approved_revision','')=editorial_revision::text
+ AND COALESCE(editorial_review->>'approved_hash','')=editorial_import_hash
+ AND editorial_import_hash ~ '^[a-f0-9]{64}$'`;
+
+/** No DDL, audit registration or manuscript leaves this exact private inspection. */
+async function inspectScheduledArtwork(raw:unknown){
+ const manifest=storyArtworkInspection(raw),outcome={request_id:manifest.request_id,manifest_hash:storyArtworkVersion(manifest),inspection:true,preview:false,expired:false,updated:0,already:0,conflicts:0};
+ if(Date.parse(manifest.expires_at)<=Date.now())return {...outcome,expired:true};
+ const records=await q<{record:Record<string,unknown>}>(`SELECT to_jsonb(posts) AS record FROM posts WHERE slug=ANY($1::text[]) AND ${SCHEDULED_ARTWORK_PREDICATE} AND $2::timestamptz>clock_timestamp()`,[manifest.targets.map(target=>target.slug),manifest.expires_at]);
+ const targets=manifest.targets.map(target=>{
+  const record=records.find(row=>row.record.slug===target.slug)?.record;
+  if(!record||record.headline!==target.expected_headline||record.date!==target.expected_date)return {slug:target.slug,matched:false,version:null};
+  const stored=record.asset_manifest&&typeof record.asset_manifest==='object'?record.asset_manifest as Record<string,unknown>:{};
+  const assets=Object.fromEntries(['hero','og','alt','caption','rights','provenance','illustration'].flatMap(key=>typeof stored[key]==='string'&&(stored[key] as string).length<=3000||key==='illustration'&&typeof stored[key]==='boolean'?[[key,stored[key]]]:[]));
+  return {slug:target.slug,matched:true,version:storyArtworkVersion(record),image:record.image,headline:record.headline,date:record.date,scheduled_at:record.scheduled_at,assets};
+ });
+ return {...outcome,targets,conflicts:targets.filter(target=>!target.matched).length};
+}
 let ready:Promise<void>|null=null;
 async function ensureArtworkJournal(){
  await ensureEditorialSchema();
@@ -40,7 +62,9 @@ async function verifyArtwork(manifest:StoryArtworkManifest){
  * image-only, full-record compare-and-swap plus a durable immutable audit receipt.
  */
 export async function applyStoryArtwork(raw:unknown){
+ if(raw&&typeof raw==='object'&&!Array.isArray(raw)&&(raw as Record<string,unknown>).mode==='inspect_scheduled_story_artwork')return inspectScheduledArtwork(raw);
  const manifest=storyArtworkManifest(raw),digest=storyArtworkVersion(manifest);
+ const eligible=manifest.scope==='scheduled'?SCHEDULED_ARTWORK_PREDICATE:PUBLIC_POST_PREDICATE;
  const identity={request_id:manifest.request_id,manifest_hash:digest};
  const outcome={...identity,preview:manifest.phase==='preview',expired:false,updated:0,already:0,conflicts:0};
  if(Date.parse(manifest.expires_at)<=Date.now())return {...outcome,expired:true};
@@ -51,7 +75,7 @@ export async function applyStoryArtwork(raw:unknown){
   const receipts=await q<{slug:string}>(`SELECT slug FROM editorial_audit WHERE action='publish_story_artwork' AND detail->>'request_id'=$1 AND detail->>'manifest_hash'=$2 AND slug=ANY($3::text[])`,[manifest.request_id,digest,manifest.targets.map(target=>target.slug)]);
   if(receipts.length===manifest.targets.length)return {...outcome,already:receipts.length};
  }
- const records=await q<{record:Record<string,unknown>}>(`SELECT to_jsonb(posts) AS record FROM posts WHERE slug=ANY($1::text[]) AND ${PUBLIC_POST_PREDICATE}`,[manifest.targets.map(target=>target.slug)]);
+ const records=await q<{record:Record<string,unknown>}>(`SELECT to_jsonb(posts) AS record FROM posts WHERE slug=ANY($1::text[]) AND ${eligible}`,[manifest.targets.map(target=>target.slug)]);
  const inspected=manifest.targets.map(target=>{
   const record=records.find(row=>row.record.slug===target.slug)?.record;
   const matched=!!record&&record.image===target.expected_image&&record.headline===target.expected_headline&&record.date===target.expected_date;
@@ -79,17 +103,17 @@ export async function applyStoryArtwork(raw:unknown){
    SELECT posts.slug,to_jsonb(posts) AS before_record
    FROM posts JOIN incoming i ON i.slug=posts.slug
    WHERE EXISTS(SELECT 1 FROM permitted) AND $4::timestamptz>clock_timestamp()
-     AND to_jsonb(posts)=i.expected_record AND ${PUBLIC_POST_PREDICATE}
+     AND to_jsonb(posts)=i.expected_record AND ${eligible}
      AND NOT EXISTS(SELECT 1 FROM editorial_audit a WHERE a.action='publish_story_artwork' AND a.detail->>'request_id'=$2)
    ORDER BY posts.slug FOR UPDATE OF posts
  ), gate AS MATERIALIZED (
-   SELECT count(*) AS n,clock_timestamp() AS checked_at FROM locked
+   SELECT count(*) AS n,clock_timestamp() AS checked_at,min((before_record->>'scheduled_at')::timestamptz) AS first_schedule FROM locked
  ), saved AS (
    UPDATE posts SET image=i.assets->>'hero',asset_manifest=i.assets,
      updated_at=GREATEST(clock_timestamp(),posts.updated_at+interval '1 microsecond')
    FROM incoming i JOIN locked l ON l.slug=i.slug
    WHERE posts.slug=i.slug AND to_jsonb(posts)=i.expected_record
-     AND (SELECT n=(SELECT count(*) FROM incoming) AND checked_at<$4::timestamptz FROM gate)
+     AND (SELECT n=(SELECT count(*) FROM incoming) AND checked_at<$4::timestamptz${manifest.scope==='scheduled'?' AND checked_at<first_schedule':''} FROM gate)
    RETURNING posts.slug,posts.image,posts.asset_manifest,posts.updated_at,l.before_record
  ), audit AS (
    INSERT INTO editorial_audit(actor,action,slug,detail)
@@ -100,4 +124,17 @@ export async function applyStoryArtwork(raw:unknown){
  ) SELECT slug FROM saved`,[JSON.stringify(incoming),manifest.request_id,digest,manifest.expires_at,manifest.source_request]);
  const receipts=await q<{slug:string}>(`SELECT slug FROM editorial_audit WHERE action='publish_story_artwork' AND detail->>'request_id'=$1 AND detail->>'manifest_hash'=$2 AND slug=ANY($3::text[])`,[manifest.request_id,digest,manifest.targets.map(target=>target.slug)]);
  return {...outcome,updated:saved.length,already:receipts.length-saved.length,conflicts:manifest.targets.length-receipts.length};
+}
+
+/** At most seven independent max-ten atomic batches in a single existing cron.
+ * Validate every batch first; exact retries reuse the immutable per-batch IDs.
+ * A failed batch does not discard committed receipts for preceding batches.
+ */
+export async function applyStoryArtworkQueue(raw:unknown){
+ const queue=storyArtworkQueue(raw),batches=[];
+ for(const request of queue.requests){
+  try{batches.push(await applyStoryArtwork(request));}
+  catch{batches.push({request_id:request.request_id,manifest_hash:storyArtworkVersion(request),expired:false,preview:request.mode==='owner_approved_story_artwork'&&request.phase==='preview',inspection:request.mode==='inspect_scheduled_story_artwork',updated:0,already:0,conflicts:request.targets.length,error:'story_artwork_batch_failed'});}
+ }
+ return {request_id:queue.request_id,manifest_hash:storyArtworkVersion(queue),queued:true,inspection:queue.requests[0].mode==='inspect_scheduled_story_artwork',preview:queue.requests[0].mode==='owner_approved_story_artwork'&&queue.requests[0].phase==='preview',expired:batches.some(batch=>batch.expired),updated:batches.reduce((sum,batch)=>sum+batch.updated,0),already:batches.reduce((sum,batch)=>sum+batch.already,0),conflicts:batches.reduce((sum,batch)=>sum+batch.conflicts,0),batches};
 }

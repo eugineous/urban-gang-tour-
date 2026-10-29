@@ -18,6 +18,13 @@ beforeEach(()=>{
  state.q.mockImplementation(async(sql:string,params:unknown[])=>sql.includes('RETURNING *')?[{id:'rails-tee',name_on_back_enabled:params[10]===true}]:[]);
 });
 describe('administrator product printing opt-in',()=>{
+ it('commits the recorded fulfillment state, history and completion decision together',async()=>{
+  state.q.mockImplementation(async(sql:string)=>sql.includes('SELECT id, status FROM orders')?[{id:'ORD-EXAMPLE',status:'paid'}]:sql.includes('RETURNING *')?[{order_id:'ORD-EXAMPLE',status:'delivered'}]:[]);
+  const response=await POST(new Request('https://urbangangtour.co.ke/api/admin/ops',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kind:'merchFulfillment.save',data:{orderId:'ORD-EXAMPLE',status:'delivered',handoffMethod:'courier',reference:'OWNER-CONFIRMED'}})}));
+  expect(response.status).toBe(200);
+  const writes=state.q.mock.calls.filter(([sql])=>/INSERT INTO merch_fulfillments|INSERT INTO merch_fulfillment_events|UPDATE orders SET/.test(sql));
+  expect(writes).toHaveLength(1);expect(writes[0][0]).toContain('INSERT INTO merch_fulfillment_events');expect(writes[0][0]).toContain("UPDATE orders SET status='fulfilled'");
+ });
  it('requires an authenticated products administrator',async()=>{
   state.authorized=false;expect((await POST(request({...base,nameOnBackEnabled:true}))).status).toBe(401);
   state.authorized=true;state.perm=false;expect((await POST(request({...base,nameOnBackEnabled:true}))).status).toBe(403);

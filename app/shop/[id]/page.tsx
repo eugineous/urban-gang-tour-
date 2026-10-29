@@ -13,6 +13,7 @@ import styles from '@/app/_components/Commerce.module.css';
 import { hasDb, q } from '@/lib/server/db';
 import {getMerchProduct,ARTWORK} from '@/data/color-blast';
 import ColorBlastShop from '@/app/_components/merch/ColorBlastShop';
+import ColorBlastPurchaseGallery from '@/app/_components/merch/ColorBlastPurchaseGallery';
 import {ShareActions} from '@/ui/components/ShareActions';
 import {discoveryImageUrl} from '@/app/_lib/seo';
 
@@ -34,6 +35,7 @@ type Product = {
   photos?: unknown;
   size_guide?:string;
   name_on_back_enabled?:boolean|string;
+  made_to_order?:boolean;
 };
 
 const productForPage = cache(async (id: string): Promise<Product | null> => {
@@ -43,9 +45,10 @@ const productForPage = cache(async (id: string): Promise<Product | null> => {
     `SELECT p.id, p.name, p.price, p.image, p.category, p.description,
             to_jsonb(p)->'photos' AS photos, to_jsonb(p)->>'size_guide' AS size_guide,
             to_jsonb(p)->>'name_on_back_enabled' AS name_on_back_enabled,
-            CASE WHEN p.inventory_tracked THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
+            p.made_to_order,
+            CASE WHEN p.inventory_tracked AND NOT p.made_to_order THEN (SELECT COALESCE(SUM(quantity),0)::int FROM merch_inventory_moves WHERE product_id=p.id) ELSE NULL END AS stock,
             COALESCE(
-              jsonb_agg(jsonb_build_object('label', v.label, 'priceAdjustment', v.price_adjustment, 'sku', v.sku,'stock',(SELECT CASE WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
+              jsonb_agg(jsonb_build_object('label', v.label, 'priceAdjustment', v.price_adjustment, 'sku', v.sku,'stock',(SELECT CASE WHEN p.made_to_order THEN NULL WHEN COUNT(*)>0 THEN COALESCE(SUM(quantity),0)::int ELSE NULL END FROM merch_inventory_moves WHERE variant_id=v.id))
                 ORDER BY v.label) FILTER (WHERE v.id IS NOT NULL),
               '[]'::jsonb
             ) AS variants
@@ -170,8 +173,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <JsonLd data={productJsonLd} />
     <div className="wrap breadcrumbs"><a href="/shop"><MessageText catalogue={commerceMessages} message="shop"/></a><span>/</span><span lang="en-KE">{product.name}</span></div>
     <section className={`product-detail wrap ${styles.productDetail}`}>
-      <ProductGallery photos={photos} name={product.name}/>
-      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category?<span lang="en-KE">{product.category}</span>:<MessageText catalogue={commerceMessages} message="shop.official"/>}</p><h1 lang="en-KE">{product.name}</h1><ShareActions title={product.name} path={'/shop/'+product.id}/>{product.description&&<p className={styles.description} lang="en-KE">{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary><MessageText catalogue={commerceMessages} message="sizeGuide"/></summary><p lang="en-KE">{product.size_guide}</p></details>}</div>
+      {preview&&product.made_to_order&&!extra.length?<ColorBlastPurchaseGallery id={product.id}/>:<ProductGallery photos={photos} name={product.name}/>}
+      <div className={`product-info ${styles.productInformation}`}><p className="eyebrow">{product.category?<span lang="en-KE">{product.category}</span>:<MessageText catalogue={commerceMessages} message="shop.official"/>}</p><h1 lang="en-KE">{product.name}</h1><ShareActions title={product.name} path={'/shop/'+product.id}/>{product.description&&<p className={styles.description} lang="en-KE">{product.description}</p>}<ProductPurchase id={product.id} price={Number(product.price)} variants={variants} stock={product.stock} madeToOrder={product.made_to_order} nameOnBackEnabled={product.name_on_back_enabled===true||product.name_on_back_enabled==='true'}/>{product.size_guide&&<details><summary><MessageText catalogue={commerceMessages} message="sizeGuide"/></summary><p lang="en-KE">{product.size_guide}</p></details>}</div>
     </section>
     {reviews.length>0&&<section className={`wrap product-reviews ${styles.reviewSection}`}><p className="eyebrow"><MessageText catalogue={commerceMessages} message="review.community"/></p><h2><MessageText catalogue={commerceMessages} message="review.heading"/></h2><div className={styles.reviewGrid}>{reviews.map((review,i)=><article key={i}><h3 lang="">{review.author}</h3><p className={styles.rating}>{review.rating} / 5</p><p lang="">{review.body}</p></article>)}</div></section>}
     <section className={`wrap product-reviews ${styles.reviewSection}`}><ProductReviewForm productId={product.id}/></section>

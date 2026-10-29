@@ -93,7 +93,22 @@ export interface DocTypeDef {
   pages?: string[];
   promo?: PromoConfig;
 }
+export {isOperationalDoc} from '@/lib/documents/operational-record';
+import {isOperationalDoc,OPERATIONAL_DOCS,prepareOperationalRecord,validateOperationalRecord,type OperationalPayload} from '@/lib/documents/operational-record';
+
 export const DOC_TYPES: Record<string, DocTypeDef> = {
+  deliverynote: {
+    code:"DN",label:"Delivery note (draft)",template:"57-operational-record.html",
+  },
+  purchaseorder: {
+    code:"PO",label:"Purchase order (draft)",template:"57-operational-record.html",
+  },
+  creditnote: {
+    code:"CN",label:"Credit note (draft)",template:"57-operational-record.html",
+  },
+  customerstatement: {
+    code:"STMT",label:"Customer statement (draft)",template:"57-operational-record.html",
+  },
   invoice: { code: "INV", label: "Invoice", template: "26-invoice-a4.html" },
   receipt: {
     code: "RCT",
@@ -322,6 +337,10 @@ export const DOC_TYPES: Record<string, DocTypeDef> = {
   },
 };
 export const ACTIVE_DOC_TYPES = [
+  "deliverynote",
+  "purchaseorder",
+  "creditnote",
+  "customerstatement",
   "invoice",
   "receipt",
   "certw",
@@ -1275,6 +1294,10 @@ export function formatCertDate(v: string): string {
 
 export function preparePayload(type: DocType, raw: any): PreparedDoc {
   const p = raw && typeof raw === "object" ? raw : {};
+  if(isOperationalDoc(type)){
+    const payload=prepareOperationalRecord(type,raw);
+    return {type,payload,issued_to:payload.party,event:payload.reference,slug:slugify(payload.party||type),computed:{total:payload.total,totalDebit:payload.totalDebit,totalCredit:payload.totalCredit,closingBalance:payload.closingBalance}};
+  }
   if (isPromo(type)) {
     // Promo / social piece. No required field (a promo is not a verifiable
     // credential), so it never fails closed - any blank simply stays at the
@@ -1981,6 +2004,7 @@ export function validateFinalIssue(
   raw: any,
 ): void {
   const p: any = prepared.payload;
+  if(isOperationalDoc(type)){validateOperationalRecord(type,p);return}
   if (type === "invoice") {
     if (!String(p.billTo || "").trim()) throw new Error("invoice_billTo_required");
     if (!String(p.eventProject || "").trim()) throw new Error("invoice_eventProject_required");
@@ -2082,6 +2106,18 @@ export function buildValues(
   heroImages?: string[];
   partnerLogos?: string[];
 } {
+  if(isOperationalDoc(type)){
+    const p=payload as OperationalPayload,spec=OPERATIONAL_DOCS[type],statement=type==='customerstatement',delivery=type==='deliverynote';
+    const values:Record<string,string>={documentTitle:spec.title,documentNo:serial,date:p.date,partyLabel:spec.partyLabel,party:p.party,partyAddress:p.partyAddress,referenceLabel:spec.referenceLabel,reference:p.reference,purposeLabel:spec.purposeLabel,purpose:p.purpose,preparedBy:p.preparedBy,notes:p.notes,workflowNote:spec.note,requestedDate:p.requestedDate?'Requested date: '+p.requestedDate:'',summaryLabel:statement?'Manual closing balance (KES)':delivery?'Total units listed':'Draft total (KES)',summaryValue:fmtNum(statement?p.closingBalance:delivery?p.lines.reduce((n,l)=>n+l.qty,0):p.total),openingBalance:statement?'Manual opening balance: KES '+fmtNum(p.openingBalance):'',entryTotals:statement?'Debits: KES '+fmtNum(p.totalDebit)+' / Credits: KES '+fmtNum(p.totalCredit):'',col1:statement?'Date / source':'Item description',col2:statement?'Description':'Quantity',col3:statement?'Debit (KES)':delivery?'':'Unit rate (KES)',col4:statement?'Credit (KES)':delivery?'':'Amount (KES)'};
+    p.lines.forEach((l,i)=>{
+      const prefix='line'+(i+1)+'_';
+      values[prefix+'a']=statement?[l.date,l.reference].filter(Boolean).join('\n'):l.description;
+      values[prefix+'b']=statement?l.description:String(l.qty||'');
+      values[prefix+'c']=statement?(l.debit?fmtNum(l.debit):''):delivery?'':fmtNum(l.rate);
+      values[prefix+'d']=statement?(l.credit?fmtNum(l.credit):''):delivery?'':fmtNum(l.qty*l.rate);
+    });
+    return {values};
+  }
   if (isPromo(type)) {
     // Promo pieces: the whitelisted text blanks map 1:1 to data-field names; the
     // hero photos and partner logos are carried to fillTemplate as opts (not
@@ -2454,7 +2490,7 @@ export async function renderDoc(
     type === "tix" ? (payload?.tier === "VIP" ? "vip" : "ga") : undefined;
   // Parental consent is school-signed (no QR); promo pieces carry no verify QR
   // on the artwork (a poster with a verify QR is odd).
-  const noQr = type === "cons" || isPromo(type);
+  const noQr = type === "cons" || isPromo(type) || isOperationalDoc(type);
   const qrIdx = qrPageIndex(type);
   const pages: string[] = [];
   for (let i = 0; i < templates.length; i++) {

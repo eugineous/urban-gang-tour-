@@ -2,21 +2,22 @@
 (() => {
   if (window.__ugtReleaseStarted || !('serviceWorker' in navigator)) return;
   window.__ugtReleaseStarted = true;
-  const release = 'hero-clarity-20261028-v1';
-  const hadController = Boolean(navigator.serviceWorker.controller);
-  // A replaced old controller needs one reload to discard its in-memory runtime.
-  // Do not reload while a visitor is entering a form or payment details.
+  const release = 'app-operations-20261028-v2';
+  let hadController = Boolean(navigator.serviceWorker.controller);
+  // A new controller must never discard a form, checkout or another tab's work.
+  // The React notice offers an explicit refresh after the visitor is ready.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController || /\/(checkout|admin|organizer|account)(\/|$)/.test(location.pathname)) return;
-    if (document.querySelector('form') || document.activeElement?.matches('input,textarea,select')) return;
-    try {
-      if (sessionStorage.getItem('ugt-release-reloaded') === release) return;
-      sessionStorage.setItem('ugt-release-reloaded', release);
-      location.reload();
-    } catch (_) { /* A manual refresh still obtains the current release. */ }
+    if (hadController) window.dispatchEvent(new CustomEvent('ugt-release-activated', {detail:{release}}));
+    hadController = true;
   });
   navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'})
     .then(registration => {
+      const announce = () => { if (navigator.serviceWorker.controller && registration.waiting) window.dispatchEvent(new CustomEvent('ugt-release-ready', {detail:{release}})); };
+      announce();
+      registration.addEventListener('updatefound', () => {
+        const installing = registration.installing;
+        if (installing) installing.addEventListener('statechange', () => { if (installing.state === 'installed') announce(); });
+      });
       const update = () => registration.update().catch(() => {});
       update();
       window.addEventListener('pageshow', update);

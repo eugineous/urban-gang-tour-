@@ -1,7 +1,7 @@
 import {after,NextResponse} from 'next/server';
 import {timingSafeEqual} from 'node:crypto';
 import {releaseDueEditorial} from '@/lib/server/editorial';
-import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval,applyStagedEditorialCompletion,applyStagedStoryArtwork,applyStagedLegacyMerchRetirement} from '@/lib/server/editorial-library';
+import {importStagedEditorialLibrary,recordEditorialHeartbeat,applyStagedOwnerEditorialApproval,applyStagedEditorialCompletion,applyStagedStoryArtwork,applyStagedLegacyMerchRetirement,applyStagedColorBlastActivation} from '@/lib/server/editorial-library';
 import {invalidate} from '@/lib/server/microcache';
 import {editorialSlug} from '@/lib/editorial-import';
 import {pingIndexNow} from '@/lib/server/indexnow';
@@ -17,6 +17,7 @@ export async function POST(req:Request){
     const ownerApproval=await applyStagedOwnerEditorialApproval();
     const artwork=await applyStagedStoryArtwork();
     const merchRetirement=await applyStagedLegacyMerchRetirement();
+    const colourBlastActivation=await applyStagedColorBlastActivation();
     const {releasedSlugs,...outcome}=await releaseDueEditorial();
     const paths=Array.isArray(releasedSlugs)?releasedSlugs.filter(editorialSlug).map(slug=>'/blog/'+slug):[];
     if(outcome.released>0&&paths.length){
@@ -25,9 +26,9 @@ export async function POST(req:Request){
       try{after(async()=>{try{await pingIndexNow(['/','/blog',...paths]);}catch{console.warn('[editorial-indexing] crawl notification unavailable');}});}
       catch{console.warn('[editorial-indexing] background notification unavailable');}
     }
-    await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement});
+    await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement,colourBlastActivation});
     invalidate('blog-published-posts');invalidate('site-posts');
-    return reply({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement});
+    return reply({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement,colourBlastActivation});
   }catch{
     await recordEditorialHeartbeat({ok:false,error:'editorial_check_failed'}).catch(()=>{});
     console.error('[editorial-monitor] check failed; no unapproved item released');

@@ -1,42 +1,36 @@
-type ReceiptOrder = {
-  id: unknown; created_at: unknown; name?: unknown; email?: unknown;
-  phone?: unknown; status?: unknown; mpesa_receipt?: unknown; total: unknown; items?: unknown;
-};
+import {fetchWithTimeout} from './fetch-with-timeout';
 
-/** Order data is text, never markup. Print in a separate document without scripts. */
-export function printOrderReceipt(order: ReceiptOrder) {
-  const popup = window.open('', '_blank');
-  if (!popup) return;
-  popup.opener = null;
-  const doc = popup.document;
-  doc.title = 'Receipt ' + String(order.id);
-  doc.body.replaceChildren();
-  doc.body.style.cssText = 'font-family:sans-serif;max-width:560px;margin:40px auto;padding:20px';
-  function text(tag: string, value: unknown, parent: HTMLElement = doc.body) {
-    const el = doc.createElement(tag);
-    el.textContent = String(value ?? '');
-    parent.append(el);
-    return el;
-  }
-  text('h2', 'Urban Gang Tour — Receipt');
-  for (const [label, value] of [
-    ['Order', order.id], ['Date', new Date(String(order.created_at)).toLocaleString()],
-    ['Customer', [order.name, order.email, order.phone].filter(Boolean).join(' · ')],
-    ['Status', order.status], ['M-Pesa receipt', order.mpesa_receipt],
-  ]) if (value) text('p', label + ': ' + String(value));
-  let items: unknown = order.items;
-  try { if (typeof items === 'string') items = JSON.parse(items); } catch { items = []; }
-  const table = doc.createElement('table');
-  table.style.cssText = 'border-collapse:collapse;width:100%';
-  doc.body.append(table);
-  const heading = text('tr', '', table);
-  text('th', 'Item', heading); text('th', 'Qty', heading);
-  for (const item of Array.isArray(items) ? items : []) {
-    const row = text('tr', '', table);
-    text('td', item?.id, row); text('td', item?.qty, row);
-  }
-  text('h3', 'Total: KES ' + Number(order.total).toLocaleString('en-KE'));
-  text('p', 'admin@urbangangtour.co.ke · Nairobi, Kenya');
-  popup.focus();
-  popup.print();
+export type ReceiptDownloadResult = {ok:boolean; message:string; receiptUrl?:string};
+
+/** Download the authoritative PDF; browser order rows never produce payment evidence. */
+export async function downloadOrderReceipt(order:{id:unknown;status?:unknown}):Promise<ReceiptDownloadResult> {
+ const id=String(order.id||'');
+ if(!/^ORD-[A-Z0-9-]{4,40}$/.test(id))return {ok:false,message:'This order reference is invalid. Refresh the order list.'};
+ const receiptUrl='/receipt/'+encodeURIComponent(id);
+ const unconfirmed={ok:false,message:'A receipt requires confirmed payment. Refresh this order to check its current payment status.',receiptUrl};
+ if(!['paid','fulfilled'].includes(String(order.status)))return unconfirmed;
+ let url='';
+ try{
+  const response=await fetchWithTimeout('/api/receipts/'+encodeURIComponent(id)+'/pdf',{cache:'no-store',credentials:'same-origin'},20000);
+  if(response.status===409)return unconfirmed;
+  if(!response.ok)return {ok:false,message:response.status===429?'Receipt requests are temporarily limited. Wait a minute and retry, or open the receipt page.':'The receipt PDF could not be prepared. Retry, or open the receipt page.',receiptUrl};
+  if(!response.headers.get('content-type')?.toLowerCase().startsWith('application/pdf'))throw Error('invalid_pdf');
+  const data=await response.arrayBuffer();
+  if(new TextDecoder().decode(data.slice(0,5))!=='%PDF-')throw Error('invalid_pdf');
+  url=URL.createObjectURL(new Blob([data],{type:'application/pdf'}));
+ }catch{
+  return {ok:false,message:'Receipt download failed. Check your connection and try again, or open the receipt page.',receiptUrl};
+ }
+ try{
+  const link=document.createElement('a');
+  link.href=url;link.download='UGT-Receipt-'+id+'.pdf';link.rel='noopener';
+  document.body.append(link);
+  try{link.click()}finally{link.remove()}
+  // Safari may still be consuming the object URL after click returns.
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  return {ok:true,message:'Receipt PDF ready; download requested. If your browser does not save it, open the receipt page.',receiptUrl};
+ }catch{
+  URL.revokeObjectURL(url);
+  return {ok:false,message:'Your browser could not start the receipt download. Open the receipt page to view or save the PDF.',receiptUrl};
+ }
 }

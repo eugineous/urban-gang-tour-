@@ -12,6 +12,7 @@ import { SITE } from '@/lib/site';
 import {publicImageUrl} from '@/lib/public-image-url';
 import PartnerEventPortfolio from '@/app/_components/PartnerEventPortfolio';
 import ArticleText from '@/app/_components/ArticleText';
+import {storyArtworkPresentation} from '@/lib/story-artwork';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +61,7 @@ export default async function BlogPost(
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
   const related = relatedPosts(posts, post);
+  const artwork=storyArtworkPresentation(post.imageAlt,post.imageCaption,post.imageIllustration===true);
 
   return <section className="news-article-page wrap">
     <JsonLd data={articleJsonLd(post)}/><JsonLd data={{'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Home',item:SITE.domain+'/'},{'@type':'ListItem',position:2,name:'Urban News',item:SITE.domain+'/blog'},{'@type':'ListItem',position:3,name:post.headline,item:SITE.domain+'/blog/'+post.slug}]}}/>
@@ -67,8 +69,8 @@ export default async function BlogPost(
     <article className="news-article">
       <OriginalContent disclose><p className="eyebrow">{post.section}</p><h1>{post.headline}</h1></OriginalContent>
       <div className="article-byline"><PublicationDate value={post.datePublished} long/><span><MessageText catalogue={discoveryMessages} message="by"/> <a href="/blog" lang="en-KE">{post.author||'Urban Gang Tour Newsroom'}</a></span></div>
-      <p className="article-summary" lang="en-KE">{post.description}</p><img lang="en-KE" className="article-cover" src={post.image} alt={post.imageAlt||post.headline} data-editorial-illustration={post.imageIllustration||undefined}/>
-      {post.imageCaption&&<p className="article-caption" lang="en-KE">{post.imageCaption}</p>}<ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline}/>
+      <p className="article-summary" lang="en-KE">{post.description}</p><img lang="en-KE" className="article-cover" src={post.image} alt={artwork.alt||post.headline} data-editorial-illustration={post.imageIllustration||undefined}/>
+      {artwork.caption&&<p className="article-caption" lang="en-KE">{artwork.caption}</p>}<ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline}/>
       <div className="article-body">{post.body.map((para,i)=><div key={i}>{i===3&&post.body.length>4&&<ArticleAd/>}<ArticleText paragraph={para}/></div>)}</div>
       {post.disclosure&&<p className="article-disclosure" lang="en-KE">{post.disclosure}</p>}<div className="modern-actions"><a href="/blog"><MessageText catalogue={discoveryMessages} message="news.all"/></a><a href="/book"><MessageText catalogue={discoveryMessages} message="planEvent"/></a></div>
     </article>

@@ -14,11 +14,13 @@ import styles from './ShopCatalogue.module.css';
 const productHref = (id: string) => '/shop/' + encodeURIComponent(id);
 
 /** Presentation only: availability, cart quantities and prices stay in LiveCommerce. */
-export function ShopIntro({cartCount = 0, selected = ''}: {
+export function ShopIntro({cartCount = 0, selected = '', featuredProduct}: {
   cartCount?: number;
   selected?: string;
+  featuredProduct?: LiveShopProduct;
 }) {
  const t=useMessages(commerceMessages);
+ const featured=featuredProduct?.made_to_order&&featuredProduct.id.startsWith('cb-')?featuredProduct:undefined;
   return <header className={styles.hero}>
     <div className={styles.heroCopy}>
       <p className={styles.eyebrow}>{t('shop.brand')}</p>
@@ -31,9 +33,9 @@ export function ShopIntro({cartCount = 0, selected = ''}: {
         {selected && <a className={styles.cartLink} href="/shop">{t('shop.viewAll')}</a>}
       </nav>
     </div>
-    <Link className={styles.heroImage} href="/shop/lookbook" aria-label={t('design.exploreLabel')}>
-      <div className={styles.heroArtwork}><GeneratedProductImage id="cb-oversized-tee" colour="Black" /></div>
-      <span>{t('design.preview')} <span aria-hidden="true"><ArrowUpRight size={14} weight="bold" /></span></span>
+    <Link className={styles.heroImage} href={featured?productHref(featured.id):'/shop/lookbook'} aria-label={featured?t('product.view',{name:featured.name}):t('design.exploreLabel')}>
+      <div className={styles.heroArtwork}><GeneratedProductImage id={featured?.id||'cb-oversized-tee'} colour="Black" /></div>
+      <span>{featured?t('stock.madeToOrder'):t('design.preview')} <span aria-hidden="true"><ArrowUpRight size={14} weight="bold" /></span></span>
     </Link>
   </header>;
 }
@@ -59,7 +61,7 @@ export function ShopLiveProductCard({product, variation, full, printableName = '
   const hasOptions = !!product.variants.length || product.name_on_back_enabled;
   return <article className={styles.productCard} data-shop-product={product.id}>
     <a className={styles.productImage} href={href} aria-label={t('product.view',{name:product.name})}>
-      {product.image ? <img src={product.image} alt={product.name} loading="lazy" decoding="async" /> : <span className={styles.imageEmpty}>{t('product.photoSoon')}</span>}
+      {product.made_to_order&&product.id.startsWith('cb-')?<GeneratedProductImage id={product.id} colour={variation?.split(' / ')[0]}/>:product.image ? <img src={product.image} alt={product.name} loading="lazy" decoding="async" /> : <span className={styles.imageEmpty}>{t('product.photoSoon')}</span>}
       {soldOut && <span className={styles.imageStatus}>{t('stock.out')}</span>}
     </a>
     <div className={styles.productInfo}>
@@ -83,7 +85,7 @@ export function ShopLiveProductCard({product, variation, full, printableName = '
         </div>
       </details>}
       {variation && <p className={styles.selectedOption} lang="en-KE">{variation}</p>}
-      <p className={styles.stockNote}>{typeof product.stock === 'number' ? product.stock > 0 ? t('stock.available',{count:product.stock}) : t('stock.out') : ''}{full && !soldOut ? t('stock.cartFull') : ''}</p>
+      <p className={styles.stockNote}>{product.made_to_order?t('stock.madeToOrder'):typeof product.stock === 'number' ? product.stock > 0 ? t('stock.available',{count:product.stock}) : t('stock.out') : ''}{full && !soldOut ? t('stock.cartFull') : ''}</p>
       <div className={styles.cardActions}>
         <button type="button" disabled={full} onClick={onAdd}>{soldOut ? t('stock.out') : full ? t('stock.inCart') : t('cart.add')}</button>
         <a href={href}>{t('product.details')} <span aria-hidden="true"><ArrowUpRight size={14} weight="bold" /></span></a>

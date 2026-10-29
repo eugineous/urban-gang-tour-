@@ -14,6 +14,8 @@ export const shellMessages = defineCatalogue({
     "nav.sellTickets": "Sell tickets",
     "nav.contact": "Contact",
     "nav.accessibility": "Accessibility",
+    "nav.app": "Get the app",
+    "nav.vendors": "Vendors & partners",
     "policy.privacy": "Privacy",
     "policy.cookies": "Cookies",
     "policy.terms": "Terms",
@@ -105,6 +107,8 @@ export const shellMessages = defineCatalogue({
     "nav.sellTickets": "Uza tiketi",
     "nav.contact": "Mawasiliano",
     "nav.accessibility": "Ufikivu",
+    "nav.app": "Pata programu",
+    "nav.vendors": "Wachuuzi na washirika",
     "policy.privacy": "Faragha",
     "policy.cookies": "Vidakuzi",
     "policy.terms": "Masharti",
@@ -196,6 +200,8 @@ export const shellMessages = defineCatalogue({
     "nav.sellTickets": "Vendre des billets",
     "nav.contact": "Contact",
     "nav.accessibility": "Accessibilité",
+    "nav.app": "Obtenir l’application",
+    "nav.vendors": "Vendeurs et partenaires",
     "policy.privacy": "Confidentialité",
     "policy.cookies": "Cookies",
     "policy.terms": "Conditions",
@@ -287,6 +293,8 @@ export const shellMessages = defineCatalogue({
     "nav.sellTickets": "销售门票",
     "nav.contact": "联系",
     "nav.accessibility": "无障碍",
+    "nav.app": "获取应用",
+    "nav.vendors": "供应商与合作伙伴",
     "policy.privacy": "隐私",
     "policy.cookies": "Cookie",
     "policy.terms": "条款",
@@ -378,6 +386,8 @@ export const shellMessages = defineCatalogue({
     "nav.sellTickets": "Продавать билеты",
     "nav.contact": "Контакты",
     "nav.accessibility": "Доступность",
+    "nav.app": "Получить приложение",
+    "nav.vendors": "Продавцы и партнёры",
     "policy.privacy": "Конфиденциальность",
     "policy.cookies": "Файлы cookie",
     "policy.terms": "Условия",
@@ -469,6 +479,8 @@ export const shellMessages = defineCatalogue({
     "nav.sellTickets": "Vender entradas",
     "nav.contact": "Contacto",
     "nav.accessibility": "Accesibilidad",
+    "nav.app": "Obtener la aplicación",
+    "nav.vendors": "Vendedores y colaboradores",
     "policy.privacy": "Privacidad",
     "policy.cookies": "Cookies",
     "policy.terms": "Condiciones",
@@ -552,6 +564,8 @@ export const shellMessages = defineCatalogue({
 export type ShellMessageKey = keyof typeof shellMessages.en;
 
 const destinationKeys = {
+'/app':'nav.app',
+'/vendors':'nav.vendors',
 '/events':'nav.events','/portfolio':'nav.work','/gallery':'nav.gallery','/clients':'nav.clients','/shop':'nav.shop','/about':'nav.about','/book':'nav.book','/account':'nav.tickets','/blog':'nav.news','/organizer/login':'nav.sellTickets','/contact-us':'nav.contact','/accessibility':'nav.accessibility','/privacy-policy':'policy.privacy','/cookie-policy':'policy.cookies','/terms':'policy.terms','/refund-policy':'policy.refunds',
 } as const satisfies Record<string,ShellMessageKey>;
 const groupKeys = {Explore:'nav.explore',Help:'nav.help'} as const satisfies Record<string,ShellMessageKey>;

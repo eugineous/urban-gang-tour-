@@ -11,7 +11,8 @@ import dynamic from "next/dynamic";
 import "./control-room.css";
 import ControlRoomHome from "./ControlRoomHome";
 import SystemPanel from "./SystemPanel";
-import { printOrderReceipt } from '@/lib/client/print-order-receipt';
+import { downloadOrderReceipt } from '@/lib/client/print-order-receipt';
+import {AdminNotice,useAdminNotice} from './AdminNotice';
 
 // Urban Gang Control Room — real, database-backed admin.
 // One responsive operations interface, matching the approved public design.
@@ -369,7 +370,8 @@ export default function AdminApp({
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
   const [tab, setTabState] = useState<Tab>("Dashboard");
-  const currentTab=useRef<Tab>(tab);currentTab.current=tab;
+  const currentTab=useRef<Tab>(tab);
+  useEffect(()=>{currentTab.current=tab;},[tab]);
   const [openedTools,setOpenedTools]=useState<Tab[]>([]);
   const setTab = (next: Tab) => {setTabState(next);try{const url=new URL(window.location.href);if(url.searchParams.get('tab')!==next){url.searchParams.set('tab',next);history.pushState(null,'',url)}}catch{}};
   const [rows, setRows] = useState<any[]>([]);
@@ -377,7 +379,9 @@ export default function AdminApp({
   const [refundOrder,setRefundOrder]=useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, say] = useAdminNotice();
+  const [receiptPending,setReceiptPending]=useState('');
+  const [receiptFallback,setReceiptFallback]=useState<{id:string;url:string}|null>(null);
   const [editPost, setEditPostState] = useState<any>(null);
   const setEditPost=useCallback((value:any)=>setEditPostState((current:any)=>{
     const next=typeof value==='function'?value(current):value;
@@ -401,10 +405,6 @@ export default function AdminApp({
   >([]);
   const [session, setSession] = useState<AdminSession | null>(null);
   const [probeError, setProbeError] = useState("");
-
-  const say = (m: string) => {
-    setToast(m);
-  };
 
   // Client-side visibility only (see TAB_PERM's note above) - while the
   // session hasn't loaded yet, hide every scoped tab rather than flash
@@ -746,7 +746,7 @@ export default function AdminApp({
         setRefundOrder(null);
       }}
     >
-      {toast&&<div className="cr-notice" role="status">{toast}</div>}
+      <AdminNotice notice={toast}/>
       {canSee('Orders')&&refundOrder&&<div hidden={tab!=='Orders'}><RefundRecorder key={refundOrder.id} order={refundOrder} onClose={()=>setRefundOrder(null)} onSaved={()=>{void load('orders').then(next=>{if(currentTab.current==='Orders')setRows(next)})}}/></div>}
 
       {tab === "Dashboard" && (
@@ -787,8 +787,8 @@ export default function AdminApp({
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>
             💡 Orders are the money ledger. <b>paid</b> = confirmed by M-Pesa
             callback (receipt shown). Use the CSV export to reconcile against
-            your M-Pesa statement. Opening an order&apos;s <b>Receipt</b> gives
-            a printable invoice. Ticket orders list their e-tickets inline —
+            your M-Pesa statement. <b>Receipt PDF</b> downloads the branded receipt
+            after confirmed payment. Ticket orders list their e-tickets inline —
             scan them at the door with the{" "}
             <a href="/admin/gate" style={{ color: C.pink, fontWeight: 700 }}>
               Gate Scanner
@@ -826,13 +826,23 @@ export default function AdminApp({
                 </select>
                 {['paid','fulfilled','partially_refunded'].includes(r.status)&&<button type="button" style={btn} onClick={()=>{if(!refundOrder)setRefundOrder(r);else say('Finish or close the current refund form first.')}}>Record money returned</button>}
                 <button
+                  type="button"
                   style={{ ...btn, padding: "6px 8px" }}
-                  onClick={() => {
-                    printOrderReceipt(r);
+                  disabled={!!receiptPending||!['paid','fulfilled'].includes(r.status)}
+                  title={!['paid','fulfilled'].includes(r.status)?'A receipt requires confirmed payment.':undefined}
+                  onClick={async () => {
+                    if(receiptPending)return;
+                    setReceiptPending(String(r.id));
+                    try{
+                      const result=await downloadOrderReceipt(r);
+                      say(result.message,result.ok?'info':'error');
+                      if(result.receiptUrl)setReceiptFallback({id:String(r.id),url:result.receiptUrl});
+                    }finally{setReceiptPending('')}
                   }}
                 >
-                  Receipt
+                  {receiptPending===String(r.id)?'Preparing PDF…':'Receipt PDF'}
                 </button>
+                {receiptFallback?.id===String(r.id)&&<a href={receiptFallback.url} target="_blank" rel="noopener noreferrer" style={btn}>Open receipt page</a>}
                 <MerchProductionDetails items={r.items} />
                 {tix[r.id]?.length ? (
                   <details style={{ fontSize: 12 }}>

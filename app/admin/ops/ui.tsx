@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {whatsappUrl} from '@/lib/contact-actions';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import {AdminNotice,useAdminNotice,type AdminNoticeValue} from '../AdminNotice';
 
 export const OC = {
   magenta: '#ad1264',
@@ -194,19 +195,12 @@ export function SearchBox({ value, onChange, placeholder, style }: {
   );
 }
 
-export function Toast({ msg }: { msg: string }) {
-  if (!msg) return null;
-  return (
-    <div className="cr-notice" role={/failed|could not|not confirmed|error/i.test(msg)?'alert':'status'}>{msg}</div>
-  );
+export function Toast({ msg }: { msg: AdminNoticeValue|null }) {
+  return <AdminNotice notice={msg}/>;
 }
 
-export function useToast(): [string, (m: string) => void] {
-  const [msg, setMsg] = useState('');
-  const say = useCallback((m: string) => {
-    setMsg(m);
-  }, []);
-  return [msg, say];
+export function useToast() {
+  return useAdminNotice();
 }
 
 export function downloadCSV(filename: string, rows: Array<Record<string, unknown>>, cols: string[]) {

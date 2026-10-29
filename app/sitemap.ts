@@ -97,6 +97,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  const newPages = [...publicDesignRoutes.filter(path=>path!=='/the-gang'),'/shop/lookbook','/ticketing',...Object.keys(WELCOME_LANGUAGES).map(code=>'/welcome/'+code)].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
+  const newPages = [...publicDesignRoutes.filter(path=>path!=='/the-gang'),'/shop/lookbook','/ticketing','/app',...Object.keys(WELCOME_LANGUAGES).map(code=>'/welcome/'+code)].map(path=>({url:SITE.domain+(path==='/'?'':path),changeFrequency:'monthly' as const,priority:0.6}));
   return [...new Map([...pages,...authors,...posts,...products,...ticketedEvents,...newPages].map(page=>[page.url,page])).values()];
 }

@@ -1,0 +1,2 @@
+# Preserve generated PDF bytes, including their required cross-reference offsets.
+public/downloads/*.pdf binary

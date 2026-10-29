@@ -4,7 +4,7 @@ import {MessageText} from '@/ui/i18n/MessageText';
 import {documentsMessages} from '@/ui/i18n/catalogues/documents';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getDocumentBySerial, ensureDocgenSchema, DOC_TYPES } from '@/lib/server/docgen';
+import { getDocumentBySerial, ensureDocgenSchema, DOC_TYPES, isOperationalDoc } from '@/lib/server/docgen';
 
 // Public document verification page - the target of every serialised doc's QR
 // code. Roles: public (anon). The serial is the bearer token; the page shows
@@ -42,7 +42,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ serial:
   const serial = decodeURIComponent(rawSerial || '').toUpperCase();
   if (!SERIAL_RE.test(serial)) notFound();
   const doc = await lookup(serial);
-  if (!doc) notFound();
+  if (!doc || isOperationalDoc(doc.type)) notFound();
 
   const valid = doc.status !== 'void';
   const typeLabel = DOC_TYPES[doc.type]?.label || doc.type;

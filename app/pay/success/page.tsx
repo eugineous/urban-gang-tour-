@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Check your payment | Urban Gang Tour',
   description: 'Check payment confirmation and open your order documents.',
   robots: { index: false, follow: true },
+  referrer:'no-referrer',
 };
 
 export const dynamic = 'force-dynamic';

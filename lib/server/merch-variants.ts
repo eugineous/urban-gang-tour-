@@ -21,6 +21,12 @@ export async function applyVerifiedMerchVariants(
   const requested = items
     .map((item, index) => ({ ...item, index }))
     .filter((item) => item.variant);
+  const missing=items.filter(item=>!item.variant).map(item=>item.id);
+  if(missing.length){
+    if(!hasDb())throw Error('variant_catalog_unavailable');
+    const configured=await q<{product_id:string}>(`SELECT DISTINCT product_id FROM merch_variants WHERE product_id=ANY($1::text[]) AND active=true`,[missing]);
+    if(configured.length)throw Error('variant_required');
+  }
   if (!requested.length) return { lines, adjustment: 0 };
   if (!hasDb()) throw new Error("variant_catalog_unavailable");
 

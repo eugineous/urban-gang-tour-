@@ -4,6 +4,8 @@ vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:f.q}));
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'fixture'}));
 vi.mock('@/lib/server/tickets',()=>({codeAuthentic:()=>true,getTicket:f.ticket,ensureTickets:f.mint}));
 vi.mock('@/lib/server/receipt-email',()=>({maskPhone:()=> 'masked'}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>true,hasPerm:()=>true}));
+vi.mock('@/lib/server/customer-account',()=>({validatedCurrentBuyer:async()=>null,ensureCustomerAccountSchema:async()=>{}}));
 vi.mock('@/lib/tickets/pdf',()=>({renderTicketPdf:f.renderTicket,renderReceiptPdf:f.renderReceipt}));
 vi.mock('@/lib/ops/pdf',()=>({getLogoDataUri:f.logo}));
 import {GET as ticketPdf} from '@/app/api/tickets/[code]/pdf/route';

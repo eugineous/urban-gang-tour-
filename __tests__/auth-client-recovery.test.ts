@@ -32,7 +32,9 @@ it.each(['503', 'offline', 'malformed'])('keeps the admin shell closed and offer
     return new Response(failure === 'malformed' ? '{}' : JSON.stringify({ error: 'unavailable' }), { status: failure === '503' ? 503 : 200 });
   });
   render(() => AdminApp({ googleClientId: '' }));
-  await hooks.effects[0]();
+  // Mount every effect like React, including the tab-ref synchronization effect.
+  // Authentication must not depend on being the first effect in the component.
+  for (const effect of [...hooks.effects]) await effect();
   for (let i = 0; i < 15; i++) await Promise.resolve();
   const tree = render(() => AdminApp({ googleClientId: '' }));
   expect(find(tree, n => n.type === 'button' && n.props.children === 'Try again')).toBeTruthy();

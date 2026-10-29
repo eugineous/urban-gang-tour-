@@ -1,5 +1,40 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Vendor documents and search visibility (28 October 2026)
+- Owner additionally requests an exactly two-page food/vendor application for
+  individuals/businesses: Main Vendor KES30,000–45,000, Minor Vendor KES10,000–15,000;
+  research-based sponsorship/partnership packages and browser/search diagnosis.
+  Provide useful fillable/printable public documents and existing enquiry paths,
+  not invented booth inclusions, footfall, deadlines, endorsements or final quotes.
+  Do not generate statutory permits or imply international-body certification.
+- Separate browser access from engine indexing/ranking. Preserve public-only
+  sitemap gates and private data. Do not bypass CAPTCHAs or claim universal
+  visibility. Cloudflare category-wide AI policy changes are not a narrow crawler
+  repair; preserve current settings unless a safe exact control is established.
+
+## App, commerce and operations sweep (28 October 2026)
+- Owner now explicitly reopens the existing installable app, mobile admin,
+  business documents/receipts/notifications, made-to-order shopping and tracking,
+  payment-provider preparation and artwork for scheduled stories. Reuse the
+  existing runtime, ledger, authentication, document generators and native
+  languages. No new native-app framework or homepage/YouTube promotion.
+- Owner confirms the currently displayed collection can be manufactured and
+  sold. Use its existing displayed STANDARD prices (not event prices), explicit
+  made-to-order mode, genuine configured variants and server-priced checkout;
+  no opening stock, invented delivery promises or revival of retired p1–p14.
+  Live data activation must be exact, expiring, journalled and conflict-safe.
+- Credentials for Daraja/Pesapal will arrive later. Prepare and test integrations
+  offline; never invent keys, enable an unconfigured provider, initiate live
+  transactions/messages, trust unsigned callbacks or weaken auth/idempotency.
+- Inventory existing business documents before adding missing operational
+  formats. Never fabricate a tax certificate, paid receipt, payment, signature,
+  delivery, legal compliance or eTIMS approval. Preserve white print surfaces.
+- Scheduled-story artwork changes are image-only: preserve text, status,
+  approval, schedules, publication and social flags with exact record versions.
+  Public synthetic captions may read "Editorial illustration"; keep truthful
+  stored provenance. Unpublished manuscripts and the uploaded certificate remain
+  private. Standing tested feature-branch/normal PR/keep-vars release applies.
+
 ## Hero clarity correction
 - Owner explicitly rejects the blurred homepage video and requests only light
   shading. Remove blur/desaturation/brightness filters from video and poster;

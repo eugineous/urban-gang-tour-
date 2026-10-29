@@ -5,6 +5,8 @@ import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { structuredDataForPath } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import Link from 'next/link';
+import {vendorMessages} from '@/lib/vendor/messages';
+import DocumentLink from '@/ui/components/DocumentLink';
 
 const PATH = '/partners';
 
@@ -26,6 +28,7 @@ export default function Page() {
           {title:<MessageText catalogue={marketingMessages} message="partners.media.title"/>,copy:<MessageText catalogue={marketingMessages} message="partners.media.text"/>,href:'/book?type=partnership',action:<MessageText catalogue={marketingMessages} message="partners.media.action"/>},
         ].map(item=><article className="current-card" key={item.href}><h2>{item.title}</h2><p>{item.copy}</p><Link className="button" href={item.href}>{item.action} →</Link></article>)}
       </section>
+      <section className="section wrap"><div className="section-title"><h2><MessageText catalogue={vendorMessages} message="eyebrow"/></h2><p><MessageText catalogue={vendorMessages} message="intro"/></p></div><Link className="button" href="/vendors"><MessageText catalogue={vendorMessages} message="visitVendors"/> →</Link><DocumentLink className="text-link" href="/downloads/sponsorship-partnership-pack.pdf" download><MessageText catalogue={vendorMessages} message="downloadSponsor"/> ↓</DocumentLink></section>
       <section className="section wrap"><div className="section-title"><h2><MessageText catalogue={marketingMessages} message="partners.archive"/></h2></div><Link className="button" href="/clients"><MessageText catalogue={marketingMessages} message="partners.clients"/> →</Link><Link className="text-link" href="/portfolio"><MessageText catalogue={marketingMessages} message="partners.portfolio"/> →</Link></section>
     </>
   );

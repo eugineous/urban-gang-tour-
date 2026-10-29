@@ -25,6 +25,7 @@ export type RouteDef = {
 
 // Every distinct, crawlable URL. Order here drives the sitemap.
 export const ROUTES: RouteDef[] = [
+  {path:'/vendors',page:'vendors',title:'Food & Event Vendors — Apply to Urban Gang Tour',description:'Apply as an individual or business food and event vendor. Download the two-page application, review KES package ranges and explore sponsorship opportunities.',changefreq:'monthly',priority:0.6},
   {path:'/international',page:'international',title:'International Enquiries — Events & Buying From Abroad',description:'Plan an event in Kenya from abroad. Contact Urban Gang Tour about collaboration, KES pricing, payment options and delivery before buying.',changefreq:'monthly',priority:0.6},
   {path:'/accessibility',page:'accessibility',title:'Accessibility & Focus View — Urban Gang Tour',description:'Choose a calmer visit with focus view. Learn about keyboard navigation, motion controls, languages and how to report an accessibility problem.',changefreq:'monthly',priority:0.5},
   { path: '/author/eugine-micah', page: 'eugine', title: 'Eugine Micah — Presenter & Urban Gang Tour Co-Founder', description: 'Explore Eugine Micah’s documented presenting, live hosting and Urban Gang Tour work, with archive links and booking enquiries.', changefreq: 'monthly', priority: 0.7 },

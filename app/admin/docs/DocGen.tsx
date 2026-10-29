@@ -20,6 +20,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { upload } from "@/lib/client/media-upload";
+import {AdminNotice,useAdminNotice} from '../AdminNotice';
+import OperationalDocumentForm from './OperationalDocumentForm';
+import {OPERATIONAL_DOCS,isOperationalDoc,emptyOperationalForm,type OperationalDocType,type OperationalFormState} from '@/lib/documents/operational-record';
 import {
   card,
   btn,
@@ -38,6 +41,7 @@ import {
 const VERIFY_BASE = "https://urbangangtour.co.ke/verify/";
 
 type DocType =
+  | OperationalDocType
   | "invoice"
   | "receipt"
   | "certw"
@@ -77,6 +81,10 @@ type DocType =
   | "posFinale"
   | "posMaster";
 const TYPES: { key: DocType; label: string }[] = [
+  {key:'deliverynote',label:'Delivery note (draft)'},
+  {key:'purchaseorder',label:'Purchase order (draft)'},
+  {key:'creditnote',label:'Credit note (draft)'},
+  {key:'customerstatement',label:'Customer statement (draft)'},
   { key: "invoice", label: "Invoice" },
   { key: "receipt", label: "Receipt" },
   { key: "certw", label: "Winner Certificate" },
@@ -111,6 +119,7 @@ const DOCUMENT_GROUPS: Array<{
     note: "Invoices, receipts and a server-calculated event budget.",
     types: ["invoice", "receipt", "budget"],
   },
+  {label:'Operational drafts',note:'Staff-entered handover, purchasing, adjustment and account paperwork. No ledger changes or independent verification.',types:['deliverynote','purchaseorder','creditnote','customerstatement']},
   {
     label: "Event delivery",
     note: "Run the day, control access and issue event materials.",
@@ -698,6 +707,10 @@ const QTY_NOUN: Record<string, string> = {
 // Doc page dimensions (px) - drives the live-preview iframe sizing. Body
 // padding is 34px each side (see the templates' <body>), so the frame adds 68.
 const DIMS: Record<DocType, { w: number; h: number }> = {
+  deliverynote: {w:794,h:1123},
+  purchaseorder: {w:794,h:1123},
+  creditnote: {w:794,h:1123},
+  customerstatement: {w:794,h:1123},
   invoice: { w: 794, h: 1123 },
   receipt: { w: 794, h: 430 },
   certw: { w: 1123, h: 794 },
@@ -834,6 +847,7 @@ function today(): string {
 export default function DocGen() {
   const [type, setType] = useState<DocType>("invoice");
   const [mode, setMode] = useState<"single" | "batch">("single");
+  const [operational,setOperational]=useState<Record<OperationalDocType,OperationalFormState>>(()=>({deliverynote:emptyOperationalForm(),purchaseorder:emptyOperationalForm(),creditnote:emptyOperationalForm(),customerstatement:emptyOperationalForm()}));
 
   // Invoice form
   const [inv, setInv] = useState({
@@ -1080,7 +1094,7 @@ export default function DocGen() {
     png_url?: string;
     isPromo?: boolean;
   } | null>(null);
-  const [toast, setToast] = useState("");
+  const [toast,say]=useAdminNotice();
   const [recent, setRecent] = useState<RecentDoc[]>([]);
   const [librarySearch, setLibrarySearch] = useState("");
   const [recentSearch, setRecentSearch] = useState("");
@@ -1090,11 +1104,6 @@ export default function DocGen() {
   const [reference, setReference] = useState<
     (typeof PRODUCTION_REFERENCES)[number] | null
   >(null);
-
-  const say = (m: string) => {
-    setToast(m);
-    setTimeout(() => setToast(""), 3500);
-  };
 
   const batchMode = isCertType(type) && mode === "batch";
   const creativeDefaults = useMemo(
@@ -1112,6 +1121,7 @@ export default function DocGen() {
 
   // The single-form payload for this type (preview + single Generate).
   const singlePayload = useMemo(() => {
+    if(isOperationalDoc(type))return operational[type];
     if (isPromoType(type)) {
       const spec = PROMO_SPEC[type];
       const out: Record<string, unknown> = {};
@@ -1348,6 +1358,7 @@ export default function DocGen() {
     } as Record<string, unknown>;
   }, [
     type,
+    operational,
     inv,
     rows,
     rct,
@@ -1767,6 +1778,7 @@ export default function DocGen() {
 
   const formTitle = isPromoType(type)
     ? PROMO_SPEC[type].label
+    : isOperationalDoc(type)?OPERATIONAL_DOCS[type].title+' draft'
     : type === "invoice"
       ? "Invoice details"
       : type === "receipt"
@@ -1853,6 +1865,7 @@ export default function DocGen() {
   });
   const activeWorkflowNote = isPromoType(type)
     ? "Creative artwork is a production proof. Use approved copy and only assets you have the right to publish or print."
+    : isOperationalDoc(type)?OPERATIONAL_DOCS[type].note
     : type === "agr"
       ? "This is a branded agreement template, not an approval of the commercial terms. Confirm the parties, scope and agreed terms before issue."
       : type === "rel" || type === "cons"
@@ -1863,21 +1876,7 @@ export default function DocGen() {
 
   return (
     <div className="ugt-docgen" style={{ display: "grid", gap: 14, minWidth: 0 }}>
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            top: 16,
-            right: 16,
-            zIndex: 60,
-            ...card,
-            padding: "10px 16px",
-            background: "#FFD400",
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      <AdminNotice notice={toast}/>
 
       <div style={card}>
         <h2 style={{ fontFamily: 'inherit', margin: "0 0 4px", fontSize: 22 }}>
@@ -1885,7 +1884,7 @@ export default function DocGen() {
         </h2>
         <a href="/admin/docs/designs" style={{display:"inline-block",padding:"10px 0",color:"#b30862",fontWeight:700}}>Ticket, receipt and email design studio →</a>
         <div style={{ fontSize: 13, color: "#555", marginBottom: 12 }}>
-          Brand-locked, serialised, QR-verifiable documents. Serials and totals
+          Brand-locked, serialised documents. Operational drafts have no verification QR. Serials and totals
           are computed by the server, never typed. Finalised documents are
           immutable - to correct one, void it and generate a new one.
         </div>
@@ -2077,6 +2076,7 @@ export default function DocGen() {
           ) : (
             <>
               <div style={{ marginTop: 12 }}>
+                {isOperationalDoc(type)&&<OperationalDocumentForm key={type} type={type} value={operational[type]} computed={computed} onChange={update=>setOperational(current=>({...current,[type]:typeof update==='function'?update(current[type]):update}))}/>}
                 {type === "invoice" && (
                   <InvoiceForm
                     inv={inv}
@@ -2303,14 +2303,14 @@ export default function DocGen() {
                             >
                               Download PDF
                             </a>
-                            <a
+                            {!isOperationalDoc(type)&&<a
                               href={VERIFY_BASE + result.serial}
                               target="_blank"
                               rel="noreferrer"
                               style={{ ...btnDark, textDecoration: "none" }}
                             >
                               Open verify page
-                            </a>
+                            </a>}
                             {result.png_url && (
                               <a
                                 href={result.png_url}
@@ -2330,7 +2330,7 @@ export default function DocGen() {
                               wordBreak: "break-all",
                             }}
                           >
-                            Verify URL: {VERIFY_BASE + result.serial}
+                            {isOperationalDoc(type)?'Staff-entered draft. No verification link; no ledger, payment, refund or delivery status was changed.':'Verify URL: '+VERIFY_BASE + result.serial}
                           </div>
                         </>
                       )}
@@ -2371,7 +2371,7 @@ export default function DocGen() {
           <div>
             <h3 style={{ ...h3, margin: 0 }}>Recent documents</h3>
             <div style={{ fontSize: 11, color: "#777", marginTop: 2 }}>
-              Final records remain immutable. Use Void for a correction, then issue a new record.
+              Saved records remain immutable. Operational formats stay drafts. Use Void for a correction, then save a new record.
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -2391,7 +2391,7 @@ export default function DocGen() {
               style={{ ...inp, width: 110 }}
             >
               <option value="all">All status</option>
-              <option value="final">Valid</option>
+              <option value="final">Saved</option>
               <option value="void">Void</option>
             </select>
           </div>
@@ -2433,6 +2433,8 @@ export default function DocGen() {
                   <td style={td}>
                     {d.status === "void" ? (
                       <Chip text="VOID" bg="#fdecec" color="#C62828" />
+                    ) : isOperationalDoc(d.type)?(
+                      <Chip text="DRAFT" bg="#f6efdf" color="#73511e"/>
                     ) : (
                       <Chip text="VALID" bg="#e8f6ef" color="#1F8A5B" />
                     )}
@@ -2466,7 +2468,7 @@ export default function DocGen() {
                         PNG
                       </a>
                     )}
-                    {!isPromoType(d.type as DocType) && (
+                    {!isPromoType(d.type as DocType) && !isOperationalDoc(d.type) && (
                       <a
                         href={VERIFY_BASE + d.serial}
                         target="_blank"
@@ -5240,7 +5242,7 @@ function PromoForm({
   const [heroBusy, setHeroBusy] = useState<number | null>(null);
   const [partnerBusy, setPartnerBusy] = useState(false);
 
-  const doHeroUpload = async (
+  const doHeroUpload = useCallback(async (
     i: number,
     file: File,
     prefix: "promo-hero" | "promo-partner",
@@ -5267,7 +5269,7 @@ function PromoForm({
       say("Upload failed: " + (e?.message || "network error"));
       return null;
     }
-  };
+  }, [say]);
 
   const onHero = async (i: number, file: File) => {
     setHeroBusy(i);

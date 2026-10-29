@@ -1,5 +1,5 @@
 import {merchProducts,type MerchProduct} from '@/data/color-blast';
-export type LiveShopProduct={id:string;name:string;price:number;image?:string;category?:string;description?:string;name_on_back_enabled?:boolean;stock?:number|null;variants:{label:string;priceAdjustment:number;sku?:string;stock?:number|null}[]};
+export type LiveShopProduct={id:string;name:string;price:number;image?:string;category?:string;description?:string;name_on_back_enabled?:boolean;made_to_order?:boolean;stock?:number|null;variants:{label:string;priceAdjustment:number;sku?:string;stock?:number|null}[]};
 export type ShopCatalogueProduct=LiveShopProduct&{preview:boolean};
 /** Discovery only. Never add proposed designs to the authoritative payment catalogue. */
 export function buildShopCatalogue(live:LiveShopProduct[],designs:MerchProduct[]=merchProducts):ShopCatalogueProduct[]{
