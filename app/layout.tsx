@@ -30,7 +30,6 @@ import { AdSenseLoader } from './_components/Ads';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
-import {readPublicEvents} from '@/lib/server/public-events';
 import {requestTime} from '@/lib/server/request-time';
 
 export const metadata: Metadata = {
@@ -77,8 +76,10 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const events=await readPublicEvents().catch(()=>[]);
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // The shared header must not wait for the ticket-capacity database. Pages
+  // still server-render their own authoritative data; optional lower-page
+  // event placements use their existing fresh public-feed request instead.
   const initialNow=requestTime();
   return (
     <html lang="en-KE" suppressHydrationWarning>
@@ -130,7 +131,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
-        <AppShell events={events} initialNow={initialNow}>{children}</AppShell>
+        <AppShell initialNow={initialNow}>{children}</AppShell>
         <InstallableApp />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
             where we can't attach a debugger) in the server logs */}

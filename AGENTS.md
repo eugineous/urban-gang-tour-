@@ -1,5 +1,18 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Backlog continuation and loading speed (29 October 2026)
+- Owner approves continuing the reconciled UGT backlog one item at a time and
+  prioritizes visibly faster page entry. Diagnose measured delays, preserve the
+  existing single interface, complete server rendering and sharp/shaded hero.
+  Remove avoidable public-read work; do not hide waits with a boot screen,
+  broadly cache commercial/private HTML or weaken publication/payment checks.
+- The initial read-only check also found events/products/posts returning503
+  while configuration is present. Treat this as an unresolved operational
+  dependency until cause and recovery are verified; never invent catalogue data,
+  change credentials or enable payment providers to conceal the outage.
+- Keep the prior deferred dashboard/tooling and unrelated-project work separate.
+  Existing tested PR/normal merge/Cloudflare keep-vars release authority applies.
+
 ## Paystack setup (29 October 2026)
 - Owner subsequently deleted the old Paystack merchant account and requests
   finishing construction for a future replacement. Outbound Paystack is now

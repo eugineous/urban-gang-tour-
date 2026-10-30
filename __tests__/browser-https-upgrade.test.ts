@@ -23,7 +23,7 @@ describe('production browser HTTP upgrade',()=>{
    expect(response.headers.get('Location')).toBe('https://'+host+'/events?date=2026-12-01&return=%2Faccount');
    expect(response.headers.get('Cache-Control')).toBe('no-store');
    expect(response.headers.get('Cloudflare-CDN-Cache-Control')).toBe('no-store');
- expect(response.headers.get('X-UGT-Release')).toBe('app-operations-20261028-v2');
+ expect(response.headers.get('X-UGT-Release')).toBe('fast-entry-recovery-20261030-v1');
    expect(await response.text()).toBe('');
   }
   expect(state.app).not.toHaveBeenCalled();expect(state.guard).not.toHaveBeenCalled();

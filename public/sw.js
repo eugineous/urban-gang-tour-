@@ -1,4 +1,4 @@
-const CACHE = 'ugt-app-operations-20261028-v2';
+const CACHE = 'ugt-fast-entry-recovery-20261030-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.

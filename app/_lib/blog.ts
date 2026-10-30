@@ -3,7 +3,7 @@ import {publicImageUrl} from '@/lib/public-image-url';
 import { cached } from '@/lib/server/microcache';
 import { q, hasDb } from '@/lib/server/db';
 import { NEWS_PUBLISHER_ID } from './jsonld';
-import {PUBLIC_POST_SELECT} from '@/lib/server/editorial-publication';
+import {PUBLIC_POST_SELECT,PUBLIC_POST_SUMMARY_SELECT} from '@/lib/server/editorial-publication';
 
 export type BlogPost = {
   slug: string;
@@ -23,6 +23,34 @@ export type BlogPost = {
   disclosure?:string;
 };
 
+export type BlogPostSummary = Pick<BlogPost,'slug'|'headline'|'datePublished'|'section'|'image'|'description'|'imageAlt'>;
+type BlogPostSummaryRow = {
+  slug:string;headline:string;date:string|Date;publication_time?:string|null;
+  section?:string|null;image?:string|null;dek?:string|null;public_asset?:{alt?:string}|null;
+};
+
+// PostgreSQL DATE values may arrive as Dates; preserve the existing ISO day.
+const iso = (d: unknown) => (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10);
+function postSummary(r: BlogPostSummaryRow): BlogPostSummary {
+  return {
+    slug:r.slug,headline:r.headline,
+    datePublished:r.publication_time ? new Date(r.publication_time).toISOString() : iso(r.date),
+    section:r.section || 'News',image:r.image || '/assets/poster.png',description:r.dek || '',
+    imageAlt:r.public_asset?.alt,
+  };
+}
+
+/** Public card fields only; eligibility, freshness and failure policy match full reads. */
+export async function getBlogPostSummaries(throwOnError=false): Promise<BlogPostSummary[]> {
+  try {
+    if (hasDb()) {
+      const rows = await cached('blog-published-post-summaries', 1_000, () => q<BlogPostSummaryRow>(PUBLIC_POST_SUMMARY_SELECT), false);
+      return rows.map(postSummary);
+    }
+  } catch(error) { if(throwOnError)throw error; }
+  return [];
+}
+
 // DB-backed posts, edited and published through the Control Room. A missing
 // database or an empty newsroom is an honest empty feed, never a prewritten
 // article presented as a current report.
@@ -35,19 +63,11 @@ export async function getBlogPosts(throwOnError=false): Promise<BlogPost[]> {
       // snapshots during an outage. Public HTML/XML have no outer story cache.
       const rows = await cached('blog-published-posts', 1_000, () => q(PUBLIC_POST_SELECT), false);
       if (rows.length) {
-        // pg returns DATE columns as JS Date objects — String(date).slice(0,10)
-        // yields "Thu Jul 09" (not ISO), which breaks date maths downstream.
-        const iso = (d: any) => (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10);
         return rows.map((r: any) => ({
-          slug: r.slug,
-          headline: r.headline,
-          datePublished: r.publication_time ? new Date(r.publication_time).toISOString() : iso(r.date),
+          ...postSummary(r),
           dateModified: r.updated_at ? new Date(Math.max(new Date(r.updated_at).getTime(),r.publication_time?new Date(r.publication_time).getTime():0)).toISOString() : iso(r.date),
-          section: r.section || 'News',
-          image: r.image || '/assets/poster.png',
-          description: r.dek || '',
           body: Array.isArray(r.body) ? r.body : [],
-          author:r.author||undefined,schemaType:r.schema_type||'NewsArticle',imageAlt:r.public_asset?.alt,
+          author:r.author||undefined,schemaType:r.schema_type||'NewsArticle',
           imageCaption:r.public_asset?.caption,imageIllustration:r.public_asset?.illustration===true,ogImage:r.public_asset?.og,disclosure:r.disclosure||undefined,
         }));
       }

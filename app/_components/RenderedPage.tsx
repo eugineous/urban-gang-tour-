@@ -1,7 +1,7 @@
 import HostedSite from '@/ui/components/HostedSite';
 import {LiveCommerce} from './LiveCommerce';
 import {BookingForm} from './BookingForm';
-import {getBlogPosts} from '@/app/_lib/blog';
+import {getBlogPostSummaries} from '@/app/_lib/blog';
 import {readPublicEvents,type PublicEvent} from '@/lib/server/public-events';
 import {readPublicProducts,type PublicProduct} from '@/lib/server/public-products';
 import {readWebsiteContent} from '@/lib/server/website-content';
@@ -13,7 +13,7 @@ export async function RenderedPage({pathName}:{pathName:string}){
  const presenter=pathName.startsWith('/author/');
  const home=pathName==='/';
  const [published,events,products,pageContent]=await Promise.all([
-  (home||pathName==='/blog'||presenter)?getBlogPosts():Promise.resolve([]),
+  (home||pathName==='/blog'||presenter)?getBlogPostSummaries():Promise.resolve([]),
   (presenter||['/', '/events', '/portfolio', '/about', '/the-gang', '/proof'].includes(pathName))?readPublicEvents().catch(()=>[] as PublicEvent[]):Promise.resolve([]),
   home?readPublicProducts().catch(()=>[] as PublicProduct[]):Promise.resolve([]),
   readWebsiteContent(pathName==='/the-gang'?'/about':pathName),

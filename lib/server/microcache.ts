@@ -23,6 +23,8 @@
 interface Entry<T> {
   // The in-flight or settled query. Concurrent callers await this same promise.
   value: Promise<T>;
+  // Freshness can expire before the query finishes; keep coalescing that work.
+  pending: boolean;
   // When this entry stops being served fresh.
   expires: number;
   // Last successful result, kept to serve stale if a later refresh fails.
@@ -42,25 +44,28 @@ export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>, serv
   const now = Date.now();
   const hit = store.get(key) as Entry<T> | undefined;
 
-  if (hit && now < hit.expires) return hit.value;
+  if (hit && (hit.pending || now < hit.expires)) return hit.value;
 
   const entry: Entry<T> = {
     expires: now + ttlMs,
+    pending: true,
     last: hit?.last,
     value: undefined as unknown as Promise<T>,
   };
 
   entry.value = fn()
     .then((v) => {
+      entry.pending = false;
       entry.last = v;
       return v;
     })
     .catch((err) => {
+      entry.pending = false;
       // Serve the previous good answer if we have one; otherwise the caller's
       // own catch decides what an empty result looks like.
       if (serveStaleOnError && entry.last !== undefined) return entry.last;
       // Do not let a failure sit in the cache for the full TTL.
-      store.delete(key);
+      if (store.get(key) === entry) store.delete(key);
       throw err;
     });
 
@@ -70,7 +75,7 @@ export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>, serv
   // only a handful of keys in practice, so this effectively never fires.
   if (store.size > 100) {
     for (const [k, v] of store) {
-      if (now > v.expires) store.delete(k);
+      if (!v.pending && now > v.expires) store.delete(k);
     }
   }
 

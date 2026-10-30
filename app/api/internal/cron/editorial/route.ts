@@ -27,7 +27,7 @@ export async function POST(req:Request){
       catch{console.warn('[editorial-indexing] background notification unavailable');}
     }
     await recordEditorialHeartbeat({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement,colourBlastActivation});
-    invalidate('blog-published-posts');invalidate('site-posts');
+    invalidate('blog-published-posts');invalidate('blog-published-post-summaries');invalidate('site-posts');
     return reply({ok:true,...outcome,library,completion,ownerApproval,artwork,merchRetirement,colourBlastActivation});
   }catch{
     await recordEditorialHeartbeat({ok:false,error:'editorial_check_failed'}).catch(()=>{});

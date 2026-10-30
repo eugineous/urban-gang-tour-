@@ -21,3 +21,10 @@ export const PUBLIC_POST_SELECT = `SELECT slug,headline,section,image,dek,body,d
   CASE WHEN to_jsonb(posts)->>'editorial_managed'='true' THEN to_jsonb(posts)->'editorial_review'->>'disclosure' END AS disclosure,
   CASE WHEN to_jsonb(posts)->>'editorial_managed'='true' THEN 'BlogPosting' ELSE 'NewsArticle' END AS schema_type
   FROM posts WHERE ${PUBLIC_POST_PREDICATE} ORDER BY date DESC, slug ASC`;
+
+/** Index cards retain the same eligibility and publication clock without manuscripts. */
+export const PUBLIC_POST_SUMMARY_SELECT = `SELECT slug,headline,section,image,dek,date,
+  CASE WHEN to_jsonb(posts)->>'editorial_managed'='true' THEN COALESCE(to_jsonb(posts)->>'published_at',to_jsonb(posts)->>'scheduled_at') END AS publication_time,
+  CASE WHEN to_jsonb(posts)->'asset_manifest'->>'hero'=image THEN jsonb_build_object(
+    'alt',to_jsonb(posts)->'asset_manifest'->>'alt') ELSE NULL END AS public_asset
+  FROM posts WHERE ${PUBLIC_POST_PREDICATE} ORDER BY date DESC, slug ASC`;

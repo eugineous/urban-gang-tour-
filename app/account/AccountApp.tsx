@@ -144,7 +144,7 @@ export default function AccountApp() {
     <div style={{ ...card, maxWidth: 440, margin: '0 auto' }}>
       <h2 style={{ fontFamily: 'inherit', margin: '0 0 4px' }}>{mode === 'login' ? t("copy.sign_in") : mode === 'forgot' ? t("copy.reset_your_password") : mode === 'reset' ? t("copy.choose_a_new_password") : t("copy.create_your_account")}</h2>
       {mode==='login'&&<GoogleSignIn endpoint="/api/auth/google" onSuccess={d=>{setUser(d.user);setMsg(null)}}/>}
-      <div style={{ fontSize: 15, color: '#555', marginBottom: 14 }}>{mode === 'forgot' ? 'Enter the email used for your account.' : mode === 'reset' ? 'Use at least 8 characters. All other devices will be signed out.' : 'Use your email or Kenyan phone number.'}</div>
+      <div style={{ fontSize: 15, color: '#555', marginBottom: 14 }}>{mode === 'forgot' ? t('copy.enter_the_email_used_for_your_account') : mode === 'reset' ? t('copy.use_at_least_8_characters_all_other_devices_will_be_signed') : t('copy.use_your_email_or_kenyan_phone_number')}</div>
       <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void go(mode); }}>
         {mode === 'signup' && <label>{t("copy.name")}<input style={inp} maxLength={100} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>}
         {mode !== 'reset' && <label>{t("copy.email")}<input style={inp} type="email" required={mode==='forgot'} maxLength={254} autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>}
@@ -153,7 +153,7 @@ export default function AccountApp() {
         {mode === 'signup' && <><p style={{ margin: '4px 0', fontSize: 14, lineHeight: 1.5 }}><span lang="en-KE">Accounts are for adults aged 18 and over. Under 18? Ask a parent or guardian to manage bookings and purchases. You can explore the tour without an account.</span></p><label className="ugt-account-consent"><input type="checkbox" required checked={eligible} onChange={e => setEligible(e.target.checked)} />{t("copy.i_am_18_or_older")}</label><label className="ugt-account-consent"><input type="checkbox" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>{t("copy.i_accept_the")} <a href="/terms">{t("copy.terms_2")}</a> {t("copy.and_have_read_the")} <a href="/privacy-policy">{t("copy.privacy_policy_3")}</a>{t("copy.")}</span></label></>}
         {msg && <div role="alert" style={{ color: '#a00', fontSize: 14 }}>{msg?t(msg.key,msg.values):null}</div>}
         <button type="submit" style={btn} disabled={busy}>{busy ? t("copy.please_wait") : mode === 'login' ? t("copy.sign_in") : mode === 'forgot' ? t("copy.send_reset_link") : mode === 'reset' ? t("copy.save_new_password") : t("copy.create_account")}</button>
-        <button type="button" disabled={busy} style={{ background: 'none', border: 'none', color: '#9a145d', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
+        <button type="button" disabled={busy} style={{ background: 'none', border: 'none', color: '#9a145d', fontWeight: 700, cursor: 'pointer', fontSize: 14, minHeight: 44, padding: '10px 12px' }}
           onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMsg(null); }}>
           {mode === 'login' ? t("copy.new_here_create_an_account") : t("copy.already_have_an_account_log_in")}
         </button>

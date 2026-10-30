@@ -84,3 +84,21 @@ export function publicCatalogDatabaseErrorCode(error: unknown): string | null {
   if (!error || typeof error !== 'object' || !('code' in error)) return null;
   return typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code) ? error.code : null;
 }
+
+/** Fixed, redacted diagnostics only; provider text never leaves this function. */
+export function publicCatalogDatabaseDiagnostic(error: unknown): {
+  code:string;category:'sqlstate'|'provider_http'|'transport'|'provider_capacity'|'credential'|'unknown';status?:number;
+} {
+  const code=publicCatalogDatabaseErrorCode(error)||'unclassified';
+  const value=error&&typeof error==='object'?error as {message?:unknown;sourceError?:unknown}:{};
+  const message=typeof value.message==='string'?value.message:'';
+  const match=/^Server error \(HTTP status ([45]\d{2})\):/.exec(message);
+  const status=match?Number(match[1]):undefined;
+  const http=status===undefined?{}:{status};
+  if(code==='28P01'||/\bauthentication\s+failed\b|\b(?:credentials?|password)\b.*\b(?:invalid|rejected)\b/i.test(message))return {code,category:'credential',...http};
+  if(code!=='unclassified')return {code,category:'sqlstate',...http};
+  if(/\bquota\b|\bcompute (?:time|usage|hours?)\b.*\b(?:exceeded|limit)\b/i.test(message))return {code,category:'provider_capacity',...http};
+  if(status!==undefined)return {code,category:'provider_http',status};
+  if(value.sourceError||/\bfetch failed\b|\bnetwork(?:error| error)\b|\berror connecting to database\b/i.test(message))return {code,category:'transport'};
+  return {code,category:'unknown'};
+}

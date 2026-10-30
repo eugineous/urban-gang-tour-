@@ -35,7 +35,7 @@ it('does not run migrations on connection failures and logs no sensitive driver 
  try{
   vi.mocked(q).mockRejectedValue(Object.assign(new Error('password=private'),{code:'08006'}));
   expect((await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'))).status).toBe(503);
-  expect(ensureOpsSchema).not.toHaveBeenCalled();expect(log).toHaveBeenCalledWith('public_catalog_read_failed',{code:'08006'});
+  expect(ensureOpsSchema).not.toHaveBeenCalled();expect(log).toHaveBeenCalledWith('public_catalog_read_failed',{code:'08006',category:'sqlstate'});
  }finally{log.mockRestore()}
 });
 it('does not log malformed SQLSTATE values',async()=>{
@@ -43,6 +43,30 @@ it('does not log malformed SQLSTATE values',async()=>{
  try{
   vi.mocked(q).mockRejectedValue({code:'password=private'});
   await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));
-  expect(log).toHaveBeenCalledWith('public_catalog_read_failed',{code:'unclassified'});
+  expect(log).toHaveBeenCalledWith('public_catalog_read_failed',{code:'unclassified',category:'unknown'});
+ }finally{log.mockRestore()}
+});
+it.each([
+ {message:'Server error (HTTP status 503): provider unavailable',extra:{},want:{code:'unclassified',category:'provider_http',status:503}},
+ {message:'Server error (HTTP status 429): limited',extra:{},want:{code:'unclassified',category:'provider_http',status:429}},
+ {message:'Server error (HTTP status 402): compute time quota exceeded',extra:{},want:{code:'unclassified',category:'provider_capacity',status:402}},
+ {message:'The project has exceeded the compute time quota',extra:{},want:{code:'unclassified',category:'provider_capacity'}},
+ {message:'Password authentication failed',extra:{},want:{code:'unclassified',category:'credential'}},
+ {message:'Authentication failed',extra:{code:'28P01'},want:{code:'28P01',category:'credential'}},
+ {message:'Error connecting to database',extra:{sourceError:Error('nested connection secret')},want:{code:'unclassified',category:'transport'}},
+ {message:'fetch failed',extra:{},want:{code:'unclassified',category:'transport'}},
+ {message:'Server error (HTTP status 200): unexpected response',extra:{},want:{code:'unclassified',category:'unknown'}},
+ {message:'Unexpected driver failure',extra:{},want:{code:'unclassified',category:'unknown'}},
+])('classifies $want.category safely while preserving the public failure response: $message',async({message,extra,want})=>{
+ const log=vi.spyOn(console,'error').mockImplementation(()=>{});
+ try{
+  const error=Object.assign(new Error(message+'; postgres://private-user:private-password@private-host/customer-contact'),extra,{query:'SELECT private_sql',contact:'private-contact'});
+  vi.mocked(q).mockRejectedValue(error);
+  const response=await GET(new Request('https://urbangangtour.co.ke/api/site-data/products'));
+  expect(response.status).toBe(503);expect(response.headers.get('Cache-Control')).toBe('no-store');
+  expect(await response.json()).toEqual({error:'catalog_unavailable'});
+  expect(log.mock.calls).toEqual([['public_catalog_read_failed',want]]);
+  expect(JSON.stringify(log.mock.calls)).not.toMatch(/private|postgres|SELECT|customer|nested/);
+  expect(ensureOpsSchema).not.toHaveBeenCalled();
  }finally{log.mockRestore()}
 });

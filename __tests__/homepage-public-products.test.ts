@@ -4,7 +4,7 @@ const state = vi.hoisted(() => ({products: vi.fn(),posts:vi.fn()}));
 vi.mock('@/ui/components/HostedSite', () => ({default: () => null}));
 vi.mock('@/app/_components/LiveCommerce', () => ({LiveCommerce: () => null}));
 vi.mock('@/app/_components/BookingForm', () => ({BookingForm: () => null}));
-vi.mock('@/app/_lib/blog', () => ({getBlogPosts: state.posts}));
+vi.mock('@/app/_lib/blog', () => ({getBlogPostSummaries: state.posts}));
 vi.mock('@/lib/server/public-events', () => ({readPublicEvents: async () => []}));
 vi.mock('@/lib/server/public-products', () => ({readPublicProducts: state.products}));
 vi.mock('@/lib/server/website-content', () => ({readWebsiteContent: async () => null}));

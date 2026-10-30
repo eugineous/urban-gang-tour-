@@ -1,6 +1,6 @@
 import {expect,it,vi} from 'vitest';
 vi.mock('@/lib/server/db',()=>({hasDb:()=>false}));
-vi.mock('@/app/_lib/blog',()=>({getBlogPosts:async()=>[]}));
+vi.mock('@/app/_lib/blog',()=>({getBlogPostSummaries:async()=>[]}));
 import {GET} from '@/app/api/site-data/posts/route';
 it('does not reject a venue of first-time article readers sharing one network',async()=>{
  const req=()=>new Request('https://urbangangtour.co.ke/api/site-data/posts',{headers:{'cf-connecting-ip':'192.0.2.140'}});

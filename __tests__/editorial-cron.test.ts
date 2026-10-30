@@ -5,6 +5,7 @@ vi.mock('@/lib/server/indexnow',()=>({pingIndexNow:state.ping}));
 vi.mock('@/lib/server/editorial',()=>({releaseDueEditorial:state.release,importEditorial:vi.fn()}));
 vi.mock('@/lib/server/editorial-library',()=>({importStagedEditorialLibrary:state.library,recordEditorialHeartbeat:state.heartbeat,applyStagedOwnerEditorialApproval:async()=>({staged:false}),applyStagedEditorialCompletion:async()=>({staged:false}),applyStagedStoryArtwork:state.artwork,applyStagedLegacyMerchRetirement:state.retirement,applyStagedColorBlastActivation:state.activation}));
 import {POST} from '@/app/api/internal/cron/editorial/route';
+import {cached,invalidate} from '@/lib/server/microcache';
 const req=(secret='')=>new Request('https://urbangangtour.co.ke/api/internal/cron/editorial',{method:'POST',headers:{'x-ugt-cron':secret}});
 beforeEach(()=>{vi.stubEnv('UGT_CRON_SECRET','fixture-secret-not-real');state.release.mockReset().mockResolvedValue({released:0,held:10});state.library.mockReset().mockResolvedValue({staged:false});state.artwork.mockReset().mockResolvedValue({staged:false});state.retirement.mockReset().mockResolvedValue({staged:false});state.activation.mockReset().mockResolvedValue({staged:false});state.heartbeat.mockReset().mockResolvedValue(undefined);state.after.mockReset();state.ping.mockReset().mockResolvedValue(undefined)});
 it('never treats a URL or missing/wrong credential as scheduler authority',async()=>{
@@ -13,6 +14,13 @@ it('never treats a URL or missing/wrong credential as scheduler authority',async
 it('records private monitoring without attempting research or social publishing',async()=>{
  const response=await POST(req('fixture-secret-not-real'));expect(response.status).toBe(200);expect(response.headers.get('Cache-Control')).toContain('no-store');expect(state.library).toHaveBeenCalledTimes(1);expect(state.artwork).toHaveBeenCalledOnce();expect(state.retirement).toHaveBeenCalledOnce();expect(state.activation).toHaveBeenCalledOnce();expect(state.heartbeat).toHaveBeenCalledWith({ok:true,released:0,held:10,library:{staged:false},completion:{staged:false},ownerApproval:{staged:false},artwork:{staged:false},merchRetirement:{staged:false},colourBlastActivation:{staged:false}});
  expect(state.after).not.toHaveBeenCalled();expect(state.ping).not.toHaveBeenCalled();
+});
+it('makes committed releases visible immediately through the cached summary reader',async()=>{
+ invalidate('blog-published-post-summaries');
+ await cached('blog-published-post-summaries',1000,async()=>[] as string[]);
+ state.release.mockResolvedValue({released:1,held:0,releasedSlugs:['public-guide']});
+ expect((await POST(req('fixture-secret-not-real'))).status).toBe(200);
+ expect(await cached('blog-published-post-summaries',1000,async()=>['public-guide'])).toEqual(['public-guide']);
 });
 it('holds on database failure and never leaks connection details',async()=>{
  state.release.mockRejectedValue(Error('postgres://private'));const response=await POST(req('fixture-secret-not-real'));expect(response.status).toBe(503);expect(await response.text()).not.toContain('postgres');expect(state.heartbeat).toHaveBeenCalledWith({ok:false,error:'editorial_check_failed'});
