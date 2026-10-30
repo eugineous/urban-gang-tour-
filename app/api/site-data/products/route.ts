@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasDb } from '@/lib/server/db';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
-import { readPublicProducts, publicCatalogDatabaseErrorCode } from '@/lib/server/public-products';
+import { readPublicProducts, publicCatalogDatabaseDiagnostic } from '@/lib/server/public-products';
 
 // Public native catalog. Preserve retired products for historical receipts.
 export const runtime = 'nodejs';
@@ -22,9 +22,9 @@ export async function GET(req: Request) {
     const products = await readPublicProducts();
     return NextResponse.json({ ok: true, products }, { headers: CACHE_HEADERS });
   } catch (error) {
-    // Only a validated SQLSTATE is logged: never raw driver messages, SQL,
-    // connection strings, credentials or customer records.
-    console.error('public_catalog_read_failed', { code: publicCatalogDatabaseErrorCode(error) || 'unclassified' });
+    // Fixed category, validated SQLSTATE and optional HTTP status only; never
+    // raw driver messages, SQL, connection strings or customer records.
+    console.error('public_catalog_read_failed', publicCatalogDatabaseDiagnostic(error));
     return NextResponse.json({ error: 'catalog_unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }

@@ -144,7 +144,7 @@ export async function POST(req: Request) {
           [slug, data.headline, data.section || 'News', data.image || '', data.dek || '', JSON.stringify(body), published, data.date || null, workflow, submittedBy, published ? actor : '', data.expectedVersion, superAdmin]
         );
         if (!saved.length) return NextResponse.json({error:'story_conflict'}, {status:409});
-        invalidate('blog-published-posts');invalidate('site-posts');
+        invalidate('blog-published-posts');invalidate('blog-published-post-summaries');invalidate('site-posts');
         revalidatePath('/blog');revalidatePath(`/blog/${slug}`);
         revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
         revalidatePath('/sitemap.xml');revalidateTag('sitemap',{expire:0});
@@ -207,7 +207,7 @@ export async function POST(req: Request) {
         }
         const removed=await trashStory(data.slug,actor,isSuperAdmin(req),data.expectedVersion);
         if (!removed.length) return NextResponse.json({error:'story_conflict'}, {status:409});
-        invalidate('blog-published-posts');invalidate('site-posts');
+        invalidate('blog-published-posts');invalidate('blog-published-post-summaries');invalidate('site-posts');
         revalidatePath('/blog');revalidatePath(`/blog/${data.slug}`);
         revalidatePath('/feed.xml');revalidatePath('/news-sitemap.xml');
         revalidatePath('/sitemap.xml');revalidateTag('sitemap',{expire:0});

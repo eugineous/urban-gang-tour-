@@ -2,7 +2,7 @@
 (() => {
   if (window.__ugtReleaseStarted || !('serviceWorker' in navigator)) return;
   window.__ugtReleaseStarted = true;
-  const release = 'app-operations-20261028-v2';
+  const release = 'fast-entry-recovery-20261030-v1';
   let hadController = Boolean(navigator.serviceWorker.controller);
   // A new controller must never discard a form, checkout or another tab's work.
   // The React notice offers an explicit refresh after the visitor is ready.

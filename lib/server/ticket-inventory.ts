@@ -36,7 +36,9 @@ export const CAPACITY_COUNTS_SQL=`SELECT
    AND (r.expires_at>now() OR o.status IN ('unknown','reconciling') OR o.mpesa_ref IS NOT NULL
     OR NOT EXISTS(SELECT 1 FROM mpesa_checkout_attempts a WHERE a.order_id=o.id AND a.state='prepared'))) AS reserved`;
 export async function ticketCapacity(eventId:string,tierIndex:number,tierName:string){
- await ensureTicketInventorySchema();
+ // Public availability reads must never acquire schema locks or run migrations.
+ // Authorized reservation/mutation paths bootstrap separately. Missing schema
+ // rejects this read, so the truth resolver cannot advertise invented seats.
  const rows=await q<{sold:string;reserved:string}>(CAPACITY_COUNTS_SQL,[eventId,tierIndex,tierName,'','ticket:'+eventId+':'+tierIndex]);
  return {sold:Number(rows[0]?.sold||0),reserved:Number(rows[0]?.reserved||0)};
 }

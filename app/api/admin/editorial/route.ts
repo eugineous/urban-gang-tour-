@@ -53,7 +53,7 @@ export async function POST(req:Request){
       rows=await updateEditorial(bundle.items[0],Number(d.revision),actor);
     }else return reply({error:'invalid_action'},400);
     if(!rows.length)return reply({error:'editorial_conflict'},409);
-    invalidate('blog-published-posts');invalidate('site-posts');
+    invalidate('blog-published-posts');invalidate('blog-published-post-summaries');invalidate('site-posts');
     for(const path of ['/','/blog','/blog/'+d.slug,'/feed.xml','/sitemap.xml','/news-sitemap.xml','/image-sitemap.xml'])revalidatePath(path);
     return reply({ok:true,slug:d.slug});
   }catch(error){

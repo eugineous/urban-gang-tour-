@@ -545,12 +545,22 @@ size guidance. It does not synthesize measurements or product photographs.
 products. It reads the existing schema first, without unrelated admin migrations
 on the public request path. Only SQLSTATE `42P01`/`42703` triggers the existing
 schema initialisation and one retry; other failures return 503 `catalog_unavailable`
-with `no-store`. Diagnostics log only a validated SQLSTATE, never driver messages.
+with `no-store`. Internal diagnostics log only a validated SQLSTATE, a fixed
+failure category and optional400–599 provider HTTP status; never driver messages,
+connection strings, SQL or customer data.
 The response contract remains unchanged for active
 products: `{ok, products}` includes total stock and per-variant stock, where
 `null` means inventory is not tracked and zero means unavailable. A catalogue
 outage returns 503 `catalog_unavailable` with no-store caching, rather than a
 successful empty shop. Historical orders continue to resolve retired products.
+
+### Public story card reads
+
+Public `/api/site-data/posts` and homepage/presenter cards use a body-free summary
+projection with the same approval/hash/revision/time predicate as full articles.
+Summary reads keep the one-second in-isolate freshness and fail closed rather
+than serving stale publication approvals. Successful story save/delete, editorial
+updates and editorial cron invalidate both full and summary read caches.
 
 ### Free merchandise name printing
 
