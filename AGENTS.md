@@ -1,5 +1,21 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Shop visual completion (1 November 2026)
+- Owner rejects the partial Mkurugenzi implementation and requests finishing
+  shop UI/UX plus mannequin product presentation. Complete the existing shop,
+  not another app or unrelated pages. Use the captured reference's landscape
+  collection hero, image collection cards, white rounded catalogue, serif names,
+  bold prices and responsive five-column desktop/single-column phone browsing
+  with genuine controls. Source Poppins/Playfair/Bebas fonts are locally hosted
+  under their OFL licenses; do not substitute generic serif fonts for the shop.
+- Five standalone black-apparel mannequin studio illustrations replace flat
+  defaults for tee/hoodie/crewneck/baby-tee/jersey. Preserve the supplied artwork
+  master, accurate colour previews for other choices and existing gallery views.
+  Do not claim generated studio presentations are actual stock photographs.
+- Preserve published catalogue/prices/stock, native languages, orders and active
+  Paystack flag. No financial/customer-message tests. Finish normal tested PR,
+  keep-vars release and live read-only browser checks; no repeated approvals.
+
 ## Owner-requested Paystack activation (1 November 2026)
 - The owner now explicitly requests activating Paystack. This supersedes the
   earlier keep-disabled rollout decision below; do not silently revert it.

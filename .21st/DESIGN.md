@@ -43,6 +43,12 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 1 November completion: shop follows the captured Mkurugenzi landscape banner,
+  collection-photo browsing, white rounded five-desktop/one-phone product grid
+  and locally hosted Poppins/Playfair/Bebas typography. Five standalone black-apparel mannequin studio
+  illustrations replace flat defaults; other selected colours retain accurate
+  existing previews. Keep UGT branding, real catalogue and active payment setup.
+
 - 1 November: Mkurugenzi-grounded public storefront structure, adapted to UGT
   identity and compact spacing. Search/cart masthead, module/story microcards,
   embedded collection and magenta mobile actions replace the long homepage

@@ -37,6 +37,27 @@ function catalogueProps(products=buildShopCatalogue([product])){
 }
 
 describe('current collection shop presentation',()=>{
+ it('uses actual category images as filters that recover from a previous search and collection choice',()=>{
+  const props={...catalogueProps(),search:'no matches',availability:'designs',category:'Headwear'};
+  const nodes=elements(ShopCatalogueView(props));
+  const apparel=nodes.find(node=>node.type==='button'&&node.props['data-shop-collection']==='Apparel');
+  const headwear=nodes.find(node=>node.type==='button'&&node.props['data-shop-collection']==='Headwear');
+  expect(apparel).toBeDefined();expect(headwear).toBeDefined();
+  expect(apparel!.props['aria-pressed']).toBe(false);expect(headwear!.props['aria-pressed']).toBe(true);
+  const html=renderToStaticMarkup(apparel!);
+  expect(html).toContain('/uploads/original-tee.jpg');
+  expect(renderToStaticMarkup(headwear!)).toContain('data-studio-product="cb-snapback"');
+  (apparel!.props.onClick as ()=>void)();
+  expect(props.onSearch).toHaveBeenCalledWith('');expect(props.onAvailability).toHaveBeenCalledWith('all');
+  expect(props.onCategory).toHaveBeenCalledWith('Apparel');expect(props.onAdd).not.toHaveBeenCalled();
+ });
+ it('keeps collection image filters available when the current results are empty',()=>{
+  const props=catalogueProps([]);
+  const html=renderToStaticMarkup(createElement(ShopCatalogueView,props));
+  expect(html).toContain('data-shop-collection="Apparel"');expect(html).toContain('data-shop-collection="Headwear"');
+  expect(html).toContain('data-studio-product="cb-oversized-tee"');expect(html).toContain('data-studio-product="cb-snapback"');
+  expect(html).not.toContain('data-shop-product=');expect(html).not.toContain('data-shop-design=');
+ });
  it('links an activated Color Blast hero to its real made-to-order product instead of claiming it is not on sale',()=>{
   const featuredProduct={...product,id:'cb-oversized-tee',name:'Color Blast Oversized Tee',made_to_order:true,stock:null};
   const html=renderToStaticMarkup(createElement(ShopIntro,{featuredProduct}));
@@ -82,7 +103,7 @@ describe('current collection shop presentation',()=>{
  it('shows the existing studio preview before live products load without purchase claims',()=>{
   const html=renderToStaticMarkup(createElement(ShopIntro));
   expect(html).toContain('data-studio-product="cb-oversized-tee"');
-  expect(html).toContain('/assets/color-blast/generated/primary.webp');
+  expect(html).toContain('/assets/color-blast/mannequins/oversized-tee-black.webp');
   expect(html).toContain('not on sale');expect(html).not.toContain('View all merchandise');
   expect(html).toContain('View cart (0)');expect(html).not.toContain('/checkout');
   expect(html).not.toContain('Add to cart');expect(html).not.toContain('In stock');

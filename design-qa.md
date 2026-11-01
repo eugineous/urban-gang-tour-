@@ -1,108 +1,83 @@
-# Mkurugenzi-grounded UGT one-page QA — 1 November 2026
+# Shop visual completion — 1 November 2026
 
-Result: **passed** for the adapted public design and local interaction gate.
-The final frozen production bundle passed phone/tablet/desktop checks after the
-desktop search spacing correction. Deployment evidence is recorded separately
-by the release owner; this is not a live-payment certification.
+final result: passed
 
-## Source and comparison scope
+## Source and rendered evidence
 
-Public reference: https://mkurugenzi.ke/. Captured at desktop 1440 × 1000 and
-mobile 390 × 844 after its preloader and entrance animation settled. Private
-evidence root: `/workspace/artifacts/ugt-mkurugenzi-20261101/`.
+Source: https://mkurugenzi.ke/, captured desktop1440×1000 and phone390×844 in
+/workspace/artifacts/ugt-mkurugenzi-20261101/reference (desktop-03.png/mobile-06.png).
+Final implementation: /workspace/artifacts/ugt-shop-completion-20261101/browser-release.
+Combined source/implementation evidence: final-comparison-desktop.png and
+final-comparison-phone.png in that evidence root. Phone captures were normalized
+from their device-density raster sizes to390×844 CSS pixels before comparison;
+desktop used1440×1000 at1×. Both compare the public catalogue scroll state;
+actual product identities/order/prices differ intentionally between businesses.
 
-Visually inspected matching source/prototype viewport captures:
+Full-view and focused review used shop-hero-390.png, shop-hero-1440.png,
+shop-collections-* and shop-products-* at390/820/1440. Product title/price/image
+regions are readable in the combined captures; the phone hero was separately
+inspected for text/garment overlap.
 
-| Scope | Reference | UGT frozen production prototype |
-| --- | --- | --- |
-| Desktop entry | `reference/desktop-00.png` | `browser-frozen/home-1440.png` |
-| Mobile entry | `reference/mobile-00.png` | `browser-frozen/home-390.png` |
-| Desktop collection | `reference/desktop-03.png` | `browser-frozen/catalogue-1440.png` |
+## Findings and correction history
 
-The public source grounds the logo/search/account/cart masthead, centered desktop
-navigation, landscape hero, image-led discovery, compact merchandise grid and
-five-action mobile dock. No reference private account, payment flow or backend
-was inspected or copied. Screenshots are local browser emulation, not physical
-device evidence or proof of live payment acceptance.
+- P2: the first phone hero description overlapped the garment. Real browser
+  regression failed with noteRight210.19px versus imageLeft152.11px. Scoped43%
+  copy width and source display font corrected it. Final frozen browser assertion
+  and shop-hero-390.png verify clear copy, legible controls and intact garment.
+- P2: initial two-column phone catalogue/horizontal collection rail and generic
+  serif differed from the actual source. Corrected to single-column phone
+  products/stacked collection cards, five desktop columns, and locally hosted
+  source Poppins/Playfair Display/Bebas Neue with OFL licenses. Final captures
+  and actual font-load/grid checks passed.
+- Three generated apparel presentations omitted the small Color Blast wording.
+  Those assets were corrected with image generation and all five final standalone
+  assets visually inspected before packaging. The supplied print master remains
+  unmodified. Illustrations are not represented as actual stock photographs.
 
-## Intentional adaptations and visual findings
+No actionable P0/P1/P2 findings remain in the completed catalogue presentation.
 
-- UGT retains its logo, warm white/magenta/yellow tokens, Inter/native fonts,
-  authored hero copy and sharp, lightly shaded owned event video. Reference
-  photography, branding and Poppins/Playfair/Bebas typography are not embedded.
-- Six owned-image cards lead to Events, Gallery, Clients, Book, Vendors/Partners
-  and About. These adapt the reference category-card pattern to real UGT modules;
-  they do not invent collections or endorsements.
-- The homepage adds the existing live 24-product collection, guarded events,
-  latest published story cards and FAQ. Existing detail/cart/checkout/status/
-  receipt routes remain the transaction destinations.
-- Header, sections and mobile controls deliberately use less empty space than
-  the reference. The mobile captures show the owned hero and discovery cards
-  earlier, with a compact Home/Search/Shop/WhatsApp/More dock.
-- Desktop development captures exposed an inherited column/gap on search and a
-  legacy 112px shop offset. Current CSS explicitly sets horizontal search with
-  zero gap and removes the old shop spacing. The first frozen run then measured
-  search at61px: inherited input min-height50px and margin9px remained. The final
-  input resets min-height to44px and margin to0. A new regression failed before
-  this correction and passed afterward. Final frozen search height is46px, with
-  compact header and collection spacing visually confirmed. Older captures
-  remain diagnostic evidence.
+## Required fidelity surfaces
 
-This is a UGT adaptation of the captured structure, not a pixel-identical brand
-clone. UGT payment availability/recovery copy follows its own backend safeguards.
+- Typography: source fonts are locally served; Playfair names and bold prices,
+  Poppins controls, Bebas banner. Native-language fallback remains available.
+- Layout: landscape banner, three real collection-photo controls, rounded white
+  cards and source-like five/one desktop/phone catalogue. Tablet uses three.
+  UGT's compact header intentionally retains the owner's no-dead-space constraint.
+- Tokens: white shop surfaces, dark readable controls and existing UGT magenta
+  mobile dock/brand accents. UGT branding is retained, not Mkurugenzi branding.
+- Images: five900×1200WebP black-apparel mannequin presentations (~492KB total),
+  correctly loaded without garment clipping. Other selected colours retain their
+  accurate existing imagery rather than relabelling a black mannequin.
+- Content: real24-product catalogue/options/prices, made-to-order labels and
+  canonical product/cart/checkout links. No invented inventory or endorsements.
 
-## Workflow evidence
+## Functional verification
 
-`browser-dev/proof.json` and `browser-dev-final.log` report successful checks at
-390, 820 and 1440 CSS pixels: six module cards, 24 products, query search, genuine
-variant selection/add-to-cart, cart persistence, disabled unavailable checkout,
-mobile menu/Escape/focus return and no horizontal overflow. Recorded totals:
-zero page errors, unexpected writes or live financial requests.
+Full suite2229passed/180gated skips (253passed files/12skipped) in
+full-suite-final.log. This preceded the last CSS/font-only source-fidelity
+corrections; subsequent focused-release.log passed107tests. Production
+build-release.log completed compilation, TypeScript and OpenNext packaging;
+dry-release.log completed the keep-vars dry bundle. Changed-source lint has
+0errors/5warnings; syntax and diff checks passed.
 
-The browser harness intercepts API calls. It uses a saved public catalogue and
-two explicitly local story fixtures, empty events and unavailable payment
-booleans. Those checks establish rendered behavior and canonical story links,
-not a fresh live CMS/catalogue/payment audit. Component tests independently cover
-published/empty/private/unsafe story gates and one primary heading.
+browser-release.log/proof.json:390/820/1440, actual source font loading,
+5/3/1columns, three collection controls, all five images decoded900×1200,
+Black→White→Black correctness, genuine options/add/cart persistence, search,
+menus/Escape/focus, unavailable-method guards and all five alternate native
+locales; zero page errors/unexpected writes/live financial requests.
 
-Focused logs inspected: `home-red.log` (five failures before implementation),
-`home-green.log` (7 passed), `integration-green.log` (15 passed),
-`cross-provider-recovery-red.log` (six additional failures), `recovery-final.log`
-(42 passed, including 36 commerce cases), `chrome-green.log` (32 passed) and
-`final-safety-green.log` (19 passed). Commerce cases cover missing/malformed/
-failed options, explicit stale-variant repair, shared cart events, saved attempts
-with disabled providers and recovery without creating another provider attempt.
+paystack-release.log: nine mocked checkout scenarios passed. PWA recheck passed
+responsive/install/connectivity/English-first, iOS/storage-denied, upgrade/cart/
+form preservation and offline/cache checks. One concurrent run timed out waiting
+for iOS readiness with no JavaScript errors; unchanged isolated recheck passed.
+An immediate story-count harness assertion was corrected to wait for the actual
+asynchronous public story cards; its expected count was not weakened.
 
-`full-suite-frozen.log` records252passed test files,12skipped;2221passed tests
-and180gated skips from final source. `lint-delivery.log` records0errors/36warnings;
-the added search regression also passes lint (`lint-search-final.log`).
-`types-frozen.log` exits0 and `cloudflare-build-frozen.log` ends with OpenNext
-build complete. The final keep-vars dry bundle succeeded (`dry-frozen.log`).
+## Release boundaries
 
-`browser-frozen-final.log` and `browser-frozen/proof.json` record all3widths
-passed,6modules/24products each, working query/options/cart/menu/focus, all5
-non-English native locale overflow checks, unavailable-method safeguards and
-0page errors/unexpected writes/live financial requests.
-
-`paystack-browser-final.log` records9mocked checkout scenarios passed,0errors
-and0live requests. `pwa-final.log` records responsive/install/connectivity/English-first,
-iOS/storage-denied, worker-upgrade/cart/form preservation and offline/cache
-checks. Its simulated503/offline resource failures are expected test conditions.
-Neither result is a live payment or customer-message test.
-
-## Remaining release gates
-
-- [x] Final suite2221passed/180gated skips, TypeScript passed, changed-file
-  lint0errors/36warnings and Cloudflare/OpenNext build completed.
-- [x] Nine mocked checkout browser scenarios and local PWA regression passed.
-- [x] Verify the final search CSS regression, rebuild and frozen browser proof
-  at all three widths, including compact desktop search and catalogue spacing.
-- [x] Release owner compared final same-viewport source/frozen screenshots;
-  the adapted visual result passed with the documented UGT-specific differences.
-- [ ] Normal PR/merge, tested-tree equality, keep-vars deployment, unchanged
-  bindings/cron metadata and live read-only smoke evidence.
-
-PAYSTACK_ENABLED remains false. Configuration booleans are not merchant approval;
-destination signing/subscriptions, merchant/channel/settlement and authenticated
-ledger-write readiness remain activation gates. No live charges, STKs, refunds,
-transfers or customer-message tests are included.
+Normal PR/merge, tested-tree equality, keep-vars deployment, unchanged binding/
+cron metadata and live read-only four-page/image/zoom verification are recorded
+separately in the private release record. PAYSTACK_ENABLED staystrue under the
+owner's explicit activation instruction. No order, real charge, refund, STK or
+customer message was used for testing. This is not a merchant/settlement audit,
+a paid end-to-end certification, or a pixel-identical third-party branding clone.
