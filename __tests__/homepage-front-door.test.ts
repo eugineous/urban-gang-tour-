@@ -4,8 +4,6 @@ import {describe, expect, it} from 'vitest';
 import Site from '@/ui/components/Site';
 import {WEBSITE_DEFAULTS} from '@/lib/website-content';
 import {EMPTY_PARTNER} from '@/lib/partner-events';
-import {getMerchProduct} from '@/data/color-blast';
-import {getColourPreview} from '@/data/merch-gallery';
 
 const now = Date.parse('2026-10-22T12:00:00+03:00');
 type Props = ComponentProps<typeof Site>;
@@ -39,27 +37,27 @@ function render(overrides: Partial<Props> = {}) {
   }));
 }
 function eventSection(html: string) {
-  return html.slice(html.indexOf('id="home-events"'), html.indexOf('id="home-shop"'));
+  return html.slice(html.indexOf('id="home-events"'), html.indexOf('aria-label="Booking questions"'));
 }
 function merchSection(html: string) {
-  return html.slice(html.indexOf('id="home-shop"'), html.indexOf('id="experiences"'));
+  return html.slice(html.indexOf('id="collection-title"'), html.indexOf('id="home-events"'));
 }
 
 describe('homepage front-door integration', () => {
   it('does not automatically promote legacy p1 from the live catalogue', () => {
     const merch = merchSection(render({products: [legacyTee]}));
-    expect(merch).not.toContain('data-home-product="p1"');
+    expect(merch).not.toContain('data-shop-product="p1"');
     expect(merch).not.toContain('/assets/merch/magenta-tee.png');
     expect(merch).not.toContain('Magenta Oversized Tee');
-    expect(merch).toContain('data-home-design="cb-oversized-tee"');
+    expect(merch).toContain('data-shop-design="cb-oversized-tee"');
   });
 
-  it('server-renders events, merchandise and booking as direct native hero routes', () => {
+  it('server-renders events and booking routes and an in-page shop link in the hero', () => {
     const html = render();
     const hero = html.slice(0, html.indexOf('id="home-events"'));
     expect(hero).toContain('aria-label="Start exploring"');
     expect(hero).toMatch(/href="\/events"[^>]*>Events/s);
-    expect(hero).toMatch(/href="\/shop"[^>]*>Shop/s);
+    expect(hero).toMatch(/href="#merchandise-catalogue"[^>]*>Shop/s);
     expect(hero).toMatch(/href="\/book"[^>]*>Book/s);
     expect((html.match(/<h1(?:\s|>)/g) || [])).toHaveLength(1);
   });
@@ -83,16 +81,14 @@ describe('homepage front-door integration', () => {
     expect(events).not.toContain('Buy tickets');
   });
 
-  it('puts current event discovery and merchandise before service descriptions and archive work', () => {
+  it('puts module discovery and the embedded collection before upcoming events', () => {
     const html = render();
     const events = html.indexOf('id="home-events"');
-    const merch = html.indexOf('id="home-shop"');
-    const experiences = html.indexOf('id="experiences"');
-    const portfolio = html.indexOf('Featured work.');
-    expect(events).toBeGreaterThan(0);
-    expect(events).toBeLessThan(merch);
-    expect(merch).toBeLessThan(experiences);
-    expect(experiences).toBeLessThan(portfolio);
+    const merch = html.indexOf('id="merchandise-catalogue"');
+    const explore = html.indexOf('id="explore"');
+    expect(explore).toBeGreaterThan(0);
+    expect(explore).toBeLessThan(merch);
+    expect(merch).toBeLessThan(events);
   });
 
   it('does not leak private, archived, completed, past, postponed or malformed records into upcoming promotions', () => {
@@ -109,27 +105,19 @@ describe('homepage front-door integration', () => {
     for (const event of excluded) expect(html).not.toContain(event.name);
   });
 
-  it('features the four existing Color Blast studio designs with honest preview labels', () => {
+  it('renders actual live products and distinguishes proposed designs in the embedded catalogue', () => {
     const merch = merchSection(render());
-    for (const id of ['cb-oversized-tee', 'cb-hoodie', 'cb-bucket-hat', 'cb-tote']) {
-      const design = getMerchProduct(id)!;
-      expect(merch).toContain(`data-home-design="${id}"`);
-      expect(merch).toContain(`data-studio-product="${id}"`);
-      expect(merch).toContain(`href="/shop/${id}"`);
-      expect(merch).toContain(design.name);
-      expect(merch).toContain(`href="${getColourPreview(id, 'Black')!.sheet}"`);
+    for (const product of [tee, cap]) {
+      expect(merch).toContain(`data-shop-product="${product.id}"`);
+      expect(merch).toContain(`href="/shop/${product.id}"`);
+      expect(merch).toContain(product.name);
+      expect(merch).toContain(`src="${product.image}"`);
     }
-    expect(merch.match(/data-home-design=/g)).toHaveLength(4);
-    expect(merch).toContain('Color Blast');
-    expect(merch).toContain('Design previews · not on sale');
-    expect(merch).toContain('Samples and stock unconfirmed.');
-    expect(merch).toContain('href="/shop/lookbook"');
-    expect(merch).toMatch(/href="\/shop"[^>]*>Shop products/s);
-    expect(merch).not.toContain('KES');
-    expect(merch).not.toContain('Out of stock');
-    expect(merch).not.toContain('Add to cart');
-    expect(merch).not.toContain('Buy now');
-    expect(merch).not.toContain('/checkout');
+    expect(merch).toContain('data-shop-design="cb-oversized-tee"');
+    expect(merch).toContain('Design · not on sale');
+    expect(merch).toContain('Proposed KES');
+    expect(merch).toContain('KES');
+    expect(merch).toContain('Out of stock');
   });
 
   it('keeps live catalogue records separate from the curated design previews', () => {
@@ -143,13 +131,20 @@ describe('homepage front-door integration', () => {
     const products = [...excluded, tee];
     const before = JSON.stringify(products);
     const html = render({products});
-    expect(merchSection(html)).not.toContain('data-home-product=');
-    expect(merchSection(html)).not.toContain(tee.image);
+    expect(merchSection(html)).toContain('data-shop-product="original-tee"');
+    expect(merchSection(html)).toContain(tee.image);
     for (const product of excluded) expect(html).not.toContain(product.name);
     expect(JSON.stringify(products)).toBe(before);
   });
 
-  it('retains static design previews while withdrawing stale event sales claims', () => {
+  it('renders every supplied live catalogue item rather than truncating the collection', () => {
+    const products = Array.from({length: 24}, (_, index) => ({...tee, id: `fixture-item-${index + 1}`, name: `Fixture item ${index + 1}`}));
+    const merch = merchSection(render({products}));
+    for (const product of products) expect(merch).toContain(`data-shop-product="${product.id}"`);
+    expect(merch.match(/data-shop-product=/g)).toHaveLength(24);
+  });
+
+  it('withdraws stale event and product sales claims', () => {
     const html = render({homeCurrent: {events: false, products: false}});
     const events = eventSection(html);
     const merch = merchSection(html);
@@ -157,11 +152,11 @@ describe('homepage front-door integration', () => {
     expect(events).toContain('Showing the last loaded events. Open an event for the latest details.');
     expect(events).not.toContain('Tickets on sale');
     expect(events).not.toContain('from KES 1,200.00');
-    expect(merch).toContain('data-home-design="cb-oversized-tee"');
-    expect(merch).toContain('Design previews · not on sale');
-    expect(merch).not.toContain('View latest price');
-    expect(merch).not.toContain('From KES 1,200');
-    expect(merch).not.toContain('KES 600');
+    expect(merch).toContain('We could not load the live catalogue. Try again.');
+    expect(merch).toContain('href="/shop"');
+    expect(merch).not.toContain('data-shop-design=');
+    expect(merch).not.toContain('data-shop-product="original-tee"');
+    expect(merch).not.toContain('data-shop-product="original-cap"');
   });
 
   it('keeps useful events, shop and booking links when both catalogues are empty or unavailable', () => {
@@ -171,11 +166,10 @@ describe('homepage front-door integration', () => {
     expect(events).toContain('Event updates are temporarily unavailable.');
     expect(events).toMatch(/href="\/events"[^>]*>Explore events/s);
     expect(events).toMatch(/href="\/book"[^>]*>Book the team/s);
-    expect(merch).toMatch(/href="\/shop"[^>]*>Shop products/s);
-    expect(merch).toContain('href="/shop/lookbook"');
-    expect(merch.match(/data-home-design=/g)).toHaveLength(4);
+    expect(merch).toContain('href="/shop"');
+    expect(merch).toContain('We could not load the live catalogue. Try again.');
     expect(html).not.toContain('data-home-event=');
-    expect(html).not.toContain('data-home-product=');
+    expect(html).not.toContain('data-shop-product=');
     expect(html).not.toContain('Sold out');
     expect(html).not.toContain('Free tickets');
   });
@@ -190,6 +184,7 @@ describe('homepage front-door integration', () => {
     expect(html).toContain('Owner answer &amp; details.');
     expect(html).toContain('href="/faq"');
     expect((html.match(/<h1(?:\s|>)/g) || [])).toHaveLength(1);
-    expect((html.match(/<details(?:\s|>)/g) || [])).toHaveLength(1);
+    const faq = html.slice(html.indexOf('aria-label="Booking questions"'));
+    expect((faq.match(/<details(?:\s|>)/g) || [])).toHaveLength(1);
   });
 });

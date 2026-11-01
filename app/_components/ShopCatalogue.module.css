@@ -1,4 +1,4 @@
-.page.page{width:100%;max-width:none;margin:0;padding:112px 0 72px;background:var(--ugt-surface-base,#fff);color:#141414;container-type:inline-size;container-name:shop;--shop-line:var(--ugt-border,#d5d3d1);--shop-muted:#625d60}
+.page.page{width:100%;max-width:none;margin:0;padding:0 0 72px;background:var(--ugt-surface-base,#fff);color:#141414;container-type:inline-size;container-name:shop;--shop-line:var(--ugt-border,#d5d3d1);--shop-muted:#625d60}
 .page :where(a,button,input,select,summary):focus-visible{outline:3px solid #9b1460;outline-offset:4px}
 .page :where(a,summary)>span[aria-hidden=true]{display:inline-flex;flex-shrink:0}
 .hero{display:grid;grid-template-columns:minmax(0,1fr);min-height:280px;border-bottom:1px solid var(--shop-line);background:#fff}
@@ -115,3 +115,18 @@
 :global(html[data-phone-viewport=wide]) .catalogueHeading{padding:25px 16px 18px}
 :global(html[data-phone-viewport=wide]) .categories{padding:0 16px 14px}
 @media(prefers-reduced-motion:reduce){.productImage img{transition:none}.productImage:hover img{transform:none}}
+
+/* Image-led collection cards, while leaving the genuine purchase controls intact. */
+.catalogue{--shop-line:#e2dadd;--shop-muted:#625d60;container-type:inline-size;container-name:catalogue;background:#fffcf6;color:#1b1918;padding-bottom:28px}
+.productGrid{gap:16px;padding:0 16px;border:0}
+.productCard{border:1px solid #e9e1e2;border-radius:12px;overflow:hidden;box-shadow:0 5px 18px #2418200b}
+.productImage{aspect-ratio:1/1.08;background:#f3f0ee;border:0}
+.productImage img{padding:0}
+.productInfo{padding:15px 10px 12px}
+.catalogue .productCard h2{font-size:14px;line-height:1.35;font-weight:650;letter-spacing:-.02em;text-transform:none;margin:0 auto 8px}
+.catalogue .productPrice{font-size:14px;font-weight:750;margin:0}
+.productPurchase{padding:0 10px 14px}
+.cardActions button,.cardActions .designLink{border-radius:4px}
+@container catalogue (min-width:40rem){.productGrid{grid-template-columns:repeat(3,minmax(0,1fr));padding:0 32px;gap:20px}}
+@container catalogue (min-width:64rem){.productGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@container catalogue (min-width:85rem){.productGrid{grid-template-columns:repeat(5,minmax(0,1fr))}}

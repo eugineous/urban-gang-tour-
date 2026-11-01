@@ -25,20 +25,21 @@ it('keeps a compact footer with support and seller entry without deleting canoni
  for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/account','/organizer/login','/contact-us','/accessibility','/app','/vendors'])expect(footer.some(([,target])=>target===href)).toBe(true);
 });
 
-it('routes the restored shopping cart symbol to Shop and renders seven matching desktop/mobile primary links',()=>{
+it('routes the cart symbol to the basket and preserves canonical discovery links',()=>{
  vi.mocked(usePathname).mockReturnValue('/shop/example');
  const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
- expect(html).toContain('class="cart-link" href="/shop" aria-label="Shop" aria-current="page"');
+ expect(html).toContain('class="cart-link" href="/cart"');
  expect(html).not.toContain('aria-label="View your cart"');
  const menu=html.slice(html.indexOf('<div class="menu-groups">'),html.indexOf('<div class="menu-bottom">'));
  expect(menu.match(/<a\s/g)).toHaveLength(7);
  expect(menu).toContain('href="/gallery"');
  const desktop=html.slice(html.indexOf('<nav class="desktop-nav"'),html.indexOf('</nav>'));
- expect(desktop.match(/<a\s/g)).toHaveLength(7);
+ expect(desktop.match(/<a\s/g)).toHaveLength(8);
+ expect(desktop).toContain('href="/#explore"');
  expect(desktop).toContain('href="/gallery"');
  expect(menu).not.toContain('<h2');
  expect(html).toContain('class="tickets-link" href="/account"');
- expect(html).toContain('class="header-rolling-label"');
+ expect(html).toContain('role="search" action="/shop" method="get"');
  expect(html.match(/<header class="site-header"/g)).toHaveLength(1);
  expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);
  expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<ShoppingCart size={21}');

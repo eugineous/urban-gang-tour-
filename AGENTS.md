@@ -1,5 +1,23 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Mkurugenzi-referenced one-page storefront (1 November 2026)
+- Owner now replaces the MOOKH-only presentation target with the public
+  https://mkurugenzi.ke/ shopping structure: a UGT-branded one-page front door,
+  image-led microcards for public modules and published posts, plus working
+  search/collections/cart/checkout. This reopens homepage/shop presentation.
+- Use captured public desktop/mobile evidence, UGT-owned assets and actual live
+  catalogue/posts. Keep compact spacing, sharp lightly shaded owned hero video,
+  six native languages,44px controls, reduced motion and existing detail routes.
+  No reference branding/photography reuse, fake endorsements, stock or promises.
+- Repair unavailable payment choices, missing/stale cart variations and shared
+  cart synchronization. Configuration may be exposed as booleans only, not as
+  proof of merchant approval. PAYSTACK_ENABLED remainsfalse and all previous
+  signing/eligibility/write-readiness gates stay. No live financial/messages tests.
+- Preserve ledger, providers, prices, consent/auth, editorial publication and
+  all bindings/cron. Existing approved isolated-worktree/normalPR/keep-vars
+  workflow and owner's no-repeated-question instruction apply. One coordinated
+  implementation with focused TDD and one final combined verification/review.
+
 ## Replacement merchant implementation (31 October 2026)
 - Owner supplies the replacement merchant2080721 live setup and explicitly asks
   to implement the existing Paystack flow, securely installing the supplied new

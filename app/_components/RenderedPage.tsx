@@ -8,7 +8,7 @@ import {readWebsiteContent} from '@/lib/server/website-content';
 import {requestTime} from '@/lib/server/request-time';
 import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
 export async function RenderedPage({pathName}:{pathName:string}){
- if(pathName==='/shop')return <LiveCommerce/>;
+ if(pathName==='/shop')return <LiveCommerce initialProducts={await readPublicProducts().catch(()=>undefined)}/>;
  if(pathName==='/book')return <BookingForm/>;
  const presenter=pathName.startsWith('/author/');
  const home=pathName==='/';

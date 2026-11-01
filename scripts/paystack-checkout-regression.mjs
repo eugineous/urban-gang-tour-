@@ -29,7 +29,7 @@ try{
    }
    if(!path.startsWith('/api/'))return route.continue();
    if(path==='/api/site-data/products')return json({ok:true,products:[product]});
-   if(path==='/api/checkout/fulfillment')return json({pickup:{enabled:true,fee:0,location:'Fixture desk'},delivery:{enabled:false,fee:null}});
+   if(path==='/api/checkout/fulfillment')return json({pickup:{enabled:true,fee:0,location:'Fixture desk'},delivery:{enabled:false,fee:null},payments:{mpesa:true,card:true}});
    if(path==='/api/checkout/session')return json({ok:true,created:false});
    if(path==='/api/checkout/recovery'){
     recoveries++;assert.equal(request.postDataJSON().provider,'paystack');
