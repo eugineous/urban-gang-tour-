@@ -5,6 +5,7 @@ import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
 import {formatKes} from '@/lib/i18n/format';
 
 import type {LiveShopProduct, ShopCatalogueProduct} from '@/lib/shop-discovery';
+import {merchProducts} from '@/data/color-blast';
 import {PRINTABLE_NAME_MAX_LENGTH} from '@/lib/shared/merch-personalization';
 import {ArrowDownRight, ArrowUpRight, Plus} from '@phosphor-icons/react';
 import GeneratedProductImage from './merch/GeneratedProductImage';
@@ -136,7 +137,17 @@ type ShopCatalogueProps = {
 
 export default function ShopCatalogueView(props: ShopCatalogueProps) {
  const t=useMessages(commerceMessages);
+ const collections=props.categories.map(name=>({name,product:props.products.find(product=>product.category===name)||merchProducts.find(product=>product.category===name)})).filter(collection=>collection.product).slice(0,3);
   return <div className={styles.catalogue} id="merchandise-catalogue">
+    {!!collections.length&&<section className={styles.collections} aria-label={t('collection')}>
+      <div className={styles.collectionHeading}><h2>{t('collection')}</h2><a href="#shop-product-grid">{t('shop.shopAll')} <span aria-hidden="true"><ArrowDownRight size={16}/></span></a></div>
+      <div className={styles.collectionGrid}>
+        {collections.map(({name,product})=><button key={name} type="button" className={styles.collectionCard} data-shop-collection={name} aria-pressed={props.category===name} onClick={()=>{props.onSearch('');props.onAvailability('all');props.onCategory(name)}}>
+          <span className={styles.collectionArtwork} aria-hidden="true">{product!.id.startsWith('cb-')?<GeneratedProductImage id={product!.id}/>:product!.image?<img src={product!.image} alt="" loading="lazy" decoding="async"/>:null}</span>
+          <span className={styles.collectionCopy}><strong lang="en-KE">{name}</strong><span>{t('shop.shopAll')} <ArrowUpRight size={16} aria-hidden="true"/></span></span>
+        </button>)}
+      </div>
+    </section>}
     <div className={styles.catalogueHeading}><h2>{t('shop.all')}</h2><p role="status">{t('items.count',{count:props.products.length})}</p></div>
     {props.products.some(product=>product.preview)&&<p className={styles.designNote} data-design-collection-note>{t('design.warning')} <a href="/shop/design-bag">{t('bag.saved')} <span aria-hidden="true"><ArrowUpRight size={14}/></span></a></p>}
     <div className={styles.catalogueTools}>
@@ -148,7 +159,7 @@ export default function ShopCatalogueView(props: ShopCatalogueProps) {
       <button type="button" aria-pressed={!props.category} onClick={() => props.onCategory('')}>{t('shop.all')}</button>
       {props.categories.map(name => <button key={name} lang="en-KE" type="button" aria-pressed={props.category === name} onClick={() => props.onCategory(name)}>{name}</button>)}
     </div>
-    <div className={styles.productGrid}>
+    <div className={styles.productGrid} id="shop-product-grid">
       {props.products.map(product => product.preview ? <ShopDesignCard key={product.id} product={product} /> : <ShopLiveProductCard key={product.id} product={product} variation={props.variationFor(product)} full={props.selectionFull(product)} printableName={props.printableNames[product.id]} onVariation={value => props.onVariation(product.id, value)} onName={value => props.onName(product.id, value)} onAdd={() => props.onAdd(product)} />)}
     </div>
   </div>;

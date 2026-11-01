@@ -45,6 +45,13 @@
   "decisions": [
     {
       "date": "2026-11-01",
+      "direction": "Complete the owner-selected Mkurugenzi shop presentation and mannequin product imagery",
+      "reference": "https://mkurugenzi.ke/",
+      "publicSurfaces": "Landscape collection hero, real category-photo filters, white rounded five-desktop/one-phone grid, locally hosted source Poppins/Playfair/Bebas fonts and bold prices; standalone black-apparel mannequin studio illustrations",
+      "preserve": "UGT artwork and identity, accurate other-colour previews, catalogue prices/stock, real options/cart/checkout, six languages, active Paystack and unrelated provider settings"
+    },
+    {
+      "date": "2026-11-01",
       "direction": "Owner-selected Mkurugenzi public storefront structure adapted into UGT's existing one-page front door",
       "reference": "https://mkurugenzi.ke/",
       "publicSurfaces": "Compact logo/search/account/cart masthead, image-led module and published-story microcards, embedded real collection, dense responsive product cards and magenta mobile action bar",

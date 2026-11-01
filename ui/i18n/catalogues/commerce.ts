@@ -2,6 +2,7 @@ import {defineCatalogue,type Message,type MessageValues} from '@/lib/i18n/messag
 
 // Presentation only. Product, variant, tier and transaction values remain source data.
 const rows = [
+ ['image.mannequin','mannequin studio preview','hakikisho la studio kwenye mannequin','aperçu studio sur mannequin','模特道具工作室预览','студийный макет на манекене','vista previa de estudio en maniquí'],
  ['checkout.recoverFirst','Check your saved payment before starting with another method.','Thibitisha malipo uliyohifadhi kabla ya kuanza kwa njia nyingine.','Vérifiez votre paiement enregistré avant de choisir un autre moyen.','使用其他方式付款前，请先核实已保存的付款。','Проверьте сохранённый платёж, прежде чем выбирать другой способ.','Comprueba tu pago guardado antes de utilizar otro método.'],
  ['cart.chooseVariant','Choose an available option before checkout.','Chagua chaguo linalopatikana kabla ya kulipa.','Choisissez une option disponible avant de payer.','结账前请选择可用款式。','Перед оплатой выберите доступный вариант.','Elige una opción disponible antes de pagar.'],
  ['checkout.onlineUnavailable','Online payment is currently unavailable. Your cart is kept.','Malipo ya mtandaoni hayapatikani kwa sasa. Kikapu chako kimehifadhiwa.','Le paiement en ligne est actuellement indisponible. Votre panier est conservé.','在线付款暂不可用。购物车已保留。','Онлайн-оплата сейчас недоступна. Корзина сохранена.','El pago en línea no está disponible por ahora. Tu carrito se conserva.'],

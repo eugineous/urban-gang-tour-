@@ -1,4 +1,4 @@
-export type StudioTile={sheet:string;width:number;height:number;left:number;top:number;tileWidth:number;tileHeight:number;colour:string;source:"generated"|"supplied"};
+export type StudioTile={sheet:string;width:number;height:number;left:number;top:number;tileWidth:number;tileHeight:number;colour:string;source:"generated"|"supplied";presentation?:'mannequin'};
 export const studioTiles:Record<string,StudioTile[]>= {
   "cb-oversized-tee": [
     {
