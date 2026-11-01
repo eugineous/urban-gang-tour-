@@ -1,11 +1,9 @@
 import { NextResponse, after } from "next/server";
 import crypto from "crypto";
 import { alertCritical } from "@/lib/server/alert";
-import { sendReceiptEmail } from "@/lib/server/receipt-email";
-import { ensureTickets } from "@/lib/server/tickets";
 import { notifyPaymentSuccess } from "@/lib/server/notify";
-import { recordPaidMerchOrder } from "@/lib/server/inventory";
 import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
+import { settlePaystackOrder, processPaymentEffects } from '@/lib/server/payment-effects';
 
 // Paystack webhook. Signature: x-paystack-signature = HMAC-SHA512(raw body)
 // keyed with the secret key. charge.success flips the ledger row (order id
@@ -52,38 +50,14 @@ export async function POST(req: Request) {
       try {
         const { q, hasDb } = await import("@/lib/server/db");
         if (hasDb()) {
-          const rows = await q(
-            `UPDATE orders SET status='paid'
-             WHERE id=$1
-               AND status = ANY($3) AND total=$2
-               AND pay_method='card' AND paystack_ref=$1
-             RETURNING *`,
-            [ref, amountKes, RECOVERABLE_PAYMENT_STATUSES],
-          );
-          if (rows.length) {
-            console.log("[paystack] order paid", ref);
-            // mint e-tickets, then the branded receipt email (which links them)
-            // - fire-and-forget after the ack
-            const paidRow = rows[0];
-            if (paidRow)
-              after(async () => {
-                try {
-                  const { consumeReservation } = await import("@/lib/server/ticket-inventory");
-                  await consumeReservation(paidRow.id);
-                } catch (e) {
-                  console.error("[ticket-reservation]", e);
-                }
-                try {
-                  await recordPaidMerchOrder(paidRow);
-                } catch (e) {
-                  console.error("[merch-inventory]", e);
-                }
-                try {
-                  await ensureTickets(paidRow);
-                } catch (e) {
-                  console.error("[tickets-mint]", e);
-                }
-                if (paidRow.email) await sendReceiptEmail(paidRow);
+          const paidRow = await settlePaystackOrder({ orderId: ref, reference: ref, amountKes });
+          if (paidRow) {
+            // Customer consequences are already durable in the settlement
+            // statement. after() only accelerates them; cron recovers a crash.
+            after(async () => {
+                await processPaymentEffects(4, paidRow.id).catch(() => console.error('[paystack-effects] deferred_drain_failed'));
+                // Owner notices are existing best effort, not replayable
+                // customer effects. Do not duplicate WhatsApp on retries.
                 await notifyPaymentSuccess({
                   gateway: "paystack",
                   orderId: paidRow.id,
@@ -94,21 +68,16 @@ export async function POST(req: Request) {
                 await q(
                   `INSERT INTO audit_log (actor, action, detail) VALUES ('paystack','order_paid',$1)`,
                   [JSON.stringify({ id: ref, channel: event.data?.channel, amount: amountKes })],
-                ).catch(error => console.error("[paystack-audit]", error));
+                ).catch(()=>console.error('[paystack-audit] audit_unavailable'));
               });
-          } else {
-            console.log(
-              "[paystack] charge.success for unknown/settled ref",
-              ref,
-            );
           }
         } else return new NextResponse("ledger unavailable", { status: 503 });
-      } catch (e) {
-        console.error("[paystack-webhook]", e);
+      } catch {
+        console.error('[paystack-webhook] durable_settlement_unavailable');
         after(async () => {
           await alertCritical(
             "Paystack payment reconciliation failed",
-            `ref ${ref}: ${e instanceof Error ? e.message : String(e)}`,
+            'A signed payment event could not commit its ledger and durable customer effects. Provider redelivery remains retryable.',
           ).catch(() => {});
         });
         return new NextResponse("ledger unavailable", { status: 503 });
@@ -133,8 +102,8 @@ export async function POST(req: Request) {
             [ref, amountKes, RECOVERABLE_PAYMENT_STATUSES],
           );
         } else return new NextResponse("ledger unavailable", { status: 503 });
-      } catch (error) {
-        console.error("[paystack-webhook]", error);
+      } catch {
+        console.error('[paystack-webhook] ledger_unavailable');
         return new NextResponse("ledger unavailable", { status: 503 });
       }
     }

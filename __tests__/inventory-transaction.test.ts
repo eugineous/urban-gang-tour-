@@ -7,10 +7,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 type QueryCall = { sql: string; params: any[] };
 
-function makeFakePool(calls: QueryCall[]) {
+function makeFakePool(calls: QueryCall[], currentStatus: string | null = 'paid') {
   const client = {
     query: vi.fn(async (sql: string, params: any[] = []) => {
       calls.push({ sql, params });
+      if (sql.includes('FROM orders WHERE id=$1 FOR UPDATE')) {
+        return { rows: currentStatus === null ? [] : [{ status: currentStatus }] };
+      }
       if (sql.includes('COUNT(*)') && sql.includes('online_sale')) {
         return { rows: [{ n: '0' }] };
       }
@@ -54,6 +57,32 @@ beforeEach(() => {
 });
 
 describe('recordPaidMerchOrder', () => {
+  it.each(['refunded', 'partially_refunded', 'failed', 'unknown', null])(
+    'does not apply a stale paid snapshot when the locked current ledger is %s',
+    async currentStatus => {
+      fakePool = makeFakePool(calls, currentStatus);
+      await recordPaidMerchOrder({ id: 'ORD-STALE', status: 'paid', items: [{ id: 'p1', qty: 2 }] });
+      expect(calls.filter(call => /INSERT INTO merch_(inventory_moves|fulfillments|order_settlements)/.test(call.sql))).toEqual([]);
+      expect(calls.some(call => call.sql.includes('FROM products'))).toBe(false);
+      expect(calls.at(-1)?.sql).toBe('COMMIT');
+    },
+  );
+
+  it('locks the current ledger inside the transaction before reading inventory', async () => {
+    await recordPaidMerchOrder({ id: 'ORD-CURRENT', status: 'paid', items: [{ id: 'p1', qty: 1 }] });
+    const locked = calls.findIndex(call => call.sql.includes('FROM orders WHERE id=$1 FOR UPDATE'));
+    expect(locked).toBeGreaterThan(calls.findIndex(call => call.sql === 'BEGIN'));
+    expect(locked).toBeLessThan(calls.findIndex(call => call.sql.includes('FROM merch_order_settlements')));
+    expect(calls[locked].params).toEqual(['ORD-CURRENT']);
+    expect(calls.some(call => call.sql.includes('INSERT INTO merch_inventory_moves'))).toBe(true);
+  });
+
+  it('permits a currently fulfilled order to complete its inventory consequence', async () => {
+    fakePool = makeFakePool(calls, 'fulfilled');
+    await recordPaidMerchOrder({ id: 'ORD-FULFILLED', status: 'paid', items: [{ id: 'p1', qty: 1 }] });
+    expect(calls.filter(call => call.sql.includes('INSERT INTO merch_inventory_moves'))).toHaveLength(1);
+  });
+
   it('keeps repeated made-to-order variant purchases available without creating stock movements', async () => {
     const pool=makeFakePool(calls),client=await pool.connect();
     const original=client.query.getMockImplementation()!;
@@ -119,6 +148,7 @@ describe('recordPaidMerchOrder', () => {
       connect: vi.fn(async () => ({
         query: vi.fn(async (sql: string) => {
           calls.push({ sql, params: [] });
+          if (sql.includes('FROM orders WHERE id=$1 FOR UPDATE')) return { rows: [{ status: 'paid' }] };
           if (sql.includes('online_sale')) return { rows: [{ n: String(firstCount) }] };
           return { rows: [] };
         }),
