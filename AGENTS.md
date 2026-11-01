@@ -1,5 +1,25 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Replacement merchant implementation (31 October 2026)
+- Owner supplies the replacement merchant2080721 live setup and explicitly asks
+  to implement the existing Paystack flow, securely installing the supplied new
+  key pair. The owner declines rotation after disclosure; record the residual
+  risk without exposing or silently rotating keys. This supersedes the earlier
+  prohibition on replacing Paystack-only credentials, not unrelated settings.
+- Keep PAYSTACK_ENABLED=false until all readiness gates pass. Current Neon
+  capacity/quota HTTP402 was observed previously;1November products return200,
+  but authenticated ledger/write readiness remains unverified. The new
+  destination's masked whsec signing-contract uncertainty remains a blocker.
+  Never guess signing protocols, accept multiple
+  speculative keys, fill duplicate webhook fields or claim live acceptance.
+- Close the Paystack settlement-to-customer-consequence crash window using an
+  atomic durable effects queue and the existing authenticated reconciliation
+  cron. Create no historical paid-order backfill/replay. Preserve Daraja, Stripe,
+  marketplace, catalogue, legacy records and all unrelated bindings/schedules.
+- Card merchandise only; Paystack mobile money remains off until eligibility and
+  ledger tests pass. Card tickets still require proven hosted-checkout finality.
+  No real-money charges/refunds/transfers/STKs or customer messages for testing.
+
 ## Backlog continuation and loading speed (29 October 2026)
 - Owner approves continuing the reconciled UGT backlog one item at a time and
   prioritizes visibly faster page entry. Diagnose measured delays, preserve the

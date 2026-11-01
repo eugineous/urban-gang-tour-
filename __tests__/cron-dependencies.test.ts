@@ -54,7 +54,7 @@ describe.each(['payment-reconcile','ticket-sweeper'] as const)('%s dependencies'
   it('preserves a genuinely empty successful helper and route result',async()=>{
     const {helper,route,empty}=await load();expect(await helper()).toEqual(empty);
     const response=await route(request());expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(job==='payment-reconcile'?{ok:true,...empty as object}:{ok:true,expired:0});
+    expect(await response.json()).toEqual(job==='payment-reconcile'?{ok:true,...empty as object,effects:[]}:{ok:true,expired:0});
     expect(response.headers.get('Cache-Control')).toContain('no-store');
   });
   it('keeps authorization status codes and disables caching before work',async()=>{

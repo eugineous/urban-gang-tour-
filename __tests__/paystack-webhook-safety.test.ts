@@ -2,12 +2,13 @@ import crypto from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
-  q: vi.fn(), hasDb: vi.fn(), work: [] as (() => Promise<void>)[],
+  q: vi.fn(), hasDb: vi.fn(), qSchema: vi.fn(async () => {}), effects: vi.fn(async () => []), work: [] as (() => Promise<void>)[],
   tickets: vi.fn(async () => []), inventory: vi.fn(async () => {}), consume: vi.fn(async () => {}), release: vi.fn(async () => {}),
   success: vi.fn(async () => {}), failure: vi.fn(async () => {}), receipt: vi.fn(async () => {}), alert: vi.fn(async () => {}),
 }));
 vi.mock('next/server', async () => ({ ...await vi.importActual<typeof import('next/server')>('next/server'), after: (task: () => Promise<void>) => state.work.push(task) }));
-vi.mock('@/lib/server/db', () => ({ hasDb: state.hasDb, db: state.hasDb, q: state.q }));
+vi.mock('@/lib/server/db', () => ({ hasDb: state.hasDb, db: state.hasDb, q: state.q, qSchema: state.qSchema }));
+vi.mock('@/lib/server/payment-effects', async () => ({ ...await vi.importActual<typeof import('@/lib/server/payment-effects')>('@/lib/server/payment-effects'), processPaymentEffects: state.effects }));
 vi.mock('@/lib/server/alert', () => ({ alertCritical: state.alert }));
 vi.mock('@/lib/server/receipt-email', () => ({ sendReceiptEmail: state.receipt }));
 vi.mock('@/lib/server/tickets', () => ({ ensureTickets: state.tickets }));
@@ -30,19 +31,20 @@ beforeEach(() => {
   state.alert.mockReset().mockResolvedValue(undefined);
   vi.stubEnv('PAYSTACK_SECRET_KEY', 'fictional-paystack-key');
   state.hasDb.mockReturnValue(true);
-  state.q.mockImplementation(async (sql: string) => sql.startsWith('UPDATE orders') ? [{ ...order, status: sql.includes("status='paid'") ? 'paid' : 'failed' }] : []);
+  state.q.mockImplementation(async (sql: string, params: unknown[]) => sql.includes('WITH paid AS') || sql.startsWith('UPDATE orders') ? [{ ...order, id: params[0], status: sql.includes("status='paid'") ? 'paid' : 'failed' }] : []);
 });
 afterEach(() => vi.unstubAllEnvs());
 
 describe('signed Paystack settlement', () => {
   it('settles only the stored card reference, exact amount and recoverable state', async () => {
     expect((await POST(signed())).status).toBe(200);
-    const [sql, params] = state.q.mock.calls.find(([sql]) => sql.startsWith('UPDATE orders'))!;
+    const [sql, params] = state.q.mock.calls.find(([sql]) => sql.includes('WITH paid AS'))!;
     expect(sql).toContain("pay_method='card'");
-    expect(sql).toMatch(/paystack_ref\s*=\s*\$1/);
-    expect(sql).toContain('total=$2');
-    expect(params).toEqual([ref, 1200, ['pending', 'unknown', 'reconciling']]);
-    await finish(); expect(state.tickets).toHaveBeenCalledTimes(1); expect(state.receipt).toHaveBeenCalledTimes(1);
+    expect(sql).toMatch(/paystack_ref\s*=\s*\$2/);
+    expect(sql).toContain('total=$3');
+    expect(sql).toContain('INSERT INTO payment_effect_outbox');
+    expect(params).toEqual([ref, ref, 1200, ['pending', 'unknown', 'reconciling']]);
+    await finish(); expect(state.effects.mock.calls).toEqual([[4, ref]]);
   });
   it.each([
     { currency: 'USD' }, { currency: undefined }, { reference: '<unsafe>' }, { reference: 123 },
@@ -61,7 +63,7 @@ describe('signed Paystack settlement', () => {
       return [{ ...order, status: 'paid' }];
     });
     expect((await POST(signed())).status).toBe(200); await finish();
-    expect(state.inventory).toHaveBeenCalledTimes(1); expect(state.tickets).toHaveBeenCalledTimes(1); expect(state.receipt).toHaveBeenCalledTimes(1);
+    expect(state.effects.mock.calls).toEqual([[4, ref]]);
   });
   it('acknowledges and fulfils without waiting for a stalled audit query', async () => {
     state.q.mockImplementation(async (sql: string) => {
@@ -72,7 +74,7 @@ describe('signed Paystack settlement', () => {
     void POST(signed()).then(response => { status = response.status; });
     await vi.waitFor(() => expect(status).toBe(200), { timeout: 80, interval: 5 });
     void state.work[0]();
-    await vi.waitFor(() => expect(state.receipt).toHaveBeenCalledTimes(1), { timeout: 80, interval: 5 });
+    await vi.waitFor(() => expect(state.effects.mock.calls).toEqual([[4, ref]]), { timeout: 80, interval: 5 });
   });
   it('returns a retryable failure response before a stalled critical alert', async () => {
     state.q.mockRejectedValueOnce(Error('ledger unavailable'));
@@ -94,16 +96,16 @@ describe('signed Paystack settlement', () => {
   it('retries the same signed event after a failed ledger write', async () => {
     state.q.mockRejectedValueOnce(Error('ledger unavailable'));
     expect((await POST(signed())).status).toBe(503);
-    expect((await POST(signed())).status).toBe(200); await finish(); expect(state.tickets).toHaveBeenCalledTimes(1);
+    expect((await POST(signed())).status).toBe(200); await finish(); expect(state.effects.mock.calls).toEqual([[4, ref]]);
   });
   it('does not replay customer consequences or owner notifications for an already settled row', async () => {
     state.q.mockResolvedValue([]); expect((await POST(signed())).status).toBe(200); await finish();
-    expect(state.tickets).not.toHaveBeenCalled(); expect(state.receipt).not.toHaveBeenCalled(); expect(state.success).not.toHaveBeenCalled();
+    expect(state.effects).not.toHaveBeenCalled(); expect(state.tickets).not.toHaveBeenCalled(); expect(state.receipt).not.toHaveBeenCalled(); expect(state.success).not.toHaveBeenCalled();
   });
   it('does not suppress a second order using a reused provider event id', async () => {
     await POST(signed()); await finish(); state.work = [];
     await POST(signed('charge.success', { ...details, reference: 'ORD-SECOND123' })); await finish();
-    expect(state.tickets).toHaveBeenCalledTimes(2);
+    expect(state.effects.mock.calls).toEqual([[4, ref], [4, 'ORD-SECOND123']]);
   });
   it('guards an uncertain failure against another method/reference and retains its hold', async () => {
     state.q.mockResolvedValue([]);

@@ -9,6 +9,7 @@ import { stkPushQuery } from './mpesa';
 import { paystackVerify, paystackConfigured } from './paystack';
 import { consumeReservation, releaseReservation } from './ticket-inventory';
 import { amountsMatch, RECOVERABLE_PAYMENT_STATUSES } from './payment-status';
+import { settlePaystackOrder, processPaymentEffects } from './payment-effects';
 
 async function finishRecoveredOrder(order: any) {
   const { ensureTickets } = await import('./tickets');
@@ -102,14 +103,9 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
           || (v.paid && v.status !== 'success')) { out.stillPending.push(o.id); continue; }
         if (v.paid && Number.isSafeInteger(v.amountSubunit)
           && v.amountSubunit === Number(o.total) * 100 && amountsMatch(o.total, v.amountKes)) {
-          const paid = await q(
-            `UPDATE orders SET status='paid'
-              WHERE id=$1 AND status = ANY($2)
-                AND pay_method='card' AND paystack_ref=$3 AND total=$4 RETURNING *`,
-            [o.id, RECOVERABLE_PAYMENT_STATUSES, v.reference, o.total],
-          );
-          if (paid.length) {
-            await finishRecoveredOrder(paid[0]);
+          const paid = await settlePaystackOrder({ orderId: o.id, reference: v.reference, amountKes: o.total });
+          if (paid) {
+            await processPaymentEffects(4, paid.id).catch(() => console.error('[paystack-effects] reconciliation_drain_failed'));
             out.paid.push(o.id);
           } else out.stillPending.push(o.id);
         } else if (v.paid) {

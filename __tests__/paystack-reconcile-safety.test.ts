@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
-  q: vi.fn(), verify: vi.fn(), mpesa: vi.fn(), tickets: vi.fn(async () => []),
+  q: vi.fn(), qSchema: vi.fn(async () => {}), effects: vi.fn(async () => []), verify: vi.fn(), mpesa: vi.fn(), tickets: vi.fn(async () => []),
   inventory: vi.fn(async () => {}), receipt: vi.fn(async () => {}), consume: vi.fn(async () => {}), release: vi.fn(async () => {}),
 }));
-vi.mock('@/lib/server/db', () => ({ hasDb: () => true, q: state.q }));
+vi.mock('@/lib/server/db', () => ({ hasDb: () => true, q: state.q, qSchema: state.qSchema }));
+vi.mock('@/lib/server/payment-effects', async () => ({ ...await vi.importActual<typeof import('@/lib/server/payment-effects')>('@/lib/server/payment-effects'), processPaymentEffects: state.effects }));
 vi.mock('@/lib/server/paystack', () => ({ paystackConfigured: () => true, paystackVerify: state.verify }));
 vi.mock('@/lib/server/mpesa', () => ({ stkPushQuery: state.mpesa }));
 vi.mock('@/lib/server/tickets', () => ({ ensureTickets: state.tickets }));
@@ -24,9 +25,10 @@ describe('Paystack reconciliation settlement predicate', () => {
   it('checks reference, card method and amount again in the durable paid transition', async () => {
     expect((await reconcileStuckOrders()).paid).toEqual([order.id]);
     const [sql, params] = state.q.mock.calls.find(([sql]) => sql.includes("status='paid'"))!;
-    expect(sql).toContain("pay_method='card'"); expect(sql).toContain('paystack_ref=$3'); expect(sql).toContain('total=$4');
-    expect(params).toEqual([order.id, ['pending', 'unknown', 'reconciling'], order.paystack_ref, 1200]);
-    expect(state.inventory).toHaveBeenCalledTimes(1); expect(state.tickets).toHaveBeenCalledTimes(1); expect(state.receipt).toHaveBeenCalledTimes(1);
+    expect(sql).toContain("pay_method='card'"); expect(sql).toContain('paystack_ref=$2'); expect(sql).toContain('total=$3');
+    expect(sql).toContain('INSERT INTO payment_effect_outbox');
+    expect(params).toEqual([order.id, order.paystack_ref, 1200, ['pending', 'unknown', 'reconciling']]);
+    expect(state.effects.mock.calls).toEqual([[4, order.id]]);
   });
   it.each(['mpesa', 'stripe', null])('does not verify a stored reference for method %s', async method => {
     state.q.mockResolvedValue([{ ...order, pay_method: method }]);

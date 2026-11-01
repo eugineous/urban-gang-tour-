@@ -76,6 +76,15 @@ export async function recordPaidMerchOrder(order: { id: string; items: unknown; 
   try {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`merch:${order.id}`]);
+    // A durable retry may hold an older paid snapshot after a refund commits.
+    // Serialize against ledger changes before applying any stock consequence.
+    const current = await client.query<{ status: string }>(
+      "SELECT status FROM orders WHERE id=$1 FOR UPDATE", [order.id],
+    );
+    if (!isConfirmedPayment(current.rows[0]?.status)) {
+      await client.query("COMMIT");
+      return;
+    }
     const settled = await client.query<{order_id:string}>("SELECT order_id FROM merch_order_settlements WHERE order_id=$1",[order.id]);
     if(settled.rows.length){await client.query("COMMIT");return;}
     const existing = await client.query<{ n: string }>(
