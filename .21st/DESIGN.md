@@ -43,6 +43,11 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 1 November: Mkurugenzi-grounded public storefront structure, adapted to UGT
+  identity and compact spacing. Search/cart masthead, module/story microcards,
+  embedded collection and magenta mobile actions replace the long homepage
+  sequence. Only existing configured payment methods may be offered; no UI
+  treatment overrides the Paystack activation gates or server-priced checkout.
 - 27 October: MOOKH-inspired public surfaces in warm stone/cream/ink with UGT
   magenta, yellow and cyan accents. Homepage video/poster crop conceals branded
   edges; a restrained charcoal scrim keeps copy prominent without blur or colour filters. Existing

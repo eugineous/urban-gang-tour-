@@ -2,6 +2,12 @@ import {defineCatalogue,type Message,type MessageValues} from '@/lib/i18n/messag
 
 // Presentation only. Product, variant, tier and transaction values remain source data.
 const rows = [
+ ['checkout.recoverFirst','Check your saved payment before starting with another method.','Thibitisha malipo uliyohifadhi kabla ya kuanza kwa njia nyingine.','Vérifiez votre paiement enregistré avant de choisir un autre moyen.','使用其他方式付款前，请先核实已保存的付款。','Проверьте сохранённый платёж, прежде чем выбирать другой способ.','Comprueba tu pago guardado antes de utilizar otro método.'],
+ ['cart.chooseVariant','Choose an available option before checkout.','Chagua chaguo linalopatikana kabla ya kulipa.','Choisissez une option disponible avant de payer.','结账前请选择可用款式。','Перед оплатой выберите доступный вариант.','Elige una opción disponible antes de pagar.'],
+ ['checkout.onlineUnavailable','Online payment is currently unavailable. Your cart is kept.','Malipo ya mtandaoni hayapatikani kwa sasa. Kikapu chako kimehifadhiwa.','Le paiement en ligne est actuellement indisponible. Votre panier est conservé.','在线付款暂不可用。购物车已保留。','Онлайн-оплата сейчас недоступна. Корзина сохранена.','El pago en línea no está disponible por ahora. Tu carrito se conserva.'],
+ ['checkout.getHelp','Contact us about your order','Wasiliana nasi kuhusu oda yako','Contactez-nous au sujet de votre commande','联系我们咨询订单','Связаться с нами по поводу заказа','Contacta con nosotros sobre tu pedido'],
+ ['checkout.paymentHeld','Payment unavailable','Malipo hayapatikani','Paiement indisponible','付款不可用','Оплата недоступна','Pago no disponible'],
+ ['checkout.loadingMethods','Loading payment options…','Chaguo za malipo zinapakiwa…','Chargement des moyens de paiement…','正在加载付款选项…','Загрузка способов оплаты…','Cargando opciones de pago…'],
  ['all','All','Zote','Tous','全部','Все','Todos'],
  ['free','Free','Bure','Gratuit','免费','Бесплатно','Gratis'],
  ['design.viewName','View design: {name}','Tazama muundo: {name}','Voir la création : {name}','查看设计：{name}','Посмотреть дизайн: {name}','Ver diseño: {name}'],
@@ -140,7 +146,7 @@ const rows = [
  ['checkout.reload','Reload catalogue','Pakia orodha tena','Recharger le catalogue','重新加载目录','Обновить каталог','Recargar catálogo'],
  ['catalogue.loadFailed','We could not load the live catalogue. Try again.','Hatukuweza kupakia orodha ya sasa. Jaribu tena.','Impossible de charger le catalogue actuel. Réessayez.','无法加载当前目录。请重试。','Не удалось загрузить актуальный каталог. Повторите.','No pudimos cargar el catálogo actual. Inténtalo de nuevo.'],
  ['checkout.selectionUnavailable','This selection is unavailable. Review your cart before paying.','Chaguo hili halipatikani. Kagua kikapu kabla ya kulipa.','Cette sélection est indisponible. Vérifiez votre panier avant de payer.','此选择不可用。付款前请查看购物车。','Выбранные товары недоступны. Проверьте корзину перед оплатой.','Esta selección no está disponible. Revisa el carrito antes de pagar.'],
- ['checkout.cardUnavailable','Card checkout is unavailable. Your cart is kept. You can use M-Pesa or try again later.','Malipo ya kadi hayapatikani. Kikapu kimehifadhiwa. Tumia M-Pesa au ujaribu baadaye.','Le paiement par carte est indisponible. Votre panier est conservé. Utilisez M-Pesa ou réessayez plus tard.','银行卡结账不可用。购物车已保留。您可使用 M-Pesa 或稍后重试。','Оплата картой недоступна. Корзина сохранена. Используйте M-Pesa или попробуйте позже.','El pago con tarjeta no está disponible. Tu carrito se conserva. Usa M-Pesa o inténtalo más tarde.'],
+ ['checkout.cardUnavailable','Card checkout is unavailable. Your cart is kept. Try again later.','Malipo ya kadi hayapatikani. Kikapu kimehifadhiwa. Jaribu baadaye.','Le paiement par carte est indisponible. Votre panier est conservé. Réessayez plus tard.','银行卡结账不可用。购物车已保留。请稍后重试。','Оплата картой недоступна. Корзина сохранена. Попробуйте позже.','El pago con tarjeta no está disponible. Tu carrito se conserva. Inténtalo más tarde.'],
  ['checkout.attemptConflict','This saved checkout has different details. Check its payment reference before starting another payment.','Malipo haya yaliyohifadhiwa yana maelezo tofauti. Kagua rejeleo lake kabla ya kuanza malipo mengine.','Ce paiement enregistré contient d’autres informations. Vérifiez sa référence avant de lancer un autre paiement.','已保存的结账信息不同。开始另一笔付款前请核查其付款编号。','Данные сохранённого оформления отличаются. Проверьте платёжную ссылку перед новым платежом.','Este pago guardado tiene datos diferentes. Comprueba su referencia antes de iniciar otro pago.'],
  ['checkout.invalidPhone','Enter a valid Kenyan M-Pesa number.','Weka nambari halali ya M-Pesa ya Kenya.','Saisissez un numéro M-Pesa kényan valide.','请输入有效的肯尼亚 M-Pesa 号码。','Введите действующий кенийский номер M-Pesa.','Introduce un número M-Pesa keniano válido.'],
  ['checkout.outOfStock','This selection is out of stock. Review your cart.','Chaguo hili limeisha. Kagua kikapu chako.','Cette sélection est épuisée. Vérifiez votre panier.','此选择已缺货。请查看购物车。','Выбранные товары закончились. Проверьте корзину.','Esta selección está agotada. Revisa tu carrito.'],
@@ -354,4 +360,5 @@ export type CommerceIssue={key:keyof typeof commerceMessages.en;values?:MessageV
 export const checkoutIssueCodes:Readonly<Record<string,CommerceIssue['key']>>=Object.freeze({
  attempt_request_conflict:'checkout.attemptConflict',invalid_phone_use_254:'checkout.invalidPhone',
  out_of_stock:'checkout.outOfStock',insufficient_inventory:'checkout.outOfStock',variant_out_of_stock:'checkout.outOfStock',
+ variant_required:'cart.chooseVariant',unknown_variant:'cart.chooseVariant',
 });

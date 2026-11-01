@@ -7,18 +7,19 @@ import {OriginalContent} from '@/ui/i18n/OriginalContent';
 import {ShareActions} from './ShareActions';
 import {PublicationDate} from './PublicationDate';
 import {Reels} from './ExperienceRails';
-import {asset,MediaGallery,CommercialPortfolio,PartnersPortfolio,PortfolioHighlights,InstitutionStrip} from './MediaLibrary';
+import {asset,MediaGallery,CommercialPortfolio,PartnersPortfolio} from './MediaLibrary';
 import {EventDiscovery} from './EventDiscovery';
-import {HeroMotion,AffiliatePreview,YouTubeFeature} from './ExperienceEnhancements';
+import {HeroMotion,AffiliatePreview} from './ExperienceEnhancements';
 import {PortfolioPage,ProofBoard,ExperiencePage,AboutPortfolio} from './PortfolioExperience';
 import {ContactPage} from './ContactInterface';
 import {TourTimeline} from './TourTimeline';
-import {HomeEvents,HomeMerch} from './HomeDiscovery';
+import {HomeEvents} from './HomeDiscovery';
+import {HomeMicrocards,HomeCollection,StoryMicrocards} from './OnePageHub';
+import hubStyles from './OnePageHub.module.css';
 import type {LiveShopProduct} from '@/lib/shop-discovery';
 import {HomeMotion} from './HomeMotion';
 import {ClientsPortfolio} from './ClientsPortfolio';
 import {NewsroomIndex} from './NewsroomIndex';
-import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
 import homeStyles from './HomeSections.module.css';
 import {PresenterProfile} from './PresenterProfiles';
 import {createContext,useContext} from "react";
@@ -36,21 +37,24 @@ function PageTitle({title,description,tag}:{title:string;description?:string;tag
 
 export default function Site({path,products,events,posts,pageContent=null,initialNow=0,newsCurrent=true,homeCurrent={events:true,products:true}}:Props){const t=useMessages(marketingMessages);return <PageCopy.Provider value={pageContent}><div className="public-page">{path==='/'?<Home events={events} products={products} posts={posts} initialNow={initialNow} current={homeCurrent}/>:path==='/reels'?<Reels/>:path==='/portfolio'?<PortfolioPage events={events} initialNow={initialNow}/>:path==='/proof'?<ProofBoard events={events} initialNow={initialNow}/>:path==='/experience'?<ExperiencePage/>:path==='/tour-stops'?<TourTimeline/>:path==='/events'?<EventDiscovery events={events} initialNow={initialNow}/>:['/about','/the-gang'].includes(path)?<About events={events} initialNow={initialNow}/>:path.startsWith('/author/')?<Founder lucy={path.includes('lucy')} events={events} posts={posts} initialNow={initialNow}/>:path==='/gallery'||path.startsWith('/gallery/')?<MediaGallery slug={path.split('/')[2]}/>:path==='/work-with-us'?<CommercialPortfolio/>:path==='/clients'?<ClientsPortfolio/>:path==='/partners'?<PartnersPortfolio/>:path==='/affiliates'?<AffiliatePreview/>:path==='/blog'?<NewsroomIndex posts={posts} current={newsCurrent} content={pageContent}/>:path.startsWith('/blog/')?<Article post={posts.find(p=>p.id===path.split('/')[2])}/>:path==='/contact-us'?<ContactPage/>:path==='/faq'?<><PageTitle title={t('faq.page.title')} description={t('faq.page.summary')}/><FAQ/></>:<Missing title={t('missing.page')} href="/"/>}</div></PageCopy.Provider>;}
 
-function Home({events,products,posts,initialNow,current}:{events:RecordData[];products:RecordData[];posts:RecordData[];initialNow:number;current:{events:boolean;products:boolean}}){const t=useMessages(marketingMessages);const copy=useContext(PageCopy);const [now,setNow]=useState(initialNow);useEffect(()=>{const frame=requestAnimationFrame(()=>setNow(Date.now()));const timer=setInterval(()=>setNow(Date.now()),60000);const sync=()=>{if(!document.hidden)setNow(Date.now())};document.addEventListener('visibilitychange',sync);return()=>{cancelAnimationFrame(frame);clearInterval(timer);document.removeEventListener('visibilitychange',sync)}},[]);return <HomeMotion>
-  <section className={`panel ${homeStyles.hero}`} data-home-hero data-header-tone="dark" aria-label={t('welcome')}><Pic className={homeStyles.heroImage} src={copy?.image||asset('M073').src} alt="" priority/>{<HeroVideo/>}<div className={homeStyles.heroShade}/><div className={`wrap ${homeStyles.heroInner}`}><div className={homeStyles.heroCopy} data-home-reveal><p className={homeStyles.heroEyebrow}>{t('hero.eyebrow')}</p><h1>{copy?<OriginalContent inline>{copy.title}</OriginalContent>:<OriginalContent inline>Urban<br/>Gang Tour.</OriginalContent>}</h1><p className={homeStyles.heroSummary} style={{whiteSpace:'pre-line'}}>{copy?<OriginalContent inline>{copy.summary}</OriginalContent>:<><MessageText catalogue={marketingMessages} message="hero.summary" values={{br:<br/>}}/></>}</p></div><nav className={homeStyles.heroActions} data-home-actions aria-label={t('startExploring')}>{[[t('events'),'/events'],[t('shop'),'/shop'],[t('book'),'/book']].map(([label,href])=><Link className={homeStyles.heroAction} href={href} key={href}>{label}<Arrow/></Link>)}</nav></div></section>
+function Home({events,products,posts,initialNow,current}:{events:RecordData[];products:RecordData[];posts:RecordData[];initialNow:number;current:{events:boolean;products:boolean}}){
+ const t=useMessages(marketingMessages);const copy=useContext(PageCopy);const [now,setNow]=useState(initialNow);
+ useEffect(()=>{const frame=requestAnimationFrame(()=>setNow(Date.now()));const timer=setInterval(()=>setNow(Date.now()),60000);const sync=()=>{if(!document.hidden)setNow(Date.now())};document.addEventListener('visibilitychange',sync);return()=>{cancelAnimationFrame(frame);clearInterval(timer);document.removeEventListener('visibilitychange',sync)}},[]);
+ return <HomeMotion><div className={hubStyles.frontDoor}>
+  <section className={`panel ${homeStyles.hero} ${hubStyles.hero}`} data-home-hero data-header-tone="dark" aria-label={t('welcome')}>
+   <Pic className={homeStyles.heroImage} src={copy?.image||asset('M073').src} alt="" priority/><HeroVideo/><div className={homeStyles.heroShade}/>
+   <div className={`wrap ${homeStyles.heroInner} ${hubStyles.heroInner}`}>
+    <div className={homeStyles.heroCopy} data-home-reveal><p className={homeStyles.heroEyebrow}>{t('hero.eyebrow')}</p><h1>{copy?<OriginalContent inline>{copy.title}</OriginalContent>:<OriginalContent inline>Urban<br/>Gang Tour.</OriginalContent>}</h1><p className={homeStyles.heroSummary} style={{whiteSpace:'pre-line'}}>{copy?<OriginalContent inline>{copy.summary}</OriginalContent>:<MessageText catalogue={marketingMessages} message="hero.summary" values={{br:<br/>}}/>}</p></div>
+    <nav className={homeStyles.heroActions} data-home-actions aria-label={t('startExploring')}>{[[t('events'),'/events'],[t('shop'),'#merchandise-catalogue'],[t('book'),'/book']].map(([label,href])=><Link className={homeStyles.heroAction} href={href} key={href}>{label}<Arrow/></Link>)}</nav>
+   </div>
+  </section>
+  <HomeMicrocards/>
+  <HomeCollection products={products as LiveShopProduct[]} current={current.products}/>
   <HomeEvents events={events} now={now} current={current.events}/>
-  <HomeMerch products={products as LiveShopProduct[]} current={current.products}/>
-  <section className="section wrap" id="experiences"><div className="section-title"><Eyebrow>{t('bookTeam')}</Eyebrow><h2><MessageText catalogue={marketingMessages} message="home.services.title" values={{br:<br/>}}/></h2></div><p className="home-company-intro">{t('home.services.summary')}</p><div className="projects-grid home-experiences">{[
-    {title:t('schoolEvents'),image:'/design-assets/school.jpg',tag:t('home.services.school'),href:'/book?type=school'},
-    {title:'Campus Rave',original:true,image:asset('M120').src,tag:t('home.services.campus'),href:'/book?type=campus'},
-    {title:t('home.services.production'),image:asset('M207').src,tag:t('home.services.campaigns'),href:'/work-with-us'}
-  ].map(p=><Link href={p.href} className="project-card" key={p.href}><div className="project-caption"><strong>{p.original?<OriginalContent inline>{p.title}</OriginalContent>:p.title}</strong><small>{p.tag}</small><Arrow/></div><Pic src={p.image} alt={p.title}/></Link>)}</div><div className="home-experience-actions"><Button href="/experience">{t('whatWeDo')}</Button><Link href="/events">{t('eventsTickets')} <Arrow/></Link><Link href="/partners">{t('partnerships')} <Arrow/></Link></div></section>
-  <InstitutionStrip/><PortfolioHighlights/>
-  <section className={`people panel ${homeStyles.people}`}><div className="section-title wrap"><Eyebrow>{t('home.people.eyebrow')}</Eyebrow><h2><MessageText catalogue={marketingMessages} message="home.people.title" values={{br:<br/>}}/></h2></div><div className="founders wrap"><Link href="/author/eugine-micah"><Pic src={asset('M230').src} alt="Eugine Micah"/><div><h3 lang="en-KE">Eugine Micah</h3><p>{t('presenterRole')}</p><Arrow/></div></Link><Link href="/author/lucy-ogunde"><Pic src={photo('lucy')} alt="Lucy Ogunde"/><div><h3 lang="en-KE">Lucy Ogunde</h3><p>{t('presenterRole')}</p><Arrow/></div></Link></div><div className={`wrap ${homeStyles.aboutLink}`}><Link href="/about">{t('aboutBrand')} <Arrow/></Link><Button href="/book">{t('bookHosts')}</Button></div></section>
-  <section className={`section wrap ${homeStyles.film}`}><div><Eyebrow>{t('home.film.eyebrow')}</Eyebrow><h2>{t('home.film.title')}</h2><p>{t('home.film.summary')}</p><Link className="text-link" href="/reels">{t('watchMoreFilms')} <Arrow/></Link></div><YouTubeFeature/></section>
-  {posts.length>0&&<section className="section wrap"><div className="section-title"><Eyebrow>{t('home.stories.eyebrow')}</Eyebrow><h2>{t('home.stories.title')}</h2></div><div className="news-grid">{newestPublishedFirst(posts).slice(0,3).map((p,i)=><Link className="news-card" href={`/blog/${p.id}`} key={p.id}><Pic src={p.img||asset(['M203','M229','M234'][i]).src} alt={p.headline}/><small><OriginalContent inline>{newsCategory(p.id,p.section)?.label||p.section}</OriginalContent> · <PublicationDate value={p.date}/></small><h3><OriginalContent inline>{p.headline}</OriginalContent></h3><Arrow/></Link>)}</div><div className="center-action"><Button href="/blog">{t('home.stories.action')}</Button></div></section>}
+  <StoryMicrocards posts={posts}/>
   <FAQ home/>
-</HomeMotion>}
+ </div></HomeMotion>;
+}
 function FAQ({home=false}:{home?:boolean}){const t=useMessages(marketingMessages);const faqs=[['school',t('faq.school.question'),t('faq.school.answer')],['hosts',t('faq.hosts.question'),t('faq.hosts.answer')],['public-events',t('faq.publicEvents.question'),t('faq.publicEvents.answer')],['tickets',t('faq.tickets.question'),t('faq.tickets.answer')],['after-request',t('faq.afterRequest.question'),t('faq.afterRequest.answer')]];const copy=useContext(PageCopy);const published=Boolean(copy&&(!home||copy.faqs.length));const questions=published?copy!.faqs.map((item,index)=>['cms-'+index,item.question,item.answer]):faqs;return <section className={`section wrap ${homeStyles.faq}`} aria-label={t('faq.label')}><div className="section-title"><Eyebrow>{t('faq.page.title')}</Eyebrow><h2>{t('faq.title')}</h2></div><div className={homeStyles.questions}>{questions.map(([id,question,answer])=><details className={homeStyles.question} key={id}><summary><h3>{published?<OriginalContent inline>{question}</OriginalContent>:question}</h3><span className={homeStyles.symbol} aria-hidden="true">+</span></summary><p className={homeStyles.answer}>{published?<OriginalContent inline>{answer}</OriginalContent>:answer}</p></details>)}</div>{home&&<Link className={homeStyles.faqLink} href="/faq">{t('faq.all')} <Arrow/></Link>}</section>}
 function ContactBlock(){return null}
 

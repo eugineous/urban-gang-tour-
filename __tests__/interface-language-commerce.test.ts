@@ -172,7 +172,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
    if(url.origin!=='http://127.0.0.1'){unexpected.push(request.url());return route.abort();}
    if(url.pathname==='/fixture')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><div id="app"></div>'});
    if(url.pathname==='/api/site-data/products'){gets.push(url.pathname);return route.fulfill({json:{ok:true,products:[fixtureProduct]}});}
-   if(url.pathname==='/api/checkout/fulfillment'){gets.push(url.pathname);return route.fulfill({json:{pickup:{location:'Original collection point'},delivery:{enabled:true,fee:300}}});}
+   if(url.pathname==='/api/checkout/fulfillment'){gets.push(url.pathname);return route.fulfill({json:{pickup:{enabled:true,fee:0,location:'Original collection point'},delivery:{enabled:true,fee:300},payments:{mpesa:true,card:true}}});}
    if(url.pathname==='/api/checkout/quote')return route.fulfill({json:{total:950,promoApplied:false,savings:350,deliveryFee:300}});
    if(paymentCase!=='none'){
     if(url.pathname==='/api/checkout/session')return route.fulfill({json:{ok:true,created:false}});
@@ -191,7 +191,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   await page.addScriptTag({content:bundle.outputFiles[0].text});
   await page.locator('#checkout form input[name="name"]').waitFor();
   expect(await page.locator('#checkout [data-language-control] select').count()).toBe(1);
-  await page.locator('#checkout select').first().selectOption('delivery');
+  await page.getByLabel('Pickup or delivery').selectOption('delivery');
   for(const [name,value]of Object.entries({name:'Original Buyer',phone:'0712345678',email:'buyer@example.test',line1:'Original Road',city:'Nairobi',postalCode:'00100'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
   await page.locator('#checkout input[maxlength="60"]').fill('ORIGINAL-PROMO');
   await page.locator('#checkout input[type="checkbox"]').check();
