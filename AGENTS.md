@@ -1,5 +1,24 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Owner-requested Paystack activation (1 November 2026)
+- The owner now explicitly requests activating Paystack. This supersedes the
+  earlier keep-disabled rollout decision below; do not silently revert it.
+- Production PAYSTACK_ENABLED is nowtrue. The replacement key authenticated
+  read-only HTTP200; current official documentation matches the implemented
+  API-secret/raw-body HMAC-SHA512 webhook and KES card contract. All139focused
+  adapter/webhook/recovery/settlement/client/options tests passed.
+- Configuration-only activation changed that one flag. A deliberately invalid
+  request, rejected before session/ledger/provider work, changed from inactive
+  HTTP503 to invalid_idempotency_key HTTP400. All54other bindings were unchanged.
+  No order, charge, refund, STK or customer message was used for verification.
+- This is not merchant approval, settlement certification or proof of a paid
+  end-to-end purchase. Actual destination subscriptions/separate reported whsec
+  behavior and live ledger-write readiness remain unverified. Do not guess
+  alternate signing protocols, replay old orders or claim these checks passed.
+- Scope remains Paystack card merchandise. Card-ticket capacity and Paystack
+  mobile-money gates remain; preserve M-Pesa, Stripe, credentials and cron.
+  Exposed-key rotation was previously declined by the owner; risk remains.
+
 ## Mkurugenzi-referenced one-page storefront (1 November 2026)
 - Owner now replaces the MOOKH-only presentation target with the public
   https://mkurugenzi.ke/ shopping structure: a UGT-branded one-page front door,

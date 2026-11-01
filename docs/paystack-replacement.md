@@ -1,5 +1,29 @@
 # Paystack replacement-account handoff
 
+## Current status — owner activated 1 November 2026
+
+The owner explicitly requested activating Paystack after the storefront release.
+Production `PAYSTACK_ENABLED` is now **true**, enabling the existing Paystack
+card-merchandise path. This supersedes the earlier disabled rollout decision.
+The code remains opt-in by default when the activation setting is absent.
+
+Fresh checks: the replacement key authenticates a read-only integration GET with
+HTTP200; current official documentation matches the implemented API-secret
+HMAC-SHA512/raw-body webhook and KES card initialization contract. All139focused
+adapter/webhook/checkout recovery/settlement/client/options tests passed. The
+configuration update changed only `PAYSTACK_ENABLED`; all54other bindings were
+unchanged. A deliberately invalid checkout request, rejected before ledger or
+provider work, changed from HTTP503 `card_not_configured` to HTTP400
+`invalid_idempotency_key`. No order or financial transaction was created.
+
+This verifies the activation gate, not merchant approval, actual destination
+subscriptions, settlement readiness, live ledger writes or a completed purchase.
+Those remain unverified. No speculative signing change, new webhook destination,
+historical-order replay, live charge, refund, STK or customer message was used.
+Card tickets and Paystack mobile money remain outside the enabled scope.
+
+## Initial installation history
+
 The owner deleted the old Paystack account on 29 October 2026 and supplied a
 replacement setup, reported as merchant **2080721**, on 31 October. The new live
 key pair was installed privately in Cloudflare; a read-only authenticated
@@ -54,13 +78,13 @@ refund, STK, customer message or account change was performed for verification.
   They are not replayed by the recovery queue. This is not a promise of
   exactly-once network delivery.
 
-## Activation is still blocked
+## Outstanding verification and rollout limits
 
 1. An earlier database failure was HTTP402, `provider_capacity`. The fresh
    1 November public product check returned HTTP200 with all24 products, so that
    previous outage is not still asserted as current. Public reads alone do not
    prove authenticated ledger/schema readiness or durable write capacity: verify
-   those before activation on the existing Neon project. Do not replace the
+   those on the existing Neon project. Do not replace the
    database or invent products, stock or payment records to conceal a failure.
 2. The owner reports a new webhook destination `WHK_18474e59`, with two event
    subscriptions and a separately masked `whsec_` secret. Its actual event names
@@ -68,8 +92,10 @@ refund, STK, customer message or account change was performed for verification.
    specifies **HMAC-SHA512 of exact raw bytes, hex `x-paystack-signature`, keyed
    with the API secret**. The current verifier follows that published contract;
    it has not been certified for this new destination's separate secret.
-   Obtain authoritative provider confirmation and an authentic isolated fixture
-   before activation. Do not guess a Stripe-style envelope or try multiple keys.
+   Current published documentation still confirms the API-secret contract;
+   the separate reported secret is not proof of a mismatch. Authentic destination
+   confirmation and an isolated fixture remain outstanding verification, not
+   completed checks. Do not guess a Stripe-style envelope or try multiple keys.
 3. Confirm `charge.success` is subscribed. Public payment docs do not document
    `charge.failed` as an emitted payment event; the existing defensive handler is
    not evidence that it is subscribed. The relationship between the new
@@ -88,7 +114,7 @@ Card merchandise is the prepared scope. Paystack mobile money is not enabled.
 For Kenya, the documented hosted channel is `mobile_money` (provider `mpesa`),
 not a channel named `mpesa`; eligibility and ledger behavior still need proof.
 
-## When the replacement account is ready
+## Remaining merchant validation and future verification
 
 1. Confirm the new merchant's approval, Kenya/KES support, payment channels,
    settlement details and business identity in Paystack. These are provider-side
@@ -102,9 +128,10 @@ not a channel named `mpesa`; eligibility and ledger behavior still need proof.
    `https://urbangangtour.co.ke/pay/success` and webhook
    `https://urbangangtour.co.ke/api/paystack/webhook`. Existing code sends the
    server-generated order reference as the callback's `ref` query parameter.
-5. Verify in an isolated test deployment with test keys and its own return/webhook
-   settings. Never mix test-mode payments into production records. Only after
-   verified setup and approval should `PAYSTACK_ENABLED` become exactly `true`.
+5. Further end-to-end verification should use an isolated test deployment with
+   test keys and its own return/webhook settings. Never mix test-mode payments
+   into production records. The owner requested production activation as recorded
+   above; that decision does not establish the outstanding merchant facts.
    Live financial tests require separate explicit authorization.
 
 ## Deliberate limits
