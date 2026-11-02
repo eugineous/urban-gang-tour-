@@ -1,4 +1,4 @@
-.checkoutPage.checkoutPage{max-width:1120px;padding:128px 28px 70px}
+.checkoutPage.checkoutPage{max-width:1120px;padding:44px 28px 70px}
 .checkoutPage>header{gap:24px;padding-bottom:24px}
 .checkoutPage>header h1{font-size:44px;letter-spacing:-.05em;line-height:1.1}
 .checkoutPage>header>div>p{font-size:12px}
@@ -70,10 +70,10 @@
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){.journey{grid-template-columns:minmax(0,1fr);gap:16px;margin-top:22px}.summary{grid-row:1;top:84px;z-index:3;padding:16px 19px;border-radius:13px;box-shadow:0 5px 20px #33202c06}.summaryHeader{align-items:center}.summaryHeader p{margin-bottom:5px;font-size:9px}.summary h2{font-size:21px}.summaryToggle{display:block}.summaryBody[data-expanded=false]{display:none}.summaryBody{max-height:42vh;overflow:auto;padding-top:12px}.main{border-radius:17px}.brand{padding:18px 20px;font-size:11px}.brandMark{width:34px;height:34px;font-size:12px}.stepCount{font-size:10px}.progress{padding:22px 20px 0;gap:8px}.progress li{font-size:10px;gap:6px}.progress li>span:first-child{width:23px;height:23px;font-size:11px}.heading{padding:25px 20px 22px}.heading h2{font-size:32px}.form.form{padding:0 20px 22px}.form .tile{padding:15px 12px;gap:9px}.form .tile:has(input:checked){padding:14px 11px}.brands{gap:4px}.brands img{width:34px;height:25px}.brands .mpesa{width:62px}.tileText{font-size:14px}.tileText small{font-size:10px}.actions{gap:10px}.form .back{padding:10px 16px}.form .next,.form .submit{min-width:0;padding:12px 16px}.connecting{margin-inline:20px}}
 @media(prefers-reduced-motion:reduce){.connecting>span{animation:none}.tile{transition:none}}
-@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){.checkoutPage.checkoutPage{padding:106px 16px 48px}.checkoutPage>header{grid-template-columns:minmax(0,1fr);gap:10px;padding-bottom:16px}.checkoutPage>header h1{font-size:34px}.checkoutPage>header>div:last-child{max-width:none}.checkoutPage>header>div:last-child>p{margin-bottom:6px}.heading h2{scroll-margin-top:180px}}
+@media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){.checkoutPage.checkoutPage{padding:24px 16px 48px}.checkoutPage>header{grid-template-columns:minmax(0,1fr);gap:10px;padding-bottom:16px}.checkoutPage>header h1{font-size:34px}.checkoutPage>header>div:last-child{max-width:none}.checkoutPage>header>div:last-child>p{margin-bottom:6px}.heading h2{scroll-margin-top:180px}}
 @media(max-width:380px){.brand{padding:15px 16px;gap:7px}.brandLogo{width:59px;height:37px}.brand>span:not(.stepCount){font-size:10px}.stepCount{font-size:9px}}
 .checkoutPage>.contextHeader{display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;padding:0}
-.checkoutPage>.contextHeader h1{font-size:28px;line-height:1.15;letter-spacing:-.04em;margin:0}
+.checkoutPage>.contextHeader h1,:global(#main-content) .checkoutPage>.contextHeader h1{font-size:28px;line-height:1.15;letter-spacing:-.04em;margin:0}
 .contextHeader a{min-height:44px;display:flex;align-items:center;color:#87154f;font-size:12px;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){
  .journey{margin-top:14px;gap:12px}

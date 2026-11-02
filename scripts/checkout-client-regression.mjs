@@ -38,7 +38,7 @@ async function fulfillment(width){
  await page.locator('input[name="phone"]').fill('0712345678');
  try{await page.getByRole('alert').filter({hasText:'We could not load pickup and delivery options.'}).waitFor()}
  catch(error){console.error({requests,errors,body:(await page.locator('body').innerText({timeout:1000}).catch(()=>'' )).slice(0,1600)});throw error}
- assert.equal(await page.locator('form button[type="submit"]').isDisabled(),true,'Unknown fulfillment configuration must not silently submit pickup');
+ assert.equal(await page.locator('form').filter({has:page.locator('[data-checkout-step]')}).locator('button[type="submit"]').isDisabled(),true,'Unknown fulfillment configuration must not silently submit pickup');
  const failedRequests=requests;retryAllowed=true;
  await page.getByRole('button',{name:'Retry pickup and delivery options'}).click();
  await page.locator('[data-checkout-next]:visible').click();

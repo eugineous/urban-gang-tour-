@@ -30,6 +30,24 @@ beforeAll(async()=>{
 },30000);
 afterAll(async()=>{await browser?.close()});
 
+it.skipIf(!enabled)('keeps the verified total and method inside the result panel despite shared definition-list styles',async()=>{
+ const fixture=await open('paid'),{page}=fixture;
+ try{
+  await page.getByRole('heading',{name:'Payment confirmed',exact:true}).waitFor();
+  fixture.setResponse({status:'paid',total:1250,method:'card'});
+  const result=page.waitForResponse(response=>response.url().includes('/api/orders/status?'));
+  await page.getByRole('button',{name:'Check payment again',exact:true}).click();await result;
+  await page.getByText('Card',{exact:true}).waitFor();
+  const clipped=await page.locator('[data-payment-state] dl').evaluate(node=>{
+   const panel=node.closest('[data-payment-state]')!.getBoundingClientRect(),box=node.getBoundingClientRect();
+   return [node,...Array.from(node.querySelectorAll('dt,dd'))].filter(child=>{
+    const rect=child.getBoundingClientRect();return rect.left<panel.left||rect.right>panel.right+1||rect.right>box.right+1||child.scrollWidth>child.clientWidth+1;
+   }).map(child=>child.textContent);
+  });
+  expect(clipped).toEqual([]);
+ }finally{await fixture.context.close()}
+},15000);
+
 it.skipIf(!enabled)('keeps the verified order action usable in a wide-layout Android phone',async()=>{
  const fixture=await open('paid',{tickets:'not_required',email:'accepted'},false,false,true),{page}=fixture;
  try{
@@ -59,7 +77,7 @@ async function open(status:string,delivery?:{tickets:string;email:string},offlin
   if(url.pathname==='/fixture.js')return route.fulfill({contentType:'application/javascript',body:script});
   if(url.pathname==='/api/orders/status'){reads++;expect(url.searchParams.get('id')).toBe(orderId);return route.fulfill({json:response})}
   if(url.pathname==='/fonts/inter.woff2')return route.fulfill({contentType:'font/woff2',body:readFileSync('public/fonts/inter.woff2')});
-  if(request.isNavigationRequest())return route.fulfill({contentType:'text/html; charset=utf-8',body:`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${styles}\n${componentStyles}</style></head><body><main id="app"></main><script src="/fixture.js"></script></body></html>`});
+  if(request.isNavigationRequest())return route.fulfill({contentType:'text/html; charset=utf-8',body:`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${styles}\n${componentStyles}</style></head><body><header class="site-header" data-public-surface="navigation"><div class="header-content"></div></header><main id="main-content" class="application-content"><div id="app"></div></main><script src="/fixture.js"></script></body></html>`});
   unexpected.push(url.href);return route.abort();
  });
  const page=await context.newPage();page.setDefaultTimeout(5000);page.on('pageerror',error=>errors.push(error.message));

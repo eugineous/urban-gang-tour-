@@ -37,6 +37,15 @@ radio labels, consent, Back and Pay actions.
   result action into narrow columns. Scoped coarse-touch responsive rules now
   stack the relevant tracks; real Chromium regressions require effective field
   and primary-action widths of at least240px with no horizontal overflow.
+- P2: the complete production shell exposed global definition-list styles that
+  clipped Card despite no document-level overflow. A new regression failed with
+  the clipped total/method; scoped automatic width and block fact groups fix it.
+  The latest screenshot and regression show both labels and values completely.
+- P2: the sticky site header and ID-specific phone heading override were absent
+  from the initial component harness. Including the actual header CSS footprint
+  and main-content ID reproduced Continue at846px and the result action at662px,
+  beyond their772/568px dock-safe limits. Scoped top-spacing and heading fixes
+  now pass those unchanged bounds with the production cascade represented.
 
 No actionable P0/P1/P2 differences remain in the checked states. The owner also
 explicitly requested unsuccessful screens: declined/cancelled/failed/timed-out
@@ -63,7 +72,7 @@ or success. Refunds have a distinct result, preserving remaining valid tickets.
 
 ## Interaction verification and boundaries
 
-Latest focused Chromium run flow-final.log passes15cases: progressive navigation,
+Latest focused-final.log passes92tests, including16Chromium cases: progressive navigation,
 hidden-field validation, locale preservation, contact correction, short initial
 screen, wide Android layout, paid/pending/failed/refunded/offline/bounded polling,
 clipboard success/denial, receipt/ticket/order actions and shared category/search
@@ -71,7 +80,9 @@ reset. No unexpected page errors or financial requests. Direct Buy now additiona
 has37focused tests including13Chromium cases for variants, quantity, persistence,
 duplicate protection and Back/bfcache. Independent code review found no open issue.
 Full suite full-suite-final.log passes2351tests/264files with191gated test skips;
-changed/new22TypeScript files lint0errors/33warnings and TypeScript passes.
+this precedes the final scoped layout/harness corrections, after which the92
+focused checks pass. Changed/new22TypeScript files lint0errors/33warnings and
+TypeScript passes; the final edited browser tests also pass fresh scoped lint.
 Release build/frozen-runtime/live checks are recorded separately in private release
 evidence; component screenshots are not claimed as physical-device verification.
 
