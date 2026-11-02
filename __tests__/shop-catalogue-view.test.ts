@@ -37,6 +37,50 @@ function catalogueProps(products=buildShopCatalogue([product])){
 }
 
 describe('current collection shop presentation',()=>{
+ it('clears the complete parent discovery state before following the Shop all catalogue anchor',()=>{
+  const state={selected:'cb-hoodie',search:'hoodie',category:'Apparel',availability:'designs',sort:'low'};
+  const props={...catalogueProps(),...state,onResetDiscovery:()=>Object.assign(state,{selected:'',search:'',category:'',availability:'all',sort:'featured'})};
+  const link=elements(ShopCatalogueView(props)).find(node=>node.type==='a'&&node.props.href==='#shop-product-grid');
+  expect(link).toBeDefined();expect(link!.props.onClick).toBeTypeOf('function');
+  (link!.props.onClick as ()=>void)();
+  expect(state).toEqual({selected:'',search:'',category:'',availability:'all',sort:'featured'});
+  expect(props.onAdd).not.toHaveBeenCalled();
+ });
+ it('offers a native reset button while filtered products still match',()=>{
+  const props={...catalogueProps(buildShopCatalogue([product]).filter(item=>item.id===product.id)),search:'tour'};
+  const nodes=elements(ShopCatalogueView(props));
+  const reset=nodes.find(node=>node.type==='button'&&node.props.children==='Reset filters');
+  expect(renderToStaticMarkup(createElement(ShopCatalogueView,props))).toContain('data-shop-product="original tee"');
+  expect(reset).toBeDefined();expect(reset!.props.type).toBe('button');
+  (reset!.props.onClick as ()=>void)();
+  expect(props.onSearch).toHaveBeenCalledWith('');expect(props.onCategory).toHaveBeenCalledWith('');
+  expect(props.onAvailability).toHaveBeenCalledWith('all');expect(props.onSort).toHaveBeenCalledWith('featured');
+ });
+ it('makes reset available for a hidden parent item selection and removes it when discovery is clear',()=>{
+  const props=catalogueProps();
+  const filtered=elements(ShopCatalogueView({...props,hasActiveDiscovery:true}));
+  expect(filtered.some(node=>node.type==='button'&&node.props.children==='Reset filters')).toBe(true);
+  const clear=elements(ShopCatalogueView(props));
+  expect(clear.some(node=>node.type==='button'&&node.props.children==='Reset filters')).toBe(false);
+ });
+ it('clears parent item confinement before opening another image collection',()=>{
+  const state={selected:'cb-snapback',search:'cap',category:'Headwear',availability:'designs',sort:'low'};
+  const props={...catalogueProps(),...state,
+   onResetDiscovery:()=>Object.assign(state,{selected:'',search:'',category:'',availability:'all',sort:'featured'}),
+   onCategory:(value:string)=>{state.category=value},
+  };
+  const apparel=elements(ShopCatalogueView(props)).find(node=>node.type==='button'&&node.props['data-shop-collection']==='Apparel');
+  (apparel!.props.onClick as ()=>void)();
+  expect(state).toEqual({selected:'',search:'',category:'Apparel',availability:'all',sort:'featured'});
+  expect(filterShopCatalogue(buildShopCatalogue([product]),{...state,query:state.search}).some(item=>item.id===product.id)).toBe(true);
+ });
+ it('makes All merchandise clear the other discovery filters as its label promises',()=>{
+  const props={...catalogueProps(),search:'no matches',category:'Headwear',availability:'designs',sort:'high'};
+  const all=elements(ShopCatalogueView(props)).find(node=>node.type==='button'&&node.props.children==='All merchandise');
+  (all!.props.onClick as ()=>void)();
+  expect(props.onSearch).toHaveBeenCalledWith('');expect(props.onCategory).toHaveBeenCalledWith('');
+  expect(props.onAvailability).toHaveBeenCalledWith('all');expect(props.onSort).toHaveBeenCalledWith('featured');
+ });
  it('uses actual category images as filters that recover from a previous search and collection choice',()=>{
   const props={...catalogueProps(),search:'no matches',availability:'designs',category:'Headwear'};
   const nodes=elements(ShopCatalogueView(props));

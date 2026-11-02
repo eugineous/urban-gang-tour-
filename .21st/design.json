@@ -44,6 +44,13 @@
   },
   "decisions": [
     {
+      "date": "2026-11-02",
+      "direction": "Short progressive checkout and dedicated branded payment outcomes",
+      "reference": "Owner-supplied order-completed and payment-successful screenshots",
+      "publicSurfaces": "Direct Buy now, Details then Delivery/Tickets then Payment, real configured M-Pesa/Visa/Mastercard marks, UGT magenta confirmation with prominent check/reference/order/receipt actions, distinct pending/unsuccessful/refund states",
+      "preserve": "Server-verified payment truth, existing provider initiation/recovery and ticket gates, optional guest email, native languages, form/cart continuity, accurate independent ticket/email readiness,44px targets and reduced motion"
+    },
+    {
       "date": "2026-11-01",
       "direction": "Complete the owner-selected Mkurugenzi shop presentation and mannequin product imagery",
       "reference": "https://mkurugenzi.ke/",

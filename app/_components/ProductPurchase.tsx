@@ -2,12 +2,14 @@
 import {MessageText} from '@/ui/i18n/MessageText';
 import {useMessages,useInterfaceLanguage} from '@/ui/i18n/LanguageProvider';
 import {commerceMessages,type CommerceIssue} from '@/ui/i18n/catalogues/commerce';
+import {directBuyMessages} from '@/ui/i18n/catalogues/direct-buy';
 import {formatKes} from '@/lib/i18n/format';
 
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {readLiveCart,addCartItem,LIVE_CART_KEY} from '@/lib/client/live-cart';
 import {normalizePrintableName,PRINTABLE_NAME_MAX_LENGTH} from '@/lib/shared/merch-personalization';
 import styles from './Commerce.module.css';
+import purchaseStyles from './ProductPurchase.module.css';
 
 type Variant={label:string;priceAdjustment:number;stock?:number|null};
 
@@ -16,9 +18,15 @@ export function ProductPurchase(props:PurchaseProps){
  return <ProductPurchaseForm {...props} stock={props.madeToOrder?null:props.stock} variants={props.madeToOrder?props.variants.map(variant=>({...variant,stock:null})):props.variants}/>;
 }
 function ProductPurchaseForm({id,price,variants,stock,nameOnBackEnabled=false,madeToOrder=false}:PurchaseProps){
- const t=useMessages(commerceMessages);const {locale}=useInterfaceLanguage();const money=(amount:number)=>formatKes(amount,locale)??'';
+ const t=useMessages(commerceMessages),buyText=useMessages(directBuyMessages);const {locale}=useInterfaceLanguage();const money=(amount:number)=>formatKes(amount,locale)??'';
  const [variant,setVariant]=useState(variants.find(value=>value.stock!==0)?.label||variants[0]?.label||'');
  const [qty,setQty]=useState(1),[printedName,setPrintedName]=useState(''),[notice,setNotice]=useState<CommerceIssue|null>(null),[error,setError]=useState<CommerceIssue|null>(null),[added,setAdded]=useState(false);
+ const checkoutStarted=useRef(false);const [checkingOut,setCheckingOut]=useState(false);
+ useEffect(()=>{
+  const resume=(event:PageTransitionEvent)=>{if(event.persisted){checkoutStarted.current=false;setCheckingOut(false)}};
+  window.addEventListener('pageshow',resume);
+  return()=>window.removeEventListener('pageshow',resume);
+ },[]);
  const option=variants.find(value=>value.label===variant);
  const unit=price+(option?.priceAdjustment||0);
  const total=unit*qty;
@@ -26,7 +34,10 @@ function ProductPurchaseForm({id,price,variants,stock,nameOnBackEnabled=false,ma
  function resetNotice(){setAdded(false);setNotice(null);setError(null)}
  function add(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
-  if(unavailable)return;
+  saveSelection();
+ }
+ function saveSelection(checkout=false){
+  if(unavailable||checkoutStarted.current)return;
   let printableName:string|undefined;
   try{printableName=normalizePrintableName(nameOnBackEnabled&&printedName.trim()?printedName:undefined)}catch{setError({key:'personalization.invalid'});return}
   try{
@@ -36,17 +47,26 @@ function ProductPurchaseForm({id,price,variants,stock,nameOnBackEnabled=false,ma
    if(typeof stock==='number'&&productQuantity+qty>stock||typeof option?.stock==='number'&&variationQuantity+qty>option.stock){setError({key:'cart.exceedsStock'});return}
    const cart=addCartItem(saved,{id,qty,...(variant?{variant}:{}),...(printableName?{printableName}:{})});
    localStorage.setItem(LIVE_CART_KEY,JSON.stringify(cart));
+   // Keep the lock synchronous: another click or form submit can arrive before
+   // React disables the controls or the native checkout navigation finishes.
+   if(checkout){checkoutStarted.current=true;setCheckingOut(true)}
    window.dispatchEvent(new Event('ugt-cart-changed'));
    setPrintedName(printableName||'');setError(null);setAdded(true);setNotice({key:'cart.optionsSaved'});
+   // Start native checkout with a fresh mount reading the saved selection.
+   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+   if(checkout)window.location.assign('/checkout');
   }catch{setError({key:'cart.storageUnavailable'})}
  }
- return <form className={`product-purchase ${styles.purchase}`} onSubmit={add}>
+ return <form className={`product-purchase ${styles.purchase}`} onSubmit={add} aria-busy={checkingOut}>
   <p className={styles.purchaseTotal}>{money(unit)} <span className={styles.availability}>{qty>1?t('each'):''}</span></p>
   <div className={styles.optionRow}>{!!variants.length&&<label>{t('product.chooseOptions')}<select aria-label={t('product.optionsLabel')} value={variant} onChange={event=>{setVariant(event.target.value);resetNotice()}}>{variants.map(value=><option key={value.label} value={value.label} disabled={value.stock===0}>{value.label}{value.stock===0?' · '+t('stock.out'):''}{value.priceAdjustment?' · '+(value.priceAdjustment>0?'+':'')+money(value.priceAdjustment):''}</option>)}</select></label>}<label>{t('quantity')}<input aria-label={t('quantity.product')} type="number" min={1} max={Math.max(1,Math.min(20,stock??20,option?.stock??20))} value={qty} onChange={event=>{setQty(Math.max(1,Math.min(20,Number(event.target.value)||1)));resetNotice()}}/></label></div>
   {nameOnBackEnabled&&<div className={styles.personalization}><label htmlFor={'printed-name-'+id}>{t('personalization.printFree')}<input id={'printed-name-'+id} aria-describedby={'printed-name-help-'+id} maxLength={PRINTABLE_NAME_MAX_LENGTH} autoComplete="off" placeholder={t('personalization.placeholder')} value={printedName} onChange={event=>{setPrintedName(event.target.value);resetNotice()}}/></label><p id={'printed-name-help-'+id} className={styles.purchaseNote}>{t('personalization.help')}</p>{printedName.trim()&&<div className={styles.namePreview} aria-label={t('personalization.preview')}><span>{t('personalization.label')}</span><strong lang="">{printedName.trim()}</strong><small>{t('personalization.spelling')}</small></div>}</div>}
   <p className={styles.availability} data-unavailable={unavailable}>{madeToOrder?t('stock.madeToOrder'):unavailable?t('stock.optionOut'):typeof stock==='number'?t('stock.available',{count:stock}):t('stock.check')}</p>
   {madeToOrder&&<p className={styles.purchaseNote}>{t('purchase.madeToOrder')}</p>}
-  <button className="button" disabled={unavailable} type="submit">{unavailable?t('stock.out'):t('cart.addAmount',{amount:money(total)})}</button>
+  <div className={purchaseStyles.actions}>
+   <button className={`button ${purchaseStyles.buyNow}`} disabled={unavailable||checkingOut} type="button" onClick={event=>{if(event.currentTarget.form?.reportValidity())saveSelection(true)}}>{checkingOut?buyText('opening'):buyText('buyNow')}</button>
+   <button className="button secondary" disabled={unavailable||checkingOut} type="submit">{unavailable?t('stock.out'):t('cart.addAmount',{amount:money(total)})}</button>
+  </div>
   {error&&<p className={styles.error} role="alert">{t(error.key,error.values)}</p>}
   {notice&&<p className={styles.addedStatus} role="status">{t(notice.key,notice.values)}</p>}
   {added&&<a className="button secondary" href="/cart">{t('cart.review')}</a>}

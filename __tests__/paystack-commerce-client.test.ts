@@ -49,6 +49,7 @@ beforeEach(()=>{
  vi.stubGlobal('localStorage',storage(data));vi.stubGlobal('sessionStorage',storage(sessionData));
  vi.stubGlobal('window',{location:{assign},addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),dispatchEvent:events.dispatchEvent.bind(events)});
  vi.stubGlobal('location',{search:''});
+ vi.stubGlobal('requestAnimationFrame',(callback:FrameRequestCallback)=>{callback(0);return 0});
  replies={
   '/api/site-data/products':async()=>response({ok:true,products:[product]}),
   '/api/site-data/events':async()=>response({ok:true,events:[{id:'EVT-FIXTURE',name:'Fixture event',sellable:true,tiers:[{name:'Standard',price:900,sellable:true}]}]}),
@@ -78,8 +79,8 @@ async function checkout(eventId?:string,view:'shop'|'cart'|'checkout'='checkout'
  await vi.waitFor(()=>{tree=render(client,component);expect(renderToStaticMarkup(tree)).not.toContain('Loading the live catalogue')});
  function rerender(){tree=render(client,component);return tree}
  function method(value:string){
-  const select=nodes(tree).find(node=>node.type==='select'&&nodes(node.props.children).some(option=>option.type==='option'&&option.props.value==='card'))!;
-  select.props.onChange!({target:{value}});rerender();
+  const tile=nodes(tree).find(node=>node.type==='input'&&node.props.name==='paymentMethod'&&node.props.value===value)!;
+  tile.props.onChange!({target:{value}});rerender();
  }
  async function submit(){await nodes(tree).find(node=>node.type==='form')!.props.onSubmit!({preventDefault:()=>{}});rerender()}
  return {method,submit,rerender,html:()=>renderToStaticMarkup(tree),tree:()=>tree,cleanup:()=>cleanup.forEach(stop=>{if(typeof stop==='function')stop()})};

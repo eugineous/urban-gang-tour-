@@ -37,9 +37,12 @@
 .collectionCopy strong{font-size:clamp(24px,4cqi,38px);font-weight:800;line-height:1.05;letter-spacing:-.03em;text-transform:uppercase;overflow-wrap:anywhere}
 .collectionCopy>span{display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:44px;padding:10px 18px;border:1px solid #fff;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .collectionCard:hover .collectionCopy>span{background:#fff;color:#151515}
-.catalogueHeading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:28px 16px 18px}
+.catalogueHeading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:28px 16px 18px}
 .catalogue .catalogueHeading h2{font-size:21px;line-height:1.2;font-weight:650;margin:0;letter-spacing:-.03em}
 .catalogueHeading p{font-size:12px;color:var(--shop-muted);margin:0;white-space:nowrap}
+.catalogueSummary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;min-width:0}
+.catalogueSummary button{min-height:44px;padding:8px 12px;border:1px solid #d8d3d5;border-radius:5px;background:#fff;color:#554e52;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.catalogueSummary button:hover{background:#f2eeee}
 .catalogueTools{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 10px;padding:0 16px 18px}
 .catalogueTools label{display:grid;gap:7px;font-size:11px;line-height:1.4;font-weight:650;min-width:0}
 .catalogueTools .search{grid-column:1/-1}

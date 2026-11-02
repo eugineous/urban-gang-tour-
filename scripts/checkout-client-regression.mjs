@@ -8,7 +8,7 @@ const artifacts=process.env.ARTIFACT_DIR||'/workspace/artifacts/ugt-home-energy-
 const scenario=process.argv[2];
 const product={id:'checkout-fixture',name:'Checkout fixture shirt',price:1000,image:'/assets/ugt-logo.png',stock:5,variants:[]};
 const items=[{id:product.id,qty:1}];
-const options={pickup:{enabled:true,fee:0,location:'Fixture collection desk'},delivery:{enabled:true,fee:300}};
+const options={pickup:{enabled:true,fee:0,location:'Fixture collection desk'},delivery:{enabled:true,fee:300},payments:{mpesa:true,card:true}};
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
 await mkdir(artifacts,{recursive:true});
 
@@ -34,14 +34,19 @@ async function fulfillment(width){
  await context.route('**/api/checkout/fulfillment',route=>{requests++;return route.fulfill(retryAllowed?{json:options}:{status:503,json:{error:'unavailable'}})});
  await context.route('**/api/orders',route=>{purchases++;return route.abort()});
  await page.goto(base+'/checkout',{waitUntil:'domcontentloaded'});
+ await page.locator('input[name="name"]').fill('Fixture Buyer');
+ await page.locator('input[name="phone"]').fill('0712345678');
  try{await page.getByRole('alert').filter({hasText:'We could not load pickup and delivery options.'}).waitFor()}
  catch(error){console.error({requests,errors,body:(await page.locator('body').innerText({timeout:1000}).catch(()=>'' )).slice(0,1600)});throw error}
- assert.equal(await page.getByRole('button',{name:/Pay .* with M-Pesa/}).isDisabled(),true,'Unknown fulfillment configuration must not silently submit pickup');
+ assert.equal(await page.locator('form').filter({has:page.locator('[data-checkout-step]')}).locator('button[type="submit"]').isDisabled(),true,'Unknown fulfillment configuration must not silently submit pickup');
  const failedRequests=requests;retryAllowed=true;
  await page.getByRole('button',{name:'Retry pickup and delivery options'}).click();
+ await page.locator('[data-checkout-next]:visible').click();
  await page.getByLabel('Pickup or delivery').selectOption('delivery');
  await page.getByLabel('Delivery address',{exact:true}).fill('Fixture road 1');
  await page.getByLabel('Town or city',{exact:true}).fill('Nairobi');
+ await page.locator('[data-checkout-next]:visible').click();
+ await page.locator('input[name="paymentMethod"][value="mpesa"]').check();
  assert.equal(await page.getByRole('button',{name:'Pay KES 1,300 with M-Pesa'}).isDisabled(),false);
  assert.equal(purchases,0);assert.equal(requests,failedRequests+1);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
@@ -58,7 +63,7 @@ async function cartNotification(width){
  await page.getByRole('heading',{name:'Payment confirmed',exact:true}).waitFor();
  assert.equal(await page.evaluate(()=>localStorage.getItem('ugt-live-cart-v1')),'[]');
  assert.equal(await page.evaluate(()=>window.checkoutCartChanges),1,'Confirmed matching-cart cleanup must notify same-page cart consumers');
- assert.equal(await page.getByRole('link',{name:'Open receipt and downloads'}).getAttribute('href'),'/receipt/ORD-CART-FIXTURE');
+ assert.equal(await page.getByRole('link',{name:'Open receipt',exact:true}).getAttribute('href'),'/receipt/ORD-CART-FIXTURE');
  assert.deepEqual(errors,[]);await context.close();
  console.log(`PASS cart-notification ${width}: confirmed matching cart clears and notifies; receipt link available`);
 }
@@ -75,6 +80,11 @@ async function recovery(width){
  await page.goto(base+'/checkout',{waitUntil:'domcontentloaded'});
  await page.getByLabel('Your full name').fill('Fixture Buyer');
  await page.getByLabel('M-Pesa phone number').fill('0712345678');
+ await page.locator('[data-checkout-next]:visible').click();
+ await page.locator('[data-checkout-next]:visible').click();
+ assert.equal(orders.length,0,'Moving through checkout must not initiate a payment');
+ assert.equal(recoveries,0,'Moving through checkout must not recover or allocate an attempt');
+ await page.locator('input[name="paymentMethod"][value="mpesa"]').check();
  await page.locator('form input[type=checkbox]').check();
  await page.getByRole('button',{name:'Pay KES 1,000 with M-Pesa'}).click();
  await page.getByRole('alert').filter({hasText:'Check the saved payment before paying again.'}).waitFor();
@@ -85,7 +95,7 @@ async function recovery(width){
  await page.getByRole('heading',{name:'Payment outcome not yet confirmed'}).waitFor();
  assert.equal(orders.length,1,'An uncertain attempt must recover without another order/payment request');
  assert.equal(recoveries,1);
- assert.equal(await page.getByRole('link',{name:'Open receipt and downloads'}).count(),0);
+ assert.equal(await page.getByRole('link',{name:'Open receipt',exact:true}).count(),0);
  assert.equal(await page.evaluate(()=>localStorage.getItem('ugt-live-cart-v1')),JSON.stringify(items));
  await page.screenshot({path:`${artifacts}/checkout-uncertain-payment-${width}.png`,fullPage:true});
  assert.deepEqual(errors,[]);await context.close();

@@ -41,6 +41,19 @@ it('clears the matching Paystack reference after verified payment while preservi
  expect(request.mock.calls[0][0]).toBe('/api/orders/status?id=ORD-STATUS-OWNED');
 });
 
+it('presents the verified server amount and usable order-reference controls on the success screen',async()=>{
+ const html=await check({status:'paid',total:1250,method:'card',delivery:{tickets:'not_required',email:'accepted'}});
+ expect(html).toContain('KES 1,250');expect(html).toContain('Payment method');
+ expect(html).toContain('aria-label="Copy order reference"');expect(html).toContain('href="/orders/track?ref=ORD-STATUS-OWNED"');
+ expect(html).toContain('data-payment-state="success"');
+});
+
+it('never renders a success badge or paid documents for an unconfirmed request',async()=>{
+ const html=await check({status:'pending',total:1250,method:'mpesa',delivery:{tickets:'ready',email:'accepted'}});
+ expect(html).not.toContain('data-payment-state="success"');expect(html).not.toContain('href="/receipt/');
+ expect(html).toContain('data-payment-state="pending"');expect(html).toContain('ORD-STATUS-OWNED');
+});
+
 it('clears the matching M-Pesa reference while preserving another Paystack order',async()=>{
  storage.set(paystackKey,saved('a'.repeat(32),'ORD-PAYSTACK-OTHER'));storage.set(mpesaKey,saved('b'.repeat(32),orderId));
  const html=await check({status:'declined',attemptState:'declined',remainingTicketsAvailable:false});

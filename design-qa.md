@@ -1,4 +1,98 @@
-# Shop visual completion — 1 November 2026
+# Guided checkout and payment results — 2 November 2026
+
+final result: passed
+
+## Comparison and state
+
+Source visual truth: owner-supplied 2-1003065507.jpg and 1-1003065508.jpg in
+/tmp/codex-remote-attachments/01a12a20-9a28-70a4-86c1-8aa86f78b05a/01acfcb4-bc6c-45d8-9f57-a8ed53132f4f/.
+Source2 is720×1280pixels. The paid implementation result-paid-360.png is
+720×1280pixels,360×640CSSpx at deviceScaleFactor2. Full-view normalized
+comparison: /workspace/artifacts/ugt-checkout-journey-20261102/result-comparison.png
+(source left, implementation right). Both depict confirmed payment. UGT intentionally
+adds an actionable reference and order/receipt links, retains its own magenta/Inter
+identity, omits the reference's confetti, foreign merchant claims and reward offer,
+and does not reproduce OS/browser chrome. This is an adaptation, not a pixel clone.
+
+Implementation evidence in that artifact root's screenshots directory:
+result-paid-360.png, result-paid-full-360.png, result-declined-320.png,
+result-pending-320.png and result-refunded-320.png. The latter full-page images use
+320CSSpx/density2. Focused result headings/check/reference/primary actions are
+readable at full resolution in the combined comparison; extra crops were not
+needed. Checkout details/payment states at320/390/820/1440CSSpx are captured in
+/workspace/artifacts/guided-checkout-20261102/checkout-{details,payment}-*.png.
+The payment390capture was separately inspected at native resolution for logos,
+radio labels, consent, Back and Pay actions.
+
+## Findings and correction history
+
+- P2: duplicate long checkout introductions and spacing placed the first Continue
+  beyond the useful phone viewport. Removed only the redundant checkout intro,
+  compacted the summary/progress/gaps, retained44px controls and required copy.
+  Latest real-browser geometry regression passes at390×844 with72px dock reserve.
+- P2: result amount/method pushed the primary action below the compact phone fold.
+  Moved facts below actions and reduced phone badge/header spacing. Latest paid
+  screenshot and360×640 assertion place the primary action above the dock reserve.
+- P2: Android coarse-touch980layout/393screen fallback cramped the new form and
+  result action into narrow columns. Scoped coarse-touch responsive rules now
+  stack the relevant tracks; real Chromium regressions require effective field
+  and primary-action widths of at least240px with no horizontal overflow.
+- P2: the complete production shell exposed global definition-list styles that
+  clipped Card despite no document-level overflow. A new regression failed with
+  the clipped total/method; scoped automatic width and block fact groups fix it.
+  The latest screenshot and regression show both labels and values completely.
+- P2: the sticky site header and ID-specific phone heading override were absent
+  from the initial component harness. Including the actual header CSS footprint
+  and main-content ID reproduced Continue at846px and the result action at662px,
+  beyond their772/568px dock-safe limits. Scoped top-spacing and heading fixes
+  now pass those unchanged bounds with the production cascade represented.
+
+No actionable P0/P1/P2 differences remain in the checked states. The owner also
+explicitly requested unsuccessful screens: declined/cancelled/failed/timed-out
+statuses use the same dedicated result shell with an X icon, honest explanation,
+reference, safe recheck and support. Pending/unknown/offline never claim failure
+or success. Refunds have a distinct result, preserving remaining valid tickets.
+
+## Five required fidelity surfaces
+
+- Typography: existing Inter used for legible30px phone result headings and
+  compact field labels; long references wrap in monospace rather than clip.
+  Existing Mkurugenzi-grounded shop fonts are unchanged. Six native locales pass.
+- Spacing/layout: centered white result panel, strong check/title/reference/action
+  hierarchy, short three-panel checkout, collapsed optional summary/promo,44px
+  controls, phone/tablet/desktop and coarse-touch fallback assertions pass.
+- Tokens: UGT magenta action/check, paper/white/ink surfaces, amber pending,
+  red unsuccessful and cyan refund; text and symbols supplement state colour.
+- Assets/icons: genuine M-Pesa wordmark and official Visa/Mastercard assets with
+  public provenance notes; supplied UGT logo and existing Phosphor icons. No fake
+  wallet marks, custom decorative SVG/CSS art or unsupported Apple Pay promise.
+- Copy/content: concise task labels; no invented money receipt, mail delivery,
+  stock, reward, merchant statement descriptor or success from a redirect URL.
+  Ticket readiness and email acceptance remain distinct from payment truth.
+
+## Interaction verification and boundaries
+
+Latest focused-final.log passes92tests, including16Chromium cases: progressive navigation,
+hidden-field validation, locale preservation, contact correction, short initial
+screen, wide Android layout, paid/pending/failed/refunded/offline/bounded polling,
+clipboard success/denial, receipt/ticket/order actions and shared category/search
+reset. No unexpected page errors or financial requests. Direct Buy now additionally
+has37focused tests including13Chromium cases for variants, quantity, persistence,
+duplicate protection and Back/bfcache. Independent code review found no open issue.
+Full suite full-suite-final.log passes2351tests/264files with191gated test skips;
+this precedes the final scoped layout/harness corrections, after which the92
+focused checks pass. Changed/new22TypeScript files lint0errors/33warnings and
+TypeScript passes; the final edited browser tests also pass fresh scoped lint.
+Release build/frozen-runtime/live checks are recorded separately in private release
+evidence; component screenshots are not claimed as physical-device verification.
+
+Checklist: visual comparison complete; earlier findings fixed and recaptured;
+configured-brand assets checked; primary states and interactions checked; release
+gates remain mandatory. No P3 change is required for this bounded implementation.
+
+---
+
+# Previous report: Shop visual completion — 1 November 2026
 
 final result: passed
 
