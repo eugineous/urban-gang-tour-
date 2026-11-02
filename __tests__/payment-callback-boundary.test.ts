@@ -3,9 +3,11 @@ const state=vi.hoisted(()=>({
   q:vi.fn(), query:vi.fn(), work:[] as (()=>Promise<void>)[],
   tickets:vi.fn(async()=>[]),inventory:vi.fn(async()=>{}),consume:vi.fn(async()=>{}),release:vi.fn(async()=>{}),
   success:vi.fn(async()=>{}),failure:vi.fn(async()=>{}),receipt:vi.fn(async()=>{}),alert:vi.fn(async()=>{}),
+  effects:vi.fn(async()=>[]),
 }));
 vi.mock('next/server',async()=>({...await vi.importActual<typeof import('next/server')>('next/server'),after:(task:()=>Promise<void>)=>state.work.push(task)}));
-vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:state.q}));
+vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:state.q,qSchema:vi.fn(async()=>{})}));
+vi.mock('@/lib/server/payment-effects',async()=>({...await vi.importActual<typeof import('@/lib/server/payment-effects')>('@/lib/server/payment-effects'),processPaymentEffects:state.effects}));
 vi.mock('@/lib/server/mpesa',()=>({stkPushQuery:state.query}));
 vi.mock('@/lib/server/alert',()=>({alertCritical:state.alert}));
 vi.mock('@/lib/server/receipt-email',()=>({sendReceiptEmail:state.receipt}));
@@ -30,9 +32,11 @@ describe('M-Pesa callback verification boundary',()=>{
     await state.work[0]();
     expect(state.query).toHaveBeenCalledWith('ws_CO_123');
     const [sql,params]=state.q.mock.calls.find(([sql])=>sql.includes("status='paid'"))!;
-    expect(sql).toContain('status = ANY($3)');expect(sql).toContain('total=$4');
-    expect(params).toEqual(['ws_CO_123','RCP123',['pending','unknown','reconciling'],1200]);
-    expect(state.tickets).toHaveBeenCalledTimes(1);expect(state.inventory).toHaveBeenCalledTimes(1);
+    expect(sql).toContain('INSERT INTO payment_effect_outbox');
+    expect(sql).toContain('mpesa_ref=$2');expect(sql).toContain('total=$3');
+    expect(params).toEqual(['ORD-FIXTURE','ws_CO_123',1200,'RCP123',['pending','unknown','reconciling']]);
+    expect(state.effects).toHaveBeenCalledWith(4,order.id);
+    expect(state.tickets).not.toHaveBeenCalled();expect(state.inventory).not.toHaveBeenCalled();
   });
   it('does not query unknown or already settled orders',async()=>{
     state.q.mockResolvedValue([]);await run();expect(state.query).not.toHaveBeenCalled();expect(state.tickets).not.toHaveBeenCalled();
@@ -55,5 +59,19 @@ describe('M-Pesa callback verification boundary',()=>{
   });
   it('records timeouts only from a verified provider result',async()=>{
     state.query.mockResolvedValue({ok:true,resultCode:1037,resultDesc:'Timeout'});await run();expect(state.q.mock.calls[1][1][1]).toBe('timed_out');
+  });
+  it('keeps a failed atomic enqueue recoverable and sends no success notice',async()=>{
+    state.q.mockImplementation(async(sql:string)=>{
+      if(sql.startsWith('SELECT'))return [order];
+      if(sql.includes("status='paid'"))throw Error('fixture durable storage unavailable');
+      return [];
+    });
+    await run();expect(state.effects).not.toHaveBeenCalled();expect(state.success).not.toHaveBeenCalled();expect(state.alert).toHaveBeenCalled();
+  });
+  it('starts the owner notice while customer effects are still processing',async()=>{
+    let complete!:()=>void;
+    state.effects.mockImplementationOnce(()=>new Promise(resolve=>{complete=()=>resolve([])}));
+    await POST(callback());const work=state.work[0]();
+    await vi.waitFor(()=>expect(state.success).toHaveBeenCalledOnce());complete();await work;
   });
 });

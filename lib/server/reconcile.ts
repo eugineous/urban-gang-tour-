@@ -7,18 +7,16 @@
 import { q, hasDb } from './db';
 import { stkPushQuery } from './mpesa';
 import { paystackVerify, paystackConfigured } from './paystack';
-import { consumeReservation, releaseReservation } from './ticket-inventory';
+import { releaseReservation } from './ticket-inventory';
 import { amountsMatch, RECOVERABLE_PAYMENT_STATUSES } from './payment-status';
-import { settlePaystackOrder, processPaymentEffects } from './payment-effects';
+import { settlePaystackOrder, settleMpesaOrder, processPaymentEffects } from './payment-effects';
+import { notifyPaymentSuccess } from './notify';
 
-async function finishRecoveredOrder(order: any) {
-  const { ensureTickets } = await import('./tickets');
-  const { recordPaidMerchOrder } = await import('./inventory');
-  const { sendReceiptEmail } = await import('./receipt-email');
-  await consumeReservation(order.id).catch(() => {});
-  await recordPaidMerchOrder(order).catch(error => console.error('[recovered-merch-inventory]', error));
-  await ensureTickets(order).catch(error => console.error('[recovered-tickets]', error));
-  if (order.email) await sendReceiptEmail(order);
+async function finishRecoveredOrder(order: { id: string; total: number }, gateway: 'mpesa' | 'paystack') {
+  await Promise.allSettled([
+    processPaymentEffects(4, order.id).catch(() => console.error('[payment-effects] reconciliation_drain_failed')),
+    notifyPaymentSuccess({ gateway, orderId: order.id, amount: order.total }),
+  ]);
 }
 
 /** Pure mapping: Daraja ResultCode -> ledger status. Unit-testable. */
@@ -66,17 +64,15 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
         const next = decideMpesaOutcome(qr.resultCode);
         if (next === 'paid') {
           if (qr.amount !== undefined && !amountsMatch(o.total, qr.amount)) {
-            await q(`UPDATE orders SET status='reconciling' WHERE id=$1`, [o.id]);
+            await q(`UPDATE orders SET status='reconciling'
+              WHERE id=$1 AND status = ANY($2) AND mpesa_ref=$3 AND total=$4`,
+            [o.id, RECOVERABLE_PAYMENT_STATUSES, o.mpesa_ref, o.total]);
             out.stillPending.push(o.id);
             continue;
           }
-          const paid = await q(
-            `UPDATE orders SET status='paid', mpesa_receipt=COALESCE(mpesa_receipt,$2)
-              WHERE id=$1 AND status = ANY($3) RETURNING *`,
-            [o.id, qr.receipt || '', RECOVERABLE_PAYMENT_STATUSES],
-          );
-          if (paid.length) {
-            await finishRecoveredOrder(paid[0]);
+          const paid = await settleMpesaOrder({ orderId: o.id, checkoutRequestId: o.mpesa_ref, amountKes: o.total, receipt: qr.receipt });
+          if (paid) {
+            await finishRecoveredOrder({ id: paid.id, total: paid.total }, 'mpesa');
             await q(`INSERT INTO audit_log (actor, action, detail) VALUES ('reconcile','order_paid',$1)`, [
               JSON.stringify({ id: o.id, via: 'stkpushquery', receipt: qr.receipt || '' }),
             ]).catch(() => {});
@@ -105,7 +101,7 @@ export async function reconcileStuckOrders(limit = 25): Promise<ReconcileOutcome
           && v.amountSubunit === Number(o.total) * 100 && amountsMatch(o.total, v.amountKes)) {
           const paid = await settlePaystackOrder({ orderId: o.id, reference: v.reference, amountKes: o.total });
           if (paid) {
-            await processPaymentEffects(4, paid.id).catch(() => console.error('[paystack-effects] reconciliation_drain_failed'));
+            await finishRecoveredOrder({ id: paid.id, total: paid.total }, 'paystack');
             out.paid.push(o.id);
           } else out.stillPending.push(o.id);
         } else if (v.paid) {

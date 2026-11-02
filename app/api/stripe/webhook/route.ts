@@ -2,20 +2,19 @@ import { NextResponse, after } from "next/server";
 import type Stripe from "stripe";
 import { alertCritical } from "@/lib/server/alert";
 import { stripe } from "@/lib/server/stripe";
-import { sendReceiptEmail } from "@/lib/server/receipt-email";
-import { ensureTickets } from "@/lib/server/tickets";
 import {
   notifyPaymentSuccess,
   notifyPaymentFailure,
 } from "@/lib/server/notify";
-import { recordPaidMerchOrder } from "@/lib/server/inventory";
+import { settleStripeOrder, processPaymentEffects } from '@/lib/server/payment-effects';
 import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 
 // Stripe webhook (server-to-server; signature-verified, so no Origin check —
 // same exemption class as /api/mpesa/callback). Registered in the Stripe
 // dashboard for: checkout.session.completed, payment_intent.succeeded,
 // payment_intent.payment_failed. Reconciles the order ledger via
-// metadata.order_id and always 200-acks handled/ignored events quickly.
+// metadata.order_id. Verified settlement storage failures remain retryable;
+// optional notices/audit cannot prevent the durable fulfillment enqueue.
 
 export const runtime = "nodejs";
 
@@ -76,7 +75,9 @@ export async function POST(req: Request) {
       const amountSubunit = Number(session.amount_total);
       const amountKes = amountSubunit / 100;
       if (
-        orderId &&
+        /^ORD-[A-Z0-9-]{4,40}$/.test(orderId) &&
+        /^cs_[A-Za-z0-9_]{1,200}$/.test(session.id) &&
+        /^pi_[A-Za-z0-9_]{1,200}$/.test(pi) &&
         session.payment_status === "paid" &&
         String(session.currency || "").toLowerCase() === "kes" &&
         Number.isSafeInteger(amountSubunit) &&
@@ -84,72 +85,28 @@ export async function POST(req: Request) {
         Number.isSafeInteger(amountKes)
       ) {
         try {
-          const { q, db } = await import("@/lib/server/db");
-          if (db()) {
+          const { q, hasDb } = await import("@/lib/server/db");
+          if (hasDb()) {
             await ensureColumns(q);
-            const rows = await q(
-            `UPDATE orders SET status='paid', stripe_payment_intent=$2,
-                 stripe_session=COALESCE(NULLIF(stripe_session,''), $3)
-               WHERE id=$1 AND stripe_session=$3
-                 AND status = ANY($4) AND total=$5
-               RETURNING *`,
-              [orderId, pi, session.id, RECOVERABLE_PAYMENT_STATUSES, amountKes],
-            );
-            if (rows.length === 0) {
-              await alertCritical(
-                "Stripe payment with no matching order",
-                `checkout.session.completed for order ${orderId} (session ${session.id}) matched no ledger row`,
-              );
-            } else {
-              await q(
-                `INSERT INTO audit_log (actor, action, detail) VALUES ($1,$2,$3)`,
-                [
-                  "stripe",
-                  "order_paid",
-                  JSON.stringify({
-                    order_id: orderId,
-                    session: session.id,
-                    payment_intent: pi,
-                    amount_total: session.amount_total,
-                  }),
-                ],
-              );
-              // mint e-tickets, then the branded receipt email (which links
-              // them) - fire-and-forget after the ack
-              const paidRow = rows[0];
-              if (paidRow)
-                after(async () => {
-                  try {
-                    const { consumeReservation } = await import("@/lib/server/ticket-inventory");
-                    await consumeReservation(paidRow.id);
-                  } catch (e) {
-                    console.error("[ticket-reservation]", e);
-                  }
-                  try {
-                    await recordPaidMerchOrder(paidRow);
-                  } catch (e) {
-                    console.error("[merch-inventory]", e);
-                  }
-                  try {
-                    await ensureTickets(paidRow);
-                  } catch (e) {
-                    console.error("[tickets-mint]", e);
-                  }
-                  if (paidRow.email) await sendReceiptEmail(paidRow);
-                  await notifyPaymentSuccess({
-                    gateway: "stripe",
-                    orderId: paidRow.id,
-                    amount: paidRow.total,
-                  });
-                });
+            const paidRow = await settleStripeOrder({ orderId, sessionId: session.id, paymentIntentId: pi, amountKes });
+            if (paidRow) {
+              after(async () => {
+                await Promise.allSettled([
+                  processPaymentEffects(4, paidRow.id).catch(() => console.error('[stripe-effects] deferred_drain_failed')),
+                  notifyPaymentSuccess({ gateway: 'stripe', orderId: paidRow.id, amount: paidRow.total }),
+                  q(`INSERT INTO audit_log (actor, action, detail) VALUES ($1,$2,$3)`, [
+                    'stripe', 'order_paid', JSON.stringify({ order_id: orderId, session: session.id, payment_intent: pi, amount_total: session.amount_total }),
+                  ]).catch(() => console.error('[stripe-audit] audit_unavailable')),
+                ]);
+              });
             }
-          }
-        } catch (e: any) {
-          // a real Stripe payment failed to reconcile - the ledger is now stale
-          await alertCritical(
-            "Stripe webhook processing failed",
-            `order ${orderId} session ${session.id}: ${String(e?.message || e)}`,
-          );
+          } else return NextResponse.json({ error: 'ledger_unavailable' }, { status: 503 });
+        } catch {
+          console.error('[stripe-webhook] durable_settlement_unavailable');
+          after(async () => {
+            await alertCritical('Stripe payment reconciliation failed', 'A signed paid checkout could not commit its ledger and durable customer effects. Provider redelivery remains retryable.').catch(() => {});
+          });
+          return NextResponse.json({ error: 'ledger_unavailable' }, { status: 503 });
         }
       }
     } else if (event.type === "payment_intent.payment_failed") {
@@ -159,27 +116,33 @@ export async function POST(req: Request) {
         "[stripe-webhook]",
         JSON.stringify({ type: event.type, order: orderId, intent: intent.id }),
       );
-      if (orderId) {
+      const amountSubunit = Number(intent.amount);
+      const amountKes = amountSubunit / 100;
+      if (/^ORD-[A-Z0-9-]{4,40}$/.test(orderId) && /^pi_[A-Za-z0-9_]{1,200}$/.test(intent.id)
+        && String(intent.currency || '').toLowerCase() === 'kes'
+        && Number.isSafeInteger(amountSubunit) && amountSubunit > 0 && Number.isSafeInteger(amountKes)) {
         try {
-          const { q, db } = await import("@/lib/server/db");
-          if (db()) {
+          const { q, hasDb } = await import("@/lib/server/db");
+          if (hasDb()) {
             await ensureColumns(q);
             const rows = await q(
-              `UPDATE orders SET status='failed' WHERE id=$1 AND status = ANY($2) RETURNING id, total`,
-              [orderId, RECOVERABLE_PAYMENT_STATUSES],
+              // One declined intent does not close its hosted checkout. Only
+              // a stored exact intent can associate this event with the order;
+              // unbound metadata is ignored until session completion verifies it.
+              `UPDATE orders SET status='reconciling'
+               WHERE id=$1 AND status = ANY($2) AND stripe_payment_intent=$3
+                 AND pay_method='card' AND total=$4 AND status<>'reconciling'
+               RETURNING id, total`,
+              [orderId, RECOVERABLE_PAYMENT_STATUSES, intent.id, amountKes],
             );
             if (rows[0])
               after(async () => {
-                try {
-                  const { releaseReservation } = await import("@/lib/server/ticket-inventory");
-                  await releaseReservation(rows[0].id);
-                } catch { /* hold expires on its own */ }
                 await notifyPaymentFailure({
                   gateway: "stripe",
                   orderId: rows[0].id,
                   amount: rows[0].total,
                   reason:
-                    intent.last_payment_error?.message || "payment_failed",
+                    'A card attempt failed; hosted checkout remains unconfirmed. ' + (intent.last_payment_error?.message || 'payment_failed'),
                 });
               });
           }

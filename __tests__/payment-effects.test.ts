@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const database = vi.hoisted(() => ({ q: vi.fn(), qSchema: vi.fn(), hasDb: vi.fn() }));
 vi.mock('@/lib/server/db', () => database);
-import { processPaymentEffects, settlePaystackOrder } from '@/lib/server/payment-effects';
+import { processPaymentEffects, settlePaystackOrder, settleMpesaOrder, settleStripeOrder } from '@/lib/server/payment-effects';
 
 const input = { orderId: 'ORD-EFFECT123', reference: 'ORD-EFFECT123', amountKes: 1000 };
 beforeEach(() => {
@@ -14,7 +14,19 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-describe('durable Paystack transition boundary', () => {
+describe('durable settlement transition boundary', () => {
+  it.each([
+    { orderId: '<untrusted>' }, { checkoutRequestId: 'unsafe/reference' }, { amountKes: 0 }, { amountKes: 1.5 }, { receipt: '<unsafe>' },
+  ])('rejects unsafe M-Pesa settlement before storage: %j', async change => {
+    await expect(settleMpesaOrder({ orderId: input.orderId, checkoutRequestId: 'ws_CO_fixture', amountKes: 1000, ...change })).rejects.toThrow('invalid_mpesa_settlement');
+    expect(database.q).not.toHaveBeenCalled();
+  });
+  it.each([
+    { orderId: '<untrusted>' }, { sessionId: 'cs_unsafe<script>' }, { paymentIntentId: '' }, { amountKes: 0 }, { amountKes: 1.5 },
+  ])('rejects unsafe Stripe settlement before storage: %j', async change => {
+    await expect(settleStripeOrder({ orderId: input.orderId, sessionId: 'cs_fixture', paymentIntentId: 'pi_fixture', amountKes: 1000, ...change })).rejects.toThrow('invalid_stripe_settlement');
+    expect(database.q).not.toHaveBeenCalled();
+  });
   it.each([
     { orderId: '' }, { orderId: '<untrusted>' }, { reference: '' }, { reference: 'bad/reference' },
     { amountKes: 0 }, { amountKes: -1 }, { amountKes: 1000.01 }, { amountKes: Number.NaN },

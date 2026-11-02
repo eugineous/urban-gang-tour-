@@ -5,7 +5,7 @@ import { isConfirmedPayment, RECOVERABLE_PAYMENT_STATUSES } from './payment-stat
 import { consumeReservation } from './ticket-inventory';
 import { recordPaidMerchOrder } from './inventory';
 import { ensureTickets } from './tickets';
-import { enqueueReceiptEmail, ensureEmailOutbox } from './email-outbox';
+import { enqueueReceiptEmail, ensureEmailOutbox, deliverReceiptEmailJob } from './email-outbox';
 
 export type PaymentEffect = 'reservation' | 'inventory' | 'tickets' | 'receipt';
 export type EffectSummary = { orderId: string; effect: PaymentEffect; status: 'complete' | 'skipped' | 'queued' | 'blocked' | 'lease_lost' };
@@ -24,13 +24,15 @@ export async function ensurePaymentEffectsSchema(): Promise<void> {
   if (!schemaReady) schemaReady = qSchema(`CREATE TABLE IF NOT EXISTS payment_effect_outbox (
     order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
     effect TEXT NOT NULL CHECK(effect IN ('reservation','inventory','tickets','receipt')),
-    gateway TEXT NOT NULL DEFAULT 'paystack' CHECK(gateway='paystack'),
+    gateway TEXT NOT NULL DEFAULT 'paystack' CHECK(gateway IN ('paystack','mpesa','stripe')),
     status TEXT NOT NULL DEFAULT 'queued' CHECK(status IN ('queued','processing','complete','skipped','blocked')),
     attempts INT NOT NULL DEFAULT 0, next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     lease_token TEXT, lease_until TIMESTAMPTZ, last_error TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY(order_id,effect)
-  ); CREATE INDEX IF NOT EXISTS payment_effect_outbox_due ON payment_effect_outbox(status,next_attempt_at);`)
+  ); CREATE INDEX IF NOT EXISTS payment_effect_outbox_due ON payment_effect_outbox(status,next_attempt_at);
+  ALTER TABLE payment_effect_outbox DROP CONSTRAINT IF EXISTS payment_effect_outbox_gateway_check;
+  ALTER TABLE payment_effect_outbox ADD CONSTRAINT payment_effect_outbox_gateway_check CHECK(gateway IN ('paystack','mpesa','stripe'));`)
     .catch(() => { schemaReady = undefined; throw new Error('database_unavailable'); });
   return schemaReady;
 }
@@ -48,11 +50,56 @@ export async function settlePaystackOrder(input: { orderId: string; reference: s
     WHERE id=$1 AND paystack_ref=$2 AND total=$3 AND pay_method='card'
       AND status=ANY($4::text[]) RETURNING *
   ), queued AS (
-    INSERT INTO payment_effect_outbox(order_id,effect)
-    SELECT paid.id,effect.name FROM paid CROSS JOIN
+    INSERT INTO payment_effect_outbox(order_id,effect,gateway)
+    SELECT paid.id,effect.name,'paystack' FROM paid CROSS JOIN
       (VALUES ('reservation'),('inventory'),('tickets'),('receipt')) AS effect(name)
     ON CONFLICT(order_id,effect) DO NOTHING
   ) SELECT * FROM paid`, [input.orderId, input.reference, input.amountKes, RECOVERABLE_PAYMENT_STATUSES]);
+  return rows[0] || null;
+}
+
+function validSettlement(orderId: string, amountKes: number): boolean {
+  return /^ORD-[A-Z0-9-]{4,40}$/.test(orderId) && Number.isSafeInteger(amountKes)
+    && amountKes > 0 && amountKes <= 2147483647;
+}
+
+// Callers authenticate Daraja's CheckoutRequestID-bound query first. A query
+// may omit receipt metadata; absent fields must never be invented here.
+export async function settleMpesaOrder(input: { orderId: string; checkoutRequestId: string; amountKes: number; receipt?: string }): Promise<OrderRow | null> {
+  if (!validSettlement(input.orderId, input.amountKes) || !/^[A-Za-z0-9_-]{1,200}$/.test(input.checkoutRequestId)
+    || (input.receipt !== undefined && !/^[A-Z0-9]{5,20}$/.test(input.receipt))) throw new Error('invalid_mpesa_settlement');
+  await ensurePaymentEffectsSchema();
+  const rows = await effectsQuery<OrderRow>(`WITH paid AS (
+    UPDATE orders o SET status='paid',mpesa_receipt=COALESCE($4::text,NULLIF(mpesa_receipt,''))
+    WHERE id=$1 AND mpesa_ref=$2 AND total=$3
+      AND COALESCE(to_jsonb(o)->>'pay_method','mpesa')='mpesa' AND status = ANY($5::text[])
+      AND (NULLIF(mpesa_receipt,'') IS NULL OR $4::text IS NULL OR mpesa_receipt=$4)
+    RETURNING *
+  ), queued AS (
+    INSERT INTO payment_effect_outbox(order_id,effect,gateway)
+    SELECT paid.id,effect.name,'mpesa' FROM paid CROSS JOIN
+      (VALUES ('reservation'),('inventory'),('tickets'),('receipt')) AS effect(name)
+    ON CONFLICT(order_id,effect) DO NOTHING
+  ) SELECT * FROM paid`, [input.orderId, input.checkoutRequestId, input.amountKes, input.receipt ?? null, RECOVERABLE_PAYMENT_STATUSES]);
+  return rows[0] || null;
+}
+
+// Only a raw-body signature-verified, paid KES checkout session reaches this
+// boundary. The exact stored session, rail and total are checked again here.
+export async function settleStripeOrder(input: { orderId: string; sessionId: string; paymentIntentId: string; amountKes: number }): Promise<OrderRow | null> {
+  if (!validSettlement(input.orderId, input.amountKes) || !/^cs_[A-Za-z0-9_]{1,200}$/.test(input.sessionId)
+    || !/^pi_[A-Za-z0-9_]{1,200}$/.test(input.paymentIntentId)) throw new Error('invalid_stripe_settlement');
+  await ensurePaymentEffectsSchema();
+  const rows = await effectsQuery<OrderRow>(`WITH paid AS (
+    UPDATE orders SET status='paid',stripe_payment_intent=$3
+    WHERE id=$1 AND stripe_session=$2 AND pay_method='card' AND total=$4
+      AND status = ANY($5::text[]) RETURNING *
+  ), queued AS (
+    INSERT INTO payment_effect_outbox(order_id,effect,gateway)
+    SELECT paid.id,effect.name,'stripe' FROM paid CROSS JOIN
+      (VALUES ('reservation'),('inventory'),('tickets'),('receipt')) AS effect(name)
+    ON CONFLICT(order_id,effect) DO NOTHING
+  ) SELECT * FROM paid`, [input.orderId, input.sessionId, input.paymentIntentId, input.amountKes, RECOVERABLE_PAYMENT_STATUSES]);
   return rows[0] || null;
 }
 
@@ -129,7 +176,13 @@ export async function processPaymentEffects(limit = 25, orderId?: string): Promi
       const delivery = await effectsQuery('SELECT id FROM email_delivery_outbox WHERE id=$1 AND order_id=$2 AND delivery=\'payment\'', [receiptId, order.id]);
       failed = delivery.length === 0;
     }
-    outcomes.push(await finishEffect(job, failed ? Number(job.attempts) >= 8 ? 'blocked' : 'queued' : 'complete'));
+    const outcome = await finishEffect(job, failed ? Number(job.attempts) >= 8 ? 'blocked' : 'queued' : 'complete');
+    outcomes.push(outcome);
+    // Acceleration is outside the durable effect acknowledgment. Email leases,
+    // frozen payload and provider idempotency remain owned by the email queue.
+    if (receiptId && outcome.status === 'complete') {
+      await deliverReceiptEmailJob(receiptId).catch(() => console.error('[payment-effects] receipt_delivery_deferred'));
+    }
   }
   return outcomes;
 }
