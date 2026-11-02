@@ -47,8 +47,14 @@ try{
   });
   const page=await context.newPage();page.on('pageerror',error=>errors.push({scenario,width,error:error.message}));
   await page.goto(base+'/checkout',{waitUntil:'domcontentloaded'});
-  await page.getByLabel('Payment method').selectOption('card');
+  await page.locator('input[name="name"]').fill('Fixture Buyer');
+  await page.locator('input[name="phone"]').fill('0712345678');
   await page.getByLabel('Email for your receipt').fill('buyer@example.invalid');
+  await page.locator('[data-checkout-next]:visible').click();
+  await page.locator('[data-checkout-next]:visible').click();
+  await page.locator('input[type="radio"][name="paymentMethod"][value="card"]').check();
+  assert.equal(attempts,0,'Moving through checkout must not initialize a payment');
+  assert.equal(recoveries,0,'Moving through checkout must not recover or allocate an attempt');
   await page.locator('form input[type=checkbox]').check();
   const submit=page.getByRole('button',{name:'Continue to secure card payment'});
   await submit.click();
@@ -64,7 +70,7 @@ try{
    await page.waitForURL('**/pay/success?ref='+id);
    await page.getByRole('heading',{name:scenario==='paid-prepared'?'Payment confirmed':'Payment outcome not yet confirmed',exact:true}).waitFor();
    assert.equal(attempts,scenario==='lost-response'?1:0);
-   if(scenario==='lost-response')assert.equal(await page.getByRole('link',{name:'Open receipt and downloads'}).count(),0);
+   if(scenario==='lost-response')assert.equal(await page.getByRole('link',{name:'Open receipt',exact:true}).count(),0);
   }
   if(scenario!=='ready')await page.screenshot({path:`${out}/${scenario}-${width}.png`,fullPage:true});
   results.push({scenario,width,attempts,recoveries});await context.close();

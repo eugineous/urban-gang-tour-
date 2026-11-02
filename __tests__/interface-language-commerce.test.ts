@@ -191,14 +191,17 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   await page.addScriptTag({content:bundle.outputFiles[0].text});
   await page.locator('#checkout form input[name="name"]').waitFor();
   expect(await page.locator('#checkout [data-language-control] select').count()).toBe(1);
+  for(const [name,value]of Object.entries({name:'Original Buyer',phone:'0712345678',email:'buyer@example.test'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
+  await page.locator('#checkout [data-checkout-next]:visible').click();
   await page.getByLabel('Pickup or delivery').selectOption('delivery');
-  for(const [name,value]of Object.entries({name:'Original Buyer',phone:'0712345678',email:'buyer@example.test',line1:'Original Road',city:'Nairobi',postalCode:'00100'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
+  for(const [name,value]of Object.entries({line1:'Original Road',city:'Nairobi',postalCode:'00100'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
+  await page.locator('#checkout [data-checkout-next]:visible').click();
+  await page.locator('#checkout input[name="paymentMethod"][value="mpesa"]').check();
+  await page.locator('#checkout details summary').click();
   await page.locator('#checkout input[maxlength="60"]').fill('ORIGINAL-PROMO');
   await page.locator('#checkout input[type="checkbox"]').check();
   await page.getByRole('button',{name:'Check total and promo',exact:true}).click();
   await page.getByText(formatMessage(commerceMessages,'en','quote.promoNotApplied').text,{exact:true}).waitFor();
-  await page.locator('#checkout details summary').click();
-  await page.locator('#cart-name-0').fill('Unsaved draft');
   await page.locator('#purchase input[type="number"]').fill('2');
   await page.locator('#purchase input[maxlength="24"]').fill('Amina!');
   await page.locator('#purchase button[type="submit"]').click();
@@ -218,7 +221,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   const baselineGets=[...gets];
   for(const locale of INTERFACE_LOCALES){
    await page.evaluate(locale=>{
-    const field=document.querySelector('#checkout input[name="name"]') as HTMLInputElement;field.focus();
+   const field=document.querySelector('#checkout input[name="paymentMethod"]:checked') as HTMLInputElement;field.focus();
     const chooser=document.querySelector('#checkout [data-language-control] select') as HTMLSelectElement;chooser.value=locale;chooser.dispatchEvent(new Event('change',{bubbles:true}));
    },locale);
    await page.waitForFunction(locale=>document.documentElement.lang===(locale==='en'?'en-KE':locale),locale);
@@ -228,7 +231,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
    expect(await page.locator('#checkout aside h2').textContent()).toBe(formatMessage(commerceMessages,locale,'checkout.total',{amount:formatKes(950,locale)!}).text);
    expect(await page.evaluate(()=>{
     const b=(window as any).preserved,nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select:not(.language-select),#purchase select,#marketplace select')];
-    return b.chooser===document.querySelector('#checkout [data-language-control] select')&&b.chooser.isConnected&&nodes.length===b.nodes.length&&nodes.every((n:any,i)=>n===b.nodes[i]&&n.isConnected&&n.value===b.values[i][0]&&n.checked===b.values[i][1])&&localStorage.getItem('ugt-live-cart-v1')===b.cart&&localStorage.getItem('ugt-mpesa-attempt-v1')===b.attempt&&(window as any).cartEvents===b.events&&document.activeElement===document.querySelector('#checkout input[name="name"]');
+    return b.chooser===document.querySelector('#checkout [data-language-control] select')&&b.chooser.isConnected&&nodes.length===b.nodes.length&&nodes.every((n:any,i)=>n===b.nodes[i]&&n.isConnected&&n.value===b.values[i][0]&&n.checked===b.values[i][1])&&localStorage.getItem('ugt-live-cart-v1')===b.cart&&localStorage.getItem('ugt-mpesa-attempt-v1')===b.attempt&&(window as any).cartEvents===b.events&&document.activeElement===document.querySelector('#checkout input[name="paymentMethod"]:checked');
    })).toBe(true);
    expect(await page.locator('#checkout').textContent()).toContain('Original Product');expect(await page.locator('#checkout').textContent()).toContain('Original Blue / M');
    expect(posts).toHaveLength(1);expect(gets).toEqual(baselineGets);expect(unexpected).toEqual([]);
