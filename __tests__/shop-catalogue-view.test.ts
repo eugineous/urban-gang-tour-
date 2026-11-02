@@ -63,37 +63,33 @@ describe('current collection shop presentation',()=>{
   const clear=elements(ShopCatalogueView(props));
   expect(clear.some(node=>node.type==='button'&&node.props.children==='Reset filters')).toBe(false);
  });
- it('clears parent item confinement before opening another image collection',()=>{
+ it('opens a real category URL independently of a previous product selection and search',()=>{
   const state={selected:'cb-snapback',search:'cap',category:'Headwear',availability:'designs',sort:'low'};
   const props={...catalogueProps(),...state,
    onResetDiscovery:()=>Object.assign(state,{selected:'',search:'',category:'',availability:'all',sort:'featured'}),
    onCategory:(value:string)=>{state.category=value},
   };
-  const apparel=elements(ShopCatalogueView(props)).find(node=>node.type==='button'&&node.props['data-shop-collection']==='Apparel');
-  (apparel!.props.onClick as ()=>void)();
-  expect(state).toEqual({selected:'',search:'',category:'Apparel',availability:'all',sort:'featured'});
-  expect(filterShopCatalogue(buildShopCatalogue([product]),{...state,query:state.search}).some(item=>item.id===product.id)).toBe(true);
+  const apparel=elements(ShopCatalogueView(props)).find(node=>node.type==='a'&&node.props['data-shop-collection']==='Apparel');
+  expect(apparel).toBeDefined();expect(apparel!.props.href).toBe('/shop/category/apparel');
+  expect(apparel!.props.onClick).toBeUndefined();
  });
- it('makes All merchandise clear the other discovery filters as its label promises',()=>{
+ it('offers a canonical All merchandise category link that leaves current filters behind',()=>{
   const props={...catalogueProps(),search:'no matches',category:'Headwear',availability:'designs',sort:'high'};
-  const all=elements(ShopCatalogueView(props)).find(node=>node.type==='button'&&node.props.children==='All merchandise');
-  (all!.props.onClick as ()=>void)();
-  expect(props.onSearch).toHaveBeenCalledWith('');expect(props.onCategory).toHaveBeenCalledWith('');
-  expect(props.onAvailability).toHaveBeenCalledWith('all');expect(props.onSort).toHaveBeenCalledWith('featured');
+  const all=elements(ShopCatalogueView(props)).find(node=>node.type==='a'&&node.props.children==='All merchandise');
+  expect(all).toBeDefined();expect(all!.props.href).toBe('/shop');
+  expect(all!.props.onClick).toBeUndefined();
  });
- it('uses actual category images as filters that recover from a previous search and collection choice',()=>{
+ it('uses actual category images and canonical category links for both cards and pills',()=>{
   const props={...catalogueProps(),search:'no matches',availability:'designs',category:'Headwear'};
   const nodes=elements(ShopCatalogueView(props));
-  const apparel=nodes.find(node=>node.type==='button'&&node.props['data-shop-collection']==='Apparel');
-  const headwear=nodes.find(node=>node.type==='button'&&node.props['data-shop-collection']==='Headwear');
+  const apparel=nodes.find(node=>node.type==='a'&&node.props['data-shop-collection']==='Apparel');
+  const headwear=nodes.find(node=>node.type==='a'&&node.props['data-shop-collection']==='Headwear');
   expect(apparel).toBeDefined();expect(headwear).toBeDefined();
-  expect(apparel!.props['aria-pressed']).toBe(false);expect(headwear!.props['aria-pressed']).toBe(true);
+  expect(apparel!.props.href).toBe('/shop/category/apparel');expect(headwear!.props.href).toBe('/shop/category/headwear');
   const html=renderToStaticMarkup(apparel!);
   expect(html).toContain('/uploads/original-tee.jpg');
   expect(renderToStaticMarkup(headwear!)).toContain('data-studio-product="cb-snapback"');
-  (apparel!.props.onClick as ()=>void)();
-  expect(props.onSearch).toHaveBeenCalledWith('');expect(props.onAvailability).toHaveBeenCalledWith('all');
-  expect(props.onCategory).toHaveBeenCalledWith('Apparel');expect(props.onAdd).not.toHaveBeenCalled();
+  expect(nodes.some(node=>node.type==='a'&&node.props.href==='/shop/category/headwear'&&node.props.children==='Headwear')).toBe(true);
  });
  it('keeps collection image filters available when the current results are empty',()=>{
   const props=catalogueProps([]);
@@ -205,18 +201,16 @@ describe('current collection shop presentation',()=>{
   expect(html).toContain('Price: low to high');expect(html).toContain('Price: high to low');
   expect(props.onAdd).not.toHaveBeenCalled();
  });
- it('passes search, collection, sort and category choices to the existing catalogue state',()=>{
+ it('passes search, availability and sort choices to the existing catalogue state',()=>{
   const props=catalogueProps();const nodes=elements(ShopCatalogueView(props));
   const search=nodes.find(node=>node.type==='input'&&node.props.type==='search');
   const availability=nodes.find(node=>node.type==='select'&&node.props.value==='all');
   const sort=nodes.find(node=>node.type==='select'&&node.props.value==='featured');
-  const category=nodes.find(node=>node.type==='button'&&node.props.children==='Apparel');
   (search!.props.onChange as (event:ChangeEvent<HTMLInputElement>)=>void)({target:{value:'hoodie'}} as ChangeEvent<HTMLInputElement>);
   (availability!.props.onChange as (event:ChangeEvent<HTMLSelectElement>)=>void)({target:{value:'designs'}} as ChangeEvent<HTMLSelectElement>);
   (sort!.props.onChange as (event:ChangeEvent<HTMLSelectElement>)=>void)({target:{value:'low'}} as ChangeEvent<HTMLSelectElement>);
-  (category!.props.onClick as ()=>void)();
   expect(props.onSearch).toHaveBeenCalledWith('hoodie');expect(props.onAvailability).toHaveBeenCalledWith('designs');
-  expect(props.onSort).toHaveBeenCalledWith('low');expect(props.onCategory).toHaveBeenCalledWith('Apparel');
+  expect(props.onSort).toHaveBeenCalledWith('low');
  });
  it('renders filtered or empty data truthfully without inventing replacement products',()=>{
   const filtered=filterShopCatalogue(buildShopCatalogue([product]),{query:'hoodie'});
