@@ -2,17 +2,42 @@
 (() => {
   if (window.__ugtReleaseStarted || !('serviceWorker' in navigator)) return;
   window.__ugtReleaseStarted = true;
-  const release = 'shop-mannequin-20261101-v1';
+  // Ask the worker, not this possibly stale page script. A visitor can keep
+  // this document open across multiple deployments.
+  const identity = worker => {
+    if (!worker || typeof worker.postMessage !== 'function' || typeof MessageChannel === 'undefined') return Promise.resolve(null);
+    return new Promise(resolve => {
+      const channel = new MessageChannel();
+      const finish = value => { clearTimeout(timer); channel.port1.close(); channel.port2.close(); resolve(value); };
+      const timer = setTimeout(() => finish(null), 1500);
+      channel.port1.onmessage = event => {
+        const value = event.data?.release;
+        finish(typeof value === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(value) ? value : null);
+      };
+      try { worker.postMessage({type:'GET_RELEASE'}, [channel.port2]); }
+      catch { finish(null); }
+    });
+  };
   let hadController = Boolean(navigator.serviceWorker.controller);
   // A new controller must never discard a form, checkout or another tab's work.
   // The React notice offers an explicit refresh after the visitor is ready.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) window.dispatchEvent(new CustomEvent('ugt-release-activated', {detail:{release}}));
+    if (hadController) {
+      const controller = navigator.serviceWorker.controller;
+      void identity(controller).then(release => {
+        if (navigator.serviceWorker.controller === controller) window.dispatchEvent(new CustomEvent('ugt-release-activated', {detail:{release}}));
+      });
+    }
     hadController = true;
   });
   navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'})
     .then(registration => {
-      const announce = () => { if (navigator.serviceWorker.controller && registration.waiting) window.dispatchEvent(new CustomEvent('ugt-release-ready', {detail:{release}})); };
+      const announce = () => {
+        const waiting = registration.waiting;
+        if (navigator.serviceWorker.controller && waiting) void identity(waiting).then(release => {
+          if (registration.waiting === waiting) window.dispatchEvent(new CustomEvent('ugt-release-ready', {detail:{release}}));
+        });
+      };
       announce();
       registration.addEventListener('updatefound', () => {
         const installing = registration.installing;

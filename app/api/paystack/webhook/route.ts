@@ -55,14 +55,16 @@ export async function POST(req: Request) {
             // Customer consequences are already durable in the settlement
             // statement. after() only accelerates them; cron recovers a crash.
             after(async () => {
-                await processPaymentEffects(4, paidRow.id).catch(() => console.error('[paystack-effects] deferred_drain_failed'));
                 // Owner notices are existing best effort, not replayable
                 // customer effects. Do not duplicate WhatsApp on retries.
-                await notifyPaymentSuccess({
+                await Promise.allSettled([
+                  processPaymentEffects(4, paidRow.id).catch(() => console.error('[paystack-effects] deferred_drain_failed')),
+                  notifyPaymentSuccess({
                   gateway: "paystack",
                   orderId: paidRow.id,
                   amount: paidRow.total,
-                });
+                  }),
+                ]);
                 // Best-effort audit follows customer consequences so an audit
                 // outage cannot delay acknowledgement or fulfilment.
                 await q(

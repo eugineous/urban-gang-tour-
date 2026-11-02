@@ -1,11 +1,9 @@
 import { NextResponse, after } from 'next/server';
 import { q, hasDb } from '@/lib/server/db';
 import { alertCritical } from '@/lib/server/alert';
-import { sendReceiptEmail } from '@/lib/server/receipt-email';
-import { ensureTickets } from '@/lib/server/tickets';
 import { notifyPaymentSuccess, notifyPaymentFailure } from '@/lib/server/notify';
-import { recordPaidMerchOrder } from '@/lib/server/inventory';
-import { consumeReservation, releaseReservation } from '@/lib/server/ticket-inventory';
+import { releaseReservation } from '@/lib/server/ticket-inventory';
+import { settleMpesaOrder, processPaymentEffects } from '@/lib/server/payment-effects';
 import { RECOVERABLE_PAYMENT_STATUSES, amountsMatch } from '@/lib/server/payment-status';
 import { stkPushQuery } from '@/lib/server/mpesa';
 import { decideMpesaOutcome } from '@/lib/server/reconcile';
@@ -53,18 +51,14 @@ export async function POST(req: Request) {
             await alertCritical('M-Pesa confirmed outcome needs reconciliation', `CheckoutRequestID ${reference}: receipt or amount was missing or inconsistent`);
             return;
           }
-          const rows = await q(
-            `UPDATE orders SET status='paid', mpesa_receipt=$2
-             WHERE mpesa_ref=$1 AND status = ANY($3) AND total=$4 RETURNING *`,
-            [reference, receipt, RECOVERABLE_PAYMENT_STATUSES, Number(amount)],
-          );
-          const paid = rows[0];
+          const paid = await settleMpesaOrder({ orderId: orders[0].id, checkoutRequestId: reference, receipt, amountKes: Number(amount) });
           if (!paid) return; // Atomic state predicate prevents duplicate fulfilment.
-          await consumeReservation(paid.id).catch(e => console.error('[ticket-reservation]', e));
-          await recordPaidMerchOrder(paid).catch(e => console.error('[merch-inventory]', e));
-          await ensureTickets(paid).catch(e => console.error('[tickets-mint]', e));
-          if (paid.email) await sendReceiptEmail(paid);
-          await notifyPaymentSuccess({ gateway: 'mpesa', orderId: paid.id, amount: paid.total });
+          // Both branches start after the verified transition and durable jobs
+          // commit. A slow customer consequence cannot postpone the owner notice.
+          await Promise.allSettled([
+            processPaymentEffects(4, paid.id).catch(() => console.error('[mpesa-effects] deferred_drain_failed')),
+            notifyPaymentSuccess({ gateway: 'mpesa', orderId: paid.id, amount: paid.total }),
+          ]);
         } else {
           const rows = await q(
             'UPDATE orders SET status=$2 WHERE mpesa_ref=$1 AND status = ANY($3) RETURNING id,total',

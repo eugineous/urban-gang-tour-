@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { rateLimit, clientIp, PUBLIC_READ_NETWORK_LIMIT } from '@/lib/server/ratelimit';
+import {orderDeliveryStatus} from '@/lib/server/payment-confidence';
 
 // Public order status poll for the checkout STK-waiting panels.
 // Roles: public (anon). The unguessable ORD- id is the bearer token; the
@@ -13,6 +14,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const ID_RE = /^ORD-[A-Z0-9-]{4,40}$/;
+const privateHeaders={'Cache-Control':'no-store'};
 
 export async function GET(req: Request) {
   // Every buyer polls this every ~6s while their M-Pesa prompt is open, so at
@@ -26,24 +28,24 @@ export async function GET(req: Request) {
   // most of them, so this uses the large public-read allowance instead. The
   // lookup itself is a single primary-key SELECT.
   if (!rateLimit('status:' + clientIp(req), 30, 60_000, req, PUBLIC_READ_NETWORK_LIMIT)) {
-    return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
+    return NextResponse.json({ error: 'too_many_requests' }, { status: 429,headers:privateHeaders });
   }
   const id = new URL(req.url).searchParams.get('id') || '';
-  if (!ID_RE.test(id)) return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+  if (!ID_RE.test(id)) return NextResponse.json({ error: 'invalid_id' }, { status: 400,headers:privateHeaders });
 
   // hasDb(), not db(): the latter built a throwaway Pool on every poll purely
   // to test whether DATABASE_URL was set.
   const { q, hasDb } = await import('@/lib/server/db');
-  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
+  if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503,headers:privateHeaders });
 
   let rows: any[];
   try {
     rows = await q(`SELECT * FROM orders WHERE id=$1`, [id]);
   } catch (e: any) {
     console.error('[order-status]', e);
-    return NextResponse.json({ error: 'lookup_failed' }, { status: 500 });
+    return NextResponse.json({ error: 'lookup_failed' }, { status: 500,headers:privateHeaders });
   }
-  if (!rows.length) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  if (!rows.length) return NextResponse.json({ error: 'not_found' }, { status: 404,headers:privateHeaders });
 
   const o = rows[0];
   let attemptState:string|undefined;
@@ -64,6 +66,7 @@ export async function GET(req: Request) {
       receipt,
       method: String(o.pay_method || 'mpesa'),
       created_at: o.created_at,
+      ...(paid?{delivery:await orderDeliveryStatus(o)}:{}),
     },
     { headers: { 'Cache-Control': 'no-store' } }
   );

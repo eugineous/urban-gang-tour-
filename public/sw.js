@@ -1,4 +1,4 @@
-const CACHE = 'ugt-shop-mannequin-20261101-v1';
+const CACHE = 'ugt-payment-confidence-20261102-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.
@@ -29,6 +29,7 @@ self.addEventListener('install', (event) => {
 
 // Existing installations wait for the visitor's explicit update action.
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'GET_RELEASE') event.ports?.[0]?.postMessage({release:CACHE});
   if (event.data?.type === 'SKIP_WAITING') event.waitUntil(self.skipWaiting());
 });
 
