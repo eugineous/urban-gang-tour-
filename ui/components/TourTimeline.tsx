@@ -23,7 +23,7 @@ function CalendarRecord({event,source,now}:{event:CalendarViewEntry;source?:Owne
  const [failedImage,setFailedImage]=useState('');
  return <article className={styles.record} data-calendar-event={event.id}>
   {event.image&&event.image!==failedImage&&posterUrl(event.image)&&<img src={event.image} alt={t('card.image',{name:event.name})} width="80" height="100" loading="lazy" decoding="async" onError={()=>setFailedImage(event.image)}/>}
-  <div><p className={styles.status}>{source?(ownedEventPresentation(source,now).sellable?<MessageText catalogue={discoveryMessages} message="card.ticketOptions"/>:<EventStatus event={source} now={now}/>):null}</p><h3>{event.href?<Link href={event.href}><span lang="en-KE">{event.name}</span></Link>:<span lang="en-KE">{event.name}</span>}</h3>
+  <div><p className={styles.status}>{source?(ownedEventPresentation(source,now).onlineCheckoutAvailable?<MessageText catalogue={discoveryMessages} message="card.ticketOptions"/>:<EventStatus event={source} now={now}/>):null}</p><h3>{event.href?<Link href={event.href}><span lang="en-KE">{event.name}</span></Link>:<span lang="en-KE">{event.name}</span>}</h3>
    <p><EventDay day={event.date} postponed={event.status==='postponed'} fallback={!event.date&&typeof source?.dateLabel==='string'?source.dateLabel:undefined}/>{event.time&&<span lang="en-KE">{' · '+event.time}</span>}</p>
    <p className={styles.venue}>{event.venue?<span lang="en-KE">{event.venue}</span>:t('card.venue')}</p>
    {event.href&&<Link className={styles.recordLink} href={event.href}><MessageText catalogue={discoveryMessages} message="calendar.view"/> <ArrowUpRight size={16} aria-hidden="true"/></Link>}

@@ -710,6 +710,13 @@ remaining capacity and per-order minimum/maximum where available. Unknown
 capacity is not treated as unlimited. A tier must satisfy its minimum order
 size before it is advertised as sellable; overall event availability follows
 the actual sellable tiers. Checkout reservations still validate server-side.
+The additive `onlineCheckoutAvailable` boolean is a separate public capability,
+not stored inventory or lifecycle state. It is false while the Paystack-only
+owned-ticket finality gate is closed, even when `sellable` and tier availability
+are true. Missing capability data defaults to unavailable. Cards retain real
+prices and stock facts but direct visitors to details/contact; owned-event
+purchase CTAs and Offer schema are omitted until checkout is supported. Partner
+listings retain their verified external organiser ticket destinations.
 
 The existing events-permission-gated `/api/admin/ops` event save validates and
 preserves tier `capacity`, `per_order_min` and `per_order_max` instead of dropping

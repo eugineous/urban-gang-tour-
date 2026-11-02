@@ -4,7 +4,8 @@
 //
 // The resolver derives truth from: lifecycle status, sale window, and ticket
 // capacity. It never invents availability — unknown capacity means unknown
-// availability, not "in stock".
+// availability, not "in stock". Online checkout support is a separate public
+// capability; it never changes the recorded lifecycle or remaining seats.
 
 import { q, hasDb } from './db';
 import { isEventSellable, isPubliclyVisible, isEventIndexable } from './event-lifecycle';
@@ -17,6 +18,7 @@ export type EventTruth = {
   isPublic: boolean;
   isIndexable: boolean;
   isSellable: boolean;
+  onlineCheckoutAvailable: boolean; // Separate from lifecycle and physical ticket capacity.
   isSoldOut: boolean;
   isCompleted: boolean;
   isCancelled: boolean;
@@ -105,6 +107,9 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
       isPublic: true,
       isIndexable: isEventIndexable(status),
       isSellable: tierTruth.some(tier => tier.sellable),
+      // New payments are Paystack-only. Its owned-ticket finality gate remains
+      // closed; real inventory must not advertise an unsupported checkout.
+      onlineCheckoutAvailable: false,
       isSoldOut: status === 'sold_out' || (status==='published'&&scheduleReady&&totalRemaining !== null && totalRemaining <= 0),
       isCompleted: status === 'completed',
       isCancelled: status === 'cancelled',

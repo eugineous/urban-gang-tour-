@@ -66,7 +66,7 @@ describe('public discovery metadata', () => {
   });
 
   it('advertises only commercially resolved sellable tiers, and keeps paused inventory out of offers', async () => {
-    state.truths.mockResolvedValue([{slug: 'public-fixture', isSellable: true, isSoldOut: false, tiers: [
+    state.truths.mockResolvedValue([{slug: 'public-fixture', isSellable: true, onlineCheckoutAvailable: true, isSoldOut: false, tiers: [
       {name: 'Available', price: 500, sellable: true}, {name: 'Not available', price: 1000, sellable: false},
     ]}]);
     let data = await eventsFromDb() as {'@graph': Record<string, unknown>[]};
