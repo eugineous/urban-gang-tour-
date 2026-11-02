@@ -10,7 +10,7 @@ it('announces waiting and activated releases without reloading any open page or 
  expect(events).toContain('ugt-release-ready');
  callbacks.controllerchange();callbacks.controllerchange();expect(reloads).toBe(0);expect(registrations).toBe(1);expect(updates).toBe(1);
  context.location.pathname='/checkout';callbacks.controllerchange();expect(reloads).toBe(0);
- expect(events).toContain('ugt-release-activated');
+ await Promise.resolve();expect(events).toContain('ugt-release-activated');
  // Cache migration never touches localStorage carts or account data.
  expect([...stored.keys()]).toEqual([]);
 });
@@ -25,4 +25,22 @@ it('does not label the first installation as an available update', async () => {
  });
  await Promise.resolve();await Promise.resolve();
  expect(events).toEqual([]);
+});
+
+it('announces the actual waiting worker identity rather than the page script release',async()=>{
+ const events:CustomEvent[]=[];
+ class Channel{
+  port1={onmessage:null as null|((event:{data:unknown})=>void),close:()=>{}};
+  port2={reply:(data:unknown)=>this.port1.onmessage?.({data}),close:()=>{}};
+ }
+ const worker={postMessage:(message:unknown,ports:any[])=>{expect(message).toEqual({type:'GET_RELEASE'});ports[0].reply({release:'ugt-FUTURE-RELEASE'});}};
+ const registration={waiting:worker,addEventListener:()=>{},update:async()=>{}};
+ vm.runInNewContext(readFileSync('public/release-client.js','utf8'),{
+  MessageChannel:Channel,setTimeout,clearTimeout,CustomEvent,
+  window:{addEventListener:()=>{},dispatchEvent:(event:CustomEvent)=>events.push(event)},
+  navigator:{serviceWorker:{controller:{},addEventListener:()=>{},register:async()=>registration}},
+  document:{addEventListener:()=>{}},
+ });
+ await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ expect(events.find(event=>event.type==='ugt-release-ready')?.detail).toEqual({release:'ugt-FUTURE-RELEASE'});
 });

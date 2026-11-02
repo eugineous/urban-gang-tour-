@@ -19,6 +19,13 @@ async function request(path: string, networkFails = false, rsc = false) {
 }
 
 describe('deployed runtime updates', () => {
+  it('answers a release identity query without activating or discarding other tabs',()=>{
+    const listeners:Record<string,Function>={};let activated=0;const replies:unknown[]=[];
+    vm.runInNewContext(readFileSync('public/sw.js','utf8'),{self:{addEventListener:(name:string,handler:Function)=>{listeners[name]=handler},skipWaiting:()=>{activated++}}});
+    listeners.message({data:{type:'GET_RELEASE'},ports:[{postMessage:(message:unknown)=>replies.push(message)}]});
+    expect(replies).toEqual([{release:readFileSync('public/sw.js','utf8').match(/const CACHE = '([^']+)'/)![1]}]);
+    expect(activated).toBe(0);
+  });
   it('fetches the current unhashed runtime instead of keeping a previous deployment', async () => {
     const result = await request('/manifest.json');
     expect(result.text).toBe('current runtime');

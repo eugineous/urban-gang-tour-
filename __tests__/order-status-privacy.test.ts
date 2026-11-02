@@ -13,3 +13,12 @@ it('never reveals a payment receipt on a pending order',async()=>{
  vi.mocked(q).mockResolvedValue([{status:'pending',total:1500,mpesa_receipt:'SECRET-UNCONFIRMED'}]);
  const r=await GET(new Request('http://localhost/api/orders/status?id=ORD-TEST-ONLY'));expect((await r.json()).receipt).toBe('');
 });
+it('exposes redacted delivery progress only after confirmed payment',async()=>{
+ vi.mocked(q).mockImplementation(async(sql:string)=>sql.includes('SELECT * FROM orders')?[{id:'ORD-TEST-ONLY',status:'paid',items:[{id:'merch',qty:1}],email:'PRIVATE',phone:'PRIVATE',name:'PRIVATE'}]:[]);
+ const response=await GET(new Request('http://localhost/api/orders/status?id=ORD-TEST-ONLY'));const data=await response.json();expect(data.delivery).toEqual({tickets:'not_required',email:'preparing'});expect(JSON.stringify(data)).not.toContain('PRIVATE');
+ vi.mocked(q).mockResolvedValue([{status:'refunded',email:'PRIVATE'}]);
+ expect((await (await GET(new Request('http://localhost/api/orders/status?id=ORD-TEST-ONLY'))).json()).delivery).toBeUndefined();
+});
+it('never caches malformed order lookups',async()=>{
+ const response=await GET(new Request('http://localhost/api/orders/status?id=bad'));expect(response.status).toBe(400);expect(response.headers.get('Cache-Control')).toBe('no-store');
+});

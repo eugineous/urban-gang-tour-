@@ -785,15 +785,15 @@ export default function AdminApp({
       {tab === "Orders" && (
         <>
           <div style={{ ...card, marginBottom: 12, fontSize: 13 }}>
-            💡 Orders are the money ledger. <b>paid</b> = confirmed by M-Pesa
-            callback (receipt shown). Use the CSV export to reconcile against
-            your M-Pesa statement. <b>Receipt PDF</b> downloads the branded receipt
+            Orders are the money ledger. <b>paid</b> = confirmed by the payment
+            provider. Use the CSV export to reconcile against your provider
+            statement. <b>Receipt PDF</b> downloads the branded receipt
             after confirmed payment. Ticket orders list their e-tickets inline —
             scan them at the door with the{" "}
             <a href="/admin/gate" style={{ color: C.pink, fontWeight: 700 }}>
               Gate Scanner
             </a>
-            .
+            . {session?.scope==='super_admin'&&<a href="/admin/email-delivery" style={{color:C.pink,fontWeight:700}}>Track ticket preparation & receipt email</a>}
           </div>
           <CompTicketForm
             eventTiers={eventTiers}

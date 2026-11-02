@@ -4,6 +4,7 @@ import {requireOrigin} from '@/lib/server/origin';
 import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 import {emailOutboxStatus,retryEmailOutbox} from '@/lib/server/email-outbox';
 import {contactEmailOutboxStatus,retryContactEmailJob} from '@/lib/server/contact-email-outbox';
+import {paymentEffectStatus} from '@/lib/server/payment-confidence';
 export const dynamic='force-dynamic';
 // Role: super-admin only; email payloads/recipient details never returned.
 const headers={'Cache-Control':'private, no-store'};
@@ -12,10 +13,10 @@ export async function GET(req:Request) {
   if (!await allowed(req)) return NextResponse.json({error:'forbidden'},{status:403});
   if (!rateLimit('email-status:'+clientIp(req),60,60_000,req)) return NextResponse.json({error:'too_many_requests'},{status:429});
   try {
-    const [receipts,contacts]=await Promise.allSettled([emailOutboxStatus(),contactEmailOutboxStatus()]);
-    const module_errors={...(receipts.status==='rejected'?{receipts:'receipt_delivery_unavailable'}:{}),...(contacts.status==='rejected'?{contact:'contact_delivery_unavailable'}:{})};
+    const [receipts,contacts,payments]=await Promise.allSettled([emailOutboxStatus(),contactEmailOutboxStatus(),paymentEffectStatus()]);
+    const module_errors={...(receipts.status==='rejected'?{receipts:'receipt_delivery_unavailable'}:{}),...(contacts.status==='rejected'?{contact:'contact_delivery_unavailable'}:{}),...(payments.status==='rejected'?{payments:'payment_delivery_unavailable'}:{})};
     const result=receipts.status==='fulfilled'?receipts.value:{configured:!!process.env.RESEND_API_KEY,jobs:[]};
-    return NextResponse.json({...result,contact_jobs:contacts.status==='fulfilled'?contacts.value:[],module_errors},{status:result.configured&&!Object.keys(module_errors).length?200:503,headers});
+    return NextResponse.json({...result,contact_jobs:contacts.status==='fulfilled'?contacts.value:[],payment_jobs:payments.status==='fulfilled'?payments.value:[],module_errors},{status:result.configured&&!Object.keys(module_errors).length?200:503,headers});
   }
   catch {return NextResponse.json({error:'email_outbox_unavailable'},{status:503,headers});}
 }

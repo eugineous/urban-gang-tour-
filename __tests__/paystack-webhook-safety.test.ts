@@ -102,6 +102,15 @@ describe('signed Paystack settlement', () => {
     state.q.mockResolvedValue([]); expect((await POST(signed())).status).toBe(200); await finish();
     expect(state.effects).not.toHaveBeenCalled(); expect(state.tickets).not.toHaveBeenCalled(); expect(state.receipt).not.toHaveBeenCalled(); expect(state.success).not.toHaveBeenCalled();
   });
+  it('starts the owner notice while customer documents are still being prepared',async()=>{
+    let complete!:()=>void;
+    state.effects.mockImplementationOnce(()=>new Promise(resolve=>{complete=()=>resolve([])}));
+    expect((await POST(signed())).status).toBe(200);
+    const processing=finish();
+    await Promise.resolve();
+    try{expect(state.success).toHaveBeenCalledWith({gateway:'paystack',orderId:ref,amount:1200});}
+    finally{complete();await processing;}
+  });
   it('does not suppress a second order using a reused provider event id', async () => {
     await POST(signed()); await finish(); state.work = [];
     await POST(signed('charge.success', { ...details, reference: 'ORD-SECOND123' })); await finish();
