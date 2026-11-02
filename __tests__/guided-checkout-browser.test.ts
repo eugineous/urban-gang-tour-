@@ -24,6 +24,14 @@ beforeAll(async()=>{
 },30000);
 afterAll(async()=>{await browser?.close()});
 
+it.skipIf(!enabled).each([false,true])('keeps the checkout heading below the opaque header on desktop/coarse-tablet (%s)',async touchTablet=>{
+ const {page,context}=await open(false,touchTablet?1024:1440,false,touchTablet);
+ try{
+  const bounds=await page.getByRole('heading',{name:'Checkout.',exact:true}).evaluate(node=>({top:node.getBoundingClientRect().top,headerBottom:document.querySelector('.site-header')!.getBoundingClientRect().bottom}));
+  expect(bounds.top).toBeGreaterThanOrEqual(bounds.headerBottom+12);
+ }finally{await context.close()}
+},15000);
+
 it.skipIf(!enabled)('keeps checkout fields readable in the Android wide-viewport fallback',async()=>{
  const fixture=await open(false,980,true),{page}=fixture;
  try{
@@ -47,8 +55,8 @@ it.skipIf(!enabled)('keeps the first checkout action reachable in the initial ph
  }finally{await fixture.context.close()}
 },20000);
 
-async function open(event=false,width=390,wide=false){
- const context=await browser.newContext({viewport:{width,height:wide?2122:844},...(wide?{screen:{width:393,height:851},hasTouch:true}:{}),serviceWorkers:'block',reducedMotion:'reduce'});
+async function open(event=false,width=390,wide=false,touchTablet=false){
+ const context=await browser.newContext({viewport:{width,height:wide?2122:844},...(wide?{screen:{width:393,height:851},hasTouch:true}:{}),...(touchTablet?{screen:{width:1024,height:1366},hasTouch:true,isMobile:true}:{}),serviceWorkers:'block',reducedMotion:'reduce'});
  if(wide)await context.addInitScript(()=>{Object.defineProperty(screen,'orientation',{value:{type:'portrait-primary'}})});
  const posts:{path:string;body:unknown}[]=[],unexpected:string[]=[];
  await context.addInitScript(()=>localStorage.setItem('ugt-live-cart-v1',JSON.stringify([{id:'fixture',qty:1,variant:'Black / M'}])));

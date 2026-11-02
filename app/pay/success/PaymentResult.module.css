@@ -1,4 +1,4 @@
-.page{min-height:100svh;padding:48px 24px 96px;background:var(--paper,#f4f4f4);color:var(--ink,#151515)}
+.page{min-height:100svh;padding:152px 24px 96px;background:var(--paper,#f4f4f4);color:var(--ink,#151515)}
 .screen{max-width:680px;margin:0 auto;background:#fff;border:1px solid #e7dde2;border-radius:28px;overflow:hidden;box-shadow:0 12px 38px #33212a06;font-family:Inter,Arial,sans-serif}
 .screen *{box-sizing:border-box}
 .screen a,.screen button,.screen summary{touch-action:manipulation}
@@ -64,3 +64,4 @@
 @media(max-width:350px){.page{padding-inline:8px}.hero{padding-inline:18px}.hero h1,:global(#main-content) .hero h1{font-size:28px}.top{padding-inline:16px}.reference,.primaryActions{margin-inline:16px}.facts,.delivery,.connection,.updates,.recheck{margin-inline:16px}.footer{padding-inline:16px}}
 @media(prefers-reduced-motion:reduce){.badge{animation:none}.primary,.secondary{transition:none;transform:none}}
 :global(html[data-focus-view=on]) .badge{animation:none}
+@media(min-width:1024px){:global(html:not([data-phone-viewport=wide])) .page{padding-block-start:152px}}

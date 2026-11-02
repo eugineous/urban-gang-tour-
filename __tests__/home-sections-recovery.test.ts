@@ -21,10 +21,10 @@ it('preserves published home questions and dedicated FAQ editor intent, includin
  expect(render('/faq',{...WEBSITE_DEFAULTS['/faq'],faqs:[]})).not.toContain('<details');
  expect((render('/faq').match(/<details(?:\s|>)/g)||[])).toHaveLength(5);
 });
-it('makes public destinations discoverable through owned-image microcards without invented endorsements',()=>{
+it('restores owned-image production and presenter journeys without invented endorsements',()=>{
  const html=render();
- for(const [key,url] of [['events','/events'],['gallery','/gallery'],['clients','/clients'],['book','/book'],['vendors','/vendors'],['about','/about']]){
-  const card=html.match(new RegExp('<a[^>]*href="'+url+'"[^>]*data-module-card="'+key+'"[\\s\\S]*?</a>'))?.[0];
+ for(const url of ['/work-with-us','/author/eugine-micah','/author/lucy-ogunde']){
+  const card=html.match(new RegExp('<a[^>]*href="'+url+'"[^>]*>[\\s\\S]*?</a>'))?.[0];
   expect(card).toBeDefined();expect(card).toContain('src="/media-library/');
  }
  expect(html).not.toContain('600+');expect(html).not.toContain('Trusted by millions');

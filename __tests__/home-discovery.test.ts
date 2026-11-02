@@ -65,6 +65,10 @@ describe('homepage live merchandise selection', () => {
 });
 
 describe('homepage merchandise price', () => {
+  it('allows native price and range formatting without changing the verified variant floor',()=>{
+    const item=product({variants:[{label:'M',priceAdjustment:200},{label:'L',priceAdjustment:400}]});
+    expect(homepageProductPrice(item,value=>'KES '+value,value=>'Kuanzia '+value)).toBe('Kuanzia KES 1200');
+  });
   it('formats actual base prices, including free items, without a false range', () => {
     expect(homepageProductPrice(product())).toBe('KES 1,000');
     expect(homepageProductPrice(product({price:0}))).toBe('KES 0');

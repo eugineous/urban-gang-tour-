@@ -19,6 +19,7 @@
 .product{display:block;min-inline-size:0}
 .productImage{position:relative;display:grid;place-items:center;aspect-ratio:6/7;background:#f1eeec;border-radius:14px;overflow:hidden;color:#665b61}
 .productImage>svg{position:absolute;inset:0;max-inline-size:100%;max-block-size:100%;transition:transform .35s ease}
+.productImage>img{width:100%;height:100%;object-fit:contain;transition:transform .35s ease}
 .productArrow{position:absolute;inset-block-end:12px;inset-inline-end:12px;display:grid;place-items:center;inline-size:36px;block-size:36px;border-radius:50%;background:#fff;color:#211a1e}
 .productInfo{padding-block-start:16px}
 .productInfo>p{font-size:12px;line-height:1.4;color:#71656c;margin-block-end:7px}

@@ -30,6 +30,15 @@ beforeAll(async()=>{
 },30000);
 afterAll(async()=>{await browser?.close()});
 
+it.skipIf(!enabled).each([false,true])('keeps the payment result clear of the opaque header on desktop/coarse-tablet (%s)',async touchTablet=>{
+ const {page,context}=await open('paid',undefined,false,false,false,touchTablet);
+ try{
+  await page.getByRole('heading',{name:'Payment confirmed',exact:true}).waitFor();if(!touchTablet)await page.setViewportSize({width:1440,height:900});
+  const bounds=await page.locator('[data-payment-state]').evaluate(node=>({top:node.getBoundingClientRect().top,headerBottom:document.querySelector('.site-header')!.getBoundingClientRect().bottom}));
+  expect(bounds.top).toBeGreaterThanOrEqual(bounds.headerBottom+12);
+ }finally{await context.close()}
+},15000);
+
 it.skipIf(!enabled)('keeps the verified total and method inside the result panel despite shared definition-list styles',async()=>{
  const fixture=await open('paid'),{page}=fixture;
  try{
@@ -59,8 +68,8 @@ it.skipIf(!enabled)('keeps the verified order action usable in a wide-layout And
  }finally{await fixture.context.close()}
 },15000);
 
-async function open(status:string,delivery?:{tickets:string;email:string},offline=false,copyDenied=false,wide=false){
- const context=await browser.newContext({viewport:{width:wide?980:320,height:wide?2122:700},...(wide?{screen:{width:393,height:851},hasTouch:true}:{}),deviceScaleFactor:2,serviceWorkers:'block',reducedMotion:'reduce'});
+async function open(status:string,delivery?:{tickets:string;email:string},offline=false,copyDenied=false,wide=false,touchTablet=false){
+ const context=await browser.newContext({viewport:{width:touchTablet?1024:wide?980:320,height:touchTablet?1366:wide?2122:700},...(wide?{screen:{width:393,height:851},hasTouch:true}:{}),...(touchTablet?{screen:{width:1024,height:1366},hasTouch:true,isMobile:true}:{}),deviceScaleFactor:2,serviceWorkers:'block',reducedMotion:'reduce'});
  if(wide)await context.addInitScript(()=>{Object.defineProperty(screen,'orientation',{value:{type:'portrait-primary'}})});
  const unexpected:string[]=[],mutations:string[]=[],errors:string[]=[];
  let response:Record<string,unknown>={status,delivery,remainingTicketsAvailable:false},reads=0;

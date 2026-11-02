@@ -77,7 +77,7 @@ export function homepageProductSoldOut(product: LiveShopProduct): boolean {
 }
 
 /** Show the actual option floor, not a base price no selectable option can buy. */
-export function homepageProductPrice(product: LiveShopProduct): string {
+export function homepageProductPrice(product: LiveShopProduct,formatAmount:(amount:number)=>string=amount=>'KES '+amount.toLocaleString('en-KE', {maximumFractionDigits: 2}),formatFrom:(amount:string)=>string=amount=>'From '+amount): string {
   if (!Number.isFinite(product.price) || product.price < 0) return 'View price';
   const variants = validProductVariants(product);
   const available = variants.filter(variant => variant.stock !== 0);
@@ -86,5 +86,5 @@ export function homepageProductPrice(product: LiveShopProduct): string {
   const prices = (available.length ? available : variants).map(variant => product.price + variant.priceAdjustment);
   const minimum = prices.length ? Math.min(...prices) : product.price;
   const varies = prices.length > 0 && Math.max(...prices) !== minimum;
-  return (varies ? 'From ' : '') + 'KES ' + minimum.toLocaleString('en-KE', {maximumFractionDigits: 2});
+  return varies ? formatFrom(formatAmount(minimum)) : formatAmount(minimum);
 }

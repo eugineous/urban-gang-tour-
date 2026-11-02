@@ -1,4 +1,4 @@
-const CACHE = 'ugt-guided-checkout-20261102-v1';
+const CACHE = 'ugt-mookh-nixtio-paystack-20261102-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.
