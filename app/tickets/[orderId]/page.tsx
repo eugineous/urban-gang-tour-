@@ -2,6 +2,9 @@ import {DocumentLabel,DocumentStatus} from '@/app/_components/PrintDocumentButto
 import LanguageChooser from '@/app/_components/LanguageChooser';
 import {MessageText} from '@/ui/i18n/MessageText';
 import {documentsMessages} from '@/ui/i18n/catalogues/documents';
+import {accountMessages,factoryIssue} from '@/ui/i18n/catalogues/account';
+import {paymentMessages} from '@/ui/i18n/catalogues/payment';
+import {paymentPresentation} from '@/lib/client/payment-presentation';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {cookies} from 'next/headers';
@@ -45,11 +48,16 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
   if (!o) notFound();
 
   const paid = ticketIsActive({order_status:o.status,ticket_refund_policy:o.ticket_refund_policy});
+  const paymentView=paymentPresentation(String(o.status));
+  let ticketOrder=false;
+  try{const items=typeof o.items==='string'?JSON.parse(o.items):o.items;ticketOrder=Array.isArray(items)&&items.some(item=>typeof item?.id==='string'&&item.id.startsWith('ticket:'));}catch{/* Unknown source data cannot prove there are no tickets. */ticketOrder=true;}
+  let preparationUnavailable=false;
   let tickets: TicketRow[] = [];
   if(paid)try {
     tickets = o.status==='partially_refunded'?await ticketsForOrder(o.id):await ensureTickets(o);
     tickets=tickets.filter(ticket=>ticketIsActive({...ticket,order_status:o.status,ticket_refund_policy:o.ticket_refund_policy}));
   } catch (e) {
+    preparationUnavailable=true;
     console.error('[tickets-page]', e);
   }
 
@@ -79,13 +87,16 @@ export default async function OrderTicketsPage({ params }: { params: Promise<{ o
 
         {!paid ? (
           <div className="tks-note">
-            <b><MessageText catalogue={documentsMessages} message="copy.payment_pending"/></b> <span lang="en-KE">Your tickets appear here the moment payment is confirmed.
-            If you just completed the M-Pesa prompt, refresh in a few seconds.
-          </span></div>
+            <b><MessageText catalogue={accountMessages} message={factoryIssue(paymentView.title).key}/></b>{' '}
+            <MessageText catalogue={accountMessages} message={factoryIssue(paymentView.message).key}/>
+            <p><a href={'/pay/success?ref='+encodeURIComponent(id)}><MessageText catalogue={accountMessages} message="copy.check_payment_again"/></a></p>
+          </div>
         ) : tickets.length === 0 ? (
           <div className="tks-note">
-            <span lang="en-KE">This order has no event tickets. Check your </span><a href={`/receipt/${encodeURIComponent(id)}`} style={{ color: '#86104f' }}><MessageText catalogue={documentsMessages} message="copy.receipt"/></a> <span lang="en-KE">for the full order details.
-          </span></div>
+            {ticketOrder?<MessageText catalogue={paymentMessages} message={preparationUnavailable?'tickets.unknown':'tickets.preparing'}/>:<span lang="en-KE">This order has no event tickets.</span>}
+            <p><a href={`/receipt/${encodeURIComponent(id)}`} style={{ color: '#86104f' }}><MessageText catalogue={documentsMessages} message="copy.receipt"/></a></p>
+            <p><a href={'/pay/success?ref='+encodeURIComponent(id)}><MessageText catalogue={accountMessages} message="copy.check_payment_again"/></a></p>
+          </div>
         ) : (
           <div className="tks-grid">
             {tickets.map((t) => {

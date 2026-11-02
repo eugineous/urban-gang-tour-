@@ -34,6 +34,10 @@ describe('redacted read-only delivery confidence',()=>{
   vi.mocked(q).mockResolvedValue([]);
   expect(await orderDeliveryStatus({...order,items:[{id:'merch',qty:1}],email:''})).toEqual({tickets:'not_required',email:'not_requested'});
  });
+ it.each(['blocked','skipped'])('shows review if receipt preparation is %s before any email job exists',async status=>{
+  vi.mocked(q).mockImplementation(async(sql:string)=>sql.includes('FROM payment_effect_outbox')?[{effect:'receipt',status}]:[]);
+  expect(await orderDeliveryStatus({...order,items:[{id:'merch',qty:1}]})).toEqual({tickets:'not_required',email:'review'});
+ });
  it.each(['pending','failed','refunded','partially_refunded'])('does not look up or expose delivery for %s',async status=>{
   expect(await orderDeliveryStatus({...order,status})).toEqual({tickets:'unknown',email:'unknown'});
   expect(q).not.toHaveBeenCalled();

@@ -3,13 +3,13 @@ import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 async function request(path: string, networkFails = false, rsc = false) {
-  const listeners: Record<string, Function> = {};
+  const listeners: Record<string, (event:unknown)=>void> = {};
   const fetched: string[] = [];
   const cacheWrites: string[] = [];
   const cached = new Response('old runtime');
   vm.runInNewContext(readFileSync('public/sw.js', 'utf8'), {
     URL, Response, Promise,
-    self: { location: { origin: 'https://urbangangtour.co.ke' }, addEventListener: (name: string, handler: Function) => { listeners[name] = handler; } },
+    self: { location: { origin: 'https://urbangangtour.co.ke' }, addEventListener: (name: string, handler:(event:unknown)=>void) => { listeners[name] = handler; } },
     caches: { match: async () => cached, open: async () => ({ put: async (req: any) => cacheWrites.push(req.url) }) },
     fetch: async (req: any) => { fetched.push(req.url); if (networkFails) throw new Error('offline'); return new Response('current runtime'); },
   });
@@ -20,8 +20,8 @@ async function request(path: string, networkFails = false, rsc = false) {
 
 describe('deployed runtime updates', () => {
   it('answers a release identity query without activating or discarding other tabs',()=>{
-    const listeners:Record<string,Function>={};let activated=0;const replies:unknown[]=[];
-    vm.runInNewContext(readFileSync('public/sw.js','utf8'),{self:{addEventListener:(name:string,handler:Function)=>{listeners[name]=handler},skipWaiting:()=>{activated++}}});
+    const listeners:Record<string,(event:unknown)=>void>={};let activated=0;const replies:unknown[]=[];
+    vm.runInNewContext(readFileSync('public/sw.js','utf8'),{self:{addEventListener:(name:string,handler:(event:unknown)=>void)=>{listeners[name]=handler},skipWaiting:()=>{activated++}}});
     listeners.message({data:{type:'GET_RELEASE'},ports:[{postMessage:(message:unknown)=>replies.push(message)}]});
     expect(replies).toEqual([{release:readFileSync('public/sw.js','utf8').match(/const CACHE = '([^']+)'/)![1]}]);
     expect(activated).toBe(0);

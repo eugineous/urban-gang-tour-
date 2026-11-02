@@ -32,7 +32,7 @@ export async function orderDeliveryStatus(order:Order):Promise<DeliveryStatus>{
  const expected=ticketCount(order.items);
  const needsEmail=!!String(order.email||'').trim();
  const [effects,tickets,email]=await Promise.all([
-  expected!==null&&expected>0?q<EffectRow>('SELECT effect,status FROM payment_effect_outbox WHERE order_id=$1',[order.id]).catch(()=>null):Promise.resolve(null),
+  needsEmail||expected!==null&&expected>0?q<EffectRow>('SELECT effect,status FROM payment_effect_outbox WHERE order_id=$1',[order.id]).catch(()=>null):Promise.resolve(null),
   expected!==null&&expected>0?q<{count:number|string}>('SELECT COUNT(*)::int AS count FROM tickets WHERE order_id=$1 AND voided_at IS NULL',[order.id]).catch(()=>null):Promise.resolve(null),
   needsEmail?q<{status:string}>("SELECT status FROM email_delivery_outbox WHERE order_id=$1 AND delivery='payment' ORDER BY created_at DESC LIMIT 1",[order.id]).catch(()=>null):Promise.resolve(null),
  ]);
@@ -47,7 +47,7 @@ export async function orderDeliveryStatus(order:Order):Promise<DeliveryStatus>{
  if(!needsEmail)result.email='not_requested';
  else if(email){
   const status=email[0]?.status;
-  if(!email.length)result.email='preparing';
+  if(!email.length)result.email=effects?.some(job=>job.effect==='receipt'&&['blocked','skipped'].includes(job.status))?'review':'preparing';
   else if(['queued','processing','accepted'].includes(status))result.email=status as DeliveryStatus['email'];
   else if(['blocked','failed'].includes(status))result.email='review';
  }
