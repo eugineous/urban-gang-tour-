@@ -2,6 +2,7 @@ import {afterAll,beforeAll,expect,it} from 'vitest';
 import {build} from 'esbuild';
 import {chromium,type Browser} from 'playwright';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
+import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 
 const enabled=existsSync('/usr/bin/chromium');
 let browser:Browser,script:string,componentStyles:string;
@@ -23,8 +24,32 @@ beforeAll(async()=>{
 },30000);
 afterAll(async()=>{await browser?.close()});
 
-async function open(event=false,width=390){
- const context=await browser.newContext({viewport:{width,height:844},serviceWorkers:'block',reducedMotion:'reduce'});
+it.skipIf(!enabled)('keeps checkout fields readable in the Android wide-viewport fallback',async()=>{
+ const fixture=await open(false,980,true),{page}=fixture;
+ try{
+  await page.evaluate(script=>{const node=document.createElement('script');node.textContent=script;document.head.append(node)},VIEWPORT_BOOTSTRAP);
+  expect(await page.locator('html').getAttribute('data-phone-viewport')).toBe('wide');
+  const width=await page.locator('input[name="email"]').evaluate(node=>node.getBoundingClientRect().width/Number(document.documentElement.style.zoom||1));
+  expect(width).toBeGreaterThanOrEqual(240);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  expect(fixture.posts).toEqual([]);
+ }finally{await fixture.context.close()}
+},20000);
+
+it.skipIf(!enabled)('keeps the first checkout action reachable in the initial phone viewport',async()=>{
+ const fixture=await open(false,390),{page}=fixture;
+ try{
+  await page.getByRole('button',{name:/^Continue/}).waitFor();
+  await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
+  const bounds=await page.getByRole('button',{name:/^Continue/}).evaluate(node=>({bottom:node.getBoundingClientRect().bottom,height:innerHeight}));
+  expect(bounds.bottom).toBeLessThanOrEqual(bounds.height-72);
+  expect(fixture.posts).toEqual([]);
+ }finally{await fixture.context.close()}
+},20000);
+
+async function open(event=false,width=390,wide=false){
+ const context=await browser.newContext({viewport:{width,height:wide?2122:844},...(wide?{screen:{width:393,height:851},hasTouch:true}:{}),serviceWorkers:'block',reducedMotion:'reduce'});
+ if(wide)await context.addInitScript(()=>{Object.defineProperty(screen,'orientation',{value:{type:'portrait-primary'}})});
  const posts:{path:string;body:unknown}[]=[],unexpected:string[]=[];
  await context.addInitScript(()=>localStorage.setItem('ugt-live-cart-v1',JSON.stringify([{id:'fixture',qty:1,variant:'Black / M'}])));
  await context.route('**/*',async route=>{

@@ -13,7 +13,7 @@ it.each([['shop','Shop.'],['cart','Your cart.'],['checkout','Checkout.']] as con
 });
 it('renders a stable event placeholder before any client catalogue result',()=>{
  const html=renderToStaticMarkup(createElement(LiveCommerce,{view:'checkout',eventId:'test-event'}));
- expect(html).toContain('Your event tickets');expect(html).not.toContain('<form');
+ expect(html).toContain('<h1>Checkout.</h1>');expect(html).toContain('href="/events">Tickets</a>');expect(html).toContain('Loading the live catalogue');expect(html).not.toContain('<form');
 });
 it('server-renders supplied live products without a loading gap or browser storage access',()=>{
  const getItem=vi.fn(()=>{throw Error('No browser storage during SSR')});vi.stubGlobal('localStorage',{getItem});
