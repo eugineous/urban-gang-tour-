@@ -146,19 +146,16 @@ Routine notifications above) fire-and-forget on a successful insert.
 200 `{ok,id}` · 400 · 429 (5/min/IP).
 
 ### POST /api/orders
-Body: `{items:[{id,qty}], name, phone, email?, idempotencyKey?}` (merch) OR
-`{ticket:{eventId,tier,qty}, name, phone, email?, idempotencyKey?}` (event
-tickets; tier index into `TICKET_TIERS`, qty 1-20, stored as one
-`ticket:<eventId>:<tier>` item line) - **email optional** (guest checkout;
-M-Pesa needs phone only). Prices computed server-side from
-`lib/server/catalog.ts` (`PRICES` / `TICKET_TIERS`) - client prices are never
-trusted.
-Idempotent within 10 min per key. Ledger row inserted; STK push if `MPESA_*`
-env set. Fires the opt-in `notifyNewOrder` owner email (see Routine
-notifications above) fire-and-forget on a successful insert - on creation
-(checkout start), not on payment confirmation, so the owner also hears about
-STK pushes that never complete. 200 `{ok,id,total,stk}` · 503 payment not
-configured · 429 (8/min/IP).
+Legacy direct M-Pesa initiation is disabled by the owner's Paystack-only policy.
+After same-origin and device/network rate checks, returns 503
+`{error:'paystack_only'}` with `Cache-Control: no-store`, before purchase,
+ledger, reservation or provider work, even when Daraja credentials are stored.
+New merchandise payments use `/api/paystack/checkout`. Owned-event ticket
+checkout is currently unavailable because Paystack card-ticket finality remains
+unverified; direct M-Pesa is not offered as a fallback.
+Existing orders, callback verification, reconciliation and owner-scoped
+`/api/checkout/recovery` remain supported. Reading/recovering a saved reference
+does not initiate another STK push.
 
 ### GET /api/orders/status?id=ORD-...
 Public poll for the checkout STK-waiting panel. Id format-validated
@@ -223,16 +220,12 @@ receipt email (fire-and-forget via `after()`) when the order row has an email
 includes per-ticket links for paid ticket orders).
 
 ### POST /api/stripe/checkout
-Body: `{items:[{id,qty}], email?}` — strict: item objects may carry ONLY
-`id`+`qty` (qty 1–20, ≤30 lines, ids must exist in `lib/server/catalog.ts`).
-Prices computed server-side; client prices are never trusted. Writes a
-`pending` ledger row (`pay_method='card'`, `stripe_session`) BEFORE creating
-the Stripe Checkout Session (mode `payment`, currency `kes`,
-`metadata.order_id`, idempotency key derived from the order id so retries
-reuse one session). 200 `{ok,id,total,url}` (redirect the browser to `url`) ·
-400 · 429 (8/min/IP) · 500 ledger write failed (alerts owner) ·
-502 Stripe error · 503 `card_not_configured` / `db_not_configured`.
-Success returns to `/pay/success?session_id=…`, cancel returns to `/shop`.
+Legacy Stripe initiation is disabled by the owner's Paystack-only policy.
+After same-origin and device/network rate checks, returns 503
+`{error:'paystack_only'}` with `Cache-Control: no-store` before any ledger or
+provider work, even when Stripe credentials are stored. A disabled or failed
+Paystack checkout never falls back to Stripe. Historical signed Stripe
+webhooks, saved order status, receipts and reconciliation retain their guards.
 
 ### POST /api/stripe/webhook
 Stripe server-to-server hook (Origin-exempt; verified via
@@ -404,7 +397,7 @@ Public organizer applications (`POST /api/organizer/signup`) also require boolea
 ### Checkout fulfillment and customer progress
 
 - `GET /api/checkout/fulfillment`: public, device/IP rate limited; returns configured pickup location, zero pickup fee, and delivery fee only when `MERCH_DELIVERY_FEE_KES` is a valid non-negative integer. Delivery is disabled otherwise. `MERCH_PICKUP_LOCATION` supplies the real collection instruction. No provider is invented.
-  The additive `payments: {mpesa: boolean, card: boolean}` reports existing provider configuration only: complete Daraja credentials, and explicitly enabled Paystack or configured Stripe respectively. No credentials, provider requests, customer data or merchant-approval claims are returned. Responses are `no-store`; missing, malformed or failed options disable new payment submission. Event tickets remain M-Pesa-only. Saved payment references remain available independently of these flags.
+  The additive `payments: {mpesa: boolean, card: boolean}` reports permitted new-payment configuration only: `mpesa` is always false under the owner's Paystack-only policy, and `card` requires explicitly enabled Paystack plus its server secret. Stored Daraja/Stripe keys never advertise payment availability or enable fallback. No credentials, provider requests, customer data or merchant-approval claims are returned. Responses are `no-store`; missing, malformed or failed options disable new payment submission. Owned-event tickets remain unavailable pending Paystack hosted-checkout finality; Paystack mobile money is not enabled. Saved payment references remain available independently of these flags.
 - Order creation accepts `fulfillment: {method: "pickup" | "delivery", address?: {line1, city, postalCode?}}` for merchandise. Server validation determines the fee. Delivery addresses remain private in `order_delivery_preferences`.
 - `GET /api/orders/tracking?id=ORD-…`: public bearer capability limited to order references containing 24 random hexadecimal characters. Returns recorded payment and fulfillment state, handover method and reference; excludes names, contacts, addresses and internal notes. `no-store` response. `/orders/track?ref=…` presents the same record without implying an unrecorded delivery.
 - `POST /api/bookings`: a newly inserted enquiry additionally returns a signed `statusToken` when the signing secret is configured. Retry acknowledgements do not mint new follow-up credentials. Booking drafts remain in tab-scoped session storage until successful submission.
@@ -1026,11 +1019,12 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   Failure notifications do not establish hosted-session cancellation: matching
   `charge.failed` retains the reference/hold and enters reconciliation, not a
   terminal release. Settlement, provider initialization and delivery are distinct.
-- `POST /api/orders`: requires that guest scope and `idempotencyKey`. Purchase
-  prices remain server-derived. Same key/input recovers the same durable order;
-  changed input conflicts (409). Preparation can return 503 with the retained
-  order ID. Provider acceptance is NOT settlement; uncertain initiation returns
-  202 and is never automatically sent again. Payment state is polled separately.
+- New payment initiation is Paystack-only by explicit server policy, independent
+  of stored legacy credentials. `POST /api/orders` and
+  `POST /api/stripe/checkout` return 503 `paystack_only` before ledger/provider
+  effects. Their historical records and signed callbacks are retained; saved
+  references use owner-scoped `/api/checkout/recovery` and status reads. No new
+  direct M-Pesa or Stripe retry is dispatched through those disabled endpoints.
 - Ticket reservations serialize against the event row and count paid orders
   before asynchronous ticket minting. Uncertain payment holds do not expire into
   sellable capacity. Legacy duplicate reservations fail closed for review.

@@ -86,10 +86,10 @@ async function checkout(eventId?:string,view:'shop'|'cart'|'checkout'='checkout'
  return {method,submit,rerender,html:()=>renderToStaticMarkup(tree),tree:()=>tree,cleanup:()=>cleanup.forEach(stop=>{if(typeof stop==='function')stop()})};
 }
 
-it.each([{mpesa:false,card:false},{mpesa:true,card:false},{mpesa:false,card:true}])('only offers configured payment methods: %j',async payments=>{
+it.each([{mpesa:false,card:false},{mpesa:true,card:false},{mpesa:false,card:true},{mpesa:true,card:true}])('offers only Paystack card regardless of legacy wallet configuration: %j',async payments=>{
  replies['/api/checkout/fulfillment']=async()=>response({pickup:{enabled:true,fee:0,location:'Fixture pickup'},delivery:{enabled:false,fee:null},payments});
- const page=await checkout();const html=page.html();expect(html.includes('value="mpesa"')).toBe(payments.mpesa);expect(html.includes('value="card"')).toBe(payments.card);
- if(!payments.mpesa&&!payments.card){expect(html).toContain('Online payment is currently unavailable');expect(html).toContain('href="/contact-us"');await page.submit();expect(requests.some(request=>['/api/orders','/api/paystack/checkout','/api/stripe/checkout','/api/checkout/session'].includes(request.path))).toBe(false)}
+ const page=await checkout();const html=page.html();expect(html.includes('value="mpesa"')).toBe(false);expect(html.includes('value="card"')).toBe(payments.card);
+ if(!payments.card){expect(html).toContain('Online payment is currently unavailable');expect(html).toContain('href="/contact-us"');await page.submit();expect(requests.some(request=>['/api/orders','/api/paystack/checkout','/api/stripe/checkout','/api/checkout/session'].includes(request.path))).toBe(false)}
  page.cleanup();
 });
 it.each([
@@ -207,22 +207,21 @@ it('remembers a202 uncertain checkout and opens status without falling back to S
  expect(JSON.parse(data.get(PAYSTACK_ATTEMPT_KEY)!)).toMatchObject({orderId:'ORD-UNKNOWN',state:'unknown'});
  expect(assign).toHaveBeenCalledWith('/pay/success?ref=ORD-UNKNOWN');expect(requests.some(request=>request.path==='/api/stripe/checkout')).toBe(false);page.cleanup();
 });
-it('strips the Paystack key from the unconfigured-provider Stripe fallback payload',async()=>{
+it('keeps the cart and reports unavailable when Paystack is disabled without a Stripe fallback',async()=>{
  replies['/api/paystack/checkout']=async()=>response({error:'card_not_configured'},503);
  replies['/api/stripe/checkout']=async()=>response({ok:true,id:'ORD-STRIPE',url:'https://checkout.stripe.com/fixture'});
  const page=await checkout();page.method('card');await page.submit();
  expect(requests.find(request=>request.path==='/api/paystack/checkout')?.body?.idempotencyKey).toMatch(/^[A-Za-z0-9_-]{32,128}$/);
- expect(requests.find(request=>request.path==='/api/stripe/checkout')?.body).toEqual({items,fulfillment:{method:'pickup'}});
- expect(assign).toHaveBeenCalledWith('https://checkout.stripe.com/fixture');page.cleanup();
+ expect(requests.some(request=>request.path==='/api/stripe/checkout'||request.path==='/api/orders')).toBe(false);
+ expect(assign).not.toHaveBeenCalled();expect(JSON.parse(data.get('ugt-live-cart-v1')!)).toEqual(items);expect(page.html()).toContain('Card checkout is unavailable');page.cleanup();
 });
 it('does not fall back after a failed or uncertain configured provider response',async()=>{
  replies['/api/paystack/checkout']=async()=>response({error:'provider_unavailable'},503);
  const page=await checkout();page.method('card');await page.submit();
  expect(requests.some(request=>request.path==='/api/stripe/checkout')).toBe(false);expect(assign).not.toHaveBeenCalled();page.cleanup();
 });
-it('keeps ticket checkout on M-Pesa with its own key and no card option',async()=>{
+it('discloses unavailable ticket payments without offering or initiating unsupported rails',async()=>{
  replies['/api/orders']=async()=>response({ok:true,id:'ORD-TICKET',attemptState:'unknown'},202);
- const page=await checkout('EVT-FIXTURE');expect(page.html()).not.toContain('value="card"');await page.submit();
- expect(requests.find(request=>request.path==='/api/orders')?.body).toMatchObject({ticket:{eventId:'EVT-FIXTURE',tier:0,qty:1},idempotencyKey:expect.stringMatching(/^[A-Za-z0-9_-]{32,128}$/)});
- expect(data.has(CHECKOUT_ATTEMPT_KEY)).toBe(true);expect(data.has(PAYSTACK_ATTEMPT_KEY)).toBe(false);expect(requests.some(request=>request.path==='/api/paystack/checkout')).toBe(false);page.cleanup();
+ const page=await checkout('EVT-FIXTURE');expect(page.html()).not.toContain('value="card"');expect(page.html()).not.toContain('value="mpesa"');expect(page.html()).toContain('Ticket payments are currently unavailable');await page.submit();
+ expect(data.has(CHECKOUT_ATTEMPT_KEY)).toBe(false);expect(data.has(PAYSTACK_ATTEMPT_KEY)).toBe(false);expect(requests.some(request=>['/api/orders','/api/paystack/checkout','/api/stripe/checkout','/api/checkout/session'].includes(request.path))).toBe(false);page.cleanup();
 });

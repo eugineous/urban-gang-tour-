@@ -177,7 +177,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
    if(paymentCase!=='none'){
     if(url.pathname==='/api/checkout/session')return route.fulfill({json:{ok:true,created:false}});
     if(url.pathname==='/api/checkout/recovery')return route.fulfill({status:404,json:{ok:false}});
-    if(url.pathname==='/api/orders')return paymentCase==='unknown'?route.fulfill({status:400,json:{error:'constructor',message:'PRIVATE PROVIDER DETAIL'}}):route.abort();
+    if(url.pathname==='/api/paystack/checkout')return paymentCase==='unknown'?route.fulfill({status:400,json:{error:'constructor',message:'PRIVATE PROVIDER DETAIL'}}):route.abort();
    }
    if(request.method()==='POST'||url.pathname.startsWith('/api/'))unexpected.push(url.pathname);
    return route.abort();
@@ -185,7 +185,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   await page.goto('http://127.0.0.1/fixture');
   await page.evaluate(({id,variant})=>{
    localStorage.setItem('ugt-live-cart-v1',JSON.stringify([{id,variant,printableName:'Amina',qty:1}]));
-   localStorage.setItem('ugt-mpesa-attempt-v1',JSON.stringify({key:'original_recovery_key_12345678901234567890',orderId:'original-order',state:'unknown'}));
+   localStorage.setItem('ugt-paystack-attempt-v1',JSON.stringify({key:'original_recovery_key_12345678901234567890',orderId:'original-order',state:'prepared'}));
    (window as any).cartEvents=0;window.addEventListener('ugt-cart-changed',()=>{(window as any).cartEvents++});
   },{id:fixtureProduct.id,variant:fixtureProduct.variants[0].label});
   await page.addScriptTag({content:bundle.outputFiles[0].text});
@@ -196,7 +196,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   await page.getByLabel('Pickup or delivery').selectOption('delivery');
   for(const [name,value]of Object.entries({line1:'Original Road',city:'Nairobi',postalCode:'00100'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
   await page.locator('#checkout [data-checkout-next]:visible').click();
-  await page.locator('#checkout input[name="paymentMethod"][value="mpesa"]').check();
+  await page.locator('#checkout input[name="paymentMethod"][value="card"]').check();
   await page.locator('#checkout details summary').click();
   await page.locator('#checkout input[maxlength="60"]').fill('ORIGINAL-PROMO');
   await page.locator('#checkout input[type="checkbox"]').check();
@@ -215,7 +215,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   await page.locator('#marketplace input[type="checkbox"]').check();
   await page.evaluate(()=>{
    const nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select:not(.language-select),#purchase select,#marketplace select')];
-   (window as any).preserved={nodes,chooser:document.querySelector('#checkout [data-language-control] select'),values:nodes.map((n:any)=>[n.value,n.checked]),cart:localStorage.getItem('ugt-live-cart-v1'),attempt:localStorage.getItem('ugt-mpesa-attempt-v1'),events:(window as any).cartEvents};
+   (window as any).preserved={nodes,chooser:document.querySelector('#checkout [data-language-control] select'),values:nodes.map((n:any)=>[n.value,n.checked]),cart:localStorage.getItem('ugt-live-cart-v1'),attempt:localStorage.getItem('ugt-paystack-attempt-v1'),events:(window as any).cartEvents};
   });
   expect(posts).toEqual([{path:'/api/checkout/quote',body:{items:[{id:fixtureProduct.id,variant:'Original Blue / M',printableName:'Amina',qty:1}],promoCode:'ORIGINAL-PROMO',fulfillment:{method:'delivery',address:{line1:'Original Road',city:'Nairobi',postalCode:'00100'}}}}]);
   const baselineGets=[...gets];
@@ -231,7 +231,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
    expect(await page.locator('#checkout aside h2').textContent()).toBe(formatMessage(commerceMessages,locale,'checkout.total',{amount:formatKes(950,locale)!}).text);
    expect(await page.evaluate(()=>{
     const b=(window as any).preserved,nodes=[...document.querySelectorAll('#checkout form,#purchase form,#marketplace form,#checkout input,#purchase input,#marketplace input,#checkout select:not(.language-select),#purchase select,#marketplace select')];
-    return b.chooser===document.querySelector('#checkout [data-language-control] select')&&b.chooser.isConnected&&nodes.length===b.nodes.length&&nodes.every((n:any,i)=>n===b.nodes[i]&&n.isConnected&&n.value===b.values[i][0]&&n.checked===b.values[i][1])&&localStorage.getItem('ugt-live-cart-v1')===b.cart&&localStorage.getItem('ugt-mpesa-attempt-v1')===b.attempt&&(window as any).cartEvents===b.events&&document.activeElement===document.querySelector('#checkout input[name="paymentMethod"]:checked');
+    return b.chooser===document.querySelector('#checkout [data-language-control] select')&&b.chooser.isConnected&&nodes.length===b.nodes.length&&nodes.every((n:any,i)=>n===b.nodes[i]&&n.isConnected&&n.value===b.values[i][0]&&n.checked===b.values[i][1])&&localStorage.getItem('ugt-live-cart-v1')===b.cart&&localStorage.getItem('ugt-paystack-attempt-v1')===b.attempt&&(window as any).cartEvents===b.events&&document.activeElement===document.querySelector('#checkout input[name="paymentMethod"]:checked');
    })).toBe(true);
    expect(await page.locator('#checkout').textContent()).toContain('Original Product');expect(await page.locator('#checkout').textContent()).toContain('Original Blue / M');
    expect(posts).toHaveLength(1);expect(gets).toEqual(baselineGets);expect(unexpected).toEqual([]);
@@ -243,17 +243,17 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   for(const scenario of ['unknown','uncertain'] as const){
    paymentCase=scenario;
    await page.locator('#checkout form[aria-busy] button[type="submit"]').click();
-   const key=scenario==='unknown'?'checkout.startFailed':'checkout.paymentUncertain';
+   const key=scenario==='unknown'?'checkout.cardUnavailable':'checkout.cardUncertain';
    await page.locator('#checkout .modern-alert').filter({hasText:formatMessage(commerceMessages,'sw',key).text}).waitFor();
    const postCount=posts.length;
-   expect(posts.slice(-3).map(post=>post.path)).toEqual(['/api/checkout/session','/api/checkout/recovery','/api/orders']);
-   expect(posts.at(-2)?.body).toEqual({key:'original_recovery_key_12345678901234567890'});
+   expect(posts.slice(-3).map(post=>post.path)).toEqual(['/api/checkout/session','/api/checkout/recovery','/api/paystack/checkout']);
+   expect(posts.at(-2)?.body).toEqual({key:'original_recovery_key_12345678901234567890',provider:'paystack'});
    expect(posts.at(-1)?.body).toEqual({name:'Original Buyer',phone:'0712345678',email:'buyer@example.test',idempotencyKey:'original_recovery_key_12345678901234567890',promoCode:'ORIGINAL-PROMO',items:[{id:fixtureProduct.id,variant:'Original Blue / M',printableName:'Amina',qty:1}],fulfillment:{method:'delivery',address:{line1:'Original Road',city:'Nairobi',postalCode:'00100'}}});
    for(const locale of ['fr','zh-Hans','ru','es','en','sw'] as const){
     await chooser.selectOption(locale);
     await page.locator('#checkout .modern-alert').filter({hasText:formatMessage(commerceMessages,locale,key).text}).waitFor();
     expect(await page.locator('#checkout').textContent()).not.toContain('PRIVATE PROVIDER DETAIL');
-    expect(await page.evaluate(()=>localStorage.getItem('ugt-mpesa-attempt-v1')===(window as any).preserved.attempt&&localStorage.getItem('ugt-live-cart-v1')===(window as any).preserved.cart)).toBe(true);
+    expect(await page.evaluate(()=>localStorage.getItem('ugt-paystack-attempt-v1')===(window as any).preserved.attempt&&localStorage.getItem('ugt-live-cart-v1')===(window as any).preserved.cart)).toBe(true);
     expect(posts).toHaveLength(postCount);expect(gets).toEqual(baselineGets);expect(unexpected).toEqual([]);
    }
   }

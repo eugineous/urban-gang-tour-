@@ -21,6 +21,7 @@ import {ensureCustomerAccountSchema,validatedCurrentBuyer} from '@/lib/server/cu
 import {resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema} from '@/lib/server/checkout-fulfillment';
 import { q, hasDb } from "@/lib/server/db";
 import { resolveEventTruth } from "@/lib/server/event-truth";
+import {paymentInitiationAllowed} from '@/lib/server/payment-provider-policy';
 
 import {checkoutPrincipal} from '@/lib/server/checkout-session';
 import {mpesaAttemptIdentity,recoverMpesaAttempt,prepareMpesaAttempt,savedMpesaPurchase,claimMpesaInitiation,recordMpesaReference,markMpesaInitiationUnknown,MpesaAttemptConflict,type MpesaAttempt} from '@/lib/server/mpesa-attempts';
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
   ) {
     return NextResponse.json({ error: "too_many_requests" }, { status: 429 });
   }
+  if(!paymentInitiationAllowed('mpesa'))return NextResponse.json({error:'paystack_only'},{status:503,headers:{'Cache-Control':'no-store'}});
   let body: any;
   try {
     body = await req.json();
