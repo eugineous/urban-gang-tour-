@@ -128,6 +128,8 @@ type ShopCatalogueProps = {
   onSearch: (value: string) => void;
   onSort: (value: string) => void;
   onCategory: (value: string) => void;
+  onResetDiscovery?: () => void;
+  hasActiveDiscovery?: boolean;
   variationFor: (product: LiveShopProduct) => string | undefined;
   selectionFull: (product: LiveShopProduct) => boolean;
   onVariation: (id: string, value: string) => void;
@@ -137,18 +139,23 @@ type ShopCatalogueProps = {
 
 export default function ShopCatalogueView(props: ShopCatalogueProps) {
  const t=useMessages(commerceMessages);
+ const hasActiveDiscovery=props.hasActiveDiscovery??!!(props.search.trim()||props.category||props.availability!=='all'||props.sort!=='featured');
+ const resetDiscovery=()=>{
+  if(props.onResetDiscovery){props.onResetDiscovery();return}
+  props.onSearch('');props.onCategory('');props.onAvailability('all');props.onSort('featured');
+ };
  const collections=props.categories.map(name=>({name,product:props.products.find(product=>product.category===name)||merchProducts.find(product=>product.category===name)})).filter(collection=>collection.product).slice(0,3);
   return <div className={styles.catalogue} id="merchandise-catalogue">
     {!!collections.length&&<section className={styles.collections} aria-label={t('collection')}>
-      <div className={styles.collectionHeading}><h2>{t('collection')}</h2><a href="#shop-product-grid">{t('shop.shopAll')} <span aria-hidden="true"><ArrowDownRight size={16}/></span></a></div>
+      <div className={styles.collectionHeading}><h2>{t('collection')}</h2><a href="#shop-product-grid" onClick={resetDiscovery}>{t('shop.shopAll')} <span aria-hidden="true"><ArrowDownRight size={16}/></span></a></div>
       <div className={styles.collectionGrid}>
-        {collections.map(({name,product})=><button key={name} type="button" className={styles.collectionCard} data-shop-collection={name} aria-pressed={props.category===name} onClick={()=>{props.onSearch('');props.onAvailability('all');props.onCategory(name)}}>
+        {collections.map(({name,product})=><button key={name} type="button" className={styles.collectionCard} data-shop-collection={name} aria-pressed={props.category===name} onClick={()=>{resetDiscovery();props.onCategory(name)}}>
           <span className={styles.collectionArtwork} aria-hidden="true">{product!.id.startsWith('cb-')?<GeneratedProductImage id={product!.id}/>:product!.image?<img src={product!.image} alt="" loading="lazy" decoding="async"/>:null}</span>
           <span className={styles.collectionCopy}><strong lang="en-KE">{name}</strong><span>{t('shop.shopAll')} <ArrowUpRight size={16} aria-hidden="true"/></span></span>
         </button>)}
       </div>
     </section>}
-    <div className={styles.catalogueHeading}><h2>{t('shop.all')}</h2><p role="status">{t('items.count',{count:props.products.length})}</p></div>
+    <div className={styles.catalogueHeading}><h2>{t('shop.all')}</h2><div className={styles.catalogueSummary}><p role="status">{t('items.count',{count:props.products.length})}</p>{hasActiveDiscovery&&<button type="button" onClick={resetDiscovery}>{t('design.reset')}</button>}</div></div>
     {props.products.some(product=>product.preview)&&<p className={styles.designNote} data-design-collection-note>{t('design.warning')} <a href="/shop/design-bag">{t('bag.saved')} <span aria-hidden="true"><ArrowUpRight size={14}/></span></a></p>}
     <div className={styles.catalogueTools}>
       <label className={styles.search}>{t('search')}<input type="search" value={props.search} onChange={event => props.onSearch(event.target.value)} placeholder={t('search.merch')} /></label>
@@ -156,7 +163,7 @@ export default function ShopCatalogueView(props: ShopCatalogueProps) {
       <label>{t('sort')}<select value={props.sort} onChange={event => props.onSort(event.target.value)}><option value="featured">{t('sort.catalogue')}</option><option value="low">{t('sort.low')}</option><option value="high">{t('sort.high')}</option></select></label>
     </div>
     <div className={styles.categories} role="group" aria-label={t('categories')}>
-      <button type="button" aria-pressed={!props.category} onClick={() => props.onCategory('')}>{t('shop.all')}</button>
+      <button type="button" aria-pressed={!props.category} onClick={resetDiscovery}>{t('shop.all')}</button>
       {props.categories.map(name => <button key={name} lang="en-KE" type="button" aria-pressed={props.category === name} onClick={() => props.onCategory(name)}>{name}</button>)}
     </div>
     <div className={styles.productGrid} id="shop-product-grid">
