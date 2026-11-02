@@ -1,0 +1,4 @@
+.actions{display:grid;gap:10px;min-width:0}
+.actions .buyNow{background:var(--action,#ad1264);color:#fff;min-height:44px}
+.actions .buyNow:hover{background:var(--deep,#790c46)}
+.actions button:disabled{cursor:not-allowed}
