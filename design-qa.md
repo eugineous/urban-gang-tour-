@@ -1,4 +1,110 @@
-# Guided checkout and payment results — 2 November 2026
+# MOOKH/Nixtio restoration, shop boundaries and Paystack — 2 November 2026
+
+final result: passed
+
+## Visual truth and comparison
+
+The owner's latest correction restores the established UGT MOOKH/Nixtio hybrid
+outside Shop, with an explicit light-header override. This is not a pixel clone
+of either reference and does not reuse their branding or content. Mkurugenzi's
+collection/catalogue/mannequin presentation remains confined to shopping routes.
+
+Approved pre-Mkurugenzi homepage source:
+/workspace/artifacts/ugt-app-operations-20261028/live-release/home-1440.png.
+Footer source:
+/workspace/artifacts/ugt-events-release-20261022/captures/ugt-footer-desktop-final.png.
+The captured Nixtio desktop/mobile-menu and MOOKH desktop references in that
+captures directory also informed the existing design, not a new redesign.
+
+Latest implementation evidence:
+/workspace/artifacts/ugt-mookh-nixtio-restore-20261102/browser/.
+home-comparison.png and footer-comparison.png in the artifact root place source
+left and implementation right, each1440×900CSSpx at1×, without scaling differences.
+The full views show restored type, hero composition, contact hierarchy and
+spacing. Different owned-video frames are not a design discrepancy. Intentional
+differences are the light cream header/menu/pill, magenta contact action, current
+genuine footer links/language control and removal of the global storefront dock.
+
+Focused states were inspected at native resolution: home-1440.png,
+footer-1440.png, menu-390.png, category-1440.png and the decoded phone-poster
+captures home-phone-no-preference.png/home-phone-reduce.png. Phone screenshots
+are390×844CSSpx at1×; header, text and controls are readable without extra crops.
+The initial phone capture preceded image decode; waiting for the real image and
+finishing finite capture animations corrected the evidence, not application CSS.
+Both motion preferences display the actual sharp poster while video is loading
+or intentionally disabled. The normal animation controller remains enabled.
+
+## Findings and corrections
+
+- P1: the global Mkurugenzi storefront hub/header/dock displaced the approved
+  site. Restored existing services, portfolio, presenters, original motion and
+  premium shared navigation/footer. The homepage retains only its compact,
+  factual public-product preview and a real Shop route.
+- P2: collection controls scrolled to a mixed catalogue. Native category URLs
+  now show matching products only, including after search/reset/reload, with
+  distinct canonical metadata and honest unknown/unavailable handling.
+- P2: fixed light headers overlapped category and checkout/result headings,
+  including normal coarse-touch tablets. Actual-shell geometry regressions
+  reproduced the overlap before the scoped spacing fixes and pass afterwards.
+- P1: credentials could advertise/initiate alternative providers against the
+  owner's Paystack-only instruction. New initiation is now Paystack-only at
+  both UI and server boundaries, without disabling historical callbacks or
+  changing credentials. Unsupported owned-ticket checkout is truthfully
+  unavailable, not advertised as an online sale/InStock purchase offer.
+- P2: shop products waited for browser JavaScript before loading. The existing
+  public reader now supplies initial server HTML. This removes that dependency;
+  it is not a guaranteed network speed or Core Web Vitals claim.
+
+No actionable P0/P1/P2 findings remain in the checked scope. Independent code
+review rechecked category/header geometry and owned-ticket advertising/schema
+and found no remaining actionable issue. No P3 redesign is needed for release.
+
+## Five fidelity surfaces
+
+- Typography: established Inter hierarchy returns across the main site;
+  locally hosted Poppins/Playfair/Bebas remain scoped to shopping. Six native
+  languages retain working labels and collision-free responsive navigation.
+- Spacing/layout: single-row desktop header, contained light mobile dialog,
+  original hero/services rhythm, compact home preview and rich footer hierarchy.
+  Category pages clear the header.44px controls, Escape/focus return, wide-phone
+  fallback and reduced-motion behavior remain intact.
+- Tokens: warm paper/cream, ink, UGT magenta/yellow and intentional light header
+  in every state. The footer may remain ink; the header never becomes black.
+- Assets/icons: actual UGT identity/owned sharp lightly shaded hero media,
+  existing icon set and truthful existing mannequin illustrations. No invented
+  endorsements, stock photography or unsupported wallet logos.
+- Copy/content: genuine routes/public products, factual price floors and stock,
+  concise payment steps and truthful statuses. Payment confirmation never comes
+  merely from a redirect; email/ticket readiness remain separate facts.
+
+## Verification and release boundary
+
+Final full suite:2400passed/269files,191gated skips/12files. Fresh TypeScript,
+55changed/new TypeScript-file lint with zero errors, production Next/OpenNext
+build and keep-vars dry bundle pass. Existing warnings were not suppressed.
+The final application source is ae9a23c; subsequent changes are this report and
+two browser-harness email selectors corrected to match the actual optional label.
+
+Built immutable-app browsers:22restoration/navigation/category checks plus
+9Paystack and12checkout-client scenarios across phone/tablet/desktop. These
+verify original motion starts, sharp hero, light/scrolled/menu states, all six
+languages, real cart synchronization, Gallery, category-only navigation/reload,
+payment options, fulfillment retry, saved recovery, receipts and guarded tickets.
+Zero unexpected page/console errors or financial requests. Financial/browser
+scenarios are intercepted fixtures, not live transactions or physical-device QA.
+
+No credentials, provider flags, schedules, published catalogue, inventory or
+customer records changed. No live purchase, charge, STK, refund, message or replay
+was used. Paystack mobile-money/owned-ticket gates were not unlocked. Merchant
+settlement, inbox delivery and complete live paid-ticket issuance are not claimed.
+Normal PR/merge, keep-vars deployment and live read-only verification are recorded
+separately in private release evidence. The earlier checkout/shop reports below
+are historical context; their superseded global dock/provider details do not
+override this report or the owner's latest instructions.
+
+---
+
+# Previous report: Guided checkout and payment results — 2 November 2026
 
 final result: passed
 

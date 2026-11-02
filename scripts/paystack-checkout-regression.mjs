@@ -51,10 +51,10 @@ try{
   });
   const page=await context.newPage();page.on('pageerror',error=>errors.push({scenario,width,error:error.message}));
   await page.goto(base+'/checkout',{waitUntil:'domcontentloaded'});
-  await page.getByLabel('Email for your receipt',{exact:true}).waitFor({state:'visible'});
+  await page.locator('input[name="email"]').waitFor({state:'visible'});
   assert.equal(await page.locator('input[name="name"]').evaluate(node=>node.required),false);
   assert.equal(await page.locator('input[name="phone"]').evaluate(node=>node.required),false);
-  await page.getByLabel('Email for your receipt',{exact:true}).fill('buyer@example.invalid');
+  await page.locator('input[name="email"]').fill('buyer@example.invalid');
   await page.locator('[data-checkout-next]:visible').click();
   await page.locator('[data-checkout-next]:visible').click();
   await page.locator('input[type="radio"][name="paymentMethod"][value="card"]').check();

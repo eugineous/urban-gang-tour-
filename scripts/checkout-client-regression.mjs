@@ -126,7 +126,7 @@ async function recovery(width){
   await context.route('**/api/paystack/checkout',route=>{initiations.push(route.request().postDataJSON());return route.abort()});
   await context.route('**/api/orders/status**',route=>route.fulfill({json:{status:'unknown',method:'card',total:1000}}));
   await page.goto(base+'/checkout',{waitUntil:'domcontentloaded'});
-  await page.getByLabel('Email for your receipt',{exact:true}).waitFor({state:'visible'});
+  await page.locator('input[name="email"]').waitFor({state:'visible'});
   await page.locator('[data-checkout-next]:visible').click();await page.locator('[data-checkout-next]:visible').click();
   await assertPaystackOnly(page);assert.deepEqual(mutations,[],'Step navigation must not allocate or initiate a payment');
   await page.locator('form input[type="checkbox"]').check();
