@@ -145,14 +145,15 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const path = `/events/${event.slug}`;
   const status = String(event.status || 'published');
   const sellable = availabilityKnown && truth.isSellable;
+  const onlineCheckoutAvailable = sellable && truth.onlineCheckoutAvailable === true;
   const soldOut = status === 'sold_out' || (status!=='announced'&&truth?.isSoldOut === true);
   const prev = eventDiscoveryDate(event.previous_start_at);
   const statusMessages={announced:'event.announced',ongoing:'event.ongoing',sales_paused:'event.sales_paused',sold_out:'event.sold_out',postponed:'event.postponed',rescheduled:prev&&prev!==String(event.event_date).slice(0,10)?'event.rescheduledPrevious':'event.rescheduled',cancelled:'event.cancelled',completed:'event.completed'} as const;
   const currentStatus=statusMessages[status as keyof typeof statusMessages];
   const fromPrice = truth?.minPrice ?? (tiers.length ? Math.min(...tiers.map((t) => t.price)) : null);
   // Offers only where the public can actually buy (Google's requirement):
-  // published lists InStock tiers, sold_out lists SoldOut, every other state
-  // carries status markup with no offers at all.
+  // Inventory alone is not a supported online purchase. Other lifecycle and
+  // provider states carry event information without purchase offers.
   const eventJsonLd = startDate && event.venue ? {
     '@context': 'https://schema.org',
     '@type': 'Event',
@@ -167,9 +168,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     location: { '@type': 'Place', name: event.venue, address: { '@type': 'PostalAddress', addressLocality: event.city || undefined, addressCountry: 'KE' } },
     image: discoveryImageUrl(event.image) ? [discoveryImageUrl(event.image)] : undefined,
     organizer: { '@id': `${SITE.domain}/#org` },
-    offers: !availabilityKnown || (!sellable && !soldOut) ? undefined : truth.tiers
-      .filter((tier) => soldOut || tier.sellable)
-      .map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: soldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
+    offers: !onlineCheckoutAvailable ? undefined : truth.tiers
+      .filter((tier) => tier.sellable)
+      .map((tier) => ({ '@type': 'Offer', name: tier.name, price: String(tier.price), priceCurrency: 'KES', availability: 'https://schema.org/InStock', url: `${SITE.domain}${path}` })),
   } : null;
   const eventDate = event.event_date?formatEventDate(event.event_date):'Date to be confirmed';
   const shareText = encodeURIComponent(`${event.name} — ${event.venue || ''} ${eventDate}`.trim());
@@ -183,7 +184,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <section className="event-detail-hero"><div><p className="eyebrow"><MessageText catalogue={discoveryMessages} message="event.presents"/></p><h1 lang="en-KE">{event.name}</h1><p>{event.description?<OriginalContent inline disclose>{event.description}</OriginalContent>:<MessageText catalogue={discoveryMessages} message="event.moreDetails"/>}</p><p><EventDay day={String(event.event_date||'').slice(0,10)} long/> · {event.venue?<span lang="en-KE">{event.venue}</span>:<MessageText catalogue={discoveryMessages} message="card.venue"/>}</p></div><EventArtwork name={event.name} image={event.image}/></section>
     {currentStatus&&<p className="modern-alert" role="status"><MessageText catalogue={discoveryMessages} message={currentStatus} values={{previous:<span lang="en-KE">{prev}</span>}}/></p>}
     <section className="event-detail-grid"><div><h2><MessageText catalogue={discoveryMessages} message="event.planVisit"/></h2><dl><div><dt><MessageText catalogue={discoveryMessages} message="details.date"/></dt><dd><EventDay day={String(event.event_date||'').slice(0,10)} long/></dd></div>{([['details.time',event.event_time],['details.venue',event.venue],['details.city',event.city||'Kenya']] as const).map(([label,value])=><div key={label}><dt><MessageText catalogue={discoveryMessages} message={label}/></dt><dd>{value?<span lang="en-KE">{value}</span>:<MessageText catalogue={discoveryMessages} message="details.confirm"/>}</dd></div>)}</dl><div className="modern-actions"><a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer"><MessageText catalogue={discoveryMessages} message="event.whatsapp"/></a><a href={`https://x.com/intent/tweet?text=${shareText}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer"><MessageText catalogue={discoveryMessages} message="event.x"/></a>{/^\d{4}-\d{2}-\d{2}$/.test(String(event.event_date).slice(0,10))&&<EventCalendar name={event.name} date={String(event.event_date).slice(0,10)} start={startDate} venue={event.venue||''} url={`${SITE.domain}${path}`}/>}</div></div>
-    <aside className="modern-card"><h2><MessageText catalogue={discoveryMessages} message="event.options"/></h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt lang="en-KE">{tier.name}</dt><dd><EventAmount value={tier.price}/></dd></div>)}</dl>:<p><MessageText catalogue={discoveryMessages} message="event.noOptions"/></p>}{sellable?<a className="button" href={ticketHref}><MessageText catalogue={discoveryMessages} message="event.getTickets"/></a>:<p role="status"><MessageText catalogue={discoveryMessages} message={soldOut?'status.sold_out':'event.notOnSale'}/></p>}<p className="form-note"><MessageText catalogue={discoveryMessages} message="event.checkoutCheck"/></p><a href="/book"><MessageText catalogue={discoveryMessages} message="event.planOwn"/></a></aside></section>
-    {sellable&&<div className="event-ticket-dock"><span>{fromPrice!==null&&<EventAmount value={fromPrice} from/>}</span><a className="button" href={ticketHref}><MessageText catalogue={discoveryMessages} message="event.getTickets"/></a></div>}
+    <aside className="modern-card"><h2><MessageText catalogue={discoveryMessages} message="event.options"/></h2>{tiers.length?<dl>{tiers.map(tier=><div key={tier.name}><dt lang="en-KE">{tier.name}</dt><dd><EventAmount value={tier.price}/></dd></div>)}</dl>:<p><MessageText catalogue={discoveryMessages} message="event.noOptions"/></p>}{onlineCheckoutAvailable?<a className="button" href={ticketHref}><MessageText catalogue={discoveryMessages} message="event.getTickets"/></a>:<p role="status"><MessageText catalogue={discoveryMessages} message={soldOut?'status.sold_out':sellable?'status.onlineUnavailable':'event.notOnSale'}/></p>}{sellable&&!onlineCheckoutAvailable&&<a className="button" href="/contact-us"><MessageText catalogue={discoveryMessages} message="event.contactTickets"/></a>}{onlineCheckoutAvailable&&<p className="form-note"><MessageText catalogue={discoveryMessages} message="event.checkoutCheck"/></p>}<a href="/book"><MessageText catalogue={discoveryMessages} message="event.planOwn"/></a></aside></section>
+    {onlineCheckoutAvailable&&<div className="event-ticket-dock"><span>{fromPrice!==null&&<EventAmount value={fromPrice} from/>}</span><a className="button" href={ticketHref}><MessageText catalogue={discoveryMessages} message="event.getTickets"/></a></div>}
   </section>;
 }

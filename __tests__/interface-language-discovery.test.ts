@@ -21,6 +21,7 @@ import {EventDay,PublicationDate} from '@/ui/components/PublicationDate';
 import {sortEventDirectory} from '@/ui/components/EventDiscovery';
 import {INTERFACE_LOCALES,type InterfaceLocale} from '@/lib/i18n/locale';
 import {EventDiscovery} from '@/ui/components/EventDiscovery';
+import {EventPosterCard} from '@/ui/components/EventPosterCard';
 import {PhotoGallery} from '@/app/_components/PhotoGallery';
 import {EventCalendar} from '@/app/_components/EventCalendar';
 import {VideoCaptionTrack,VideoTranscript} from '@/ui/components/MediaCaptions';
@@ -39,6 +40,15 @@ const headings={en:'Events &amp; tickets.',sw:'Matukio na tiketi.',fr:'Événeme
 const transcriptLabels={en:'Read video transcript',sw:'Soma nakala ya video',fr:'Lire la transcription vidéo','zh-Hans':'阅读视频文字稿',ru:'Читать расшифровку видео',es:'Leer la transcripción del vídeo'};
 it('has complete six-language discovery and media catalogues with matching placeholders',()=>{
  expect(catalogueProblems(discoveryMessages)).toEqual([]);expect(catalogueProblems(mediaMessages)).toEqual([]);
+});
+it.each(INTERFACE_LOCALES)('discloses unavailable owned-ticket payment with a native details action in %s',locale=>{
+ selected.locale=locale;
+ const html=renderToStaticMarkup(createElement(EventPosterCard,{event:{id:'owned',slug:'owned',name:'Original event name',kind:'ticketed',status:'published',eventDate:'2099-11-06',sellable:true,onlineCheckoutAvailable:false,tiers:[{price:750,sellable:true}]},now:hydrationNow}));
+ expect(html).toContain(formatMessage(discoveryMessages,locale,'status.onlineUnavailable').text);
+ expect(html).toContain(formatMessage(discoveryMessages,locale,'action.details').text);
+ expect(html).not.toContain(formatMessage(discoveryMessages,locale,'status.onSale').text);
+ expect(html).not.toContain(formatMessage(discoveryMessages,locale,'action.tickets').text);
+ expect(html).toContain('Original event name');
 });
 it('composes the original article fields, AI disclosure, illustration marker and source paragraphs without editing their bytes',async()=>{
  const before=JSON.stringify(authored.post),tree=await BlogPost({params:Promise.resolve({slug:authored.post.slug})});

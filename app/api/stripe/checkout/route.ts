@@ -13,6 +13,7 @@ import { normalizePrintableName } from '@/lib/shared/merch-personalization';
 import {checkoutDeliveryContact,resolveCheckoutFulfillment,ensureCheckoutFulfillmentSchema,saveCheckoutFulfillment} from '@/lib/server/checkout-fulfillment';
 import {validatedCurrentBuyer,ensureCustomerAccountSchema} from '@/lib/server/customer-account';
 import { assertMerchStockAvailable } from '@/lib/server/inventory';
+import {paymentInitiationAllowed} from '@/lib/server/payment-provider-policy';
 
 // Card checkout (Stripe Checkout Session). Public (anon) create, rate-limited.
 // Prices come ONLY from lib/server/catalog.ts — the browser sends ids+qty.
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
   if (!rateLimit('stripe:' + clientIp(req), 8, 60_000, req, PURCHASE_NETWORK_LIMIT)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
+  if(!paymentInitiationAllowed('stripe'))return NextResponse.json({error:'paystack_only'},{status:503,headers:{'Cache-Control':'no-store'}});
 
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }

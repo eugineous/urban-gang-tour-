@@ -25,9 +25,10 @@ export function ownedEventPresentation(event: OwnedEvent, now: number) {
   const datePassed = date !== null && Date.parse(date.value + 'T23:59:59+03:00') < now;
   const past = event.kind==='past'||status === 'completed' || (datePassed && !['postponed','ongoing'].includes(status));
   const sellable = publicEvent && isSellable(status) && event.kind === 'ticketed' && !past && event.sellable === true;
+  const onlineCheckoutAvailable = sellable && event.onlineCheckoutAvailable === true;
   const labels: Record<string, string> = {
     announced: 'Announced · details to follow',
-    published: past ? datePassed?'Date passed':'Previous work' : school ? 'School tour stop' : sellable ? 'Tickets on sale' : 'Details published',
+    published: past ? datePassed?'Date passed':'Previous work' : school ? 'School tour stop' : sellable ? onlineCheckoutAvailable?'Tickets on sale':'Online ticket payments unavailable' : 'Details published',
     ongoing: 'Happening now',
     sales_paused: 'Ticket sales paused',
     sold_out: 'Sold out',
@@ -37,7 +38,7 @@ export function ownedEventPresentation(event: OwnedEvent, now: number) {
   };
   const notes: Record<string, string> = {
     announced: 'More details will be added here. Ticket sales are not open.',
-    published: past ? 'View the event archive.' : school ? 'A school tour stop. Public tickets are not sold here.' : sellable ? 'View ticket options and the latest availability.' : 'Ticket sales are not open. Check the event details for updates.',
+    published: past ? 'View the event archive.' : school ? 'A school tour stop. Public tickets are not sold here.' : sellable ? onlineCheckoutAvailable?'View ticket options and the latest availability.':'Online ticket payments are currently unavailable. Contact us about tickets.' : 'Ticket sales are not open. Check the event details for updates.',
     ongoing: 'This event is in progress. Online ticket sales are closed.',
     sales_paused: school ? 'Check the school tour for the latest updates.' : 'Ticket sales are paused. Event details remain available.',
     sold_out: school ? 'Check the school tour for the latest updates.' : 'Tickets are sold out. View the event details.',
@@ -52,12 +53,13 @@ export function ownedEventPresentation(event: OwnedEvent, now: number) {
     school,
     past,
     sellable,
+    onlineCheckoutAvailable,
     label: partner && partnerDetails && status === 'published' && !past ? partnerAdmission(partnerDetails) : labels[status] || 'Event update',
     note: partner && partnerDetails ? [past?'Past event':'Partner listing',partnerDetails.client?`For ${partnerDetails.client}`:'',partnerDetails.role].filter(Boolean).join(' · ') : notes[status] || 'Check the latest event details.',
     dateLabel: status === 'postponed' ? 'New date to be confirmed' : date ? new Intl.DateTimeFormat('en-KE', {day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Nairobi'}).format(date.date) : text(event.dateLabel) || 'Date to be confirmed',
     dateTime: status !== 'postponed' ? date?.value : undefined,
     href: detailAvailable ? '/events/' + slug : school ? '/tour-stops' : '/contact-us',
-    action: !detailAvailable ? school?'View the school tour':'Ask about this event' : sellable ? 'View tickets' : 'View event details',
+    action: !detailAvailable ? school?'View the school tour':'Ask about this event' : onlineCheckoutAvailable ? 'View tickets' : 'View event details',
   };
 }
 
@@ -70,7 +72,7 @@ export function publicOwnedEvents(events: OwnedEvent[], now: number) {
 
 export function ownedEventSignature(events: OwnedEvent[]) {
   return events.filter(event => event && isPubliclyVisible(event.status))
-    .map(event => [event.id, event.kind, event.slug, event.status, event.sellable, event.eventDate, event.name, event.venue, JSON.stringify(event.partnerDetails || null),JSON.stringify(publicEventCategory(event.category))].join('|'))
+    .map(event => [event.id, event.kind, event.slug, event.status, event.sellable, event.onlineCheckoutAvailable, event.eventDate, event.name, event.venue, JSON.stringify(event.partnerDetails || null),JSON.stringify(publicEventCategory(event.category))].join('|'))
     .sort().join('\n');
 }
 

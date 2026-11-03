@@ -155,8 +155,7 @@ export async function eventsFromDb(): Promise<unknown | null> {
       // can actually buy that event's tickets (Google's requirement), or it
       // must not be emitted.
       const status = String(r.status || 'published');
-      const buyable = truth?.isSellable === true;
-      const soldOut = truth?.isSoldOut === true;
+      const buyable = truth?.isSellable === true && truth.onlineCheckoutAvailable === true;
       const prev = eventDiscoveryDate(r.previous_start_at);
       return [{
         '@type': 'Event',
@@ -180,15 +179,13 @@ export async function eventsFromDb(): Promise<unknown | null> {
         // Managed ticket inventory does not prove either presenter performs
         // at this particular event. Credits belong to its confirmed record.
         description: desc || r.name,
-        offers: truth && (buyable || soldOut)
-          ? truth.tiers.filter((tier) => soldOut || tier.sellable).map((tier) => ({
+        offers: truth && buyable
+          ? truth.tiers.filter((tier) => tier.sellable).map((tier) => ({
               '@type': 'Offer',
               name: tier.name,
               price: String(tier.price),
               priceCurrency: 'KES',
-              availability: soldOut
-                ? 'https://schema.org/SoldOut'
-                : 'https://schema.org/InStock',
+              availability: 'https://schema.org/InStock',
               url: eventUrl,
             })) : undefined,
       }];

@@ -1,4 +1,6 @@
 import {afterAll,beforeAll,beforeEach,expect,it,vi} from 'vitest';
+// This isolated fake-provider fixture exercises retained legacy reservation safety.
+vi.mock('@/lib/server/payment-provider-policy',()=>({paymentInitiationAllowed:()=>true}));
 import {DisposablePostgres} from './helpers/disposable-postgres';
 const adapter=vi.hoisted(()=>({q:vi.fn(),qSchema:vi.fn(),pool:vi.fn(),stk:vi.fn()}));
 vi.mock('@/lib/server/db',()=>({q:adapter.q,qSchema:adapter.qSchema,db:adapter.pool,hasDb:()=>true}));

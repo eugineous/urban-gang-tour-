@@ -39,7 +39,7 @@ describe('compact independent public controls',()=>{
   const css=read('ui/components/ContactChrome.module.css');
   const action=rule(css,'.contactLinks>a');
   for(const value of ['min-height:44px','max-width:100%','font-size:14px','line-height:1.5'])expect(action).toContain(value);
-  expect(css).not.toContain('.invitation{');
+  // The restored invitation's rendered sizing is covered by simple-footer.test.ts.
   expect(rule(css,'.socials>a')).toContain('min-width:44px;min-height:44px;max-height:44px');
  });
 

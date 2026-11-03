@@ -45,6 +45,14 @@
   "decisions": [
     {
       "date": "2026-11-02",
+      "direction": "Owner correction: restore the established MOOKH/Nixtio combination outside the shop",
+      "reference": "Approved pre-PR113 UGT components and archived Nixtio/MOOKH captures",
+      "publicSurfaces": "Light cream header and nav in every state, centered pill/navigation and real cart, light mobile menu without a global storefront dock, owned-media hero, services/portfolio/presenters, compact real merchandise preview and premium footer contact hierarchy",
+      "preserve": "Mkurugenzi reference limited to shop catalogue/product UI; sharp lightly shaded hero, native six languages, authentic content/catalogue, guided checkout/results and financial safeguards",
+      "payments": "Paystack only for new payments. No direct Daraja or Stripe fallback, no unsupported mobile-money/card-ticket gate activation. Preserve historical settlement and safe recovery."
+    },
+    {
+      "date": "2026-11-02",
       "direction": "Short progressive checkout and dedicated branded payment outcomes",
       "reference": "Owner-supplied order-completed and payment-successful screenshots",
       "publicSurfaces": "Direct Buy now, Details then Delivery/Tickets then Payment, real configured M-Pesa/Visa/Mastercard marks, UGT magenta confirmation with prominent check/reference/order/receipt actions, distinct pending/unsuccessful/refund states",

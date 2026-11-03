@@ -1,5 +1,28 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Restore MOOKH/Nixtio and Paystack-only checkout (2 November 2026)
+- Owner explicitly corrects the earlier storefront scope: the main website,
+  homepage composition, shared header/navigation/footer use the established
+  MOOKH/Nixtio-inspired UGT design. Mkurugenzi is a shop-only reference, not the
+  global shell or homepage. Restore existing approved components rather than
+  rebuilding the app. The shared header must have a light, never black,
+  background, including scrolled/menu/responsive states. Preserve a sharp,
+  lightly shaded owned hero, native languages, real routes and44px controls.
+- Owner explicitly requires Paystack only for NEW payments unless instructed
+  otherwise. No silent Daraja or Stripe fallback merely because old credentials
+  exist. Enforce this both in advertised options and initiation boundaries;
+  retain historical records, signed callbacks, reconciliation and safe recovery.
+  Do not enable unverified Paystack mobile-money or card-ticket capacity gates.
+- Preserve the Mkurugenzi-style shop collection/mannequins, catalogue, prices,
+  direct Buy now, guided checkout and verified result screens. No wholesale
+  rollback of payment safeguards or user data, no live financial/message tests,
+  no credential changes. Standing normal tested PR/keep-vars release applies.
+- Owner clarifies categories must open real category-only URLs, not scroll to
+  filtered content further down the page. Keep the pre-existing compact home
+  shop preview, not an embedded catalogue; restore pre-Mkurugenzi styling and
+  motion on other pages. Improve actual initial rendering/request work while
+  preserving motion/accessibility, not cosmetic boot veils or unsafe caching.
+
 ## Shop visual completion (1 November 2026)
 - Owner rejects the partial Mkurugenzi implementation and requests finishing
   shop UI/UX plus mannequin product presentation. Complete the existing shop,

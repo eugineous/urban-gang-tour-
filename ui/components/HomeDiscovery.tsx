@@ -1,7 +1,9 @@
 'use client';
 import {marketingMessages} from '@/ui/i18n/catalogues/marketing';
 import {MessageText} from '@/ui/i18n/MessageText';
-import {useMessages} from '@/ui/i18n/LanguageProvider';
+import {useInterfaceLanguage,useMessages} from '@/ui/i18n/LanguageProvider';
+import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
+import {formatKes} from '@/lib/i18n/format';
 
 
 import {OriginalContent} from '@/ui/i18n/OriginalContent';
@@ -10,7 +12,7 @@ import {ArrowUpRight, CalendarBlank} from '@phosphor-icons/react';
 import type {LiveShopProduct} from '@/lib/shop-discovery';
 import {merchProducts, type MerchProduct} from '@/data/color-blast';
 import GeneratedProductImage from '@/app/_components/merch/GeneratedProductImage';
-import {homepageUpcomingEvents} from '../lib/home-discovery';
+import {homepageUpcomingEvents,homepageProducts,homepageProductPrice,homepageProductSoldOut} from '../lib/home-discovery';
 import type {OwnedEvent} from '../lib/owned-event-presentation';
 import {EventPosterCard} from './EventPosterCard';
 import Link from './DocumentLink';
@@ -40,11 +42,15 @@ function HomeDesign({design}:{design:MerchProduct}) {const t=useMessages(marketi
   </Link>;
 }
 
-// Promotion is curated separately from the owner-managed purchase catalogue.
-export const HomeMerch:FC<{products:LiveShopProduct[];current?:boolean}>=()=>{const t=useMessages(marketingMessages);
+// The homepage previews a small public selection; the full shop owns purchase UI.
+export const HomeMerch:FC<{products:LiveShopProduct[];current?:boolean}>=({products,current=true})=>{const t=useMessages(marketingMessages),c=useMessages(commerceMessages),{locale}=useInterfaceLanguage();
+  const live=current?homepageProducts(products.filter(product=>!/^p(?:[1-9]|1[0-4])$/.test(product.id)),4):[];
   return <section className={styles.shop} id="home-shop" aria-labelledby="home-shop-title"><div className="wrap">
-    <div className={styles.heading} data-home-reveal><div><p className={styles.eyebrow}>{t('design.warning')}</p><h2 id="home-shop-title" lang="en-KE">Color Blast.</h2></div><Link className={styles.allLink} href="/shop/lookbook">{t('design.explore')} <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
-    <div className={styles.products}>{featuredDesigns.map(design=><HomeDesign key={design.id} design={design}/>)}</div>
-    <div className={styles.shopFoot}><p>{t('design.stock')}</p><Link href="/shop">{t('design.shop')} <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
+    <div className={styles.heading} data-home-reveal><div><p className={styles.eyebrow}>{live.length?c('shop.merchandise'):t('design.warning')}</p><h2 id="home-shop-title" lang="en-KE">Color Blast.</h2></div><Link className={styles.allLink} href={live.length?'/shop':'/shop/lookbook'}>{live.length?c('shop.viewAll'):t('design.explore')} <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
+    {!current?<p role="status">{c('catalogue.loadFailed')}</p>:<div className={styles.products}>{live.length?live.map(product=><Link key={product.id} href={'/shop/'+encodeURIComponent(product.id)} className={styles.product} data-home-product={product.id} data-home-reveal>
+      <div className={styles.productImage}><img src={product.image} alt={product.name} loading="lazy" decoding="async"/><span className={styles.productArrow}><ArrowUpRight size={20} aria-hidden="true"/></span></div>
+      <div className={styles.productInfo}><p><OriginalContent inline>{product.category}</OriginalContent></p><h3><OriginalContent inline>{product.name}</OriginalContent></h3><strong>{homepageProductPrice(product,amount=>formatKes(amount,locale)||'',amount=>c('marketplace.from',{amount}))}</strong>{homepageProductSoldOut(product)?<p>{c('stock.out')}</p>:product.made_to_order&&<p>{c('stock.madeToOrder')}</p>}</div>
+    </Link>):featuredDesigns.map(design=><HomeDesign key={design.id} design={design}/>)}</div>}
+    <div className={styles.shopFoot}>{current&&!live.length&&<p>{t('design.stock')}</p>}<Link href="/shop">{t('design.shop')} <ArrowUpRight size={18} aria-hidden="true"/></Link></div>
   </div></section>;
 };

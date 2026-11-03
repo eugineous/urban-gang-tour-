@@ -1,4 +1,4 @@
-.checkoutPage.checkoutPage{max-width:1120px;padding:44px 28px 70px}
+.checkoutPage.checkoutPage{max-width:1120px;padding:128px 28px 70px}
 .checkoutPage>header{gap:24px;padding-bottom:24px}
 .checkoutPage>header h1{font-size:44px;letter-spacing:-.05em;line-height:1.1}
 .checkoutPage>header>div>p{font-size:12px}
@@ -72,6 +72,7 @@
 @media(prefers-reduced-motion:reduce){.connecting>span{animation:none}.tile{transition:none}}
 @media(max-width:760px),(hover:none) and (pointer:coarse) and (max-width:1100px){.checkoutPage.checkoutPage{padding:24px 16px 48px}.checkoutPage>header{grid-template-columns:minmax(0,1fr);gap:10px;padding-bottom:16px}.checkoutPage>header h1{font-size:34px}.checkoutPage>header>div:last-child{max-width:none}.checkoutPage>header>div:last-child>p{margin-bottom:6px}.heading h2{scroll-margin-top:180px}}
 @media(max-width:380px){.brand{padding:15px 16px;gap:7px}.brandLogo{width:59px;height:37px}.brand>span:not(.stepCount){font-size:10px}.stepCount{font-size:9px}}
+@media(min-width:1024px){:global(html:not([data-phone-viewport=wide])) .checkoutPage.checkoutPage{padding-block-start:128px}}
 .checkoutPage>.contextHeader{display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;padding:0}
 .checkoutPage>.contextHeader h1,:global(#main-content) .checkoutPage>.contextHeader h1{font-size:28px;line-height:1.15;letter-spacing:-.04em;margin:0}
 .contextHeader a{min-height:44px;display:flex;align-items:center;color:#87154f;font-size:12px;text-decoration:underline;text-underline-offset:3px}

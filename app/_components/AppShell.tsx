@@ -3,7 +3,7 @@ import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/c
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
-import {List,ShoppingCart,User,MagnifyingGlass,House,ShoppingBag,WhatsappLogo,ArrowUpRight} from '@phosphor-icons/react';
+import {List,ShoppingCart,Ticket,ArrowUpRight} from '@phosphor-icons/react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
@@ -29,11 +29,10 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  const t=useMessages(shellMessages);
  const navLabel=(label:string,href:string)=>{const key=navigationMessageKey(href);return key?t(key):label};
  const groupLabel=(group:string)=>{const key=navigationGroupKey(group);return key?t(key):group};
- const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false),[searchOpen,setSearchOpen]=useState(false),[cartCount,setCartCount]=useState(0);
- const [navWidth,setNavWidth]=useState<number>(),[dark,setDark]=useState(path==='/');
+ const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false),[cartCount,setCartCount]=useState(0);
+ const [navWidth,setNavWidth]=useState<number>();
  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDialogElement>(null),menuOpener=useRef<HTMLButtonElement|null>(null);
  const header=useRef<HTMLElement>(null),navigation=useRef<HTMLElement>(null);
- const searchInput=useRef<HTMLInputElement>(null);
  useEffect(()=>{
   const sync=()=>setCartCount(readLiveCart().reduce((count,item)=>count+item.qty,0));
   const storage=(event:StorageEvent)=>{if(event.key===LIVE_CART_KEY||event.key==='ugt_cart'||event.key===null)sync()};
@@ -45,8 +44,6 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
   const update=()=>{
    frame=0;if(!active)return;
    setElevated(window.scrollY>100);
-   const middle=(header.current?.getBoundingClientRect().height||72)/2;
-   setDark(Array.from(document.querySelectorAll('[data-header-tone="dark"],.hero,.magenta')).some(section=>{const box=section.getBoundingClientRect();return box.top<=middle&&box.bottom>middle}));
   };
   const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
   const measure=()=>{
@@ -93,26 +90,18 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
  const critical=/^\/(shop|checkout|pay|book|account|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
-  <header ref={header} className="site-header" data-public-surface="navigation" data-elevated={elevated} data-dark={dark} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
+  <header ref={header} className="site-header" data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
    <div className="header-content">
    <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
-   <form className={`storefront-search ${searchOpen?'is-open':''}`} role="search" action="/shop" method="get"><label className="storefront-visually-hidden" htmlFor="storefront-search">{t('nav.search')}</label><input ref={searchInput} id="storefront-search" type="search" name="q" placeholder={t('nav.searchShop')}/><button type="submit" aria-label={t('nav.search')}><MagnifyingGlass size={21} aria-hidden="true"/></button></form>
+   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
    <div className="header-actions">
-    <a className="tickets-link" href="/account" aria-label={t('nav.tickets')}><User size={21} aria-hidden="true"/></a>
-    <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="storefront-cart-count" aria-hidden="true">{cartCount}</span></a>
+    <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
+    <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
     <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
-    <button type="button" className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">{t('nav.menu')}</span></button>
+    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">{t('nav.menu')}</span></button>
    </div>
    </div>
-   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}><a href="/#explore">{t('nav.explore')}</a>{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
   </header>
-  <nav className="storefront-dock" aria-label={t('nav.main')}>
-   <a href="/"><House size={22} aria-hidden="true"/><span>{t('nav.home')}</span></a>
-   <button type="button" aria-controls="storefront-search" aria-expanded={searchOpen} onClick={()=>{setSearchOpen(value=>!value);if(!searchOpen)requestAnimationFrame(()=>searchInput.current?.focus())}}><MagnifyingGlass size={22} aria-hidden="true"/><span>{t('nav.search')}</span></button>
-   <a href="/#merchandise-catalogue"><ShoppingBag size={22} aria-hidden="true"/><span>{t('nav.shop')}</span></a>
-   <a href="https://wa.me/254799886247" target="_blank" rel="noopener noreferrer"><WhatsappLogo size={22} aria-hidden="true"/><span>WhatsApp</span></a>
-   <button type="button" ref={trigger} aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}><List size={22} aria-hidden="true"/><span>{t('nav.more')}</span></button>
-  </nav>
   <dialog ref={menu} id="site-menu" data-public-surface="navigation" className={`menu-panel ${open?'is-open':''}`} aria-label={t('nav.site')} onCancel={event=>{event.preventDefault();setOpen(false)}} onClose={event=>{if(!event.currentTarget.open)setOpen(false)}} onClick={event=>{
    if(event.target!==event.currentTarget)return;
    const rect=event.currentTarget.getBoundingClientRect();

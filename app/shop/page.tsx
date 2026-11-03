@@ -3,6 +3,7 @@ import { metadataForPathDynamic } from '@/app/_lib/seo';
 import { breadcrumbFor } from '@/app/_lib/jsonld';
 import { JsonLd } from '@/app/_components/JsonLd';
 import { LiveCommerce } from '@/app/_components/LiveCommerce';
+import {readPublicProducts} from '@/lib/server/public-products';
 
 const PATH = '/shop';
 
@@ -16,10 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
+  const products=await readPublicProducts().catch(()=>undefined);
   return (
     <>
       <JsonLd data={breadcrumbFor(PATH)} />
-      <LiveCommerce />
+      <LiveCommerce initialProducts={products} />
     </>
   );
 }

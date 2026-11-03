@@ -59,8 +59,8 @@ export function EventPosterCard({event, now, availabilityCurrent=true, featured=
   const partner=event.kind==='partner'?publicPartnerDetails(event.partnerDetails):null;
   const prices=Array.isArray(event.tiers)?event.tiers.filter((tier:unknown):tier is Record<string,unknown>=>!!tier&&typeof tier==='object'&&!Array.isArray(tier)).filter(tier=>tier.sellable===true&&typeof tier.price==='number'&&Number.isFinite(tier.price)&&tier.price>=0).map(tier=>tier.price as number):[];
   const price=view.past||!['published','ongoing'].includes(text(event.status))?t(statusMessage):event.kind==='partner'?t(partner?admissionMessage[partner.admission]:'card.entry'):view.school?t('status.school'):!availabilityCurrent?t('card.check'):view.sellable&&prices.length?(Math.min(...prices)===0?t('card.free'):t('card.from',{amount:formatKes(Math.min(...prices),locale)!})):t(view.sellable?'card.ticketOptions':statusMessage);
-  const action=!availabilityCurrent?'card.latest':!/^\/events\//.test(view.href)?view.school?'action.school':'action.ask':view.sellable?'action.tickets':'action.details';
-  const label=t(!availabilityCurrent&&view.sellable?'card.check':statusMessage);
+  const action=!availabilityCurrent?'card.latest':!/^\/events\//.test(view.href)?view.school?'action.school':'action.ask':view.onlineCheckoutAvailable?'action.tickets':'action.details';
+  const label=t(!availabilityCurrent&&view.onlineCheckoutAvailable?'card.check':statusMessage);
   const venue=[text(event.venue),text(event.city)].filter((value,index,values) => !!value && values.indexOf(value)===index).join(', ');
   return <Link href={view.href} className={styles.card} data-featured={featured || undefined} data-has-artwork={hasImage} aria-label={name+' — '+t(action)}>
     {hasImage && <img className={styles.poster} src={image} alt={t('card.image',{name})} loading={featured?'eager':'lazy'} decoding="async" onError={() => setFailedImage(image)}/>}
@@ -83,7 +83,7 @@ export function eventStatusMessage(event:OwnedEvent,now:number):keyof typeof dis
   const partner=event.kind==='partner'?publicPartnerDetails(event.partnerDetails):null;
   if(partner&&!view.past)return admissionMessage[partner.admission];
   if(view.past)return view.dateTime&&Date.parse(view.dateTime+'T23:59:59+03:00')<now?'status.datePassed':'status.previousWork';
-  return view.school?'status.school':view.sellable?'status.onSale':'status.published';
+  return view.school?'status.school':view.sellable?view.onlineCheckoutAvailable?'status.onSale':'status.onlineUnavailable':'status.published';
  }
  if(status==='completed')return view.school?'status.completedSchool':'status.completed';
  const keys={announced:'status.announced',ongoing:'status.ongoing',sales_paused:'status.sales_paused',sold_out:'status.sold_out',postponed:'status.postponed',rescheduled:'status.rescheduled'} as const;

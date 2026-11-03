@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium,devices} from 'playwright';
 const base=process.env.BASE_URL||'http://127.0.0.1:4186';
-const out=process.env.ARTIFACT_DIR||'/workspace/artifacts/ugt-paystack-setup-20261029/browser';
+const out=process.env.ARTIFACT_DIR||'/workspace/artifacts/ugt-paystack-only-20261102/browser';
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
 const product={id:'fixture-shirt',name:'Fixture shirt',price:1000,image:'/assets/ugt-logo.png',stock:5,variants:[]};
@@ -19,20 +19,24 @@ try{
     sessionStorage.setItem('fixture-initialized','yes');
    }
   },{cart,key,id,scenario});
-  let attempts=0,recoveries=0,postedKey;
+  let attempts=0,recoveries=0,sessions=0,postedKey;
   await context.route('**/*',async route=>{
    const request=route.request(),url=new URL(request.url()),path=url.pathname;
    const json=(body,status=200)=>route.fulfill({status,json:body});
    if(url.origin!==new URL(base).origin){
-    if(request.url()==='https://checkout.paystack.com/fixture')return route.fulfill({contentType:'text/html',body:'<h1>Simulated secure checkout</h1>'});
+    if(request.method()==='GET'&&request.url()==='https://checkout.paystack.com/fixture')return route.fulfill({contentType:'text/html',body:'<h1>Simulated secure checkout</h1>'});
+    if(!['GET','HEAD'].includes(request.method()))unhandled.push({scenario,width,path:url.href,method:request.method()});
     return route.abort();
    }
-   if(!path.startsWith('/api/'))return route.continue();
+   if(!path.startsWith('/api/')){
+    if(['GET','HEAD'].includes(request.method()))return route.continue();
+    unhandled.push({scenario,width,path,method:request.method()});return route.abort();
+   }
    if(path==='/api/site-data/products')return json({ok:true,products:[product]});
-   if(path==='/api/checkout/fulfillment')return json({pickup:{enabled:true,fee:0,location:'Fixture desk'},delivery:{enabled:false,fee:null},payments:{mpesa:true,card:true}});
-   if(path==='/api/checkout/session')return json({ok:true,created:false});
+   if(path==='/api/checkout/fulfillment')return json({pickup:{enabled:true,fee:0,location:'Fixture desk'},delivery:{enabled:false,fee:null},payments:{mpesa:false,card:true}});
+   if(path==='/api/checkout/session'){sessions++;return json({ok:true,created:false})}
    if(path==='/api/checkout/recovery'){
-    recoveries++;assert.equal(request.postDataJSON().provider,'paystack');
+    recoveries++;assert.deepEqual(request.postDataJSON(),{provider:'paystack',key:scenario==='lost-response'?postedKey:key});
     return json({ok:true,id,total:1000,attemptState:scenario==='ready'?'ready':scenario==='paid-prepared'?'prepared':'unknown',paymentStatus:scenario==='paid-prepared'?'paid':'pending',...(scenario==='ready'?{authorizationUrl:'https://checkout.paystack.com/fixture'}:{})});
    }
    if(path==='/api/paystack/checkout'){
@@ -42,19 +46,23 @@ try{
    }
    if(path==='/api/orders/status')return json({status:scenario==='paid-prepared'?'paid':'unknown',method:'card',total:1000});
    if(path==='/api/auth')return json({ok:true,user:null});
-   if(!['GET','HEAD'].includes(request.method()))unhandled.push({scenario,path});
+   if(!['GET','HEAD'].includes(request.method())){unhandled.push({scenario,width,path,method:request.method()});return route.abort()}
    return json({ok:true});
   });
   const page=await context.newPage();page.on('pageerror',error=>errors.push({scenario,width,error:error.message}));
   await page.goto(base+'/checkout',{waitUntil:'domcontentloaded'});
-  await page.locator('input[name="name"]').fill('Fixture Buyer');
-  await page.locator('input[name="phone"]').fill('0712345678');
-  await page.getByLabel('Email for your receipt').fill('buyer@example.invalid');
+  await page.locator('input[name="email"]').waitFor({state:'visible'});
+  assert.equal(await page.locator('input[name="name"]').evaluate(node=>node.required),false);
+  assert.equal(await page.locator('input[name="phone"]').evaluate(node=>node.required),false);
+  await page.locator('input[name="email"]').fill('buyer@example.invalid');
   await page.locator('[data-checkout-next]:visible').click();
   await page.locator('[data-checkout-next]:visible').click();
   await page.locator('input[type="radio"][name="paymentMethod"][value="card"]').check();
+  assert.equal(await page.locator('input[name="paymentMethod"][value="mpesa"]').count(),0);
+  assert.match(await page.locator('label').filter({has:page.locator('input[name="paymentMethod"][value="card"]')}).innerText(),/Paystack · Card/);
   assert.equal(attempts,0,'Moving through checkout must not initialize a payment');
   assert.equal(recoveries,0,'Moving through checkout must not recover or allocate an attempt');
+  assert.equal(sessions,0,'Moving through checkout must not allocate a checkout session');
   await page.locator('form input[type=checkbox]').check();
   const submit=page.getByRole('button',{name:'Continue to secure card payment'});
   await submit.click();
@@ -73,7 +81,8 @@ try{
    if(scenario==='lost-response')assert.equal(await page.getByRole('link',{name:'Open receipt',exact:true}).count(),0);
   }
   if(scenario!=='ready')await page.screenshot({path:`${out}/${scenario}-${width}.png`,fullPage:true});
-  results.push({scenario,width,attempts,recoveries});await context.close();
+  assert.equal(recoveries,1);assert.equal(sessions,scenario==='lost-response'?2:1);
+  results.push({scenario,width,attempts,recoveries,sessions});await context.close();
  }
  assert.deepEqual(errors,[]);assert.deepEqual(unhandled,[]);
  console.log(JSON.stringify({passed:true,checks:results.length,errors:0,liveRequests:0}));

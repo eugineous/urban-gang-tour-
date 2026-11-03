@@ -1,4 +1,6 @@
 import {afterEach,beforeEach,describe,it,expect,vi} from 'vitest';
+// Exercise retained legacy fulfillment independently of the production provider policy.
+vi.mock('@/lib/server/payment-provider-policy',()=>({paymentInitiationAllowed:()=>true}));
 const mocks=vi.hoisted(()=>({q:vi.fn(),paystack:vi.fn(),stripeSession:vi.fn(),referral:vi.fn(),prepare:vi.fn(),claim:vi.fn()}));
 vi.mock('@/lib/server/checkout-session',()=>({checkoutPrincipal:()=> 'checkout:fixture'}));
 vi.mock('@/lib/server/paystack-attempts',()=>({paystackAttemptIdentity:()=>({scopeHash:'a'.repeat(64),tokenHash:'b'.repeat(64),requestHash:'c'.repeat(64)}),PaystackAttemptConflict:class extends Error{},recoverPaystackAttempt:async()=>null,preparePaystackAttempt:mocks.prepare,claimPaystackInitiation:mocks.claim,recordPaystackAuthorization:async()=>true,markPaystackInitiationUnknown:async()=>true,savedPaystackPurchase:async()=>null}));

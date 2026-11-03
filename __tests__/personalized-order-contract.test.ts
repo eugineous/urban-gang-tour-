@@ -1,4 +1,6 @@
 import {beforeEach,describe,it,expect,vi} from 'vitest';
+// Exercise retained legacy order contracts independently of the production provider policy.
+vi.mock('@/lib/server/payment-provider-policy',()=>({paymentInitiationAllowed:()=>true}));
 const state=vi.hoisted(()=>({q:vi.fn(),stk:vi.fn(),eligible:true,after:vi.fn(),attempt:null as any,saved:null as any}));
 vi.mock('@/lib/server/checkout-session',()=>({checkoutPrincipal:()=> 'signed-fixture'}));
 vi.mock('@/lib/server/mpesa-attempts',async original=>({...await original<any>(),

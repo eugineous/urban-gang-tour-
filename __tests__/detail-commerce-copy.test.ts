@@ -67,8 +67,8 @@ describe('design and checkout copy clarity',()=>{
    ['cart.browse','Browse merchandise to add items to your cart.'],
    ['checkout.saved','A saved order is not confirmation of payment.'],
    ['checkout.cardNote','Your receipt is issued only after payment is confirmed.'],
-   ['checkout.mpesaNote','Your ticket or receipt is issued only after payment is confirmed.'],
-   ['checkout.paymentUncertain','Check the saved payment before paying again.'],
+   ['checkout.ticketsUnavailable','Ticket payments are currently unavailable.'],
+   ['checkout.cardUncertain','Check for a payment confirmation before trying card checkout again.'],
   ] as const;
   for(const [key,text]of warnings){
    expect(formatMessage(commerceMessages,'en',key).text).toContain(text);

@@ -8,7 +8,7 @@ export type PublicEvent={
  id:string;slug:string;kind:string;name:string;status:string;eventDate:string|null;
  dateLabel:string;eventTime:string;venue:string;city:string;image:string;description:string;
  accent:string;logo:string;testimonial:string;priority:number;tiers:unknown[];
- partnerDetails?:ReturnType<typeof publicPartnerDetails>;sellable:boolean;
+ partnerDetails?:ReturnType<typeof publicPartnerDetails>;sellable:boolean;onlineCheckoutAvailable:boolean;
  category?:{id:string;name:string}|null;
 };
 type Row={id:string;slug:string;kind:string;name:string;status:string;event_date:string|null;date_label:string;event_time:string;venue:string;city:string;image:string;description:string;accent:string;logo:string;testimonial:string;priority:number;tiers:unknown;partner_details:unknown;category_id?:string|null};
@@ -28,7 +28,7 @@ export async function readPublicEvents(kind?:string|null):Promise<PublicEvent[]>
   const byCategory=new Map(categories.map(category=>[category.id,{id:category.id,name:category.name}]));
   const events=rows.filter(row=>isPubliclyVisible(row.status)&&(row.kind!=='partner'||publicPartnerDetails(row.partner_details))).map(row=>{
    const truth=bySlug.get(row.slug);
-   return {id:row.id,slug:row.slug||'',kind:row.kind,name:row.name,status:row.status,eventDate:row.event_date||null,dateLabel:row.date_label||'',eventTime:row.event_time||'',venue:row.venue||'',city:row.city||'',image:row.image||'',description:row.description||'',accent:row.accent||'',logo:row.logo||'',testimonial:row.testimonial||'',priority:Number(row.priority)||0,tiers:row.kind==='ticketed'?truth?.tiers??tiers(row.tiers):[],partnerDetails:row.kind==='partner'?publicPartnerDetails(row.partner_details):undefined,category:row.category_id?byCategory.get(row.category_id)||null:null,sellable:row.kind==='ticketed'&&truth?.isSellable===true} satisfies PublicEvent;
+   return {id:row.id,slug:row.slug||'',kind:row.kind,name:row.name,status:row.status,eventDate:row.event_date||null,dateLabel:row.date_label||'',eventTime:row.event_time||'',venue:row.venue||'',city:row.city||'',image:row.image||'',description:row.description||'',accent:row.accent||'',logo:row.logo||'',testimonial:row.testimonial||'',priority:Number(row.priority)||0,tiers:row.kind==='ticketed'?truth?.tiers??tiers(row.tiers):[],partnerDetails:row.kind==='partner'?publicPartnerDetails(row.partner_details):undefined,category:row.category_id?byCategory.get(row.category_id)||null:null,sellable:row.kind==='ticketed'&&truth?.isSellable===true,onlineCheckoutAvailable:row.kind==='ticketed'&&truth?.isSellable===true&&truth.onlineCheckoutAvailable===true} satisfies PublicEvent;
   });
   return {events,expires:Date.now()+15_000};
  });

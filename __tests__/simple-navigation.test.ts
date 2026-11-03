@@ -34,12 +34,11 @@ it('routes the cart symbol to the basket and preserves canonical discovery links
  expect(menu.match(/<a\s/g)).toHaveLength(7);
  expect(menu).toContain('href="/gallery"');
  const desktop=html.slice(html.indexOf('<nav class="desktop-nav"'),html.indexOf('</nav>'));
- expect(desktop.match(/<a\s/g)).toHaveLength(8);
- expect(desktop).toContain('href="/#explore"');
+ expect(desktop.match(/<a\s/g)).toHaveLength(7);
  expect(desktop).toContain('href="/gallery"');
  expect(menu).not.toContain('<h2');
  expect(html).toContain('class="tickets-link" href="/account"');
- expect(html).toContain('role="search" action="/shop" method="get"');
+ expect(html).not.toContain('role="search" action="/shop" method="get"');
  expect(html.match(/<header class="site-header"/g)).toHaveLength(1);
  expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);
  expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<ShoppingCart size={21}');

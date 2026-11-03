@@ -15,8 +15,10 @@ describe('homepage next stop truth', () => {
   it('never offers tickets for a school even if a bad client flag says sellable', () => {
     expect(tourEventAction(event({sellable:true}))).toMatchObject({href:'/tour-stops',label:'Explore the school tour'});
   });
-  it('requires both published status and server sellable truth before offering tickets', () => {
-    expect(tourEventAction(event({kind:'ticketed',sellable:true})).label).toBe('View tickets');
+  it('requires explicit online checkout availability as well as published inventory before offering tickets', () => {
+    expect(tourEventAction(event({kind:'ticketed',sellable:true})).label).toBe('View event details');
+    expect(tourEventAction({...event({kind:'ticketed',sellable:true}),onlineCheckoutAvailable:false}).label).toBe('View event details');
+    expect(tourEventAction({...event({kind:'ticketed',sellable:true}),onlineCheckoutAvailable:true}).label).toBe('View tickets');
     expect(tourEventAction(event({kind:'ticketed',sellable:false})).label).toBe('View event details');
     expect(tourEventAction(event({kind:'ticketed',status:'sold_out',sellable:true})).label).toBe('View event details');
   });

@@ -34,7 +34,7 @@ export function calendarViewEntries(events:OwnedEvent[],now:number):CalendarView
   const view=ownedEventPresentation(event,now),date=view.dateTime&&isCalendarDate(view.dateTime)?view.dateTime:null;
   return {id:text(event.id)||text(event.slug)||text(event.name),name:text(event.name),kind:text(event.kind),status:text(event.status),date,
    dateLabel:view.dateLabel,time:date?text(event.eventTime):'',venue:[text(event.venue),text(event.city)].filter(Boolean).join(', '),image:text(event.image),
-   href:view.href.startsWith('/events/')?view.href:null,label:view.sellable?'View ticket options':view.label,past:view.past};
+   href:view.href.startsWith('/events/')?view.href:null,label:view.onlineCheckoutAvailable?'View ticket options':view.label,past:view.past};
  }).sort((a,b)=>{
   if(!a.date||!b.date)return Number(!a.date)-Number(!b.date)||a.name.localeCompare(b.name);
   return a.date.localeCompare(b.date)||a.name.localeCompare(b.name);

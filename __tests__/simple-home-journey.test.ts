@@ -12,14 +12,14 @@ describe('simple home entry',()=>{
   const hero=render().split('data-home-hero')[1].split('</section>')[0];
   const actions=hero.split('data-home-actions')[1].split('</nav>')[0];
   expect(actions.match(/<a\s/g)).toHaveLength(3);
-  for(const [label,href] of [['Events','/events'],['Shop','#merchandise-catalogue'],['Book','/book']])expect(actions).toContain('href="'+href+'">'+label);
-  expect(render()).toContain('id="merchandise-catalogue"');
+  for(const [label,href] of [['Events','/events'],['Shop','/shop'],['Book','/book']])expect(actions).toContain('href="'+href+'">'+label);
+  expect(render()).toContain('id="home-shop"');
   expect(hero).not.toContain('2022');expect(hero).not.toContain('Find an event');expect(hero).not.toContain('Shop merchandise');
  });
  it('preserves gallery discovery and owner-written title/summary/media',()=>{
   const html=render({...WEBSITE_DEFAULTS['/'],title:'Owner title',summary:'Owner summary',image:'/uploads/owner.jpg'});
   expect(html).toContain('Owner title');expect(html).toContain('Owner summary');expect(html).toContain('/uploads/owner.jpg');
-  expect(html).toMatch(/href="\/gallery"[^>]*data-module-card="gallery"/);
+  expect(html).toContain('href="/gallery"');
  });
  it('uses a single uniform three-column action style with readable wrapping and touch height',()=>{
   const css=readFileSync('ui/components/HomeSections.module.css','utf8'),values:string[]=[];

@@ -3,6 +3,7 @@ import {MessageText} from '@/ui/i18n/MessageText';
 import {useMessages,useInterfaceLanguage} from '@/ui/i18n/LanguageProvider';
 import {commerceMessages} from '@/ui/i18n/catalogues/commerce';
 import {formatKes} from '@/lib/i18n/format';
+import {shopCategoryLinks} from '@/lib/shop-categories';
 
 import type {LiveShopProduct, ShopCatalogueProduct} from '@/lib/shop-discovery';
 import {merchProducts} from '@/data/color-blast';
@@ -44,6 +45,17 @@ export function ShopIntro({cartCount = 0, selected = '', featuredProduct}: {
 export function ShopNoProductsNotice() {
  const t=useMessages(commerceMessages);
   return <><p className="eyebrow">{t('shop.merchandise')}</p><h2>{t('shop.noProducts')}</h2><p><MessageText catalogue={commerceMessages} message="design.emptyNote" values={{lookbook:<Link href="/shop/lookbook">{t('design.lookbook')}</Link>}}/></p><Link className="button" href="/contact-us">{t('shop.ask')}</Link></>;
+}
+
+export function ShopCategoryIntro({categoryName,cartCount=0}:{categoryName:string;cartCount?:number}){
+ const t=useMessages(commerceMessages);
+ return <header className={`${styles.catalogueHeading} ${styles.categoryIntro}`}>
+  <div><p className={styles.eyebrow}>{t('shop.merchandise')}</p><h1 lang="en-KE">{categoryName}</h1></div>
+  <nav className={styles.heroActions} aria-label={t('shop.navigation')}>
+   <a className={styles.cartLink} href="/shop">{t('shop.all')}</a>
+   <a className={styles.cartLink} href="/cart">{t('cart.viewCount',{count:cartCount})}</a>
+  </nav>
+ </header>;
 }
 
 export function ShopLiveProductCard({product, variation, full, printableName = '', onVariation, onName, onAdd}: {
@@ -123,6 +135,7 @@ type ShopCatalogueProps = {
   search: string;
   sort: string;
   category: string;
+  categoryPage?: string;
   printableNames: Record<string, string>;
   onAvailability: (value: string) => void;
   onSearch: (value: string) => void;
@@ -144,18 +157,19 @@ export default function ShopCatalogueView(props: ShopCatalogueProps) {
   if(props.onResetDiscovery){props.onResetDiscovery();return}
   props.onSearch('');props.onCategory('');props.onAvailability('all');props.onSort('featured');
  };
- const collections=props.categories.map(name=>({name,product:props.products.find(product=>product.category===name)||merchProducts.find(product=>product.category===name)})).filter(collection=>collection.product).slice(0,3);
+ const categoryLinks=shopCategoryLinks(props.categories);
+ const collections=categoryLinks.map(category=>({...category,product:props.products.find(product=>product.category===category.name)||merchProducts.find(product=>product.category===category.name)})).filter(collection=>collection.product).slice(0,3);
   return <div className={styles.catalogue} id="merchandise-catalogue">
-    {!!collections.length&&<section className={styles.collections} aria-label={t('collection')}>
+    {!props.categoryPage&&!!collections.length&&<section className={styles.collections} aria-label={t('collection')}>
       <div className={styles.collectionHeading}><h2>{t('collection')}</h2><a href="#shop-product-grid" onClick={resetDiscovery}>{t('shop.shopAll')} <span aria-hidden="true"><ArrowDownRight size={16}/></span></a></div>
       <div className={styles.collectionGrid}>
-        {collections.map(({name,product})=><button key={name} type="button" className={styles.collectionCard} data-shop-collection={name} aria-pressed={props.category===name} onClick={()=>{resetDiscovery();props.onCategory(name)}}>
+        {collections.map(({name,href,product})=><a key={name} href={href} className={styles.collectionCard} data-shop-collection={name}>
           <span className={styles.collectionArtwork} aria-hidden="true">{product!.id.startsWith('cb-')?<GeneratedProductImage id={product!.id}/>:product!.image?<img src={product!.image} alt="" loading="lazy" decoding="async"/>:null}</span>
           <span className={styles.collectionCopy}><strong lang="en-KE">{name}</strong><span>{t('shop.shopAll')} <ArrowUpRight size={16} aria-hidden="true"/></span></span>
-        </button>)}
+        </a>)}
       </div>
     </section>}
-    <div className={styles.catalogueHeading}><h2>{t('shop.all')}</h2><div className={styles.catalogueSummary}><p role="status">{t('items.count',{count:props.products.length})}</p>{hasActiveDiscovery&&<button type="button" onClick={resetDiscovery}>{t('design.reset')}</button>}</div></div>
+    <div className={styles.catalogueHeading}><h2>{props.categoryPage?<span lang="en-KE">{props.categoryPage}</span>:t('shop.all')}</h2><div className={styles.catalogueSummary}><p role="status">{t('items.count',{count:props.products.length})}</p>{hasActiveDiscovery&&<button type="button" onClick={resetDiscovery}>{t('design.reset')}</button>}</div></div>
     {props.products.some(product=>product.preview)&&<p className={styles.designNote} data-design-collection-note>{t('design.warning')} <a href="/shop/design-bag">{t('bag.saved')} <span aria-hidden="true"><ArrowUpRight size={14}/></span></a></p>}
     <div className={styles.catalogueTools}>
       <label className={styles.search}>{t('search')}<input type="search" value={props.search} onChange={event => props.onSearch(event.target.value)} placeholder={t('search.merch')} /></label>
@@ -163,8 +177,8 @@ export default function ShopCatalogueView(props: ShopCatalogueProps) {
       <label>{t('sort')}<select value={props.sort} onChange={event => props.onSort(event.target.value)}><option value="featured">{t('sort.catalogue')}</option><option value="low">{t('sort.low')}</option><option value="high">{t('sort.high')}</option></select></label>
     </div>
     <div className={styles.categories} role="group" aria-label={t('categories')}>
-      <button type="button" aria-pressed={!props.category} onClick={resetDiscovery}>{t('shop.all')}</button>
-      {props.categories.map(name => <button key={name} lang="en-KE" type="button" aria-pressed={props.category === name} onClick={() => props.onCategory(name)}>{name}</button>)}
+      <a href="/shop" aria-current={!props.categoryPage?'page':undefined}>{t('shop.all')}</a>
+      {categoryLinks.map(({name,href}) => <a key={name} lang="en-KE" href={href} aria-current={props.categoryPage===name?'page':undefined}>{name}</a>)}
     </div>
     <div className={styles.productGrid} id="shop-product-grid">
       {props.products.map(product => product.preview ? <ShopDesignCard key={product.id} product={product} /> : <ShopLiveProductCard key={product.id} product={product} variation={props.variationFor(product)} full={props.selectionFull(product)} printableName={props.printableNames[product.id]} onVariation={value => props.onVariation(product.id, value)} onName={value => props.onName(product.id, value)} onAdd={() => props.onAdd(product)} />)}
