@@ -46,6 +46,11 @@ unavailable chats or certify production transactions that were not exercised.
    The approved release path uses verified local build/browser evidence and
    normal merge plus Cloudflare keep-vars deployment; none of those external
    checks is represented as green.
+7. Admin Orders and customer fulfillment currently refresh on entry/actions or
+   manual Refresh. Payment-result and email-delivery views have bounded polling,
+   but automatic synchronization across three Orders/tracking views is unfinished.
+   Add visible/online refresh with cancellation and retained drafts before
+   claiming immediate communication across every operational screen.
 
 ## Verification trail
 
