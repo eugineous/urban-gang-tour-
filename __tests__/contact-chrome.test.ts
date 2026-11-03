@@ -31,11 +31,11 @@ describe('recovered public chrome',()=>{
   const html=renderToStaticMarkup(createElement(FloatingTalk));
   expect(html).toContain('href="/contact-us"');expect(html).toContain('Let’s talk');expect(html).not.toContain('<button');expect(html).not.toContain('<video');
  });
- it.each(['/','/experience','/events'])('keeps direct contact and removes the automatic host invitation on %s',path=>{
+ it.each(['/','/experience','/events'])('keeps direct contact and restores the initially closed host invitation on %s',path=>{
   vi.mocked(usePathname).mockReturnValue(path);
   const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
   expect(html).toContain('class="start-link" href="/contact-us"');
-  expect(html).toContain('Let’s talk');expect(html).not.toContain('data-host-invitation');
+  expect(html).toContain('Let’s talk');expect(html).toContain('data-host-invitation');
   expect(html).not.toMatch(/<dialog[^>]* open(?:[=> ])/);
   expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);
  });

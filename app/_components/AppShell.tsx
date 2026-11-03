@@ -7,6 +7,7 @@ import {List,ShoppingCart,Ticket,ArrowUpRight} from '@phosphor-icons/react';
 import {usePathname} from 'next/navigation';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
 import CampaignDisplays from './CampaignDisplays';
+import {BookingInvitation} from '@/ui/components/BookingInvitation';
 import {PRIMARY_NAVIGATION as links,SITE_MENU_GROUPS as menuGroups,SITE_UTILITY_NAVIGATION as utilityLinks,isNavigationCurrent} from '@/lib/site-navigation';
 import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 import {installPageEntryScroll} from '@/lib/client/page-entry-scroll';
@@ -114,6 +115,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
   <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   <CampaignDisplays path={path} paused={open||focus}/>
+  {!critical&&<BookingInvitation paused={open||focus}/>}
   {!critical&&path!=='/reels'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
   {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter path={path} onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;

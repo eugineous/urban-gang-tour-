@@ -1,0 +1,5 @@
+/* UGT: magenta leads, teal supports, gold is a small highlight—not a surface. */
+:root{--ugt-primary:#ad1264;--ugt-accent:#0f6b6d;--ugt-highlight:#d9ad32;--action:var(--ugt-primary);--yellow:var(--ugt-highlight)}
+[data-public-surface=editorial] .eyebrow{color:var(--ugt-accent)}
+[data-public-surface=editorial] .button.light:hover{background:#e5f1ef;color:#164e50}
+::selection{background:#f4d8e7;color:#40102b}

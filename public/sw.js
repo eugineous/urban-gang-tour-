@@ -1,4 +1,4 @@
-const CACHE = 'ugt-payment-truth-20261103-v1';
+const CACHE = 'ugt-checkout-brand-repair-20261103-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.

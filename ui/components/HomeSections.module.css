@@ -17,7 +17,8 @@
 .heroAction{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-block-size:44px;min-inline-size:0;max-inline-size:100%;padding:10px 14px;border:1px solid #ffffffb3;border-radius:10px;color:#211b20;background:#fff;font:550 14px/1.4 Inter,Arial,sans-serif;text-decoration:none}
 .heroAction svg{flex:none;inline-size:18px;block-size:18px}
 .heroAction:hover{background:#f4eaf0}
-.heroAction:first-child{background:var(--yellow);border-color:var(--yellow);color:#171316}.heroAction:first-child:hover{background:#ffe659;border-color:#ffe659}
+.heroAction:first-child{background:var(--action);border-color:var(--action);color:#fff}.heroAction:first-child:hover{background:var(--deep);border-color:var(--deep)}
+.heroAction:last-child{background:var(--ugt-accent,#0f6b6d);border-color:var(--ugt-accent,#0f6b6d);color:#fff}.heroAction:last-child:hover{background:#0b5153;border-color:#0b5153}
 .heroAction:focus-visible{outline:3px solid #fff;outline-offset:4px}
 .home :global(.section){padding-block:76px}.home :global(.section-title){margin-block-end:36px}.home :global(.home-company-intro){margin-block:0 28px;font-size:20px;max-inline-size:46ch}
 .people{padding-block:64px!important}.people :global(.founders>a>img){aspect-ratio:4/3;max-block-size:430px;block-size:auto!important;object-fit:cover;object-position:center 28%}

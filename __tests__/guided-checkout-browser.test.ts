@@ -5,6 +5,21 @@ import {existsSync,mkdirSync,readFileSync} from 'node:fs';
 import {VIEWPORT_BOOTSTRAP} from '@/lib/client/viewport-bootstrap';
 
 const enabled=existsSync('/usr/bin/chromium');
+it.skipIf(!enabled)('keeps the payment radio compact and its label inside the payment tile',async()=>{
+ const fixture=await open(false,390),{page}=fixture;
+ try{
+  // Production chunk ordering can place shared form rules after CSS modules.
+  await page.addStyleTag({content:globalStyles});
+  await page.locator('[data-checkout-next]:visible').click();
+  await page.locator('[data-checkout-next]:visible').click();
+  const bounds=await page.locator('input[type=radio]').evaluate(node=>{
+   const radio=node.getBoundingClientRect(),tile=node.parentElement!.getBoundingClientRect(),label=node.nextElementSibling!.getBoundingClientRect();
+   return {radio:radio.width,labelRight:label.right,tileRight:tile.right};
+  });
+  expect(bounds.radio).toBeLessThanOrEqual(24);
+  expect(bounds.labelRight).toBeLessThanOrEqual(bounds.tileRight);
+ }finally{await fixture.context.close()}
+},20000);
 let browser:Browser,script:string,componentStyles:string;
 const globalStyles=['globals','design','modern','refinements','mobile-experience','reconstruction','android-mobile','concise-media','interaction-foundations','international','responsive-continuation','premium-implementation','navigation'].map(name=>readFileSync('app/'+name+'.css','utf8')).join('\n');
 beforeAll(async()=>{
