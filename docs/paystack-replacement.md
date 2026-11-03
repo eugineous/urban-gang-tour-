@@ -1,6 +1,20 @@
 # Paystack replacement-account handoff
 
-## Current status — owner activated 1 November 2026
+## Current policy — reconciled 3 November 2026
+
+The owner's latest instruction is **Paystack only for new payments**. The
+application advertises Paystack card merchandise and rejects new direct Daraja
+and Stripe initialization before creating an order or contacting those providers.
+There is no Stripe fallback when Paystack is unavailable. Historical orders,
+signed callbacks, reconciliation and safe recovery remain intact; retained
+credentials do not authorize a new payment through an alternative provider.
+
+Paystack mobile money and owned-event ticket checkout remain unavailable. This
+is an outstanding capability gap, not proof that those flows are complete.
+Neither a broader completion request nor the presence of old credentials
+unlocks those gates or changes the owner's provider choice.
+
+## Activation evidence — 1 November 2026
 
 The owner explicitly requested activating Paystack after the storefront release.
 Production `PAYSTACK_ENABLED` is now **true**, enabling the existing Paystack
@@ -42,8 +56,9 @@ Outbound Paystack requires BOTH `PAYSTACK_ENABLED=true` and a server-side
 `PAYSTACK_SECRET_KEY`. An absent, empty or false activation setting disables
 checkout, verification and subaccount requests. Keeping an old encrypted key or
 replacing keys alone cannot enable the integration. Checkout rejects an inactive
-provider before creating an order or sending a provider request. The existing
-Stripe fallback is unchanged; its presence is not a claim that Stripe is ready.
+provider before creating an order or sending a provider request. The later
+Paystack-only policy also removes the former Stripe fallback; unavailable
+Paystack must produce an honest unavailable state.
 
 Existing orders, receipts, settlements, stock and historical credentials are not
 deleted or reassigned. Signature-gated inbound notifications retain their exact
@@ -124,7 +139,7 @@ not a channel named `mpesa`; eligibility and ledger behavior still need proof.
 3. The replacement server/public keys are already installed securely in
    Cloudflare. Keep them private; the current hosted initialization is
    server-side. Replacing keys is not an activation step.
-4. Save the new account's LIVE callback
+4. Confirm the new account's saved LIVE callback
    `https://urbangangtour.co.ke/pay/success` and webhook
    `https://urbangangtour.co.ke/api/paystack/webhook`. Existing code sends the
    server-generated order reference as the callback's `ref` query parameter.
@@ -140,7 +155,10 @@ Owned-event ticket cards are NOT enabled. Public Paystack docs do not establish
 an irreversible per-checkout expiry/cancellation boundary. Bounded seat release
 needs provider confirmation or an explicit late-payment/refund policy; until
 then neither a local timer nor `abandoned` may release potentially payable seats.
-Existing M-Pesa ticketing and marketplace configuration are otherwise unchanged.
+The later Paystack-only policy also disables new direct M-Pesa ticket payments.
+Historical M-Pesa orders, callback verification and reconciliation are retained.
+Marketplace configuration was not changed by that policy; its merchant and
+capacity readiness are not certified by this document.
 
 There is no zero-failure claim. Effects that exhaust retries are blocked for
 operator review, not silently discarded. Existing receipt-provider retry windows

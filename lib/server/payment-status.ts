@@ -66,16 +66,16 @@ export function canProviderConfirmPayment(status: unknown): boolean {
  * replay cannot reopen a paid row.
  */
 export const ADMIN_ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
-  created: ['initiated', 'pending', 'failed'],
-  initiated: ['pending', 'timed_out', 'failed', 'unknown'],
-  pending: ['paid', 'declined', 'timed_out', 'failed', 'unknown', 'reconciling'],
-  reconciling: ['paid', 'declined', 'timed_out', 'failed', 'unknown'],
-  unknown: ['paid', 'declined', 'timed_out', 'failed', 'reconciling'],
+  created: [],
+  initiated: [],
+  pending: [],
+  reconciling: [],
+  unknown: [],
   paid: ['fulfilled', 'refunded', 'partially_refunded'],
   fulfilled: ['refunded', 'partially_refunded'],
   declined: [],
-  timed_out: ['pending'],
-  failed: ['pending'],
+  timed_out: [],
+  failed: [],
   refunded: [],
   partially_refunded: ['refunded'],
 };

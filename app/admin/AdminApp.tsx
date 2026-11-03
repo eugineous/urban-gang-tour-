@@ -807,18 +807,20 @@ export default function AdminApp({
             actions={(r) => (
               <span style={{ display: "flex", gap: 6 }}>
                 <select
-                  defaultValue={r.status}
+                  value={r.status}
+                  disabled={r.status !== 'paid'}
+                  aria-label="Order fulfillment status"
                   style={{ ...inp, width: 110, padding: 6 }}
                   onChange={(e) => {
                     const next = e.target.value;
                     save(
                       "orderStatus",
-                      { id: r.id, status: next },
-                      () => {},
+                      { id: r.id, status: next, expectedStatus:r.status },
+                      () => {void load('orders').then(setRows);},
                     );
                   }}
                 >
-                  {Array.from(new Set([r.status,"pending", "paid", "failed", "fulfilled"])).map(
+                  {Array.from(new Set([r.status,...(r.status==='paid'?['fulfilled']:[])])).map(
                     (s) => (
                       <option key={s}>{s}</option>
                     ),
