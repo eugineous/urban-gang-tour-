@@ -24,8 +24,13 @@ import { isEventSellable } from '../lib/server/event-lifecycle';
 import { decideMpesaOutcome } from '../lib/server/reconcile';
 
 describe('admin order transitions', () => {
-  it('allows pending -> paid (callback path mirrored by staff)', () => {
-    expect(canAdminSetOrderStatus('pending', 'paid')).toBe(true);
+  it('requires provider evidence for payment states and allows staff fulfillment', () => {
+    for(const from of ['created','initiated','pending','unknown','reconciling','failed','timed_out']) {
+      for(const to of ['paid','pending','failed','declined','timed_out']) {
+        if(from!==to)expect(canAdminSetOrderStatus(from,to)).toBe(false);
+      }
+    }
+    expect(canAdminSetOrderStatus('paid','fulfilled')).toBe(true);
   });
   it('blocks paid -> pending (no reopening settled money)', () => {
     expect(canAdminSetOrderStatus('paid', 'pending')).toBe(false);

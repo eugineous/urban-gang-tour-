@@ -1,14 +1,32 @@
 # Payment provider preparation — 28 October 2026
 
+## Current policy — reconciled 3 November 2026
+
+The owner now requires **Paystack only for new payments**. New direct Daraja and
+Stripe initiation are disabled in both the advertised options and server
+boundaries, with no fallback to either provider. Historical orders, signed
+callbacks, reconciliation and safe recovery remain available.
+
+The Pesapal work below is a historical preparation handoff, not an active
+integration plan. Do not configure or enable a new provider from this document
+unless the owner explicitly changes the Paystack-only instruction. Its proposed
+routes and schema are not deployed. Paystack currently exposes card merchandise;
+Paystack mobile money and owned-event ticket checkout remain gated and require
+their own verified implementation/readiness work.
+
+## Historical delivery — 28 October 2026
+
 Pesapal is unavailable in checkout. This delivery adds server-only configuration
 diagnostics and an API 3.0 authentication/status-verification adapter. It adds no
 checkout button, route, order submission, IPN registration, ledger mutation,
 fulfillment or reconciliation integration. Credentials alone cannot enable it:
 `pesapalReadiness().checkoutEnabled` always returns `false`.
 
-Existing Daraja, Paystack, Stripe, orders and settlement code are preserved. No
-provider credentials were supplied or validated, and no financial/provider API
-request, account registration, webhook registration or migration was performed.
+At that delivery, existing Daraja, Paystack, Stripe, orders and settlement code
+were preserved. No provider credentials were supplied or validated in this
+preparation task, and no financial/provider API request, account registration,
+webhook registration or migration was performed. Later Paystack activation and
+the current initiation restrictions are recorded in `paystack-replacement.md`.
 
 ## What is implemented
 
@@ -120,7 +138,7 @@ do not specify an HMAC/signature verification scheme; none has been invented.
 Callback parameters, a source hostname, IP allowlisting or a browser return can
 never constitute payment evidence.
 
-## Concrete integration follow-up before enabling checkout
+## Historical integration proposal — only if the provider policy changes
 
 This is a bounded extension of the existing orders ledger, not a second ledger.
 The existing `mpesa_ref` and `mpesa_checkout_attempts` are Daraja-specific; they

@@ -282,11 +282,18 @@ export async function POST(req: Request) {
         if (!canAdminSetOrderStatus(cur[0].status, data.status)) {
           return NextResponse.json({ error: 'illegal_order_transition' }, { status: 409 });
         }
-        await q(`UPDATE orders SET status=$2 WHERE id=$1`, [data.id, data.status]);
-        await q(
-          `INSERT INTO audit_log (actor, action, detail) VALUES ('admin','order_status', $1)`,
-          [JSON.stringify({ id: data.id, from: cur[0].status, to: data.status, by: adminActor(req) })],
+        if (cur[0].status === data.status) return NextResponse.json({ ok: true });
+        if (data.expectedStatus !== cur[0].status) return NextResponse.json({error:'order_status_changed'}, {status:409});
+        const changed = await q<{id:string}>(
+          `WITH changed AS (
+             UPDATE orders SET status=$2 WHERE id=$1 AND status=$3 RETURNING id
+           ), audited AS (
+             INSERT INTO audit_log (actor, action, detail)
+             SELECT 'admin','order_status',$4 FROM changed RETURNING id
+           ) SELECT id FROM changed`,
+          [data.id, data.status, cur[0].status, JSON.stringify({id:data.id,from:cur[0].status,to:data.status,by:adminActor(req)})],
         );
+        if (!changed.length) return NextResponse.json({error:'order_status_changed'}, {status:409});
         return NextResponse.json({ ok: true });
       }
       case 'submissionStatus':
