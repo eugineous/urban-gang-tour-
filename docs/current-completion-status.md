@@ -19,7 +19,7 @@ unavailable chats or certify production transactions that were not exercised.
 | App, updates and notifications | Existing installable PWA, offline/update notices, private-cache exclusions, focus/dismiss controls and update protection retained; no native app-store distribution is claimed. |
 | Admin documents, receipts and tracking | Existing42-format registry, guarded paid receipts, delivery/production tracking and staff/customer status surfaces found. Physical delivery and external inbox receipt remain operational facts. |
 | Vendor and sponsorship applications | Existing two-page fillable packs and public vendor page retained. Main KES30–45k/minor KES10–15k; proposals do not promise unapproved inclusions. |
-| Scheduled article artwork |63scheduled applications have receipts; the remaining already-public target is separately reconciled through fresh image-only preview/apply. Its old expired manifest must never be replayed. |
+| Scheduled article artwork | All64commissioned targets now accounted for:63scheduled receipts plus the remaining public target applied3November with zero conflicts. Its public hero/OG URLs and content hashes were verified; old expired manifests were not replayed. |
 | Retire original merchandise | Retiredp1–p14excluded from public home offers; current24-product catalogue preserved. |
 | Stop News/YouTube promotion changes | No new channel promotion or editorial rewrite included. Existing published content retained. |
 
