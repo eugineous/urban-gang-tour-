@@ -44,9 +44,12 @@ it('routes the cart symbol to the basket and preserves canonical discovery links
  expect(readFileSync('app/_components/AppShell.tsx','utf8')).toContain('<ShoppingCart size={21}');
 });
 
-it('removes the automatic host invitation rather than hiding its visible box',()=>{
+it('mounts the restored host invitation on public pages without interrupting checkout',()=>{
+ vi.mocked(usePathname).mockReturnValue('/');
+ expect(renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Home')))).toContain('data-host-invitation');
+ vi.mocked(usePathname).mockReturnValue('/checkout');
+ expect(renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Checkout')))).not.toContain('data-host-invitation');
  const source=readFileSync('app/_components/AppShell.tsx','utf8');
- expect(source).not.toContain('BookingInvitation');
  expect(source).not.toContain('<LanguageChooser');
  expect(source).toContain('if(dialog.open)dialog.close()');
  expect(source).toContain('document.body.style.overflow=previous');

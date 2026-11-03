@@ -36,7 +36,7 @@
 .tiles{display:grid;gap:12px}
 .form .tile{position:relative;display:flex;align-items:center;gap:14px;padding:18px 16px;min-height:94px;border:1px solid #e0d6dc;border-radius:13px;background:#fff;cursor:pointer;transition:border-color .15s,background .15s}
 .form .tile:has(input:checked){border:2px solid #a31660;padding:17px 15px;background:#fcf3f8;box-shadow:0 0 0 3px #a3166008}
-.tile input{width:18px;height:18px;flex:none;margin:0;accent-color:#a31660}
+.form .tile input[type=radio]{width:18px;max-width:18px;min-width:18px;height:18px;min-height:18px;flex:0 0 18px;padding:0;margin:0;accent-color:#a31660}
 .tileText{display:grid;gap:5px;min-width:0;font-size:15px;font-weight:650}
 .tileText small{font-size:11px;font-weight:400;line-height:1.5;color:#756571}
 .brands{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
