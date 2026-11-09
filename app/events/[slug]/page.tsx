@@ -1,3 +1,4 @@
+import {MobileEventDate} from '@/app/_components/MobileEventDate';
 import {MessageText} from '@/ui/i18n/MessageText';
 import {discoveryMessages} from '@/ui/i18n/catalogues/discovery';
 import {OriginalContent} from '@/ui/i18n/OriginalContent';
@@ -177,7 +178,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const shareUrl = encodeURIComponent(`${SITE.domain}${path}`);
   const ticketHref = `/events?event=${encodeURIComponent(event.id)}`;
 
-  return <section className="event-detail-page wrap">
+  return <section className="event-detail-page wrap"><MobileEventDate date={event.status==='postponed'?null:event.event_date}/>
     {eventJsonLd&&<JsonLd data={eventJsonLd}/>}
     <EventsAnalytics eventSlug={event.slug} eventNames={[{slug:event.slug,name:event.name}]}/>
     <div className="detail-breadcrumbs"><a href="/events"><MessageText catalogue={discoveryMessages} message="events.all"/></a><span>/</span><span lang="en-KE">{event.name}</span></div>

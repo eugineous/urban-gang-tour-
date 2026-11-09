@@ -1,3 +1,79 @@
+# Eventify mobile reference — 9 November 2026
+
+final result: passed (UGT reference adaptation, not identical reference content)
+
+## Source and matched visual comparison
+
+Owner-selected Dribbble shot27650927, by SHEIKH NAEEM. The exact public shot
+image is2880×2160px. Its first phone content is normalized to390×844px for a
+side-by-side comparison with the UGT phone homepage at390×844CSSpx,1×. Artifacts:
+`/workspace/artifacts/ugt-full-audit-20261103/eventify-source-home.png`,
+`eventify-home-comparison.png`, and `local-eventify-390.png`. The initial
+comparison used the development renderer; the final comparison uses the clean
+production build without a development badge. Both show the same home/discovery visual state, without a login or
+transaction. Desktop is separately checked at1440×844CSSpx.
+
+Expected adaptations, not accidental fidelity defects: real UGT brand/copy and
+owned-host artwork replace fictitious animals/artists; the light branded header
+retains the real cart; Shop and My tickets replace reference-only destinations.
+Dark event details retain actual dates, venue, archive/postponement/status and
+sales eligibility rather than advertising the reference's fictional concert.
+The third phone's black-ticket/mint visual vocabulary does not create a fake
+ticket, barcode or purchase. Existing private issued-ticket rendering retains
+its genuine QR and entitlement/status controls.
+
+## Findings corrected
+
+- P1: hidden desktop hero could still request video on phones. Mobile
+  presentation now prevents that source download and restores desktop playback
+  on resize while respecting focus/reduced-motion/save-data preferences.
+- P1: dark ticket inheritance could obscure white pending/inactive overlays or
+  footer metadata. Explicit contrasting overlay, footer, admission and business
+  text colours fix this. Local paid/pending/inactive style fixtures verify
+  contrast colours and white print styling, with no QR or usable ticket.
+- P2: the initial card crop cut the host's face. Corrected image position.
+- P2: an existing surface selector overrode the round black menu. Matched its
+  specificity; the surrounding header remains light as the owner requires.
+- Small-screen introduction spacing has extra room below350px. Real eligible
+  ticket purchase shortcuts remain above the navigation, not removed.
+
+## Fidelity surfaces and verification boundary
+
+- Typography: heavy compact black/magenta editorial headline, italic intro,
+  compact readable labels and outlined event month. Native translations remain.
+- Spacing/layout: large right-side host, paired overlapping cards, rounded
+  floating black dock, mobile light canvas and dark event panels.
+- Colours: near-black/white, vivid magenta and mint strips; dark ticket panels
+  keep a high-contrast white QR area. Desktop palette is unchanged.
+- Images: new generated derivative of owned M230 plus existing owned Lucy
+  photograph. Master/provenance are tracked; reference artwork is not reused.
+- Copy: actual UGT services, routes and event states, no invented event or stock.
+
+The113 focused navigation/commerce/ticket tests passed. The7 motion tests and2
+desktop hero tests are checked separately; the latter's stale scrim assertions
+were aligned with the already-deployed .30/.66 values, with no desktop CSS edit.
+21st CLI review of the two principal new components returned0 findings; catalogue
+search was unavailable without authentication. Focused lint has0 errors and6
+anchor/image/existing-ref warnings. Cloud desktop provides no browser capability;
+the owner-approved local Chromium/Playwright fallback is used. This is not a
+physical-device, native-app-store or real-money checkout certification. No live
+payment, ticket issue, refund or customer-message test is performed.
+
+Final clean Cloudflare build, TypeScript and keep-vars deployment dry run passed.
+Built Chromium checks passed at390/1440px with no overflow or page errors; menu
+open/Escape and cart/checkout navigation boundaries passed. Additional reflow
+checks passed at320/390/430/768px, including Swahili, French, Russian, Chinese and
+Spanish text. Coarse-touch980px-layout/320px-and390px-screen fallback had no
+horizontal overflow. The actual two-product cart retained the same KES5,300
+catalogue total through checkout, Back, reload and browser restart; history
+refresh and initially unchecked terms passed. Normal-motion checks confirmed0
+mobile hero-video requests, focus-view preservation and available desktop
+playback after resizing. No actionable P0/P1/P2 finding remains in this checked
+mobile presentation scope; private entitlement states were fixture-tested, not
+accessed through a customer's account.
+
+---
+
 # MOOKH/Nixtio restoration, shop boundaries and Paystack — 2 November 2026
 
 final result: passed

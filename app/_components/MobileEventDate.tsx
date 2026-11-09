@@ -1,0 +1,3 @@
+'use client';
+import {useInterfaceLanguage} from '@/ui/i18n/LanguageProvider';
+export function MobileEventDate({date}:{date?:string|null}){const {locale}=useInterfaceLanguage();const value=date?.slice(0,10);if(!value||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;const parsed=new Date(value+'T12:00:00Z');if(!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==value)return null;return <div className="mobile-event-date" aria-hidden="true"><strong>{Number(value.slice(8,10))}</strong><span>{new Intl.DateTimeFormat(locale,{month:'short',timeZone:'UTC'}).format(parsed)}</span></div>}

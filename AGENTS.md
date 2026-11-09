@@ -1,5 +1,19 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Owner-selected mobile app reference (9 November 2026)
+- Owner now requests the phone website and installed PWA to follow the Eventify
+  mobile design at Dribbble shot27650927. This supersedes the older no-mobile-dock
+  decision for mobile only. Preserve the existing desktop MOOKH/Nixtio layout.
+- Mobile composition: white canvas, bold black/magenta editorial type, owned-host
+  illustration, rounded artwork cards, black four-item bottom navigation and
+  dark event details/digital tickets. Keep a light header and visible cart.
+- Use real events, hosts, products and actual issued tickets. No invented event
+  dates, artist promises, scannable demo tickets or open ticket-sales gates.
+  Paystack-only, existing cart/recovery/consent and private/admin guards remain.
+- The new host illustration derives from owned M230; provenance is stored under
+  assets/mobile. Dribbble artwork is reference-only. Existing approved local
+  Playwright browser verification and tested PR/keep-vars deployment apply.
+
 ## Restore MOOKH/Nixtio and Paystack-only checkout (2 November 2026)
 - Owner explicitly corrects the earlier storefront scope: the main website,
   homepage composition, shared header/navigation/footer use the established

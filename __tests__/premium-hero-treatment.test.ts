@@ -19,8 +19,8 @@ it('keeps video and poster sharp while cropping the logo-bearing edges',()=>{
 });
 it('uses a restrained text scrim without altering playback opacity or hiding the video',()=>{
  const shade=declarations('.heroShade');
- expect(shade.background).toContain('rgba(17, 16, 20, .26)');
- expect(shade.background).toContain('rgba(17, 16, 20, .56)');
+ expect(shade.background).toContain('rgba(17, 16, 20, .30)');
+ expect(shade.background).toContain('rgba(17, 16, 20, .66)');
  const media=declarations('.heroImage,.hero :global(.hero-video)');
  expect(media.opacity).toBeUndefined();expect(media.display).toBeUndefined();
  expect(shade['pointer-events']).toBe('none');

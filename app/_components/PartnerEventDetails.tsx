@@ -1,3 +1,4 @@
+import {MobileEventDate} from '@/app/_components/MobileEventDate';
 import {MessageText} from '@/ui/i18n/MessageText';
 import {discoveryMessages} from '@/ui/i18n/catalogues/discovery';
 import {EventDay,DiscoveryRegion} from '@/ui/components/PublicationDate';
@@ -24,7 +25,7 @@ export default async function PartnerEventDetails({event}:{event:PartnerEventRec
   const external=partnerTicketAction(partner,event.status,date,Date.now());
   const labels={completed:'status.pastCollaboration',ongoing:'status.ongoing',postponed:'status.postponedDate',rescheduled:'status.rescheduled',sales_paused:'status.sales_paused',sold_out:'status.sold_out',announced:'status.announced'} as const;
   const admission={free:'admission.free',invitation:'admission.invitation',unconfirmed:'card.entry',external:'admission.external'} as const;
-  return <div className="event-detail-page wrap">
+  return <div className="event-detail-page wrap"><MobileEventDate date={event.status==='postponed'?null:event.event_date}/>
     {schema&&<JsonLd data={schema}/>}
     <DiscoveryRegion as="nav" className="detail-breadcrumbs" message="breadcrumb"><a href="/events"><MessageText catalogue={discoveryMessages} message="events"/></a><span aria-hidden="true">/</span><span aria-current="page" lang="en-KE">{event.name}</span></DiscoveryRegion>
     <section className="event-detail-hero"><div><p className="eyebrow"><MessageText catalogue={discoveryMessages} message={labels[event.status as keyof typeof labels]||'status.partner'}/></p><h1 lang="en-KE">{event.name}</h1><OriginalContent disclose><p>{event.description}</p></OriginalContent><p><EventDay day={date} postponed={event.status==='postponed'} long/> · {event.venue?<span lang="en-KE">{event.venue}</span>:<MessageText catalogue={discoveryMessages} message="card.venue"/>}</p></div>{event.image?<OriginalEventPoster name={event.name} image={event.image} caption={partner.posterCaption}/>:<EventArtwork name={event.name}/>}</section>
