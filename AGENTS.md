@@ -1,6 +1,9 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
 ## Android mobile correction (9 November 2026)
+- Owner adds Lucy to the mobile hero, wearing a black T-shirt just behind
+  Eugine with her face visible. Use the owned-source generated two-host cutout
+  and keep both faces clear of the normalized headline at narrow phone widths.
 - Owner reports oversized Android hero text over the host face, requests removal
   of the GANG dot and a Contact navigation button. Use the normalized viewport
   on both axes, flow intro copy and reserve short-screen room for card actions.

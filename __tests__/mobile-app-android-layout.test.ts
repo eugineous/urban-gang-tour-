@@ -48,8 +48,8 @@ async function renderPhone(wide:boolean,height=710,width=390,locale='en'){
 }
 
 it.skipIf(!enabled)('keeps the same readable heading size in Android normal and zoom-normalised wide viewports',async()=>{
- for(const height of [710,844]){
-  const normal=await renderPhone(false,height),wide=await renderPhone(true,height);
+ for(const [width,height] of [[320,710],[320,844],[390,710],[390,844]]){
+  const normal=await renderPhone(false,height,width),wide=await renderPhone(true,height,width);
   expect(wide.zoom).toBeGreaterThan(2);
   expect(Math.abs(wide.font-normal.font)).toBeLessThanOrEqual(2);
   expect(wide.overflow).toBe(false);

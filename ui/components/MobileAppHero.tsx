@@ -14,7 +14,7 @@ const copy=defineCatalogue({
 export function MobileAppHero(){const t=useMessages(copy);return <section className={styles.hero} data-mobile-app-hero aria-label="Urban Gang Tour">
  <div className={styles.stage}>
   <h1><span>URBAN</span><span>GANG</span><span>TOUR</span></h1>
-  <picture className={styles.portrait}><source media="(max-width:767px), (max-device-width:600px) and (pointer:coarse)" srcSet="/assets/mobile/eugine-editorial.webp"/><img src="/icon-48.png" width="850" height="1136" alt="Illustrated portrait of Eugine Micah, based on an Urban Gang Tour photograph" fetchPriority="high"/></picture>
+  <picture className={styles.portrait}><source media="(max-width:767px), (max-device-width:600px) and (pointer:coarse)" srcSet="/assets/mobile/hosts-editorial.webp"/><img src="/icon-48.png" width="850" height="1133" alt="Illustrated portrait of Eugine Micah and Lucy Ogunde in black T-shirts" fetchPriority="high"/></picture>
   <p className={styles.intro}>{t('intro')}</p>
  </div>
  <div className={styles.cards}>
