@@ -1,5 +1,10 @@
-/* UGT: magenta leads, teal supports, gold is a small highlight—not a surface. */
-:root{--ugt-primary:#ad1264;--ugt-accent:#0f6b6d;--ugt-highlight:#d9ad32;--action:var(--ugt-primary);--yellow:var(--ugt-highlight)}
-[data-public-surface=editorial] .eyebrow{color:var(--ugt-accent)}
-[data-public-surface=editorial] .button.light:hover{background:#e5f1ef;color:#164e50}
-::selection{background:#f4d8e7;color:#40102b}
+/* Magenta leads; violet/cyan coordinate, vivid gold remains a small highlight. */
+:root{--ugt-primary:#c60073;--ugt-accent:#5b21b6;--ugt-highlight:#ffd23f;--ugt-cyan:#10cddd;--action:var(--ugt-primary);--magenta:var(--ugt-primary);--cyan:var(--ugt-cyan);--yellow:var(--ugt-highlight);--deep:#83004c;--paper:#fff7fc;--ugt-surface-warm:#fff2f8;--ugt-surface-raised:#fffaff;--line:#e5cede}
+[data-public-surface=editorial] .eyebrow{color:var(--ugt-primary)}
+[data-public-surface=editorial] .button.light:hover{background:#f2e8ff;color:var(--ugt-accent)}
+::selection{background:#edc9e4;color:#45002b}
+@keyframes ugt-public-enter{from{opacity:.8;transform:translateY(8px)}to{opacity:1;transform:none}}
+[data-public-surface=editorial] .page-intro{animation:ugt-public-enter .38s ease-out}
+@media(prefers-reduced-motion:reduce){[data-public-surface=editorial] .page-intro{animation:none}}
+html[data-focus-view=true] [data-public-surface=editorial] .page-intro{animation:none}
+@media print{:root{--paper:#fff;--ugt-surface-warm:#fff;--ugt-surface-raised:#fff}[data-public-surface=editorial] .page-intro{animation:none}}

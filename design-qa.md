@@ -1,3 +1,54 @@
+# Magenta booking-first refinement — 9 November 2026
+
+Final result: passed for the checked booking-first refinement.
+
+Owner palette references inform magenta #c60073 (white text contrast), violet
+#5b21b6/cyan #10cddd accents, small vivid gold #ffd23f and blush surfaces. Shared
+tokens now carry that identity through public controls/header/footer/pages;
+semantic payment/success/error colours and white printing stay intact. Desktop
+composition and shop-specific presentation remain, with coordinated colours.
+
+Active mobile portraits have the supplied actual UGT logo printed on both black
+T-shirts. A new full-colour welcoming Eugine/Lucy promotional image fills a
+circular host card linking to Book. Generated masters and honest provenance are
+tracked; no palette-reference fashion/party photography is reused. The three
+services are a semantic bullet list. Real eligible poster selection prefers
+upcoming events, then a labelled recent archive. SATUK's exact contradictory
+poster hold remains; the currently eligible recent poster is UNI FEST. Past
+previews lead to Events with period=all, never a fabricated sale or checkout.
+
+Events/Tickets/centred Home/Book/Contact form the five44px main actions. Shop is
+still in the full menu/cart. Entry/tap motion and a slow hamburger ring (two
+2-second cycles) respect reduced motion/focus. Existing home reveal machinery
+animates the new heading, points/cards/player; editorial page intros get a small
+entry transition. No rapid flashing, boot veil or forced scroll.
+
+Owned M034 KIPS campus video follows the two cards, with a lazy poster and no
+video source before explicit play. Native muted inline playback, shared captions
+when available, honest load failure/retry and Gallery/List event links are real.
+Built browser checks already confirm playback and recovery after a simulated
+503,0video requests before play, normal/reduced-motion ring behaviour and menu
+interaction.136 focused tests and clean Cloudflare build/TypeScript passed.
+Scoped lint:0 errors/2 native-link/image warnings;21st review:0 findings; search
+was unavailable without authentication. The final local poster probe bridges
+only publicly listed KV artwork from the live origin because local KV is absent.
+No private customer, financial, CMS, stock, credential or payment-gate mutation.
+Browser emulation is not physical-device certification.
+
+Final clean build/TypeScript, packaging dry run and real-shell Chromium checks
+passed at320/390/430px plus1440px desktop, normal/wide Android and710/844px
+readable heights. The real UNI FEST poster decoded; SATUK's held image was not
+used. Both logos/faces, three bullets, full-colour circular host card, five
+44px actions with centred Home, Contact/menu/Escape and short-screen CTA
+clearance were checked. `built-booking-ui-390-710.png` was visually inspected.
+The video is immediately after the cards; actual muted playback, failure503,
+retry recovery,0video requests before Play, finite ring and reduced-motion/
+focus behaviour passed. Its real player view is in
+`built-booking-video-reduce.png`.136 focused tests passed; no all-site or
+physical-device guarantee is implied.
+
+---
+
 # Lucy behind Eugine in the mobile hero — 9 November 2026
 
 Final result: passed for the checked two-host mobile hero.

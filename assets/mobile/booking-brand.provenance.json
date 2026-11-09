@@ -1,0 +1,7 @@
+{
+  "assets": [
+    {"asset":"hosts-branded.webp","sources":["/assets/mobile/hosts-editorial.webp","/assets/ugt-logo.png"],"treatment":"Generated monochrome host illustration with the actual full-colour UGT logo printed on both black T-shirts","generated":true},
+    {"asset":"hosts-welcome.webp","sources":["/media-library/8e63b88fd01a11a4.webp","/media-library/a4499d970f6ef310.webp","/assets/ugt-logo.png"],"treatment":"Generated full-colour welcoming promotional portrait with branded black T-shirts; not event photography or a TV-network affiliation","generated":true}
+  ],
+  "referencePalette":"Owner-supplied magenta palette images; no third-party poster or fashion photography reused"
+}

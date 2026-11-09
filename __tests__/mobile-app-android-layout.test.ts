@@ -38,10 +38,11 @@ async function renderPhone(wide:boolean,height=710,width=390,locale='en'){
  await page.waitForFunction(locale=>document.documentElement.lang===(locale==='en'?'en-KE':locale),locale);
  await page.evaluate(()=>document.fonts.ready);
  const metrics=await page.evaluate(()=>{
-  const hero=document.querySelector('[data-mobile-app-hero]')!,heading=hero.querySelector('h1')!,intro=hero.querySelector('p')!,card=hero.querySelector('a')!,zoom=Number(getComputedStyle(document.documentElement).zoom)||1;
+  const hero=document.querySelector('[data-mobile-app-hero]')!,heading=hero.querySelector('h1')!,intro=hero.querySelector('[data-mobile-services]')!,card=hero.querySelector('[data-mobile-host-card]')!,zoom=Number(getComputedStyle(document.documentElement).zoom)||1;
   const nav=document.querySelector('[data-mobile-app-navigation]')!;
   const targets=Array.from(nav.querySelectorAll('a')).map(link=>{const box=link.getBoundingClientRect(),label=link.querySelector('span')!.getBoundingClientRect();return{width:box.width/zoom,height:box.height/zoom,labelFits:label.left>=box.left-1&&label.right<=box.right+1}});
-  return{font:parseFloat(getComputedStyle(heading).fontSize),zoom,introBottom:intro.getBoundingClientRect().bottom/zoom,cardTop:card.getBoundingClientRect().top/zoom,cardsBottom:Math.max(...Array.from(hero.querySelectorAll('a')).map(card=>card.getBoundingClientRect().bottom/zoom)),dockTop:nav.getBoundingClientRect().top/zoom,targets,overflow:document.documentElement.scrollWidth>innerWidth+1};
+  const home=nav.querySelector('a[href="/"]')!.getBoundingClientRect(),bar=nav.getBoundingClientRect();
+  return{font:parseFloat(getComputedStyle(heading).fontSize),zoom,introBottom:intro.getBoundingClientRect().bottom/zoom,cardTop:card.getBoundingClientRect().top/zoom,cardsBottom:Math.max(...Array.from(hero.querySelectorAll('[data-mobile-host-card],[data-mobile-event-card]')).map(card=>card.getBoundingClientRect().bottom/zoom)),dockTop:bar.top/zoom,homeCentred:Math.abs(home.x+home.width/2-bar.x-bar.width/2)<1,targets,overflow:document.documentElement.scrollWidth>innerWidth+1};
  });
  if(process.env.UGT_ANDROID_SCREENSHOTS)await page.screenshot({path:`${process.env.UGT_ANDROID_SCREENSHOTS}/android-${wide?'wide':'normal'}-${width}-${height}-${locale}.png`});
  await context.close();return metrics;
@@ -59,6 +60,7 @@ it.skipIf(!enabled)('fits five navigation targets and a long translated contact 
  for(const wide of [false,true]){
   const metrics=await renderPhone(wide,710,320,'sw');
   expect(metrics.targets).toHaveLength(5);
+  expect(metrics.homeCentred).toBe(true);
   for(const target of metrics.targets){expect(target.width).toBeGreaterThanOrEqual(44);expect(target.height).toBeGreaterThanOrEqual(44);expect(target.labelFits).toBe(true)}
  }
 },30000);

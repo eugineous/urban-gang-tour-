@@ -43,6 +43,12 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 9 November booking-first refinement: magenta #c60073 leads shared controls,
+  blush surfaces, violet #5b21b6/cyan #10cddd accents and small gold #ffd23f
+  highlights. Centred Home between Events/Tickets and Book/Contact. Branded
+  host portraits, colour welcome card, semantic service bullets, eligible real
+  poster and owned video below cards; gentle reduced-motion-aware interaction.
+
 - 9 November host-art addition: Lucy wears a plain black T-shirt behind Eugine
   in the mobile hero. Use the generated owned-source two-host cutout, keep both
   faces visible at320–430px and retain the Contact tab/Android viewport repair.
