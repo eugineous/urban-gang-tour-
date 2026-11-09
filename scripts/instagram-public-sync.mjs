@@ -14,6 +14,7 @@ import {INSTAGRAM_ACCOUNT,INSTAGRAM_PROFILE,INSTAGRAM_REPOSITORY,normalizeOwnedI
 const exec=promisify(execFile),manifestPath=fileURLToPath(new URL('../ui/data/instagram-library.json',import.meta.url));
 const MAX_FILE=250*1024*1024,MAX_BATCH=1024*1024*1024;
 import {TAG,gh,releaseInfo,archiveIndex,readPublicIndex,reconcileInstagramProjection,publishIndex} from './instagram-github-store.mjs';
+import {knownVisibleInstagramLinks} from './instagram-discovery-counts.mjs';
 export async function collectPublicInstagram(profile=INSTAGRAM_PROFILE,{maxScrolls=3,knownCodes=new Set()}={}){
  const normalized=normalizeOwnedInstagramUrl(profile);if(!normalized)throw Error('only_owned_instagram_allowed');
  const proxyUrl=process.env.HTTPS_PROXY||process.env.HTTP_PROXY,u=proxyUrl?new URL(proxyUrl):null;
@@ -41,9 +42,9 @@ export async function collectPublicInstagram(profile=INSTAGRAM_PROFILE,{maxScrol
   await Promise.all(pending);if(throttled)throw Error('instagram_rate_limited_no_bypass');
   const visible=await page.locator('a[href*="/p/"],a[href*="/reel/"]').evaluateAll(els=>els.map(el=>el.getAttribute('href')));
   const links=/\/(p|reel)\//.test(normalized)?[normalized]:[...new Set(visible.map(path=>{try{return normalizeOwnedInstagramUrl(new URL(path,INSTAGRAM_PROFILE).href)}catch{return null}}).filter(url=>url&&/\/(p|reel)\//.test(url)))];
-  const failures=[];let knownVisible=0;
+  const failures=[];
   for(const url of links.slice(0,12)){
-   const code=new URL(url).pathname.split('/').filter(Boolean).at(-1);if(knownCodes.has(code)){knownVisible++;continue}if([...records.values()].some(post=>post.code===code))continue;
+   const code=new URL(url).pathname.split('/').filter(Boolean).at(-1);if(knownCodes.has(code))continue;if([...records.values()].some(post=>post.code===code))continue;
    try{
     const {stdout}=await exec(process.env.PYTHON_BIN||'python',[fileURLToPath(new URL('./instagram-public-metadata.py',import.meta.url)),url],{timeout:90000,maxBuffer:8*1024*1024});
     const posts=extractPublicInstagramPosts(JSON.parse(stdout));if(posts.length!==1||posts[0].code!==code)throw Error('ownership_or_public_metadata_unavailable');
@@ -51,7 +52,8 @@ export async function collectPublicInstagram(profile=INSTAGRAM_PROFILE,{maxScrol
    }catch(error){if(String(error.stderr||'').includes('rate_limited'))throw Error('instagram_rate_limited_no_bypass');failures.push({code,error:'owned_public_post_unavailable'})}
   }
   const requested=/\/(p|reel)\//.test(normalized)?new URL(normalized).pathname.split('/').filter(Boolean).at(-1):null;
-  return{posts:[...records.values()].filter(post=>!requested||post.code===requested),knownVisible,failures,coverage:'Public browser-visible posts only; login-gated or older history is not guaranteed.',http};
+  const posts=[...records.values()].filter(post=>!requested||post.code===requested);
+  return{posts,knownVisible:knownVisibleInstagramLinks(links.slice(0,12),knownCodes,posts),failures,coverage:'Public browser-visible posts only; login-gated or older history is not guaranteed.',http};
  }finally{await browser.close()}
 }
 function signature(bytes,kind){
