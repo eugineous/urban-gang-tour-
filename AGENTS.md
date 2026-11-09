@@ -1,5 +1,12 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Android mobile correction (9 November 2026)
+- Owner reports oversized Android hero text over the host face, requests removal
+  of the GANG dot and a Contact navigation button. Use the normalized viewport
+  on both axes, flow intro copy and reserve short-screen room for card actions.
+- The mobile dock now has five actual destinations including /contact-us, with
+  native labels and44px targets. Preserve desktop, shop and payment safeguards.
+
 ## Owner-selected mobile app reference (9 November 2026)
 - Owner now requests the phone website and installed PWA to follow the Eventify
   mobile design at Dribbble shot27650927. This supersedes the older no-mobile-dock

@@ -81,6 +81,12 @@
   "decisions": [
     {
       "date": "2026-11-09",
+      "direction": "Owner Android correction: normalized mobile hero sizing, no GANG dot and fifth Contact tab",
+      "mobile": "Use normalized viewport width and height, flowing introductory copy and short-screen card clearance. Five real navigation destinations with wrapping native labels and44px targets.",
+      "preserve": "Light header, owned portrait, existing desktop interface, cart, Paystack and ticket safeguards"
+    },
+    {
+      "date": "2026-11-09",
       "direction": "Owner-selected Eventify mobile reference for phone website and installed PWA",
       "reference": "https://dribbble.com/shots/27650927-Event-Discovery-Ticket-Booking-Mobile-App-UI",
       "mobile": "White canvas, black/magenta editorial title and owned-host illustration, paired art cards, mint action strips, black rounded four-tab navigation, dark event details and real digital tickets",

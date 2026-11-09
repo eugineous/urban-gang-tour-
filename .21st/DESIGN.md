@@ -43,6 +43,11 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 9 November Android correction: heading scales against the normalized phone
+  viewport, intro stays in flow and short-screen card actions clear the dock.
+  Remove the GANG dot and add a fifth Contact destination. Keep the light header,
+  owned portrait, existing desktop UI and commerce safeguards.
+
 - 9 November: the owner-selected Eventify mobile reference (Dribbble27650927)
   supersedes the older no-dock phone design. Mobile website/PWA use bold
   black/magenta type, owned-host editorial artwork, mint action strips, rounded

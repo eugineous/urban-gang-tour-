@@ -1,12 +1,13 @@
 .hero{display:none}
 @media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
  .hero{display:block;isolation:isolate;padding:18px 20px 30px;background:#f8f8f8;color:#080808;overflow:hidden}
- .stage{position:relative;min-height:430px}
- .stage h1{position:relative;z-index:2;font-family:Inter,Arial,sans-serif!important;font-size:clamp(65px,19.8vw,100px)!important;font-weight:900!important;line-height:.9!important;letter-spacing:-.07em!important;margin:0!important;max-width:100%!important}
- .stage h1>span{display:block}.stage h1>span:nth-child(2){color:#f00063}.dot{color:#080808}
+ /* Use the readable Android viewport on both axes, not its raw 980px layout. */
+ .stage{position:relative;min-height:clamp(300px,calc(var(--ugt-screen-height,100svh) / var(--ugt-phone-zoom,1) - 414px),430px);padding-bottom:28px;box-sizing:border-box}
+ .stage h1{position:relative;z-index:2;font-family:Inter,Arial,sans-serif!important;font-size:clamp(56px,min(calc(19.8vw / var(--ugt-phone-zoom,1)),calc((var(--ugt-screen-height,100svh) / var(--ugt-phone-zoom,1) - 400px) * .18)),84px)!important;font-weight:900!important;line-height:.9!important;letter-spacing:-.07em!important;margin:0!important;max-width:100%!important}
+ .stage h1>span{display:block}.stage h1>span:nth-child(2){color:#f00063}
  .portrait{position:absolute;z-index:1;right:-84px;top:28px;width:310px;height:440px;pointer-events:none}
  .portrait img{width:100%;height:100%;object-fit:contain;object-position:bottom;display:block}
- .intro{position:absolute;z-index:3;left:0;top:270px;width:120px;font-size:15px!important;font-style:italic;font-weight:500;line-height:1.45!important;letter-spacing:-.035em;margin:0!important}
+ .intro{position:relative;z-index:3;width:120px;font-size:15px!important;font-style:italic;font-weight:500;line-height:1.45!important;letter-spacing:-.035em;margin:24px 0 0!important}
  .cards{position:relative;z-index:3;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:-24px}
  .cards>a{min-width:0;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 18px #00000012;text-decoration:none!important}
  .hostCard{background:#f00063;color:#fff}.eventCard{background:#191919;color:#fff}
@@ -17,4 +18,4 @@
  .cardAction{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;background:#18c990;color:#072a23;padding:14px 12px;font-size:12px;font-weight:650;min-height:50px}
  .cardAction svg{flex:none}.cards a:focus-visible{outline:3px solid #ad1264;outline-offset:4px}
 }
-@media(max-width:350px){.stage{min-height:460px}.portrait{right:-110px}.intro{width:100px;font-size:14px!important}.cards{gap:10px}.cards strong{font-size:17px}.cardAction{font-size:11px}}
+@media(max-width:350px){.portrait{right:-110px}.intro{width:100px;font-size:14px!important}.cards{gap:10px}.cards strong{font-size:17px}.cardAction{font-size:11px}}
