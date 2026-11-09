@@ -60,6 +60,9 @@
 .summaryBody{padding-top:22px}
 .summaryLine{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid #dfd2d9;font-size:12px;line-height:1.6}
 .summaryLine>span{min-width:0}
+.summaryProduct{display:flex;align-items:center;gap:10px}
+.summaryImage{display:block;width:48px;height:56px;flex:0 0 48px;overflow:hidden;border-radius:6px;background:#fff}
+.summaryImage img,.summaryImage svg{display:block;width:100%;height:100%;object-fit:contain}
 .summaryLine strong{font-weight:550;white-space:nowrap}
 .summaryLine small{display:block;color:#84717e}
 .moreItems{font-size:12px;line-height:1.6;padding-top:8px;color:#806675}
