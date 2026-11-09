@@ -16,12 +16,15 @@ export function HeroMotion(){const t=useMessages(marketingMessages);
   const slow=connection?.saveData||['slow-2g','2g','3g'].includes(connection?.effectiveType||'')||(connection?.downlink!==undefined&&connection.downlink<1.5);
   variant.current=`/media-library/hero-${slow?'lite':innerWidth<900?'mobile':'desktop'}-v2.mp4`;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const phonePresentation=matchMedia('(max-width:767px), (max-device-width:600px) and (pointer:coarse)');
+  const mobileOnlyHero=()=>phonePresentation.matches&&Boolean(video.current?.closest('.desktop-home-hero'));
   let focus=false;try{focus=JSON.parse(localStorage.getItem('ugt-new-preview-v1focusView')||'false')}catch{}
-  if(!focus&&!reduced.matches&&!connection?.saveData){wanted.current=true;setSrc(variant.current)}
+  if(!focus&&!reduced.matches&&!connection?.saveData&&!mobileOnlyHero()){wanted.current=true;setSrc(variant.current)}
   const stop=()=>{wanted.current=false;video.current?.pause();setPlaying(false);setManual(false)};
   const resume=()=>{if(wanted.current&&inView.current&&!document.hidden)video.current?.play().catch(()=>setPlaying(false))};
-  const focusChanged=(event:Event)=>{if((event as CustomEvent).detail)stop()};
+  const focusChanged=(event:Event)=>{focus=Boolean((event as CustomEvent).detail);if(focus)stop()};
   const motionChanged=()=>{if(reduced.matches)stop()};
+  const presentationChanged=()=>{if(mobileOnlyHero()){stop();setSrc(undefined);setVisible(false)}else if(!focus&&!reduced.matches&&!connection?.saveData){wanted.current=true;setSrc(variant.current)}};
   const visibility=()=>{if(document.hidden){video.current?.pause();setPlaying(false)}else resume()};
   const observer=new IntersectionObserver(([entry])=>{inView.current=entry.isIntersecting;if(!entry.isIntersecting){video.current?.pause();setPlaying(false)}else resume()},{threshold:.05});
   if(video.current)observer.observe(video.current);
@@ -29,7 +32,8 @@ export function HeroMotion(){const t=useMessages(marketingMessages);
   window.addEventListener('ugt-focus-view',focusChanged);
   document.addEventListener('visibilitychange',visibility);
   reduced.addEventListener('change',motionChanged);
-  return()=>{observer.disconnect();window.removeEventListener('ugt-media-play',stop);window.removeEventListener('ugt-focus-view',focusChanged);document.removeEventListener('visibilitychange',visibility);reduced.removeEventListener('change',motionChanged)};
+  phonePresentation.addEventListener('change',presentationChanged);
+  return()=>{observer.disconnect();window.removeEventListener('ugt-media-play',stop);window.removeEventListener('ugt-focus-view',focusChanged);document.removeEventListener('visibilitychange',visibility);reduced.removeEventListener('change',motionChanged);phonePresentation.removeEventListener('change',presentationChanged)};
  },[]);
  const toggle=()=>{
   if(playing){wanted.current=false;video.current?.pause();return}

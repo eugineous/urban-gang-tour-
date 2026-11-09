@@ -43,6 +43,13 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 9 November: the owner-selected Eventify mobile reference (Dribbble27650927)
+  supersedes the older no-dock phone design. Mobile website/PWA use bold
+  black/magenta type, owned-host editorial artwork, mint action strips, rounded
+  black navigation and dark event/ticket panels. Preserve the light shared
+  header, real records, six languages and transaction/entitlement safeguards.
+  Desktop remains MOOKH/Nixtio; shop-specific catalogue/mannequins remain intact.
+
 - 1 November completion: shop follows the captured Mkurugenzi landscape banner,
   collection-photo browsing, white rounded five-desktop/one-phone product grid
   and locally hosted Poppins/Playfair/Bebas typography. Five standalone black-apparel mannequin studio

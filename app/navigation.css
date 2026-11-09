@@ -137,3 +137,16 @@ html[data-phone-viewport="wide"] dialog.menu-panel{
 }
 html[data-phone-viewport="wide"] .menu-groups nav{grid-template-columns:minmax(0,1fr)}
 html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
+.mobile-search{display:none}
+@media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
+ .site-header{background:#f8f8f8;border-bottom:0}
+ .site-header .header-content{display:grid;grid-template-columns:44px minmax(0,1fr) 44px 44px;gap:8px;height:68px;padding-inline:20px}
+ .site-header .header-actions{display:contents}
+ .site-header .brand{grid-column:2;grid-row:1;justify-self:center}
+ .site-header .brand img{width:58px;height:42px;object-fit:contain}
+ .site-header[data-public-surface] .menu-toggle{grid-column:1;grid-row:1;background:#101010;color:#fff;border-color:#101010;width:44px;height:44px;border-radius:50%;padding:0}
+ .site-header .mobile-menu-label{display:none}
+ .site-header .cart-link{grid-column:3;grid-row:1;width:44px;height:44px;background:transparent;border-color:#dedede}
+ .site-header .mobile-search{grid-column:4;grid-row:1;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--action);color:#fff}
+ .site-header .start-link,.site-header .tickets-link,.site-header .desktop-nav{display:none}
+}
