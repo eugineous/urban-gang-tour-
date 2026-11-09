@@ -152,8 +152,8 @@ html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
 }
 @keyframes ugt-menu-invite{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.85;transform:scale(1.13)}}
 @media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
- .site-header .menu-toggle::after{content:'';position:absolute;inset:-5px;border:2px solid var(--ugt-primary);border-radius:50%;pointer-events:none;animation:ugt-menu-invite 2s ease-in-out 2}
- .site-header .menu-toggle[aria-expanded=true]::after{animation:none;opacity:0}
+ .site-header .menu-toggle::after{content:'';position:absolute;inset:-5px;border:2px solid var(--ugt-primary);border-radius:50%;pointer-events:none;animation:ugt-menu-invite 2s ease-in-out infinite}
+ .site-header .menu-toggle:is([aria-expanded=true],[data-menu-engaged=true])::after{animation:none;opacity:0}
 }
 @media(prefers-reduced-motion:reduce){.site-header .menu-toggle::after{animation:none;opacity:.5}}
 html[data-focus-view=true] .site-header .menu-toggle::after{animation:none;opacity:.5}

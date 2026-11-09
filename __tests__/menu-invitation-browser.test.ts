@@ -1,0 +1,22 @@
+import {afterAll,beforeAll,expect,it} from 'vitest';
+import {build} from 'esbuild';
+import {chromium,type Browser} from 'playwright';
+import {existsSync,readFileSync} from 'node:fs';
+const enabled=existsSync('/usr/bin/chromium');let browser:Browser,js:string;
+const css=['navigation','brand-palette'].map(name=>readFileSync('app/'+name+'.css','utf8')).join('\n');
+beforeAll(async()=>{if(!enabled)return;const result=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`import React,{useState}from'react';import{createRoot}from'react-dom/client';import{MobileMenuToggle}from'./app/_components/MobileMenuToggle';function App(){const[page,setPage]=useState('/');const[open,setOpen]=useState(false);return <><header className="site-header" data-public-surface="header"><div key={page}><MobileMenuToggle open={open} onClick={()=>setOpen(v=>!v)}/></div></header><button onClick={()=>{setOpen(false);setPage('/shop')}}>New page</button></>}createRoot(document.getElementById('app')).render(<App/>);`},bundle:true,write:false,jsx:'automatic',define:{'process.env':'{}','process.env.NODE_ENV':'"production"'}});js=result.outputFiles[0].text;browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']})},30000);
+afterAll(async()=>{await browser?.close()});
+it.skipIf(!enabled)('pulses indefinitely, remembers a click for this page, and resets on a new page or reload',async()=>{
+ const page=await browser.newPage({viewport:{width:390,height:710},isMobile:true,hasTouch:true,reducedMotion:'no-preference'});
+ await page.route('**/*',route=>new URL(route.request().url()).pathname==='/app.js'?route.fulfill({contentType:'text/javascript',body:js}):route.fulfill({contentType:'text/html',body:`<meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div id="app"></div><script src="/app.js"></script>`}));
+ await page.goto('http://menu.local/');const toggle=page.locator('.menu-toggle');await toggle.waitFor();
+ const pulse=()=>toggle.evaluate(el=>{const s=getComputedStyle(el,'::after');return{name:s.animationName,cycles:s.animationIterationCount}});
+ expect(await pulse()).toEqual({name:'ugt-menu-invite',cycles:'infinite'});
+ await toggle.click();await toggle.click();expect(await toggle.getAttribute('aria-expanded')).toBe('false');expect((await pulse()).name).toBe('none');
+ await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));expect((await pulse()).cycles).toBe('infinite');
+ await toggle.click();await toggle.click();expect((await pulse()).name).toBe('none');
+ await page.getByRole('button',{name:'New page'}).click();expect((await pulse()).cycles).toBe('infinite');
+ await toggle.click();await page.reload();await toggle.waitFor();expect((await pulse()).cycles).toBe('infinite');
+ await page.emulateMedia({reducedMotion:'reduce'});expect((await pulse()).name).toBe('none');
+ await page.close();
+},30000);

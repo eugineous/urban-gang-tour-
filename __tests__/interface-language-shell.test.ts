@@ -3,11 +3,12 @@ import {Children,createElement,isValidElement,type ReactElement,type ReactNode} 
 import {renderToStaticMarkup} from 'react-dom/server';
 import {readFileSync} from 'node:fs';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-const hooks=vi.hoisted(()=>({active:false,index:0,refIndex:0,states:[] as unknown[],refs:[] as Array<{current:unknown}>,context:undefined as unknown}));
+const hooks=vi.hoisted(()=>({active:false,index:0,refIndex:0,states:[] as unknown[],refs:[] as Array<{current:unknown}>,context:undefined as unknown,languageContexts:new WeakSet<object>()}));
 vi.mock('react',async original=>{
  const actual=await original<typeof import('react')>();
  return {...actual,
-  useContext:(context:Parameters<typeof actual.useContext>[0])=>hooks.active?hooks.context:actual.useContext(context),
+  createContext:<T,>(value:T)=>{const context=actual.createContext(value);if(value&&typeof value==='object'&&'locale' in value)hooks.languageContexts.add(context);return context;},
+  useContext:(context:Parameters<typeof actual.useContext>[0])=>hooks.active&&hooks.languageContexts.has(context)?hooks.context:actual.useContext(context),
   useState:(initial:unknown)=>{
    if(!hooks.active)return actual.useState(initial);
    const index=hooks.index++;

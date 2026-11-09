@@ -1,0 +1,13 @@
+export const INSTAGRAM_ACCOUNT:string,INSTAGRAM_REPOSITORY:string,INSTAGRAM_PROFILE:string,INSTAGRAM_WORKFLOW:string;
+export type InstagramSourceAsset={id:string;kind:'video'|'photograph';url:string;width:number;height:number;poster:string|null;hasAudio?:boolean|null;duration?:number|null};
+export type InstagramSourcePost={id:string;code:string;caption:string;permalink:string;timestamp:string|null;assets:InstagramSourceAsset[]};
+export type InstagramArchiveAsset={id:string;kind:'video'|'photograph';width:number;height:number;bytes:number;sha256:string;file:string;release:string;poster?:InstagramArchiveAsset;duration?:number};
+export type InstagramArchive={version:1;account:string;lastChecked?:string|null;coverage?:string;posts:Array<{id:string;code:string;caption:string;permalink:string;timestamp:string|null;published:boolean;audience:'review'|'general'|'adult';assets:InstagramArchiveAsset[]}>};
+export function normalizeOwnedInstagramUrl(value:unknown):string|null;
+export function validInstagramCdnUrl(value:unknown):boolean;
+export function extractPublicInstagramPosts(value:unknown):InstagramSourcePost[];
+export function validateInstagramArchive(value:unknown):value is InstagramArchive;
+export function githubInstagramAssetUrl(asset:InstagramArchiveAsset):string;
+export function publishedInstagramAssets(value:unknown):Array<InstagramArchiveAsset&{postId:string;caption:string;permalink:string;timestamp:string|null}>;
+export type InstagramPublicIndex=InstagramArchive&{lastChecked:string|null;automation:{enabled:boolean;publishGeneral:boolean};coverage:string;summary:{archived:number;published:number;failed:number}};
+export function publicInstagramProjection(value:unknown):InstagramPublicIndex|null;

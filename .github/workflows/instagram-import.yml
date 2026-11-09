@@ -1,0 +1,74 @@
+name: Import owned public Instagram media
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: urban_newsgang profile or one of its public posts
+        required: true
+        default: https://www.instagram.com/urban_newsgang/
+      confirm_rights:
+        description: I can republish this account's content, including music
+        required: true
+        type: boolean
+        default: false
+      publish_general:
+        description: Publish imported general-audience posts on the website
+        required: true
+        type: boolean
+        default: false
+      auto_sync:
+        description: Check for new public posts every 30 minutes
+        required: true
+        type: boolean
+        default: true
+  schedule:
+    - cron: '17,47 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: owned-instagram-archive
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      IG_IMPORT_PROFILE: ${{ inputs.profile || 'https://www.instagram.com/urban_newsgang/' }}
+      IG_IMPORT_RIGHTS_CONFIRMED: ${{ inputs.confirm_rights && 'true' || 'false' }}
+      IG_IMPORT_PUBLISH_GENERAL: ${{ inputs.publish_general && 'true' || 'false' }}
+      IG_IMPORT_AUTO_SYNC: ${{ inputs.auto_sync && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check owner input or existing schedule opt-in
+        id: readiness
+        run: node scripts/check-instagram-job.mjs
+      - uses: actions/setup-node@v4
+        if: steps.readiness.outputs.enabled == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        if: steps.readiness.outputs.enabled == 'true'
+        with:
+          python-version: '3.12'
+      - name: Install pinned public-media extractor and browser
+        if: steps.readiness.outputs.enabled == 'true'
+        run: |
+          npm ci
+          python -m pip install --disable-pip-version-check -r scripts/requirements-instagram.txt
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Verify account, parser and archive boundaries
+        if: steps.readiness.outputs.enabled == 'true'
+        run: npx vitest run __tests__/instagram-public-import.test.ts
+      - name: Archive new public posts and update the public index
+        if: steps.readiness.outputs.enabled == 'true'
+        run: node scripts/instagram-public-sync.mjs
