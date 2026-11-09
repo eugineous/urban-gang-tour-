@@ -5,7 +5,6 @@ import {useEffect, useState, useSyncExternalStore} from 'react';
 import {usePathname} from 'next/navigation';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import {appMessages} from '@/ui/i18n/catalogues/app';
-import {dismissUpdate, updateWasDismissed} from '@/lib/client/pwa-update-dismissal';
 import styles from '@/app/app/App.module.css';
 
 type InstallPrompt = Event & {prompt:() => Promise<void>; userChoice:Promise<{outcome:'accepted'|'dismissed'}>};
@@ -30,7 +29,7 @@ export async function installApp() {
   finally {publish({installing:false});}
 }
 
-const protectedPath = (path:string) => /^\/(checkout|pay|cart|admin|organizer|account|tickets|receipt|t|verify)(\/|$)/.test(path);
+const protectedPath = (path:string) => /^\/(shop|checkout|pay|cart|admin|organizer|account|tickets|receipt|t|verify)(\/|$)/.test(path);
 export function refreshBlocked(path:string) {return state.dirty || protectedPath(path) || !state.online;}
 
 /** Call only after this form's save has succeeded, never merely on submit. */
@@ -45,21 +44,31 @@ function eventRelease(event?:Event):string|null {
   return typeof release === 'string' && /^[a-z0-9][a-z0-9._:-]{0,159}$/i.test(release) ? release : null;
 }
 
-/** Only a deliberate click in this tab can refresh it. Other tabs keep their work. */
-export async function updateApp() {
+/** Automatic updates use the same form/payment guards as an explicit refresh. */
+export async function updateApp(automatic=false) {
   if (refreshBlocked(location.pathname) || state.updating) return;
+  const release=state.release;
+  if(automatic){
+    if(!release||document.hidden||document.activeElement?.closest('form,input,textarea,select,[contenteditable="true"]'))return;
+    try{if(sessionStorage.getItem('ugt-auto-update-applied')===release)return}catch{return}
+  }
+  const reload=()=>{
+    if(refreshBlocked(location.pathname)||automatic&&(document.hidden||document.activeElement?.closest('form,input,textarea,select,[contenteditable="true"]'))){publish({updating:false});return}
+    if(automatic)try{sessionStorage.setItem('ugt-auto-update-applied',release!)}catch{publish({updating:false});return}
+    location.reload();
+  };
   publish({updating:true, updateFailed:false});
   try {
     const registration = await navigator.serviceWorker.getRegistration();
     if (refreshBlocked(location.pathname)) {publish({updating:false}); return;}
     if (!registration?.waiting) {
-      if (state.update === 'activated') {location.reload(); return;}
+      if (state.update === 'activated') {reload(); return;}
       publish({updating:false, updateFailed:true}); return;
     }
     const applied = () => {
       clearTimeout(timeout);
       if (refreshBlocked(location.pathname)) {publish({updating:false}); return;}
-      location.reload();
+      reload();
     };
     const timeout = setTimeout(() => {navigator.serviceWorker.removeEventListener('controllerchange', applied); publish({updating:false, updateFailed:true});}, 15000);
     navigator.serviceWorker.addEventListener('controllerchange', applied, {once:true});
@@ -117,13 +126,21 @@ export function InstallableApp() {
     };
   }, []);
   useEffect(() => {dirtyScopes.clear(); publish({dirty:false});}, [path]);
+  useEffect(()=>{
+    let lastActivity=Date.now();
+    const activity=()=>{lastActivity=Date.now()};
+    const consider=()=>{if(Date.now()-lastActivity>=3000&&state.update!=='none'&&!state.updateFailed&&!refreshBlocked(location.pathname))void updateApp(true)};
+    const timer=setInterval(consider,3000);
+    window.addEventListener('pointerdown',activity,{passive:true});window.addEventListener('keydown',activity);window.addEventListener('scroll',activity,{passive:true});
+    return()=>{clearInterval(timer);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('scroll',activity)};
+  },[path]);
   const notice = !app.online ? 'offline' : app.update;
   const noticeKey = app.online && app.release ? `release:${app.release}` : notice;
-  if (!app.ready || path === '/app' || notice === 'none' || dismissed === noticeKey || app.online && updateWasDismissed(app.release)) return null;
+  if (!app.ready || path === '/app' || app.online || notice === 'none' || dismissed === noticeKey) return null;
   return <aside className={styles.notices} aria-label={t('notice.label')}>
     <div className={styles.notice}>
       <div role="status" aria-live="polite">{!app.online ? <><strong>{t('offline.title')}</strong><p>{t('offline.description')}</p></> : <AppUpdate path={path}/>}</div>
-      <button className={styles.close} type="button" aria-label={t('notice.dismiss')} onClick={() => {if (app.online) dismissUpdate(app.release); setDismissed(noticeKey);}}>×</button>
+      <button className={styles.close} type="button" aria-label={t('notice.dismiss')} onClick={() => setDismissed(noticeKey)}>×</button>
     </div>
   </aside>;
 }

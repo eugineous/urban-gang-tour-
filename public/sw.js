@@ -1,4 +1,4 @@
-const CACHE = 'ugt-merch-images-20261104-v1';
+const CACHE = 'ugt-auto-update-cart-20261109-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.
@@ -27,7 +27,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Existing installations wait for the visitor's explicit update action.
+// The page requests activation once its form/payment guards permit an update.
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'GET_RELEASE') event.ports?.[0]?.postMessage({release:CACHE});
   if (event.data?.type === 'SKIP_WAITING') event.waitUntil(self.skipWaiting());

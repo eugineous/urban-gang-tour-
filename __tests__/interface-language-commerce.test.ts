@@ -193,7 +193,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   expect(await page.locator('#checkout [data-language-control] select').count()).toBe(1);
   for(const [name,value]of Object.entries({name:'Original Buyer',phone:'0712345678',email:'buyer@example.test'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
   await page.locator('#checkout [data-checkout-next]:visible').click();
-  await page.getByLabel('Pickup or delivery').selectOption('delivery');
+  await page.getByRole('combobox',{name:'Pickup or delivery',exact:true}).selectOption('delivery');
   for(const [name,value]of Object.entries({line1:'Original Road',city:'Nairobi',postalCode:'00100'}))await page.locator('#checkout input[name="'+name+'"]').fill(value);
   await page.locator('#checkout [data-checkout-next]:visible').click();
   await page.locator('#checkout input[name="paymentMethod"][value="card"]').check();

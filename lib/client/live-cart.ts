@@ -1,6 +1,13 @@
 import {normalizePrintableName} from '@/lib/shared/merch-personalization';
 export type CartItem={id:string;qty:number;variant?:string;printableName?:string};
 export const LIVE_CART_KEY='ugt-live-cart-v1';
+/** Refresh restored browser-history pages and background tabs from saved state. */
+export function subscribeLiveCart(refresh:()=>void){
+ const storage=(event:StorageEvent)=>{if(event.key===null||event.key===LIVE_CART_KEY||event.key==='ugt_cart')refresh()};
+ const visible=()=>{if(!document.hidden)refresh()};
+ window.addEventListener('ugt-cart-changed',refresh);window.addEventListener('storage',storage);window.addEventListener('pageshow',refresh);document.addEventListener('visibilitychange',visible);
+ return()=>{window.removeEventListener('ugt-cart-changed',refresh);window.removeEventListener('storage',storage);window.removeEventListener('pageshow',refresh);document.removeEventListener('visibilitychange',visible)};
+}
 export function readLiveCart():CartItem[]{
  try{
   const stored=JSON.parse(localStorage.getItem(LIVE_CART_KEY)||localStorage.getItem('ugt_cart')||'[]');

@@ -100,7 +100,7 @@ it.skipIf(!enabled)('lets a card pickup buyer skip contact details before choosi
  const {page,context,posts}=await open();
  try{
   await page.locator('[data-checkout-next]:visible').click();
-  await page.getByLabel('Pickup or delivery').waitFor();
+  await page.getByRole('combobox',{name:'Pickup or delivery',exact:true}).waitFor();
   await page.locator('[data-checkout-next]:visible').click();
   await page.locator('input[name="paymentMethod"][value="card"]').check();
   await page.locator('form input[type="checkbox"]').check();
@@ -113,7 +113,7 @@ it.skipIf(!enabled)('lets a card pickup buyer skip contact details before choosi
 it.skipIf(!enabled)('shows one checkout panel, validates details, and navigates without initiating a payment',async()=>{
  const {page,context,posts,unexpected}=await open();
  try{
-  expect(await page.getByLabel('Pickup or delivery').isVisible()).toBe(false);
+  expect(await page.getByRole('combobox',{name:'Pickup or delivery',exact:true}).isVisible()).toBe(false);
   expect(await page.getByRole('button',{name:/Pay KES/}).isVisible()).toBe(false);
   await page.locator('input[name="email"]').fill('invalid');
   await page.locator('[data-checkout-next]:visible').click();
@@ -122,7 +122,7 @@ it.skipIf(!enabled)('shows one checkout panel, validates details, and navigates 
   await page.getByLabel('Your full name',{exact:true}).fill('Fixture Buyer');
   await page.getByLabel('Delivery contact number',{exact:true}).fill('0712345678');
   await page.getByLabel('Delivery contact number',{exact:true}).press('Enter');
-  expect(await page.getByLabel('Pickup or delivery').isVisible()).toBe(true);
+  expect(await page.getByRole('combobox',{name:'Pickup or delivery',exact:true}).isVisible()).toBe(true);
   expect(await page.getByLabel('Your full name',{exact:true}).isVisible()).toBe(false);
   await page.locator('[data-checkout-next]:visible').click();
   expect(await page.locator('input[name="paymentMethod"][value="card"]').isVisible()).toBe(true);
@@ -144,7 +144,7 @@ it.skipIf(!enabled)('keeps the styled journey usable at phone, tablet, desktop a
    if(artifact){mkdirSync(artifact,{recursive:true});await page.screenshot({path:artifact+'/checkout-details-'+width+'.png',fullPage:true})}
    await page.getByLabel('Your full name',{exact:true}).fill('Fixture Buyer');await page.getByLabel('Delivery contact number',{exact:true}).fill('0712345678');
    await page.locator('[data-checkout-next]:visible').click();
-   await page.getByLabel('Pickup or delivery').selectOption('delivery');
+   await page.getByRole('combobox',{name:'Pickup or delivery',exact:true}).selectOption('delivery');
    await page.getByLabel('Delivery address',{exact:true}).fill('Fixture Road');await page.getByLabel('Town or city',{exact:true}).fill('Nairobi');
    await page.locator('[data-checkout-next]:visible').click();
    await page.locator('input[name="paymentMethod"][value="card"]').check();
@@ -162,7 +162,7 @@ it.skipIf(!enabled)('revalidates earlier contact fields after choosing delivery 
  const {page,context,posts}=await open();
  try{
   await page.locator('[data-checkout-next]:visible').click();
-  await page.getByLabel('Pickup or delivery').selectOption('delivery');
+  await page.getByRole('combobox',{name:'Pickup or delivery',exact:true}).selectOption('delivery');
   await page.getByLabel('Delivery address',{exact:true}).fill('Fixture Road');await page.getByLabel('Town or city',{exact:true}).fill('Nairobi');
   await page.locator('[data-checkout-next]:visible').click();
   await page.locator('form input[type="checkbox"]').check();

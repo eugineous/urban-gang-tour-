@@ -19,8 +19,7 @@
     });
   };
   let hadController = Boolean(navigator.serviceWorker.controller);
-  // A new controller must never discard a form, checkout or another tab's work.
-  // The React notice offers an explicit refresh after the visitor is ready.
+  // Each tab applies an update only when its own form/payment guards permit it.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (hadController) {
       const controller = navigator.serviceWorker.controller;

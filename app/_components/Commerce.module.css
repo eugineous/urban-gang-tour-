@@ -41,6 +41,11 @@
 .transactionGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:48px;align-items:start;margin-top:40px}
 .transactionGrid.cartOnly{grid-template-columns:minmax(0,1fr) minmax(280px,.48fr)}
 .cartItems{min-width:0}
+.cartPage.cartPage{padding-block:112px 36px}
+.cartPage .cartIntro{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid #d8d2d6}
+.cartPage .cartIntro h1{font-size:30px;line-height:1.15;margin:0;letter-spacing:-.04em}
+.cartPage .cartIntro a{font-size:14px;min-height:44px;display:flex;align-items:center;color:#86104f;text-decoration:underline;text-underline-offset:4px}
+.cartPage .empty{padding:24px 0}.cartPage .empty h2{font-size:25px;margin-bottom:12px}.cartPage .transactionGrid{margin-top:20px}
 .cartItems>h2{font-size:20px;margin-bottom:20px}
 .cartLine{display:grid;grid-template-columns:112px minmax(0,1fr);gap:24px;padding:24px 0;border-top:1px solid #d8d2d6}
 .cartImage{aspect-ratio:1;background:#ede9eb;border-radius:10px;padding:12px;display:grid;place-items:center}
