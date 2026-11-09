@@ -31,13 +31,18 @@ describe('recovered public chrome',()=>{
   const html=renderToStaticMarkup(createElement(FloatingTalk));
   expect(html).toContain('href="/contact-us"');expect(html).toContain('Let’s talk');expect(html).not.toContain('<button');expect(html).not.toContain('<video');
  });
- it.each(['/','/experience','/events'])('keeps direct contact and restores the initially closed host invitation on %s',path=>{
+ it.each(['/','/experience','/events'])('opens the contact-or-book chooser and preserves the initially closed host invitation on %s',path=>{
   vi.mocked(usePathname).mockReturnValue(path);
   const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Example')));
-  expect(html).toContain('class="start-link" href="/contact-us"');
+  expect(html).toContain('class="start-link" href="/apply"');
   expect(html).toContain('Let’s talk');expect(html).toContain('data-host-invitation');
   expect(html).not.toMatch(/<dialog[^>]* open(?:[=> ])/);
   expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);
+ });
+ it('keeps the Apply chooser free of repeated host invitations and campaign placements',()=>{
+  vi.mocked(usePathname).mockReturnValue('/apply');
+  const html=renderToStaticMarkup(createElement(AppShell,null,createElement('h1',null,'Apply')));
+  expect(html).not.toContain('data-host-invitation');expect(html).not.toContain('data-contact-launcher');
  });
  it('keeps the hamburger icon mobile-only and preserves laptop navigation',()=>{
   const css=readFileSync('app/navigation.css','utf8');

@@ -14,7 +14,7 @@ it('ships one labeled menu, no hidden alternate Shop/About controls, and one mai
  expect(html.match(/class="site-header"/g)).toHaveLength(1);
  expect(html).toContain('aria-controls="site-menu"');expect(html).toContain('class="mobile-menu-label">Menu</span>');
  expect(html.match(/<button[^>]*class="menu-toggle"[^>]*>/)?.[0]).not.toContain('aria-label=');
- expect(html).not.toContain('desktop-menu-label');expect(html).toContain('href="/contact-us"><span class="header-rolling-label"');
+ expect(html).not.toContain('desktop-menu-label');expect(html).toContain('href="/apply"><span class="header-rolling-label"');
  expect(html).toContain('class="tickets-link" href="/account"');
  expect(html).not.toContain('mobile-shop-link');expect(html).not.toContain('mobile-about-link');
  expect(html).toContain('href="/shop" aria-current="page"');expect(html).toContain('aria-label="Account and help"');

@@ -1,0 +1,10 @@
+{
+  "asset": "hosts-welcome-clean.webp",
+  "sources": ["hosts-welcome.webp"],
+  "treatment": "Image-generation edit removing inaccurate printed shirt marks; welcoming editorial illustration, not event photography. Original generated masters retained.",
+  "generated": true,
+  "shirtMarks": {
+    "source": "/assets/ugt-logo.png",
+    "rendering": "Exact original raster placed as separate anchored image layers over clean shirts. Hero uses hosts-editorial.webp and CSS grayscale only; welcome card retains original logo colours. No generated logo lettering."
+  }
+}

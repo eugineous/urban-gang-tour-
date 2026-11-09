@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {homepageFeaturedEvent} from '@/ui/lib/home-discovery';
+import {homepageFeaturedEvent,homepagePosterEvents} from '@/ui/lib/home-discovery';
 const now=Date.parse('2026-11-09T12:00:00+03:00');
 const row=(slug:string,date:string,status='published')=>({id:slug,slug,name:slug,kind:'ticketed',eventDate:date,status,image:'/uploads/'+slug+'.jpg'});
 it('prefers a public upcoming poster to a newer past record without claiming a sale',()=>{
@@ -22,4 +22,12 @@ it('does not advertise private, cancelled, postponed, unsafe or undated artwork'
 it('uses no record while feed freshness or clock validity is unknown',()=>{
  expect(homepageFeaturedEvent([row('next','2026-11-15')],now,false)).toBeNull();
  expect(homepageFeaturedEvent([row('next','2026-11-15')],0)).toBeNull();
+});
+it('rotates only eligible upcoming posters in date order, never mixing in archives or duplicates',()=>{
+ const early=row('early','2026-11-12'),late=row('late','2026-11-20');
+ expect(homepagePosterEvents([late,row('past','2026-11-06'),early,early,row('cancelled','2026-11-14','cancelled')],now).map(item=>item.event.slug)).toEqual(['early','late']);
+ expect(homepagePosterEvents([early],now)).toEqual([{event:early,past:false}]);
+ expect(homepagePosterEvents([early],now,false)).toEqual([]);
+ expect(homepagePosterEvents([],now)).toEqual([]);
+ expect(homepagePosterEvents([row('old','2026-11-04'),row('recent','2026-11-06')],now).map(item=>[item.event.slug,item.past])).toEqual([['recent',true]]);
 });

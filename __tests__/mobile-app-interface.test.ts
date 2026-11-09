@@ -6,12 +6,12 @@ import {MobileEventDate} from '@/app/_components/MobileEventDate';
 import {MobileAppHero} from '@/ui/components/MobileAppHero';
 it('provides booking-first mobile destinations with Home in the middle',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppNavigation,{path:'/cart'}));
- for(const href of ['/events','/account','/','/book','/contact-us'])expect(html).toContain('href="'+href+'"');
+ for(const href of ['/events','/account','/','/shop','/apply'])expect(html).toContain('href="'+href+'"');
  expect([...html.matchAll(/<a[^>]+href="([^"]+)"/g)].map(match=>match[1])[2]).toBe('/');
 });
 it('marks the direct contact destination active in mobile navigation',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppNavigation,{path:'/contact-us'}));
- expect(html).toContain('href="/contact-us" aria-current="page"');
+ expect(html).toContain('href="/apply" aria-current="page"');
 });
 it('renders the brand headline without a decorative dot',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));
@@ -22,13 +22,14 @@ it.each(['/checkout','/pay/success','/admin','/organizer/dashboard','/receipt/ab
  expect(renderToStaticMarkup(createElement(MobileAppNavigation,{path}))).toBe('');
 });
 it('uses real host booking and discovery destinations in the mobile hero',()=>{
- const html=renderToStaticMarkup(createElement(MobileAppHero));expect(html).toContain('href="/book"');expect(html).toContain('href="/events"');expect(html).toContain('hosts-welcome.webp');
+ const html=renderToStaticMarkup(createElement(MobileAppHero));expect(html).toContain('href="/book"');expect(html).toContain('href="/events"');expect(html).toContain('hosts-welcome-clean.webp');
 });
 it('presents both named hosts in the hero while keeping the booking card artwork',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));
- expect(html).toContain('srcSet="/assets/mobile/hosts-branded.webp"');
+ expect(html).toContain('srcSet="/assets/mobile/hosts-editorial.webp"');
  expect(html).toContain('alt="Illustrated portrait of Eugine Micah and Lucy Ogunde in black T-shirts"');
- expect(html).toContain('/assets/mobile/hosts-welcome.webp');
+ expect(html).toContain('/assets/mobile/hosts-welcome-clean.webp');
+ expect([...html.matchAll(/data-exact-shirt-logo/g)]).toHaveLength(4);
 });
 it('presents three semantic service points, booking hosts and a video after the cards',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));

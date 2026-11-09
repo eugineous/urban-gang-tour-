@@ -1,5 +1,17 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Exact brand and mobile reel refinement (9 November 2026)
+- Owner supersedes the Book dock slot with Shop; Contact opens a concise Apply
+  chooser linking existing booking and contact forms. Home stays centred.
+- Shirts use the original UGT raster artwork, not generated lettering. Hero
+  marks are monochrome. Host/event cards use full, uncropped rectangular images.
+- Eligible upcoming posters rotate every second only when multiple exist;
+  preserve the exact artwork holds and labelled recent-archive fallback.
+- Owned video strip now autoplays muted and scrolls edge-to-edge seamlessly.
+  Visible-only loading, pause, reduced motion/focus/save-data and native manual
+  playback fallbacks supersede the prior manual-only single-film instruction.
+  Preserve desktop/shop, commerce/data safeguards and normal keep-vars release.
+
 ## Magenta booking-first app refinement (9 November 2026)
 - Owner requests magenta throughout, coordinated violet/cyan accents and small
   gold highlights, branded black host T-shirts and colour welcoming host art.

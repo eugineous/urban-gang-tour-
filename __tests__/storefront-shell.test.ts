@@ -50,7 +50,7 @@ it.each(['/','/gallery','/shop'])('renders the same premium public navigation on
   expect(await page.locator('.site-header .tickets-link').innerText()).toBe('My tickets');
   expect(await page.locator('.site-header .cart-link').getAttribute('href')).toBe('/cart');
   expect(await page.locator('.site-header .cart-link').getAttribute('aria-label')).toBe('Cart (0)');
-  expect(await page.locator('.site-header .start-link').getAttribute('href')).toBe('/contact-us');
+  expect(await page.locator('.site-header .start-link').getAttribute('href')).toBe('/apply');
   expect(await page.locator('[aria-controls="site-menu"]').count()).toBe(1);
  }finally{await page.close()}
 });
