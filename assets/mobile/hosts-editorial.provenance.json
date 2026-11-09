@@ -1,0 +1,10 @@
+{
+  "asset": "hosts-editorial.webp",
+  "subjects": ["Eugine Micah", "Lucy Ogunde"],
+  "sources": ["/assets/mobile/eugine-editorial.webp", "/media-library/a4499d970f6ef310.webp"],
+  "sourceDescription": "Existing owned Eugine illustration and owned Lucy portrait",
+  "treatment": "Generated transparent monochrome editorial illustration: both hosts in plain black T-shirts; Lucy just behind Eugine with her face visible",
+  "generated": true,
+  "referenceArtworkReused": false,
+  "scope": "Mobile homepage hero only; existing host cards and desktop hero retained"
+}

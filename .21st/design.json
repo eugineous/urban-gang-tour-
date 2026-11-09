@@ -81,6 +81,12 @@
   "decisions": [
     {
       "date": "2026-11-09",
+      "direction": "Owner requests Lucy in a black T-shirt just behind Eugine in the mobile hero",
+      "mobile": "Owned-source monochrome two-host cutout, bounded headline and responsive portrait width so both faces remain visible on narrow phones",
+      "preserve": "Five-tab Contact navigation, no GANG dot, Android normalized sizing, existing cards, desktop and all commerce safeguards"
+    },
+    {
+      "date": "2026-11-09",
       "direction": "Owner Android correction: normalized mobile hero sizing, no GANG dot and fifth Contact tab",
       "mobile": "Use normalized viewport width and height, flowing introductory copy and short-screen card clearance. Five real navigation destinations with wrapping native labels and44px targets.",
       "preserve": "Light header, owned portrait, existing desktop interface, cart, Paystack and ticket safeguards"

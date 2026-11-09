@@ -24,6 +24,12 @@ it.each(['/checkout','/pay/success','/admin','/organizer/dashboard','/receipt/ab
 it('uses real host booking and discovery destinations in the mobile hero',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));expect(html).toContain('href="/book"');expect(html).toContain('href="/events"');expect(html).toContain('eugine-editorial.webp');
 });
+it('presents both named hosts in the hero while keeping the booking card artwork',()=>{
+ const html=renderToStaticMarkup(createElement(MobileAppHero));
+ expect(html).toContain('srcSet="/assets/mobile/hosts-editorial.webp"');
+ expect(html).toContain('alt="Illustrated portrait of Eugine Micah and Lucy Ogunde in black T-shirts"');
+ expect(html).toContain('srcSet="/assets/mobile/eugine-editorial.webp"');
+});
 it('shows the record date without manufacturing a date for an undated event',()=>{
  expect(renderToStaticMarkup(createElement(MobileEventDate,{date:null}))).toBe('');
  expect(renderToStaticMarkup(createElement(MobileEventDate,{date:'2026-02-30'}))).toBe('');

@@ -1,3 +1,40 @@
+# Lucy behind Eugine in the mobile hero — 9 November 2026
+
+Final result: passed for the checked two-host mobile hero.
+
+Owner-requested addition: Lucy in a plain black T-shirt just behind Eugine,
+clearly visible. Generated a transparent monochrome two-host illustration from
+the existing owned Eugine art and Lucy photograph; tracked WebP master and
+honest source/treatment provenance are in assets/mobile. Original assets and
+host-card artwork remain. No reference-site art or invented event photograph.
+
+The main phone portrait now uses that cutout; its responsive width and bounded
+headline keep both faces visible. The Android zoom normalization, no-dot title,
+short-screen card clearance and five-tab Contact navigation remain. The expanded
+real-component regression compares both320/390px normal and wide Android
+viewports at710/844px readable heights. All16 immediate component/browser tests
+passed. Fixture screenshots at320/390px were visually inspected: Lucy's full
+face and black shirt are visible behind Eugine, neither face is covered by the
+headline, and both card actions fit above the short-screen dock.
+
+This is a mobile-hero artwork/layout addition only. Existing desktop video,
+cards, public data, prices, Paystack, account access and ticket safeguards remain.
+Browser emulation is not physical-device certification.
+
+All108 focused tests passed. Clean Cloudflare build/TypeScript and keep-vars dry
+run passed. Real built-shell Chromium checks at320/390/430px and1440px desktop,
+including normal/wide Android and710/844px readable heights, passed without
+page errors or horizontal overflow. Both-host source decoding/alt text, no-dot
+heading, five44px navigation targets, real Contact destination and short-screen
+card clearance passed. The built320px capture
+`hosts-built-android-repair-320-710.png` was inspected: both faces and black
+shirts remain visible, and the intro's paper backing preserves readable text.
+Tracked195KiB WebP and packaged asset hashes match. Existing desktop/card art
+remains unchanged. Focused lint:0 errors/2 existing image/native-link warnings;
+21st component review:0 findings.
+
+---
+
 # Android correction and Contact navigation — 9 November 2026
 
 Final result: passed for the checked Android layout repair.

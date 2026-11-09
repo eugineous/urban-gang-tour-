@@ -43,6 +43,10 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 9 November host-art addition: Lucy wears a plain black T-shirt behind Eugine
+  in the mobile hero. Use the generated owned-source two-host cutout, keep both
+  faces visible at320–430px and retain the Contact tab/Android viewport repair.
+
 - 9 November Android correction: heading scales against the normalized phone
   viewport, intro stays in flow and short-screen card actions clear the dock.
   Remove the GANG dot and add a fifth Contact destination. Keep the light header,
