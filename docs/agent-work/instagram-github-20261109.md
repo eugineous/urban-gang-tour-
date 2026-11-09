@@ -32,3 +32,22 @@ whole suite green. No customer payment, message, order, stock, provider credenti
 or existing Worker binding is changed by this release.
 
 Operational instructions and limits: [setup](../instagram-github-import.md).
+
+## Released verification
+
+PR128 merged as620f53ddbc0eb063fd8da3687b878d1d7fe6f81d. Worker version
+`cb7b5ffd-a717-4b14-9b17-b69e864f6db2` is live with release marker
+`chest-menu-20261109-v1`;55bindings and the15-minute cron are unchanged.
+Live responsive/menu/motion/cart persistence checks passed after waiting for
+actual hydration, not the unrelated completion of all page downloads.
+
+Native Actions run42720069384 imported one complete reel with original caption,
+poster and audio. Live shared-link selection,35.618005s/720×1280video metadata,
+gallery metadata, HEAD and byte-range playback passed. Run42720467053 failed
+full-profile retrieval (`instagram_page_unavailable`); the account is NOT fully
+migrated. Run42720827073 imported0duplicates and enabled30-minute archive checks;
+future posts remain pending publication review. A double-counted known-link
+summary discovered in that run is corrected by a script-only regression patch.
+
+Full run:52failed,2445passed,191skipped. Six language-context mock failures were
+corrected and all36shell tests reran green;46known legacy failures remain.
