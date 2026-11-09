@@ -1,7 +1,16 @@
 import {describe,it,expect,vi,afterEach} from 'vitest';
-import {readLiveCart,addCartItem} from '@/lib/client/live-cart';
+import {readLiveCart,addCartItem,subscribeLiveCart} from '@/lib/client/live-cart';
 afterEach(()=>vi.unstubAllGlobals());
 describe('shared product and shop bag',()=>{
+ it('rereads saved items on browser-history restoration and tab visibility',()=>{
+  const win=new EventTarget(),doc=Object.assign(new EventTarget(),{hidden:false});let value='[]';
+  vi.stubGlobal('window',win);vi.stubGlobal('document',doc);vi.stubGlobal('localStorage',{getItem:()=>value});
+  let current=readLiveCart();const unsubscribe=subscribeLiveCart(()=>{current=readLiveCart()});
+  value=JSON.stringify([{id:'shirt',qty:2,variant:'M'}]);win.dispatchEvent(new Event('pageshow'));
+  expect(current).toEqual([{id:'shirt',qty:2,variant:'M'}]);
+  value=JSON.stringify([{id:'shirt',qty:1,variant:'M'}]);doc.dispatchEvent(new Event('visibilitychange'));
+  expect(current[0].qty).toBe(1);unsubscribe();value='[]';win.dispatchEvent(new Event('pageshow'));expect(current).toHaveLength(1);
+ });
  it('migrates saved size selections and discards malformed entries',()=>{vi.stubGlobal('localStorage',{getItem:(key:string)=>key==='ugt_cart'?JSON.stringify([{id:'shirt',qty:2,size:'L'},{id:'other',qty:500}]):null});expect(readLiveCart()).toEqual([{id:'shirt',qty:2,variant:'L'}])});
  it('combines the same variation, caps quantity, and keeps other variations separate',()=>{const cart=addCartItem([{id:'shirt',qty:19,variant:'L'}],{id:'shirt',qty:4,variant:'L'});expect(cart[0].qty).toBe(20);expect(addCartItem(cart,{id:'shirt',qty:2,variant:'M'})).toHaveLength(2)});
  it('returns an empty bag when browser storage is unavailable',()=>{vi.stubGlobal('localStorage',{getItem:()=>{throw Error('unavailable')}});expect(readLiveCart()).toEqual([])});

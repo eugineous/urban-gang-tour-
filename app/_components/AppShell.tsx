@@ -13,7 +13,7 @@ import {FOCUS_VIEW_KEY,setFocusView} from '@/lib/client/display-preferences';
 import {installPageEntryScroll} from '@/lib/client/page-entry-scroll';
 import {EventPlacements} from '@/ui/components/EventPlacements';
 import type {OwnedEvent} from '@/ui/lib/owned-event-presentation';
-import {LIVE_CART_KEY,readLiveCart} from '@/lib/client/live-cart';
+import {readLiveCart,subscribeLiveCart} from '@/lib/client/live-cart';
 
 export function AppShell({children,events=[],initialNow=0}:{children:React.ReactNode;events?:OwnedEvent[];initialNow?:number}){
  const path=usePathname();
@@ -36,9 +36,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  const header=useRef<HTMLElement>(null),navigation=useRef<HTMLElement>(null);
  useEffect(()=>{
   const sync=()=>setCartCount(readLiveCart().reduce((count,item)=>count+item.qty,0));
-  const storage=(event:StorageEvent)=>{if(event.key===LIVE_CART_KEY||event.key==='ugt_cart'||event.key===null)sync()};
-  sync();window.addEventListener('ugt-cart-changed',sync);window.addEventListener('storage',storage);
-  return()=>{window.removeEventListener('ugt-cart-changed',sync);window.removeEventListener('storage',storage)};
+  sync();return subscribeLiveCart(sync);
  },[]);
  useEffect(()=>{
   let frame=0,active=true;

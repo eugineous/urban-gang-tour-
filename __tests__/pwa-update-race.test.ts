@@ -23,6 +23,8 @@ beforeEach(()=>{
  vi.stubGlobal('navigator',{onLine:true,userAgent:'Chromium',platform:'Linux',maxTouchPoints:0,serviceWorker:{controller:{},getRegistration:registrationLookup,addEventListener:vi.fn(),removeEventListener:vi.fn()}});
  vi.stubGlobal('matchMedia',()=>({matches:false,addEventListener:vi.fn(),removeEventListener:vi.fn()}));
  vi.stubGlobal('addEventListener',(name:string,callback:()=>void)=>events.set(name,callback));
+ vi.stubGlobal('window',{addEventListener:(name:string,callback:()=>void)=>events.set(name,callback),removeEventListener:vi.fn()});
+ const saved=new Map<string,string>();vi.stubGlobal('sessionStorage',{getItem:(key:string)=>saved.get(key)||null,setItem:(key:string,value:string)=>saved.set(key,value)});
  vi.stubGlobal('removeEventListener',vi.fn());
  vi.stubGlobal('Element',FormField);
  vi.stubGlobal('document',{querySelector:()=>({}),addEventListener:(name:string,callback:(event:{target:unknown})=>void)=>documentEvents.set(name,callback),removeEventListener:vi.fn()});
@@ -30,6 +32,23 @@ beforeEach(()=>{
 afterEach(()=>{vi.clearAllTimers();vi.useRealTimers();vi.unstubAllGlobals();});
 
 describe('PWA update lookup races',()=>{
+ it('automatically reloads a clean public page once per activated release',async()=>{
+  const app=await import('@/app/_components/InstallableApp');app.InstallableApp();location.pathname='/';
+  (events.get('ugt-release-activated') as (e:unknown)=>void)({detail:{release:'ugt-auto-fixture-v1'}});
+  await vi.advanceTimersByTimeAsync(3000);expect(reload).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(9000);expect(reload).toHaveBeenCalledOnce();
+ });
+ it.each(['shop','cart','checkout','pay/success','admin','organizer/dashboard'])('defers automatic refresh on /%s',async(path)=>{
+  const app=await import('@/app/_components/InstallableApp');app.InstallableApp();location.pathname='/'+path;
+  (events.get('ugt-release-activated') as (e:unknown)=>void)({detail:{release:'ugt-auto-fixture-v1'}});
+  await vi.advanceTimersByTimeAsync(9000);expect(reload).not.toHaveBeenCalled();
+ });
+ it('defers automatic refresh with unsaved form input',async()=>{
+  const app=await import('@/app/_components/InstallableApp');app.InstallableApp();location.pathname='/book';
+  (events.get('ugt-release-activated') as (e:unknown)=>void)({detail:{release:'ugt-auto-fixture-v1'}});
+  documentEvents.get('input')!({target:new FormField()});
+  await vi.advanceTimersByTimeAsync(9000);expect(reload).not.toHaveBeenCalled();
+ });
  it.each([
   [false,'dirty'],[false,'protected'],[false,'offline'],
   [true,'dirty'],[true,'protected'],[true,'offline'],

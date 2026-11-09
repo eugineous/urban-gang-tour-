@@ -2,7 +2,7 @@ import {defineCatalogue} from '@/lib/i18n/messages';
 
 const rows=[
  ['details','Your details','Maelezo yako','Vos coordonnées','您的信息','Ваши данные','Tus datos'],
- ['delivery','Receive your order','Pokea oda yako','Recevoir votre commande','接收订单','Получение заказа','Recibe tu pedido'],
+ ['delivery','Pickup or delivery','Kuchukua au kuletewa','Retrait ou livraison','自取或配送','Самовывоз или доставка','Recogida o entrega'],
  ['tickets','Choose your tickets','Chagua tiketi zako','Choisissez vos billets','选择门票','Выберите билеты','Elige tus entradas'],
  ['payment','Choose how to pay','Chagua njia ya kulipa','Choisissez comment payer','选择付款方式','Выберите способ оплаты','Elige cómo pagar'],
  ['details.note','A few details for this order.','Maelezo machache ya oda hii.','Quelques coordonnées pour cette commande.','填写此订单所需的少量信息。','Несколько данных для этого заказа.','Unos datos para este pedido.'],
