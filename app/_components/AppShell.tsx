@@ -98,7 +98,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
     <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
     <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
     <a className="mobile-search" href="/events#event-search" aria-label={t('nav.search')}><MagnifyingGlass size={23} aria-hidden="true"/></a>
-    <a className="start-link" href="/contact-us"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
+    <a className="start-link" href="/apply"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
     <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">{t('nav.menu')}</span></button>
    </div>
    </div>
@@ -113,11 +113,11 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    <div className="menu-bottom"><nav className="menu-account-links" aria-label={t('nav.accountHelp')}>{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav></div>
   </dialog>
   <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
-  {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
-  <CampaignDisplays path={path} paused={open||focus}/>
-  {!critical&&<BookingInvitation paused={open||focus}/>}
+  {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&path!=='/apply'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
+  {path!=='/apply'&&<CampaignDisplays path={path} paused={open||focus}/>}
+  {!critical&&path!=='/apply'&&<BookingInvitation paused={open||focus}/>}
   {!open&&<MobileAppNavigation path={path}/>}
-  {!critical&&path!=='/reels'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
-  {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter path={path} onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/contact-us'&&path!=='/offline'}/>}
+  {!critical&&path!=='/reels'&&path!=='/apply'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
+  {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter path={path} onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/apply'&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;
 }

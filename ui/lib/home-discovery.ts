@@ -36,6 +36,15 @@ export function homepageUpcomingEvents(events: OwnedEvent[], now: number, limit 
 }
 
 /** A poster preview, not a claim of current ticket availability. */
+export function homepagePosterEvents(events:OwnedEvent[],now:number,current=true):Array<{event:OwnedEvent;past:boolean}>{
+  if(!current||!Number.isFinite(now)||now<=0)return [];
+  const upcoming=homepageUpcomingEvents(events,now,12).filter(event=>{
+    const image=normalizePosterUrl(text(event.image));return !!image&&posterUrl(image);
+  }).map(event=>({event:{...event,image:normalizePosterUrl(text(event.image))},past:false}));
+  if(upcoming.length)return upcoming;
+  const recent=homepageFeaturedEvent(events,now,current);return recent?[recent]:[];
+}
+
 export function homepageFeaturedEvent(events:OwnedEvent[],now:number,current=true):{event:OwnedEvent;past:boolean}|null {
   if(!current||!Number.isFinite(now)||now<=0)return null;
   const usable=(event:OwnedEvent)=>{
