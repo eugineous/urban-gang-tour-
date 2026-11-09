@@ -1210,3 +1210,12 @@ surfaces and private media share one SQL eligibility predicate. Analysis uses
 BlogPosting and is excluded from the news-only sitemap; normal RSS/sitemap still
 include it after release. Published URLs receive actual author/disclosure and
 separate OG metadata. No automatic factual certification is claimed.
+
+## Owned Instagram archive (GitHub)
+
+- `GET /api/instagram-library`: public, device/network rate-limited and coalesced for15s. Returns `{ok:true,archive}` containing only published general-audience records from the fixed `urban_newsgang` GitHub archive. Upstream failure returns503, not fabricated success. A missing initial archive has no posts.
+- `GET|HEAD /instagram-media/:id`: public published-file lookup; supports single byte ranges, ETag and HEAD. Unknown/unpublished files return404; invalid ranges416; invalid upstream size/range502; unavailable storage503. It is not an arbitrary URL proxy.
+- `GET /api/admin/instagram-import`: authenticated Gallery staff/owner only, private/no-store. Counts, last archive check and native GitHub workflow/archive links. No secrets or Instagram credentials are returned.
+- `POST /api/admin/instagram-import`: owner only, same-origin, strict bounded JSON,3requests/min/device with network backstop. Body `{profile,rightsConfirmed:true,publishGeneral:boolean,autoSync?:boolean}`; only the fixed owned account is accepted. Optional server-only fine-grained GitHub Actions token dispatches the fixed main-branch workflow. GitHub acceptance returns202 `queued`, not completed. Missing direct-dispatch configuration returns503 with the native GitHub workflow link; rejection returns502. No Meta login, cookies or arbitrary scraper input is accepted.
+
+GitHub Actions performs bounded logged-out public retrieval and file verification outside the request path. Immutable media/checkpoints permit retry recovery; the replaceable approved public index drives the gallery/reels without another site build. GitHub archives are public, including unpublished-to-site records; use only owned content approved for public archiving. Private/gated/unavailable content is reported, never bypassed. Original captions are retained, not treated as verified event/ticket details.

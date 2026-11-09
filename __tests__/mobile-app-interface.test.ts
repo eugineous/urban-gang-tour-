@@ -26,10 +26,10 @@ it('uses real host booking and discovery destinations in the mobile hero',()=>{
 });
 it('presents both named hosts in the hero while keeping the booking card artwork',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));
- expect(html).toContain('srcSet="/assets/mobile/hosts-editorial.webp"');
+ expect(html).toContain('srcSet="/assets/mobile/hosts-printed-mono.webp"');
  expect(html).toContain('alt="Illustrated portrait of Eugine Micah and Lucy Ogunde in black T-shirts"');
  expect(html).toContain('/assets/mobile/hosts-welcome-clean.webp');
- expect([...html.matchAll(/data-exact-shirt-logo/g)]).toHaveLength(4);
+ expect([...html.matchAll(/data-exact-shirt-logo/g)]).toHaveLength(2);
 });
 it('presents three semantic service points, booking hosts and a video after the cards',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));

@@ -5,6 +5,7 @@ import { fetchWithTimeout } from "@/lib/client/fetch-with-timeout";
 import { useUnsavedWarning } from "@/lib/client/use-unsaved-warning";
 import { isDraftId } from "@/lib/story-draft";
 import {chronological,type Chronology} from '@/lib/chronology';
+import InstagramImport from './InstagramImport';
 type Photo = {
   id: number;
   url: string;
@@ -257,6 +258,7 @@ export default function MediaDesk() {
   const shown=chronological(filtered,sort,row=>row.created_at,row=>row.caption,row=>String(row.id));
   return (
     <div className="cr-media-desk">
+      <InstagramImport/>
       <section className="cr-panel">
         <div className="cr-toolbar">
           <div>

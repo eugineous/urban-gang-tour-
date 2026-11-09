@@ -3,7 +3,8 @@ import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/c
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
-import {List,ShoppingCart,Ticket,ArrowUpRight,MagnifyingGlass} from '@phosphor-icons/react';
+import {ShoppingCart,Ticket,ArrowUpRight,MagnifyingGlass} from '@phosphor-icons/react';
+import {MobileMenuToggle} from './MobileMenuToggle';
 import {MobileAppNavigation} from './MobileAppNavigation';
 import {usePathname} from 'next/navigation';
 import {ContactFooter,FloatingTalk} from '@/ui/components/ContactInterface';
@@ -99,7 +100,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
     <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
     <a className="mobile-search" href="/events#event-search" aria-label={t('nav.search')}><MagnifyingGlass size={23} aria-hidden="true"/></a>
     <a className="start-link" href="/apply"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
-    <button type="button" ref={trigger} className="menu-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls="site-menu" onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}><List className="mobile-menu-icon" size={23} aria-hidden="true"/><span className="mobile-menu-label">{t('nav.menu')}</span></button>
+    <MobileMenuToggle buttonRef={trigger} open={open} onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}/>
    </div>
    </div>
   </header>

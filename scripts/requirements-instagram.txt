@@ -1,0 +1,2 @@
+# Public-page parsing only; no cookies, passwords or Meta API token.
+yt-dlp==2026.10.26

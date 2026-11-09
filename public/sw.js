@@ -1,4 +1,4 @@
-const CACHE = 'ugt-exact-brand-mobile-20261109-v1';
+const CACHE = 'ugt-chest-menu-20261109-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.

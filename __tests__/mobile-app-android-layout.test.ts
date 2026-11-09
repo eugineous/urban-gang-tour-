@@ -158,3 +158,12 @@ it.skipIf(!enabled)('keeps introductory text clear of the cards on short Android
   expect(metrics.introBottom).toBeLessThanOrEqual(metrics.cardTop);
  }
 },30000);
+it.skipIf(!enabled)('uses integrated printed-shirt hero artwork without floating logo layers or card overlap',async()=>{
+ await renderPhone(false,710,390,'en',async page=>{
+  expect(await page.locator('[data-host-artwork="hero"] [data-exact-shirt-logo]').count()).toBe(0);
+  expect(await page.locator('[data-host-artwork="hero"] picture').count()).toBe(1);
+  expect(await page.locator('[data-host-artwork="hero"] picture img').evaluate(img=>(img as HTMLImageElement).currentSrc)).toContain('/hosts-printed-mono.webp');
+  const bounds=await page.evaluate(()=>({portrait:document.querySelector('[data-host-artwork="hero"]')!.getBoundingClientRect().bottom,card:document.querySelector('[data-mobile-host-card]')!.getBoundingClientRect().top}));
+  expect(bounds.portrait).toBeLessThanOrEqual(bounds.card);
+ });
+},30000);

@@ -1,5 +1,21 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Chest print, menu engagement and owned Instagram request (9 November 2026)
+- Owner rejects floating/shoulder-positioned hero logo layers. Use the flattened
+  reference-based monochrome printed-shirt illustration, large centre-front
+  prints following fabric and foreground occlusion. No separate hero logo layers.
+- Mobile menu invitation pulses slowly and continuously until clicked on the
+  current page; closing it does not restart the pulse. A new page visit/reload
+  resets engagement. Preserve reduced motion and focus-view exceptions.
+- Owner explicitly rejects R2 and selects GitHub. Public logged-out retrieval
+  has been proven for owned posts/reels: use the pinned extractor, no Instagram
+  passwords, browser cookies or Meta API tokens. Never bypass private/login-gated
+  content or provider rate limits; report the public coverage/failed items honestly.
+  GitHub Releases store files, hashes, original captions and versioned indexes.
+  The website reads approved public index data dynamically; no new storage binding
+  or customer-data mutation. Normal reviewed code release still applies. See the
+  public-instagram-github design and setup docs. Do not enable another account.
+
 ## Exact brand and mobile reel refinement (9 November 2026)
 - Owner supersedes the Book dock slot with Shop; Contact opens a concise Apply
   chooser linking existing booking and contact forms. Home stays centred.

@@ -7,7 +7,9 @@ import {readPublicProducts,type PublicProduct} from '@/lib/server/public-product
 import {readWebsiteContent} from '@/lib/server/website-content';
 import {requestTime} from '@/lib/server/request-time';
 import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
-export async function RenderedPage({pathName}:{pathName:string}){
+import {MediaCatalogProvider} from '@/ui/components/MediaLibrary';
+import type {InstagramArchive} from '@/lib/instagram-public.mjs';
+export async function RenderedPage({pathName,initialInstagramArchive}:{pathName:string;initialInstagramArchive?:InstagramArchive}){
  if(pathName==='/shop')return <LiveCommerce initialProducts={await readPublicProducts().catch(()=>undefined)}/>;
  if(pathName==='/book')return <BookingForm/>;
  const presenter=pathName.startsWith('/author/');
@@ -22,5 +24,6 @@ export async function RenderedPage({pathName}:{pathName:string}){
  // article bodies into the home page's hydration payload.
  const ordered=newestPublishedFirst(published);
  const posts=(home?ordered.slice(0,3):ordered).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description}));
- return <HostedSite path={pathName} screens={[]} products={products} events={events} posts={posts} pageContent={pageContent} initialNow={requestTime()}/>;
+ const page=<HostedSite path={pathName} screens={[]} products={products} events={events} posts={posts} pageContent={pageContent} initialNow={requestTime()}/>;
+ return pathName==='/gallery'||pathName.startsWith('/gallery/')||pathName==='/reels'?<MediaCatalogProvider initialArchive={initialInstagramArchive}>{page}</MediaCatalogProvider>:page;
 }
