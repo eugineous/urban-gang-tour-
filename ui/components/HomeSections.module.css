@@ -18,7 +18,7 @@
 .heroAction svg{flex:none;inline-size:18px;block-size:18px}
 .heroAction:hover{background:#f4eaf0}
 .heroAction:first-child{background:var(--action);border-color:var(--action);color:#fff}.heroAction:first-child:hover{background:var(--deep);border-color:var(--deep)}
-.heroAction:last-child{background:var(--ugt-accent,#0f6b6d);border-color:var(--ugt-accent,#0f6b6d);color:#fff}.heroAction:last-child:hover{background:#0b5153;border-color:#0b5153}
+.heroAction:last-child{background:var(--ugt-accent,#5b21b6);border-color:var(--ugt-accent,#5b21b6);color:#fff}.heroAction:last-child:hover{background:#43158d;border-color:#43158d}
 .heroAction:focus-visible{outline:3px solid #fff;outline-offset:4px}
 .home :global(.section){padding-block:76px}.home :global(.section-title){margin-block-end:36px}.home :global(.home-company-intro){margin-block:0 28px;font-size:20px;max-inline-size:46ch}
 .people{padding-block:64px!important}.people :global(.founders>a>img){aspect-ratio:4/3;max-block-size:430px;block-size:auto!important;object-fit:cover;object-position:center 28%}

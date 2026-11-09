@@ -1,5 +1,20 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Magenta booking-first app refinement (9 November 2026)
+- Owner requests magenta throughout, coordinated violet/cyan accents and small
+  gold highlights, branded black host T-shirts and colour welcoming host art.
+  Keep desktop composition/shop identity while updating shared colour tokens.
+- Mobile actions are Events, My tickets, centred Home, Book and Contact; Shop
+  remains in the full menu/cart. Gentle entry/tap motion and a slow two-cycle
+  hamburger ring respect reduced motion/focus view. No rapid flashing.
+- Hero services are three semantic points. Host card books Eugine & Lucy as
+  TV/event hosts; event card uses a real eligible poster, labels archives and
+  respects exact artwork holds (SATUK's held poster conflicts with its record).
+- Owned M034 video follows the cards; lazy poster/manual playback, shared
+  captions/failure/retry, gallery and event-listing links. No autoplay downloads,
+  invented events or ticket-sales activation. Preserve all commerce/auth/data
+  safeguards and the standing tested normal PR/keep-vars deployment workflow.
+
 ## Android mobile correction (9 November 2026)
 - Owner adds Lucy to the mobile hero, wearing a black T-shirt just behind
   Eugine with her face visible. Use the owned-source generated two-host cutout

@@ -1,15 +1,15 @@
 /* Eventify mobile composition. Desktop and transaction contracts stay intact. */
 .mobile-search{display:none}
 @media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
- :root{--paper:#f8f8f8;--ugt-surface-warm:#f8f8f8;--radius:26px;--mobile-pop:#f00063;--mobile-mint:#18c990}
- body{background:#f8f8f8}
+ :root{--radius:26px;--mobile-pop:var(--ugt-primary);--mobile-mint:var(--ugt-cyan)}
+ body{background:var(--paper)}
  body:has([data-mobile-app-navigation]){padding-bottom:110px}
  .desktop-home-hero{display:none!important}
  [data-public-surface=editorial] .page-intro h1,[data-public-surface=editorial] .section-title h2{font-weight:800;letter-spacing:-.055em}
  [data-public-surface=editorial] .page-intro{padding-top:108px;padding-bottom:28px}
  [data-public-surface=editorial] .section-title h2{font-size:38px;line-height:1.02}
  [data-public-surface=editorial] .wrap{width:calc(100% - 40px)}
- .event-discovery{background:#f8f8f8}.event-discovery h1{font-weight:850!important;line-height:.95!important;letter-spacing:-.06em!important}
+ .event-discovery{background:var(--paper)}.event-discovery h1{font-weight:850!important;line-height:.95!important;letter-spacing:-.06em!important}
  .event-detail-page{background:#101010;color:#fff;border-radius:28px;padding:24px 20px 36px!important;margin-top:84px;width:calc(100% - 16px)!important}
  .event-detail-page .detail-breadcrumbs{padding:0 0 24px;color:#dedede;font-size:12px}
  .event-detail-page .event-detail-hero{display:flex;flex-direction:column;gap:24px;margin:0 0 28px}
@@ -28,7 +28,7 @@
  .event-detail-page :is(dt,.form-note){color:#ddd}.event-detail-page dd{color:#fff}.event-detail-page .button{border-radius:40px;background:var(--action);color:#fff}
  .event-detail-page .modern-actions a{color:#fff}.event-detail-page h2{font-size:26px;line-height:1.1;letter-spacing:-.04em}
  .mobile-event-date{display:flex!important;align-items:center;gap:20px;margin:0 0 24px}
- .mobile-event-date strong{display:grid;place-items:center;width:92px;height:92px;border-radius:50%;background:#f00063;color:#fff;font-size:58px;line-height:1;font-weight:800}
+ .mobile-event-date strong{display:grid;place-items:center;width:92px;height:92px;border-radius:50%;background:var(--ugt-primary);color:#fff;font-size:58px;line-height:1;font-weight:800}
  .mobile-event-date span{font-size:60px;font-weight:800;line-height:1;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1px #fff;text-transform:uppercase}
  .event-detail-page .modern-alert{background:#301525;border-color:#983663;color:#fff}
  .event-ticket-dock{bottom:calc(98px + env(safe-area-inset-bottom,0px));left:16px;right:16px;border:1px solid #444;border-radius:22px;background:#202020;color:#fff;padding:10px 14px;box-shadow:0 5px 18px #0003}

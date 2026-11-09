@@ -144,9 +144,17 @@ html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
  .site-header .header-actions{display:contents}
  .site-header .brand{grid-column:2;grid-row:1;justify-self:center}
  .site-header .brand img{width:58px;height:42px;object-fit:contain}
- .site-header[data-public-surface] .menu-toggle{grid-column:1;grid-row:1;background:#101010;color:#fff;border-color:#101010;width:44px;height:44px;border-radius:50%;padding:0}
+ .site-header[data-public-surface] .menu-toggle{grid-column:1;grid-row:1;position:relative;background:var(--ugt-primary);color:#fff;border-color:var(--ugt-primary);width:44px;height:44px;border-radius:50%;padding:0}
  .site-header .mobile-menu-label{display:none}
  .site-header .cart-link{grid-column:3;grid-row:1;width:44px;height:44px;background:transparent;border-color:#dedede}
- .site-header .mobile-search{grid-column:4;grid-row:1;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--action);color:#fff}
+ .site-header .mobile-search{grid-column:4;grid-row:1;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ugt-accent);color:#fff}
  .site-header .start-link,.site-header .tickets-link,.site-header .desktop-nav{display:none}
 }
+@keyframes ugt-menu-invite{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.85;transform:scale(1.13)}}
+@media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
+ .site-header .menu-toggle::after{content:'';position:absolute;inset:-5px;border:2px solid var(--ugt-primary);border-radius:50%;pointer-events:none;animation:ugt-menu-invite 2s ease-in-out 2}
+ .site-header .menu-toggle[aria-expanded=true]::after{animation:none;opacity:0}
+}
+@media(prefers-reduced-motion:reduce){.site-header .menu-toggle::after{animation:none;opacity:.5}}
+html[data-focus-view=true] .site-header .menu-toggle::after{animation:none;opacity:.5}
+@media print{.site-header .menu-toggle::after{display:none}}

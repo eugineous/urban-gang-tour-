@@ -35,6 +35,24 @@ export function homepageUpcomingEvents(events: OwnedEvent[], now: number, limit 
   }).slice(0, limitTo(limit, 12));
 }
 
+/** A poster preview, not a claim of current ticket availability. */
+export function homepageFeaturedEvent(events:OwnedEvent[],now:number,current=true):{event:OwnedEvent;past:boolean}|null {
+  if(!current||!Number.isFinite(now)||now<=0)return null;
+  const usable=(event:OwnedEvent)=>{
+    const image=normalizePosterUrl(text(event.image));
+    return !!text(event.name)&&/^[a-z0-9-]{1,80}$/.test(text(event.slug))&&!!image&&posterUrl(image)&&
+      !promotionHolds.some(hold=>hold.slug===text(event.slug)&&hold.image===text(event.image));
+  };
+  const upcoming=homepageUpcomingEvents(events,now,12).find(usable);
+  if(upcoming)return {event:{...upcoming,image:normalizePosterUrl(text(upcoming.image))},past:false};
+  const recent=events.filter(event=>{
+    if(!event||typeof event!=='object'||!usable(event))return false;
+    const view=ownedEventPresentation(event,now);
+    return view.publicEvent&&view.past&&!!view.dateTime&&event.status!=='postponed';
+  }).sort((a,b)=>text(b.eventDate).localeCompare(text(a.eventDate)))[0];
+  return recent?{event:{...recent,image:normalizePosterUrl(text(recent.image))},past:true}:null;
+}
+
 /** A display-only selection from the public live catalogue, never proposed designs. */
 export function homepageProducts(products: Array<LiveShopProduct | Record<string, unknown>>, limit = 4): LiveShopProduct[] {
   const seen = new Set<string>();

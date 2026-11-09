@@ -29,13 +29,14 @@
   "design": {
     "colorMode": "light with dark media panels",
     "colors": {
-      "paper": "#f4f4f4",
+      "paper": "#fff7fc",
       "ink": "#151515",
       "muted": "#686868",
-      "action": "#ad1264",
-      "magenta": "#e6218c",
-      "yellow": "#ffd400",
-      "cyan": "#21c7e6"
+      "action": "#c60073",
+      "magenta": "#c60073",
+      "yellow": "#ffd23f",
+      "cyan": "#10cddd",
+      "violet": "#5b21b6"
     },
     "typography": {
       "body": "Inter, Arial, sans-serif",
@@ -79,6 +80,13 @@
     ]
   },
   "decisions": [
+    {
+      "date": "2026-11-09",
+      "direction": "Owner magenta booking-first app refinement",
+      "palette": "Primary #c60073; violet #5b21b6 and cyan #10cddd accents; small gold #ffd23f; blush/light surfaces",
+      "mobile": "Events, Tickets, centred Home, Book, Contact. Branded host shirts, colour welcome booking card, real eligible event poster and owned manual-play video after cards, semantic service bullets and gentle motion.",
+      "preserve": "Desktop composition, Shop in menu/cart, artwork holds, reduced-motion/focus, six languages, payments/auth/customer data"
+    },
     {
       "date": "2026-11-09",
       "direction": "Owner requests Lucy in a black T-shirt just behind Eugine in the mobile hero",
