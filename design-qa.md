@@ -1,3 +1,51 @@
+# Android correction and Contact navigation — 9 November 2026
+
+Final result: passed for the checked Android layout repair.
+
+The owner's651×1280 Android screenshot exposed a real defect missed by the
+previous overflow-only check: normalized390px phones could still use a raw980px
+viewport for headline sizing, growing the text from77.22px to100px across the
+portrait. At710px readable height, card actions ended at745px behind a dock
+starting at622px. Those reproductions failed before the repair.
+
+Both viewport axes now use the existing phone-zoom normalization. Heading size
+also respects visible height, intro copy flows naturally, and stage spacing
+compacts on short screens without hiding text. The requested GANG dot is removed.
+The dock now includes Home, Events, Shop, My tickets and Contact (/contact-us),
+with active-route state,44px targets and wrapping translated labels. Existing
+desktop, cart, Paystack, ticket access and critical-flow exclusions are unchanged.
+
+The new real-component Chromium tests cover390px normal and980px Android layout
+at710/844px readable heights, intro/card clearance, all English card actions
+above the short-screen dock, and320px Swahili five-tab label/target fitting.
+The long Contact label first failed its fit check; inherited anywhere wrapping
+corrected it.131 focused tests passed. Focused lint has0 errors/2 anchor-image
+warnings;21st component review returned0 findings, while catalogue search was
+unavailable without authentication. Layout and controls reuse the project modules.
+
+Private reference: the owner's Android screenshot1003107820.jpg. Real-component
+fixture screenshots are in `/workspace/artifacts/ugt-full-audit-20261103/`,
+including `android-wide-normalized.png` (normalized390×710). They show the whole
+face clear of type, no dot, readable card actions and all five navigation items.
+The fixture's blank header spacer is not the actual production header. Final
+built/live screenshots use the real app shell. This is browser emulation, not
+a claim of physical Android-device verification. The previous mobile QA report
+below is historical; its broad no-finding statement did not catch this defect.
+
+Clean Cloudflare build/TypeScript and keep-vars dry run passed. The actual built
+app shell passed Chromium checks at320/390/430px,710/844px readable heights,
+normal and980px-wide Android layouts, and1440px desktop. At390×710 both Android
+modes use56px headings; at390×844 both use77.22px. Cards end around616px before
+the622px dock on the short390px screen. Contact opens /contact-us and receives
+active state; menu/Escape retains focus and restores the dock. No horizontal
+overflow or page errors were observed. The real two-product KES5,300 cart
+remains consistent through checkout, Back, refresh, browser restart and history
+restoration, with terms initially unchecked. Built screenshot
+`built-android-repair-390-710.png` was visually inspected against the supplied
+Android defect: face unobscured, no dot, compact complete cards and five tabs.
+
+---
+
 # Eventify mobile reference — 9 November 2026
 
 final result: passed (UGT reference adaptation, not identical reference content)
