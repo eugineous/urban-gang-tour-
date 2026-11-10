@@ -17,10 +17,10 @@ afterEach(()=>vi.unstubAllGlobals());
 it('reuses anonymous public HTML under the deployment-specific key',async()=>{
   const first=await worker.fetch(request('/experience'),{},context());await Promise.all(jobs);
   expect(first.headers.get('cache-control')).toContain('s-maxage=60');
-  expect(first.headers.get('x-ugt-release')).toBe('paystack-mpesa-20261110-v1');
+  expect(first.headers.get('x-ugt-release')).toBe('guest-ticket-access-20261110-v1');
   const second=await worker.fetch(request('/experience'),{},context());expect(await second.text()).toContain('Public page');
   expect(state.fetch).toHaveBeenCalledTimes(1);
-  expect([...entries.keys()][0]).toContain('__ugt_release=paystack-mpesa-20261110-v1');
+  expect([...entries.keys()][0]).toContain('__ugt_release=guest-ticket-access-20261110-v1');
 });
 it.each(['/international','/accessibility','/welcome/en','/welcome/sw','/welcome/fr','/welcome/zh-Hans','/welcome/ru','/welcome/es'])('caches the non-personalized %s without locale cookies',async path=>{
  await worker.fetch(request(path),{},context());await Promise.all(jobs);
@@ -40,7 +40,7 @@ it.each(['/welcome/de','/welcome/constructor','/welcome/__proto__','/welcome/fr/
  const body=await response.text();for(const language of Object.keys(WELCOME_LANGUAGES))expect(body).toContain('href="/welcome/'+language+'"');
  expect(body).not.toContain(path);expect(body).toContain('Contact the team');
 });
-it.each(['/shop','/checkout','/cart','/account','/admin'])('keeps %s private and uncached',async path=>{
+it.each(['/shop','/checkout','/cart','/account','/my-tickets','/admin'])('keeps %s private and uncached',async path=>{
   const response=await worker.fetch(request(path),{},context());expect(response.headers.get('cache-control')).toBe('no-store');expect(jobs).toHaveLength(0);
 });
 it('bypasses authenticated visitors even when anonymous HTML is cached',async()=>{

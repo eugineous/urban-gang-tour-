@@ -71,7 +71,7 @@ describe('PWA privacy and deliberate updates', () => {
     expect(await fallback?.text()).toContain('<html lang="en-KE">');
     expect(app.entries.has('/offline.html')).toBe(true);
     expect(await app.request('/about')).toBeUndefined();
-    for (const path of ['/api/orders', '/orders/track?ref=private', '/account', '/admin', '/checkout', '/pay/secret', '/tickets/private', '/receipt/private']) {
+    for (const path of ['/api/orders', '/orders/track?ref=private', '/account', '/my-tickets', '/admin', '/checkout', '/pay/secret', '/tickets/private', '/receipt/private']) {
       expect(await app.request(path, {mode:'navigate'}), path).toBeUndefined();
     }
     expect(await app.request('/about', {mode:'navigate', authorization:'Bearer private'})).toBeUndefined();
@@ -80,7 +80,7 @@ describe('PWA privacy and deliberate updates', () => {
 
   it('does not intercept private destinations, API roots, authenticated assets or RSC requests', async () => {
     const app = worker();
-    for (const path of ['/api', '/api/orders', '/orders/track?ref=private', '/pay/secret', '/cart', '/checkout', '/account', '/admin', '/organizer', '/tickets/private', '/receipt/private', '/t/private', '/verify/private']) {
+    for (const path of ['/api', '/api/orders', '/orders/track?ref=private', '/pay/secret', '/cart', '/checkout', '/account', '/my-tickets', '/admin', '/organizer', '/tickets/private', '/receipt/private', '/t/private', '/verify/private']) {
       expect(await app.request(path), path).toBeUndefined();
     }
     expect(await app.request('/assets/logo.png', {authorization:'Bearer private'})).toBeUndefined();

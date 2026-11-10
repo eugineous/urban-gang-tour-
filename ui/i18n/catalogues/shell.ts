@@ -572,6 +572,7 @@ export type ShellMessageKey = keyof typeof shellMessages.en;
 const destinationKeys = {
 '/app':'nav.app',
 '/vendors':'nav.vendors',
+'/my-tickets':'nav.tickets',
 '/events':'nav.events','/portfolio':'nav.work','/gallery':'nav.gallery','/clients':'nav.clients','/shop':'nav.shop','/about':'nav.about','/book':'nav.book','/account':'nav.tickets','/blog':'nav.news','/organizer/login':'nav.sellTickets','/contact-us':'nav.contact','/accessibility':'nav.accessibility','/privacy-policy':'policy.privacy','/cookie-policy':'policy.cookies','/terms':'policy.terms','/refund-policy':'policy.refunds',
 } as const satisfies Record<string,ShellMessageKey>;
 const groupKeys = {Explore:'nav.explore',Help:'nav.help'} as const satisfies Record<string,ShellMessageKey>;

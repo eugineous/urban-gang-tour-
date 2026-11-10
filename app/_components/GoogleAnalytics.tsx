@@ -20,7 +20,7 @@ export function GoogleAnalytics() {
   const pathname=usePathname();
 
   useEffect(() => {
-    const allowed = consent && hasOptionalConsent() && !/^\/(verify|t|tickets|receipt|admin|organizer|account|checkout|cart|pay|orders)(\/|$)/.test(pathname||'');
+    const allowed = consent && hasOptionalConsent() && !/^\/(verify|t|tickets|receipt|admin|organizer|account|my-tickets|checkout|cart|pay|orders)(\/|$)/.test(pathname||'');
     if (ID) (window as any)['ga-disable-' + ID] = !allowed;
     (window as any).gtag?.('consent','update',{analytics_storage:allowed?'granted':'denied'});
     if (!allowed) return;

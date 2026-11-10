@@ -8,7 +8,7 @@ it('names public tasks and keeps services, event discovery, evidence and shoppin
  expect(links).toContainEqual(['Shop','/shop']);expect(links).toContainEqual(['Events','/events']);
  expect(links).toHaveLength(7);expect(new Set(links.map(([,href])=>href)).size).toBe(links.length);
  expect(links.filter(([,href])=>href.startsWith('/events'))).toHaveLength(1);
- expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/account']]);
+ expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/my-tickets']]);
  expect(new Set(PRIMARY_NAVIGATION.map(([,href])=>href)).size).toBe(PRIMARY_NAVIGATION.length);
 });
 it('keeps active section context without confusing similarly prefixed routes',()=>{

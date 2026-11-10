@@ -90,7 +90,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  function toggleFocus(){setFocusView(!focus)}
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <><InteractionCraft/><main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main></>;
- const critical=/^\/(shop|checkout|pay|book|account|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
+ const critical=/^\/(shop|checkout|pay|book|account|my-tickets|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
   <InteractionCraft/>
   <header ref={header} className="site-header" data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
@@ -98,7 +98,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
    <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
    <div className="header-actions">
-    <a className="tickets-link" href="/account"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
+    <a className="tickets-link" href="/my-tickets"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
     <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
     <a className="mobile-search" href="/events#event-search" aria-label={t('nav.search')}><MagnifyingGlass size={23} aria-hidden="true"/></a>
     <a className="start-link" href="/apply"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>

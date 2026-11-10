@@ -104,6 +104,7 @@ const nextConfig = {
       { source: '/verify/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Referrer-Policy',value:'no-referrer'}] },
       { source: '/receipt/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Cloudflare-CDN-Cache-Control',value:'no-store'},{key:'Referrer-Policy',value:'no-referrer'},{key:'X-Robots-Tag',value:'noindex, nofollow'}] },
       { source: '/tickets/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Cloudflare-CDN-Cache-Control',value:'no-store'},{key:'Referrer-Policy',value:'no-referrer'},{key:'X-Robots-Tag',value:'noindex, nofollow'}] },
+      { source: '/my-tickets/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Cloudflare-CDN-Cache-Control',value:'no-store'},{key:'Referrer-Policy',value:'no-referrer'},{key:'X-Robots-Tag',value:'noindex, nofollow'}] },
       {
         source: '/sw.js',
         headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],

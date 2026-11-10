@@ -1,5 +1,24 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Guest ticket access and account audit (10 November 2026)
+- Tickets must not require account creation. `/my-tickets` is the guest-first
+  entrance for existing private confirmation links/strong order references,
+  followed by optional native account actions. `/t` and `/tickets` server pages
+  remain the entitlement boundary; client input parsing proves nothing paid.
+- Preserve existing native credentials, recovery, customer records, Google
+  option and ticket-sales gates. Do not merge people by names, IP or unverified
+  contact strings. Verified contact linking/passkeys/phone uniqueness require
+  a separately tested migration; this UI phase does not implement them or
+  certify million-user capacity. No live purchases/account creation/messages.
+- Use existing magenta/neutral primitives, compact responsive panels, six
+  languages and reduced-motion policies. Exclude this private-link entrance
+  from analytics, marketing, offline navigation caching and update interruptions.
+- Owner now permits website-managed storage (including R2) instead of GitHub
+  for Instagram. This supersedes the earlier GitHub-only preference, not billing
+  authority. R2 is not enabled on the account; no storage migration is complete.
+  Keep existing archives/publication safeguards until a real destination works.
+  Normal reviewed PR/keep-vars release, preserving all bindings and cron.
+
 ## Paystack M-Pesa (10 November 2026)
 - Owner explicitly requests Paystack M-Pesa and confirms it is enabled in the
   merchant dashboard. Merchandise hosted checkout requests card + mobile_money,

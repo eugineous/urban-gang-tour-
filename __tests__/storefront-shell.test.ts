@@ -48,7 +48,7 @@ it.each(['/','/gallery','/shop'])('renders the same premium public navigation on
   expect(await page.locator('.header-content > .desktop-nav a').evaluateAll(links=>links.map(link=>link.getAttribute('href')))).toEqual(hrefs);
   expect(await page.locator('.site-header [role="search"],.storefront-dock').count()).toBe(0);
   expect(await page.locator('.site-header .brand img').getAttribute('src')).toBe('/assets/ugt-logo.png');
-  expect(await page.locator('.site-header .tickets-link').getAttribute('href')).toBe('/account');
+  expect(await page.locator('.site-header .tickets-link').getAttribute('href')).toBe('/my-tickets');
   expect(await page.locator('.site-header .tickets-link').innerText()).toBe('My tickets');
   expect(await page.locator('.site-header .cart-link').getAttribute('href')).toBe('/cart');
   expect(await page.locator('.site-header .cart-link').getAttribute('aria-label')).toBe('Cart (0)');

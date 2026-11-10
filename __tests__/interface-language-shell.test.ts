@@ -98,7 +98,7 @@ it.each(['/about','/account','/cart','/checkout','/shop','/book','/contact-us','
 it('keeps the chooser in the footer and every navigation destination stable',()=>{
  const html=renderToStaticMarkup(createElement(LanguageProvider,null,createElement(AppShell,null,'Example')));
  expect(html.slice(html.indexOf('<header'),html.indexOf('</header>'))).not.toContain('data-language-control');
- for(const href of ['/events','/portfolio','/gallery','/clients','/shop','/about','/book','/account','/organizer/login','/privacy-policy'])expect(html).toContain(`href="${href}"`);
+ for(const href of ['/events','/portfolio','/gallery','/clients','/shop','/about','/book','/my-tickets','/organizer/login','/privacy-policy'])expect(html).toContain(`href="${href}"`);
 });
 it.each(INTERFACE_LOCALES)('localizes the primary Gallery destination in %s',code=>{
  expect(navigationMessageKey('/gallery')).toBe('nav.gallery');

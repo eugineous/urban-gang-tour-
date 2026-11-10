@@ -38,7 +38,7 @@ export default function AppClient() {
       {([
         ['/shop', 'links.shop', 'links.shopDescription'],
         ['/orders/track', 'links.track', 'links.trackDescription'],
-        ['/account', 'links.tickets', 'links.ticketsDescription'],
+        ['/my-tickets', 'links.tickets', 'links.ticketsDescription'],
       ] as const).map(([href, label, description]) => <a href={href} key={href}><div><strong>{t(label)}</strong><span>{t(description)}</span></div><ArrowUpRight size={22} aria-hidden="true"/></a>)}
     </nav>
     <section className={styles.updates} aria-label={t('updates.title')}><h2>{t('updates.title')}</h2>{app.update === 'none' ? <p>{t('updates.current')}</p> : <AppUpdate path="/app"/>}</section>
