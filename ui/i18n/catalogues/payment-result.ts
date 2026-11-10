@@ -10,6 +10,7 @@ const rows = [
  ['amount','Order total','Jumla ya oda','Total de la commande','订单总额','Сумма заказа','Total del pedido'],
  ['method','Payment method','Njia ya malipo','Moyen de paiement','支付方式','Способ оплаты','Método de pago'],
  ['method.card','Card','Kadi','Carte','银行卡','Карта','Tarjeta'],
+ ['method.paystack','Paystack','Paystack','Paystack','Paystack','Paystack','Paystack'],
  ['method.mpesa','M-Pesa','M-Pesa','M-Pesa','M-Pesa','M-Pesa','M-Pesa'],
  ['method.comp','Complimentary','Bila malipo','Offert','免费','Бесплатно','Gratuito'],
  ['details','Order details & updates','Maelezo na taarifa za oda','Détails et mises à jour de la commande','订单详情与更新','Детали и обновления заказа','Detalles y novedades del pedido'],

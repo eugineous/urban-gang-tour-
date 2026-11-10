@@ -23,6 +23,12 @@ import {POST} from '@/app/api/paystack/checkout/route';
 const attempt={id:'ATTEMPT',orderId:'ORD-ORIGINAL',total:100,state:'prepared'};
 beforeEach(()=>{vi.clearAllMocks();s.owner.mockReturnValue('checkout:fixture');s.q.mockResolvedValue([]);s.recover.mockResolvedValue(null);s.price.mockResolvedValue({total:100,lines:[{id:'tee',name:'Tee',qty:1,unit:100}],appliedPromoCode:null});s.prepare.mockResolvedValue({attempt,created:true});s.claim.mockResolvedValue({attempt,nonce:'nonce'});s.record.mockResolvedValue(true);s.unknown.mockResolvedValue(true);s.init.mockResolvedValue({ok:true,url:'https://checkout.paystack.com/fixture'});});
 const request=(extra:Record<string,unknown>={})=>new Request('https://urbangangtour.co.ke/api/paystack/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{id:'tee',qty:1}],idempotencyKey:'k'.repeat(64),...extra})});
+it('offers M-Pesa through the same durable Paystack merchandise checkout, not Daraja',async()=>{
+ const response=await POST(request());
+ expect(response.status).toBe(200);
+ expect(s.init).toHaveBeenCalledWith(expect.objectContaining({reference:'ORD-ORIGINAL',amountKes:100,channels:['card','mobile_money']}));
+ expect((await response.json()).authorizationUrl).toBe('https://checkout.paystack.com/fixture');
+});
 beforeEach(()=>{s.stock.mockResolvedValue(undefined);s.products.mockResolvedValue({tee:{price:100}})});
 it('requires an opaque retry key before creating a payable order',async()=>{expect((await POST(request({idempotencyKey:undefined}))).status).toBe(400);expect(s.init).not.toHaveBeenCalled();});
 it('requires the signed checkout browser scope',async()=>{s.owner.mockReturnValue(null);expect((await POST(request())).status).toBe(428);expect(s.prepare).not.toHaveBeenCalled();});

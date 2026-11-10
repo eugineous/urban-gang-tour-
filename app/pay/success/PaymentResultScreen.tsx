@@ -21,7 +21,7 @@ export default function PaymentResultScreen({orderId,status,delivery,total,metho
  const ticketKey=delivery.tickets==='not_required'?null:`tickets.${delivery.tickets}` as PaymentMessageKey;
  const emailKey=delivery.email==='not_requested'?'email.notRequested':`email.${delivery.email}` as PaymentMessageKey;
  const amount=typeof total==='number'&&Number.isFinite(total)&&total>=0?formatKes(total,locale):null;
- const methodKey=method==='mpesa'?'method.mpesa':method==='card'?'method.card':method==='comp'?'method.comp':null;
+ const methodKey=method==='paystack'?'method.paystack':method==='mpesa'?'method.mpesa':method==='card'?'method.card':method==='comp'?'method.comp':null;
  const track='/orders/track?ref='+encodeURIComponent(orderId),receipt='/receipt/'+encodeURIComponent(orderId),tickets='/tickets/'+encodeURIComponent(orderId);
  async function copyReference(){try{await navigator.clipboard.writeText(orderId);setCopy('copied');}catch{setCopy('failed');}}
  return <section className={styles.screen} data-payment-state={state} aria-labelledby="payment-result-title">

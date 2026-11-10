@@ -47,6 +47,10 @@ it('presents the verified server amount and usable order-reference controls on t
  expect(html).toContain('aria-label="Copy order reference"');expect(html).toContain('href="/orders/track?ref=ORD-STATUS-OWNED"');
  expect(html).toContain('data-payment-state="success"');
 });
+it('renders the verified Paystack gateway without guessing that the customer used a card',async()=>{
+ const html=await check({status:'paid',total:1250,method:'paystack',delivery:{tickets:'not_required',email:'accepted'}});
+ expect(html).toContain('Payment method');expect(html).toContain('Paystack');expect(html).not.toContain('>Card<');
+});
 
 it('never renders a success badge or paid documents for an unconfirmed request',async()=>{
  const html=await check({status:'pending',total:1250,method:'mpesa',delivery:{tickets:'ready',email:'accepted'}});

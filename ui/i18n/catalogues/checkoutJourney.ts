@@ -14,7 +14,7 @@ const rows=[
  ['progress','Checkout progress','Maendeleo ya malipo','Progression du paiement','结账进度','Этапы оформления','Progreso del pago'],
  ['continue','Continue','Endelea','Continuer','继续','Продолжить','Continuar'],
  ['contact.optional','(optional)','(si lazima)','(facultatif)','（选填）','(необязательно)','(opcional)'],
- ['contact.note','Name and phone are needed for delivery; optional for card collection.','Jina na simu vinahitajika kwa uwasilishaji; si lazima kwa kuchukua oda kwa kadi.','Le nom et le téléphone sont nécessaires pour la livraison ; facultatifs pour un retrait payé par carte.','配送需要姓名和电话号码；刷卡自取时选填。','Имя и телефон нужны для доставки; при самовывозе с оплатой картой они необязательны.','El nombre y teléfono son necesarios para entrega; opcionales para recogida con tarjeta.'],
+ ['contact.note','Name and phone are needed for delivery; optional for collection.','Jina na simu vinahitajika kwa uwasilishaji; si lazima kwa kuchukua oda.','Le nom et le téléphone sont nécessaires pour la livraison ; facultatifs pour le retrait.','配送需要姓名和电话号码；自取时选填。','Имя и телефон нужны для доставки; при самовывозе они необязательны.','El nombre y teléfono son necesarios para entrega; opcionales para recogida.'],
  ['returnPayment','Return to payment','Rudi kwenye malipo','Revenir au paiement','返回付款','Вернуться к оплате','Volver al pago'],
  ['selectMethod','Choose a payment method','Chagua njia ya malipo','Choisissez un moyen de paiement','选择付款方式','Выберите способ оплаты','Elige un método de pago'],
  ['more','+{count} more items','+bidhaa {count} zaidi','+{count} autres articles','另有 {count} 件商品','Ещё товаров: {count}','+{count} artículos más'],

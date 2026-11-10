@@ -17,7 +17,10 @@ import {checkoutPrincipal} from '@/lib/server/checkout-session';
 import {q,hasDb} from '@/lib/server/db';
 import {paystackAttemptIdentity,recoverPaystackAttempt,preparePaystackAttempt,claimPaystackInitiation,recordPaystackAuthorization,markPaystackInitiationUnknown,savedPaystackPurchase,PaystackAttemptConflict,type PaystackAttempt} from '@/lib/server/paystack-attempts';
 
-// Card checkout via Paystack (KES, Kenyan settlement). Mirrors the Stripe
+// Hosted card/mobile-money checkout via Paystack (KES, Kenyan settlement).
+// The legacy ledger pay_method='card' identifies this hosted gateway family,
+// not the customer's final rail. Never route Paystack M-Pesa through Daraja.
+// Mirrors the Stripe
 // route: strict schema, prices ONLY from lib/server/catalog.ts, ledger row
 // written before the processor call so the webhook always reconciles.
 
@@ -173,6 +176,7 @@ async function checkout(req:Request){
     reference,
     callbackUrl: `${CALLBACK_URL}?ref=${reference}`,
     metadata: { order_id: reference },
+    channels: ['card', 'mobile_money'],
   });
   if(!r.ok||!r.url||!await recordPaystackAuthorization(claim.attempt.id,claim.nonce,r.url))throw Error('initialization_uncertain');
   return attemptResponse({...claim.attempt,state:'ready',authorizationUrl:r.url});

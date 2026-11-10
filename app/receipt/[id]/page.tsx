@@ -61,7 +61,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   const failed = ['failed','declined','timed_out','cancelled'].includes(o.status);
   const refunded=['refunded','partially_refunded'].includes(o.status);
   const isComp = o.pay_method === 'comp';
-  const method = isComp ? 'Complimentary (no charge)' : o.pay_method === 'card' ? 'Card' : 'M-Pesa';
+  const method = isComp ? 'Complimentary (no charge)' : o.paystack_ref ? 'Paystack' : o.pay_method === 'card' ? 'Card' : 'M-Pesa';
   const reference = String(o.mpesa_receipt || o.paystack_ref || o.stripe_payment_intent || '');
   const phone = maskPhone(String(o.phone || ''));
   const when = o.created_at ? new Date(o.created_at) : new Date();

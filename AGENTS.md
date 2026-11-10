@@ -1,5 +1,17 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Paystack M-Pesa (10 November 2026)
+- Owner explicitly requests Paystack M-Pesa and confirms it is enabled in the
+  merchant dashboard. Merchandise hosted checkout requests card + mobile_money,
+  using the same durable attempt/reference, verified settlement and outbox.
+  Direct Daraja remains disabled. Do not repurpose old direct-M-Pesa flags or
+  initialize a second payment on cancellation/timeout. Marketplace/ticket gates
+  are unchanged; their adapter default remains card-only.
+- The legacy orders.pay_method='card' is the hosted-gateway family, not proof
+  of the rail actually used. Display Paystack when paystack_ref exists; never
+  guess Card or an M-Pesa receipt number. No live charges/STKs/messages for tests.
+  Normal tested PR/keep-vars release preserves bindings and cron.
+
 ## Charles Unslop site-wide craft (10 November 2026)
 - Owner delegates applying the linked Charles Unslop skill and supplied UX/motion
   screenshots across existing pages. Preserve the product, magenta, owned hosts,
