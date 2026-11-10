@@ -158,3 +158,16 @@ html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
 @media(prefers-reduced-motion:reduce){.site-header .menu-toggle::after{animation:none;opacity:.5}}
 html[data-focus-view=true] .site-header .menu-toggle::after{animation:none;opacity:.5}
 @media print{.site-header .menu-toggle::after{display:none}}
+
+/* Charles craft refinements stay with the shared navigation owner. */
+@media screen{
+ .site-header{font-variant-numeric:tabular-nums}
+ .site-header[data-public-surface] .desktop-nav{box-shadow:none;background:#fff}
+ .site-header .mobile-search{background:#fff;color:var(--ink);border:1px solid var(--line)}
+ .site-header .desktop-nav a{font-weight:500}
+ dialog.menu-panel .menu-dialog-heading{border-bottom:0}
+ dialog.menu-panel .menu-groups nav a{border-bottom:0;border-radius:8px;padding-inline:12px}
+ dialog.menu-panel .menu-groups{gap:16px}
+ .site-header :is(a,button):focus-visible,dialog.menu-panel :is(a,button):focus-visible{outline:2px solid var(--ugt-focus-ink);outline-offset:4px}
+ dialog.menu-panel[open]{animation:none}
+}

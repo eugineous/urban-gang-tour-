@@ -1,4 +1,5 @@
 "use client";
+import InteractionCraft from './InteractionCraft';
 import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/catalogues/shell';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import RouteLoading from './RouteLoading';
@@ -88,9 +89,10 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  },[open]);
  function toggleFocus(){setFocusView(!focus)}
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
- if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>;
+ if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <><InteractionCraft/><main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main></>;
  const critical=/^\/(shop|checkout|pay|book|account|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
+  <InteractionCraft/>
   <header ref={header} className="site-header" data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
    <div className="header-content">
    <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>

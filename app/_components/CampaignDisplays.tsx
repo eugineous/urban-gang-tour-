@@ -97,7 +97,7 @@ export default function CampaignDisplays({ path, paused }: { path: string; pause
     return close;
   }, [popupId]);
   // Eligibility is snapshotted by the timer; render stays pure and text-only.
-  if (popup) return <dialog ref={dialog} className={styles.dialog} aria-labelledby="campaign-title" onCancel={event=>{event.preventDefault();dismiss(popup);}}><button className={styles.close} type="button" aria-label={t('campaign.closeOffer')} onClick={()=>dismiss(popup)}>×</button><div className={styles.creative}><CampaignCreative campaign={popup} headingId="campaign-title"/></div></dialog>;
+  if (popup) return <dialog ref={dialog} data-ugt-origin-policy="automatic" className={styles.dialog} aria-labelledby="campaign-title" onCancel={event=>{event.preventDefault();dismiss(popup);}}><button className={styles.close} type="button" aria-label={t('campaign.closeOffer')} onClick={()=>dismiss(popup)}>×</button><div className={styles.creative}><CampaignCreative campaign={popup} headingId="campaign-title"/></div></dialog>;
   if (!banner) return null;
   return <aside className={styles.banner} aria-label={t('campaign.current')}><button className={styles.close} type="button" aria-label={t('campaign.closeAnnouncement')} onClick={()=>dismiss(banner)}>×</button><CampaignCreative campaign={banner}/></aside>;
 }

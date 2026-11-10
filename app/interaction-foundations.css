@@ -8,10 +8,12 @@
  .cr-shell :is(h1,h2,h3,p,a,button){overflow-wrap:anywhere}
  .cr-shell .cr-actions{display:flex;flex-wrap:wrap;gap:8px}
 }
-.route-loading{min-height:40svh;display:grid;place-content:center;justify-items:center;gap:1rem;padding:2rem;text-align:center}
-.route-loading img{object-fit:contain;animation:ugt-loading-turn 1.8s linear infinite}
-@keyframes ugt-loading-turn{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.route-loading img{animation:none}}
+.route-loading{min-height:60svh;max-width:1120px;margin-inline:auto;display:grid;align-content:start;gap:24px;padding:48px 24px;color:var(--muted);font-size:14px}
+.route-placeholder{display:grid;gap:12px;width:100%}
+.route-placeholder>span{display:block;height:32px;max-width:440px;border-radius:4px;background:#e7e3e8}
+.route-placeholder>span+span{height:16px;max-width:280px}
+.route-placeholder>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:12px}
+.route-placeholder i{display:block;aspect-ratio:4/3;border-radius:12px;background:#eeeaf0}
 .reply-draft-status{padding:12px;border:1px solid #ddd;border-radius:10px;background:#f8f8f8;min-width:0;overflow-wrap:anywhere}
 .reply-draft-status p{margin:0 0 8px}.reply-draft-status>div{display:flex;flex-wrap:wrap;gap:8px}.reply-draft-status small{display:block;margin-top:8px;line-height:1.5}
 /* Stable action geometry: text may wrap; the whole control must not jump. */
@@ -24,4 +26,46 @@
 .application-content :is(.modern-actions,.current-actions)>.button{justify-content:center}
 .application-content :is(.modern-actions,.current-actions)>.button{flex:0 1 auto}
 .application-content :is(.booking2-form,.contact-compose)>.button{justify-self:start;inline-size:fit-content}
+
+/* UGT craft: posters/hosts carry the colour; the booking desk stays readable.
+   Adapted from Charles Unslop / Damir Sokolovsky, CC-BY-4.0. See the plan credits. */
+@media screen{
+ :root{--ugt-motion-fast:140ms;--ugt-motion-enter:220ms;--ugt-motion-ease:cubic-bezier(.22,1,.36,1);--ugt-focus-ink:#36313b}
+ body{letter-spacing:normal;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+ body:has(main[data-public-surface]){--paper:#faf9fb;--ink:#1c1820;--muted:#625c67;--ugt-surface-warm:#f4f1f5;--ugt-surface-raised:#fff;--line:#ded9e1;background:var(--paper)}
+ main[data-public-surface]{font-variant-numeric:tabular-nums}
+ main[data-public-surface] :where(p,li,label,small,button,input,select,textarea,summary,.eyebrow){letter-spacing:normal}
+ :is(main[data-public-surface],.cr-shell) :where(p,li){text-wrap:pretty}
+ :is(main[data-public-surface],.cr-shell) :where(h1,h2,h3){text-wrap:balance}
+ main[data-public-surface] .page-intro{animation:none}
+ main[data-public-surface] .page-intro h1{font-size:clamp(36px,5vw,72px);font-weight:550;letter-spacing:-.025em;line-height:1.08;max-width:20ch}
+ main[data-public-surface] .section-title h2{font-weight:550;letter-spacing:-.025em;line-height:1.12}
+ main[data-public-surface] :is(.page-intro>p,.article-body>p,.legal-content>p){max-inline-size:70ch;line-height:1.6}
+ main[data-public-surface] :is(input,select,textarea){min-inline-size:0;max-inline-size:100%;font-size:16px}
+ main[data-public-surface] :is(input:not([type=radio]):not([type=checkbox]),select,textarea){border-radius:8px}
+ main[data-public-surface] :is(fieldset,form){min-inline-size:0}
+ :is(main[data-public-surface],.cr-shell) :is(button,.button){font-variant-numeric:tabular-nums}
+ main[data-public-surface] .button{border-radius:10px;transition:background-color var(--ugt-motion-fast),color var(--ugt-motion-fast),border-color var(--ugt-motion-fast),transform var(--ugt-motion-fast) var(--ugt-motion-ease)}
+ main[data-public-surface] .button:not(.secondary):not(.light){background:var(--ugt-primary);color:#fff}
+ main[data-public-surface] .button:is(:hover,:focus-visible){transform:none}
+ main[data-public-surface] .button:active:not(:disabled){transform:scale(.98)}
+ main[data-public-surface] :is(.project-card,.product-card,.founders>a,.host-widget):hover{transform:none}
+ main[data-public-surface] :is(.project-card,.product-card,.founders>a):hover img{transform:none;filter:none}
+ main[data-public-surface] :is(.booking-form,.booking2-form,.auth-card,.form-surface,.contact-compose){background:#fff;box-shadow:none;border-radius:16px}
+ main[data-public-surface] :is(a,button,input,select,textarea,summary):focus-visible{outline:2px solid var(--ugt-focus-ink);outline-offset:4px}
+ main[data-public-surface] :is(.people,.magenta) :is(a,button):focus-visible{outline-color:#fff}
+ main[data-public-surface] .people .founders :is(a,button):focus-visible{outline-color:var(--ugt-focus-ink)}
+ /* Native top-layer focus/close behavior is untouched. Role dialogs unmount immediately. */
+ :is(dialog[open],.lightbox,.film-viewer)[data-ugt-overlay-origin]{transform-origin:var(--ugt-origin-x,50%) var(--ugt-origin-y,50%);animation:ugt-overlay-enter var(--ugt-motion-enter) var(--ugt-motion-ease) both}
+ /* Dismiss immediately: a fading top-layer box must not catch the next tap. */
+ dialog[data-ugt-overlay-origin]{transform-origin:var(--ugt-origin-x,50%) var(--ugt-origin-y,50%)}
+ @keyframes ugt-overlay-enter{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+}
+@media screen and (min-width:1024px) and (hover:hover){html{scrollbar-gutter:stable}}
+@media(prefers-reduced-motion:reduce){
+ :is(dialog,.lightbox,.film-viewer)[data-ugt-overlay-origin],main[data-public-surface] .button{animation:none!important;transition:none!important}
+ main[data-public-surface] .button:active{transform:none}
+}
+html[data-focus-view=true] :is(dialog,.lightbox,.film-viewer)[data-ugt-overlay-origin],html[data-focus-view=true] main[data-public-surface] .button{animation:none!important;transition:none!important}
+html[data-focus-view=true] main[data-public-surface] .button:active{transform:none}
 .cr-refund-recorder{border:1px solid #d8c7d0;border-radius:14px;padding:20px;margin-bottom:20px;max-width:760px;overflow-wrap:anywhere}.cr-refund-recorder fieldset{display:grid;gap:14px;min-width:0;border:1px solid #ddd;padding:14px}.cr-refund-recorder label{display:grid;gap:6px}.cr-refund-recorder input,.cr-refund-recorder textarea{max-width:100%;padding:12px;font:inherit}.cr-refund-recorder textarea{min-height:90px}.cr-refund-recorder button{margin-block:12px;min-height:44px}

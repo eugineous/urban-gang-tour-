@@ -1,5 +1,19 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Charles Unslop site-wide craft (10 November 2026)
+- Owner delegates applying the linked Charles Unslop skill and supplied UX/motion
+  screenshots across existing pages. Preserve the product, magenta, owned hosts,
+  MOOKH/Nixtio desktop, Eventify mobile and Mkurugenzi shop distinctions; refine
+  shared hierarchy, quiet neutral surfaces, legibility, control geometry and states.
+- Keep the expressly requested menu pulse and owned video/poster behavior. Other
+  motion explains interaction, not hidden-on-scroll content or decorative glows.
+- App-owned overlays use the activating control's measured origin. Automatic
+  dialogs declare `data-ugt-origin-policy="automatic"`; never attribute them to
+  unrelated clicks. Preserve native close/focus, reduced motion and focus view.
+- Cart/save optimism is reversible; payment/receipt/ticket truth stays server-
+  verified. No provider/auth/consent/data or print changes, live money/messages,
+  manufactured claims or new storage. Normal reviewed PR/keep-vars release.
+
 ## Chest print, menu engagement and owned Instagram request (9 November 2026)
 - Owner rejects floating/shoulder-positioned hero logo layers. Use the flattened
   reference-based monochrome printed-shirt illustration, large centre-front

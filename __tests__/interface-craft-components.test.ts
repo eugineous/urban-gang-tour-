@@ -1,0 +1,10 @@
+import {createElement,createRef} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {expect,it} from 'vitest';
+import GuidedCheckout from '@/app/_components/GuidedCheckout';
+import RouteLoading from '@/app/_components/RouteLoading';
+import {ContactEntry} from '@/ui/components/ContactEntry';
+const render=(busy:boolean)=>{const props={step:2,ticket:false,busy,headingRef:createRef<HTMLHeadingElement>(),summary:createElement('aside',null,'KES 1,800'),children:createElement('button',null,'Continue')};return renderToStaticMarkup(createElement(GuidedCheckout,props))};
+it('keeps the payment heading stable and presents connection feedback once',()=>{const idle=render(false),waiting=render(true);expect(waiting).toContain('Choose how to pay</h2>');expect(waiting.match(/Keep this page open while we connect you\./g)).toHaveLength(1);expect(idle).not.toContain('Step 3 of 3');expect(waiting).not.toContain('Step 3 of 3');expect(idle).toContain('data-checkout-connection');expect(waiting).toContain('data-checkout-connection');expect(waiting).not.toContain('Payment successful')});
+it('reserves recognizable loading geometry without spinning the brand or guessing progress',()=>{const html=renderToStaticMarkup(createElement(RouteLoading));expect(html).toContain('data-route-placeholder');expect(html).toContain('Loading your page');expect(html).not.toContain('<img');expect(html).not.toContain('%');expect(html).toContain('role="status"')});
+it('names the Contact chooser by its purpose without repeating a greeting',()=>{const html=renderToStaticMarkup(createElement(ContactEntry));expect(html).toContain('>Contact</h1>');expect(html).not.toContain('How can we help?');expect(html).toContain('href="/book"');expect(html).toContain('href="/contact-us"')});

@@ -2,20 +2,20 @@
    Semantic shell hooks keep staff routes out of this visual layer. */
 @media screen {
   [data-public-surface] {
-    --paper: #f2eee7;
-    --ink: #1b1918;
-    --muted: #655e58;
-    --line: #d7cfc5;
-    --ugt-border: #d7cfc5;
-    --ugt-surface-base: #f2eee7;
-    --ugt-surface-raised: #fffcf6;
-    --ugt-surface-stone: #e6dfd4;
-    --ugt-surface-ink: #1b1918;
+    --paper: #faf9fb;
+    --ink: #1c1820;
+    --muted: #625c67;
+    --line: #ded9e1;
+    --ugt-border: #ded9e1;
+    --ugt-surface-base: #faf9fb;
+    --ugt-surface-raised: #fff;
+    --ugt-surface-stone: #f0edf2;
+    --ugt-surface-ink: #1c1820;
     --ugt-reading-width: 68ch;
   }
 
   body:has(main[data-public-surface]) {
-    background: #f2eee7;
+    background: var(--paper);
   }
 
   main[data-public-surface] {
