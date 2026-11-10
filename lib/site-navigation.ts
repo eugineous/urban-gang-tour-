@@ -3,11 +3,11 @@ export const PRIMARY_NAVIGATION=[['Events','/events'],['Our work','/portfolio'],
 export const SITE_MENU_GROUPS=[
  {title:'Explore',items:PRIMARY_NAVIGATION},
 ];
-export const SITE_UTILITY_NAVIGATION=[['My tickets','/account']];
+export const SITE_UTILITY_NAVIGATION=[['My tickets','/my-tickets']];
 /** Footer columns share the same real destinations, rather than a wrapped link wall. */
 export const FOOTER_NAVIGATION=[
  {title:'Explore',items:[['Events','/events'],['Shop','/shop'],['Our work','/portfolio'],['Clients','/clients'],['News','/blog'],['About','/about']]},
- {title:'Help',items:[['My tickets','/account'],['Sell tickets','/organizer/login'],['Get the app','/app'],['Vendors & partners','/vendors'],['Contact','/contact-us'],['Accessibility','/accessibility']]},
+ {title:'Help',items:[['My tickets','/my-tickets'],['Sell tickets','/organizer/login'],['Get the app','/app'],['Vendors & partners','/vendors'],['Contact','/contact-us'],['Accessibility','/accessibility']]},
 ];
 /** Nested pages retain their section context; query filters are not new sections. */
 export function isNavigationCurrent(path:string,href:string){

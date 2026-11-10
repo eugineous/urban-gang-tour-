@@ -43,6 +43,12 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 10 November guest-first tickets: My tickets opens private confirmation links
+  without demanding an account. Optional account sign-in/create actions follow
+  the guest panel. Compact white bordered panels, magenta primary action,
+  16px inputs, 44px targets, six native languages and Android coarse-pointer
+  reflow reuse current primitives. No new auth/payment protocol or brand change.
+
 - 10 November Charles Unslop: energetic posters, calm booking desk. Public
   surfaces #faf9fb/white, ink #1c1820, secondary #625c67, line #ded9e1;
   primary magenta #c60073 stays. Use readable tracking, tabular figures,

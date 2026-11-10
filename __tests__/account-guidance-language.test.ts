@@ -31,15 +31,16 @@ beforeAll(async()=>{
 },30000);
 afterAll(async()=>{await browser?.close()});
 
-async function openAccount(token?:string){
+async function openAccount(token?:string,signup=false){
  const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage();
  page.setDefaultTimeout(3000);
- const requests:string[]=[],recoveries:unknown[]=[],unexpected:string[]=[];
+ const requests:string[]=[],recoveries:unknown[]=[],unexpected:string[]=[],authActions:unknown[]=[];
  await context.route('**/*',route=>{
   const request=route.request(),url=new URL(request.url());
   if(url.origin!=='http://127.0.0.1'){unexpected.push(request.url());return route.abort()}
   if(url.pathname==='/account'&&request.isNavigationRequest())return route.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><div id="app"></div>'});
   requests.push(request.method()+' '+url.pathname);
+  if(url.pathname==='/api/auth'&&request.method()==='POST')authActions.push(request.postDataJSON()?.action);
   if(url.pathname==='/api/auth'&&request.method()==='POST'&&request.postDataJSON().action==='me')return route.fulfill({json:{ok:true,user:null}});
   if(url.pathname==='/api/auth/google'&&request.method()==='GET')return route.fulfill({json:{}});
   if(url.pathname==='/api/account/recovery'&&request.method()==='POST'){
@@ -48,14 +49,19 @@ async function openAccount(token?:string){
   }
   unexpected.push(request.method()+' '+request.url());return route.abort();
  });
- await page.goto('http://127.0.0.1/account'+(token?'?reset='+token:''));
+ await page.goto('http://127.0.0.1/account'+(token?'?reset='+token:signup?'?mode=signup':''));
  await page.addScriptTag({content:script});
  await page.locator('#account form').waitFor();
  if(!token)await page.waitForFunction(()=>!!document.querySelector('#account input[type="password"]'));
- return {context,page,requests,recoveries,unexpected};
+ return {context,page,requests,recoveries,unexpected,authActions};
 }
 
 // A literal mode description leaves non-English users with English guidance.
+it.skipIf(!enabled)('opens account creation from its direct link without submitting credentials',async()=>{
+ const {context,page,authActions}=await openAccount(undefined,true);
+ try{await page.getByRole('button',{name:'Create account',exact:true}).waitFor();expect(await page.locator('#account input[autocomplete="name"]').count()).toBe(1);expect(authActions).toEqual(['me'])}finally{await context.close()}
+},20000);
+
 for(const mode of ['login','forgot'] as const)it.skipIf(!enabled)(`updates ${mode} guidance in six languages while retaining filled inputs without submitting`,async()=>{
  const fixture=await openAccount(),{context,page,requests,recoveries,unexpected}=fixture;
  try{

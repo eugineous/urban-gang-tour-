@@ -13,7 +13,7 @@ it('orders discovery, proof and trust before shopping and booking, with Gallery 
  expect(PRIMARY_NAVIGATION).toEqual([['Events','/events'],['Our work','/portfolio'],['Gallery','/gallery'],['Clients','/clients'],['About','/about'],['Shop','/shop'],['Book','/book']]);
  expect(SITE_MENU_GROUPS).toHaveLength(1);
  expect(SITE_MENU_GROUPS.flatMap(group=>group.items)).toEqual(PRIMARY_NAVIGATION);
- expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/account']]);
+ expect(SITE_UTILITY_NAVIGATION).toEqual([['My tickets','/my-tickets']]);
  expect(isNavigationCurrent('/shop/cb-oversized-tee','/shop')).toBe(true);
  expect(isNavigationCurrent('/shopper','/shop')).toBe(false);
 });
@@ -22,7 +22,7 @@ it('keeps a compact footer with support and seller entry without deleting canoni
  expect(FOOTER_NAVIGATION.map(group=>group.title)).toEqual(['Explore','Help']);
  const footer=FOOTER_NAVIGATION.flatMap(group=>group.items);
  expect(footer).toHaveLength(12);
- for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/account','/organizer/login','/contact-us','/accessibility','/app','/vendors'])expect(footer.some(([,target])=>target===href)).toBe(true);
+ for(const href of ['/events','/shop','/portfolio','/clients','/blog','/about','/my-tickets','/organizer/login','/contact-us','/accessibility','/app','/vendors'])expect(footer.some(([,target])=>target===href)).toBe(true);
 });
 
 it('routes the cart symbol to the basket and preserves canonical discovery links',()=>{
@@ -37,7 +37,7 @@ it('routes the cart symbol to the basket and preserves canonical discovery links
  expect(desktop.match(/<a\s/g)).toHaveLength(7);
  expect(desktop).toContain('href="/gallery"');
  expect(menu).not.toContain('<h2');
- expect(html).toContain('class="tickets-link" href="/account"');
+ expect(html).toContain('class="tickets-link" href="/my-tickets"');
  expect(html).not.toContain('role="search" action="/shop" method="get"');
  expect(html.match(/<header class="site-header"/g)).toHaveLength(1);
  expect(html.match(/<main(?:\s|>)/g)).toHaveLength(1);

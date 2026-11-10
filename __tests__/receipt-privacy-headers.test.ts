@@ -1,7 +1,7 @@
 import {expect,it,vi} from 'vitest';
 vi.mock('@opennextjs/cloudflare',()=>({initOpenNextCloudflareForDev:vi.fn()}));
 import nextConfig from '../next.config.mjs';
-it.each(['/receipt/:path*','/tickets/:path*'])('protects %s responses without changing public catalogue caching',async source=>{
+it.each(['/receipt/:path*','/tickets/:path*','/my-tickets/:path*'])('protects %s responses without changing public catalogue caching',async source=>{
  const routes=await nextConfig.headers!();
  const rule=routes.find(route=>route.source===source);
  expect(rule).toBeTruthy();

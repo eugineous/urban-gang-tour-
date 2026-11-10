@@ -1,4 +1,4 @@
-const CACHE = 'ugt-paystack-mpesa-20261110-v1';
+const CACHE = 'ugt-guest-ticket-access-20261110-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.
@@ -44,7 +44,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin || request.headers.has('Authorization') || request.headers.get('RSC') === '1' || /^\/(api|admin|organizer|account|verify|t|tickets|receipt|checkout|orders|pay|cart)(\/|$)/.test(url.pathname)) return;
+  if (request.method !== 'GET' || url.origin !== self.location.origin || request.headers.has('Authorization') || request.headers.get('RSC') === '1' || /^\/(api|admin|organizer|account|my-tickets|verify|t|tickets|receipt|checkout|orders|pay|cart)(\/|$)/.test(url.pathname)) return;
   // Unhashed application files change between deployments. Never pin a
   // visitor to the runtime from their first install. Keep an offline copy,
   // but always ask the network for the current version when connected.

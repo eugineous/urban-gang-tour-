@@ -6,8 +6,11 @@ import {MobileEventDate} from '@/app/_components/MobileEventDate';
 import {MobileAppHero} from '@/ui/components/MobileAppHero';
 it('provides booking-first mobile destinations with Home in the middle',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppNavigation,{path:'/cart'}));
- for(const href of ['/events','/account','/','/shop','/apply'])expect(html).toContain('href="'+href+'"');
+ for(const href of ['/events','/my-tickets','/','/shop','/apply'])expect(html).toContain('href="'+href+'"');
  expect([...html.matchAll(/<a[^>]+href="([^"]+)"/g)].map(match=>match[1])[2]).toBe('/');
+});
+it.each(['/my-tickets','/account','/account/preferences'])('keeps ticket access active for guest and account journeys (%s)',path=>{
+ const html=renderToStaticMarkup(createElement(MobileAppNavigation,{path}));expect(html).toContain('href="/my-tickets" aria-current="page"');
 });
 it('marks the direct contact destination active in mobile navigation',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppNavigation,{path:'/contact-us'}));

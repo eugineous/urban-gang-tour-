@@ -29,7 +29,7 @@ export async function installApp() {
   finally {publish({installing:false});}
 }
 
-const protectedPath = (path:string) => /^\/(shop|checkout|pay|cart|admin|organizer|account|tickets|receipt|t|verify)(\/|$)/.test(path);
+const protectedPath = (path:string) => /^\/(shop|checkout|pay|cart|admin|organizer|account|my-tickets|tickets|receipt|t|verify)(\/|$)/.test(path);
 export function refreshBlocked(path:string) {return state.dirty || protectedPath(path) || !state.online;}
 
 /** Call only after this form's save has succeeded, never merely on submit. */

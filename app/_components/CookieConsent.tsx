@@ -16,7 +16,7 @@ export function CookieConsent() {
   const advertising=process.env.NEXT_PUBLIC_ADSENSE_CLIENT?t('consent.advertising'):'';
   const optionalServices=analytics&&advertising?t('consent.serviceJoin',{analytics,advertising}):analytics||advertising;
   function pageView() {
-    if (!hasOptionalConsent() || /^\/(admin|organizer|account|cart|checkout|pay|receipt|tickets|t|verify|orders|book\/status)(\/|$)/.test(location.pathname)) return;
+    if (!hasOptionalConsent() || /^\/(admin|organizer|account|my-tickets|cart|checkout|pay|receipt|tickets|t|verify|orders|book\/status)(\/|$)/.test(location.pathname)) return;
     void fetch('/api/track', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname}),keepalive:true}).catch(()=>{});
   }
   useEffect(() => {

@@ -12,8 +12,8 @@ const publicPages = new Set([
 export function mustNotStoreResponse(request, response) {
   const path = new URL(request.url).pathname;
   return request.method !== 'GET' && request.method !== 'HEAD' ||
-    /^\/(?:admin|account|organizer|checkout|cart|pay|receipt|receipts|tickets|t|verify)(?:\/|$)/.test(path) ||
-    /^\/api\/(?:admin|account|auth|organizer|orders|bookings|checkout|marketplace\/checkout|receipts|tickets|internal)(?:\/|$)/.test(path) ||
+    /^\/(?:admin|account|my-tickets|organizer|checkout|cart|pay|receipt|receipts|tickets|t|verify)(?:\/|$)/.test(path) ||
+    /^\/api\/(?:admin|account|my-tickets|auth|organizer|orders|bookings|checkout|marketplace\/checkout|receipts|tickets|internal)(?:\/|$)/.test(path) ||
     request.headers.has('Authorization') ||
     /(?:^|;\s*)ugt_(?:admin|user|organizer|org)=/.test(request.headers.get('cookie') || '') ||
     response.headers.has('Set-Cookie');

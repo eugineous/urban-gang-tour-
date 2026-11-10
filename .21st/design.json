@@ -82,6 +82,12 @@
   "decisions": [
     {
       "date": "2026-11-10",
+      "direction": "Guest-first tickets and optional permanent Urban Gang account",
+      "ui": "My tickets opens private confirmation links or strong order references before optional sign-in/create actions. Compact white bordered panels, magenta CTA, 16px inputs, 44px targets, six languages and Android coarse-pointer reflow reuse current primitives.",
+      "preserve": "Server entitlement, native credentials/recovery, customer records, ticket/payment gates, private-route analytics/cache safeguards and all other page families. No scale or verified-contact/passkey claim."
+    },
+    {
+      "date": "2026-11-10",
       "direction": "Owner-delegated Charles Unslop and interaction craft across existing page families",
       "palette": "Retain primary #c60073 and deliberate violet/cyan content accents. Public neutrals #faf9fb, white, ink #1c1820, secondary #625c67 and line #ded9e1.",
       "ui": "Normal small-text tracking, balanced headings, tabular figures, quiet surfaces and 4px rhythm. Trigger-origin dialogs, explicit automatic-popup policy, immediate safe dismissal, readable checkout and stable loading/connection feedback. Mobile dock remains Events/Tickets/Home/Shop/Contact.",

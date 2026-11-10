@@ -7,9 +7,9 @@ import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
 
 import { useEffect, useRef, useState } from 'react';
 
-const card: React.CSSProperties = { background: '#fff', border: '1px solid #ddd4da', borderRadius: 16, boxShadow: 'none', padding: 'clamp(18px, 5vw, 28px)' };
+const card: React.CSSProperties = { background: 'var(--ugt-surface-raised, #fff)', border: '1px solid var(--line, #ded9e1)', borderRadius: 16, boxShadow: 'none', padding: 'clamp(18px, 5vw, 28px)' };
 const inp: React.CSSProperties = { width: '100%', padding: '11px 13px', border: '1px solid #b9acb3', borderRadius: 10, fontSize: 16, boxSizing: 'border-box', fontFamily: 'inherit' };
-const btn: React.CSSProperties = { background: '#9a145d', color: '#fff', fontWeight: 600, fontSize: 16, minHeight: 48, padding: '12px 18px', border: '1px solid #ddd4da', borderRadius: 12, boxShadow: 'none', cursor: 'pointer', width: '100%' };
+const btn: React.CSSProperties = { background: 'var(--ugt-primary, #c60073)', color: '#fff', fontWeight: 600, fontSize: 16, minHeight: 48, padding: '12px 18px', border: '1px solid var(--line, #ded9e1)', borderRadius: 12, boxShadow: 'none', cursor: 'pointer', width: '100%' };
 
 export default function AccountApp() {
  const t=useMessages(accountMessages);const {locale}=useInterfaceLanguage();const money=(value:number)=>formatKes(value,locale)??'';
@@ -27,7 +27,8 @@ export default function AccountApp() {
   const [sessionError, setSessionError] = useState(false);
   const [probe, setProbe] = useState(0);
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('reset');
+    const params = new URLSearchParams(window.location.search), token=params.get('reset');
+    if(!token&&params.get('mode')==='signup')setMode('signup');
     if (token) {
       // Keep a reset credential out of subsequent navigation/referrer URLs.
       window.history.replaceState(null, '', '/account');
