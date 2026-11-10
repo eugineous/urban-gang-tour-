@@ -5,7 +5,7 @@ import {paymentResultMessages,type PaymentResultMessageKey} from '@/ui/i18n/cata
 
 const keys = [
  'eyebrow.success','eyebrow.pending','eyebrow.failed','eyebrow.refund',
- 'thanks','amount','method','method.card','method.mpesa','method.comp',
+ 'thanks','amount','method','method.card','method.mpesa','method.paystack','method.comp',
  'details','reference.copy','reference.copied','reference.copyFailed',
  'order.view','back','help','continue',
 ] as const satisfies readonly PaymentResultMessageKey[];

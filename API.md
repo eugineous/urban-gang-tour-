@@ -158,6 +158,9 @@ Existing orders, callback verification, reconciliation and owner-scoped
 does not initiate another STK push.
 
 ### GET /api/orders/status?id=ORD-...
+For orders with a Paystack reference, `method` is `paystack`: the legacy stored
+`pay_method='card'` is a hosted-gateway tag, not evidence of the customer's rail.
+No unconfirmed provider receipt number is returned.
 Public poll for the checkout STK-waiting panel. Id format-validated
 (`^ORD-[A-Z0-9-]{4,40}$`); the unguessable id is the bearer. Returns
 `{status, total, receipt, method, created_at}` - `receipt` (M-Pesa receipt /
@@ -397,7 +400,11 @@ Public organizer applications (`POST /api/organizer/signup`) also require boolea
 ### Checkout fulfillment and customer progress
 
 - `GET /api/checkout/fulfillment`: public, device/IP rate limited; returns configured pickup location, zero pickup fee, and delivery fee only when `MERCH_DELIVERY_FEE_KES` is a valid non-negative integer. Delivery is disabled otherwise. `MERCH_PICKUP_LOCATION` supplies the real collection instruction. No provider is invented.
-  The additive `payments: {mpesa: boolean, card: boolean}` reports permitted new-payment configuration only: `mpesa` is always false under the owner's Paystack-only policy, and `card` requires explicitly enabled Paystack plus its server secret. Stored Daraja/Stripe keys never advertise payment availability or enable fallback. No credentials, provider requests, customer data or merchant-approval claims are returned. Responses are `no-store`; missing, malformed or failed options disable new payment submission. Owned-event tickets remain unavailable pending Paystack hosted-checkout finality; Paystack mobile money is not enabled. Saved payment references remain available independently of these flags.
+  The additive `payments: {mpesa: boolean, card: boolean, paystackMobileMoney: boolean}` reports permitted new-payment configuration only: `mpesa` (direct Daraja) is always false under the owner's Paystack-only policy; `card` and `paystackMobileMoney` require explicitly enabled Paystack plus its server secret. The owner confirmed merchant M-Pesa enablement on10November. Stored Daraja/Stripe keys never advertise payment availability or enable fallback. No credentials, provider requests, customer data or independent merchant-approval claims are returned. Responses are `no-store`; missing, malformed or failed options disable new payment submission. Owned-event tickets remain unavailable pending Paystack hosted-checkout finality. Saved payment references remain available independently of these flags.
+  Staff order CSVs retain the raw `pay_method` compatibility field and append
+  `paystack_ref`. A nonempty Paystack reference identifies its hosted gateway;
+  `pay_method='card'` on those rows does not prove the final payment rail. The
+  provider's signed channel is recorded in the existing private payment audit.
 - Order creation accepts `fulfillment: {method: "pickup" | "delivery", address?: {line1, city, postalCode?}}` for merchandise. Server validation determines the fee. Delivery addresses remain private in `order_delivery_preferences`.
 - `GET /api/orders/tracking?id=ORD-…`: public bearer capability limited to order references containing 24 random hexadecimal characters. Returns recorded payment and fulfillment state, handover method and reference; excludes names, contacts, addresses and internal notes. `no-store` response. `/orders/track?ref=…` presents the same record without implying an unrecorded delivery.
 - `POST /api/bookings`: a newly inserted enquiry additionally returns a signed `statusToken` when the signing secret is configured. Retry acknowledgements do not mint new follow-up credentials. Booking drafts remain in tab-scoped session storage until successful submission.
@@ -1007,6 +1014,14 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   No contact, address, provider secret or claim nonce is returned. A copied key without the original signed cookie cannot
   recover the order. Missing = 404, missing scope = 428, unavailable = 503.
 - `POST /api/paystack/checkout`: merchandise only, same-origin signed guest scope
+  Hosted merchandise checkout requests `channels: ['card','mobile_money']` in
+  KES. The owner confirmed M-Pesa enabled in the merchant dashboard on10November.
+  Paystack collects the payer's number/authorization; UGT never requests their
+  PIN. `/api/checkout/fulfillment` exposes `payments.paystackMobileMoney` alongside
+  the compatibility card flag; `payments.mpesa` still means direct Daraja and
+  remainsfalse. Both hosted rails share the same durable reference/recovery and
+  signed exact-amount settlement. Marketplace adapter defaults and ticket-sales
+  gates remain unchanged. Initialization/redirect is never proof of payment.
   and opaque `idempotencyKey` required. Existing server pricing, variant, delivery
   and stock checks remain authoritative. Atomic preparation saves the order and
   its delivery snapshot before a single durable initiation claim. An unchanged

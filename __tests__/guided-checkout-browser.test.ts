@@ -70,7 +70,7 @@ it.skipIf(!enabled)('keeps the first checkout action reachable in the initial ph
  }finally{await fixture.context.close()}
 },20000);
 
-async function open(event=false,width=390,wide=false,touchTablet=false){
+async function open(event=false,width=390,wide=false,touchTablet=false,mobileMoney=false){
  const context=await browser.newContext({viewport:{width,height:wide?2122:844},...(wide?{screen:{width:393,height:851},hasTouch:true}:{}),...(touchTablet?{screen:{width:1024,height:1366},hasTouch:true,isMobile:true}:{}),serviceWorkers:'block',reducedMotion:'reduce'});
  if(wide)await context.addInitScript(()=>{Object.defineProperty(screen,'orientation',{value:{type:'portrait-primary'}})});
  const posts:{path:string;body:unknown}[]=[],unexpected:string[]=[];
@@ -84,7 +84,7 @@ async function open(event=false,width=390,wide=false,touchTablet=false){
   if(request.isNavigationRequest())return route.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+globalStyles+'</style><link rel="stylesheet" href="/fixture.css"><header class="site-header" data-public-surface="navigation"><div class="header-content"></div></header><main id="main-content" class="application-content"><div id="app"></div></main><script src="/fixture.js"></script>'});
   if(url.pathname==='/api/site-data/products')return route.fulfill({json:{ok:true,products:[{id:'fixture',name:'Fixture shirt',price:1000,variants:[{label:'Black / M',priceAdjustment:0}]}]}});
   if(url.pathname==='/api/site-data/events')return route.fulfill({json:{ok:true,events:[{id:'fixture-event',name:'Fixture event',sellable:true,tiers:[{name:'Standard',price:900,sellable:true,remaining:4,per_order_min:2,per_order_max:4}]}]}});
-  if(url.pathname==='/api/checkout/fulfillment')return route.fulfill({json:{pickup:{enabled:true,fee:0,location:'Fixture desk'},delivery:{enabled:true,fee:300},payments:{mpesa:true,card:true}}});
+  if(url.pathname==='/api/checkout/fulfillment')return route.fulfill({json:{pickup:{enabled:true,fee:0,location:'Fixture desk'},delivery:{enabled:true,fee:300},payments:{mpesa:false,card:true,paystackMobileMoney:mobileMoney}}});
   if(url.pathname==='/api/checkout/session')return route.fulfill({json:{ok:true,created:false}});
   if(url.pathname==='/api/orders')return route.abort();
   if(/^\/(?:payment-brands\/|fonts\/|assets\/)/.test(url.pathname)&&existsSync('public'+url.pathname))return route.fulfill({...(url.pathname.endsWith('.svg')?{contentType:'image/svg+xml'}:{}),body:readFileSync('public'+url.pathname)});
@@ -95,6 +95,20 @@ async function open(event=false,width=390,wide=false,touchTablet=false){
  await page.getByLabel('Your full name',{exact:true}).waitFor();
  return {page,context,posts,unexpected};
 }
+
+it.skipIf(!enabled).each([320,390,1440])('shows M-Pesa as part of hosted Paystack checkout without creating a direct STK or shifting outside the tile (%s)',async width=>{
+ const {page,context,posts}=await open(false,width,false,false,true);
+ try{
+  await page.locator('[data-checkout-next]:visible').click();await page.locator('[data-checkout-next]:visible').click();
+  const tile=page.locator('label:has(input[name="paymentMethod"])');
+  expect(await tile.innerText()).toContain('M-Pesa');expect(await tile.getByRole('img',{name:'M-Pesa',exact:true}).isVisible()).toBe(true);
+  await tile.getByRole('img',{name:'M-Pesa',exact:true}).evaluate((image:HTMLImageElement)=>image.decode());
+  expect(await page.getByRole('button',{name:'Continue to Paystack',exact:true}).isVisible()).toBe(true);
+  expect(await page.locator('form input[type="checkbox"]').isChecked()).toBe(false);
+  expect(await tile.evaluate(node=>[...node.children].every(child=>child.getBoundingClientRect().right<=node.getBoundingClientRect().right+1))).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);expect(posts).toEqual([]);
+ }finally{await context.close()}
+},20000);
 
 it.skipIf(!enabled)('lets a card pickup buyer skip contact details before choosing card payment',async()=>{
  const {page,context,posts}=await open();

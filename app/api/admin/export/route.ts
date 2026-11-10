@@ -44,7 +44,7 @@ function buildKindQuery(kind: string, search: string | null, from: string | null
       return {
         cols: `id, total, status, name, email, phone, mpesa_receipt, pay_method,
                (SELECT COALESCE(SUM(amount),0) FROM refunds r WHERE r.order_id=orders.id) AS refunded,
-               created_at`,
+               created_at, to_jsonb(orders)->>'paystack_ref' AS paystack_ref`,
         from: 'orders',
         where: w,
         orderBy: 'created_at DESC',

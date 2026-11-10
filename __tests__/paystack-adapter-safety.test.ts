@@ -20,6 +20,14 @@ it.each([undefined,'false','', 'TRUE'])('keeps outbound Paystack inactive withou
 });
 
 describe('Paystack initialization uncertainty', () => {
+  it('requests Kenyan mobile money alongside cards only when explicitly selected by the caller', async () => {
+    request.mockResolvedValue(Response.json({ status: true, data: { authorization_url: 'https://checkout.paystack.com/safe123' } }));
+    await paystackInit({ ...init, channels: ['card', 'mobile_money'] });
+    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toMatchObject({ channels: ['card', 'mobile_money'], currency: 'KES', amount: 120000 });
+    request.mockClear();
+    await paystackInit(init);
+    expect(JSON.parse(String(request.mock.calls[0][1]?.body)).channels).toEqual(['card']);
+  });
   it('accepts the documented HTTPS checkout host and forbids redirects', async () => {
     request.mockResolvedValue(Response.json({ status: true, data: { authorization_url: 'https://checkout.paystack.com/safe123' } }));
     expect(await paystackInit(init)).toMatchObject({ ok: true, url: 'https://checkout.paystack.com/safe123', requestPayload: { amount: 120000, currency: 'KES', reference: 'ORD-SAFE123' } });

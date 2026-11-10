@@ -59,6 +59,8 @@ export async function paystackInit(params: {
   reference: string;
   callbackUrl: string;
   metadata?: Record<string, unknown>;
+  // Opt in per flow. Marketplace/ticket callers remain card-only by default.
+  channels?: ('card' | 'mobile_money')[];
   // Marketplace split (omit for UGT's own internal checkouts).
   subaccountCode?: string;
   transactionChargeKes?: number; // goes to the MAIN (UGT) account, in KES (converted to subunits below)
@@ -71,7 +73,7 @@ export async function paystackInit(params: {
     currency: 'KES',
     reference: params.reference,
     callback_url: params.callbackUrl,
-    channels: ['card'],
+    channels: params.channels || ['card'],
     metadata: params.metadata || {},
   };
   if (params.subaccountCode) {

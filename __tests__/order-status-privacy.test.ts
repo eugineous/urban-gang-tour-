@@ -4,6 +4,11 @@ vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'local-t
 import{q}from'@/lib/server/db';
 import{GET}from'@/app/api/orders/status/route';
 afterEach(()=>vi.clearAllMocks());
+it('identifies the Paystack gateway without misreporting its hosted mobile-money channel as card',async()=>{
+ vi.mocked(q).mockResolvedValue([{status:'pending',total:1500,pay_method:'card',paystack_ref:'ORD-TEST-ONLY'}]);
+ const r=await GET(new Request('http://localhost/api/orders/status?id=ORD-TEST-ONLY'));
+ expect(await r.json()).toMatchObject({method:'paystack',receipt:''});
+});
 it('retains paid verification after merchandise fulfillment without exposing contacts',async()=>{
  vi.mocked(q).mockResolvedValue([{status:'fulfilled',total:1500,mpesa_receipt:'TEST-RECEIPT',phone:'PRIVATE',email:'PRIVATE',name:'PRIVATE',created_at:'2026-10-09'}]);
  const r=await GET(new Request('http://localhost/api/orders/status?id=ORD-TEST-ONLY'));const data=await r.json();

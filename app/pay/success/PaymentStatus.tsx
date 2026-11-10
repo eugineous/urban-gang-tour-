@@ -25,7 +25,7 @@ export default function PaymentStatus({orderId}:{orderId:string}){
     if(controller.signal.aborted)return;
     const feedback=paymentFeedback(d.status,d.delivery);
     setRemainingTickets(d.remainingTicketsAvailable===true);setDelivery(feedback.delivery);
-    setResult({orderId,status:d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status,total:typeof d.total==='number'&&Number.isFinite(d.total)&&d.total>=0?d.total:undefined,method:['mpesa','card','comp'].includes(d.method)?d.method:undefined});setError(false);
+    setResult({orderId,status:d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status,total:typeof d.total==='number'&&Number.isFinite(d.total)&&d.total>=0?d.total:undefined,method:['mpesa','card','paystack','comp'].includes(d.method)?d.method:undefined});setError(false);
     if(paymentPresentation(d.status).terminal){clearCheckoutAttempt(orderId);clearPaystackAttempt(orderId)}
     if(feedback.paid){
      try{

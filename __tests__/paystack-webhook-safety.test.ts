@@ -36,8 +36,8 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe('signed Paystack settlement', () => {
-  it('settles only the stored card reference, exact amount and recoverable state', async () => {
-    expect((await POST(signed())).status).toBe(200);
+  it.each(['card','mobile_money'])('settles only the stored hosted reference, exact amount and recoverable state (%s)', async channel => {
+    expect((await POST(signed('charge.success',{...details,channel}))).status).toBe(200);
     const [sql, params] = state.q.mock.calls.find(([sql]) => sql.includes('WITH paid AS'))!;
     expect(sql).toContain("pay_method='card'");
     expect(sql).toMatch(/paystack_ref\s*=\s*\$2/);

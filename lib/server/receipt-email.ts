@@ -67,7 +67,7 @@ export async function renderReceiptEmailPayload(order: OrderRow): Promise<string
     const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
     const lines = await receiptLines(order);
     const isComp = order.pay_method === 'comp';
-    const method = isComp ? 'Complimentary (no charge)' : order.pay_method === 'card' ? 'Card' : 'M-Pesa';
+    const method = isComp ? 'Complimentary (no charge)' : order.paystack_ref ? 'Paystack' : order.pay_method === 'card' ? 'Card' : 'M-Pesa';
     const receipt = String(order.mpesa_receipt || order.paystack_ref || order.stripe_payment_intent || '');
     const when = eatDateTime(new Date());
     const link = `${SITE}/receipt/${encodeURIComponent(order.id)}`;

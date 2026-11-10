@@ -10,6 +10,10 @@ import {sendReceiptEmail,renderReceiptEmailPayload} from '@/lib/server/receipt-e
 beforeEach(()=>vi.clearAllMocks());
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals()});
 describe('payment receipt delivery',()=>{
+ it('labels hosted Paystack payments by their gateway rather than claiming a mobile-money purchase used a card',async()=>{
+  const payload=JSON.parse(await renderReceiptEmailPayload({id:'ORD-PAYSTACK123',items:[],total:500,email:'sample@example.com',status:'paid',pay_method:'card',paystack_ref:'ORD-PAYSTACK123'}));
+  expect(payload.html).toContain('Paystack');expect(payload.html).not.toMatch(/>Card</);
+ });
  it('gives a merchandise buyer a durable order-tracking link without claiming delivery',async()=>{
   const payload=JSON.parse(await renderReceiptEmailPayload({id:'ORD-ABC123456789012345678901234',items:[{id:'cb-hoodie',qty:1}],total:3500,email:'sample@example.com',status:'paid'}));
   expect(payload.html).toContain('https://urbangangtour.co.ke/orders/track?ref=ORD-ABC123456789012345678901234');

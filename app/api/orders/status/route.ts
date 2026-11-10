@@ -64,7 +64,7 @@ export async function GET(req: Request) {
       ...(attemptState?{attemptState}:{}),
       total: Number(o.total) || 0,
       receipt,
-      method: String(o.pay_method || 'mpesa'),
+      method: o.pay_method==='comp'?'comp':o.paystack_ref?'paystack':String(o.pay_method || 'mpesa'),
       created_at: o.created_at,
       ...(paid?{delivery:await orderDeliveryStatus(o)}:{}),
     },
