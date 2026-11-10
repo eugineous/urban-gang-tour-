@@ -81,6 +81,14 @@
   },
   "decisions": [
     {
+      "date": "2026-11-10",
+      "direction": "Owner-delegated Charles Unslop and interaction craft across existing page families",
+      "palette": "Retain primary #c60073 and deliberate violet/cyan content accents. Public neutrals #faf9fb, white, ink #1c1820, secondary #625c67 and line #ded9e1.",
+      "ui": "Normal small-text tracking, balanced headings, tabular figures, quiet surfaces and 4px rhythm. Trigger-origin dialogs, explicit automatic-popup policy, immediate safe dismissal, readable checkout and stable loading/connection feedback. Mobile dock remains Events/Tickets/Home/Shop/Contact.",
+      "preserve": "Intentional hero/shop typography, actual host/poster artwork, menu engagement pulse, owned video strip, six languages, motion/focus/save-data preferences, financial/auth/publication truth and print output",
+      "reference": "https://github.com/LemonFace0309/charles-skills/tree/main/skills/charles-unslop"
+    },
+    {
       "date": "2026-11-09",
       "direction": "Owner magenta booking-first app refinement",
       "palette": "Primary #c60073; violet #5b21b6 and cyan #10cddd accents; small gold #ffd23f; blush/light surfaces",

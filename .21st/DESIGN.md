@@ -43,6 +43,16 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 10 November Charles Unslop: energetic posters, calm booking desk. Public
+  surfaces #faf9fb/white, ink #1c1820, secondary #625c67, line #ded9e1;
+  primary magenta #c60073 stays. Use readable tracking, tabular figures,
+  quieter hierarchy, stable loading/connection slots and trigger-aware dialogs.
+  Keep owner-requested hero/shop fonts, the menu pulse and owned video strip.
+  Automatic popups declare their origin policy; dismissals never block input.
+  Current mobile dock: Events, Tickets, centred Home, Shop, Contact.
+  Reference/attribution: Charles Unslop / Damir Sokolovsky, CC-BY-4.0;
+  see docs/superpowers/plans/2026-11-09-charles-interface-craft.md.
+
 - 9 November booking-first refinement: magenta #c60073 leads shared controls,
   blush surfaces, violet #5b21b6/cyan #10cddd accents and small gold #ffd23f
   highlights. Centred Home between Events/Tickets and Book/Contact. Branded

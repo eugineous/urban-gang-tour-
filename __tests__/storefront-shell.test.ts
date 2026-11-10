@@ -36,7 +36,9 @@ async function expectLight(page:Page,selector:string){
  expect(surface.channels.length).toBeGreaterThanOrEqual(3);
  expect(surface.channels.slice(0,3).every(channel=>channel>=220)).toBe(true);
  expect(surface.channels[3]??1).toBe(1);
- expect(surface.color).toBe('rgb(27, 25, 24)');
+ const luminance=(channels:number[])=>channels.slice(0,3).map(value=>{const s=value/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4}).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);
+ const foreground=surface.color.match(/[\d.]+/g)!.map(Number);
+ expect((luminance(surface.channels)+.05)/(luminance(foreground)+.05)).toBeGreaterThanOrEqual(4.5);
 }
 
 // Catches a storefront header/dock leaking onto the public site or /shop.
@@ -68,12 +70,12 @@ it('keeps the desktop header and centered navigation pill light at entry and aft
     const bounds=await page.locator('.site-header').evaluate(header=>{
      const nav=header.querySelector('.desktop-nav')!,actions=header.querySelector('.header-actions')!,brand=header.querySelector('.brand')!;
      const n=nav.getBoundingClientRect(),a=actions.getBoundingClientRect(),b=brand.getBoundingClientRect();
-     return {navLeft:n.left,navRight:n.right,brandRight:b.right,actionsLeft:a.left,sameRow:Math.abs(n.top-a.top)<20,overflow:nav.scrollWidth>nav.clientWidth+1,targets:[...header.querySelectorAll('.desktop-nav a,.header-actions a')].map(link=>link.getBoundingClientRect().height)};
+     return {navLeft:n.left,navRight:n.right,brandRight:b.right,actionsLeft:a.left,sameRow:Math.abs(n.top-a.top)<20,overflow:nav.scrollWidth>nav.clientWidth+1,targets:[...header.querySelectorAll('.desktop-nav a,.header-actions a')].filter(link=>link.getClientRects().length).map(link=>link.getBoundingClientRect().height)};
     });
     expect(bounds.navLeft).toBeGreaterThanOrEqual(bounds.brandRight);
     expect(bounds.navRight).toBeLessThanOrEqual(bounds.actionsLeft);
     expect(bounds.sameRow).toBe(true);expect(bounds.overflow).toBe(false);
-    expect(bounds.targets.every(height=>height>=44)).toBe(true);
+    expect(bounds.targets.length).toBeGreaterThanOrEqual(8);expect(bounds.targets.every(height=>height>=44)).toBe(true);
    }
   }
  }finally{await page.close()}

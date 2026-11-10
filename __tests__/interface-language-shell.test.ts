@@ -78,7 +78,7 @@ it.each([['fr','banner'],['fr','popup'],['ru','banner'],['ru','popup']] as const
  const close=formatMessage(shellMessages,code,format==='popup'?'campaign.closeOffer':'campaign.closeAnnouncement').text;
  expect(html).toContain(`aria-label="${close}"`);
  if(format==='banner')expect(html).toContain(`aria-label="${formatMessage(shellMessages,code,'campaign.current').text}"`);
- else expect(html).toContain('aria-labelledby="campaign-title"');
+ else{expect(html).toContain('aria-labelledby="campaign-title"');expect(html).toContain('data-ugt-origin-policy="automatic"');}
  const copy=html.match(/<div[^>]*lang="en-KE">([\s\S]*?)<\/div>/)?.[1];
  expect(copy).toBeDefined();expect(copy).toContain('Original &lt;headline&gt; &amp; “title”');
  expect(copy).toContain(originalCampaign.description);expect(copy).toContain('Read original &amp; book');
