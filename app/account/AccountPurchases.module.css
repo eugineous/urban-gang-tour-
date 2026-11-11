@@ -1,0 +1,11 @@
+.panel { background:var(--ugt-surface-raised,#fff); border:1px solid var(--line,#ded9e1); border-radius:16px; padding:clamp(18px,5vw,28px); min-width:0; font-size:16px; }
+.panel h2 { margin:0 0 12px; }
+.panel h3 { margin:18px 0 8px; }
+.entry { border-top:1px solid var(--line,#ded9e1); padding:12px 0; overflow-wrap:anywhere; }
+.entry h4,.entry p { margin:6px 0; }
+.actions { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; }
+.panel a,.panel button { display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:8px 4px; font:inherit; overflow-wrap:anywhere; }
+.panel a { color:var(--ugt-primary,#a90062); text-decoration:underline; text-underline-offset:3px; }
+.panel button { border:1px solid var(--line,#ded9e1); border-radius:10px; background:var(--ugt-primary,#c60073); color:#fff; padding:10px 16px; cursor:pointer; }
+.panel :is(a,button):focus-visible { outline:3px solid var(--ugt-primary,#a90062); outline-offset:3px; }
+.export { border-top:1px solid var(--line,#ded9e1); margin-top:18px; padding-top:10px; }
