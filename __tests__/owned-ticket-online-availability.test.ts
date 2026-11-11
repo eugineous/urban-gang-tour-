@@ -1,4 +1,4 @@
-import {beforeEach,expect,it,vi} from 'vitest';
+import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 
@@ -18,8 +18,17 @@ const now=Date.parse('2099-11-01T12:00:00+03:00');
 const row={id:'owned-fixture',slug:'owned-fixture',kind:'ticketed',name:'Owned fixture event',status:'published',event_date:'2099-11-06',event_time:'4:00 PM',venue:'Fixture venue',city:'Nairobi',description:'Published event details',image:'/uploads/owned-fixture.webp',tiers:[{name:'Standard',price:750,capacity:20,per_order_min:1,per_order_max:5}],sales_start_at:null,sales_end_at:null,previous_start_at:null};
 const event={id:row.id,slug:row.slug,kind:row.kind,name:row.name,status:row.status,eventDate:row.event_date,tiers:[{name:'Standard',price:750,sellable:true}],sellable:true};
 beforeEach(()=>{
+ vi.stubEnv('PAYSTACK_TICKETS_ENABLED','');
  invalidate('site-events:all');state.status='published';state.schema.mockReset();
  state.q.mockReset().mockImplementation(async(sql:string)=>sql===CAPACITY_COUNTS_SQL?[{sold:'2',reserved:'3'}]:sql.includes('FROM tour_events')?[{...row,status:state.status}]:[]);
+});
+afterEach(()=>vi.unstubAllEnvs());
+
+it('advertises owned ticket checkout only with the separate server opt-in and Paystack readiness',async()=>{
+ vi.stubEnv('PAYSTACK_TICKETS_ENABLED','true');vi.stubEnv('PAYSTACK_ENABLED','true');vi.stubEnv('PAYSTACK_SECRET_KEY','isolated-fixture-key');
+ expect(await resolveEventTruth(row.slug)).toMatchObject({onlineCheckoutAvailable:true});
+ vi.stubEnv('PAYSTACK_ENABLED','false');expect(await resolveEventTruth(row.slug)).toMatchObject({onlineCheckoutAvailable:false});
+ expect(state.schema).not.toHaveBeenCalled();
 });
 
 it('keeps real ticket inventory and prices distinct from the closed online-payment gate',async()=>{

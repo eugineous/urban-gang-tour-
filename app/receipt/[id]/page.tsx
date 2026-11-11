@@ -11,6 +11,7 @@ import {PrintDocumentButton} from '@/app/_components/PrintDocumentButton';
 import QRCode from 'qrcode';
 import {ticketIsActive} from '@/lib/server/ticket-entitlement';
 import { maskPhone } from '@/lib/server/receipt-email';
+import {paymentMessages} from '@/ui/i18n/catalogues/payment';
 
 // Printable order receipt. Strong random references are guest capabilities;
 // historical weaker references require the buyer owner or an orders admin.
@@ -84,7 +85,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const banner = paid
+  const banner = paid&&o.ticket_fulfillment_status==='refund_review'
+    ? {bg:'#B7860B',label:<MessageText catalogue={paymentMessages} message="tickets.refundReview"/>}
+    : paid
     ? { bg: isComp ? '#B7860B' : '#1F8A5B', label: isComp ? 'PAID · COMPLIMENTARY' : 'PAID' }
     : refunded ? {bg:'#B7860B',label:o.status==='refunded'?'FULL RETURN RECORDED':'PARTIAL RETURN RECORDED'} : failed
       ? { bg: '#C62828', label: 'NOT COMPLETED' }

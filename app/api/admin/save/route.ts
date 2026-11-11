@@ -286,7 +286,7 @@ export async function POST(req: Request) {
         if (data.expectedStatus !== cur[0].status) return NextResponse.json({error:'order_status_changed'}, {status:409});
         const changed = await q<{id:string}>(
           `WITH changed AS (
-             UPDATE orders SET status=$2 WHERE id=$1 AND status=$3 RETURNING id
+             UPDATE orders SET status=$2 WHERE id=$1 AND status=$3 AND COALESCE(to_jsonb(orders)->>'ticket_fulfillment_status','')<>'refund_review' RETURNING id
            ), audited AS (
              INSERT INTO audit_log (actor, action, detail)
              SELECT 'admin','order_status',$4 FROM changed RETURNING id

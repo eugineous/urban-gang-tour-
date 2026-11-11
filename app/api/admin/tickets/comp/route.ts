@@ -5,7 +5,8 @@ import { requireOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { q, hasDb } from '@/lib/server/db';
 import { getTicketTiers } from '@/lib/server/catalog';
-import { ensureTickets } from '@/lib/server/tickets';
+import { ensureTickets,ensureTicketSchema } from '@/lib/server/tickets';
+import {createComplimentaryTicketOrder} from '@/lib/server/ticket-inventory';
 import {enqueueReceiptEmail,deliverReceiptEmailJob} from '@/lib/server/email-outbox';
 
 // Admin-only complimentary (free) tickets. Only an authenticated admin can
@@ -66,12 +67,10 @@ export async function POST(req: Request) {
   try {
     // Self-heal, same convention as the card checkout routes.
     await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_method TEXT DEFAULT 'mpesa'`);
-    await q(
-      `INSERT INTO orders (id, items, total, name, email, phone, status, pay_method)
-       VALUES ($1,$2,0,$3,$4,$5,'paid','comp')`,
-      [id, JSON.stringify(orderItems), name, emailStr, phoneStr]
-    );
+    await ensureTicketSchema();
+    await createComplimentaryTicketOrder({eventId,tierIndex:tier,tierName:tierInfo.name,qty,orderId:id,items:orderItems,name,email:emailStr,phone:phoneStr});
   } catch (e: any) {
+    if(e instanceof Error&&['sold_out','event_changed'].includes(e.message))return bad(e.message,409);
     console.error('[comp-ticket-order]', e);
     return bad('order_write_failed', 500);
   }

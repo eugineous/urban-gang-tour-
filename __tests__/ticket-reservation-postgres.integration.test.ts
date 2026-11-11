@@ -29,7 +29,7 @@ beforeAll(async()=>{
  adapter.q.mockImplementation((text:string,args:unknown[]=[])=>fixture.query(text,args));adapter.qSchema.mockImplementation((text:string)=>fixture.schema(text));adapter.pool.mockImplementation(()=>fixture.pool());
  await ensureTicketInventorySchema();
 },20000);
-beforeEach(async()=>{if(!enabled)return;adapter.stk.mockReset().mockResolvedValue({ResponseCode:'0',CheckoutRequestID:'LOCAL-PROVIDER'});await fixture.query('TRUNCATE mpesa_checkout_attempts,ticket_reservations,tickets,orders,tour_events,order_delivery_preferences;');await fixture.query("INSERT INTO tour_events(id,kind,status,event_date,venue,tiers) VALUES('event','ticketed','published','2099-12-01','Fixture venue',$1::jsonb)",[JSON.stringify([{name:'General',price:500,capacity:1,per_order_min:1,per_order_max:2}])])});
+beforeEach(async()=>{if(!enabled)return;adapter.stk.mockReset().mockResolvedValue({ResponseCode:'0',CheckoutRequestID:'LOCAL-PROVIDER'});await fixture.query('TRUNCATE paystack_checkout_attempts,mpesa_checkout_attempts,ticket_reservations,tickets,orders,tour_events,order_delivery_preferences;');await fixture.query("INSERT INTO tour_events(id,kind,status,event_date,venue,tiers) VALUES('event','ticketed','published','2099-12-01','Fixture venue',$1::jsonb)",[JSON.stringify([{name:'General',price:500,capacity:1,per_order_min:1,per_order_max:2}])])});
 afterAll(()=>fixture.stop(),20000);
 const test=it.skipIf(!enabled);
 async function order(id:string,qty=1){await fixture.query('INSERT INTO orders(id,items,total) VALUES($1,$2::jsonb,$3)',[id,JSON.stringify([{id:'ticket:event:0',qty}]),500*qty]);return {eventId:'event',tierIndex:0,qty,orderId:id}}

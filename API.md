@@ -150,9 +150,10 @@ Legacy direct M-Pesa initiation is disabled by the owner's Paystack-only policy.
 After same-origin and device/network rate checks, returns 503
 `{error:'paystack_only'}` with `Cache-Control: no-store`, before purchase,
 ledger, reservation or provider work, even when Daraja credentials are stored.
-New merchandise payments use `/api/paystack/checkout`. Owned-event ticket
-checkout is currently unavailable because Paystack card-ticket finality remains
-unverified; direct M-Pesa is not offered as a fallback.
+New merchandise and separately gated owned-event ticket payments use
+`/api/paystack/checkout`. Owned-event launch remains CLOSED unless the optional
+server-only `PAYSTACK_TICKETS_ENABLED=true` and normal Paystack/database readiness
+are present. Direct M-Pesa is not offered as a fallback.
 Existing orders, callback verification, reconciliation and owner-scoped
 `/api/checkout/recovery` remain supported. Reading/recovering a saved reference
 does not initiate another STK push.
@@ -166,6 +167,9 @@ Public poll for the checkout STK-waiting panel. Id format-validated
 `{status, total, receipt, method, created_at}` - `receipt` (M-Pesa receipt /
 Paystack ref / Stripe payment intent) only once paid or fulfilled. NEVER returns
 name/email/phone. 200 - 400 - 404 unknown - 429 (30/min/IP) - 503 no DB.
+An owned-ticket payment received without safe capacity/event fulfillment remains
+`status:'paid'`, with `ticketFulfillment:'refund_review'` and `delivery.tickets:'review'`.
+This is a manual review request, not admission or evidence of a completed refund.
 
 ### GET /receipt/[id]
 Server-rendered printable receipt page (force-dynamic, robots noindex).
@@ -302,7 +306,11 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   - indistinguishable from a paid ticket at the gate. Sends the branded
   receipt email (visibly "COMPLIMENTARY - KES 0", never a fake price) when
   `holderEmail` is given. 200 `{ok,id,receiptUrl,ticketsUrl,tickets}` · 400 ·
-  401 · 403 bad origin · 429 (20/min/IP) · 503 no DB.
+  401 · 403 bad origin · 409 finite capacity exhausted or tier changed ·
+  429 (20/min/IP) · 503 no DB. An event lock serializes the paid comp-order
+  insertion with hosted ticket holds and settlement; pending payable holds also
+  occupy capacity. Authorized complimentary issuance of a null/untracked capacity
+  tier retains its existing semantics and never enables online paid sales.
   `GET /api/admin/data?view=eventTiers` returns the event/tier list for the
   Control Room's "Issue Free Ticket" form (Orders tab); the comp route
   re-validates independently and is the actual source of truth.
@@ -1013,7 +1021,7 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   authorization URL only while its exact bound card order remains recoverable.
   No contact, address, provider secret or claim nonce is returned. A copied key without the original signed cookie cannot
   recover the order. Missing = 404, missing scope = 428, unavailable = 503.
-- `POST /api/paystack/checkout`: merchandise only, same-origin signed guest scope
+- `POST /api/paystack/checkout`: same-origin signed guest scope
   Hosted merchandise checkout requests `channels: ['card','mobile_money']` in
   KES. The owner confirmed M-Pesa enabled in the merchant dashboard on10November.
   Paystack collects the payer's number/authorization; UGT never requests their
@@ -1028,9 +1036,20 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   retry recovers its original total/reference/URL rather than starting a second
   payable transaction; changed input conflicts409. An ambiguous provider or URL
   persistence outcome returns202 with the retained order reference and is not
-  automatically initialized again. Responses are no-store. Owned-event ticket
-  card checkout is not enabled; hosted session finality/late-payment policy must
-  be established before bounded seat holds can safely launch.
+  automatically initialized again. Responses are no-store.
+  Owned-ticket input is `{ticket:{eventId,tier,qty},name?,phone?,email?,idempotencyKey}`;
+  extra fields, mixed merchandise, delivery and promo/referral values are rejected.
+  A separate server-only ticket flag is CLOSED by default. Ticket pricing comes
+  from the owned event; finite capacity, lifecycle, schedule, venue, sale window
+  and tier identity are rechecked under the event lock. The seat hold and unique
+  provider-send claim commit atomically before card-only hosted initialization.
+  Initialization uncertainty, failed charges and abandonment never release a
+  potentially payable seat on a local timer. Verified late success reacquires
+  actually free capacity or durably records paid/manual-refund-review without
+  minting. Existing externally attested full refunds remain the money-return
+  workflow; no automatic provider refund is initiated. Turning the ticket flag
+  off never disables accounting for already initiated payments. This isolated
+  contract is not live merchant, finality or production-capacity certification.
   The deleted merchant account is not used: outbound integration requires explicit
   `PAYSTACK_ENABLED=true` and a server secret. Absent/false fails closed before
   ledger creation/provider dispatch. Replacement credentials alone do not enable

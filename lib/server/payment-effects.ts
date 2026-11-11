@@ -6,6 +6,7 @@ import { consumeReservation } from './ticket-inventory';
 import { recordPaidMerchOrder } from './inventory';
 import { ensureTickets } from './tickets';
 import { enqueueReceiptEmail, ensureEmailOutbox, deliverReceiptEmailJob } from './email-outbox';
+import {settleOwnedPaystackTicket} from './paystack-tickets';
 
 export type PaymentEffect = 'reservation' | 'inventory' | 'tickets' | 'receipt';
 export type EffectSummary = { orderId: string; effect: PaymentEffect; status: 'complete' | 'skipped' | 'queued' | 'blocked' | 'lease_lost' };
@@ -45,6 +46,9 @@ export async function settlePaystackOrder(input: { orderId: string; reference: s
     throw new Error('invalid_paystack_settlement');
   }
   await ensurePaymentEffectsSchema();
+  let ticket:Awaited<ReturnType<typeof settleOwnedPaystackTicket>>;
+  try{ticket=await settleOwnedPaystackTicket(input)}catch{throw Error('database_unavailable')}
+  if(ticket.handled)return ticket.order;
   const rows = await effectsQuery<OrderRow>(`WITH paid AS (
     UPDATE orders SET status='paid'
     WHERE id=$1 AND paystack_ref=$2 AND total=$3 AND pay_method='card'
@@ -138,7 +142,8 @@ export async function processPaymentEffects(limit = 25, orderId?: string): Promi
         AND ((e.status='queued' AND e.next_attempt_at<=now()) OR (e.status='processing' AND e.lease_until<=now()))
         AND (e.effect<>'receipt' OR EXISTS (
           SELECT 1 FROM payment_effect_outbox t WHERE t.order_id=e.order_id AND t.effect='tickets' AND t.status='complete'
-        ) OR NOT EXISTS (SELECT 1 FROM orders o WHERE o.id=e.order_id AND o.status IN ('paid','fulfilled')))
+        ) OR EXISTS (SELECT 1 FROM orders o WHERE o.id=e.order_id AND to_jsonb(o)->>'ticket_fulfillment_status'='refund_review')
+         OR NOT EXISTS (SELECT 1 FROM orders o WHERE o.id=e.order_id AND o.status IN ('paid','fulfilled')))
       ORDER BY e.created_at,e.order_id,CASE e.effect WHEN 'reservation' THEN 0 WHEN 'inventory' THEN 1 WHEN 'tickets' THEN 2 ELSE 3 END
       LIMIT 1 FOR UPDATE SKIP LOCKED
     ) UPDATE payment_effect_outbox e SET status='processing',attempts=e.attempts+1,
@@ -148,7 +153,7 @@ export async function processPaymentEffects(limit = 25, orderId?: string): Promi
     if (!job) break;
     const orders = await effectsQuery<OrderRow>('SELECT * FROM orders WHERE id=$1', [job.order_id]);
     const order = orders[0];
-    if (!order || !isConfirmedPayment(order.status)
+    if (!order || !isConfirmedPayment(order.status) || order.ticket_fulfillment_status==='refund_review'&&job.effect!=='receipt'
       || (job.effect === 'receipt' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(order.email || '').trim()))) {
       outcomes.push(await finishEffect(job, 'skipped'));
       continue;

@@ -22,7 +22,7 @@ import journeyStyles from './GuidedCheckout.module.css';
 import {checkoutJourneyMessages} from '@/ui/i18n/catalogues/checkoutJourney';
 type Product=LiveShopProduct;
 type Item=CartItem;
-type Event={id:string;name:string;sellable?:boolean;tiers:{name:string;price:number;sellable?:boolean;remaining?:number|null;per_order_min?:number;per_order_max?:number}[]};
+type Event={id:string;name:string;sellable?:boolean;onlineCheckoutAvailable?:boolean;tiers:{name:string;price:number;sellable?:boolean;remaining?:number|null;per_order_min?:number;per_order_max?:number}[]};
 const storage=LIVE_CART_KEY;
 function PrintedNameEditor({value,id,disabled,onSave}:{value?:string;id:string;disabled:boolean;onSave:(name:string|undefined)=>void}){
  const t=useMessages(commerceMessages);
@@ -86,7 +86,7 @@ function CommerceClient({view='shop',eventId,embedded=false,initialProducts,cate
   }).catch(()=>{if(!controller.signal.aborted)setFulfillmentError({key:'fulfillment.loadFailed'})}).finally(()=>{if(!controller.signal.aborted)setFulfillmentLoading(false)});
   return()=>controller.abort();
  },[eventId,view,fulfillmentRetry]);
- const paymentAvailable=!eventId&&!fulfillmentLoading&&!fulfillmentError&&!!fulfillmentOptions?.payments.card;
+ const paymentAvailable=(!eventId||event?.onlineCheckoutAvailable===true)&&!fulfillmentLoading&&!fulfillmentError&&!!fulfillmentOptions?.payments.card;
  const paystackMobileMoney=!eventId&&fulfillmentOptions?.payments.paystackMobileMoney===true;
  const fulfillment={method:fulfillmentMethod,...(fulfillmentMethod==='delivery'?{address:{line1:address.line1,city:address.city,...(address.postalCode?{postalCode:address.postalCode}:{})}}:{})};
  const deliveryFee=fulfillmentMethod==='delivery'?(fulfillmentOptions?.delivery.fee||0):0;
@@ -142,13 +142,14 @@ function CommerceClient({view='shop',eventId,embedded=false,initialProducts,cate
     const url=saved.recovered.authorizationUrl;
     window.location.assign(!paymentPresentation(saved.recovered.paymentStatus).terminal&&saved.recovered.attemptState==='ready'&&typeof url==='string'&&new URL(url).protocol==='https:'?url:'/pay/success?ref='+encodeURIComponent(saved.recovered.id));return;
    }
-   const body={items,name:form.name||undefined,phone:form.phone||undefined,email:form.email||undefined,promoCode:promo||undefined,fulfillment,...(referralCode?{referralCode}:{})};
+   const contact={name:form.name||undefined,phone:form.phone||undefined,email:form.email||undefined};
+   const body=eventId?{ticket:{eventId,tier,qty},...contact}:{items,...contact,promoCode:promo||undefined,fulfillment,...(referralCode?{referralCode}:{})};
    const options={method:'POST',headers:{'Content-Type':'application/json'}};
    const r=await fetchWithTimeout('/api/paystack/checkout',{...options,body:JSON.stringify({...body,idempotencyKey:saved.key})});const d=await r.json();
     const id=typeof d.id==='string'&&d.id?d.id:typeof d.orderId==='string'&&d.orderId?d.orderId:null;
     if(id)rememberPaystackOrder(saved.key,id,typeof d.attemptState==='string'?d.attemptState:'unknown');
     if(r.ok&&id){
-     try{sessionStorage.setItem('ugt-checkout-order',JSON.stringify({id,items}))}catch{}
+     try{sessionStorage.setItem('ugt-checkout-order',JSON.stringify({id,...(eventId?{eventId}:{items})}))}catch{}
      const url=d.authorizationUrl;
      window.location.assign(d.attemptState==='ready'&&typeof url==='string'&&new URL(url).protocol==='https:'?url:'/pay/success?ref='+encodeURIComponent(id));return;
     }

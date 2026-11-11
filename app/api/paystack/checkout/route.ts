@@ -58,6 +58,10 @@ async function checkout(req:Request){
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
+  if(Object.prototype.hasOwnProperty.call(body,'ticket')){
+    const {checkoutPaystackTicket}=await import('@/lib/server/paystack-ticket-checkout');
+    return checkoutPaystackTicket(req,body);
+  }
   const allowed = new Set(['items', 'email', 'promoCode', 'fulfillment', 'referralCode', 'name', 'phone','idempotencyKey']);
   for (const k of Object.keys(body)) {
     if (!allowed.has(k)) return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });

@@ -10,6 +10,7 @@
 import { q, hasDb } from './db';
 import { isEventSellable, isPubliclyVisible, isEventIndexable } from './event-lifecycle';
 import {ticketCapacity, parseTierInventory } from './ticket-inventory';
+import {paystackTicketsEnabled} from './paystack-ticket-policy';
 
 export type EventTruth = {
   slug: string;
@@ -107,9 +108,9 @@ export async function resolveEventTruth(slug: string): Promise<EventTruth | null
       isPublic: true,
       isIndexable: isEventIndexable(status),
       isSellable: tierTruth.some(tier => tier.sellable),
-      // New payments are Paystack-only. Its owned-ticket finality gate remains
-      // closed; real inventory must not advertise an unsupported checkout.
-      onlineCheckoutAvailable: false,
+      // Inventory truth and optional hosted-ticket launch readiness are separate.
+      // No public read runs a migration or infers support from an existing seat.
+      onlineCheckoutAvailable: tierTruth.some(tier=>tier.sellable)&&paystackTicketsEnabled(),
       isSoldOut: status === 'sold_out' || (status==='published'&&scheduleReady&&totalRemaining !== null && totalRemaining <= 0),
       isCompleted: status === 'completed',
       isCancelled: status === 'cancelled',

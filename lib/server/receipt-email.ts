@@ -57,6 +57,8 @@ export type OrderRow = {
   pay_method?: string | null;
   created_at?: string | Date | null;
   marketplace_event_id?: string | null;
+  ticket_fulfillment_status?: string | null;
+  paystack_ticket?: {qty:number}|null;
 };
 
 export async function renderReceiptEmailPayload(order: OrderRow): Promise<string> {
@@ -78,9 +80,10 @@ export async function renderReceiptEmailPayload(order: OrderRow): Promise<string
     // e-tickets: minted before this email fires on every paid path, so a paid
     // ticket order lists its per-ticket links here. Never blocks the receipt.
     let tickets: TicketRow[] = [];
-    if (order.status === 'paid' || order.status === 'fulfilled') {
+    if (order.ticket_fulfillment_status!=='refund_review'&&(order.status === 'paid' || order.status === 'fulfilled')) {
       try { tickets = await ticketsForOrder(order.id); } catch { /* receipt still goes out */ }
     }
+    if(order.paystack_ticket&&order.ticket_fulfillment_status!=='refund_review'&&tickets.length!==order.paystack_ticket.qty)throw Error('receipt_tickets_unavailable');
 
     // Marketplace order: still on UGT letterhead (UGT processed the payment)
     // but clearly labelled as sold on behalf of the third-party organizer —
@@ -154,6 +157,7 @@ export async function renderReceiptEmailPayload(order: OrderRow): Promise<string
         </tr>
       </table>
       ${isComp ? '<div style="margin-top:8px;font-size:11.5px;color:#8a6d1a">Issued free of charge by Urban Gang Tour admin. This is not a paid transaction - KES 0 due.</div>' : ''}
+      ${order.ticket_fulfillment_status==='refund_review'?'<p><strong>Payment received.</strong> Tickets could not be issued. This order needs manual refund review. Contact us with your order reference. No refund has been recorded by this notice.</p>':''}
       ${ticketsHtml}
       ${trackingLink?`<p style="text-align:center;margin-top:20px"><a href="${trackingLink}" style="color:#111111;font-weight:700">Track your merchandise order</a><br><span style="font-size:12px;color:#555">View recorded production and handover updates. Keep this private order link.</span></p>`:''}
       <div style="text-align:center;margin-top:20px">

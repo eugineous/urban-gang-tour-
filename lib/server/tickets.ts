@@ -206,7 +206,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
     await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['tickets:' + order.id]);
     // Recheck after acquiring the order lock: an old paid callback must not
     // mint tickets after a concurrent refund has committed.
-    const current=await client.query('SELECT status FROM orders WHERE id=$1 FOR UPDATE',[order.id]);
+    const current=await client.query("SELECT status FROM orders WHERE id=$1 AND COALESCE(to_jsonb(orders)->>'ticket_fulfillment_status','')<>'refund_review' FOR UPDATE",[order.id]);
     if(!['paid','fulfilled'].includes(current.rows[0]?.status)){await client.query('COMMIT');return []}
     const existing = await client.query('SELECT * FROM tickets WHERE order_id=$1 ORDER BY position', [order.id]);
     if (existing.rows.length) {
