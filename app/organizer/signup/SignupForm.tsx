@@ -68,7 +68,7 @@ export default function SignupForm() {
         <h1 style={h1}>{t("copy.sell_tickets_through_ugt")}</h1>
         <p style={{ color: '#555', marginBottom: 20, maxWidth: 560 }}>
           <span lang="en-KE">Apply to sell your event tickets through Urban Gang Tour. We review every application.
-          Card payments only; our commission is deducted before automatic bank payouts.
+          Paystack checkout offers available card and M-Pesa options. Our commission is applied per sale; organizer payouts follow Paystack settlement terms.
         </span></p>
         <div style={card}>
           <form onSubmit={event=>{event.preventDefault();void submit()}} style={{ display: 'grid', gap: 12 }} aria-label={t("copy.apply_to_sell_tickets")}>

@@ -2485,6 +2485,9 @@ export async function POST(req: Request) {
         if (!rows.length) return bad("not_found", 404);
         if (rows[0].organizer_status !== "approved")
           return bad("organizer_not_approved");
+        let approvalTiers:unknown=rows[0].tiers;
+        if(typeof approvalTiers==='string'){try{approvalTiers=JSON.parse(approvalTiers)}catch{approvalTiers=null}}
+        if(!Array.isArray(approvalTiers)||!approvalTiers.length||approvalTiers.some(t=>!Number.isSafeInteger(t?.capacity)||t.capacity<0))return bad('finite_capacity_required');
         const row = await q(
           `UPDATE marketplace_events SET status='published', rejection_reason='', updated_at=now() WHERE id=$1 RETURNING *`,
           [id],

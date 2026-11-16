@@ -12,6 +12,7 @@ import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { db } from './db';
 import { getTicketedEvents, getTicketTiers } from './catalog';
 import { getMarketplaceEventById } from './marketplace';
+import {marketplacePurchase} from './paystack-marketplace-tickets';
 
 // 32 chars, no 0/O/1/I. 32 divides 256, so byte % 32 is bias-free.
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -188,6 +189,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   if (!lines?.length) return [];
   await ensureTicketSchema();
   const marketplaceEventId: string | null = order.marketplace_event_id || null;
+  const acceptedMarketplace = order.paystack_marketplace == null ? null : marketplacePurchase(order.paystack_marketplace);
   // Marketplace orders resolve tier names from marketplace_events.tiers
   // instead of the tour_events-backed catalog — the eventId embedded in the
   // 'ticket:<eventId>:<tierIdx>' line id is the marketplace event's own id
@@ -195,7 +197,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
   // in that case, so no collision with a real tour_events id is possible.
   const tierMap = marketplaceEventId ? null : await getTicketTiers();
   let marketplaceTiers: { name: string; price: number }[] = [];
-  if (marketplaceEventId) {
+  if (marketplaceEventId && !acceptedMarketplace) {
     const ev = await getMarketplaceEventById(marketplaceEventId);
     marketplaceTiers = ev?.tiers || [];
   }
@@ -220,7 +222,7 @@ export async function ensureTickets(order: any): Promise<TicketRow[]> {
     for (const line of lines) {
       const [, eventId, tierIdx] = String(line.id).split(':');
       const tierName = marketplaceEventId
-        ? marketplaceTiers[Number(tierIdx)]?.name || String(line.name || '').split(' - ').pop() || 'General'
+        ? acceptedMarketplace?.tierName || marketplaceTiers[Number(tierIdx)]?.name || String(line.name || '').split(' - ').pop() || 'General'
         : tierMap![eventId]?.tiers[Number(tierIdx)]?.name || String(line.name || '').split(' - ').pop() || 'General';
       for (let i = 0; i < Number(line.qty); i++) {
         pos += 1;

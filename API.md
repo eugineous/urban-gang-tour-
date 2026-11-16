@@ -1076,8 +1076,8 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   PIN. `/api/checkout/fulfillment` exposes `payments.paystackMobileMoney` alongside
   the compatibility card flag; `payments.mpesa` still means direct Daraja and
   remainsfalse. Both hosted rails share the same durable reference/recovery and
-  signed exact-amount settlement. Marketplace adapter defaults and ticket-sales
-  gates remain unchanged. Initialization/redirect is never proof of payment.
+  signed exact-amount settlement. The owned-ticket launch gate is separate.
+  Initialization/redirect is never proof of payment.
   and opaque `idempotencyKey` required. Existing server pricing, variant, delivery
   and stock checks remain authoritative. Atomic preparation saves the order and
   its delivery snapshot before a single durable initiation claim. An unchanged
@@ -1090,7 +1090,7 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   A separate server-only ticket flag is CLOSED by default. Ticket pricing comes
   from the owned event; finite capacity, lifecycle, schedule, venue, sale window
   and tier identity are rechecked under the event lock. The seat hold and unique
-  provider-send claim commit atomically before card-only hosted initialization.
+  provider-send claim commit atomically before hosted card/mobile_money initialization.
   Initialization uncertainty, failed charges and abandonment never release a
   potentially payable seat on a local timer. Verified late success reacquires
   actually free capacity or durably records paid/manual-refund-review without
@@ -1108,6 +1108,40 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   Failure notifications do not establish hosted-session cancellation: matching
   `charge.failed` retains the reference/hold and enters reconciliation, not a
   terminal release. Settlement, provider initialization and delivery are distinct.
+- `POST /api/marketplace/checkout`: public same-origin, rate-limited, signed
+  guest-checkout scope required (428 otherwise); buyer accounts remain optional.
+  Accepts only `{eventId,tier,qty,name,email?,idempotencyKey}`; the key uses the
+  same 32–128 character Paystack attempt contract. Prices, quantity limits,
+  approved organizer/payout configuration, publication, date, venue and finite
+  tier capacity are checked server-side. Unknown capacities cannot start sales.
+  An absent commission setting retains the existing 8% default; an unavailable
+  or invalid setting fails closed. Commission rounding is unchanged.
+  The accepted purchase, organizer subaccount, commission/net amounts, bearer
+  and requested card/mobile_money channels are saved immutably before one
+  dispatch claim and capacity hold. Retries recover that reference and split;
+  changed input under a key returns 409. Success returns
+  `{ok,id,orderId,total,attemptState,authorizationUrl?}`; unknown initialization
+  returns 202 with its reference and no new-payment permission. Responses are
+  no-store. Signed success and server verification share capacity-aware
+  settlement; mint uses the saved tier name and receipt waits for ticket work.
+  Paid money without safe entitlement becomes `paid`/`refund_review` for an
+  operator, without an automatic refund. Historical payable marketplace orders
+  without the required snapshot also enter review on newly received money;
+  existing paid tickets retain their entitlement. There is no historical backfill.
+  Browser cancellation, failed charges, abandonment and local hold expiry do
+  not establish that a hosted session is no longer payable. Unresolved payable
+  holds retain capacity until an authoritative operational resolution. No
+  automatic cancellation/refund provider API is implemented by this flow.
+  Requested channels/split fields do not certify merchant eligibility or actual
+  mobile-money/subaccount settlement; verify those separately before launch.
+- Organizer create and marketplace approval require explicit non-negative integer
+  tier capacities. Existing records keep unknown capacity until explicitly set.
+  Own-event edits serialize with checkout and settlement. Paid or payable
+  obligations lock date, venue, city, tier names/prices/order; capacity-only
+  updates remain possible if every tier covers sold plus reserved admissions.
+  `GET /api/organizer/events/:id` includes `materialLocked` for that UI state.
+  Existing owned-ticket launch flags and merchandise payment contracts remain
+  separate and unchanged.
 - New payment initiation is Paystack-only by explicit server policy, independent
   of stored legacy credentials. `POST /api/orders` and
   `POST /api/stripe/checkout` return 503 `paystack_only` before ledger/provider

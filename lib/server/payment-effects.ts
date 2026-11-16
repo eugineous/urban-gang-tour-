@@ -6,6 +6,7 @@ import { consumeReservation } from './ticket-inventory';
 import { recordPaidMerchOrder } from './inventory';
 import { ensureTickets } from './tickets';
 import { enqueueReceiptEmail, ensureEmailOutbox, deliverReceiptEmailJob } from './email-outbox';
+import {settleMarketplaceTicket} from './paystack-marketplace-tickets';
 import {settleOwnedPaystackTicket} from './paystack-tickets';
 
 export type PaymentEffect = 'reservation' | 'inventory' | 'tickets' | 'receipt';
@@ -46,6 +47,9 @@ export async function settlePaystackOrder(input: { orderId: string; reference: s
     throw new Error('invalid_paystack_settlement');
   }
   await ensurePaymentEffectsSchema();
+  let marketplace:Awaited<ReturnType<typeof settleMarketplaceTicket>>;
+  try{marketplace=await settleMarketplaceTicket(input)}catch{throw Error('database_unavailable')}
+  if(marketplace.handled)return marketplace.order;
   let ticket:Awaited<ReturnType<typeof settleOwnedPaystackTicket>>;
   try{ticket=await settleOwnedPaystackTicket(input)}catch{throw Error('database_unavailable')}
   if(ticket.handled)return ticket.order;
