@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 export const metadata:Metadata={title:'Connect event draft tools | Urban Gang Tour',robots:{index:false,follow:false}};
-export default function ConnectedToolsGuide(){return <main style={{maxWidth:760,margin:'40px auto',padding:24,lineHeight:1.7}}>
+export default function ConnectedToolsGuide(){return <article style={{maxWidth:760,margin:'40px auto',padding:24,lineHeight:1.7}}>
  <h1>Connect event draft tools</h1>
  <p>The owner issues an expiring credential in Control Room → Connected tools. Choose poster upload and event draft access. Copy the credential once and keep it private. Revoke it there when access should stop.</p>
  <h2>Use local Codex</h2>
@@ -15,4 +15,4 @@ export default function ConnectedToolsGuide(){return <main style={{maxWidth:760,
  <h2>Limits and access</h2>
  <p>Credentials expire within 30 days and permit up to 6 successful writes per minute and 30 per day, subject to the existing storage cap. They cannot publish, edit existing events, take payments, sell tickets or manage people. After a successful revocation, future requests fail.</p>
  <p>The repository guide <code>docs/integrations/connected-tools.md</code> contains the full operator setup, retry behavior and isolated test instructions.</p>
- </main>}
+ </article>}
