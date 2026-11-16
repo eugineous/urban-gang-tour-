@@ -9,6 +9,7 @@ import { requireOrigin } from '@/lib/server/origin';
 import { ensureOpsSchema, opsAudit } from '@/lib/server/ops';
 import {POST as mutateLibrary} from '../media-library/route';
 import {readJsonObject} from '@/lib/server/json-body';
+import {youtubeVideoId} from '@/lib/managed-video';
 
 // Authenticated gallery management. Upload bytes are stored before captions
 // and publication state are registered here.
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
   if (!hasDb()) return bad('db_not_configured', 503);
   try {
     await ensureMediaLibrarySchema();
-    const rows = await q(`SELECT id, url, caption, category, alt_text, width, height, published, sort_order, created_at, version FROM gallery_photos WHERE removed_at IS NULL ORDER BY published ASC, sort_order ASC, id ASC`);
+    const rows = await q(`SELECT id, url, caption, category, alt_text, width, height, published, sort_order, created_at, version,media_type FROM gallery_photos WHERE removed_at IS NULL ORDER BY published ASC, sort_order ASC, id ASC`);
     return NextResponse.json({ ok: true, rows, capabilities: { publish: isSuperAdmin(req) } },{headers:{'Cache-Control':'private, no-store'}});
   } catch {
     return bad('server_error', 500);
@@ -90,7 +91,9 @@ export async function POST(req: Request) {
       // Only register an existing owned gallery upload.
       case 'upload': {
         const url = s(d.url, 600);
-        if (!url || !isMediaUrl(url) || !url.startsWith('/media/gallery/') || !(await mediaGet(url))) return bad('invalid_url');
+        if (!url || !isMediaUrl(url) || !url.startsWith('/media/gallery/'))return bad('invalid_url');
+        const asset=await mediaGet(url);if(!asset||!['image/jpeg','image/png','image/webp','image/gif','video/mp4'].includes(asset.metadata.contentType))return bad('invalid_url');
+        await ensureMediaLibrarySchema();const mediaType=asset.metadata.contentType==='video/mp4'?'video':'photograph';
         const caption = s(d.caption, 300);
         const category = s(d.category, 120);
         const width = imageDimension(d.width);
@@ -98,12 +101,19 @@ export async function POST(req: Request) {
         const next = await q<{ next: number }>(`SELECT COALESCE(MAX(sort_order),0)+10 AS next FROM gallery_photos`);
         const sortOrder = Number(next[0]?.next) || 10;
         const row = await q(
-          `INSERT INTO gallery_photos (url, caption, category, width, height, sort_order) VALUES ($1,$2,$3,$4,$5,$6)
+          `INSERT INTO gallery_photos (url, caption, category, width, height, sort_order,media_type) VALUES ($1,$2,$3,$4,$5,$6,$7)
            ON CONFLICT (url) DO UPDATE SET url=EXCLUDED.url RETURNING *`,
-          [url, caption, category, width, height, sortOrder]
+          [url, caption, category, width, height, sortOrder,mediaType]
         );
         await opsAudit('gallery.upload', { id: row[0]?.id, actor: adminActor(req) });
         return saved({ ok: true, row: row[0] });
+      }
+      case 'video.link': {
+        if(Object.keys(d).some(key=>!['url','caption','category','rightsConfirmed'].includes(key))||d.rightsConfirmed!==true||typeof d.caption!=='string'||!d.caption.trim()||d.caption.length>300||d.category!==undefined&&(typeof d.category!=='string'||d.category.length>120))return bad('invalid_video');
+        const id=youtubeVideoId(d.url);if(!id)return bad('invalid_video_url');
+        await ensureMediaLibrarySchema();
+        const row=await q(`INSERT INTO gallery_photos(url,caption,category,alt_text,media_type) VALUES($1,$2,$3,$2,$4) ON CONFLICT(url) DO UPDATE SET url=EXCLUDED.url RETURNING *`,['https://www.youtube.com/watch?v='+id,d.caption.trim(),d.category||'','youtube']);
+        await opsAudit('gallery.video.link',{id:row[0]?.id,actor:adminActor(req)});return saved({ok:true,row:row[0]});
       }
       default:
         return bad('unknown_kind');

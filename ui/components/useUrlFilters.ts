@@ -14,11 +14,14 @@ export function readUrlFilters(params: URLSearchParams, defaults: Defaults, allo
 
 // Typing replaces the current history entry; explicit filter choices create
 // one navigable entry. Popstate restores the controls from the URL.
-export function useUrlFilters(defaults: Defaults, allowed: Allowed = {}) {
-  const [values, setValues] = useState(defaults);
+export function useUrlFilters(defaults: Defaults, allowed: Allowed = {}, initialValues: Defaults = defaults, sync=true) {
+  const [values, setValues] = useState(() => readUrlFilters(new URLSearchParams(initialValues),defaults,allowed));
   const [ready, setReady] = useState(false);
   const signature = JSON.stringify([defaults, allowed]);
   useEffect(() => {
+    // Server archive filters navigate with native GET/anchors. Retain their
+    // normalized server values instead of reparsing duplicate browser params.
+    if(!sync)return;
     const [initial, valid] = JSON.parse(signature) as [Defaults, Allowed];
     const read = () => {
       const url = new URL(location.href);
@@ -34,7 +37,7 @@ export function useUrlFilters(defaults: Defaults, allowed: Allowed = {}) {
     read();
     window.addEventListener('popstate', read);
     return () => window.removeEventListener('popstate', read);
-  }, [signature]);
+  }, [signature,sync]);
   const update = (patch: Defaults, replace = false) => {
     const url = new URL(location.href);
     const next = readUrlFilters(new URLSearchParams({ ...values, ...patch }), defaults, allowed);

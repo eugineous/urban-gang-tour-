@@ -17,6 +17,7 @@ async function serve(request:Request,{params}:Context,head=false){
   const response=await fetchGithubInstagramAsset(githubInstagramAssetUrl(file),{method:head?'HEAD':'GET',...(range?{range}:{})});
   if(![200,206].includes(response.status)){await response.body?.cancel();return bad(response.status===404?404:502)}
   const headers=new Headers({'Content-Type':file.kind==='video'?'video/mp4':file.file.endsWith('.png')?'image/png':file.file.endsWith('.webp')?'image/webp':'image/jpeg','X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes',ETag:etag,'Cache-Control':'public, max-age=300, s-maxage=300, must-revalidate'});
+  if(new URL(request.url).searchParams.get('download')==='1')headers.set('Content-Disposition','attachment; filename="'+file.file+'"');
   const length=response.headers.get('content-length'),contentRange=response.headers.get('content-range');
   if(response.status===206){const parsed=contentRange?.match(/^bytes (\d+)-(\d+)\/(\d+)$/);if(!parsed||Number(parsed[3])!==file.bytes||Number(parsed[1])>Number(parsed[2])||Number(parsed[2])>=file.bytes){await response.body?.cancel();return bad(502)}headers.set('Content-Range',contentRange!)}
   if(length){if(!/^\d+$/.test(length)||response.status===200&&Number(length)!==file.bytes){await response.body?.cancel();return bad(502)}headers.set('Content-Length',length)}

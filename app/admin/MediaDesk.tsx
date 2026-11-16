@@ -6,6 +6,7 @@ import { useUnsavedWarning } from "@/lib/client/use-unsaved-warning";
 import { isDraftId } from "@/lib/story-draft";
 import {chronological,type Chronology} from '@/lib/chronology';
 import InstagramImport from './InstagramImport';
+import MediaAdditions from './MediaAdditions';
 type Photo = {
   id: number;
   url: string;
@@ -17,6 +18,7 @@ type Photo = {
   version: number;
   removed_at: string | null;
   created_at?:string;
+  media_type?:string;
 };
 type Folder = { id: string; name: string; version: number };
 const validFolder = (row: Folder) =>
@@ -258,11 +260,11 @@ export default function MediaDesk() {
   const shown=chronological(filtered,sort,row=>row.created_at,row=>row.caption,row=>String(row.id));
   return (
     <div className="cr-media-desk">
-      <InstagramImport/>
+      <details className="cr-panel"><summary>Import from Instagram</summary><InstagramImport/></details>
       <section className="cr-panel">
         <div className="cr-toolbar">
           <div>
-            <h2>Photo library</h2>
+            <h2>Media library</h2>
             <p className="cr-muted">
               Upload privately. Choose what goes public.
             </p>
@@ -272,7 +274,7 @@ export default function MediaDesk() {
             onClick={() => setUploads((value) => !value)}
             aria-expanded={uploads}
           >
-            ＋ Upload photos
+            Upload photos or video
           </button>
         </div>
         {error && (
@@ -288,7 +290,7 @@ export default function MediaDesk() {
         <div className="cr-filter-row">
           <label className="cr-field">Order<select value={sort} onChange={event=>setSort(event.target.value as Chronology)}><option value="newest">Newest added</option><option value="oldest">Oldest added</option><option value="title">Caption A–Z</option></select></label>
           <label className="cr-field">
-            Find photos
+            Find media
             <input
               type="search"
               value={query}
@@ -305,7 +307,7 @@ export default function MediaDesk() {
                 setSelected([]);
               }}
             >
-              <option value="all">All photos</option>
+              <option value="all">All media</option>
               <option value="private">Private</option>
               <option value="published">Published</option>
               <option value="removed">Removed photos</option>
@@ -404,7 +406,7 @@ export default function MediaDesk() {
       </div>
       {edit && (
         <section className="cr-panel cr-photo-editor" aria-label="Photo editor">
-          <img src={edit.url} alt={draft.altText || "Photo being edited"} />
+          {edit.media_type==='video'?<video src={edit.url} controls preload="metadata" aria-label={draft.altText||edit.caption||'Video preview'}/>:edit.media_type==='youtube'?<p><a href={edit.url} target="_blank" rel="noopener noreferrer">Preview video on YouTube</a></p>:<img src={edit.url} alt={draft.altText || "Photo being edited"} />}
           <div>
             <div className="cr-toolbar">
               <h2>Edit photo</h2>
@@ -590,7 +592,7 @@ export default function MediaDesk() {
       <div className="cr-record-grid cr-photo-grid">
         {shown.map((photo) => (
           <article key={photo.id} className="cr-photo-card">
-            <img src={photo.url} alt={photo.alt_text || ""} loading="lazy" />
+            {photo.media_type==='video'?<video src={photo.url} controls preload="none" aria-label={photo.caption||'Video preview'} style={{width:'100%',aspectRatio:'16/9',objectFit:'contain'}}/>:photo.media_type==='youtube'?<p className="cr-card-body"><a href={photo.url} target="_blank" rel="noopener noreferrer">Preview on YouTube ↗</a></p>:<img src={photo.url} alt={photo.alt_text || ""} loading="lazy" />}
             <div className="cr-card-body">
               <label className="cr-check">
                 <input
@@ -615,6 +617,7 @@ export default function MediaDesk() {
                     : "Private"}
               </span>
               <p>{photo.caption || "Add a caption"}</p>
+              {photo.media_type!=='youtube'&&<a className="cr-text-link" href={photo.url+'?download=1'} download>Download original</a>}
               <button
                 className="cr-secondary"
                 disabled={busy}
@@ -631,7 +634,7 @@ export default function MediaDesk() {
                   setError("");
                 }}
               >
-                Edit photo
+                Edit media
               </button>
             </div>
           </article>
@@ -639,10 +642,11 @@ export default function MediaDesk() {
       </div>
       {!loading && !shown.length && (
         <div className="cr-panel cr-empty">
-          <h3>No photos in this view</h3>
-          <p>Upload photos or try another filter.</p>
+          <h3>No media in this view</h3>
+          <p>Upload a file, add a video link or try another filter.</p>
         </div>
       )}
+      <MediaAdditions onComplete={()=>void reload()}/>
     </div>
   );
 }

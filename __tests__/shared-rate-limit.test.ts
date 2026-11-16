@@ -16,6 +16,13 @@ beforeEach(() => vi.stubGlobal('crypto', webcrypto));
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const req = (path: string, headers: Record<string, string> = {}, body?: object) => new Request('https://urbangangtour.co.ke' + path, { method: body ? 'POST' : 'GET', headers: { 'cf-connecting-ip': '192.0.2.1', ...headers }, ...(body ? { body: JSON.stringify(body) } : {}) });
 describe('shared network enforcement', () => {
+  it('bounds editor attempts across networks by a hashed credential and fails closed without the guard',async()=>{
+    const objects=new Map<string,SharedRateLimiter>();const env={SESSION_SECRET:'fixture-key',UGT_RATE_LIMITER:{idFromName:(key:string)=>key,get:(key:string)=>{if(!objects.has(key))objects.set(key,new SharedRateLimiter({storage:storage().store}));return{fetch:(_url:string,init:RequestInit)=>objects.get(key)!.fetch(new Request('https://limiter.internal/take',init))}}}};
+    const token='ugt_edit_'+'a'.repeat(43);
+    for(let n=0;n<12;n++)expect(await sharedRateGuard(req('/api/editor-tools/posters',{'cf-connecting-ip':'192.0.2.'+(n+2),authorization:'Bearer '+token},{}),env)).toBeNull();
+    expect((await sharedRateGuard(req('/api/editor-tools/posters',{'cf-connecting-ip':'192.0.2.99',authorization:'Bearer '+token},{}),env))?.status).toBe(429);
+    expect((await sharedRateGuard(req('/api/editor-tools/posters',{},{}),{}))?.status).toBe(503);expect([...objects.keys()].some(key=>key.includes(token))).toBe(false);
+  });
   it('serializes concurrent credential requests and persists budgets across instances', async () => {
     const { store } = storage();
     const first = new SharedRateLimiter({ storage: store }), second = new SharedRateLimiter({ storage: store });

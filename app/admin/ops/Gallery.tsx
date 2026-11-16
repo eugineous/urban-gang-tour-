@@ -24,7 +24,7 @@ interface Photo {
   created_at: string;
 }
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp','video/mp4'];
 const MAX_BYTES = 8 * 1024 * 1024;
 
 function galleryGet() {
@@ -39,6 +39,12 @@ function safeName(name: string): string {
 }
 
 function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  if(file.type==='video/mp4')return new Promise((resolve,reject)=>{
+   const url=URL.createObjectURL(file),video=document.createElement('video');
+   const finish=()=>{clearTimeout(timer);video.removeAttribute('src');video.load();URL.revokeObjectURL(url)};
+   const timer=setTimeout(()=>{finish();reject(Error('media_inspection_failed'))},15000);
+   video.preload='metadata';video.onloadedmetadata=()=>{const width=video.videoWidth,height=video.videoHeight;finish();if(width&&height)resolve({width,height});else reject(Error('invalid_media'))};video.onerror=()=>{finish();reject(Error('invalid_media'))};video.src=url;
+  });
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();
@@ -103,7 +109,7 @@ export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boo
       const update=(id:string,patch:Partial<QueueItem>)=>setQueue(current=>current.map(item=>item.id===id?{...item,...patch}:item));
       await runUploadQueue(items,async(item,progress)=>{
         const file=item.file;
-        if(!ALLOWED_TYPES.includes(file.type)||!file.size||file.size>MAX_BYTES)throw new Error('invalid_image');
+        if(!ALLOWED_TYPES.includes(file.type)||!file.size||file.size>(file.type==='video/mp4'?15*1024*1024:MAX_BYTES))throw new Error('invalid_image');
         const dimensions=await readImageDimensions(file);
         const blob=item.url?{url:item.url}:await upload(item.path,file,{
           access:'public',handleUploadUrl:'/api/admin/gallery/upload',onUploadProgress:event=>{setUploadPct(Math.round(event.percentage));progress(Math.round(event.percentage));},
@@ -112,7 +118,7 @@ export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boo
         const {status,data}=await galleryPost('upload',{url:blob.url,caption:'',category:item.category,...dimensions});
         if(status<200||status>=300||!data.ok||!Number.isInteger(data.row?.id)||data.row.url!==blob.url)throw new Error('record_not_confirmed');
       },update);
-      say(items.length===1?'Photo upload checked':'Batch finished. Check each photo below.');
+      say(items.length===1?'File upload checked':'Batch finished. Check each file below.');
       await reload();
       onComplete?.();
     } finally {
@@ -123,7 +129,7 @@ export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boo
   };
   const addFiles=(files:File[])=>{
     if(uploading.current)return;
-    if(files.length>20){say('Choose up to 20 photos at a time. Nothing was uploaded.');return}
+    if(files.length>20){say('Choose up to 20 files at a time. Nothing was uploaded.');return}
     if(!files.length)return;
     if(queue.length+files.length>20){say('Clear finished photos from this list, or remove unfinished ones, before adding more. Saved photos are kept in the gallery.');return}
     const items:QueueItem[]=files.map(file=>{
@@ -187,14 +193,14 @@ export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boo
       <Toast msg={toast} />
       <div style={card}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
-          <h3 style={{ ...h3, marginBottom: 0 }}>{uploadsOnly?'Upload photos':'Gallery / photo wall'}</h3>
+          <h3 style={{ ...h3, marginBottom: 0 }}>{uploadsOnly?'Upload photos or video':'Media library'}</h3>
           <div style={{ flex: 1 }} />
           {!uploadsOnly&&<SearchBox value={qy} onChange={setQy} placeholder="Search by caption or category..." />}
         </div>
         <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
-          Uploads stay private. Add captions and descriptions in the photo library before publishing.
+          Uploads stay private. Add captions and descriptions in the media library before publishing.
         </div>
-        {!canPublish && <div style={{ fontSize: 12, color: OC.magenta, fontWeight: 800, marginBottom: 10 }}>You can upload and prepare private media. A super admin completes public review.</div>}
+        {!uploadsOnly&&!canPublish && <div style={{ fontSize: 12, color: OC.magenta, fontWeight: 800, marginBottom: 10 }}>You can upload and prepare private media. A super admin completes public review.</div>}
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -209,12 +215,12 @@ export default function Gallery({uploadsOnly=false,onComplete}:{uploadsOnly?:boo
           }}
         >
           <label style={{display:'grid',gap:6,marginBottom:12,textAlign:'left'}}>Category for this batch<input style={inp} maxLength={120} value={batchCategory} disabled={busy} onChange={e=>setBatchCategory(e.target.value)} placeholder="Choose a school, event or new category name"/></label>
-          <input ref={fileRef} type="file" multiple accept="image/jpeg,image/png,image/webp" aria-label="Choose gallery photos" style={{ display: 'none' }} onChange={onPick} disabled={busy} />
-          <div style={{ fontSize: 13, marginBottom: 10 }}>Drag a photo here, or</div>
+          <input ref={fileRef} type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4" aria-label="Choose photos or MP4 videos" style={{ display: 'none' }} onChange={onPick} disabled={busy} />
+          <div style={{ fontSize: 13, marginBottom: 10 }}>Drag photos or MP4 videos here, or</div>
           <button style={btn} disabled={busy} onClick={() => fileRef.current?.click()}>
-            {busy ? (uploadPct !== null ? `Uploading… ${uploadPct}%` : 'Uploading…') : '+ Upload photos'}
+            {busy ? (uploadPct !== null ? `Uploading… ${uploadPct}%` : 'Uploading…') : 'Choose files'}
           </button>
-          <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Choose or drop up to 20 photos. JPG, PNG or WebP, 8 MB each. Uploads stay private until reviewed.</div>
+          <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>Photos: JPG, PNG or WebP up to 8 MB. Videos: MP4 up to 15 MB. For longer videos, add a YouTube link. Files stay private until reviewed.</div>
         </div>
       </div>
       {queue.length>0&&<section style={card} aria-label="Photo upload progress"><h3>Upload progress</h3><ul style={{paddingLeft:20}}>{queue.map(item=><li key={item.id} style={{overflowWrap:'anywhere',marginBottom:10}}>{item.file.name} — {item.state==='done'?'Saved privately':item.state==='failed'?item.error:item.state==='uploading'?`Uploading ${item.progress}%`:'Waiting'}{item.state==='uploading'&&<progress value={item.progress} max={100} aria-label={'Upload progress for '+item.file.name}/>}</li>)}</ul><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button style={btnSmall} disabled={busy||!queue.some(item=>item.state==='failed')} onClick={()=>void doBatch(queue.filter(item=>item.state==='failed'))}>Retry unfinished photos</button><button style={btnSmall} disabled={busy} onClick={()=>setQueue(current=>current.filter(item=>item.state!=='done'))}>Clear finished from this list</button><button style={btnSmall} disabled={busy} onClick={()=>{if(confirm('Remove unfinished photos from this upload list? Saved gallery photos will not be deleted.'))setQueue(current=>current.filter(item=>item.state==='done'))}}>Remove unfinished from this list</button></div></section>}

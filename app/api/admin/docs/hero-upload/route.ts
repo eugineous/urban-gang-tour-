@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { mediaPut, mediaConfigured } from '@/lib/server/media';
 import { hasPerm, verifyAdminSession } from '@/lib/server/session';
 import { requireOrigin } from '@/lib/server/origin';
+import {readUploadBody} from '@/lib/server/upload-body';
+import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 
 // Authenticated image upload to durable KV. Scope and origin checks precede
 // reading bytes. Clients retain progress and the same URL response contract.
@@ -16,6 +18,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!(await verifyAdminSession(request))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasPerm(request, 'documents')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   if (!requireOrigin(request)) return NextResponse.json({ error: 'bad_origin' }, { status: 403 });
+  if(!rateLimit('document-hero-upload:'+clientIp(request),20,60000))return NextResponse.json({error:'too_many_requests'},{status:429});
   if (!mediaConfigured()) return NextResponse.json({ error: 'media_not_configured' }, { status: 503 });
 
   const pathname = new URL(request.url).searchParams.get('pathname') || '';
@@ -29,11 +32,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   let buf: Buffer;
   try {
-    const arrayBuf = await request.arrayBuffer();
-    if (arrayBuf.byteLength === 0 || arrayBuf.byteLength > MAX_BYTES) {
-      return NextResponse.json({ error: 'invalid_size' }, { status: 400 });
-    }
-    buf = Buffer.from(arrayBuf);
+    const result=await readUploadBody(request,MAX_BYTES,contentType);
+    if(!result.ok)return NextResponse.json({error:result.error},{status:result.status});
+    buf = result.body;
   } catch {
     return NextResponse.json({ error: 'read_failed' }, { status: 400 });
   }

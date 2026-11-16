@@ -7,6 +7,7 @@ import {
   notifyPaymentFailure,
 } from "@/lib/server/notify";
 import { settleStripeOrder, processPaymentEffects } from '@/lib/server/payment-effects';
+import { readWebhookBody } from '@/lib/server/webhook-body';
 import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 
 // Stripe webhook (server-to-server; signature-verified, so no Origin check —
@@ -43,11 +44,17 @@ export async function POST(req: Request) {
     );
 
   // Signature is computed over the RAW body — never parse before verifying.
-  const payload = await req.text();
   const sig = req.headers.get("stripe-signature") || "";
+  const signatureParts = sig.split(',');
+  if (sig.length > 4096 || !signatureParts.some(part => /^t=\d{1,16}$/.test(part)) ||
+      !signatureParts.some(part => /^v1=[a-f0-9]{64}$/.test(part))) {
+    return NextResponse.json({ error: "bad_signature" }, { status: 400 });
+  }
+  const payload = await readWebhookBody(req);
+  if (!payload.ok) return NextResponse.json({ error: payload.error }, { status: payload.status });
   let event: Stripe.Event;
   try {
-    event = s.webhooks.constructEvent(payload, sig, secret);
+    event = s.webhooks.constructEvent(payload.body, sig, secret);
   } catch (e: any) {
     console.error(
       "[stripe-webhook] bad signature:",

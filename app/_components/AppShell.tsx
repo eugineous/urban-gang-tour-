@@ -1,5 +1,6 @@
 "use client";
 import InteractionCraft from './InteractionCraft';
+import BackToTop from './BackToTop';
 import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/catalogues/shell';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import RouteLoading from './RouteLoading';
@@ -121,6 +122,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
   {!critical&&path!=='/apply'&&<BookingInvitation paused={open||focus}/>}
   {!open&&<MobileAppNavigation path={path}/>}
   {!critical&&path!=='/reels'&&path!=='/apply'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
+  {(!critical||/^\/shop(?:\/|$)/.test(path))&&!open&&<BackToTop/>}
   {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter path={path} onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/apply'&&path!=='/contact-us'&&path!=='/offline'}/>}
  </>;
 }

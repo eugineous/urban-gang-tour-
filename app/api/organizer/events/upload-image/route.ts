@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { mediaPut, mediaConfigured } from '@/lib/server/media';
 import { currentApprovedOrganizer } from '@/lib/server/organizer-session';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
+import {requireOrigin} from '@/lib/server/origin';
+import {readUploadBody} from '@/lib/server/upload-body';
 
 // Proxy upload for organizer event images. The browser POSTs the file bytes
 // as the raw request body (Content-Type = file mime type) to this route,
@@ -45,6 +47,7 @@ function sanitizeFilename(raw: string): string {
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
+  if(!requireOrigin(req))return NextResponse.json({error:'bad_origin'},{status:403});
   if (!rateLimit('org-img-upload:' + clientIp(req), 5, 60_000))
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
 
@@ -66,10 +69,9 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   let buf: Buffer;
   try {
-    const arrayBuf = await req.arrayBuffer();
-    if (arrayBuf.byteLength === 0 || arrayBuf.byteLength > MAX_BYTES)
-      return NextResponse.json({ error: 'invalid_size' }, { status: 400 });
-    buf = Buffer.from(arrayBuf);
+    const result=await readUploadBody(req,MAX_BYTES,contentType);
+    if(!result.ok)return NextResponse.json({error:result.error},{status:result.status});
+    buf = result.body;
     if (!hasExpectedImageSignature(buf, contentType))
       return NextResponse.json({ error: 'invalid_image_bytes' }, { status: 400 });
   } catch {

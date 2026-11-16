@@ -2,6 +2,10 @@ import {defineCatalogue} from '@/lib/i18n/messages';
 
 // Owned display copy only. Event/article records and canonical filters are never keys.
 const rows = [
+ ['news.pagination','Story archive pages','Kurasa za kumbukumbu za habari','Pages des archives','故事归档分页','Страницы архива','Páginas del archivo'],
+ ['news.previous','Previous stories','Habari zilizotangulia','Articles précédents','上一页故事','Предыдущие статьи','Artículos anteriores'],
+ ['news.next','Next stories','Habari zinazofuata','Articles suivants','下一页故事','Следующие статьи','Artículos siguientes'],
+ ['news.pageCount','Page {page} of {pages} · {total} stories','Ukurasa {page} kati ya {pages} · Habari {total}','Page {page} sur {pages} · {total} articles','第 {page} 页，共 {pages} 页 · {total} 篇故事','Страница {page} из {pages} · Статей: {total}','Página {page} de {pages} · {total} artículos'],
  ['events.title','Events & tickets.','Matukio na tiketi.','Événements et billets.','活动与门票。','События и билеты.','Eventos y entradas.'],
  ['events.search','Search events, schools or venues','Tafuta matukio, shule au kumbi','Rechercher un événement, une école ou un lieu','搜索活动、学校或场地','Поиск событий, школ или площадок','Buscar eventos, escuelas o lugares'],
  ['events.clearSearch','Clear event search','Futa utafutaji wa matukio','Effacer la recherche d’événements','清除活动搜索','Очистить поиск событий','Borrar búsqueda de eventos'],

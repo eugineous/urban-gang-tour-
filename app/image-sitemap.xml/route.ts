@@ -38,7 +38,8 @@ export async function GET() {
     try {
       const rows = await q<{ url: string; caption: string }>(
         `SELECT url, COALESCE(NULLIF(caption,''),alt_text,'') AS caption FROM gallery_photos
-         WHERE published=true AND url IS NOT NULL ORDER BY sort_order ASC,id ASC`
+         WHERE published=true AND url IS NOT NULL AND to_jsonb(gallery_photos)->>'removed_at' IS NULL
+         AND coalesce(to_jsonb(gallery_photos)->>'media_type','photograph')='photograph' ORDER BY sort_order ASC,id ASC`
       );
       for (const r of rows) {
         const imageUrl = discoveryImageUrl(r.url);

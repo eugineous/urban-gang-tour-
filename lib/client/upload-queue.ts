@@ -6,6 +6,6 @@ export async function runUploadQueue(items:QueueItem[],work:(item:QueueItem,prog
   if(item.state==='done')continue;
   update(item.id,{state:'uploading',progress:0,error:''});
   try{await work(item,n=>update(item.id,{progress:Math.min(99,Math.max(0,n))}));update(item.id,{state:'done',progress:100});}
-  catch(error){const code=error instanceof Error?error.message:'';update(item.id,{state:'failed',error:code==='invalid_image'?'Choose a JPG, PNG or WebP image, up to 8 MB.':code==='image_inspection_failed'?'This image could not be opened. Choose another file.':'This photo did not finish. Retry when you are ready.'});}
+  catch(error){const code=error instanceof Error?error.message:'';update(item.id,{state:'failed',error:code==='media_storage_limit'?'The website upload allowance is full. Use a YouTube link for video; no paid upgrade will start.':code==='media_daily_limit'?'Today’s upload limit has been reached. Your file is kept here; try again tomorrow.':code==='invalid_image'?'Choose a JPG, PNG or WebP image, up to 8 MB.':code==='image_inspection_failed'?'This image could not be opened. Choose another file.':'This file did not finish. Retry when you are ready.'});}
  }
 }

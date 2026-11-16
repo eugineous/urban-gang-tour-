@@ -1,0 +1,15 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+const state=vi.hoisted(()=>({query:vi.fn(),type:'video/mp4'}));
+vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:state.query}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>true,hasPerm:()=>true,isSuperAdmin:()=>true,adminActor:()=> 'fixture'}));
+vi.mock('@/lib/server/origin',()=>({requireOrigin:()=>true}));
+vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:async()=>{},opsAudit:async()=>{}}));
+vi.mock('@/lib/server/media-library',()=>({ensureMediaLibrarySchema:async()=>{}}));
+vi.mock('@/lib/server/media',()=>({isMediaUrl:()=>true,mediaGet:async()=>({metadata:{contentType:state.type}})}));
+import {POST} from '@/app/api/admin/gallery/route';
+const req=(kind:string,data:unknown)=>new Request('https://urbangangtour.co.ke/api/admin/gallery',{method:'POST',headers:{origin:'https://urbangangtour.co.ke','content-type':'application/json'},body:JSON.stringify({kind,data})});
+beforeEach(()=>{state.query.mockReset().mockImplementation(async(sql:string)=>sql.includes('MAX(sort_order)')?[{next:10}]:[{id:1,url:'/media/gallery/'+'a'.repeat(64)+'/clip.mp4'}])});
+it('registers an uploaded MP4 as a private video instead of treating it as a photo',async()=>{expect((await POST(req('upload',{url:'/media/gallery/'+'a'.repeat(64)+'/clip.mp4',caption:'Owned film',category:'Hosting'}))).status).toBe(200);const call=state.query.mock.calls.find(([sql])=>sql.includes('INSERT INTO gallery_photos'));expect(call?.[0]).toContain('media_type');expect(call?.[1]).toContain('video')});
+it('supports a YouTube link without uploading its bytes or publishing automatically',async()=>{const r=await POST(req('video.link',{url:'https://youtu.be/abcdefghijk',caption:'Our hosting film',category:'Hosting',rightsConfirmed:true}));expect(r.status).toBe(200);const call=state.query.mock.calls.find(([sql])=>sql.includes('INSERT INTO gallery_photos'));expect(call?.[1]).toContain('youtube');expect(call?.[1]).toContain('https://www.youtube.com/watch?v=abcdefghijk');expect(call?.[0]).not.toMatch(/published\s*[,)]/)});
+it('rejects external or executable video URLs before a database insert',async()=>{expect((await POST(req('video.link',{url:'https://attacker.invalid/clip',caption:'Not accepted',rightsConfirmed:true}))).status).toBe(400);expect(state.query).not.toHaveBeenCalled()});
+it('requires explicit rights confirmation for a linked video',async()=>{expect((await POST(req('video.link',{url:'https://youtu.be/abcdefghijk',caption:'No approval'}))).status).toBe(400);expect(state.query).not.toHaveBeenCalled()});

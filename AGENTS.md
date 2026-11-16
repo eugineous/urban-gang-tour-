@@ -1,5 +1,25 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Free-first media and handover (16 November 2026)
+- Owner says finish and deploy. Supabase/R2 creation is dropped; add no paid
+  storage or automatic upgrade. Retain existing archives, database identities,
+  content and bindings. Do not cancel shared account plans based on guesswork.
+- Existing website KV accepts images and gallery MP4 (15 MiB maximum). A durable
+  conservative 500 MiB total /100-write rolling-day budget precedes storage;
+  uncertain writes retain their reservation. YouTube links store no video bytes.
+- Media uploads/links stay private for review. Public byte delivery checks the
+  current eligible publication, including event/product/campaign attachments.
+- Connected tools use owner-issued hashed, expiring, revocable scopes for poster
+  upload/event drafts only. No publication, customer, ticket or money authority.
+  Actions attachments accept only the exact documented OpenAI file host; local
+  CLI accepts owned HTTPS origins. No general external URL fetcher or secrets in logs.
+- Preserve payment/ticket launch gates and native/guest account access. Keep
+  MOOKH/Nixtio desktop, Eventify mobile and shop-specific identity; compact
+  two-column phone catalogue, Book Us copy and reduced-motion interaction craft.
+- Follow normal reviewed PR/keep-vars release. No real purchases, STKs, customer
+  messages, live test accounts/keys/events, destructive scans or billing changes.
+  Report import/provider/free-tier limitations honestly. See the operations guide.
+
 ## Finish documented loose ends (11 November 2026)
 - Owner explicitly says finish the account/recovery/ticket/import gaps. This
   supersedes the preceding UI-only account scope, not money/credential safety.

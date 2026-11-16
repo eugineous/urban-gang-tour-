@@ -1301,3 +1301,36 @@ separate OG metadata. No automatic factual certification is claimed.
 - `POST /api/admin/instagram-import`: owner only, same-origin, strict bounded JSON,3requests/min/device with network backstop. Body `{profile,rightsConfirmed:true,publishGeneral:boolean,autoSync?:boolean}`; only the fixed owned account is accepted. Optional server-only fine-grained GitHub Actions token dispatches the fixed main-branch workflow. GitHub acceptance returns202 `queued`, not completed. Missing direct-dispatch configuration returns503 with the native GitHub workflow link; rejection returns502. No Meta login, cookies or arbitrary scraper input is accepted.
 
 GitHub Actions performs bounded logged-out public retrieval and file verification outside the request path. Immutable media/checkpoints permit retry recovery; the replaceable approved public index drives the gallery/reels without another site build. GitHub archives are public, including unpublished-to-site records; use only owned content approved for public archiving. Private/gated/unavailable content is reported, never bypassed. Original captions are retained, not treated as verified event/ticket details.
+
+### Narrow connected event tools
+
+- `GET /api/admin/connected-tools`: verified super-admin cookie only; list the
+  latest 100 credential metadata rows (never hashes/raw credentials).
+- `POST /api/admin/connected-tools`: verified super-admin + required trusted
+  Origin; JSON `{label, expiresInDays:1..30, scopes:["poster:upload","event:draft"]}`
+  (one or both scopes). At most 10 active credentials. Returns raw bearer once
+  with metadata; persists SHA-256 only; audits issuer/key ID without raw value.
+- `DELETE /api/admin/connected-tools`: same owner/Origin checks; JSON `{id}`;
+  revokes immediately for future writes, serialized against active writes.
+- `POST /api/editor-tools/posters`: `Authorization: Bearer ugt_edit_…` with
+  `poster:upload`; raw PNG/JPEG/WebP with matching signature, max5MiB; returns
+  `{posterId,url}`. Existing private admin-events storage, no arbitrary URL fetch.
+- `POST /api/editor-tools/drafts`: same bearer with `event:draft`; max16KiB JSON
+  `{requestId,kind,name,posterId?,eventDate?,eventTime?,venue?,city?,description?}`.
+  requestId is UUID v4; kind is school/ticketed/past. Owned poster only. Always
+  inserts a draft with empty tiers; rejects unknown/commercial/publication fields,
+  markup and image URLs. Returns `{id,status:"draft",reused}`. Identical requestId
+  retries per credential recover the existing ID; changed payload returns409.
+- `GET /api/editor-tools/openapi`: public read-only OpenAPI3.1 contract; no data
+  or secrets. Setup: `/guides/connected-tools` and repository guide
+  `docs/integrations/connected-tools.md`. Local CLI: `scripts/editor-tools.mjs`.
+
+Bearer routes never accept administrator cookies in place of credentials. They
+reject foreign browser Origins, preflight credential/scope before reading bytes,
+recheck revocation/expiry/scope under the SQL row lock before writes and share a
+persistent6/minute +30/day successful-write budget per key. Worker shared network
+limits apply before routes. Bodies stream with a15-second deadline; malformed or
+oversized bodies fail before storage/event effects. Missing SQL/storage/protection
+fails closed. Neither existing-event edits, publication, sales, payments, users
+nor general admin access is exposed. ChatGPT Actions require manual API-Key/Bearer
+setup; direct attachment transport is intentionally unsupported (no URL downloader).

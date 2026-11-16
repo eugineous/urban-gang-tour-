@@ -1,4 +1,4 @@
-const CACHE = 'ugt-account-ticket-reliability-20261112-v1';
+const CACHE = 'ugt-free-media-handover-20261116-v1';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.

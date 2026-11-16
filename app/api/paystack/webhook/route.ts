@@ -4,6 +4,7 @@ import { alertCritical } from "@/lib/server/alert";
 import { notifyPaymentSuccess } from "@/lib/server/notify";
 import { RECOVERABLE_PAYMENT_STATUSES } from "@/lib/server/payment-status";
 import { settlePaystackOrder, processPaymentEffects } from '@/lib/server/payment-effects';
+import { readWebhookBody } from '@/lib/server/webhook-body';
 
 // Paystack webhook. Signature: x-paystack-signature = HMAC-SHA512(raw body)
 // keyed with the secret key. charge.success flips the ledger row (order id
@@ -14,10 +15,13 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
-  const raw = await req.text();
   if (!secret) return new NextResponse("not configured", { status: 503 });
 
   const sig = req.headers.get("x-paystack-signature") || "";
+  if (!/^[a-f0-9]{128}$/.test(sig)) return new NextResponse("bad signature", { status: 400 });
+  const payload = await readWebhookBody(req);
+  if (!payload.ok) return new NextResponse(payload.error, { status: payload.status });
+  const raw = payload.body;
   const expected = crypto
     .createHmac("sha512", secret)
     .update(raw)
@@ -30,7 +34,7 @@ export async function POST(req: Request) {
 
   let event: any;
   try {
-    event = JSON.parse(raw);
+    event = JSON.parse(raw.toString('utf8'));
   } catch {
     return new NextResponse("ok", { status: 200 });
   }

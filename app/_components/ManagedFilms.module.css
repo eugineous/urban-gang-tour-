@@ -1,0 +1,11 @@
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:24px;margin:24px 0}
+.film{min-width:0;margin:0;display:grid;align-content:start;gap:12px}
+.film video,.film iframe,.load{display:block;width:100%;aspect-ratio:16/9;min-width:0;border:0;border-radius:12px;background:#18151a;color:#fff;object-fit:contain}
+.load{display:flex;min-height:160px;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;font:inherit}
+.load span{font-size:36px;color:var(--ugt-primary,#c60073)}
+.load small{font-size:13px;color:#ddd5dc}
+.film figcaption{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+.film a{display:inline-flex;align-items:center;min-height:44px;width:fit-content;color:var(--ugt-primary,#c60073);text-underline-offset:4px}
+.load:hover,.load:focus-visible{outline:2px solid var(--ugt-primary,#c60073);outline-offset:3px}
+.load:active{opacity:.9}
+@media(prefers-reduced-motion:no-preference){.load{transition:opacity .15s ease}}

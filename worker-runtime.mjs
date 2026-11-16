@@ -1,7 +1,8 @@
 import { canCachePublicPage, mustNotStoreResponse } from './public-cache-policy.mjs';
 import { sharedRateGuard } from './shared-rate-limit.mjs';
+import { newsArchive, newsArchiveQuery } from './lib/shared/news-archive.ts';
 
-const release = 'account-ticket-reliability-20261112-v1';
+const release = 'free-media-handover-20261116-v1';
 const welcomeLanguages = ['en','sw','fr','zh-Hans','ru','es'];
 const storyNotFound='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Story not available — Urban News</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;background:#f4f4f4;color:#151515;font:18px/1.6 Arial,sans-serif}main{max-width:680px;margin:auto;padding:48px 24px}h1{line-height:1.2}a{color:inherit;display:inline-flex;align-items:center;min-height:44px;margin-right:24px}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}</style></head><body><main id="main-content"><a href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" width="96" height="72" alt="Urban Gang Tour"></a><h1>This story isn’t available.</h1><p>It may be unpublished, moved or removed.</p><nav aria-label="Next steps"><a href="/blog">Read Urban News</a><a href="/">Home</a></nav></main></body></html>';
 const languageNotFound = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Language not available — Urban Gang Tour</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;background:#f4f4f4;color:#151515;font:18px/1.6 Arial,sans-serif}main{max-width:680px;margin:auto;padding:48px 24px}img{object-fit:contain}h1{line-height:1.2}nav{display:flex;flex-wrap:wrap;gap:12px 24px}a{color:inherit;display:inline-flex;align-items:center;min-height:44px}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}</style></head><body><main id="main-content"><a href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" width="96" height="72" alt="Urban Gang Tour"></a><h1>This language page isn’t available.</h1><p>Choose an available welcome page. Booking, checkout and legal pages are currently in English.</p><nav aria-label="Available languages"><a href="/welcome/en" lang="en">English</a><a href="/welcome/sw" lang="sw">Kiswahili</a><a href="/welcome/fr" lang="fr">Français</a><a href="/welcome/zh-Hans" lang="zh-Hans">简体中文</a><a href="/welcome/ru" lang="ru">Русский</a><a href="/welcome/es" lang="es">Español</a></nav><p><a href="/contact-us">Contact the team</a></p></main></body></html>`;
@@ -53,6 +54,36 @@ export function createWorker(app) {
           }
         }catch{unavailable=true}
         if(unavailable)return new Response(request.method==='HEAD'?null:'<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shop temporarily unavailable — Urban Gang Tour</title></head><body><main><h1>Please try again shortly.</h1><p>We couldn’t check this product right now.</p><a href="/shop">Back to the shop</a></main></body></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-UGT-Release':release,'X-Robots-Tag':'noindex','X-Content-Type-Options':'nosniff','Retry-After':'5','Content-Security-Policy':"default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"}});
+      }
+      // The archive shares the page's normalized query, filters, chronology
+      // and deduplication. Check later windows before Next can stream a 200.
+      // A failed public feed is temporary unavailability, never proof of 404.
+      if(/^\/blog\/?$/.test(url.pathname)&&['GET','HEAD'].includes(request.method)){
+        const params=Object.fromEntries([...new Set(url.searchParams.keys())].map(key=>{
+          const values=url.searchParams.getAll(key);return [key,values.length===1?values[0]:values];
+        }));
+        const query=newsArchiveQuery(params);
+        if(query.page>1){
+          let unavailable=false,missing=false;
+          try{
+            const headers=new Headers(request.headers);headers.set('Accept','application/json');
+            for(const key of ['RSC','Next-Router-State-Tree','Next-Router-Prefetch','Next-Url'])headers.delete(key);
+            const feed=await app.fetch(new Request(new URL('/api/site-data/posts',url),{headers}),env,ctx);
+            if(!feed.ok)unavailable=true;
+            else{
+              const data=await feed.json();
+              if(data.ok!==true||!Array.isArray(data.posts)||!data.posts.every(post=>post&&typeof post==='object'&&!Array.isArray(post)&&typeof post.id==='string'&&post.id&&typeof post.headline==='string'))unavailable=true;
+              else missing=query.page>newsArchive(data.posts,query).pageCount;
+            }
+          }catch{unavailable=true}
+          if(unavailable||missing){
+            const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Cloudflare-CDN-Cache-Control':'no-store','X-UGT-Release':release,'X-Robots-Tag':'noindex','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"};
+            const title=unavailable?'Urban News temporarily unavailable':'Story archive page not available';
+            const message=unavailable?'Please try again shortly.':'This archive page has no published stories.';
+            const body=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title} — Urban News</title></head><body><main><h1>${title}</h1><p>${message}</p><a href="/blog">Back to Urban News</a></main></body></html>`;
+            return new Response(request.method==='HEAD'?null:body,{status:unavailable?503:404,headers:{...headers,...(unavailable?{'Retry-After':'5'}:{})}});
+          }
+        }
       }
       // Root loading boundaries can turn Next notFound() into an HTTP 200
       // stream, even when metadata throws. Check the SAME public feed before

@@ -13,6 +13,15 @@ const request = (scope: string, headers: Record<string, string> = {}) => {
   return [new Request('https://urbangangtour.co.ke/media/' + path, { headers }), { params: Promise.resolve({ path: path.split('/') }) }] as const;
 };
 beforeEach(() => { mocks.admin = false; mocks.perm = true; mocks.rows = []; mocks.organizer = null; mocks.queryFailure = false; });
+it.each(['admin-events','admin-products','admin-campaigns'])('keeps unpublished %s assets private for GET and HEAD',async scope=>{
+ expect((await GET(...request(scope))).status).toBe(404);expect((await HEAD(...request(scope))).status).toBe(404);
+ mocks.admin=true;const response=await GET(...request(scope));expect(response.status).toBe(200);expect(response.headers.get('cache-control')).toContain('private');
+});
+it('serves bounded byte ranges and rejects malformed or unsatisfiable ranges',async()=>{
+ const response=await GET(...request('promo-hero',{range:'bytes=1-2'}));expect(response.status).toBe(206);expect(response.headers.get('content-range')).toBe('bytes 1-2/3');expect([...new Uint8Array(await response.arrayBuffer())]).toEqual([2,3]);
+ expect((await GET(...request('promo-hero',{range:'bytes=3-'}))).status).toBe(416);
+ expect((await GET(...request('promo-hero',{range:'bytes=0-1,2-2'}))).status).toBe(416);
+});
 it('fails closed for anonymous images when publication cannot be verified', async () => {
   mocks.rows = [{}]; mocks.queryFailure = true;
   expect((await GET(...request('gallery'))).status).toBe(404);

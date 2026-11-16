@@ -5,6 +5,7 @@ import { hasDb, q } from '@/lib/server/db';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { cached } from '@/lib/server/microcache';
 import {PUBLIC_POST_PREDICATE} from '@/lib/server/editorial-publication';
+import {uploadedMediaIsPublic} from '@/lib/server/upload-publication';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,6 +45,10 @@ async function serve(req: Request, context: Context, head = false): Promise<Resp
         },false);
         if (!published) return new Response('Not found',{status:404,headers:{'Cache-Control':'no-store'}});
       }
+    } else if (['admin-events','admin-products','admin-campaigns'].includes(scope)) {
+      const permission=scope==='admin-events'?'events':scope==='admin-products'?'products':'ops_promos';
+      if(await verifyAdminSession(req)&&hasPerm(req,permission))privateAsset=true;
+      else if(!await uploadedMediaIsPublic(scope,url))return new Response('Not found',{status:404,headers:{'Cache-Control':'no-store'}});
     } else if (scope === 'organizer-events') {
       let published = false;
       if (hasDb()) {
@@ -69,9 +74,19 @@ async function serve(req: Request, context: Context, head = false): Promise<Resp
       'Cache-Control': privateAsset ? 'private, no-store' : 'public, max-age=60',
       'ETag': etag,
       'Vary': 'Cookie',
-      'Content-Disposition': `${scope === 'documents' ? 'attachment' : 'inline'}; filename="${path.at(-1)}"`,
+      'Accept-Ranges':'bytes',
+      'Content-Disposition': `${scope === 'documents'||new URL(req.url).searchParams.get('download')==='1' ? 'attachment' : 'inline'}; filename="${path.at(-1)}"`,
     };
     if (req.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers });
+    const range=req.headers.get('range');
+    if(range&&(!req.headers.get('if-range')||req.headers.get('if-range')===etag)){
+      const match=/^bytes=(\d*)-(\d*)$/.exec(range),size=asset.value.byteLength;
+      if(!match||!match[1]&&!match[2])return new Response(null,{status:416,headers:{'Content-Range':'bytes */'+size,'Cache-Control':'no-store'}});
+      const suffix=match[1]==='',start=suffix?Math.max(0,size-Number(match[2])):Number(match[1]),end=suffix?size-1:match[2]?Math.min(Number(match[2]),size-1):size-1;
+      if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start>=size||end<start||suffix&&Number(match[2])===0)return new Response(null,{status:416,headers:{'Content-Range':'bytes */'+size,'Cache-Control':'no-store'}});
+      headers['Content-Range']=`bytes ${start}-${end}/${size}`;headers['Content-Length']=String(end-start+1);
+      return new Response(head?null:asset.value.slice(start,end+1),{status:206,headers});
+    }
     return new Response(head ? null : asset.value, { headers });
   } catch {
     return new Response('Media temporarily unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });

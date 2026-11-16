@@ -64,3 +64,6 @@ node_modules
 /e2e/evidence/
 /e2e/results/
 /e2e/.e2e/
+
+# Local narrowly scoped editor credential; never commit bearer values.
+/.ugt-editor-token
