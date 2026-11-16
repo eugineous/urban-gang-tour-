@@ -6,6 +6,7 @@ import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import { codeAuthentic, getTicket, getEventName, getEventMeta,ensureTicketSchema } from '@/lib/server/tickets';
 import { q, hasDb } from '@/lib/server/db';
 import { notifyTicketScan } from '@/lib/server/notify';
+import { readJsonObject } from '@/lib/server/json-body';
 
 // Gate check-in. Roles: any admin session (super_admin or crew_admin) that
 // carries the 'gate_scanner' perm - the /admin/gate scanner runs on the same
@@ -47,8 +48,9 @@ export async function POST(req: Request) {
   }
   if (!hasDb()) return NextResponse.json({ error: 'db_not_configured' }, { status: 503 });
 
-  let body: any;
-  try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
+  const parsed = await readJsonObject(req, 1024);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status, headers: { 'Cache-Control': 'no-store' } });
+  const body = parsed.value;
   for (const k of Object.keys(body || {})) {
     if (k !== 'code') return NextResponse.json({ error: `unexpected_field:${k}` }, { status: 400 });
   }
@@ -91,6 +93,10 @@ export async function POST(req: Request) {
     if (!t) {
       await audit('invalid', { reason: 'not_found' });
       return NextResponse.json({ result: 'invalid', reason: 'not_found' });
+    }
+    if (t.voided_at) {
+      await audit('invalid', { reason: 'ticket_voided', order_id: t.order_id });
+      return NextResponse.json({ result: 'invalid', reason: 'ticket_voided' });
     }
     if (t.used_at) {
       await audit('used', { order_id: t.order_id, used_at: t.used_at });
