@@ -1,5 +1,26 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Finish documented loose ends (11 November 2026)
+- Owner explicitly says finish the account/recovery/ticket/import gaps. This
+  supersedes the preceding UI-only account scope, not money/credential safety.
+  Preserve users.id, legacy credentials and guest capabilities; no mass merges.
+- Implement canonical contact collision protection, proven email ownership,
+  safe native recovery/passkeys, bounded keyset history/exports and shared
+  identity/network abuse budgets. Use real isolated SQL/browser proofs.
+- Owned Paystack ticket implementation must hold capacity before dispatch,
+  account for late money and mint before receipt exactly once. Keep launch
+  closed until readiness evidence passes; never enable it with only a flag.
+- The owned ticket adapter requests Paystack card + mobile_money, matching
+  merchandise and the owner's enabled M-Pesa channel. Separate marketplace
+  launch/configuration remains unchanged; never fall back to direct Daraja.
+- Instagram source proof and website storage are separate. Preserve existing
+  archives and publication choices; R2 billing enrollment needs the owner.
+- Root owns account/security integration. Independent ticket and history writers
+  use verified separate worktrees; root reviews actual commits. Native agents
+  are not claimed to be the unavailable routed Flash setup. One final combined
+  full-suite/build/review, normal PR/keep-vars release; no repeated approval loop,
+  live charge/STK/account-creation/message tests or secret/billing changes.
+
 ## Guest ticket access and account audit (10 November 2026)
 - Tickets must not require account creation. `/my-tickets` is the guest-first
   entrance for existing private confirmation links/strong order references,

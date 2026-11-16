@@ -35,12 +35,12 @@ async function renderPhone(wide:boolean,height=710,width=390,locale='en',probe?:
   try{return route.fulfill({body:await readFile(path),contentType:({'.mp4':'video/mp4','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg'} as Record<string,string>)[extname(path)]||'application/octet-stream'})}catch{return route.abort()}
  });
  await page.goto('http://ugt-fixture.local/',{waitUntil:'load'});
- await page.locator('[data-mobile-app-hero] h1').waitFor();
+ await page.locator('[data-mobile-title]').waitFor();
  await page.waitForFunction(locale=>document.documentElement.lang===(locale==='en'?'en-KE':locale),locale);
  await page.evaluate(()=>document.fonts.ready);
  if(probe)await probe(page);
  const metrics=await page.evaluate(()=>{
-  const hero=document.querySelector('[data-mobile-app-hero]')!,heading=hero.querySelector('h1')!,intro=hero.querySelector('[data-mobile-services]')!,card=hero.querySelector('[data-mobile-host-card]')!,zoom=Number(getComputedStyle(document.documentElement).zoom)||1;
+  const hero=document.querySelector('[data-mobile-app-hero]')!,heading=hero.querySelector('[data-mobile-title]')!,intro=hero.querySelector('[data-mobile-services]')!,card=hero.querySelector('[data-mobile-host-card]')!,zoom=Number(getComputedStyle(document.documentElement).zoom)||1;
   const nav=document.querySelector('[data-mobile-app-navigation]')!;
   const targets=Array.from(nav.querySelectorAll('a')).map(link=>{const box=link.getBoundingClientRect(),label=link.querySelector('span')!.getBoundingClientRect();return{width:box.width/zoom,height:box.height/zoom,labelFits:label.left>=box.left-1&&label.right<=box.right+1}});
   const home=nav.querySelector('a[href="/"]')!.getBoundingClientRect(),bar=nav.getBoundingClientRect();
@@ -57,7 +57,7 @@ it.skipIf(!enabled)('keeps the same readable heading size in Android normal and 
   expect(Math.abs(wide.font-normal.font)).toBeLessThanOrEqual(2);
   expect(wide.overflow).toBe(false);
  }
-},30000);
+},60000); // Eight independent Chromium launches, including normalized Android views.
 it.skipIf(!enabled)('fits five navigation targets and a long translated contact label on a narrow phone',async()=>{
  for(const wide of [false,true]){
   const metrics=await renderPhone(wide,710,320,'sw');

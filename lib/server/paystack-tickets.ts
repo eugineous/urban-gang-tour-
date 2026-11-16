@@ -78,7 +78,9 @@ export async function claimPaystackTicket(identity:AttemptIdentity,orderId:strin
  return transaction(async client=>{
   const event=(await client.query<EventRow>(EVENT_SQL+' FOR UPDATE',[purchase.eventId])).rows[0];
   const order=(await client.query('SELECT * FROM orders WHERE id=$1 FOR UPDATE',[orderId])).rows[0];
-  const attempt=(await client.query("SELECT * FROM paystack_checkout_attempts WHERE order_id=$1 AND scope_hash=$2 AND token_hash=$3 AND request_hash=$4 FOR UPDATE",[orderId,identity.scopeHash,identity.tokenHash,identity.requestHash])).rows[0];
+  // A stale retry must not lock an already-sent attempt while holding its
+  // order: provider-result writers lock that attempt before updating the order.
+  const attempt=(await client.query("SELECT * FROM paystack_checkout_attempts WHERE order_id=$1 AND scope_hash=$2 AND token_hash=$3 AND request_hash=$4 AND state='prepared' FOR UPDATE",[orderId,identity.scopeHash,identity.tokenHash,identity.requestHash])).rows[0];
   if(!attempt||attempt.state!=='prepared')return null;
   if(!order||order.status!=='pending'||order.pay_method!=='card'||order.paystack_ref!==orderId||Number(order.total)!==purchase.unit*purchase.qty||!samePurchase(storedPurchase(order.paystack_ticket),purchase)||!matchingLines(order.items,purchase))throw Error('reservation_conflict');
   const current=offer(event,purchase);if(current.tierName!==purchase.tierName)throw Error('ticket_snapshot_conflict');

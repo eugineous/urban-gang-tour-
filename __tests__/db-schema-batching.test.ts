@@ -27,6 +27,12 @@ it('retains statement order and strips comment semicolons before batching',async
  await qSchema('CREATE TABLE x(id INT); -- explain; not another statement\nALTER TABLE x ADD COLUMN name TEXT;');
  expect(mock.transaction.mock.calls[0][0].map((q:{text:string})=>q.text).slice(1)).toEqual(['CREATE TABLE x(id INT)','ALTER TABLE x ADD COLUMN name TEXT']);
 });
+it('keeps explicitly separated function bodies intact in a single locked schema transaction',async()=>{
+ const fn="CREATE FUNCTION example() RETURNS void LANGUAGE plpgsql AS $$ BEGIN PERFORM 1; RETURN; END $$";
+ // An array is already split by the author: never parse semicolons inside SQL.
+ await qSchema([fn,'CREATE INDEX example_index ON users(email)']);
+ expect(mock.transaction.mock.calls[0][0].map((q:{text:string})=>q.text).slice(1)).toEqual([fn,'CREATE INDEX example_index ON users(email)']);
+});
 it('performs no HTTP request for an empty schema block',async()=>{
  await qSchema('-- comment; only');expect(mock.query).not.toHaveBeenCalled();expect(mock.transaction).not.toHaveBeenCalled();
 });

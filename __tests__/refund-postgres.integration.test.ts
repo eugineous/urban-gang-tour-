@@ -5,7 +5,7 @@ vi.mock('@/lib/server/db',()=>adapter);
 import {recordRefund,ensureRefundSchema,type RefundInput} from '@/lib/server/refunds';
 import {ticketIsActive} from '@/lib/server/ticket-entitlement';
 vi.mock('next/server',async original=>({...await original<object>(),after:vi.fn()}));
-vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>true,hasPerm:()=>true}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>true,hasPerm:()=>true,signedAdminSessionId:()=> 'fixture-signed-session',adminActor:()=> 'fixture-admin'}));
 vi.mock('@/lib/server/origin',()=>({requireOrigin:()=>true}));
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'fixture'}));
 vi.mock('@/lib/server/notify',()=>({notifyTicketScan:vi.fn()}));

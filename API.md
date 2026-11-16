@@ -441,39 +441,87 @@ persisted user and session version before any customer records are returned.
 Missing/revoked sessions return 401; unavailable account storage returns 503.
 Rate limit: 30 requests/minute/device with a shared-network backstop.
 
-Response: `{profile, orders, tickets, requests}`. Profile contains the buyer's
+Response: `{profile, orders, tickets, requests, pagination}`. Profile contains the buyer's
 own `id`, `name`, `email`, `phone` and `created_at`. Orders are scoped by
-`orders.user_id`; the ordinary view returns up to 100 orders and 300 tickets.
+`orders.user_id`; each page returns up to 30 orders, 200 tickets and 20 requests.
 Tickets are limited to the buyer's paid/fulfilled orders. Privacy requests expose
 only the buyer's request reference, kind, status and creation time.
 
-`download=1` returns the same categories without the order/ticket display limits
-as a downloadable `urban-gang-account.json`. Both modes send
+Each stream accepts its own canonical base64url keyset (`orderCursor`,
+`ticketCursor`, `requestCursor`). Invalid, repeated or unknown query parameters
+return 400. Cursors preserve timestamp microseconds; all queries retain buyer
+ownership filters. `pagination` supplies current, first and next links per
+stream and an export link. `download=1` exports only the selected bounded page
+as `urban-gang-account.json`, with `exportScope: "page"` and continuation links.
+Both modes send
 `Cache-Control: private, no-store`. Guest purchases are not claimed by matching
-an email address; ownership is established server-side when purchasing while
-signed in. Existing receipt/ticket download capabilities remain separate from
+an email address alone; ownership is established when purchasing signed in or
+through the verified private-capability claim endpoint below. Existing receipt/ticket download capabilities remain separate from
 this authenticated account export.
 
 ### POST /api/account/recovery
 
-Public credential endpoint with a required trusted Origin and a strict
-5 requests/minute/IP limit. Unexpected fields are rejected.
+Public credential endpoint with a required trusted Origin, bounded 2 KiB JSON,
+120 requests/minute/network and 5 requests/minute/normalized email or opaque
+reset token. Shared edge budgets also apply across runtime instances.
+Unexpected fields are rejected.
 
 - `{action: "forgot", email}`: valid email required (maximum 254 characters).
-  Database and `RESEND_API_KEY` must be configured; unavailable delivery returns
+  Database, `RESEND_API_KEY` and `SESSION_SECRET` must be configured; unavailable delivery returns
   503 before checking account existence. Known and unknown accounts receive the
-  same `{ok: true, message}` immediately. The actual lookup and email run after
-  the response. A successful API acknowledgement does not prove email delivery.
+  same `{ok: true, message}`. An eligible reset is committed to an encrypted
+  durable outbox before acknowledgement; only provider dispatch runs after the
+  response. Unknown or ambiguous legacy addresses create no job. A persisted
+  one-minute cooldown applies. Acknowledgement does not prove email delivery.
 - `{action: "reset", token, password}`: the reset token must be a 43-character
   base64url value; password length is 8–100 characters. Links expire after one
   hour. Only the SHA-256 token hash is stored, with one active link per account.
   Token consumption and password replacement are atomic; invalid, expired or
   previously used links return 400. Success increments the stored buyer session
-  version and clears `ugt_user`. APIs validating the current buyer reject older
-  session versions.
+  version, revokes passkeys, removes pending registration challenges and clears
+  `ugt_user` in the same transaction. The permanent passkey account handle is
+  retained. APIs validating the current buyer reject older session versions.
 
 Reset messages use Resend and `BOOKINGS_FROM`; this route does not connect Gmail
 or add a Gmail inbox integration.
+
+### GET/POST /api/account/verification
+
+Active buyer required; private, no-store responses. GET returns only the buyer's
+email, proof status, pending destination, recorded delivery state and whether
+delivery is configured. POST requires trusted Origin and bounded 2 KiB JSON.
+`{action:"send", email, password}` requires the current password. It verifies
+the existing email or adds a phone-only account's first recovery email; it cannot
+replace an existing email. An eight-digit, HMAC-protected code expires in 15
+minutes, allows five guesses and has a persisted one-minute resend cooldown.
+`{action:"confirm", code}` atomically consumes the proof and records email
+ownership, bound to buyer, destination and current session version. Codes are
+never returned by the API. Encrypted outbox jobs use stable provider idempotency
+keys and are retried by the existing email-delivery cron; queued is not delivered.
+
+### GET/POST /api/account/passkeys
+
+GET requires an active buyer and returns only their active key IDs and creation/
+last-use times. POST accepts `register-options` (password), `register-finish`
+(challenge, credential), `login-options`, `login-finish` (challenge, credential),
+or `revoke` (id, password). Unknown fields and bodies over 64 KiB are rejected.
+Registration requires a verified email and current password; revocation requires
+the current password. Discoverable login requires no email or Google account.
+Only HTTPS root/www urbangangtour.co.ke origins and the root RP are accepted.
+Resident credentials and user verification are required. Five-minute one-use
+challenges are bound to a hashed secure HttpOnly owner cookie; registration is
+also bound to buyer/session version. Server signature, origin, RP, challenge,
+user-handle and counter checks precede session creation. At most ten active
+credentials per account. No authenticator biometric data is stored.
+
+### POST /api/account/orders/claim
+
+Active buyer, trusted Origin and bounded 2 KiB JSON required. Body: `{ref}` with
+a strong private ORD reference. The buyer must have a verified email matching
+the order's normalized email. One atomic update attaches only an unclaimed order
+or confirms existing ownership; another buyer's order cannot be reassigned.
+Wrong, missing and ineligible capabilities all return 404. Payment, fulfillment
+and ticket entitlement are unchanged. Responses are private/no-store/no-referrer.
 
 ### POST /api/account/privacy
 

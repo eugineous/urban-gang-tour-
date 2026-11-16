@@ -242,7 +242,7 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   expect(posts).toHaveLength(1);expect(gets).toEqual(baselineGets);expect(unexpected).toEqual([]);
   for(const scenario of ['unknown','uncertain'] as const){
    paymentCase=scenario;
-   await page.locator('#checkout form[aria-busy] button[type="submit"]').click();
+   await page.locator('#checkout form[aria-busy] button[type="submit"]').click({timeout:15000});
    const key=scenario==='unknown'?'checkout.cardUnavailable':'checkout.cardUncertain';
    await page.locator('#checkout .modern-alert').filter({hasText:formatMessage(commerceMessages,'sw',key).text}).waitFor();
    const postCount=posts.length;

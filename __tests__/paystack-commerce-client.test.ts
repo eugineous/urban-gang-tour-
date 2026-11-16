@@ -49,6 +49,8 @@ beforeEach(()=>{
  vi.stubGlobal('localStorage',storage(data));vi.stubGlobal('sessionStorage',storage(sessionData));
  vi.stubGlobal('window',{location:{assign},addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),dispatchEvent:events.dispatchEvent.bind(events)});
  vi.stubGlobal('location',{search:''});
+ const documentEvents=new EventTarget();
+ vi.stubGlobal('document',{hidden:false,addEventListener:documentEvents.addEventListener.bind(documentEvents),removeEventListener:documentEvents.removeEventListener.bind(documentEvents)});
  vi.stubGlobal('requestAnimationFrame',(callback:FrameRequestCallback)=>{callback(0);return 0});
  replies={
   '/api/site-data/products':async()=>response({ok:true,products:[product]}),
@@ -213,7 +215,7 @@ it('keeps the cart and reports unavailable when Paystack is disabled without a S
  const page=await checkout();page.method('card');await page.submit();
  expect(requests.find(request=>request.path==='/api/paystack/checkout')?.body?.idempotencyKey).toMatch(/^[A-Za-z0-9_-]{32,128}$/);
  expect(requests.some(request=>request.path==='/api/stripe/checkout'||request.path==='/api/orders')).toBe(false);
- expect(assign).not.toHaveBeenCalled();expect(JSON.parse(data.get('ugt-live-cart-v1')!)).toEqual(items);expect(page.html()).toContain('Card checkout is unavailable');page.cleanup();
+ expect(assign).not.toHaveBeenCalled();expect(JSON.parse(data.get('ugt-live-cart-v1')!)).toEqual(items);expect(page.html()).toContain('Paystack checkout is unavailable');page.cleanup();
 });
 it('does not fall back after a failed or uncertain configured provider response',async()=>{
  replies['/api/paystack/checkout']=async()=>response({error:'provider_unavailable'},503);

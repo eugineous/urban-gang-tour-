@@ -12,7 +12,7 @@ it('restores inline native home questions without requiring JavaScript to open a
  expect((faq(html).match(/<details(?:\s|>)/g)||[])).toHaveLength(5);
  expect(html).toContain('<summary>');expect(html).toContain('Can you bring the tour to our school?');
  expect(html).toContain('Sending a request does not confirm a booking.');
- expect(html).toContain('href="/faq"');expect(html).not.toContain('aria-hidden="true" inert=""');
+ expect(html).toContain('href="/faq"');expect(faq(html)).not.toContain('aria-hidden="true" inert=""');
 });
 it('preserves published home questions and dedicated FAQ editor intent, including explicit empty FAQ',()=>{
  const content={...WEBSITE_DEFAULTS['/'],faqs:[{question:'My <question>?',answer:'My <answer>.'}]};

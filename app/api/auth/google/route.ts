@@ -6,6 +6,7 @@ import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 import {verifyGoogleIdentity} from '@/lib/server/google-identity';
 import {signToken,sessionCookie} from '@/lib/server/session';
 import {ensureBuyerSessionSchema} from '@/lib/server/customer-account';
+import {ensureCustomerIdentitySchema} from '@/lib/server/customer-identity';
 export async function GET(req:Request){
  if(!rateLimit('google-config:'+clientIp(req),60,60000,req))return NextResponse.json({error:'too_many_requests'},{status:429});
  return NextResponse.json({clientId:process.env.GOOGLE_OAUTH_CLIENT_ID||process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID||null},{headers:{'Cache-Control':'no-store'}});
@@ -22,8 +23,12 @@ export async function POST(req:Request){
  if(!email)return NextResponse.json({error:'invalid_token'},{status:401});
  try {
  await ensureBuyerSessionSchema();
- const rows=await q('SELECT id,email,phone,name,session_version FROM users WHERE email=$1 LIMIT 1',[email]);const u=rows[0];
+ await ensureCustomerIdentitySchema();
+ const rows=await q('SELECT id,email,phone,name,session_version,email_verified_at FROM users WHERE lower(btrim(email))=$1 LIMIT 2',[email]);const u=rows.length===1?rows[0]:null;
  if(!u)return NextResponse.json({error:'account_not_found'},{status:401});
+ // A provider's email claim cannot silently link an unverified native account.
+ // First sign in natively and prove this account's email in security settings.
+ if(!u.email_verified_at)return NextResponse.json({error:'email_verification_required'},{status:403});
  const res=NextResponse.json({ok:true,user:u});
  res.headers.set('Set-Cookie',sessionCookie('ugt_user',signToken({id:u.id,email:u.email,phone:u.phone,name:u.name,sessionVersion:u.session_version})));
  return res;

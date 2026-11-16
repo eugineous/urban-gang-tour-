@@ -1,6 +1,5 @@
 'use client';
 import {formatKes} from '@/lib/i18n/format';
-import Link from 'next/link';
 import {accountMessages,statusIssue} from '@/ui/i18n/catalogues/account';
 import {useInterfaceLanguage,useMessages} from '@/ui/i18n/LanguageProvider';
 import {accountPurchasesMessages} from './account-purchases-messages';
@@ -36,7 +35,7 @@ export default function AccountPurchases({wallet,errorText,onRetry}:Props) {
   {!wallet&&!errorText&&<p role="status">{t('copy.loading_your_purchases')}</p>}
   {wallet&&<>
    <h3>{copy('orders')}</h3>
-   {wallet.orders.length===0&&<p>{copy('noOrders')} <Link href="/events">{t('copy.find_an_event')}</Link> <Link href="/shop">{t('copy.visit_the_shop')}</Link></p>}
+   {wallet.orders.length===0&&<p>{copy('noOrders')} <a href="/events">{t('copy.find_an_event')}</a> <a href="/shop">{t('copy.visit_the_shop')}</a></p>}
    {wallet.orders.map(order=><article key={order.id} className={styles.entry}>
     <h4>{order.id}</h4><p>{t(statusIssue(order.status).key)} · {formatKes(Number(order.total),locale)??''}</p><p>{date(order.created_at)}</p>
     {['paid','fulfilled'].includes(order.status)&&<div className={styles.actions}><a href={`/receipt/${encodeURIComponent(order.id)}`}>{t('copy.view_receipt')}</a><a href={`/orders/track?ref=${encodeURIComponent(order.id)}`}>{t('copy.track_order')}</a></div>}

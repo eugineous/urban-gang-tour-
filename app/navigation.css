@@ -138,7 +138,7 @@ html[data-phone-viewport="wide"] dialog.menu-panel{
 html[data-phone-viewport="wide"] .menu-groups nav{grid-template-columns:minmax(0,1fr)}
 html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
 .mobile-search{display:none}
-@media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
+@media screen and (max-width:767px),screen and (max-device-width:600px) and (pointer:coarse){
  .site-header{background:#f8f8f8;border-bottom:0}
  .site-header .header-content{display:grid;grid-template-columns:44px minmax(0,1fr) 44px 44px;gap:8px;height:68px;padding-inline:20px}
  .site-header .header-actions{display:contents}
@@ -151,7 +151,7 @@ html[data-phone-viewport="wide"] .menu-groups nav a{font-size:18px}
  .site-header .start-link,.site-header .tickets-link,.site-header .desktop-nav{display:none}
 }
 @keyframes ugt-menu-invite{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.85;transform:scale(1.13)}}
-@media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
+@media screen and (max-width:767px),screen and (max-device-width:600px) and (pointer:coarse){
  .site-header .menu-toggle::after{content:'';position:absolute;inset:-5px;border:2px solid var(--ugt-primary);border-radius:50%;pointer-events:none;animation:ugt-menu-invite 2s ease-in-out infinite}
  .site-header .menu-toggle:is([aria-expanded=true],[data-menu-engaged=true])::after{animation:none;opacity:0}
 }

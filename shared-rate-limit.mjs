@@ -3,6 +3,7 @@ export const RATE_POLICIES = Object.freeze({
   'buyer-auth': 8, 'buyer-google': 8, 'admin-password': 5, 'admin-google': 5,
   'organizer-login': 8, 'organizer-signup': 5, 'organizer-google': 8,
   'organizer-forgot': 5, 'organizer-reset': 8, 'buyer-recovery': 8,
+  'buyer-network':120,'buyer-identity':8,'buyer-recovery-identity':5,
   purchase: 3000, 'public-read': 60000, 'public-write': 5000,
 });
 
@@ -48,17 +49,34 @@ const purchases = new Set(['/api/orders', '/api/marketplace/checkout', '/api/pay
 
 export async function sharedRateGuard(request, env) {
   const path = new URL(request.url).pathname.replace(/\/$/, '');
-  let scope;
+  let scope;const identities=[];let identityScope='buyer-identity';
   let strict = true;
-  if (request.method === 'POST' && credentials.has(path)) scope = credentials.get(path);
-  else if (request.method === 'POST' && path === '/api/auth') {
+  if (request.method === 'POST' && ['/api/auth','/api/account/recovery','/api/account/verification','/api/account/passkeys','/api/account/orders/claim'].includes(path)) {
     // "me" polling and logout are not password attempts. Bound the cloned
     // request before inspecting it, so a large stream cannot evade the guard.
     const { readJsonObject } = await import('./lib/server/json-body.ts');
-    const parsed = await readJsonObject(request.clone());
+    const parsed = await readJsonObject(request.clone(),path.endsWith('/passkeys')?65536:8192);
     if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status, headers: { 'Cache-Control': 'no-store' } });
-    if (['login', 'signup'].includes(parsed.value.action)) scope = 'buyer-auth';
-  } else if (request.method === 'POST' && purchases.has(path)) scope = 'purchase';
+    const body=parsed.value;
+    if(path==='/api/auth'&&!['login','signup'].includes(body.action))return null;
+    scope='buyer-network';
+    const {normalizeCustomerEmail,normalizeCustomerPhone}=await import('./lib/shared/customer-identity.ts');
+    if(path==='/api/auth'||path.endsWith('/recovery')){
+      const email=typeof body.email==='string'?normalizeCustomerEmail(body.email):null;
+      const phone=typeof body.phone==='string'?normalizeCustomerPhone(body.phone):null;
+      if(email)identities.push('email:'+email);if(phone)identities.push('phone:'+phone);
+      if(path.endsWith('/recovery')){identityScope='buyer-recovery-identity';if(typeof body.token==='string'&&/^[A-Za-z0-9_-]{43}$/.test(body.token))identities.push('reset:'+body.token)}
+    }else{
+      // Signed subject, never a claimed user_id or rotating device cookie.
+      const token=request.headers.get('cookie')?.match(/(?:^|;\s*)ugt_user=([^;]+)/)?.[1];
+      const {verifySignedEnvelope}=await import('./lib/server/token-envelope.ts');
+      const buyer=verifySignedEnvelope(token,env.SESSION_SECRET||'');
+      if(buyer&&Number.isSafeInteger(buyer.id)&&buyer.id>0)identities.push('user:'+buyer.id);
+      const credential=body.credential;
+      if(path.endsWith('/passkeys')&&credential&&typeof credential==='object'&&typeof credential.id==='string'&&/^[A-Za-z0-9_-]{16,1024}$/.test(credential.id))identities.push('passkey:'+credential.id);
+    }
+  } else if(request.method==='POST'&&credentials.has(path))scope=credentials.get(path);
+  else if (request.method === 'POST' && purchases.has(path)) scope = 'purchase';
   else if (path.startsWith('/api/') && !/^\/api\/(?:admin|internal|organizer)(?:\/|$)/.test(path) && !/\/(?:webhook|callback)$/.test(path)) {
     if (['GET', 'HEAD'].includes(request.method)) { scope = 'public-read'; strict = false; }
     else scope = 'public-write';
@@ -69,15 +87,17 @@ export async function sharedRateGuard(request, env) {
   if (!env.UGT_RATE_LIMITER || !ip || !env.SESSION_SECRET) return strict
     ? Response.json({ error: 'abuse_protection_unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '5' } }) : null;
   try {
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('ugt-network-v1:' + env.SESSION_SECRET + ':' + ip));
-    const key = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
-    const stub = env.UGT_RATE_LIMITER.get(env.UGT_RATE_LIMITER.idFromName(key));
-    const response = await stub.fetch('https://limiter.internal/take', {
-      method: 'POST', body: JSON.stringify({ scope }), signal: AbortSignal.timeout(3000),
-    });
-    const result = await response.json();
-    if (!response.ok || typeof result.allowed !== 'boolean' || !Number.isSafeInteger(result.retryAfter)) throw new Error('limiter_invalid_response');
-    if (!result.allowed) return Response.json({ error: 'too_many_requests' }, { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(result.retryAfter) } });
+    const encoder=new TextEncoder(),budgets=[{scope,material:'ugt-network-v1:'+env.SESSION_SECRET+':'+ip}];
+    for(const identity of identities)budgets.push({scope:identityScope,material:'ugt-identity-v1:'+env.SESSION_SECRET+':'+identity});
+    for(const budget of budgets){
+      const digest=await crypto.subtle.digest('SHA-256',encoder.encode(budget.material));
+      const key=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+      const stub=env.UGT_RATE_LIMITER.get(env.UGT_RATE_LIMITER.idFromName(key));
+      const response=await stub.fetch('https://limiter.internal/take',{method:'POST',body:JSON.stringify({scope:budget.scope}),signal:AbortSignal.timeout(3000)});
+      const result=await response.json();
+      if(!response.ok||typeof result.allowed!=='boolean'||!Number.isSafeInteger(result.retryAfter))throw Error('limiter_invalid_response');
+      if(!result.allowed)return Response.json({error:'too_many_requests'},{status:429,headers:{'Cache-Control':'no-store','Retry-After':String(result.retryAfter)}});
+    }
     return null;
   } catch {
     // Credentials and purchases fail closed. Public cached reads retain their

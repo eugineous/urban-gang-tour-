@@ -59,4 +59,11 @@ describe('shared network enforcement', () => {
     expect(JSON.parse(String(fetcher.mock.calls[0][1].body))).toEqual({scope:'public-write'});
     expect((await sharedRateGuard(req('/api/contact',{},{}),{}))?.status).toBe(503);
   });
+  it('lets distinct buyers share a carrier IP but enforces one identity across networks and phone aliases',async()=>{
+    const objects=new Map<string,SharedRateLimiter>();const env={SESSION_SECRET:'fixture-key',UGT_RATE_LIMITER:{idFromName:(key:string)=>key,get:(key:string)=>{if(!objects.has(key))objects.set(key,new SharedRateLimiter({storage:storage().store}));return{fetch:(_url:string,init:RequestInit)=>objects.get(key)!.fetch(new Request('https://limiter.internal/take',init))}}}};
+    for(let n=0;n<20;n++)expect(await sharedRateGuard(req('/api/auth',{}, {action:'login',email:'buyer'+n+'@example.test',password:'fixture'}),env)).toBeNull();
+    for(let n=0;n<8;n++)expect(await sharedRateGuard(req('/api/auth',{'cf-connecting-ip':'192.0.2.'+(n+2)}, {action:'login',phone:n%2?'0712345678':'+254712345678',password:'fixture'}),env)).toBeNull();
+    const blocked=await sharedRateGuard(req('/api/auth',{'cf-connecting-ip':'192.0.2.99'}, {action:'login',phone:'254712345678',password:'fixture'}),env);expect(blocked?.status).toBe(429);
+    expect([...objects.keys()].some(key=>key.includes('0712345678')||key.includes('buyer'))).toBe(false);
+  });
 });

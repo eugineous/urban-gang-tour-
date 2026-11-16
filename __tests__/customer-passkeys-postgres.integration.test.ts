@@ -6,6 +6,9 @@ import {chromium,type Browser,type Page,type CDPSession} from 'playwright';
 import type {PublicKeyCredentialCreationOptionsJSON,PublicKeyCredentialRequestOptionsJSON} from '@simplewebauthn/server';
 import {verifyAuthenticationResponse} from '@simplewebauthn/server';
 import {DisposablePostgres} from './helpers/disposable-postgres';
+// These cases perform real SQL round trips and Chromium authenticator work;
+// allow contention when the full suite runs another browser alongside them.
+vi.setConfig({testTimeout:20000});
 const transport=vi.hoisted(()=>({query:undefined as unknown as (sql:string,args?:unknown[])=>Promise<Record<string,unknown>[]>,schema:undefined as unknown as (sql:string)=>Promise<void>,pool:undefined as unknown as ()=>unknown}));
 vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:(sql:string,args?:unknown[])=>transport.query(sql,args),qSchema:(sql:string)=>transport.schema(sql),db:()=>transport.pool()}));
 import {hashPassword,signToken,currentUser} from '@/lib/server/session';
@@ -46,7 +49,9 @@ async function signedMutation(prepared:Awaited<ReturnType<typeof assertion>>,mut
  return {...prepared,credential};
 }
 
-describe('native passkeys with actual WebAuthn and PostgreSQL',()=>{
+// Like the other network-none PostgreSQL suites, run explicitly on a runner
+// with Docker and Chromium rather than making ordinary unit checks require them.
+describe.skipIf(process.env.UGT_CUSTOMER_PASSKEY_PG_FIXTURE!=='1')('native passkeys with actual WebAuthn and PostgreSQL',()=>{
  beforeAll(async()=>{
   // Catch absent implementation as an assertion (the initial RED), not a mocked verifier.
   const path='../app/api/account/passkeys/route';const loaded=await import(path).catch(()=>null);

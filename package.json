@@ -18,6 +18,8 @@
     "@neondatabase/serverless": "^1.1.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-pdf/renderer": "^4.5.1",
+    "@simplewebauthn/browser": "14.0.0",
+    "@simplewebauthn/server": "14.1.0",
     "google-auth-library": "^10.9.0",
     "html-to-image": "^1.11.13",
     "jspdf": "4.2.1",

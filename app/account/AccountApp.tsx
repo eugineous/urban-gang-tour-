@@ -4,6 +4,12 @@ import {useInterfaceLanguage,useMessages} from '@/ui/i18n/LanguageProvider';
 import {accountMessages,type CustomerIssue,factoryIssue,safeIssue,statusIssue} from '@/ui/i18n/catalogues/account';
 import {GoogleSignIn} from '@/app/_components/GoogleSignIn';
 import {fetchWithTimeout} from '@/lib/client/fetch-with-timeout';
+import AccountSecurity from './AccountSecurity';
+import AccountPurchases from './AccountPurchases';
+import {accountCursorQuery} from '@/lib/server/account-pagination';
+import {PasskeySignIn} from './PasskeyControls';
+import {MessageText} from '@/ui/i18n/MessageText';
+import {accountSecurityMessages} from '@/ui/i18n/catalogues/account-security';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -40,7 +46,9 @@ export default function AccountApp() {
     setWallet(null); setWalletError(null);
     if (!user) return;
     const controller = new AbortController();
-    fetchWithTimeout('/api/account', {signal:controller.signal}).then(async r => {
+    let query:string;
+    try{query=accountCursorQuery(new URLSearchParams(window.location.search))}catch{setWalletError({key:'copy.your_purchases_could_not_load_please_try_again'});return()=>controller.abort()}
+    fetchWithTimeout('/api/account'+(query?'?'+query:''), {signal:controller.signal}).then(async r => {
       if (r.status===401) {
         if (!controller.signal.aborted) { setUser(null); setMsg({"key":"copy.your_session_has_ended_sign_in_again_to_view_your_purchases"}); }
         return null;
@@ -83,6 +91,7 @@ export default function AccountApp() {
     try {
       const r = await fetchWithTimeout('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'logout' ? { action } : { action, ...f, ...(action === 'signup' ? { adultConfirmed: eligible, termsAccepted } : {}) }) });
       const d = await r.json();
+      if(!r.ok&&d.error==='password_min_8'){setMsg({key:'copy.password_min_8'});return;}
       if (r.ok && d.ok) {
         setUser(action === 'logout' ? null : d.user);
         setF({ name: '', email: '', phone: '', password: '' });
@@ -123,7 +132,8 @@ export default function AccountApp() {
           </button>
         </div>
         {msg && <p role="alert" style={{ ...card, color: '#a00' }}>{msg?t(msg.key,msg.values):null}</p>}
-        <div style={card}><h2>{t("copy.my_orders_tickets")}</h2><p><span lang="en-KE">Purchases made while signed in appear here. Guest purchases remain in their original confirmation email.</span></p>{walletError && <p role="alert">{walletError?t(walletError.key,walletError.values):null} <button type="button" onClick={()=>{setWalletError(null);setProbe(probe+1)}}>{t("copy.retry")}</button></p>}{!wallet && !walletError && <p role="status">{t("copy.loading_your_purchases")}</p>}{wallet && wallet.orders.length===0 && <p>{t("copy.no_account_purchases_yet")} <a href="/events">{t("copy.find_an_event")}</a> {t("copy.or")} <a href="/shop">{t("copy.visit_the_shop")}</a>{t("copy.")}</p>}{wallet?.orders.map((order:any)=><article key={order.id} style={{borderTop:'1px solid #ddd',padding:'16px 0'}}><h3 style={{overflowWrap:'anywhere'}}>{order.id}</h3><p>{t(statusIssue(order.status).key)} · {money(Number(order.total))}</p><p>{new Intl.DateTimeFormat(locale==='en'?'en-KE':locale,{dateStyle:'medium',timeZone:'Africa/Nairobi'}).format(new Date(order.created_at))}</p>{['paid','fulfilled'].includes(order.status) && <span><a href={`/receipt/${encodeURIComponent(order.id)}`}>{t("copy.view_receipt")}</a> · <a href={`/orders/track?ref=${encodeURIComponent(order.id)}`}>{t("copy.track_order")}</a></span>}{wallet.tickets.filter((ticket:any)=>ticket.order_id===order.id).map((ticket:any)=><p key={ticket.code}><a href={`/api/tickets/${encodeURIComponent(ticket.code)}/pdf`}>{t("copy.download")} {ticket.tier_name} {t("copy.ticket")}</a> · {ticket.used_at?t("copy.scanned_at_gate"):t("copy.not_yet_scanned")}</p>)}</article>)}</div>
+        <AccountSecurity onVerified={()=>setProbe(value=>value+1)} onClaimed={()=>setProbe(value=>value+1)}/>
+        <AccountPurchases wallet={wallet} errorText={walletError?t(walletError.key,walletError.values):undefined} onRetry={()=>{setWalletError(null);setProbe(probe+1)}}/>
         <div style={card}>
           <h3 style={{ fontFamily: 'inherit', margin: '0 0 8px' }}>{t("copy.share_a_story_with_urban_news")}</h3>
           {sub.sent ? <div style={{ color: '#1F8A5B', fontWeight: 700 }}>{t("copy.sent_to_the_newsroom_the_crew_reviews_every_pitch")}</div> : (
@@ -136,7 +146,7 @@ export default function AccountApp() {
             </form>
           )}
         </div>
-        <div style={card}><h2>{t("copy.your_data")}</h2><p><a href="/account/preferences">{t("copy.notification_preferences")}</a></p><p><a href="/api/account?download=1">{t("copy.export_profile_and_linked_purchases")}</a></p><p>{t("copy.request_account_deletion_the_team_reviews_the_request_and_retains_financial")}</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setMsg(null);try{const r=await fetchWithTimeout('/api/account/privacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirmation:deleteConfirmation})});const d=await r.json();if(!r.ok)throw new Error();setMsg({...factoryIssue('Deletion request received. Reference: {reference}'),values:{reference:d.request.id}});setProbe(probe+1);setDeleteConfirmation('');}catch{setMsg({"key":"copy.your_request_could_not_be_saved_please_try_again"});}finally{setBusy(false);}}}><label>{t("copy.type_delete_my_account_to_confirm")}<input style={inp} value={deleteConfirmation} onChange={e=>setDeleteConfirmation(e.target.value)} required /></label><button type="submit" style={{...btn,marginTop:12}} disabled={busy||deleteConfirmation!=='DELETE MY ACCOUNT'}>{t("copy.request_deletion")}</button></form>{wallet?.requests.map((r:any)=><p key={r.id}>{t("copy.request")} {r.id}: {t(statusIssue(r.status,'privacy').key)}</p>)}<p><a href="/privacy-policy">{t("copy.your_privacy_rights")}</a> · <a href="/">{t("copy.back_to_the_tour")}</a></p></div>
+        <div style={card}><h2>{t("copy.your_data")}</h2><p><a href="/account/preferences">{t("copy.notification_preferences")}</a></p><p>{t("copy.request_account_deletion_the_team_reviews_the_request_and_retains_financial")}</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setMsg(null);try{const r=await fetchWithTimeout('/api/account/privacy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirmation:deleteConfirmation})});const d=await r.json();if(!r.ok)throw new Error();setMsg({...factoryIssue('Deletion request received. Reference: {reference}'),values:{reference:d.request.id}});setProbe(probe+1);setDeleteConfirmation('');}catch{setMsg({"key":"copy.your_request_could_not_be_saved_please_try_again"});}finally{setBusy(false);}}}><label>{t("copy.type_delete_my_account_to_confirm")}<input style={inp} value={deleteConfirmation} onChange={e=>setDeleteConfirmation(e.target.value)} required /></label><button type="submit" style={{...btn,marginTop:12}} disabled={busy||deleteConfirmation!=='DELETE MY ACCOUNT'}>{t("copy.request_deletion")}</button></form><p><a href="/privacy-policy">{t("copy.your_privacy_rights")}</a> · <a href="/">{t("copy.back_to_the_tour")}</a></p></div>
       </div>
     );
   }
@@ -145,12 +155,14 @@ export default function AccountApp() {
     <div style={{ ...card, maxWidth: 440, margin: '0 auto' }}>
       <h2 style={{ fontFamily: 'inherit', margin: '0 0 4px' }}>{mode === 'login' ? t("copy.sign_in") : mode === 'forgot' ? t("copy.reset_your_password") : mode === 'reset' ? t("copy.choose_a_new_password") : t("copy.create_your_account")}</h2>
       {mode==='login'&&<GoogleSignIn endpoint="/api/auth/google" onSuccess={d=>{setUser(d.user);setMsg(null)}}/>}
+      {mode==='login'&&<PasskeySignIn onSuccess={({user})=>{setUser(user);setF({name:'',email:'',phone:'',password:''})}}/>}
+      {mode==='reset'&&<p><MessageText catalogue={accountSecurityMessages} message="resetKeys"/></p>}
       <div style={{ fontSize: 15, color: '#555', marginBottom: 14 }}>{mode === 'forgot' ? t('copy.enter_the_email_used_for_your_account') : mode === 'reset' ? t('copy.use_at_least_8_characters_all_other_devices_will_be_signed') : t('copy.use_your_email_or_kenyan_phone_number')}</div>
       <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void go(mode); }}>
         {mode === 'signup' && <label>{t("copy.name")}<input style={inp} maxLength={100} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>}
         {mode !== 'reset' && <label>{t("copy.email")}<input style={inp} type="email" required={mode==='forgot'} maxLength={254} autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>}
         {(mode === 'login' || mode === 'signup') && <label>{t("copy.or_kenyan_phone_number")}<input style={inp} type="tel" autoComplete="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></label>}
-        {mode !== 'forgot' && <label>{t("copy.password")}<input style={inp} type="password" required minLength={mode === 'reset' ? 8 : 6} maxLength={100} autoComplete={mode !== 'login' ? 'new-password' : 'current-password'} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>}
+        {mode !== 'forgot' && <label>{t("copy.password")}<input style={inp} type="password" required minLength={mode === 'login' ? 6 : 8} maxLength={100} autoComplete={mode !== 'login' ? 'new-password' : 'current-password'} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>}
         {mode === 'signup' && <><p style={{ margin: '4px 0', fontSize: 14, lineHeight: 1.5 }}><span lang="en-KE">Accounts are for adults aged 18 and over. Under 18? Ask a parent or guardian to manage bookings and purchases. You can explore the tour without an account.</span></p><label className="ugt-account-consent"><input type="checkbox" required checked={eligible} onChange={e => setEligible(e.target.checked)} />{t("copy.i_am_18_or_older")}</label><label className="ugt-account-consent"><input type="checkbox" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /><span>{t("copy.i_accept_the")} <a href="/terms">{t("copy.terms_2")}</a> {t("copy.and_have_read_the")} <a href="/privacy-policy">{t("copy.privacy_policy_3")}</a>{t("copy.")}</span></label></>}
         {msg && <div role="alert" style={{ color: '#a00', fontSize: 14 }}>{msg?t(msg.key,msg.values):null}</div>}
         <button type="submit" style={btn} disabled={busy}>{busy ? t("copy.please_wait") : mode === 'login' ? t("copy.sign_in") : mode === 'forgot' ? t("copy.send_reset_link") : mode === 'reset' ? t("copy.save_new_password") : t("copy.create_account")}</button>

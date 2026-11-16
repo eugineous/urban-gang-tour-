@@ -24,6 +24,7 @@ vi.mock('@/lib/server/db',()=>({hasDb:()=>true,qSchema:vi.fn(async()=>{}),q:vi.f
 })}));
 vi.mock('@/lib/server/receipt-email',()=>({renderReceiptEmailPayload:vi.fn(async()=>JSON.stringify({to:'buyer@example.test',html:'Original receipt',subject:'Receipt'}))}));
 vi.mock('@/lib/server/contact-email-outbox',()=>({processContactEmailOutbox:vi.fn(async()=>[])}));
+vi.mock('@/lib/server/customer-email-verification',()=>({processSecurityEmailOutbox:vi.fn(async()=>[])}));
 vi.mock('@/lib/server/session',()=>({verifyAdminSession:vi.fn(async()=>false),isSuperAdmin:vi.fn(()=>false)}));
 vi.mock('@/lib/server/ratelimit',()=>({clientIp:()=> 'test',rateLimit:()=>true}));
 import {enqueueReceiptEmail,deliverReceiptEmailJob,processEmailOutbox} from '@/lib/server/email-outbox';

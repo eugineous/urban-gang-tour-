@@ -55,7 +55,7 @@ describe('plain-language public copy',()=>{
  });
  it('preserves international payment and delivery limitations rather than making broad availability claims',()=>{
   const html=render(International);
-  expect(html).toContain('Planning from abroad?');expect(html).toContain('M-Pesa requires a supported Kenyan M-Pesa number.');
+  expect(html).toContain('Planning from abroad?');expect(html).toContain('M-Pesa and cards through Paystack');expect(html).toContain('never share your PIN');
   expect(html).toContain('We cannot guarantee acceptance of every international card.');expect(html).toContain('Worldwide shipping is not automatically available.');
   expect(html).toContain('check its status before paying again');
  });

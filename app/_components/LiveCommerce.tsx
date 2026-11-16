@@ -87,7 +87,7 @@ function CommerceClient({view='shop',eventId,embedded=false,initialProducts,cate
   return()=>controller.abort();
  },[eventId,view,fulfillmentRetry]);
  const paymentAvailable=(!eventId||event?.onlineCheckoutAvailable===true)&&!fulfillmentLoading&&!fulfillmentError&&!!fulfillmentOptions?.payments.card;
- const paystackMobileMoney=!eventId&&fulfillmentOptions?.payments.paystackMobileMoney===true;
+ const paystackMobileMoney=fulfillmentOptions?.payments.paystackMobileMoney===true;
  const fulfillment={method:fulfillmentMethod,...(fulfillmentMethod==='delivery'?{address:{line1:address.line1,city:address.city,...(address.postalCode?{postalCode:address.postalCode}:{})}}:{})};
  const deliveryFee=fulfillmentMethod==='delivery'?(fulfillmentOptions?.delivery.fee||0):0;
  const productFor=(item:Item)=>products.find(p=>p.id===item.id);const amount=(item:Item)=>{const p=productFor(item);return (p?.price||0)+(p?.variants.find(v=>v.label===item.variant)?.priceAdjustment||0)};

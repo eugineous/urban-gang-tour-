@@ -38,7 +38,7 @@ export async function checkoutPaystackTicket(req:Request,body:Record<string,unkn
   const claim=await claimPaystackTicket(identity,attempt.orderId,purchase);
   if(!claim){const recovered=await recoverPaystackAttempt(identity);if(!recovered)throw Error('recovery_unavailable');return respond(recovered)}
   try{
-   const result=await paystackInit({email:email||'guest+'+attempt.orderId.toLowerCase()+'@urbangangtour.co.ke',amountKes:claim.attempt.total,reference:attempt.orderId,callbackUrl:'https://urbangangtour.co.ke/pay/success?ref='+encodeURIComponent(attempt.orderId),metadata:{order_id:attempt.orderId},channels:['card']});
+   const result=await paystackInit({email:email||'guest+'+attempt.orderId.toLowerCase()+'@urbangangtour.co.ke',amountKes:claim.attempt.total,reference:attempt.orderId,callbackUrl:'https://urbangangtour.co.ke/pay/success?ref='+encodeURIComponent(attempt.orderId),metadata:{order_id:attempt.orderId},channels:['card','mobile_money']});
    if(!result.ok||!result.url||!await recordPaystackAuthorization(claim.attempt.id,claim.nonce,result.url))throw Error('initialization_uncertain');
    return respond({...claim.attempt,state:'ready',authorizationUrl:result.url});
   }catch{await markPaystackInitiationUnknown(claim.attempt.id,claim.nonce).catch(()=>false);return respond({...claim.attempt,state:'unknown'})}

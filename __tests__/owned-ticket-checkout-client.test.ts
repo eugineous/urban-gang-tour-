@@ -29,7 +29,7 @@ beforeEach(()=>{
  vi.stubGlobal('fetch',async(path:string,init?:RequestInit)=>{
   const body=init?.body?JSON.parse(String(init.body)):null;requests.push({path,body});
   if(path==='/api/site-data/events')return response({ok:true,events:[{id:'event',name:'Fixture event',sellable:true,onlineCheckoutAvailable:online,tiers:[{name:'General',price:500,sellable:true,remaining:2,per_order_min:1,per_order_max:2}]}]});
-  if(path==='/api/checkout/fulfillment')return response({pickup:{location:'Fixture'},delivery:{enabled:false,fee:null},payments:{mpesa:false,card:true}});
+  if(path==='/api/checkout/fulfillment')return response({pickup:{location:'Fixture'},delivery:{enabled:false,fee:null},payments:{mpesa:false,card:true,paystackMobileMoney:true}});
   if(path==='/api/checkout/session')return response({ok:true,created:false});
   if(path==='/api/paystack/checkout')return response({ok:true,id:'ORD-TICKET123',total:500,attemptState:'ready',authorizationUrl:'https://checkout.paystack.com/fixture-ticket'});
   throw Error('network forbidden: '+path);
@@ -43,7 +43,7 @@ async function page(){
  return {html:()=>renderToStaticMarkup(tree),submit:async()=>{await nodes(tree).find(n=>n.type==='form')!.props.onSubmit!({preventDefault:()=>{}});tree=render(client,component)},cleanup:()=>cleanup.forEach(fn=>{if(typeof fn==='function')fn()})};
 }
 it('an eligible owned event dispatches exactly its ticket selection, never the merchandise cart or delivery',async()=>{
- const checkout=await page();await checkout.submit();const sent=requests.filter(r=>r.path==='/api/paystack/checkout');expect(sent).toHaveLength(1);
+ const checkout=await page();expect(checkout.html()).toContain('Continue to Paystack');expect(checkout.html()).toContain('Pay securely on Paystack.');await checkout.submit();const sent=requests.filter(r=>r.path==='/api/paystack/checkout');expect(sent).toHaveLength(1);
  expect(sent[0].body).toMatchObject({ticket:{eventId:'event',tier:0,qty:1}});expect(sent[0].body.items).toBeUndefined();expect(sent[0].body.fulfillment).toBeUndefined();expect(sent[0].body.promoCode).toBeUndefined();expect(sent[0].body.idempotencyKey).toMatch(/^[a-f0-9]{64}$/);
  expect(assign).toHaveBeenCalledWith('https://checkout.paystack.com/fixture-ticket');expect(data.get('ugt-live-cart-v1')).toContain('tee');expect(JSON.parse(session.get('ugt-checkout-order')!)).toMatchObject({id:'ORD-TICKET123',eventId:'event'});checkout.cleanup();
 });

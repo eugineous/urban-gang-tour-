@@ -2,7 +2,10 @@
 import {afterAll,afterEach,beforeAll,beforeEach,expect,it,vi} from 'vitest';
 import {createHmac} from 'node:crypto';
 import {DisposablePostgres} from './helpers/disposable-postgres';
-const state=vi.hoisted(()=>({q:vi.fn(),qSchema:vi.fn(),db:vi.fn(),init:vi.fn(),capacityBarrier:null as null|(()=>Promise<void>)}));
+// Each case crosses real disposable SQL sessions; the default unit-test budget
+// is insufficient when another production build/browser uses the same runner.
+vi.setConfig({testTimeout:20000});
+const state=vi.hoisted(()=>({q:vi.fn(),qSchema:vi.fn(),db:vi.fn(),init:vi.fn(),capacityBarrier:null as null|(()=>Promise<void>),orderLocked:null as null|(()=>void)}));
 vi.mock('@/lib/server/db',()=>({...state,hasDb:()=>true}));
 vi.mock('@/lib/server/paystack',()=>({paystackConfigured:()=>true,paystackInit:state.init}));
 vi.mock('@/lib/server/customer-account',()=>({ensureCustomerAccountSchema:async()=>{},validatedCurrentBuyer:async()=>null}));
@@ -20,7 +23,7 @@ import {POST as saveAdmin} from '@/app/api/admin/save/route';
 import {POST as comp} from '@/app/api/admin/tickets/comp/route';
 import {GET as status} from '@/app/api/orders/status/route';
 import {createCheckoutSession} from '@/lib/server/checkout-session';
-import {ensurePaystackAttemptSchema,paystackAttemptIdentity,preparePaystackAttempt,claimPaystackInitiation} from '@/lib/server/paystack-attempts';
+import {ensurePaystackAttemptSchema,paystackAttemptIdentity,preparePaystackAttempt,claimPaystackInitiation,recordPaystackAuthorization} from '@/lib/server/paystack-attempts';
 import {CAPACITY_COUNTS_SQL,ensureTicketInventorySchema,expireStaleReservations,ticketCapacity} from '@/lib/server/ticket-inventory';
 import {ensurePaymentEffectsSchema,processPaymentEffects,settlePaystackOrder} from '@/lib/server/payment-effects';
 import {ensureEmailOutbox} from '@/lib/server/email-outbox';
@@ -45,7 +48,7 @@ beforeAll(async()=>{
  state.q.mockImplementation(query);state.qSchema.mockImplementation((sql:string)=>fixture.schema(sql));
  state.db.mockImplementation(()=>{
   const clients:ReturnType<DisposablePostgres['connect']>[]=[];
-  return {query:async(sql:string,args:unknown[]=[])=>({rows:await query(sql,args)}),connect:async()=>{const c=fixture.connect();clients.push(c);return {...c,query:async(sql:string,args:unknown[]=[])=>{const rows=normalize((await c.query(sql,args)).rows);if(sql===CAPACITY_COUNTS_SQL)await state.capacityBarrier?.();return {rows}}}},end:async()=>{await Promise.all(clients.map(c=>c.end()))}};
+  return {query:async(sql:string,args:unknown[]=[])=>({rows:await query(sql,args)}),connect:async()=>{const c=fixture.connect();clients.push(c);return {...c,query:async(sql:string,args:unknown[]=[])=>{const rows=normalize((await c.query(sql,args)).rows);if(sql==='SELECT * FROM orders WHERE id=$1 FOR UPDATE')state.orderLocked?.();if(sql===CAPACITY_COUNTS_SQL)await state.capacityBarrier?.();return {rows}}}},end:async()=>{await Promise.all(clients.map(c=>c.end()))}};
  });
  await ensureTicketInventorySchema();await ensurePaystackAttemptSchema();await ensurePaymentEffectsSchema();await ensureTicketSchema();await ensureEmailOutbox();
 },30000);
@@ -75,7 +78,7 @@ test.each([{items:[{id:'tee',qty:1}]},{fulfillment:{method:'pickup'}},{promoCode
  expect((await checkout(request({...body(),...patch}))).status).toBe(400);expect(await count('orders')).toBe(0);expect(state.init).not.toHaveBeenCalled();
 });
 test('server pricing and the persisted hold precede the only provider initialization',async()=>{
- state.init.mockImplementation(async(input:any)=>{expect(input.amountKes).toBe(500);expect(input.channels).toEqual(['card']);expect(await ticketCapacity('event',0,'General')).toEqual({sold:0,reserved:1});return {ok:true,url:'https://checkout.paystack.com/fixture-ticket'}});
+ state.init.mockImplementation(async(input:any)=>{expect(input.amountKes).toBe(500);expect(input.channels).toEqual(['card','mobile_money']);expect(await ticketCapacity('event',0,'General')).toEqual({sold:0,reserved:1});return {ok:true,url:'https://checkout.paystack.com/fixture-ticket'}});
  const {id,cookie}=await started();const replay=await checkout(request(body(),cookie));expect((await replay.json()).id).toBe(id);expect(state.init).toHaveBeenCalledTimes(1);expect(await count('orders')).toBe(1);
  expect((await checkout(request({...body(),ticket:{eventId:'event',tier:0,qty:2}},cookie))).status).toBe(409);
 });
@@ -93,6 +96,27 @@ test('a ticket claim rejects ledger lines that disagree with its immutable quant
  await preparePaystackAttempt(identity,{id:'ORD-LINEMISMATCH',items:[{id:'ticket:event:0',qty:2,unit:500,name:purchase.name}],total:500,name:'Fixture buyer',phone:'',email:'',userId:null,fulfillment:null,ticket:purchase});
  await expect(claimPaystackTicket(identity,'ORD-LINEMISMATCH',purchase)).rejects.toThrow('reservation_conflict');expect(await count('ticket_reservations')).toBe(0);
 });
+test('a stale send retry cannot deadlock with saving the original authorization',async()=>{
+ await ensurePaystackTicketSchema();
+ const identity=paystackAttemptIdentity('isolated-lock-owner',token(),{ticket:{eventId:'event',tier:0,qty:1}}),purchase={eventId:'event',tier:0,qty:1,tierName:'General',unit:500,name:'Fixture event - General'},id='ORD-AUTHORIZATIONRACE';
+ await preparePaystackAttempt(identity,{id,items:[{id:'ticket:event:0',qty:1,unit:500,name:purchase.name}],total:500,name:'Fixture buyer',phone:'',email:'',userId:null,fulfillment:null,ticket:purchase});
+ const claimed=await claimPaystackTicket(identity,id,purchase);expect(claimed).not.toBeNull();
+ const authorization=fixture.connect();let retry:ReturnType<typeof claimPaystackTicket>|undefined;
+ try{
+  await authorization.query('BEGIN');
+  // Match the provider-result writer's first lock before letting the stale
+  // retry acquire its order lock. Every statement uses a real SQL session.
+  await authorization.query('SELECT id FROM paystack_checkout_attempts WHERE id=$1 FOR UPDATE',[claimed!.attempt.id]);
+  let signal!:()=>void;const locked=new Promise<void>(resolve=>{signal=resolve});state.orderLocked=signal;
+  retry=claimPaystackTicket(identity,id,purchase);await locked;
+  state.q.mockImplementationOnce(async(sql:string,args:unknown[])=>normalize((await authorization.query(sql,args)).rows));
+  const saved=recordPaystackAuthorization(claimed!.attempt.id,claimed!.nonce,'https://checkout.paystack.com/fixture-ticket').then(async result=>{await authorization.query('COMMIT');return result});
+  const results=await Promise.allSettled([retry,saved]);
+  expect(results).toEqual([{status:'fulfilled',value:null},{status:'fulfilled',value:true}]);
+  expect((await query('SELECT state,authorization_url FROM paystack_checkout_attempts WHERE order_id=$1',[id]))[0]).toMatchObject({state:'ready',authorization_url:'https://checkout.paystack.com/fixture-ticket'});
+  expect(await count('ticket_reservations')).toBe(1);
+ }finally{state.orderLocked=null;state.q.mockImplementation(query);await authorization.query('ROLLBACK').catch(()=>{});await authorization.end();await retry?.catch(()=>{})}
+},30000);
 test('verified money for changed ticket ledger lines is reviewed rather than minting extra admissions',async()=>{
  const {id}=await started();await fixture.query('UPDATE orders SET items=$2::jsonb WHERE id=$1',[id,JSON.stringify([{id:'ticket:event:0',qty:2,unit:500,name:'Fixture event - General'}])]);await settle(id);await processPaymentEffects(4,id);
  expect((await query('SELECT status,ticket_fulfillment_status FROM orders WHERE id=$1',[id]))[0]).toMatchObject({status:'paid',ticket_fulfillment_status:'refund_review'});expect(await count('tickets')).toBe(0);

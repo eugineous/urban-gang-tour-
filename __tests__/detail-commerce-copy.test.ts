@@ -55,7 +55,7 @@ describe('design and checkout copy clarity',()=>{
 
  it('gives the cart a concrete review instruction without changing its stable loading shell',()=>{
   const html=renderToStaticMarkup(createElement(LiveCommerce,{view:'cart'}));
-  expect(html).toContain('Check your options and quantities before checkout.');
+  expect(html).toContain('Your cart.');expect(html).toContain('href="/shop"');
   expect(html).toContain('Loading the live catalogue');
   expect(html).not.toContain('Your picks, in one place.');
  });
@@ -68,7 +68,7 @@ describe('design and checkout copy clarity',()=>{
    ['checkout.saved','A saved order is not confirmation of payment.'],
    ['checkout.cardNote','Your receipt is issued only after payment is confirmed.'],
    ['checkout.ticketsUnavailable','Ticket payments are currently unavailable.'],
-   ['checkout.cardUncertain','Check for a payment confirmation before trying card checkout again.'],
+   ['checkout.cardUncertain','Check your existing payment before trying Paystack again.'],
   ] as const;
   for(const [key,text]of warnings){
    expect(formatMessage(commerceMessages,'en',key).text).toContain(text);

@@ -6,9 +6,9 @@ import { sameOrigin } from '@/lib/server/origin';
 import { notifyNewSignup } from '@/lib/server/notify';
 
 import { ensureBuyerSessionSchema, validatedCurrentBuyer } from '@/lib/server/customer-account';
-
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const PHONE_RE = /^(\+?254|0)(7|1)\d{8}$/;
+import {ensureCustomerIdentitySchema} from '@/lib/server/customer-identity';
+import {normalizeCustomerEmail,normalizeCustomerPhone} from '@/lib/shared/customer-identity';
+import {createHash} from 'node:crypto';
 
 // action: signup | login | logout | me  (email OR Kenyan phone + password)
 export async function POST(req: Request) {
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     res.headers.set('Set-Cookie', clearCookie('ugt_user'));
     return res;
   }
-  if (!rateLimit('auth:' + clientIp(req), 8, 60_000)) {
+  if (!rateLimit('auth:' + clientIp(req), 120, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
   if (action === 'signup' && adultConfirmed !== true) return NextResponse.json({ error: 'age_confirmation_required' }, { status: 400 });
@@ -37,20 +37,22 @@ export async function POST(req: Request) {
 
   if (typeof email !== 'string' || email.length > 254) return NextResponse.json({error:'invalid_email'}, {status:400});
   if (typeof phone !== 'string' || phone.length > 30) return NextResponse.json({error:'invalid_phone'}, {status:400});
-  const em = email.toLowerCase().trim();
-  const ph = phone.replace(/\s/g, '');
+  const em = email.trim()?normalizeCustomerEmail(email):'';
+  const ph = phone.trim()?normalizeCustomerPhone(phone):'';
+  if(em===null)return NextResponse.json({error:'invalid_email'},{status:400});
+  if(ph===null)return NextResponse.json({error:'invalid_phone'},{status:400});
   if (!em && !ph) return NextResponse.json({ error: 'need_email_or_phone' }, { status: 400 });
-  if (em && !EMAIL_RE.test(em)) return NextResponse.json({ error: 'invalid_email' }, { status: 400 });
-  if (ph && !PHONE_RE.test(ph)) return NextResponse.json({ error: 'invalid_phone' }, { status: 400 });
-  if (typeof password !== 'string' || password.length < 6 || password.length > 100) {
-    return NextResponse.json({ error: 'password_min_6' }, { status: 400 });
+  for(const identity of [em&&'email:'+em,ph&&'phone:'+ph].filter(Boolean))if(!rateLimit('buyer-identity:'+createHash('sha256').update(String(identity)).digest('hex'),8,60000))return NextResponse.json({error:'too_many_requests'},{status:429});
+  if (typeof password !== 'string' || password.length < (action==='signup'?8:6) || password.length > 100) {
+    return NextResponse.json({ error: action==='signup'?'password_min_8':'password_min_6' }, { status: 400 });
   }
 
   try {
   await ensureBuyerSessionSchema();
+  await ensureCustomerIdentitySchema();
   if (action === 'signup') {
     if (typeof name !== 'string' || name.length > 100) return NextResponse.json({ error: 'invalid_name' }, { status: 400 });
-    const exists = await q(`SELECT id FROM users WHERE ($1 <> '' AND email=$1) OR ($2 <> '' AND phone=$2) LIMIT 1`, [em, ph]);
+    const exists = await q(`SELECT id FROM users WHERE ($1 <> '' AND lower(btrim(email))=$1) OR ($2 <> '' AND ugt_customer_phone(phone)=$2) LIMIT 1`, [em, ph]);
     if (exists.length) return NextResponse.json({ error: 'account_exists' }, { status: 409 });
     const rows = await q(
       `INSERT INTO users (email, phone, name, pass_hash) VALUES (NULLIF($1,''), NULLIF($2,''), $3, $4) RETURNING id, email, phone, name, session_version`,
@@ -64,15 +66,19 @@ export async function POST(req: Request) {
   }
   if (action === 'login') {
     const rows = await q(`SELECT id, email, phone, name, pass_hash, session_version FROM users
-      WHERE ($1 <> '' AND email=$1 AND ($2 = '' OR phone=$2)) OR ($1 = '' AND $2 <> '' AND phone=$2) LIMIT 1`, [em, ph]);
-    if (!rows.length || !checkPassword(password, rows[0].pass_hash)) {
+      WHERE ($1 <> '' AND lower(btrim(email))=$1 AND ($2 = '' OR ugt_customer_phone(phone)=$2)) OR ($1 = '' AND $2 <> '' AND ugt_customer_phone(phone)=$2)
+      ORDER BY (phone=$3) DESC NULLS LAST LIMIT 2`, [em, ph,phone.replace(/\s/g,'')]);
+    // Never merge historical collisions. Exact old phone input can still
+    // identify its row; ambiguous aliases need email/recovery support.
+    const exact=rows.filter(row=>row.phone===phone.replace(/\s/g,''));
+    const u=rows.length===1?rows[0]:!em&&exact.length===1?exact[0]:null;
+    if (!u || !checkPassword(password, u.pass_hash)) {
       return NextResponse.json({ error: 'wrong_credentials' }, { status: 401 });
     }
-    const u = rows[0];
     const res = NextResponse.json({ ok: true, user: { id: u.id, email: u.email, phone: u.phone, name: u.name } });
     res.headers.set('Set-Cookie', sessionCookie('ugt_user', signToken({ id: u.id, email: u.email, phone: u.phone, name: u.name, sessionVersion: u.session_version })));
     return res;
   }
   return NextResponse.json({ error: 'unknown_action' }, { status: 400 });
-  } catch { return NextResponse.json({error:'accounts_unavailable'}, {status:503}); }
+  } catch(error) { return error&&typeof error==='object'&&'code' in error&&error.code==='23505'?NextResponse.json({error:'account_exists'},{status:409}):NextResponse.json({error:'accounts_unavailable'}, {status:503}); }
 }
