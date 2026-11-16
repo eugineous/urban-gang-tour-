@@ -6,9 +6,19 @@ describe('optional reporting consent',()=>{
  beforeEach(()=>{
   vi.resetModules();values=new Map();browser={dispatchEvent:vi.fn(),gtag:vi.fn(),adsbygoogle:[]};
   vi.stubGlobal('window',browser);
+  vi.stubGlobal('location',{pathname:'/about'});
   vi.stubGlobal('localStorage',{getItem:(key:string)=>values.get(key)||null,setItem:(key:string,value:string)=>values.set(key,value)});
  });
- afterEach(()=>vi.unstubAllGlobals());
+ afterEach(()=>{vi.unstubAllGlobals();vi.unstubAllEnvs()});
+ it.each(['/my-tickets','/account','/cart','/checkout','/pay/success','/orders/track','/tickets/private','/t/private','/receipt/private','/receipts/private','/verify/private','/organizer/login','/admin/gate','/book/status','/api/orders'])('stores explicit acceptance without enabling trackers or queuing events on %s',async path=>{
+  vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID','G-private');vi.stubGlobal('location',{pathname:path});
+  const consent=await import('@/lib/client/consent');const analytics=await import('@/lib/analytics');
+  consent.setOptionalConsent(true);analytics.eventShare('example','whatsapp');
+  expect(values.get('ugt-consent')).toBe('yes');expect(consent.hasOptionalConsent()).toBe(true);
+  expect(browser['ga-disable-G-private']).toBe(true);expect(browser.adsbygoogle.pauseAdRequests).toBe(1);
+  expect(browser.gtag).toHaveBeenLastCalledWith('consent','update',expect.objectContaining({analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'}));
+  expect(browser.dataLayer).toBeUndefined();
+ });
  it('does not queue optional events before a decision or after a refusal',async()=>{
   const analytics=await import('@/lib/analytics');
   analytics.eventShare('example','whatsapp');expect(browser.dataLayer).toBeUndefined();

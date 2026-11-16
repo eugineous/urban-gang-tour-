@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useConsent } from './Ads';
 import {usePathname} from 'next/navigation';
-import {hasOptionalConsent} from '@/lib/client/consent';
+import {hasOptionalReportingConsent,syncOptionalConsentServices} from '@/lib/client/consent';
 
 // Real Google Analytics (GA4). Same two-gate pattern as AdSenseLoader:
 //   1. NEXT_PUBLIC_GA_MEASUREMENT_ID must be set (the owner's real
@@ -20,9 +20,8 @@ export function GoogleAnalytics() {
   const pathname=usePathname();
 
   useEffect(() => {
-    const allowed = consent && hasOptionalConsent() && !/^\/(verify|t|tickets|receipt|admin|organizer|account|my-tickets|checkout|cart|pay|orders)(\/|$)/.test(pathname||'');
-    if (ID) (window as any)['ga-disable-' + ID] = !allowed;
-    (window as any).gtag?.('consent','update',{analytics_storage:allowed?'granted':'denied'});
+    const allowed = consent && hasOptionalReportingConsent(pathname);
+    syncOptionalConsentServices(pathname);
     if (!allowed) return;
     if (!ID || !consent || injected.current) return;
     if (document.getElementById('ugt-ga4')) { injected.current = true; return; }

@@ -1,7 +1,8 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {CONSENT_EVENT,hasConsentChoice,hasOptionalConsent, setOptionalConsent} from '@/lib/client/consent';
+import {CONSENT_EVENT,hasConsentChoice,hasOptionalReportingConsent, setOptionalConsent} from '@/lib/client/consent';
+import {campaignsAllowedOn} from '@/lib/marketing-campaigns';
 import {privacyMessages} from '@/ui/i18n/catalogues/privacy';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import styles from './PrivacyChoices.module.css';
@@ -11,21 +12,25 @@ export function CookieConsent() {
   const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [cleanup, setCleanup] = useState(false);
+  const [manualPath, setManualPath] = useState<string | null>(null);
+  const automaticAllowed = typeof pathname === 'string' && campaignsAllowedOn(pathname);
   const resolved = useRef(false);
   const analytics=process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?'Google Analytics':'';
   const advertising=process.env.NEXT_PUBLIC_ADSENSE_CLIENT?t('consent.advertising'):'';
   const optionalServices=analytics&&advertising?t('consent.serviceJoin',{analytics,advertising}):analytics||advertising;
   function pageView() {
-    if (!hasOptionalConsent() || /^\/(admin|organizer|account|my-tickets|cart|checkout|pay|receipt|tickets|t|verify|orders|book\/status)(\/|$)/.test(location.pathname)) return;
+    if (!hasOptionalReportingConsent()) return;
     void fetch('/api/track', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:location.pathname}),keepalive:true}).catch(()=>{});
   }
   useEffect(() => {
     pageView();
     resolved.current=hasConsentChoice();
-    setShow(!resolved.current);
-  }, [pathname]);
+    setManualPath(null);
+    setCleanup(false);
+    setShow(automaticAllowed && !resolved.current);
+  }, [pathname, automaticAllowed]);
   useEffect(()=>{const sync=()=>{resolved.current=hasConsentChoice();if(resolved.current)setShow(false)};addEventListener(CONSENT_EVENT,sync);addEventListener('storage',sync);return()=>{removeEventListener(CONSENT_EVENT,sync);removeEventListener('storage',sync)}},[]);
-  useEffect(() => {const open = () => {setShow(true);setCleanup(false)}; addEventListener('ugt-open-cookie-settings',open); return () => removeEventListener('ugt-open-cookie-settings',open)}, []);
+  useEffect(() => {const open = () => {setManualPath(pathname);setShow(true);setCleanup(false)}; addEventListener('ugt-open-cookie-settings',open); return () => removeEventListener('ugt-open-cookie-settings',open)}, [pathname]);
   function decide(accepted: boolean) {
     resolved.current = true;
     const loaded = Boolean(document.getElementById('ugt-ga4') || document.getElementById('ugt-adsense'));
@@ -34,7 +39,9 @@ export function CookieConsent() {
     setCleanup(!accepted && loaded);
     setShow(!accepted && loaded);
   }
-  if (!show || pathname?.startsWith('/admin') || /^\/(checkout|pay)(\/|$)/.test(pathname || '')) return null;
+  // Render also checks eligibility: route changes must hide a previous panel
+  // before effects run. Deliberate preferences belong only to their opener's page.
+  if (!show || (manualPath !== null ? manualPath !== pathname : !automaticAllowed)) return null;
   return <aside className={styles.banner} data-privacy-preferences aria-label={t('consent.label')}>
     <div><strong>{t('consent.title')}</strong><button className={styles.close} type="button" onClick={()=>setShow(false)} aria-label={t('consent.close')}>×</button></div>
     {cleanup ? <><p role="status">{t('consent.cleanup')}</p><div className={styles.actions}><button type="button" onClick={()=>location.reload()}>{t('consent.reload')}</button><button type="button" onClick={()=>setShow(false)}>{t('consent.keepBrowsing')}</button></div></> : <>
