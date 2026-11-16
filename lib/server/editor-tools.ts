@@ -38,7 +38,7 @@ export function parseToolDraft(value:unknown){
  const tiers=validateEventTiers([]);if(!tiers.ok)throw new ToolError(tiers.error);
  return {requestId:v.requestId,posterId:v.posterId as string|undefined,kind:String(v.kind),...parsed.patch,name:parsed.patch.name,eventTime};
 }
-export async function readLimitedBody(req:Request,max:number):Promise<Buffer>{
+export async function readLimitedBody(req:Pick<Request,'headers'|'body'>,max:number):Promise<Buffer>{
  const size=req.headers.get('content-length');
  if(size!==null&&(!/^\d+$/.test(size)||!Number.isSafeInteger(Number(size))))throw new ToolError('invalid_size');
  if(size!==null&&Number(size)>max)throw new ToolError('body_too_large',413);
@@ -87,7 +87,7 @@ async function transaction<T>(work:(client:Client)=>Promise<T>):Promise<T>{
  try{await client.query('BEGIN');await client.query("SET LOCAL lock_timeout='5s'");await client.query("SET LOCAL statement_timeout='10s'");const value=await work(client);await client.query('COMMIT');return value}
  catch(error){await client.query('ROLLBACK').catch(()=>{});throw error}finally{client.release();await pool.end()}
 }
-export async function listToolKeys(){await ensureEditorToolSchema();return q('SELECT id,label,scopes,issuer,created_at,expires_at,revoked_at,last_used_at FROM editor_tool_keys ORDER BY created_at DESC LIMIT 100')}
+export async function listToolKeys(){await ensureEditorToolSchema();return q('SELECT id,label,scopes,issuer,created_at,expires_at,revoked_at,last_used_at FROM editor_tool_keys ORDER BY (revoked_at IS NULL AND expires_at>now()) DESC,created_at DESC LIMIT 100')}
 export async function issueToolKey(input:ReturnType<typeof parseToolGrant>,actor:string){
  const id=randomUUID(),token='ugt_edit_'+randomBytes(32).toString('base64url');
  const key=await transaction(async client=>{

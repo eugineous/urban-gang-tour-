@@ -260,7 +260,7 @@ const NAV_GROUPS: {
       { tab: "Products", icon: "□", label: "Products" },
       { tab: "Merch Desk", icon: "◈", label: "Merch desk" },
       { tab: "Marketplace", icon: "▥", label: "Marketplace" },
-      { tab: "Gallery", icon: "▧", label: "Gallery" },
+      { tab: "Gallery", icon: "▧", label: "Media" },
     ],
   },
   {

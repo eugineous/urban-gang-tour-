@@ -29,3 +29,11 @@ it('rejects foreign browser origins and authority escalation before writes',asyn
  expect((await draft(request({requestId:'66320821-83a0-4ca7-a72c-825698117305',kind:'school',name:'Poster',status:'published'},headers))).status).toBe(400);
  expect(state.draft).not.toHaveBeenCalled();
 });
+it('passes a verified Actions image through the same scoped poster write',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(new Response(new Uint8Array([137,80,78,71,13,10,26,10])));vi.stubGlobal('fetch',fetcher);
+ state.upload.mockResolvedValueOnce({posterId:'fixture',url:'/media/admin-events/fixture'});
+ try{
+  const response=await poster(request({openaiFileIdRefs:[{id:'file-AbCdEf1234567890',name:'Poster.png',mime_type:'image/png',download_link:'https://files.oaiusercontent.com/file-AbCdEf1234567890?sig=fixture'}]},{authorization:'Bearer ugt_edit_'+'a'.repeat(43)}));
+  expect(response.status).toBe(201);expect(state.check).toHaveBeenCalledWith('ugt_edit_'+'a'.repeat(43),'poster:upload');expect(state.upload).toHaveBeenCalledWith('ugt_edit_'+'a'.repeat(43),expect.any(Buffer),'image/png');expect(fetcher).toHaveBeenCalledTimes(1);
+ }finally{vi.unstubAllGlobals()}
+});

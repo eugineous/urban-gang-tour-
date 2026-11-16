@@ -4,6 +4,7 @@ export const RATE_POLICIES = Object.freeze({
   'organizer-login': 8, 'organizer-signup': 5, 'organizer-google': 8,
   'organizer-forgot': 5, 'organizer-reset': 8, 'buyer-recovery': 8,
   'buyer-network':120,'buyer-identity':8,'buyer-recovery-identity':5,
+  'editor-tools':30,'editor-tools-key':12,
   purchase: 3000, 'public-read': 60000, 'public-write': 5000,
 });
 
@@ -77,6 +78,11 @@ export async function sharedRateGuard(request, env) {
     }
   } else if(request.method==='POST'&&credentials.has(path))scope=credentials.get(path);
   else if (request.method === 'POST' && purchases.has(path)) scope = 'purchase';
+  else if(request.method==='POST'&&path.startsWith('/api/editor-tools/')){
+    scope='editor-tools';identityScope='editor-tools-key';
+    const token=/^Bearer (ugt_edit_[A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization')||'')?.[1];
+    if(token)identities.push('editor-key:'+token);
+  }
   else if (path.startsWith('/api/') && !/^\/api\/(?:admin|internal|organizer)(?:\/|$)/.test(path) && !/\/(?:webhook|callback)$/.test(path)) {
     if (['GET', 'HEAD'].includes(request.method)) { scope = 'public-read'; strict = false; }
     else scope = 'public-write';

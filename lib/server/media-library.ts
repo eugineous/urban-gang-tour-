@@ -9,6 +9,7 @@ export const MEDIA_LIBRARY_SCHEMA = `
  ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES gallery_folders(id) ON DELETE RESTRICT;
  ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS version INT NOT NULL DEFAULT 1;
  ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS removed_at TIMESTAMPTZ;
+ ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS media_type TEXT NOT NULL DEFAULT 'photograph';
  CREATE INDEX IF NOT EXISTS gallery_photo_folder ON gallery_photos(folder_id);
 `;
 let ready: Promise<void> | null = null;

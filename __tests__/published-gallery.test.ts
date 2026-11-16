@@ -6,6 +6,7 @@ import {publishedGallery} from '@/lib/server/published-gallery';
 import {invalidate} from '@/lib/server/microcache';
 import PublishedGallery from '@/app/_components/PublishedGallery';
 import {PhotoGallery} from '@/app/_components/PhotoGallery';
+import {renderToStaticMarkup} from 'react-dom/server';
 beforeEach(()=>{vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-16T12:00:00Z'));state.configured=true;invalidate('site-gallery');state.q.mockReset().mockResolvedValue([{id:1,url:'/media/gallery/one.png',caption:'Verified caption',category:'New category',alt_text:'Verified description',sort_order:10,private_notes:'Do not expose'}])});
 afterEach(()=>vi.useRealTimers());
 it('shares a whitelisted published-only data source between page and API',async()=>{
@@ -18,3 +19,7 @@ it('does not revive unpublished photographs indefinitely during an outage',async
  await publishedGallery();state.q.mockRejectedValue(new Error('offline'));vi.setSystemTime(new Date('2026-10-16T12:00:06Z'));expect(await publishedGallery()).toHaveLength(1);vi.setSystemTime(new Date('2026-10-16T12:00:16Z'));expect(await publishedGallery()).toEqual([]);
 });
 it('does not show a false archive fallback when the configured gallery is empty',async()=>{state.q.mockResolvedValue([]);expect(await PublishedGallery()).toBeNull();state.configured=false;expect(await publishedGallery()).toEqual([])});
+it('renders approved MP4s as manual videos and leaves YouTube unloaded until requested',async()=>{
+ state.q.mockResolvedValue([{id:2,url:'/media/gallery/clip.mp4',caption:'Owned hosting film',category:'Hosting',alt_text:'Our hosts',sort_order:10,media_type:'video'},{id:3,url:'https://www.youtube.com/watch?v=abcdefghijk',caption:'Long event film',category:'Events',alt_text:'Our live event',sort_order:20,media_type:'youtube'}]);
+ const html=renderToStaticMarkup(await PublishedGallery());expect(html).toContain('<video');expect(html).toContain('preload="none"');expect(html).not.toContain('<iframe');expect(html).not.toMatch(/<img[^>]+clip\.mp4/);expect(html).toContain('Long event film');
+});

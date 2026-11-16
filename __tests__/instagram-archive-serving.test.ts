@@ -36,3 +36,8 @@ it('does not stream a response that disagrees with the archived file size',async
  state.fetch.mockResolvedValue(new Response(new Uint8Array(3),{headers:{'Content-Length':'3'}}));expect((await GET(request(),context())).status).toBe(502);
  state.fetch.mockResolvedValue(new Response(new Uint8Array(10),{status:206,headers:{'Content-Length':'10','Content-Range':'bytes 10-19/999'}}));expect((await GET(request({Range:'bytes=10-19'}),context())).status).toBe(502);
 });
+it('offers an explicit download only for an approved manifest file',async()=>{
+ state.fetch.mockResolvedValue(new Response(new Uint8Array(100),{headers:{'Content-Length':'100'}}));
+ const response=await GET(new Request('https://urbangangtour.co.ke/instagram-media/'+id+'?download=1'),context());expect(response.status).toBe(200);expect(response.headers.get('Content-Disposition')).toBe('attachment; filename="'+id+'.mp4"');
+ const value=archive();value.posts[0].published=false;state.archive=value;state.fetch.mockClear();expect((await GET(new Request('https://urbangangtour.co.ke/instagram-media/'+id+'?download=1'),context())).status).toBe(404);expect(state.fetch).not.toHaveBeenCalled();
+});

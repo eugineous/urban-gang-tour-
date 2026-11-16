@@ -62,17 +62,19 @@ Test with the Action editor only when you intend to create a real draft, not as 
 production health check. No real Action credential or event was created during
 implementation testing.
 
-Ask ChatGPT to call `createEventDraft` with confirmed text. It can attach a poster
-only when you provide a `posterId` previously uploaded by the **same credential**
-using the local CLI. A draft-only credential can prepare text without a poster.
+Attach one owned PNG, JPEG or WebP poster (up to 5 MiB) and ask ChatGPT to call
+`uploadEventPoster`, then `createEventDraft` with confirmed text and the returned
+`posterId`. Both operations must use the same credential. A draft-only credential
+can prepare text without a poster. Staff still review and publish manually.
 
-**Uploading a poster attachment directly from ChatGPT is not supported.** OpenAI's
-Actions file transport passes `openaiFileIdRefs` objects containing download URLs
-valid for five minutes. The binary poster endpoint does not implement that transport
-and never downloads URLs, protecting against arbitrary URL fetching/SSRF. Do not
-invent an `openaiFileIdRefs` field, paste a download URL or base64-encode a large
-poster into a draft. Use the local CLI for poster upload. The schema documents the
-binary endpoint for local clients, not a promise that Actions can send binary files.
+Actions supplies `openaiFileIdRefs`, expanded at runtime into a file ID, name,
+MIME type and signed download link. Links are valid for about five minutes. The
+server accepts only the exact documented `files.oaiusercontent.com` HTTPS host
+and matching file ID path; no redirects, cookies or forwarded credentials. It
+checks actual streamed bytes and image signatures. An expired or unsupported
+attachment fails clearly: attach it again, or use the local CLI. Never paste an
+arbitrary URL or base64 image into a draft. Real client attachment transport still
+requires the owner's private Action setup; tests used synthetic responses only.
 
 Official docs checked 16 November 2026:
 - https://developers.openai.com/api/docs/actions/authentication
@@ -84,7 +86,9 @@ Official docs checked 16 November 2026:
 Poster types: PNG/JPEG/WebP, matching signatures, at most 5 MiB. JSON: at most
 16 KiB. Bounded streamed reads time out after 15 seconds. Six successful writes
 per minute and thirty per day per credential share a durable SQL row-lock budget.
-The deployment also applies a shared network budget before these routes. Missing
+The deployment also applies shared budgets of 30 attempts/minute/network and
+12 attempts/minute/credential before these routes, including failed attachment
+requests. Missing
 storage/database/abuse-protection dependencies fail closed. Media storage uses the
 existing store and shared hard storage cap; this adds no paid storage service.
 

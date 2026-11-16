@@ -6,7 +6,7 @@ export const SW: Record<string, string> = {
   'News': 'Habari',
   'Contact': 'Wasiliana',
   'About': 'Kuhusu',
-  'Book Us': 'Tupigie',
+  'Book Us': 'Tualike',
   'The Gang': 'Genge',
   'Experience': 'Uzoefu',
   'Explore': 'Chunguza',

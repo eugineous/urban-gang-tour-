@@ -24,7 +24,7 @@ export default function ControlRoomHome({ stats, scope, perms, onOpen }: Props) 
     scope==='super_admin' ? { value: '↔', label: 'connect Codex or ChatGPT to event drafts', tab: 'Connected Tools' } : null,
     allowed('orders') && has('orders') ? { value: n(orders), label: 'orders and payments', tab: 'Orders' } : null,
     allowed('content') ? { value: '✎', label: 'stories to prepare or review', tab: 'Content' } : null,
-    allowed('gallery') ? { value: '▧', label: 'gallery photos to manage', tab: 'Gallery' } : null,
+    allowed('gallery') ? { value: '▧', label: 'media files to manage', tab: 'Gallery' } : null,
   ].filter(Boolean) as { value: string; label: string; tab: string }[];
   const overview = [
     has('new_bookings') ? ['New bookings', n(newBookings)] : null,

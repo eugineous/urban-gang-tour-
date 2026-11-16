@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ env: {} as any }));
 vi.mock('@opennextjs/cloudflare', () => ({ getCloudflareContext: () => ({ env: state.env }) }));
+vi.mock('@/lib/server/media-budget',()=>({mediaBudgetKey:(key:string)=>key,reserveMediaStorage:async()=>true,markMediaStored:async()=>{},releaseMediaStorage:async()=>{},mediaBudgetStatus:async()=>({})}));
 import { mediaPut, mediaGet, mediaDel, isMediaUrl } from '../lib/server/media';
 let entries: Map<string, { value: ArrayBuffer; metadata: any }>;
 beforeEach(() => {

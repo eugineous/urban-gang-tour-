@@ -1,17 +1,22 @@
 // Opt in with UGT_EDITOR_TOOLS_PG_FIXTURE=1. No DATABASE_URL or real account,
 // credential, event or media store: real SQL in a network-disabled container.
-import {beforeAll,afterAll,it,expect,vi} from 'vitest';
+import {beforeAll,beforeEach,afterAll,it,expect,vi} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {randomUUID} from 'node:crypto';
 import {DisposablePostgres} from './helpers/disposable-postgres';
 const adapter=vi.hoisted(()=>({q:vi.fn(),schema:vi.fn(),pool:vi.fn(),put:vi.fn()}));
-vi.mock('@/lib/server/db',()=>({q:adapter.q,qSchema:adapter.schema,db:adapter.pool}));
+vi.mock('@/lib/server/db',()=>({q:adapter.q,qSchema:adapter.schema,db:adapter.pool,hasDb:()=>true}));
 vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:async()=>{}}));
+vi.mock('@/lib/server/microcache',()=>({cached:(_key:string,_ttl:number,work:()=>unknown)=>work()}));
 vi.mock('@/lib/server/media',()=>({mediaConfigured:()=>true,mediaPut:adapter.put}));
 import {EDITOR_TOOL_SCHEMA,parseToolGrant,issueToolKey,revokeToolKey,checkToolCredential,tokenHash,createToolDraft,parseToolDraft,uploadToolPoster,listToolKeys} from '@/lib/server/editor-tools';
+import {uploadedMediaIsPublic} from '@/lib/server/upload-publication';
+import {EMPTY_PARTNER} from '@/lib/partner-events';
 const enabled=process.env.UGT_EDITOR_TOOLS_PG_FIXTURE==='1';
 const fixture=new DisposablePostgres();
 const payload=(extra={})=>parseToolDraft({requestId:'66320821-83a0-4ca7-a72c-825698117305',kind:'school',name:'Isolated poster draft',eventDate:'2027-06-16',...extra});
 const grant=(scopes=['poster:upload','event:draft'])=>parseToolGrant({label:'Isolated fixture',expiresInDays:7,scopes});
+beforeEach(async()=>{if(enabled){await fixture.query('TRUNCATE editor_tool_drafts,editor_tool_posters,editor_tool_keys,tour_events,audit_log CASCADE');adapter.put.mockClear()}});
 beforeAll(async()=>{
  if(!enabled)return;
  fixture.start();await vi.waitFor(()=>expect(fixture.ready()).toBe(true),{timeout:15000});
@@ -63,3 +68,21 @@ it.skipIf(!enabled)('proves hash-only issuance, revocation, expiry, scopes, post
  expect(audit.filter(row=>row.action==='editorTool.draft')).toHaveLength(2);
  expect(audit.every(row=>row.actor==='fixture-owner'&&!row.detail.includes(first.token))).toBe(true);
 },30000);
+it.skipIf(!enabled)('serializes concurrent retries and credential quotas against real SQL rows',async()=>{
+ const key=await issueToolKey(grant(['event:draft']),'fixture-owner');
+ const same=payload({requestId:randomUUID()});
+ const retries=await Promise.all(Array.from({length:5},()=>createToolDraft(key.token,same)));
+ expect(new Set(retries.map(r=>r.id)).size).toBe(1);expect(retries.filter(r=>!r.reused)).toHaveLength(1);
+ const fresh=await issueToolKey(grant(['event:draft']),'fixture-owner');
+ const results=await Promise.allSettled(Array.from({length:8},()=>createToolDraft(fresh.token,payload({requestId:randomUUID()}))));
+ expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(6);expect(results.filter(r=>r.status==='rejected'&&r.reason.status===429)).toHaveLength(2);
+ await revokeToolKey(fresh.key.id,'fixture-owner');await expect(createToolDraft(fresh.token,payload({requestId:randomUUID()}))).rejects.toMatchObject({status:401});
+},30000);
+it.skipIf(!enabled)('serves only eligible main and validated additional partner posters using actual SQL predicates',async()=>{
+ const main='/media/admin-events/'+'a'.repeat(64)+'/main.jpg',secondary='/media/admin-events/'+'b'.repeat(64)+'/secondary.jpg';
+ const details={...EMPTY_PARTNER,organizer:'Fixture organizer',role:'Event hosts',admission:'free',posters:[{url:secondary,caption:'Owned poster'}]};
+ await fixture.query("INSERT INTO tour_events(id,slug,kind,name,image,status,partner_details) VALUES('fixture-partner','fixture-partner','partner','Fixture event',$1,'draft',$2::jsonb)",[main,JSON.stringify(details)]);
+ expect(await uploadedMediaIsPublic('admin-events',main)).toBe(false);expect(await uploadedMediaIsPublic('admin-events',secondary)).toBe(false);
+ await fixture.query("UPDATE tour_events SET status='announced'");expect(await uploadedMediaIsPublic('admin-events',main)).toBe(true);expect(await uploadedMediaIsPublic('admin-events',secondary)).toBe(true);
+ await fixture.query("UPDATE tour_events SET partner_details='{}'::jsonb");expect(await uploadedMediaIsPublic('admin-events',main)).toBe(false);expect(await uploadedMediaIsPublic('admin-events',secondary)).toBe(false);
+},20000);

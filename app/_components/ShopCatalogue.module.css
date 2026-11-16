@@ -62,6 +62,8 @@ html[data-phone-viewport=wide] .page.page{padding-block-start:0}
 .productImage>svg{max-width:100%;max-height:100%}
 .productImage:hover{outline:2px solid var(--action);outline-offset:-2px}
 .productImage:focus-visible{outline-offset:-4px}
+@media(prefers-reduced-motion:no-preference){.productImage img{transition:transform .16s ease}.productImage:active img{transform:scale(.98)}}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.productImage:hover img{transform:scale(.99)}}
 .imageEmpty{padding:20px;font-size:12px;text-align:center;color:var(--shop-muted)}
 .imageStatus{position:absolute;top:10px;left:10px;right:10px;width:fit-content;max-width:calc(100% - 20px);padding:5px 7px;background:#151515;color:#fff;border-radius:5px;font-size:9px;font-weight:650;line-height:1.4}
 .productInfo{padding:18px 10px 16px;text-align:center}

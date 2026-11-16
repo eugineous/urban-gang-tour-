@@ -1,0 +1,11 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+const s=vi.hoisted(()=>({reserve:vi.fn(),commit:vi.fn(),release:vi.fn(),put:vi.fn(),del:vi.fn(),calls:[] as string[]}));
+vi.mock('@/lib/server/media-budget',()=>({reserveMediaStorage:s.reserve,markMediaStored:s.commit,releaseMediaStorage:s.release,mediaBudgetKey:(v:string)=>v}));
+vi.mock('@opennextjs/cloudflare',()=>({getCloudflareContext:()=>({env:{UGT_MEDIA:{put:s.put,delete:s.del}}})}));
+import {mediaPut,mediaDel} from '@/lib/server/media';
+beforeEach(()=>{s.calls=[];s.reserve.mockReset().mockImplementation(async()=>{s.calls.push('reserve');return true});s.commit.mockReset().mockImplementation(async()=>s.calls.push('commit'));s.release.mockReset().mockImplementation(async()=>s.calls.push('release'));s.put.mockReset().mockImplementation(async()=>s.calls.push('put'));s.del.mockReset().mockImplementation(async()=>s.calls.push('delete'))});
+it('reserves storage before writing and confirms it after durable acknowledgement',async()=>{await mediaPut('gallery/a.png',Buffer.from('test'),{contentType:'image/png'});expect(s.calls).toEqual(['reserve','put','commit'])});
+it('refuses a full storage budget without writing or upgrading anything',async()=>{s.reserve.mockRejectedValue(Error('media_storage_limit'));await expect(mediaPut('gallery/a.png',Buffer.from('test'),{contentType:'image/png'})).rejects.toThrow('media_storage_limit');expect(s.put).not.toHaveBeenCalled()});
+it('retains the reservation when a KV write is ambiguous',async()=>{s.put.mockRejectedValue(Error('transport lost'));await expect(mediaPut('gallery/a.png',Buffer.from('test'),{contentType:'image/png'})).rejects.toThrow();expect(s.release).not.toHaveBeenCalled();expect(s.commit).not.toHaveBeenCalled()});
+it('reuses an acknowledged immutable file without another KV write',async()=>{s.reserve.mockResolvedValue(false);expect((await mediaPut('gallery/a.png',Buffer.from('test'),{contentType:'image/png'})).url).toContain('/media/gallery/');expect(s.put).not.toHaveBeenCalled()});
+it('releases budget only after confirmed deletion',async()=>{await mediaDel('/media/gallery/'+'a'.repeat(64)+'/a.png');expect(s.calls).toEqual(['delete','release'])});
