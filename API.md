@@ -199,9 +199,9 @@ touches the database. 200 PDF attachment `UGT-Ticket-<code>.pdf` · 404
 invalid/unknown code · 429 (20/min/IP) · 503 no DB. Embeds the real signed QR
 plus a second small QR carrying an HMAC-SHA256-signed data blob (code, order
 id, event, tier, issued-at - same `SESSION_SECRET`, `lib/server/tickets.ts`
-`signedTicketBlob`/`verifyTicketBlob`) so an offline gate device could
-re-derive and check that the printed facts were not edited after issuance.
-This is a redundant hardening layer, not a replacement for the live gate scan
+`signedTicketBlob`/`verifyTicketBlob`) for server-side integrity checks on
+printed facts. Never distribute SESSION_SECRET to gate devices. This is a
+redundant hardening layer, not a replacement for the live gate scan
 (`/api/tickets/verify`), which is what actually catches reuse/refunds - it
 checks the code against the current database state, something no signature
 embedded in a PDF can ever do offline.
@@ -291,11 +291,21 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   reply, audit-logs it, and advances a new/review booking to `replied`.
 - `GET /api/admin/data?view=bookings|orders|posts|users|submissions|subscribers|traffic|settings|audit|stats|tickets`
 - `POST /api/tickets/verify` `{code}` — gate check-in (admin session +
-  strict Origin, 120/min/IP). Validates the code's HMAC tag, then atomically
-  flips `used_at` once (`WHERE used_at IS NULL AND order paid`). Returns
+  gate_scanner permission + strict Origin; 120/min/signed scanner session,
+  4,800/min/network). Actual streamed JSON is limited to 1 KiB/5 seconds
+  (413 oversized, 408 stalled, 400 malformed). Validates the code's HMAC tag,
+  then atomically flips `used_at` once while unused, unvoided and the order
+  is paid (or explicitly eligible after allocated partial refund). Returns
   `{result: valid|used|invalid, ticket?, usedAt?, reason?}`; every scan is
   audit-logged. UI: `/admin/gate` (on-device jsQR camera scanner + manual
   entry; same `ugt_admin` session as the Control Room).
+  Voided historical tickets return `invalid`/`ticket_voided` before `used`.
+  The client bounds headers/body at 12 seconds/32 KiB and treats network,
+  timeout, malformed or throttled responses as unverified, never invalid or
+  permission to admit. Unknown checks stay paused until an explicit retry or
+  exception-lane action; they do not increment the verified-check counter.
+  A retry may return `used` if the original server write committed. Admission
+  still requires online authority; local/offline multi-gate support is not shipped.
 - `POST /api/admin/save` `{kind, ...}` — post/status/setting mutations (audited).
 - `POST /api/admin/tickets/comp` `{eventId, tier, qty, holderName, holderEmail?,
   holderPhone?, reason}` — admin-only complimentary tickets. Validates

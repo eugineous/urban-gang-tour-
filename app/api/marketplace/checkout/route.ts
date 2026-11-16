@@ -6,6 +6,7 @@ import {paystackConfigured,paystackInit} from '@/lib/server/paystack';
 import {checkoutPrincipal} from '@/lib/server/checkout-session';
 import {ensureCheckoutFulfillmentSchema} from '@/lib/server/checkout-fulfillment';
 import {ensureCustomerAccountSchema,validatedCurrentBuyer} from '@/lib/server/customer-account';
+import {readJsonObject} from '@/lib/server/json-body';
 import {paystackAttemptIdentity,recoverPaystackAttempt,preparePaystackAttempt,recordPaystackAuthorization,markPaystackInitiationUnknown,PaystackAttemptConflict,type PaystackAttempt} from '@/lib/server/paystack-attempts';
 import {ensureMarketplaceTicketSchema,parseMarketplaceSelection,priceMarketplaceTicket,savedMarketplaceTicket,claimMarketplaceTicket} from '@/lib/server/paystack-marketplace-tickets';
 export const runtime='nodejs';
@@ -16,8 +17,9 @@ export async function POST(req:Request){
  if(!sameOrigin(req))return reply({error:'bad_origin'},403);
  if(!rateLimit('mkt-checkout:'+clientIp(req),8,60000,req,PURCHASE_NETWORK_LIMIT))return reply({error:'too_many_requests'},429);
  if(!paystackConfigured())return reply({error:'paystack_not_configured'},503);
- const body=await req.json().catch(()=>null);
- if(!body||typeof body!=='object'||Array.isArray(body))return reply({error:'invalid_body'},400);
+ const parsed=await readJsonObject(req);
+ if(!parsed.ok)return reply({error:parsed.error},parsed.status);
+ const body=parsed.value;
  if(Object.keys(body).some(k=>!['eventId','tier','qty','name','email','idempotencyKey'].includes(k)))return reply({error:'unexpected_field'},400);
  let selection:ReturnType<typeof parseMarketplaceSelection>;
  try{selection=parseMarketplaceSelection(body)}catch{return reply({error:'invalid_ticket'},400)}
