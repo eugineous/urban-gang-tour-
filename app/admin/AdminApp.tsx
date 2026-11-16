@@ -11,6 +11,7 @@ import dynamic from "next/dynamic";
 import "./control-room.css";
 import ControlRoomHome from "./ControlRoomHome";
 import SystemPanel from "./SystemPanel";
+import ConnectedTools from "./ConnectedTools";
 import { downloadOrderReceipt } from '@/lib/client/print-order-receipt';
 import {AdminNotice,useAdminNotice} from './AdminNotice';
 
@@ -197,6 +198,7 @@ const TABS = [
   "Traffic",
   "Admins",
   "Security",
+  "Connected Tools",
   "System",
 ] as const;
 const OPS_TABS = [
@@ -280,6 +282,7 @@ const NAV_GROUPS: {
       { tab: "Traffic", icon: "▥", label: "Traffic" },
       { tab: "Admins", icon: "♟", label: "Staff access" },
       { tab: "Security", icon: "⌑", label: "Security" },
+      { tab: "Connected Tools", icon: "↔", label: "Connected tools" },
     ],
   },
 ];
@@ -412,7 +415,7 @@ export default function AdminApp({
   const canSee = useCallback(
     (t: Tab): boolean => {
       if (t === "Dashboard") return true;
-      if (t === "Inbox" || t === "Admins" || t === "Security")
+      if (t === "Inbox" || t === "Admins" || t === "Security" || t === "Connected Tools")
         return session?.scope === "super_admin";
       const perm = TAB_PERM[t];
       if (!perm) return true;
@@ -462,7 +465,7 @@ export default function AdminApp({
     setSession({ scope: data.scope, perms: data.perms });
     const requested = new URLSearchParams(window.location.search || '').get("tab") as Tab | null;
     const permission = requested ? TAB_PERM[requested] : undefined;
-    const special = requested && ["Inbox", "Admins", "Security"].includes(requested);
+    const special = requested && ["Inbox", "Admins", "Security", "Connected Tools"].includes(requested);
     const allowed = data.scope === "super_admin" || (!special && (!permission || (Array.isArray(permission) ? permission : [permission]).some(p => data.perms.includes(p))));
     setTab(requested && ([...TABS, ...OPS_TABS] as readonly string[]).includes(requested) && allowed ? requested : startingTab(data.scope, data.perms));
     setAuthed(true);
@@ -749,6 +752,7 @@ export default function AdminApp({
       <AdminNotice notice={toast}/>
       {canSee('Orders')&&refundOrder&&<div hidden={tab!=='Orders'}><RefundRecorder key={refundOrder.id} order={refundOrder} onClose={()=>setRefundOrder(null)} onSaved={()=>{void load('orders').then(next=>{if(currentTab.current==='Orders')setRows(next)})}}/></div>}
 
+      {tab === "Connected Tools" && canSee("Connected Tools") && <ConnectedTools />}
       {tab === "Dashboard" && (
         <ControlRoomHome stats={stats} scope={session?.scope} perms={session?.perms || []} onOpen={(next) => setTab(next as Tab)} />
       )}

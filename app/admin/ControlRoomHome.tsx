@@ -21,6 +21,7 @@ export default function ControlRoomHome({ stats, scope, perms, onOpen }: Props) 
   const quickActions = [
     allowed('bookings') && has('new_bookings') ? { value: n(newBookings), label: `new booking${newBookings === 1 ? '' : 's'} to work`, tab: 'Bookings' } : null,
     scope==='super_admin' ? { value: '✉', label: 'open the Urban Gang inbox', tab: 'Inbox' } : null,
+    scope==='super_admin' ? { value: '↔', label: 'connect Codex or ChatGPT to event drafts', tab: 'Connected Tools' } : null,
     allowed('orders') && has('orders') ? { value: n(orders), label: 'orders and payments', tab: 'Orders' } : null,
     allowed('content') ? { value: '✎', label: 'stories to prepare or review', tab: 'Content' } : null,
     allowed('gallery') ? { value: '▧', label: 'gallery photos to manage', tab: 'Gallery' } : null,
