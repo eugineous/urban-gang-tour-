@@ -3,7 +3,7 @@ import {afterEach,beforeEach,describe,expect,it,vi} from 'vitest';
 const state=vi.hoisted(()=>({q:vi.fn(),qSchema:vi.fn(async()=>{}),effects:vi.fn(async()=>[]),notify:vi.fn(async()=>{}),failure:vi.fn(async()=>{}),release:vi.fn(async()=>{}),alert:vi.fn(async()=>{}),work:[] as Array<()=>Promise<void>>}));
 vi.mock('next/server',async()=>({...await vi.importActual<typeof import('next/server')>('next/server'),after:(work:()=>Promise<void>)=>state.work.push(work)}));
 vi.mock('@/lib/server/db',()=>({q:state.q,qSchema:state.qSchema,hasDb:()=>true,db:()=>({})}));
-vi.mock('@/lib/server/stripe',()=>({stripe:()=>({webhooks:{constructEvent:(body:string,signature:string)=>{if(signature!=='fixture-valid')throw Error('invalid fixture signature');return JSON.parse(body)}}})}));
+vi.mock('@/lib/server/stripe',()=>({stripe:()=>({webhooks:{constructEvent:(body:string,signature:string)=>{if(signature!=='t=1,v1='+'a'.repeat(64))throw Error('invalid fixture signature');return JSON.parse(body)}}})}));
 vi.mock('@/lib/server/payment-effects',async()=>({...await vi.importActual<typeof import('@/lib/server/payment-effects')>('@/lib/server/payment-effects'),processPaymentEffects:state.effects}));
 vi.mock('@/lib/server/notify',()=>({notifyPaymentSuccess:state.notify,notifyPaymentFailure:state.failure}));
 vi.mock('@/lib/server/ticket-inventory',async()=>({...await vi.importActual<typeof import('@/lib/server/ticket-inventory')>('@/lib/server/ticket-inventory'),releaseReservation:state.release}));
@@ -11,11 +11,11 @@ vi.mock('@/lib/server/alert',()=>({alertCritical:state.alert}));
 import {POST} from '@/app/api/stripe/webhook/route';
 
 const paid={id:'ORD-STRIPE123',total:1200,status:'paid',email:'fixture@example.invalid'};
-function request(changes:Record<string,unknown>={},signature='fixture-valid'){
+function request(changes:Record<string,unknown>={},signature='t=1,v1='+'a'.repeat(64)){
   return new Request('https://urbangangtour.co.ke/api/stripe/webhook',{method:'POST',headers:{'stripe-signature':signature},body:JSON.stringify({type:'checkout.session.completed',data:{object:{id:'cs_fixture',payment_intent:'pi_fixture',metadata:{order_id:paid.id},payment_status:'paid',currency:'kes',amount_total:120000,...changes}}})});
 }
 function failedIntent(){
-  return new Request('https://urbangangtour.co.ke/api/stripe/webhook',{method:'POST',headers:{'stripe-signature':'fixture-valid'},body:JSON.stringify({type:'payment_intent.payment_failed',data:{object:{id:'pi_fixture',metadata:{order_id:paid.id},amount:120000,currency:'kes',last_payment_error:{message:'Fixture card attempt declined'}}}})});
+  return new Request('https://urbangangtour.co.ke/api/stripe/webhook',{method:'POST',headers:{'stripe-signature':'t=1,v1='+'a'.repeat(64)},body:JSON.stringify({type:'payment_intent.payment_failed',data:{object:{id:'pi_fixture',metadata:{order_id:paid.id},amount:120000,currency:'kes',last_payment_error:{message:'Fixture card attempt declined'}}}})});
 }
 beforeEach(()=>{
   vi.clearAllMocks();state.work=[];vi.stubEnv('STRIPE_WEBHOOK_SECRET','fixture-signing-key');
