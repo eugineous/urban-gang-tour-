@@ -105,6 +105,8 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('renders a fictional signed-in ticke
    if(url.pathname==='/fixture')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><div id="app"></div>'});
    if(url.pathname==='/api/auth'&&request.method()==='POST')return route.fulfill({json:{ok:true,user:{id:123,name:'Fictional Buyer',email:'buyer@example.test'}}});
    if(url.pathname==='/api/account'&&request.method()==='GET')return route.fulfill({json:wallet});
+   if(url.pathname==='/api/account/verification'&&request.method()==='GET')return route.fulfill({json:{email:'buyer@example.test',verified:false,pendingEmail:null,deliveryConfigured:false}});
+   if(url.pathname==='/api/account/passkeys'&&request.method()==='GET')return route.fulfill({json:{ok:true,passkeys:[]}});
    if(url.pathname==='/api/orders/tracking'&&request.method()==='GET')return route.fulfill({json:{paymentStatus:'paid',fulfillment:{status:'cancelled',handoff_method:url.searchParams.get('id'),reference:'TRACK-FICTIONAL'},history:[{status:'cancelled',created_at:'2026-10-27T09:00:00Z'}]}});
    unexpected.push(request.method()+' '+request.url());return route.abort();
   });

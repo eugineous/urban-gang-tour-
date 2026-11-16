@@ -5,7 +5,7 @@ export type DeliveryStatus={
  tickets:'not_required'|'preparing'|'ready'|'review'|'unknown';
  email:'not_requested'|'preparing'|'queued'|'processing'|'accepted'|'review'|'unknown';
 };
-type Order={id:string;status?:string|null;items?:unknown;email?:string|null};
+type Order={id:string;status?:string|null;items?:unknown;email?:string|null;ticket_fulfillment_status?:string|null};
 type EffectRow={effect:string;status:string};
 
 function ticketCount(items:unknown):number|null{
@@ -36,7 +36,8 @@ export async function orderDeliveryStatus(order:Order):Promise<DeliveryStatus>{
   expected!==null&&expected>0?q<{count:number|string}>('SELECT COUNT(*)::int AS count FROM tickets WHERE order_id=$1 AND voided_at IS NULL',[order.id]).catch(()=>null):Promise.resolve(null),
   needsEmail?q<{status:string}>("SELECT status FROM email_delivery_outbox WHERE order_id=$1 AND delivery='payment' ORDER BY created_at DESC LIMIT 1",[order.id]).catch(()=>null):Promise.resolve(null),
  ]);
- if(expected===0)result.tickets='not_required';
+ if(order.ticket_fulfillment_status==='refund_review')result.tickets='review';
+ else if(expected===0)result.tickets='not_required';
  else if(expected!==null){
   const count=tickets?.[0]?.count;
   const actual=typeof count==='number'||typeof count==='string'&&/^\d+$/.test(count)?Number(count):NaN;

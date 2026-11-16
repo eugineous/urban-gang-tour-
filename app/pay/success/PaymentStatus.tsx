@@ -8,7 +8,7 @@ import {paymentFeedback,type PaymentDelivery} from '@/lib/client/payment-feedbac
 import PaymentResultScreen from './PaymentResultScreen';
 
 export default function PaymentStatus({orderId}:{orderId:string}){
- const [result,setResult]=useState<{orderId:string;status:string;total?:number;method?:string}>({orderId,status:'pending'}),[error,setError]=useState(false),[attempt,setAttempt]=useState(0),[stopped,setStopped]=useState(false);
+ const [result,setResult]=useState<{orderId:string;status:string;total?:number;method?:string;refundReview?:boolean}>({orderId,status:'pending'}),[error,setError]=useState(false),[attempt,setAttempt]=useState(0),[stopped,setStopped]=useState(false);
  const [remainingTickets,setRemainingTickets]=useState(false),[delivery,setDelivery]=useState<PaymentDelivery>({tickets:'unknown',email:'unknown'});
  const [offline,setOffline]=useState(false),[checking,setChecking]=useState(false);
  useEffect(()=>{
@@ -25,7 +25,7 @@ export default function PaymentStatus({orderId}:{orderId:string}){
     if(controller.signal.aborted)return;
     const feedback=paymentFeedback(d.status,d.delivery);
     setRemainingTickets(d.remainingTicketsAvailable===true);setDelivery(feedback.delivery);
-    setResult({orderId,status:d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status,total:typeof d.total==='number'&&Number.isFinite(d.total)&&d.total>=0?d.total:undefined,method:['mpesa','card','paystack','comp'].includes(d.method)?d.method:undefined});setError(false);
+    setResult({orderId,status:d.status==='pending'&&d.attemptState==='unknown'?'unknown':d.status,total:typeof d.total==='number'&&Number.isFinite(d.total)&&d.total>=0?d.total:undefined,method:['mpesa','card','paystack','comp'].includes(d.method)?d.method:undefined,refundReview:d.ticketFulfillment==='refund_review'});setError(false);
     if(paymentPresentation(d.status).terminal){clearCheckoutAttempt(orderId);clearPaystackAttempt(orderId)}
     if(feedback.paid){
      try{
@@ -56,5 +56,5 @@ export default function PaymentStatus({orderId}:{orderId:string}){
   return()=>{finished=true;controller.abort();clearTimeout(timer);window.removeEventListener('online',reconnect);window.removeEventListener('offline',disconnect)};
  },[orderId,attempt]);
  const currentOrder=result.orderId===orderId;
- return <PaymentResultScreen key={orderId} orderId={orderId} status={currentOrder?result.status:'pending'} delivery={currentOrder?delivery:{tickets:'unknown',email:'unknown'}} total={currentOrder?result.total:undefined} method={currentOrder?result.method:undefined} remainingTickets={currentOrder&&remainingTickets} offline={offline} error={error} stopped={stopped} checking={checking} onCheck={()=>setAttempt(n=>n+1)}/>;
+ return <PaymentResultScreen key={orderId} orderId={orderId} status={currentOrder?result.status:'pending'} refundReview={currentOrder&&result.refundReview} delivery={currentOrder?delivery:{tickets:'unknown',email:'unknown'}} total={currentOrder?result.total:undefined} method={currentOrder?result.method:undefined} remainingTickets={currentOrder&&remainingTickets} offline={offline} error={error} stopped={stopped} checking={checking} onCheck={()=>setAttempt(n=>n+1)}/>;
 }

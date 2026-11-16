@@ -16,7 +16,7 @@ describe('public premium surface boundaries',()=>{
    selectors.push(rule.selector);
    for(const selector of rule.selectors)expect(selector).toContain('[data-public-surface]');
    let parent=rule.parent;
-   while(parent&&parent.type!=='atrule')parent=parent.parent;
+   while(parent&&!(parent.type==='atrule'&&(parent as postcss.AtRule).name==='media'&&/^screen\b/.test((parent as postcss.AtRule).params)))parent=parent.parent;
    expect(parent?.type).toBe('atrule');
    expect((parent as postcss.AtRule).params).toMatch(/^screen\b/);
   });

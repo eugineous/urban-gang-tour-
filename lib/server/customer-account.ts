@@ -41,9 +41,12 @@ async function migrateCustomerAccountSchema() {
   await q('CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_reset_user ON customer_reset_tokens(user_id)');
 }
 
-export async function customerOrders(userId: number, all = false) {
-  return q(`SELECT id, items, total, status, created_at FROM orders
-    WHERE user_id=$1 ORDER BY created_at DESC ${all ? '' : 'LIMIT 100'}`, [userId]);
+export async function customerOrders(userId: number, cursor?: {createdAt:string;id:string}) {
+  // One sentinel row establishes continuation without counting account history.
+  // Text timestamps retain PostgreSQL microseconds for the next keyset boundary.
+  return q<{id:string;items:unknown;total:number;status:string;created_at:string}>(`SELECT id, items, total, status, created_at::text AS created_at FROM orders
+    WHERE user_id=$1 AND ($2::timestamptz IS NULL OR (created_at,id)<($2::timestamptz,$3::text))
+    ORDER BY orders.created_at DESC,orders.id DESC LIMIT 31`, [userId,cursor?.createdAt??null,cursor?.id??null]);
 }
 
 export async function ensureBuyerSessionSchema() {

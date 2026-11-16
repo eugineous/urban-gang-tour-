@@ -21,7 +21,7 @@ export function MobileAppHero({events=[],now=0,current=true}:{events?:OwnedEvent
  const t=useMessages(copy),motion=useMessages(ambientMessages),items=homepagePosterEvents(events,now,current);
  return <section className={styles.hero} data-mobile-app-hero aria-label="Urban Gang Tour">
   <div className={styles.stage}>
-   <h1 data-home-reveal><span>URBAN</span><span>GANG</span><span>TOUR</span></h1>
+   <h2 aria-level={1} data-mobile-title data-home-reveal><span>URBAN</span><span>GANG</span><span>TOUR</span></h2>
    <HostArtwork hero/>
    <ul className={styles.intro} data-mobile-services data-home-reveal>{(['school','campus','hosting'] as const).map(key=><li key={key}>{t(key)}</li>)}</ul>
   </div>

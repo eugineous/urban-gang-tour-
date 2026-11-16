@@ -3,16 +3,22 @@ vi.mock('@/lib/server/session',()=>({verifyAdminSession:vi.fn(async()=>true),isS
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'test-ip'}));
 vi.mock('@/lib/server/email-outbox',()=>({emailOutboxStatus:vi.fn(),processEmailOutbox:vi.fn(),retryEmailOutbox:vi.fn()}));
 vi.mock('@/lib/server/contact-email-outbox',()=>({contactEmailOutboxStatus:vi.fn(),processContactEmailOutbox:vi.fn(),retryContactEmailJob:vi.fn()}));
+vi.mock('@/lib/server/customer-email-verification',()=>({processSecurityEmailOutbox:vi.fn(async()=>[])}));
 vi.mock('@/lib/server/payment-confidence',()=>({paymentEffectStatus:vi.fn(async()=>[])}));
 import {GET} from '@/app/api/admin/email-delivery/route';
 import {POST} from '@/app/api/internal/cron/email-delivery/route';
 import {emailOutboxStatus,processEmailOutbox} from '@/lib/server/email-outbox';
 import {contactEmailOutboxStatus,processContactEmailOutbox} from '@/lib/server/contact-email-outbox';
 import {paymentEffectStatus} from '@/lib/server/payment-confidence';
+import {processSecurityEmailOutbox} from '@/lib/server/customer-email-verification';
 import {verifyAdminSession,isSuperAdmin} from '@/lib/server/session';
 const admin=()=>new Request('https://urbangangtour.co.ke/api/admin/email-delivery');
 const cron=()=>new Request('https://urbangangtour.co.ke/api/internal/cron/email-delivery',{method:'POST',headers:{'x-ugt-cron':'test-only-cron-key'}});
 describe('independent receipt and contact queues',()=>{
+ it('preserves receipt and contact work when identity delivery is unavailable',async()=>{
+  vi.mocked(processSecurityEmailOutbox).mockRejectedValueOnce(Error('PRIVATE email details'));
+  const r=await POST(cron());expect(r.status).toBe(503);const data=await r.json();expect(data.outcomes).toEqual([{id:'receipt-test',status:'accepted'}]);expect(data.contactOutcomes).toEqual([{id:'contact-test',status:'accepted'}]);expect(data.module_errors).toEqual({security:'account_delivery_unavailable'});expect(JSON.stringify(data)).not.toContain('PRIVATE');
+ });
  beforeEach(()=>{vi.clearAllMocks();vi.stubEnv('RESEND_API_KEY','test-only-provider-key');vi.stubEnv('UGT_CRON_SECRET','test-only-cron-key');vi.mocked(emailOutboxStatus).mockResolvedValue({configured:true,jobs:[{id:'receipt-test'}]});vi.mocked(contactEmailOutboxStatus).mockResolvedValue([{id:'contact-test'}]);vi.mocked(processEmailOutbox).mockResolvedValue([{id:'receipt-test',status:'accepted'}]);vi.mocked(processContactEmailOutbox).mockResolvedValue([{id:'contact-test',status:'accepted'}]);});
  afterEach(()=>vi.unstubAllEnvs());
  it('preserves normal successful admin and cron responses',async()=>{const a=await GET(admin());expect(a.status).toBe(200);expect(await a.json()).toMatchObject({jobs:[{id:'receipt-test'}],contact_jobs:[{id:'contact-test'}],module_errors:{}});const c=await POST(cron());expect(c.status).toBe(200);expect(await c.json()).toMatchObject({ok:true,module_errors:{}});});
@@ -29,6 +35,6 @@ describe('independent receipt and contact queues',()=>{
   vi.mocked(isSuperAdmin).mockReturnValueOnce(false);expect((await GET(admin())).status).toBe(403);expect(paymentEffectStatus).not.toHaveBeenCalled();
  });
  it('shows contact records when receipt status fails',async()=>{vi.mocked(emailOutboxStatus).mockRejectedValue(Error('receipt failure'));const response=await GET(admin());expect(response.status).toBe(503);expect(await response.json()).toMatchObject({jobs:[],contact_jobs:[{id:'contact-test'}],module_errors:{receipts:'receipt_delivery_unavailable'}});});
- it('runs contact retry work even when receipt processing rejects',async()=>{vi.mocked(processEmailOutbox).mockRejectedValue(Error('receipt failure'));const response=await POST(cron());expect(response.status).toBe(503);expect(processContactEmailOutbox).toHaveBeenCalledWith(3);expect(await response.json()).toEqual({ok:false,outcomes:[],contactOutcomes:[{id:'contact-test',status:'accepted'}],module_errors:{receipts:'receipt_delivery_unavailable'}});});
- it('retains successful receipt outcomes when contact processing rejects',async()=>{vi.mocked(processContactEmailOutbox).mockRejectedValue(Error('contact failure'));const response=await POST(cron());expect(response.status).toBe(503);expect(await response.json()).toEqual({ok:false,outcomes:[{id:'receipt-test',status:'accepted'}],contactOutcomes:[],module_errors:{contact:'contact_delivery_unavailable'}});});
+ it('runs contact retry work even when receipt processing rejects',async()=>{vi.mocked(processEmailOutbox).mockRejectedValue(Error('receipt failure'));const response=await POST(cron());expect(response.status).toBe(503);expect(processContactEmailOutbox).toHaveBeenCalledWith(3);expect(await response.json()).toEqual({ok:false,outcomes:[],contactOutcomes:[{id:'contact-test',status:'accepted'}],securityOutcomes:[],module_errors:{receipts:'receipt_delivery_unavailable'}});});
+ it('retains successful receipt outcomes when contact processing rejects',async()=>{vi.mocked(processContactEmailOutbox).mockRejectedValue(Error('contact failure'));const response=await POST(cron());expect(response.status).toBe(503);expect(await response.json()).toEqual({ok:false,outcomes:[{id:'receipt-test',status:'accepted'}],contactOutcomes:[],securityOutcomes:[],module_errors:{contact:'contact_delivery_unavailable'}});});
 });

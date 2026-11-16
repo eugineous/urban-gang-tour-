@@ -4,6 +4,7 @@ vi.mock('@/lib/server/db', () => ({ q: query, db: () => true, hasDb: () => true 
 vi.mock('@/lib/server/ratelimit', () => ({ rateLimit: () => true, clientIp: () => 'test' }));
 vi.mock('@/lib/server/origin', () => ({ sameOrigin: () => true }));
 vi.mock('@/lib/server/customer-account', () => ({ ensureBuyerSessionSchema: () => Promise.resolve(), validatedCurrentBuyer: () => Promise.resolve(null) }));
+vi.mock('@/lib/server/customer-identity',()=>({ensureCustomerIdentitySchema:async()=>{}}));
 import { POST } from '@/app/api/auth/route';
 it.each([
   [{}, 'age_confirmation_required'],

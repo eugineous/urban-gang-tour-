@@ -1,0 +1,18 @@
+import {afterAll,beforeAll,expect,it} from 'vitest';
+import {build} from 'esbuild';import {chromium,type Browser} from 'playwright';import {existsSync} from 'node:fs';
+const enabled=existsSync('/usr/bin/chromium');let browser:Browser,js:string,css:string;
+beforeAll(async()=>{if(!enabled)return;const result=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`import React from 'react';import{createRoot}from'react-dom/client';import{LanguageProvider}from'./ui/i18n/LanguageProvider';import AccountSecurity from './app/account/AccountSecurity';createRoot(document.getElementById('root')).render(<LanguageProvider><AccountSecurity/></LanguageProvider>);`},bundle:true,write:false,outfile:'/tmp/ugt-security.js',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'navigation',setup(b){b.onResolve({filter:/^next\/navigation$/},()=>({path:'navigation',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const usePathname=()=>"/account";'}))}}]});js=result.outputFiles.find(f=>f.path.endsWith('.js'))!.text;css=result.outputFiles.find(f=>f.path.endsWith('.css'))?.text||'';browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']})},30000);
+afterAll(async()=>{await browser?.close()});
+it.skipIf(!enabled)('verifies a recovery email only after explicit password/code submissions and retains failed input',async()=>{
+ const context=await browser.newContext({viewport:{width:320,height:844},serviceWorkers:'block'}),page=await context.newPage(),submissions:Record<string,string>[]=[];let pending=false,verified=false;
+ await context.route('**/*',route=>{const req=route.request(),path=new URL(req.url()).pathname;
+  if(path==='/fixture.js')return route.fulfill({contentType:'text/javascript',body:js});if(path==='/fixture.css')return route.fulfill({contentType:'text/css',body:css});
+  if(path==='/account')return route.fulfill({contentType:'text/html',body:'<meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/fixture.css"><div id="root"></div><script src="/fixture.js"></script>'});
+  if(path==='/api/account/passkeys'&&req.method()==='GET')return route.fulfill({json:{ok:true,passkeys:[]}});
+  if(path==='/api/account/verification'){if(req.method()==='GET')return route.fulfill({json:{email:null,verified,pendingEmail:pending?'buyer@example.test':null,deliveryConfigured:true}});const body=req.postDataJSON();submissions.push(body);if(body.action==='send'){pending=true;return route.fulfill({status:202,json:{ok:true,state:'queued'}})}if(body.code!=='12345678')return route.fulfill({status:400,json:{error:'invalid_or_expired_code'}});verified=true;return route.fulfill({json:{ok:true,verified:true}})}return route.abort();
+ });
+ try{await page.goto('http://127.0.0.1/account');const email=page.getByLabel('Recovery email',{exact:true}),password=page.getByLabel('Current password',{exact:true});await email.fill('buyer@example.test');await password.fill('safe-password');expect(submissions).toEqual([]);
+  await page.getByRole('button',{name:'Send code',exact:true}).click();const code=page.getByLabel('Verification code',{exact:true});await code.fill('00000000');await page.getByRole('button',{name:'Verify email',exact:true}).click();await page.getByRole('alert').waitFor();expect(await code.inputValue()).toBe('00000000');
+  await code.fill('12345678');await page.getByRole('button',{name:'Verify email',exact:true}).click();await page.getByText('Email verified',{exact:true}).waitFor();expect(submissions.map(body=>body.action)).toEqual(['send','confirm','confirm']);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }finally{await context.close()}
+},20000);

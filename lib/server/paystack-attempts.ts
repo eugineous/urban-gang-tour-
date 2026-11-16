@@ -62,6 +62,7 @@ export type AttemptOrder={
  id:string;items:unknown[];total:number;name:string;email:string;phone:string;userId:number|null;
  fulfillment:{method:'pickup'|'delivery';fee:number;address:unknown|null}|null;
  context?:{promoId:number|null;referralCode:string|null};
+ ticket?:{eventId:string;tier:number;qty:number;tierName:string;unit:number;name:string};
 };
 /** A single statement commits the attempt, its card ledger and optional delivery
  * snapshot together. Deferred FK validation occurs after every CTE has executed.
@@ -83,15 +84,15 @@ export async function preparePaystackAttempt(identity:AttemptIdentity,order:Atte
    WHERE paystack_checkout_attempts.request_hash=EXCLUDED.request_hash
   RETURNING *
  ), saved_order AS (
-  INSERT INTO orders(id,items,total,name,email,phone,user_id,pay_method,paystack_ref)
-  SELECT $5,$7::jsonb,$6,$8,$9,$10,$11,'card',$5 FROM claimed WHERE id=$1
+  INSERT INTO orders(id,items,total,name,email,phone,user_id,pay_method,paystack_ref${order.ticket?',paystack_ticket,ticket_fulfillment_status':''})
+  SELECT $5,$7::jsonb,$6,$8,$9,$10,$11,'card',$5${order.ticket?",$16::jsonb,'reserved'":''} FROM claimed WHERE id=$1
   RETURNING id
  ), saved_delivery AS (
   INSERT INTO order_delivery_preferences(order_id,method,fee,address)
   SELECT id,$12::text,$13::integer,$14::jsonb FROM saved_order WHERE $12::text IS NOT NULL
   RETURNING order_id
  ) SELECT row_to_json(claimed) AS attempt FROM claimed`,
- [candidate,identity.scopeHash,identity.tokenHash,identity.requestHash,order.id,order.total,JSON.stringify(order.items),order.name,order.email,order.phone,order.userId,fulfillment?.method??null,fulfillment?.fee??0,fulfillment?.address==null?null:JSON.stringify(fulfillment.address),JSON.stringify(context??{})]);
+ [candidate,identity.scopeHash,identity.tokenHash,identity.requestHash,order.id,order.total,JSON.stringify(order.items),order.name,order.email,order.phone,order.userId,fulfillment?.method??null,fulfillment?.fee??0,fulfillment?.address==null?null:JSON.stringify(fulfillment.address),JSON.stringify(context??{}),...(order.ticket?[JSON.stringify(order.ticket)]:[])]);
  if(!rows[0])throw new PaystackAttemptConflict();
  return {attempt:snapshot(rows[0].attempt),created:rows[0].attempt.id===candidate};
 }
@@ -132,7 +133,8 @@ export async function claimPaystackInitiation(identity:AttemptIdentity):Promise<
   WHERE scope_hash=$1 AND token_hash=$2 AND request_hash=$3 AND state='prepared' FOR UPDATE
  ), eligible_order AS (
   SELECT o.id FROM orders o JOIN locked_attempt a ON a.order_id=o.id
-  WHERE o.status='pending' AND o.total=a.total AND o.pay_method='card' AND o.paystack_ref=a.order_id FOR UPDATE OF o
+  WHERE o.status='pending' AND o.total=a.total AND o.pay_method='card' AND o.paystack_ref=a.order_id
+   AND COALESCE(to_jsonb(o)->>'paystack_ticket','')='' FOR UPDATE OF o
  ) UPDATE paystack_checkout_attempts SET state='initiating',claim_nonce=$4,updated_at=now()
  WHERE id IN (SELECT id FROM locked_attempt) AND order_id IN (SELECT id FROM eligible_order) AND state='prepared'
  RETURNING row_to_json(paystack_checkout_attempts) AS attempt`,[identity.scopeHash,identity.tokenHash,identity.requestHash,nonce]);

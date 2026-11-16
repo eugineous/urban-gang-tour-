@@ -10,8 +10,8 @@ import type {PaymentDelivery} from '@/lib/client/payment-feedback';
 import {formatKes} from '@/lib/i18n/format';
 import styles from './PaymentResult.module.css';
 
-type Props={orderId:string;status:string;delivery:PaymentDelivery;total?:number;method?:string;remainingTickets:boolean;offline:boolean;error:boolean;stopped:boolean;checking:boolean;onCheck:()=>void};
-export default function PaymentResultScreen({orderId,status,delivery,total,method,remainingTickets,offline,error,stopped,checking,onCheck}:Props){
+type Props={orderId:string;status:string;refundReview?:boolean;delivery:PaymentDelivery;total?:number;method?:string;remainingTickets:boolean;offline:boolean;error:boolean;stopped:boolean;checking:boolean;onCheck:()=>void};
+export default function PaymentResultScreen({orderId,status,refundReview=false,delivery,total,method,remainingTickets,offline,error,stopped,checking,onCheck}:Props){
  const t=useMessages(accountMessages),p=useMessages(paymentMessages),r=useMessages(paymentResultMessages),{locale}=useInterfaceLanguage();
  const [copy,setCopy]=useState<'none'|'copied'|'failed'>('none');
  const view=paymentPresentation(status),refund=['refunded','partially_refunded'].includes(status);
@@ -29,9 +29,9 @@ export default function PaymentResultScreen({orderId,status,delivery,total,metho
   <div className={styles.hero} aria-live="polite">
    <div className={styles.badge} data-state={state}><Icon size={112} weight="duotone" aria-hidden="true"/></div>
    <p className={styles.eyebrow}>{r(eyebrow)}</p>
-   <h1 id="payment-result-title">{t(factoryIssue(view.title).key)}</h1>
-   {view.paid&&<p className={styles.thanks}>{r('thanks')}</p>}
-   <p className={styles.explanation}>{view.paid?p('receipt.available'):t(factoryIssue(view.message).key)}</p>
+   <h1 id="payment-result-title">{refundReview?p('tickets.paymentReceived'):t(factoryIssue(view.title).key)}</h1>
+   {view.paid&&!refundReview&&<p className={styles.thanks}>{r('thanks')}</p>}
+   <p className={styles.explanation}>{refundReview?p('tickets.refundReview'):view.paid?p('receipt.available'):t(factoryIssue(view.message).key)}</p>
   </div>
   <div className={styles.reference}>
    <div><span>{t('copy.order_reference')}</span><code tabIndex={0}>{orderId}</code></div>
@@ -40,7 +40,7 @@ export default function PaymentResultScreen({orderId,status,delivery,total,metho
   {copy!=='none'&&<p className={styles.copyFeedback} role="status">{r(copy==='copied'?'reference.copied':'reference.copyFailed')}</p>}
   <div className={styles.primaryActions}>
    {view.paid?<>
-    <a className={styles.primary} href={delivery.tickets==='ready'?tickets:track} referrerPolicy="no-referrer">{delivery.tickets==='ready'?p('tickets.open'):r('order.view')}<ArrowUpRight size={19} aria-hidden="true"/></a>
+    <a className={styles.primary} href={refundReview?'/contact-us':delivery.tickets==='ready'?tickets:track} referrerPolicy="no-referrer">{refundReview?p('order.help'):delivery.tickets==='ready'?p('tickets.open'):r('order.view')}<ArrowUpRight size={19} aria-hidden="true"/></a>
     <a className={styles.secondary} href={receipt}><Receipt size={18} aria-hidden="true"/>{p('receipt.open')}</a>
    </>:<button type="button" className={styles.primary} onClick={onCheck} disabled={checking||offline}>{checking?p('lookup.checking'):t('copy.check_payment_again')}</button>}
    {remainingTickets&&!view.paid&&<a className={styles.secondary} href={tickets}><Ticket size={18} aria-hidden="true"/>{t('copy.view_remaining_tickets')}</a>}

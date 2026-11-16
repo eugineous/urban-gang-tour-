@@ -60,6 +60,7 @@ export async function GET(req: Request) {
   return NextResponse.json(
     {
       status: String(o.status || 'pending'),
+      ...(o.ticket_fulfillment_status==='refund_review'&&paid?{ticketFulfillment:'refund_review'}:{}),
       remainingTicketsAvailable:o.status==='partially_refunded'&&o.ticket_refund_policy==='allocated',
       ...(attemptState?{attemptState}:{}),
       total: Number(o.total) || 0,

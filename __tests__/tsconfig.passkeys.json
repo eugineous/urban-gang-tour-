@@ -1,0 +1,7 @@
+{
+  "extends":"../tsconfig.json",
+  "compilerOptions":{"incremental":false},
+  "files":["../node_modules/next/types/global.d.ts"],
+  "include":["../lib/server/customer-passkeys.ts","../app/api/account/passkeys/route.ts","../app/account/PasskeyControls.tsx","../ui/i18n/catalogues/passkeys.ts","customer-passkeys-postgres.integration.test.ts","customer-passkeys-ui.test.ts","customer-passkeys-browser.test.ts"],
+  "exclude":["../node_modules","../.next"]
+}

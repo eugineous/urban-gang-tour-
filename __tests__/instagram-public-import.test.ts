@@ -5,7 +5,9 @@ const post=(id='17800000000000001')=>({id,code:'PUBLIC123',user:{username:'urban
 it('accepts only the exact owned profile and its HTTPS public post paths',()=>{
  expect(normalizeOwnedInstagramUrl('https://www.instagram.com/urban_newsgang/')).toBe('https://www.instagram.com/urban_newsgang/');
  expect(normalizeOwnedInstagramUrl('https://instagram.com/urban_newsgang/reel/PUBLIC123/?igsh=ignored')).toBe('https://www.instagram.com/urban_newsgang/reel/PUBLIC123/');
- for(const url of ['https://www.instagram.com/other/','https://www.instagram.com/p/PUBLIC123/','http://instagram.com/urban_newsgang/','https://instagram.com.evil.test/urban_newsgang/','https://u:p@instagram.com/urban_newsgang/'])expect(normalizeOwnedInstagramUrl(url)).toBeNull();
+ expect(normalizeOwnedInstagramUrl('https://www.instagram.com/p/PUBLIC123/')).toBe('https://www.instagram.com/urban_newsgang/p/PUBLIC123/');
+ expect(normalizeOwnedInstagramUrl('https://www.instagram.com/reel/PUBLIC123/?igsh=ignored')).toBe('https://www.instagram.com/urban_newsgang/reel/PUBLIC123/');
+ for(const url of ['https://www.instagram.com/other/','https://www.instagram.com/other/p/PUBLIC123/','http://instagram.com/urban_newsgang/','https://instagram.com.evil.test/urban_newsgang/','https://u:p@instagram.com/urban_newsgang/'])expect(normalizeOwnedInstagramUrl(url)).toBeNull();
 });
 it('retains exact captions and stable IDs while rejecting other accounts, including collaborations',()=>{
  const own=post();const rows=extractPublicInstagramPosts({data:{edges:[{node:own},{node:own},{node:{...post('17800000000000002'),user:{username:'hypeola'}}}]}});

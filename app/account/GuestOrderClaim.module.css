@@ -1,0 +1,10 @@
+.claim { border:1px solid var(--line,#ded9e1); border-radius:12px; padding:4px 16px 12px; margin-top:16px; min-width:0; font-size:16px; overflow-wrap:anywhere; }
+.claim summary { min-height:44px; padding:10px 0; box-sizing:border-box; cursor:pointer; font-size:16px; font-weight:600; line-height:1.5; }
+.claim p { margin:8px 0 12px; line-height:1.5; }
+.form { display:grid; gap:8px; min-width:0; }
+.form label { font-size:16px; }
+.form input { width:100%; min-width:0; min-height:44px; padding:11px 13px; box-sizing:border-box; border:1px solid #b9acb3; border-radius:10px; background:var(--ugt-surface-raised,#fff); color:inherit; font:inherit; font-size:16px; }
+.form button { justify-self:start; min-height:44px; max-width:100%; padding:10px 16px; border:1px solid var(--line,#ded9e1); border-radius:10px; background:var(--ugt-primary,#c60073); color:#fff; font:inherit; font-size:16px; font-weight:600; line-height:1.5; cursor:pointer; white-space:normal; }
+.form button:disabled { opacity:.65; cursor:default; }
+.claim :is(summary,input,button):focus-visible { outline:3px solid var(--ugt-primary,#a90062); outline-offset:3px; }
+.error { color:#8d164c; }

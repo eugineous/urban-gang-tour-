@@ -150,9 +150,10 @@ Legacy direct M-Pesa initiation is disabled by the owner's Paystack-only policy.
 After same-origin and device/network rate checks, returns 503
 `{error:'paystack_only'}` with `Cache-Control: no-store`, before purchase,
 ledger, reservation or provider work, even when Daraja credentials are stored.
-New merchandise payments use `/api/paystack/checkout`. Owned-event ticket
-checkout is currently unavailable because Paystack card-ticket finality remains
-unverified; direct M-Pesa is not offered as a fallback.
+New merchandise and separately gated owned-event ticket payments use
+`/api/paystack/checkout`. Owned-event launch remains CLOSED unless the optional
+server-only `PAYSTACK_TICKETS_ENABLED=true` and normal Paystack/database readiness
+are present. Direct M-Pesa is not offered as a fallback.
 Existing orders, callback verification, reconciliation and owner-scoped
 `/api/checkout/recovery` remain supported. Reading/recovering a saved reference
 does not initiate another STK push.
@@ -166,6 +167,9 @@ Public poll for the checkout STK-waiting panel. Id format-validated
 `{status, total, receipt, method, created_at}` - `receipt` (M-Pesa receipt /
 Paystack ref / Stripe payment intent) only once paid or fulfilled. NEVER returns
 name/email/phone. 200 - 400 - 404 unknown - 429 (30/min/IP) - 503 no DB.
+An owned-ticket payment received without safe capacity/event fulfillment remains
+`status:'paid'`, with `ticketFulfillment:'refund_review'` and `delivery.tickets:'review'`.
+This is a manual review request, not admission or evidence of a completed refund.
 
 ### GET /receipt/[id]
 Server-rendered printable receipt page (force-dynamic, robots noindex).
@@ -302,7 +306,11 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   - indistinguishable from a paid ticket at the gate. Sends the branded
   receipt email (visibly "COMPLIMENTARY - KES 0", never a fake price) when
   `holderEmail` is given. 200 `{ok,id,receiptUrl,ticketsUrl,tickets}` · 400 ·
-  401 · 403 bad origin · 429 (20/min/IP) · 503 no DB.
+  401 · 403 bad origin · 409 finite capacity exhausted or tier changed ·
+  429 (20/min/IP) · 503 no DB. An event lock serializes the paid comp-order
+  insertion with hosted ticket holds and settlement; pending payable holds also
+  occupy capacity. Authorized complimentary issuance of a null/untracked capacity
+  tier retains its existing semantics and never enables online paid sales.
   `GET /api/admin/data?view=eventTiers` returns the event/tier list for the
   Control Room's "Issue Free Ticket" form (Orders tab); the comp route
   re-validates independently and is the actual source of truth.
@@ -433,39 +441,87 @@ persisted user and session version before any customer records are returned.
 Missing/revoked sessions return 401; unavailable account storage returns 503.
 Rate limit: 30 requests/minute/device with a shared-network backstop.
 
-Response: `{profile, orders, tickets, requests}`. Profile contains the buyer's
+Response: `{profile, orders, tickets, requests, pagination}`. Profile contains the buyer's
 own `id`, `name`, `email`, `phone` and `created_at`. Orders are scoped by
-`orders.user_id`; the ordinary view returns up to 100 orders and 300 tickets.
+`orders.user_id`; each page returns up to 30 orders, 200 tickets and 20 requests.
 Tickets are limited to the buyer's paid/fulfilled orders. Privacy requests expose
 only the buyer's request reference, kind, status and creation time.
 
-`download=1` returns the same categories without the order/ticket display limits
-as a downloadable `urban-gang-account.json`. Both modes send
+Each stream accepts its own canonical base64url keyset (`orderCursor`,
+`ticketCursor`, `requestCursor`). Invalid, repeated or unknown query parameters
+return 400. Cursors preserve timestamp microseconds; all queries retain buyer
+ownership filters. `pagination` supplies current, first and next links per
+stream and an export link. `download=1` exports only the selected bounded page
+as `urban-gang-account.json`, with `exportScope: "page"` and continuation links.
+Both modes send
 `Cache-Control: private, no-store`. Guest purchases are not claimed by matching
-an email address; ownership is established server-side when purchasing while
-signed in. Existing receipt/ticket download capabilities remain separate from
+an email address alone; ownership is established when purchasing signed in or
+through the verified private-capability claim endpoint below. Existing receipt/ticket download capabilities remain separate from
 this authenticated account export.
 
 ### POST /api/account/recovery
 
-Public credential endpoint with a required trusted Origin and a strict
-5 requests/minute/IP limit. Unexpected fields are rejected.
+Public credential endpoint with a required trusted Origin, bounded 2 KiB JSON,
+120 requests/minute/network and 5 requests/minute/normalized email or opaque
+reset token. Shared edge budgets also apply across runtime instances.
+Unexpected fields are rejected.
 
 - `{action: "forgot", email}`: valid email required (maximum 254 characters).
-  Database and `RESEND_API_KEY` must be configured; unavailable delivery returns
+  Database, `RESEND_API_KEY` and `SESSION_SECRET` must be configured; unavailable delivery returns
   503 before checking account existence. Known and unknown accounts receive the
-  same `{ok: true, message}` immediately. The actual lookup and email run after
-  the response. A successful API acknowledgement does not prove email delivery.
+  same `{ok: true, message}`. An eligible reset is committed to an encrypted
+  durable outbox before acknowledgement; only provider dispatch runs after the
+  response. Unknown or ambiguous legacy addresses create no job. A persisted
+  one-minute cooldown applies. Acknowledgement does not prove email delivery.
 - `{action: "reset", token, password}`: the reset token must be a 43-character
   base64url value; password length is 8–100 characters. Links expire after one
   hour. Only the SHA-256 token hash is stored, with one active link per account.
   Token consumption and password replacement are atomic; invalid, expired or
   previously used links return 400. Success increments the stored buyer session
-  version and clears `ugt_user`. APIs validating the current buyer reject older
-  session versions.
+  version, revokes passkeys, removes pending registration challenges and clears
+  `ugt_user` in the same transaction. The permanent passkey account handle is
+  retained. APIs validating the current buyer reject older session versions.
 
 Reset messages use Resend and `BOOKINGS_FROM`; this route does not connect Gmail
 or add a Gmail inbox integration.
+
+### GET/POST /api/account/verification
+
+Active buyer required; private, no-store responses. GET returns only the buyer's
+email, proof status, pending destination, recorded delivery state and whether
+delivery is configured. POST requires trusted Origin and bounded 2 KiB JSON.
+`{action:"send", email, password}` requires the current password. It verifies
+the existing email or adds a phone-only account's first recovery email; it cannot
+replace an existing email. An eight-digit, HMAC-protected code expires in 15
+minutes, allows five guesses and has a persisted one-minute resend cooldown.
+`{action:"confirm", code}` atomically consumes the proof and records email
+ownership, bound to buyer, destination and current session version. Codes are
+never returned by the API. Encrypted outbox jobs use stable provider idempotency
+keys and are retried by the existing email-delivery cron; queued is not delivered.
+
+### GET/POST /api/account/passkeys
+
+GET requires an active buyer and returns only their active key IDs and creation/
+last-use times. POST accepts `register-options` (password), `register-finish`
+(challenge, credential), `login-options`, `login-finish` (challenge, credential),
+or `revoke` (id, password). Unknown fields and bodies over 64 KiB are rejected.
+Registration requires a verified email and current password; revocation requires
+the current password. Discoverable login requires no email or Google account.
+Only HTTPS root/www urbangangtour.co.ke origins and the root RP are accepted.
+Resident credentials and user verification are required. Five-minute one-use
+challenges are bound to a hashed secure HttpOnly owner cookie; registration is
+also bound to buyer/session version. Server signature, origin, RP, challenge,
+user-handle and counter checks precede session creation. At most ten active
+credentials per account. No authenticator biometric data is stored.
+
+### POST /api/account/orders/claim
+
+Active buyer, trusted Origin and bounded 2 KiB JSON required. Body: `{ref}` with
+a strong private ORD reference. The buyer must have a verified email matching
+the order's normalized email. One atomic update attaches only an unclaimed order
+or confirms existing ownership; another buyer's order cannot be reassigned.
+Wrong, missing and ineligible capabilities all return 404. Payment, fulfillment
+and ticket entitlement are unchanged. Responses are private/no-store/no-referrer.
 
 ### POST /api/account/privacy
 
@@ -1013,7 +1069,7 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   authorization URL only while its exact bound card order remains recoverable.
   No contact, address, provider secret or claim nonce is returned. A copied key without the original signed cookie cannot
   recover the order. Missing = 404, missing scope = 428, unavailable = 503.
-- `POST /api/paystack/checkout`: merchandise only, same-origin signed guest scope
+- `POST /api/paystack/checkout`: same-origin signed guest scope
   Hosted merchandise checkout requests `channels: ['card','mobile_money']` in
   KES. The owner confirmed M-Pesa enabled in the merchant dashboard on10November.
   Paystack collects the payer's number/authorization; UGT never requests their
@@ -1028,9 +1084,20 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   retry recovers its original total/reference/URL rather than starting a second
   payable transaction; changed input conflicts409. An ambiguous provider or URL
   persistence outcome returns202 with the retained order reference and is not
-  automatically initialized again. Responses are no-store. Owned-event ticket
-  card checkout is not enabled; hosted session finality/late-payment policy must
-  be established before bounded seat holds can safely launch.
+  automatically initialized again. Responses are no-store.
+  Owned-ticket input is `{ticket:{eventId,tier,qty},name?,phone?,email?,idempotencyKey}`;
+  extra fields, mixed merchandise, delivery and promo/referral values are rejected.
+  A separate server-only ticket flag is CLOSED by default. Ticket pricing comes
+  from the owned event; finite capacity, lifecycle, schedule, venue, sale window
+  and tier identity are rechecked under the event lock. The seat hold and unique
+  provider-send claim commit atomically before card-only hosted initialization.
+  Initialization uncertainty, failed charges and abandonment never release a
+  potentially payable seat on a local timer. Verified late success reacquires
+  actually free capacity or durably records paid/manual-refund-review without
+  minting. Existing externally attested full refunds remain the money-return
+  workflow; no automatic provider refund is initiated. Turning the ticket flag
+  off never disables accounting for already initiated payments. This isolated
+  contract is not live merchant, finality or production-capacity certification.
   The deleted merchant account is not used: outbound integration requires explicit
   `PAYSTACK_ENABLED=true` and a server secret. Absent/false fails closed before
   ledger creation/provider dispatch. Replacement credentials alone do not enable

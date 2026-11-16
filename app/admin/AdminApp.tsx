@@ -802,13 +802,13 @@ export default function AdminApp({
           />
           <Table
             rows={rows}
-            cols={["id", "total", "status", "name", "phone", "mpesa_receipt"]}
+            cols={["id", "total", "status", "ticket_fulfillment_status", "name", "phone", "mpesa_receipt"]}
             exportKind="orders"
             actions={(r) => (
               <span style={{ display: "flex", gap: 6 }}>
                 <select
                   value={r.status}
-                  disabled={r.status !== 'paid'}
+                  disabled={r.status !== 'paid'||r.ticket_fulfillment_status==='refund_review'}
                   aria-label="Order fulfillment status"
                   style={{ ...inp, width: 110, padding: 6 }}
                   onChange={(e) => {
@@ -820,12 +820,13 @@ export default function AdminApp({
                     );
                   }}
                 >
-                  {Array.from(new Set([r.status,...(r.status==='paid'?['fulfilled']:[])])).map(
+                  {Array.from(new Set([r.status,...(r.status==='paid'&&r.ticket_fulfillment_status!=='refund_review'?['fulfilled']:[])])).map(
                     (s) => (
                       <option key={s}>{s}</option>
                     ),
                   )}
                 </select>
+                {r.ticket_fulfillment_status==='refund_review'&&<span role="status">Payment received · tickets not issued · manual refund review</span>}
                 {['paid','fulfilled','partially_refunded'].includes(r.status)&&<button type="button" style={btn} onClick={()=>{if(!refundOrder)setRefundOrder(r);else say('Finish or close the current refund form first.')}}>Record money returned</button>}
                 <button
                   type="button"

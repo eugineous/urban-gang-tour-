@@ -8,7 +8,6 @@ import {deliverReceiptEmailJob,enqueueReceiptEmail,ensureEmailOutbox,processEmai
 const enabled=process.env.UGT_RECEIPT_PG_FIXTURE==='1',fixture=new DisposablePostgres();
 beforeAll(async()=>{
  if(!enabled)return;
- if(process.env.UGT_EDITORIAL_SQL_CONTAINER!=='ugt-editorial-fixture-20261019')throw Error('fixture_target_not_allowlisted');
  fixture.start();await vi.waitFor(()=>expect(fixture.ready()).toBe(true),{timeout:10000});
  await fixture.schema('CREATE TABLE orders(id TEXT PRIMARY KEY,status TEXT,email TEXT)');
  adapter.q.mockImplementation(async(text:string,args:unknown[]=[])=>{

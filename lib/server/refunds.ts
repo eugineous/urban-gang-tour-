@@ -15,6 +15,7 @@ export function ensureRefundSchema(){
  CREATE UNIQUE INDEX IF NOT EXISTS idx_refund_request ON refunds(order_id,request_id) WHERE request_id IS NOT NULL;
  CREATE UNIQUE INDEX IF NOT EXISTS idx_refund_external ON refunds(order_id,external_reference) WHERE external_reference IS NOT NULL;
  ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_refund_policy TEXT;
+ ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_fulfillment_status TEXT;
  ALTER TABLE tickets ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ;`).catch(error=>{ready=undefined;throw error});
  return ready;
 }
@@ -69,7 +70,7 @@ export async function recordRefund(input:RefundInput){
   const saved=await client.query(`INSERT INTO refunds(order_id,amount,reason,actor,request_id,request_hash,external_reference,ticket_codes,resulting_status)
    VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) RETURNING id`,[input.orderId,input.amountKes,reason,input.actor,input.requestId,fingerprint,reference,JSON.stringify(allocated),status]);
   if(allocated.length)await client.query('UPDATE tickets SET voided_at=COALESCE(voided_at,now()) WHERE order_id=$1 AND code=ANY($2::text[])',[input.orderId,allocated]);
-  await client.query('UPDATE orders SET status=$2,ticket_refund_policy=$3 WHERE id=$1',[input.orderId,status,ticketLines.length&&allocationKnown?'allocated':null]);
+  await client.query("UPDATE orders SET status=$2,ticket_refund_policy=$3,ticket_fulfillment_status=CASE WHEN $2='refunded' AND ticket_fulfillment_status='refund_review' THEN 'refunded' ELSE ticket_fulfillment_status END WHERE id=$1",[input.orderId,status,ticketLines.length&&allocationKnown?'allocated':null]);
   await client.query('INSERT INTO audit_log(actor,action,detail) VALUES($1,$2,$3)',[input.actor,'external_refund_recorded',JSON.stringify({id:input.orderId,refundId:saved.rows[0].id,amount:input.amountKes,status,ticketCodes:allocated,externalReference:reference,providerVerified:false})]);
   await client.query('COMMIT');return {refundId:Number(saved.rows[0].id),status,deduped:false,moneyMovement:'external_record_attested' as const};
  }catch(error){await client?.query('ROLLBACK').catch(()=>{});throw error}finally{client?.release();await pool.end().catch(()=>{})}

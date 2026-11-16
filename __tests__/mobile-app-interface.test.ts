@@ -18,7 +18,8 @@ it('marks the direct contact destination active in mobile navigation',()=>{
 });
 it('renders the brand headline without a decorative dot',()=>{
  const html=renderToStaticMarkup(createElement(MobileAppHero));
- const heading=html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1]?.replace(/<[^>]+>/g,'');
+ const heading=html.match(/<h2[^>]*data-mobile-title[^>]*>(.*?)<\/h2>/)?.[1]?.replace(/<[^>]+>/g,'');
+ expect(html).toContain('aria-level="1"');
  expect(heading).toBe('URBANGANGTOUR');
 });
 it.each(['/checkout','/pay/success','/admin','/organizer/dashboard','/receipt/abc','/reels'])('keeps bottom navigation out of the focused flow at %s',path=>{

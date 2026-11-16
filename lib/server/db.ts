@@ -88,17 +88,19 @@ export async function q<T = any>(sql: string, params: any[] = []): Promise<T[]> 
 // user input), so this simple line-comment strip is safe here - none of
 // this codebase's DDL uses dollar-quoted function bodies, block comments, or
 // string literals containing `--`.
-export async function qSchema(sql: string): Promise<void> {
+export async function qSchema(sql: string | readonly string[]): Promise<void> {
   if (!process.env.DATABASE_URL) throw new Error('db_not_configured');
   const client = neon(process.env.DATABASE_URL);
-  const withoutComments = sql
+  const withoutComments = (typeof sql==='string'?sql:'')
     .split('\n')
     .map((line) => {
       const idx = line.indexOf('--');
       return idx === -1 ? line : line.slice(0, idx);
     })
     .join('\n');
-  const statements = withoutComments.split(';').map((s) => s.trim()).filter(Boolean);
+  // Explicit arrays keep developer-authored function bodies intact; never split
+  // PL/pgSQL statements or parse dynamic/user input as schema source.
+  const statements = typeof sql==='string'?withoutComments.split(';').map((s) => s.trim()).filter(Boolean):sql.filter(s=>s.trim());
   if (!statements.length) return;
   try {
     // Neon query promises are lazy: constructing this array issues no fetch.

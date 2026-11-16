@@ -6,6 +6,7 @@
 import { q, qSchema,db, hasDb } from './db';
 import { randomUUID } from 'node:crypto';
 import {ensureMpesaAttemptSchema} from './mpesa-attempts';
+import {ensurePaystackAttemptSchema} from './paystack-attempts';
 import {isEventSellable} from './event-lifecycle';
 import type {PoolClient} from '@neondatabase/serverless';
 
@@ -19,6 +20,7 @@ export function ensureTicketInventorySchema(){
    ALTER TABLE tickets ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ;
    CREATE INDEX IF NOT EXISTS idx_orders_ticket_items ON orders USING gin(items jsonb_path_ops) WHERE status IN ('paid','fulfilled','partially_refunded');`);
   await ensureMpesaAttemptSchema();
+  await ensurePaystackAttemptSchema();
  })().catch(error=>{inventorySchema=undefined;throw error});
  return inventorySchema;
 }
@@ -29,12 +31,13 @@ export const CAPACITY_COUNTS_SQL=`SELECT
  (SELECT COALESCE(SUM(CASE WHEN EXISTS(SELECT 1 FROM tickets t WHERE t.order_id=o.id AND t.event_id=$1 AND t.tier_name=$3)
   THEN (SELECT COUNT(*) FROM tickets t WHERE t.order_id=o.id AND t.event_id=$1 AND t.tier_name=$3 AND t.voided_at IS NULL)
   ELSE (SELECT COALESCE(SUM((line->>'qty')::int),0) FROM jsonb_array_elements(o.items) line WHERE line->>'id'=$5) END),0)::text
-  FROM orders o WHERE o.status IN ('paid','fulfilled','partially_refunded') AND o.items @> jsonb_build_array(jsonb_build_object('id',$5::text))) AS sold,
+  FROM orders o WHERE o.status IN ('paid','fulfilled','partially_refunded') AND COALESCE(to_jsonb(o)->>'ticket_fulfillment_status','')<>'refund_review' AND o.items @> jsonb_build_array(jsonb_build_object('id',$5::text))) AS sold,
  (SELECT COALESCE(SUM(r.qty),0)::text FROM ticket_reservations r JOIN orders o ON o.id=r.order_id
   WHERE r.event_id=$1 AND r.tier_index=$2 AND r.order_id<>$4 AND r.status='held'
-   AND o.status IN ('pending','unknown','reconciling','created','initiated')
+   AND (o.status IN ('pending','unknown','reconciling','created','initiated') OR o.status IN ('failed','declined','timed_out') AND EXISTS(SELECT 1 FROM paystack_checkout_attempts p WHERE p.order_id=o.id AND p.state IN ('initiating','ready','unknown')))
    AND (r.expires_at>now() OR o.status IN ('unknown','reconciling') OR o.mpesa_ref IS NOT NULL
-    OR NOT EXISTS(SELECT 1 FROM mpesa_checkout_attempts a WHERE a.order_id=o.id AND a.state='prepared'))) AS reserved`;
+    OR EXISTS(SELECT 1 FROM paystack_checkout_attempts p WHERE p.order_id=o.id AND p.state IN ('initiating','ready','unknown'))
+    OR NOT (EXISTS(SELECT 1 FROM mpesa_checkout_attempts a WHERE a.order_id=o.id AND a.state='prepared') OR EXISTS(SELECT 1 FROM paystack_checkout_attempts p WHERE p.order_id=o.id AND p.state='prepared')))) AS reserved`;
 export async function ticketCapacity(eventId:string,tierIndex:number,tierName:string){
  // Public availability reads must never acquire schema locks or run migrations.
  // Authorized reservation/mutation paths bootstrap separately. Missing schema
@@ -181,6 +184,26 @@ export async function holdTickets(opts: {
   finally{client?.release();await pool.end().catch(()=>{})}
 }
 
+/** Complimentary issuance shares the same event lock as paid holds/settlement.
+ * An authorized owner may still issue an untracked complimentary tier; that
+ * administrative operation never opens the finite-capacity online-sales gate. */
+export async function createComplimentaryTicketOrder(input:{eventId:string;tierIndex:number;tierName:string;qty:number;orderId:string;items:unknown[];name:string;email:string;phone:string}):Promise<void>{
+ if(!Number.isSafeInteger(input.qty)||input.qty<1||input.qty>20)throw Error('invalid_qty');
+ await ensureTicketInventorySchema();const pool=db();if(!pool)throw Error('db_not_configured');let client:PoolClient|undefined;
+ try{
+  client=await pool.connect();await client.query('BEGIN');await client.query("SET LOCAL statement_timeout='5s'");
+  const event=(await client.query('SELECT id,kind,tiers FROM tour_events WHERE id=$1 FOR UPDATE',[input.eventId])).rows[0];
+  const tier=parseTierInventory(event?.tiers)[input.tierIndex];
+  if(!event||event.kind!=='ticketed'||!tier||tier.name!==input.tierName)throw Error('event_changed');
+  if(tier.capacity!==null){
+   const counts=(await client.query(CAPACITY_COUNTS_SQL,[input.eventId,input.tierIndex,tier.name,input.orderId,'ticket:'+input.eventId+':'+input.tierIndex])).rows[0];
+   if(Number(counts.sold)+Number(counts.reserved)+input.qty>tier.capacity)throw Error('sold_out');
+  }
+  await client.query("INSERT INTO orders(id,items,total,name,email,phone,status,pay_method) VALUES($1,$2::jsonb,0,$3,$4,$5,'paid','comp')",[input.orderId,JSON.stringify(input.items),input.name,input.email,input.phone]);
+  await client.query('COMMIT');
+ }catch(error){await client?.query('ROLLBACK').catch(()=>{});throw error}finally{client?.release();await pool.end().catch(()=>{})}
+}
+
 export async function consumeReservation(orderId: string): Promise<void> {
   if (!hasDb()) return;
   await q(
@@ -203,8 +226,8 @@ export async function expireStaleReservations(): Promise<number> {
   const rows = await q<{ id: string }>(
     `UPDATE ticket_reservations r SET status='expired'
       WHERE r.status='held' AND r.expires_at <= now() AND EXISTS(
-       SELECT 1 FROM orders o WHERE o.id=r.order_id AND (o.status IN ('declined','timed_out','failed','refunded') OR
-        o.status='pending' AND o.mpesa_ref IS NULL AND EXISTS(SELECT 1 FROM mpesa_checkout_attempts a WHERE a.order_id=o.id AND a.state='prepared'))
+       SELECT 1 FROM orders o WHERE o.id=r.order_id AND (o.status IN ('declined','timed_out','failed','refunded') AND NOT EXISTS(SELECT 1 FROM paystack_checkout_attempts p WHERE p.order_id=o.id AND p.state IN ('initiating','ready','unknown')) OR
+        o.status='pending' AND o.mpesa_ref IS NULL AND (EXISTS(SELECT 1 FROM mpesa_checkout_attempts a WHERE a.order_id=o.id AND a.state='prepared') OR EXISTS(SELECT 1 FROM paystack_checkout_attempts p WHERE p.order_id=o.id AND p.state='prepared')))
       ) RETURNING r.id`,
   ).catch(() => { throw new Error('database_unavailable'); });
   return rows.length;
