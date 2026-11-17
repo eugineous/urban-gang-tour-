@@ -1121,7 +1121,8 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
 - `POST /api/marketplace/checkout`: public same-origin, rate-limited, signed
   guest-checkout scope required (428 otherwise); buyer accounts remain optional.
   Accepts only `{eventId,tier,qty,name,email?,idempotencyKey}`; the key uses the
-  same 32–128 character Paystack attempt contract. Prices, quantity limits,
+  same 32–128 character Paystack attempt contract. Streamed JSON is bounded to
+  8 KiB/5 seconds (413 oversized, 408 stalled). Prices, quantity limits,
   approved organizer/payout configuration, publication, date, venue and finite
   tier capacity are checked server-side. Unknown capacities cannot start sales.
   An absent commission setting retains the existing 8% default; an unavailable
@@ -1150,6 +1151,8 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   obligations lock date, venue, city, tier names/prices/order; capacity-only
   updates remain possible if every tier covers sold plus reserved admissions.
   `GET /api/organizer/events/:id` includes `materialLocked` for that UI state.
+  Organizer edits parse/validate bounded JSON (32 KiB/5 seconds) before acquiring
+  organizer/event locks; slow request uploads cannot hold payment-path locks.
   Existing owned-ticket launch flags and merchandise payment contracts remain
   separate and unchanged.
 - New payment initiation is Paystack-only by explicit server policy, independent

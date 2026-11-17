@@ -5,6 +5,7 @@ import { sameOrigin } from '@/lib/server/origin';
 import { rateLimit, clientIp } from '@/lib/server/ratelimit';
 import {marketplaceTransaction,ensureMarketplaceTicketSchema} from '@/lib/server/paystack-marketplace-tickets';
 import {CAPACITY_COUNTS_SQL} from '@/lib/server/ticket-inventory';
+import {readJsonObject} from '@/lib/server/json-body';
 import { ensureOpsSchema } from '@/lib/server/ops';
 import {
   OrganizerEventPatch,
@@ -51,8 +52,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!rateLimit('org-event-edit:' + clientIp(req), 20, 60_000)) {
     return NextResponse.json({ error: 'too_many_requests' }, { status: 429 });
   }
+  const body = await readJsonObject(req, 32768);
+  if (!body.ok) return NextResponse.json({ error: body.error }, { status: body.status });
+  const parsed = parseOrganizerEventPatch(body.value);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  if (!Object.keys(parsed.patch).length)
+    return NextResponse.json({ error: 'no_event_changes' }, { status: 400 });
   await ensureOpsSchema();
-
   const { id } = await params;
   try {
     await ensureMarketplaceTicketSchema();
@@ -62,13 +68,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (ev.status === 'cancelled' || ev.status === 'completed') {
       return NextResponse.json({ error: 'event_closed' }, { status: 400 });
     }
-
-    let body: any;
-    try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
-    const parsed = parseOrganizerEventPatch(body);
-    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
-    if (!Object.keys(parsed.patch).length)
-      return NextResponse.json({ error: 'no_event_changes' }, { status: 400 });
 
     const soldRow = await q<{ n: string }>(`SELECT COUNT(*)::text AS n FROM tickets WHERE marketplace_event_id=$1`, [id]);
     const ticketsSold = Number(soldRow[0]?.n || 0);

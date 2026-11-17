@@ -1,8 +1,15 @@
 import {afterEach,expect,it,vi} from 'vitest';
+const locks=vi.hoisted(()=>({transaction:vi.fn(()=>{throw Error('lock_acquired_before_body')})}));
 vi.mock('@/lib/server/paystack',()=>({paystackConfigured:()=>true,paystackInit:vi.fn()}));
 vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'fixture',PURCHASE_NETWORK_LIMIT:1000}));
+vi.mock('@/lib/server/organizer-session',()=>({currentApprovedOrganizer:async()=>({organizer:{id:'org'}})}));
+vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:async()=>{}}));
+vi.mock('@/lib/server/paystack-marketplace-tickets',async original=>({...await original<object>(),ensureMarketplaceTicketSchema:async()=>{},marketplaceTransaction:locks.transaction}));
 import {POST} from '@/app/api/marketplace/checkout/route';
+import {POST as edit} from '@/app/api/organizer/events/[id]/route';
 const request=(body:BodyInit)=>new Request('https://urbangangtour.co.ke/api/marketplace/checkout',{method:'POST',headers:{origin:'https://urbangangtour.co.ke','content-type':'application/json'},body,...(body instanceof ReadableStream?{duplex:'half'}:{})} as RequestInit);
-afterEach(()=>vi.useRealTimers());
+afterEach(()=>{vi.useRealTimers();vi.clearAllMocks()});
 it('rejects oversized marketplace payment input before a session, order or provider call',async()=>{const response=await POST(request(JSON.stringify({name:'x'.repeat(9000)})));expect(response.status).toBe(413);expect(await response.json()).toEqual({error:'body_too_large'})});
 it('bounds a stalled marketplace request stream',async()=>{vi.useFakeTimers();const pending=POST(request(new ReadableStream({start(){}})));await vi.advanceTimersByTimeAsync(5001);const response=await pending;expect(response.status).toBe(408)});
+it('rejects oversized organizer edits before acquiring money-path locks',async()=>{const response=await edit(request(JSON.stringify({description:'x'.repeat(40000)})),{params:Promise.resolve({id:'mkt-fixture'})});expect(response.status).toBe(413);expect(locks.transaction).not.toHaveBeenCalled()});
+it('times out a stalled organizer edit without locking the organizer or event',async()=>{vi.useFakeTimers();const pending=edit(request(new ReadableStream({start(){}})),{params:Promise.resolve({id:'mkt-fixture'})});await vi.advanceTimersByTimeAsync(5001);const response=await pending;expect(response.status).toBe(408);expect(locks.transaction).not.toHaveBeenCalled()});
