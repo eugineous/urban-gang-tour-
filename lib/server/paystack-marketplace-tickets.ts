@@ -6,7 +6,6 @@ import {ensureMarketplaceColumns,getMarketplaceEventById,checkoutCommissionPerce
 import {CAPACITY_COUNTS_SQL,canSellQty,ensureTicketInventorySchema} from './ticket-inventory';
 import type {AttemptIdentity,PaystackAttempt} from './paystack-attempts';
 import type {OrderRow} from './receipt-email';
-import {RECOVERABLE_PAYMENT_STATUSES} from './payment-status';
 export type MarketplaceSelection={eventId:string;tier:number;qty:number};
 export type MarketplacePurchase=MarketplaceSelection&{
  version:1;organizerId:string;eventName:string;tierName:string;name:string;eventDate:string;venue:string;
@@ -87,7 +86,8 @@ export async function settleMarketplaceTicket(input:{orderId:string;reference:st
  if(markers[0]?.purchase==null){
   if(markers[0]?.source!=='marketplace')return {handled:false,order:null};
   // Legacy payable sessions have no proven capacity/split snapshot. Record any
-  // new money for operator review; existing paid/fulfilled tickets are untouched.
+  // new money for operator review, including old uncertain initiations marked
+  // failed. Existing paid/fulfilled/refunded orders are untouched.
   await qSchema(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS paystack_marketplace JSONB;
    ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_fulfillment_status TEXT;
    ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_payment_received_at TIMESTAMPTZ;`);
@@ -97,7 +97,7 @@ export async function settleMarketplaceTicket(input:{orderId:string;reference:st
     AND paystack_marketplace IS NULL AND status=ANY($4::text[]) RETURNING id
   ) INSERT INTO payment_effect_outbox(order_id,effect,gateway)
    SELECT paid.id,effect.name,'paystack' FROM paid CROSS JOIN (VALUES ('reservation'),('inventory'),('tickets'),('receipt')) AS effect(name)
-   ON CONFLICT(order_id,effect) DO NOTHING`,[input.orderId,input.reference,input.amountKes,RECOVERABLE_PAYMENT_STATUSES]);
+   ON CONFLICT(order_id,effect) DO NOTHING`,[input.orderId,input.reference,input.amountKes,['pending','unknown','reconciling','failed','declined','timed_out']]);
   return {handled:true,order:null};
  }
  const p=marketplacePurchase(markers[0].purchase);await ensureMarketplaceTicketSchema();
