@@ -19,7 +19,7 @@ import {EventPlacements} from '@/ui/components/EventPlacements';
 import type {OwnedEvent} from '@/ui/lib/owned-event-presentation';
 import {readLiveCart,subscribeLiveCart} from '@/lib/client/live-cart';
 
-export function AppShell({children,events=[],initialNow=0}:{children:React.ReactNode;events?:OwnedEvent[];initialNow?:number}){
+export function AppShell({children,events=[],initialNow=0,newsMode=false}:{children:React.ReactNode;events?:OwnedEvent[];initialNow?:number;newsMode?:boolean}){
  const path=usePathname();
  const previousPath=useRef(path);
  useEffect(()=>{
@@ -27,10 +27,10 @@ export function AppShell({children,events=[],initialNow=0}:{children:React.React
   // Hydration restores streamed anchors without overriding native text fragments.
   reset(previousPath.current!==path);previousPath.current=path;
  },[path]);
- return <PathShell key={path} path={path} events={events} initialNow={initialNow}>{children}</PathShell>;
+ return <PathShell key={path} path={path} events={events} initialNow={initialNow} newsMode={newsMode}>{children}</PathShell>;
 }
 /** A route change closes transient navigation without a cascading state effect. */
-function PathShell({children,path,events,initialNow}:{children:React.ReactNode;path:string;events:OwnedEvent[];initialNow:number}){
+function PathShell({children,path,events,initialNow,newsMode}:{children:React.ReactNode;path:string;events:OwnedEvent[];initialNow:number;newsMode:boolean}){
  const t=useMessages(shellMessages);
  const navLabel=(label:string,href:string)=>{const key=navigationMessageKey(href);return key?t(key):label};
  const groupLabel=(group:string)=>{const key=navigationGroupKey(group);return key?t(key):group};
@@ -94,14 +94,14 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  const critical=/^\/(shop|checkout|pay|book|account|my-tickets|organizer|cart|orders|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
   <InteractionCraft/>
-  <header ref={header} className="site-header" data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
+  <header ref={header} className="site-header" data-news-mode={newsMode||undefined} data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
    <div className="header-content">
    <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
-   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{links.map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
+   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{(newsMode?[['News','/blog'],['Events','/events'],['Shop','/shop'],['About','/about'],['Book Us','/book']]:links).map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
    <div className="header-actions">
     <a className="tickets-link" href="/my-tickets"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
     <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
-    <a className="mobile-search" href="/events#event-search" aria-label={t('nav.search')}><MagnifyingGlass size={23} aria-hidden="true"/></a>
+    <a className="mobile-search" href={newsMode?"/my-tickets":"/events#event-search"} aria-label={t(newsMode?'nav.tickets':'nav.search')}>{newsMode?<Ticket size={23} aria-hidden="true"/>:<MagnifyingGlass size={23} aria-hidden="true"/>}</a>
     <a className="start-link" href="/apply"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
     <MobileMenuToggle buttonRef={trigger} open={open} onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}/>
    </div>
@@ -113,14 +113,14 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
    if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
   }}>
    <div className="menu-dialog-heading"><strong>{t('nav.menu')}</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label={t('nav.close')}>{t('nav.closeVisible')}</button></div>
-   <div className="menu-groups">{menuGroups.map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
+   <div className="menu-groups">{(newsMode?[{title:'Explore',items:[['News','/blog'],...menuGroups[0].items]}]:menuGroups).map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
    <div className="menu-bottom"><nav className="menu-account-links" aria-label={t('nav.accountHelp')}>{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav></div>
   </dialog>
   <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&path!=='/apply'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   {path!=='/apply'&&<CampaignDisplays path={path} paused={open||focus}/>}
   {!critical&&path!=='/apply'&&<BookingInvitation paused={open||focus}/>}
-  {!open&&<MobileAppNavigation path={path}/>}
+  {!open&&<MobileAppNavigation path={path} newsMode={newsMode}/>}
   {!critical&&path!=='/reels'&&path!=='/apply'&&path!=='/contact-us'&&!path.startsWith('/events')&&!open&&!focus&&<FloatingTalk/>}
   {(!critical||/^\/shop(?:\/|$)/.test(path))&&!open&&<BackToTop/>}
   {path!=='/reels'&&!path.startsWith('/checkout')&&<ContactFooter path={path} onCookies={()=>dispatchEvent(new Event('ugt-open-cookie-settings'))} focusView={focus} onFocus={toggleFocus} form={!critical&&path!=='/apply'&&path!=='/contact-us'&&path!=='/offline'}/>}

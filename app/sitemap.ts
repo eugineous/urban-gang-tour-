@@ -36,6 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: r.priority,
   }));
 
+  pages.push({url:SITE.domain+'/editorial-policy',changeFrequency:'monthly',priority:0.4});
+
   const posts = (await getBlogPosts()).map((p) => ({
     url: `${SITE.domain}/blog/${encodeURIComponent(p.slug)}`,
     lastModified: modifiedAt(p.dateModified),

@@ -1,3 +1,4 @@
+import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
 import { getBlogPosts } from '@/app/_lib/blog';
 import { SITE } from '@/lib/site';
 import {publicationInstant} from '@/lib/editorial-time';
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic';
 // Center's feed slot, and any aggregator that discovers it via the
 // rel="alternate" link every page now carries (see app/_lib/seo.ts).
 export async function GET() {
+  const newsMode=await urbanNewsEnabled();
   const posts = (await getBlogPosts()).slice(0, 50);
 
   const esc = (s: string) =>
@@ -34,7 +36,7 @@ export async function GET() {
     <title>Urban News — Urban Gang Tour</title>
     <link>${SITE.domain}/blog</link>
     <atom:link href="${SITE.domain}/feed.xml" rel="self" type="application/rss+xml" />
-    <description>Published school and campus event updates, culture and stories from Urban Gang Tour.</description>
+    <description>${newsMode?'Entertainment and culture reporting from Urban News.':'Published school and campus event updates, culture and stories from Urban Gang Tour.'}</description>
     <language>en-ke</language>
 ${items}
   </channel>
