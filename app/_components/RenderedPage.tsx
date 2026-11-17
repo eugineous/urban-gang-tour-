@@ -23,7 +23,7 @@ export async function RenderedPage({pathName,initialInstagramArchive}:{pathName:
  // Index cards need excerpts only. Do not serialize the full newsroom and all
  // article bodies into the home page's hydration payload.
  const ordered=newestPublishedFirst(published);
- const posts=(home?ordered.slice(0,3):ordered).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description}));
+ const posts=(home?ordered.slice(0,3):ordered).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description,...(p.newsCountry?{newsCountry:p.newsCountry}:{}),...(p.newsVerification?{newsVerification:p.newsVerification}:{})}));
  const page=<HostedSite path={pathName} screens={[]} products={products} events={events} posts={posts} pageContent={pageContent} initialNow={requestTime()}/>;
  return pathName==='/gallery'||pathName.startsWith('/gallery/')||pathName==='/reels'?<MediaCatalogProvider initialArchive={initialInstagramArchive}>{page}</MediaCatalogProvider>:page;
 }

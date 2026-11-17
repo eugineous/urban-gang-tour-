@@ -59,6 +59,7 @@ export async function trashStory(slug: string, actor: string, owner: boolean, ve
     WITH removed AS (
       DELETE FROM posts AS post WHERE slug=$1 AND updated_at::text=$4
         AND COALESCE(to_jsonb(post)->>'editorial_managed','false')<>'true'
+        AND COALESCE(to_jsonb(post)->>'urban_news_id','')=''
         AND ($3::boolean OR (NOT published AND submitted_by=$2))
         AND NOT EXISTS (SELECT 1 FROM admin_story_trash WHERE slug=$1)
       RETURNING post.*
@@ -76,7 +77,8 @@ export async function restoreStory(slug: string, actor: string, owner: boolean) 
   await ensureStoryWorkspaceSchema();
   return q<{slug: string}>(`
     WITH source AS (
-      SELECT * FROM admin_story_trash WHERE slug=$1 AND ($3::boolean OR removed_by=$2) FOR UPDATE
+      SELECT * FROM admin_story_trash WHERE slug=$1 AND ($3::boolean OR removed_by=$2)
+        AND COALESCE(snapshot->>'urban_news_id','')='' FOR UPDATE
     ), restored AS (
       INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,submitted_by,reviewed_by,reviewed_at)
       SELECT slug,snapshot->>'headline',COALESCE(snapshot->>'section','News'),COALESCE(snapshot->>'image',''),
