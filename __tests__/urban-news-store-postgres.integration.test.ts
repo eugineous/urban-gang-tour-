@@ -1,15 +1,25 @@
 /** Opted-in, network-none disposable PostgreSQL only; never DATABASE_URL. */
-import {afterAll,beforeAll,describe,expect,it,vi} from 'vitest';
+import {afterAll,beforeAll,describe,expect,it as testCase,vi} from 'vitest';
 import {DisposablePostgres} from './helpers/disposable-postgres';
 import type {DiscoveredNews,UrbanNewsDraft} from '@/lib/shared/urban-news';
-const fixture=vi.hoisted(()=>({query:undefined as unknown as (sql:string,params?:unknown[])=>Promise<Record<string,unknown>[]>,schema:undefined as unknown as (sql:string)=>Promise<void>}));
+const fixture=vi.hoisted(()=>({query:undefined as unknown as (sql:string,params?:unknown[])=>Promise<Record<string,unknown>[]>,schema:undefined as unknown as (sql:string)=>Promise<void>,social:vi.fn()}));
 vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:(sql:string,params?:unknown[])=>fixture.query(sql,params),qSchema:(sql:string)=>fixture.schema(sql)}));
+vi.mock('@/lib/meta-social',()=>({facebookConfigured:()=>true,instagramConfigured:()=>false,postToFacebookPage:fixture.social,postToInstagram:fixture.social}));
+vi.mock('@/lib/server/session',()=>({verifyAdminSession:async()=>true,hasPerm:()=>true,isSuperAdmin:()=>true,adminActor:()=> 'fixture-owner'}));
+vi.mock('@/lib/server/notify',()=>({notifyPostPublished:vi.fn()}));
+vi.mock('@/lib/server/indexnow',()=>({pingIndexNow:vi.fn()}));
+vi.mock('next/cache',()=>({revalidatePath:vi.fn(),revalidateTag:vi.fn()}));
+vi.mock('next/server',async original=>({...await original<object>(),after:vi.fn()}));
 import {createUrbanNewsCandidate,saveUrbanNewsDraft,publishUrbanNews,retractUrbanNews,holdUrbanNews,getUrbanNewsItem,getUrbanNewsOverview,ingestUrbanNewsCandidates,releaseApprovedUrbanNews} from '@/lib/server/urban-news-store';
 import {urbanNewsDraftHash} from '@/lib/server/urban-news-policy';
 import {getPublicPostSelect,getPublicPostSummarySelect} from '@/lib/server/editorial-publication';
+import {dispatchArticleAnnouncement,dispatchDueArticleAnnouncements} from '@/lib/server/content-automation';
+import {trashStory,restoreStory} from '@/lib/server/story-workspace';
+import {POST as saveLegacyStory} from '@/app/api/admin/save/route';
 const source:DiscoveredNews={url:'https://example.test/fixture?utm_source=one',title:'Fixture announcement',publisher:'Fixture publisher',country:'KE',language:'en',observedAt:'2026-11-17T00:00:00Z',provider:'manual'};
 const draft:UrbanNewsDraft={headline:'Fictional fixture music announcement',dek:'Fixture reporting only.',body:['The fictional fixture artist announced a release.'],category:'music',country:'KE',verification:'attributed',subjectKind:'public_figure',risk:'routine',evidence:[{id:'source-1',url:'https://example.test/fixture',publisher:'Fixture publisher',title:'Fixture announcement',observedAt:'2026-11-17T00:00:00Z',publishedAt:null,excerpt:'Private excerpt NEVER public',rights:'public_facts',role:'primary',independenceKey:'fixture-publisher',checked:true}],claims:[{text:'A fixture release was announced.',evidenceIds:['source-1']}],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:'Prepared with AI assistance and reviewed.'};
 const approve=(item:{id:string;revision:number;liveRevision:number|null},d=draft)=>({id:item.id,expectedRevision:item.revision,expectedLiveRevision:item.liveRevision,approvedHash:urbanNewsDraftHash(d),checks:{facts:true,rights:true,attribution:true}});
+const it=(name:string,run:()=>Promise<void>)=>testCase(name,run,30000);
 describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolated SQL publication',()=>{
  const pg=new DisposablePostgres();
  beforeAll(async()=>{
@@ -19,7 +29,7 @@ describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolate
   fixture.schema=async(sql)=>{await pg.schema(sql)};
   await pg.schema(`CREATE TABLE posts(slug TEXT PRIMARY KEY,headline TEXT NOT NULL,section TEXT,image TEXT,dek TEXT,body JSONB,published BOOLEAN NOT NULL DEFAULT false,date DATE NOT NULL DEFAULT CURRENT_DATE,updated_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE TABLE audit_log(id BIGSERIAL PRIMARY KEY,actor TEXT,action TEXT,detail JSONB); INSERT INTO posts(slug,headline,body,published,date) VALUES('old-fixture','Preserved old story','["Preserved manuscript"]',true,'2020-01-01');`);
  },30000);
- afterAll(()=>pg.stop());
+ afterAll(()=>{pg.stop();vi.unstubAllEnvs()});
  it('deduplicates canonical discovery and response replays without changing legacy content',async()=>{
   const [a,b]=await Promise.all([createUrbanNewsCandidate(source,'fixture-editor','request-1'),createUrbanNewsCandidate({...source,url:'https://example.test/fixture'},'fixture-editor','request-2')]);
   expect(a.id).toBe(b.id);expect(a.revision).toBe(1);
@@ -105,5 +115,52 @@ describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolate
   expect(held.stage).toBe('held');expect(held.liveRevision).toBe(live.liveRevision);
   vi.stubEnv('URBAN_NEWS_ENABLED','true');expect((await fixture.query(getPublicPostSelect())).find(row=>row.slug===live.slug)?.headline).toBe(draft.headline);
   expect(await releaseApprovedUrbanNews()).toEqual({released:0,slugs:[]});
+ });
+ it('invalidates an unpublished schedule when its working draft changes before release',async()=>{
+  const candidate=await createUrbanNewsCandidate({...source,url:'https://example.test/edit-before-release'},'fixture-editor','edit-before-release');
+  const saved=await saveUrbanNewsDraft(candidate.id,1,draft,'fixture-editor');
+  const scheduled=await publishUrbanNews({...approve(saved),scheduledAt:new Date(Date.now()+3600000).toISOString()},'fixture-owner');
+  const next=await saveUrbanNewsDraft(scheduled.id,scheduled.revision,{...draft,headline:'Unapproved revision of scheduled fixture'},'fixture-editor');
+  expect(next.liveRevision).toBeNull();expect(next.publishedAt).toBeNull();
+  await pg.query("UPDATE posts SET urban_news_public=jsonb_set(jsonb_set(urban_news_public,'{scheduledAt}',to_jsonb((now()-interval '1 second')::text)),'{publishedAt}',to_jsonb((now()-interval '1 second')::text)) WHERE urban_news_id=$1",[scheduled.id]);
+  vi.stubEnv('URBAN_NEWS_ENABLED','true');expect((await fixture.query(getPublicPostSelect())).some(row=>row.slug===scheduled.slug)).toBe(false);
+  expect(await releaseApprovedUrbanNews()).toEqual({released:0,slugs:[]});
+ });
+ it('excludes news snapshots from generic save, trash, restore and both social dispatch paths',async()=>{
+  const candidate=await createUrbanNewsCandidate({...source,url:'https://example.test/legacy-boundary'},'fixture-editor','legacy-boundary');
+  const saved=await saveUrbanNewsDraft(candidate.id,1,draft,'fixture-editor');const live=await publishUrbanNews(approve(saved),'fixture-owner');
+  const row=(await pg.query('SELECT updated_at::text AS version FROM posts WHERE urban_news_id=$1',[live.id]))[0];
+  const legacyRequest=(kind:string)=>new Request('https://urbangangtour.co.ke/api/admin/save',{method:'POST',headers:{Origin:'https://urbangangtour.co.ke','Content-Type':'application/json'},body:JSON.stringify({kind,data:{slug:live.slug,expectedVersion:row.version,...(kind==='post'?{headline:'Forbidden old desk edit',published:true}:{})}})});
+  for(const kind of ['post','deletePost']){const response=await saveLegacyStory(legacyRequest(kind));expect(response.status).toBe(409);expect(await response.json()).toMatchObject({error:'use_urban_news_desk'})}
+  expect(await trashStory(live.slug!,'fixture-owner',true,String(row.version))).toEqual([]);
+  await pg.query("INSERT INTO admin_story_trash(slug,snapshot,removed_by) VALUES('fake-news-trash',$1::jsonb,'fixture-owner')",[JSON.stringify({urban_news_id:live.id,headline:'Must never restore through legacy path'})]);
+  expect(await restoreStory('fake-news-trash','fixture-owner',true)).toEqual([]);
+  await pg.query('UPDATE posts SET social_automation_enabled=true WHERE urban_news_id=$1',[live.id]);
+  vi.stubEnv('UGT_SOCIAL_AUTOMATION_ENABLED','true');vi.stubEnv('META_AUTOPOST_TARGETS','fb');
+  expect(await dispatchArticleAnnouncement(live.slug!)).toBe('skipped');expect(await dispatchDueArticleAnnouncements()).toMatchObject({scanned:0,posted:0});expect(fixture.social).not.toHaveBeenCalled();
+  expect((await pg.query('SELECT headline,published FROM posts WHERE urban_news_id=$1',[live.id]))[0]).toMatchObject({headline:draft.headline,published:'t'});
+ });
+ it('rolls back a projection write failure without changing the live revision or approval audit',async()=>{
+  const candidate=await createUrbanNewsCandidate({...source,url:'https://example.test/atomic-failure'},'fixture-editor','atomic-failure');
+  const saved=await saveUrbanNewsDraft(candidate.id,1,draft,'fixture-editor');const live=await publishUrbanNews(approve(saved),'fixture-owner');
+  const changed={...draft,headline:'Database-rejected fixture correction'};const next=await saveUrbanNewsDraft(live.id,live.revision,changed,'fixture-editor');
+  await pg.schema(`CREATE FUNCTION fixture_reject_correction() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.headline='Database-rejected fixture correction' THEN RAISE EXCEPTION 'fixture_write_rejected'; END IF; RETURN NEW; END $$; CREATE TRIGGER fixture_reject_correction BEFORE UPDATE ON posts FOR EACH ROW EXECUTE FUNCTION fixture_reject_correction();`);
+  await expect(publishUrbanNews({...approve(next,changed),correctionNote:'Reviewed fixture correction.'},'fixture-owner')).rejects.toThrow('fixture_write_rejected');
+  expect((await getUrbanNewsItem(live.id))!).toMatchObject({revision:next.revision,liveRevision:live.liveRevision,stage:'draft'});
+  expect((await pg.query('SELECT headline,urban_news_revision FROM posts WHERE urban_news_id=$1',[live.id]))[0]).toMatchObject({headline:draft.headline,urban_news_revision:String(live.liveRevision)});
+  expect((await pg.query("SELECT count(*)::text AS count FROM urban_news_audit WHERE candidate_id=$1 AND revision=$2 AND action='approve_publication'",[live.id,next.revision]))[0].count).toBe('0');
+ });
+ it('uses filter-bound keyset cursors and bounds discovery storage without pruning drafted records',async()=>{
+  await pg.query(`INSERT INTO urban_news_candidates(id,canonical_url,request_key,source,draft,draft_hash,stage)
+   SELECT gen_random_uuid(),'https://example.test/page-'||n,'fixture-page-'||n,'{}'::jsonb,$1::jsonb||jsonb_build_object('headline','Pagination fixture '||n),$2,'draft' FROM generate_series(1,51) n`,[JSON.stringify(draft),urbanNewsDraftHash(draft)]);
+  const first=await getUrbanNewsOverview(undefined,{q:'Pagination fixture',stage:'draft'});expect(first.items).toHaveLength(50);expect(first.nextCursor).toBeTruthy();
+  const next=await getUrbanNewsOverview(first.nextCursor!,{q:'Pagination fixture',stage:'draft'});expect(next.items).toHaveLength(1);expect(next.nextCursor).toBeNull();expect(first.items.some(row=>row.id===next.items[0].id)).toBe(false);
+  await expect(getUrbanNewsOverview(first.nextCursor!,{q:'different'})).rejects.toThrow('invalid_news_cursor');
+  await pg.query(`INSERT INTO urban_news_candidates(id,canonical_url,request_key,source,draft,draft_hash,stage,discovery_slot)
+   SELECT gen_random_uuid(),'https://example.test/capacity-'||n,'fixture-capacity-'||n,'{}'::jsonb,$1::jsonb,$2,'discovered',n FROM generate_series(1,500) n
+   WHERE NOT EXISTS(SELECT 1 FROM urban_news_candidates WHERE stage='discovered' AND discovery_slot=n)`,[JSON.stringify(draft),urbanNewsDraftHash(draft)]);
+  await expect(createUrbanNewsCandidate({...source,url:'https://example.test/over-capacity'},'fixture-editor','over-capacity')).rejects.toThrow('news_capacity_reached');
+  expect((await pg.query("SELECT count(*)::text AS count FROM urban_news_candidates WHERE stage='discovered'"))[0].count).toBe('500');
+  expect((await getUrbanNewsOverview(undefined,{q:'Pagination fixture'})).items).toHaveLength(50);
  });
 });

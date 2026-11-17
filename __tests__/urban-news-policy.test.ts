@@ -10,7 +10,7 @@ describe('Urban News editorial policy',()=>{
  });
  it('canonicalizes only public HTTPS source URLs without tracking',()=>{
   expect(canonicalNewsUrl('https://EXAMPLE.test/story?utm_source=fixture&a=2#part')).toBe('https://example.test/story?a=2');
-  for(const url of ['http://example.test','https://user:pass@example.test','https://127.0.0.1/story','https://localhost/','https://169.254.169.254/','https://[::1]/'])expect(()=>canonicalNewsUrl(url)).toThrow('invalid_news_url');
+  for(const url of ['http://example.test','https://user:pass@example.test','https://127.0.0.1/story','https://localhost/','https://169.254.169.254/','https://[::1]/','https://example.test/story?api_key=private-fixture','https://example.test/story?token=private-fixture'])expect(()=>canonicalNewsUrl(url)).toThrow('invalid_news_url');
  });
  it('allows incomplete private research but refuses publication without checked claim evidence',()=>{
   expect(validateUrbanNewsDraft({...checkedDraft,body:[],claims:[],risk:'unknown',evidence:[]})).toBeDefined();
@@ -24,5 +24,13 @@ describe('Urban News editorial policy',()=>{
   expect(()=>validateNewsPublication({...checkedDraft,risk:'sensitive'},{facts:true,rights:true,attribution:true,sensitiveNotes:'Editor checked the attributed public announcement and privacy boundaries.'})).not.toThrow();
   expect(()=>validateNewsPublication({...checkedDraft,image:'https://publisher.test/photo.jpg',imageRights:'none'},{facts:true,rights:true,attribution:true})).toThrow();
   expect(()=>validateNewsPublication(checkedDraft,{facts:false,rights:true,attribution:true})).toThrow('news_review_checks_required');
+ });
+ it('keeps approved geography explicit instead of using arbitrary publisher location strings',()=>{
+  expect(validateUrbanNewsDraft({...checkedDraft,country:'Global'}).country).toBe('Global');
+  expect(validateUrbanNewsDraft({...checkedDraft,country:'US'}).country).toBe('US');
+  expect(()=>validateUrbanNewsDraft({...checkedDraft,country:'United States sourcecountry'})).toThrow('invalid_news_draft');
+ });
+ it('rejects normalized impossible evidence dates instead of emitting invented source publication dates',()=>{
+  expect(()=>validateUrbanNewsDraft({...checkedDraft,evidence:[{...checkedDraft.evidence[0],publishedAt:'2026-02-30T12:00:00Z'}]})).toThrow('invalid_news_evidence');
  });
 });

@@ -2,7 +2,8 @@ import {createHash,randomUUID} from 'node:crypto';
 import {q,qSchema,hasDb} from './db';
 import {ensureEditorialSchema} from './editorial-schema';
 import {invalidate} from './microcache';
-import {canonicalNewsUrl,urbanNewsDraftHash,validateUrbanNewsDraft,validateNewsPublication} from './urban-news-policy';
+import {URBAN_NEWS_PUBLIC_PREDICATE} from './editorial-publication';
+import {canonicalNewsUrl,isNewsInstant,urbanNewsDraftHash,validateUrbanNewsDraft,validateNewsPublication} from './urban-news-policy';
 import {NEWS_CATEGORIES,type DiscoveredNews,type UrbanNewsDraft,type UrbanNewsItem,type UrbanNewsOverview,type NewsPublication,type NewsStage,type PublicNewsSource,type NewsCategory} from '@/lib/shared/urban-news';
 
 export const URBAN_NEWS_SCHEMA=`
@@ -105,9 +106,17 @@ export async function ingestUrbanNewsCandidates(items:DiscoveredNews[],runId:str
 
 export async function saveUrbanNewsDraft(id:string,expectedRevision:number,value:UrbanNewsDraft,actor:string):Promise<UrbanNewsItem>{
  identity(id,expectedRevision);actorId(actor);const draft=validateUrbanNewsDraft(value),hash=urbanNewsDraftHash(draft);await ensureUrbanNewsSchema();
- const rows=await q<Row>(`WITH saved AS (
-  UPDATE urban_news_candidates SET draft=$3::jsonb,draft_hash=$4,revision=revision+1,stage='draft',discovery_slot=NULL,updated_at=clock_timestamp()
-  WHERE id=$1 AND revision=$2 AND stage<>'archived' RETURNING *
+ const rows=await q<Row>(`WITH eligible AS MATERIALIZED (
+  SELECT candidate.*,EXISTS(SELECT 1 FROM posts WHERE urban_news_id=candidate.id AND ${URBAN_NEWS_PUBLIC_PREDICATE}) AS has_live
+  FROM urban_news_candidates candidate WHERE id=$1 AND revision=$2 AND stage<>'archived' FOR UPDATE
+ ), saved AS (
+  UPDATE urban_news_candidates candidate SET draft=$3::jsonb,draft_hash=$4,revision=candidate.revision+1,stage='draft',discovery_slot=NULL,approval=NULL,
+   live_revision=CASE WHEN eligible.has_live THEN candidate.live_revision ELSE NULL END,
+   published_at=CASE WHEN eligible.has_live OR candidate.published_at<=now() THEN candidate.published_at ELSE NULL END,updated_at=clock_timestamp()
+  FROM eligible WHERE candidate.id=eligible.id RETURNING candidate.*
+ ), projection AS (
+  UPDATE posts SET published=false,social_automation_enabled=false,urban_news_public=jsonb_set(urban_news_public,'{live}','false'::jsonb),updated_at=now()
+  WHERE urban_news_id IN(SELECT id FROM saved WHERE live_revision IS NULL) RETURNING urban_news_id
  ), history AS (
   INSERT INTO urban_news_revisions(candidate_id,revision,draft,draft_hash,actor) SELECT id,revision,draft,draft_hash,$5 FROM saved RETURNING candidate_id,revision
  ), evidence AS (
@@ -117,7 +126,7 @@ export async function saveUrbanNewsDraft(id:string,expectedRevision:number,value
  ), audit AS (
   INSERT INTO urban_news_audit(candidate_id,actor,action,revision,detail) SELECT id,$5,'save_draft',revision,jsonb_build_object('hash',draft_hash) FROM saved RETURNING candidate_id
  ) SELECT ${fields} FROM saved`,[id,expectedRevision,JSON.stringify(draft),hash,actor]);
- if(rows[0])return item(rows[0]);
+ if(rows[0]){refreshPublic();return item(rows[0]);}
  // Repeating an interrupted save cannot create a second revision.
  const current=await getUrbanNewsItem(id);if(current&&current.revision===expectedRevision+1&&current.draftHash===hash&&current.stage==='draft')return current;
  return resultOrConflict([],id);
@@ -130,31 +139,32 @@ function publicSnapshot(draft:UrbanNewsDraft,revision:number,hash:string,note:st
 export async function publishUrbanNews(input:NewsPublication,actor:string):Promise<UrbanNewsItem>{
  if(!input||typeof input!=='object'||Object.keys(input).some(key=>!['id','expectedRevision','expectedLiveRevision','approvedHash','scheduledAt','correctionNote','checks'].includes(key)))throw Error('invalid_news_publication');
  identity(input.id,input.expectedRevision);actorId(actor);
- if(input.expectedLiveRevision!==null&&(!Number.isSafeInteger(input.expectedLiveRevision)||input.expectedLiveRevision<1)||typeof input.approvedHash!=='string'||!/^[a-f0-9]{64}$/.test(input.approvedHash)||input.correctionNote!==undefined&&(typeof input.correctionNote!=='string'||input.correctionNote.length>2000)||input.scheduledAt!==undefined&&(typeof input.scheduledAt!=='string'||!/^\d{4}-\d{2}-\d{2}T/.test(input.scheduledAt)||!Number.isFinite(Date.parse(input.scheduledAt))))throw Error('invalid_news_publication');
+ if(input.expectedLiveRevision!==null&&(!Number.isSafeInteger(input.expectedLiveRevision)||input.expectedLiveRevision<1)||typeof input.approvedHash!=='string'||!/^[a-f0-9]{64}$/.test(input.approvedHash)||input.correctionNote!==undefined&&(typeof input.correctionNote!=='string'||input.correctionNote.length>2000)||input.scheduledAt!==undefined&&!isNewsInstant(input.scheduledAt))throw Error('invalid_news_publication');
  const current=await getUrbanNewsItem(input.id);if(!current)throw Error('news_not_found');
  if(current.revision!==input.expectedRevision||current.liveRevision!==input.expectedLiveRevision||current.draftHash!==input.approvedHash||current.stage==='archived')throw Error('news_conflict');
  validateNewsPublication(current.draft,input.checks);
- const correction=input.correctionNote?.trim()||null;if((current.liveRevision!==null||current.publishedAt!==null)&&!correction)throw Error('news_correction_note_required');
+ const correction=input.correctionNote?.trim()||null;if(current.publishedAt!==null&&Date.parse(current.publishedAt)<=Date.now()&&!correction)throw Error('news_correction_note_required');
  const slug=current.slug||current.draft.headline.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,110).replace(/-$/,'')+'-'+current.id.slice(0,8);
  const snapshot=publicSnapshot(current.draft,current.revision,current.draftHash,correction);
  const rows=await q<Row>(`WITH eligible AS MATERIALIZED (
-  SELECT * FROM urban_news_candidates WHERE id=$1 AND revision=$2 AND live_revision IS NOT DISTINCT FROM $3::int AND draft_hash=$4 AND stage<>'archived' FOR UPDATE
+  SELECT candidate.*,EXISTS(SELECT 1 FROM posts WHERE urban_news_id=candidate.id AND ${URBAN_NEWS_PUBLIC_PREDICATE}) AS has_live
+  FROM urban_news_candidates candidate WHERE id=$1 AND revision=$2 AND live_revision IS NOT DISTINCT FROM $3::int AND draft_hash=$4 AND stage<>'archived' FOR UPDATE
  ), projection AS (
   INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,editorial_managed,social_automation_enabled,urban_news_id,urban_news_revision,urban_news_hash,urban_news_public,updated_at)
   SELECT $5,draft->>'headline',draft->>'category',CASE WHEN draft->>'image'='' THEN '/assets/pwa-512.png' ELSE draft->>'image' END,draft->>'dek',draft->'body',true,
-   (COALESCE(published_at,GREATEST(COALESCE($7::timestamptz,now()),now())) AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,id,revision,draft_hash,
-   $6::jsonb||jsonb_build_object('scheduledAt',GREATEST(COALESCE($7::timestamptz,now()),now()),'publishedAt',COALESCE(published_at,GREATEST(COALESCE($7::timestamptz,now()),now())),'modifiedAt',GREATEST(COALESCE($7::timestamptz,now()),now())),now()
-  FROM eligible WHERE NOT(live_revision IS NOT NULL AND COALESCE($7::timestamptz>now(),false))
+   (COALESCE(CASE WHEN published_at<=now() THEN published_at END,GREATEST(COALESCE($7::timestamptz,now()),now())) AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,id,revision,draft_hash,
+   $6::jsonb||jsonb_build_object('scheduledAt',GREATEST(COALESCE($7::timestamptz,now()),now()),'publishedAt',COALESCE(CASE WHEN published_at<=now() THEN published_at END,GREATEST(COALESCE($7::timestamptz,now()),now())),'modifiedAt',GREATEST(COALESCE($7::timestamptz,now()),now())),now()
+  FROM eligible WHERE NOT(has_live AND COALESCE($7::timestamptz>now(),false))
   ON CONFLICT(slug) DO UPDATE SET headline=excluded.headline,section=excluded.section,image=excluded.image,dek=excluded.dek,body=excluded.body,published=true,date=excluded.date,editorial_status='live',social_automation_enabled=false,
    urban_news_revision=excluded.urban_news_revision,urban_news_hash=excluded.urban_news_hash,urban_news_public=excluded.urban_news_public,updated_at=excluded.updated_at
   WHERE posts.urban_news_id=excluded.urban_news_id RETURNING urban_news_id,urban_news_public
  ), saved AS (
-  UPDATE urban_news_candidates candidate SET live_revision=CASE WHEN eligible.live_revision IS NOT NULL AND $7::timestamptz>now() THEN eligible.live_revision ELSE candidate.revision END,
+  UPDATE urban_news_candidates candidate SET live_revision=CASE WHEN eligible.has_live AND $7::timestamptz>now() THEN eligible.live_revision ELSE candidate.revision END,
    stage=CASE WHEN $7::timestamptz>now() THEN 'approved' ELSE 'live' END,
-   slug=$5,published_at=COALESCE(candidate.published_at,GREATEST(COALESCE($7::timestamptz,now()),now())),
-   correction_note=CASE WHEN eligible.live_revision IS NOT NULL AND $7::timestamptz>now() THEN candidate.correction_note ELSE $8 END,
+   slug=$5,published_at=COALESCE(CASE WHEN candidate.published_at<=now() THEN candidate.published_at END,GREATEST(COALESCE($7::timestamptz,now()),now())),
+   correction_note=CASE WHEN eligible.has_live AND $7::timestamptz>now() THEN candidate.correction_note ELSE $8 END,
    approval=jsonb_build_object('actor',$9::text,'hash',$4::text,'revision',$2::int,'previousLiveRevision',$3::int,'checks',$10::jsonb,'approvedAt',now(),'scheduledAt',GREATEST(COALESCE($7::timestamptz,now()),now()),'public',$6::jsonb),discovery_slot=NULL,updated_at=clock_timestamp()
-  FROM eligible WHERE candidate.id=eligible.id AND (EXISTS(SELECT 1 FROM projection WHERE urban_news_id=candidate.id) OR (eligible.live_revision IS NOT NULL AND $7::timestamptz>now())) RETURNING candidate.*
+  FROM eligible WHERE candidate.id=eligible.id AND (EXISTS(SELECT 1 FROM projection WHERE urban_news_id=candidate.id) OR (eligible.has_live AND $7::timestamptz>now())) RETURNING candidate.*
  ), audit AS (
   INSERT INTO urban_news_audit(candidate_id,actor,action,revision,detail) SELECT id,$9,'approve_publication',revision,jsonb_build_object('hash',draft_hash,'previousLiveRevision',$3::int,'correction',$8::text,'checks',$10::jsonb) FROM saved RETURNING candidate_id
  ) SELECT ${fields} FROM saved`,[input.id,input.expectedRevision,input.expectedLiveRevision,input.approvedHash,slug,JSON.stringify(snapshot),input.scheduledAt||null,correction,actor,JSON.stringify(input.checks)]);
@@ -171,7 +181,7 @@ async function withdraw(id:string,expectedRevision:number,reason:string,actor:st
  ), saved AS (
   UPDATE urban_news_candidates candidate SET stage=$5,revision=candidate.revision+1,
    live_revision=CASE WHEN $5='held' AND eligible.has_live THEN eligible.live_revision ELSE NULL END,
-   approval=NULL,discovery_slot=NULL,updated_at=clock_timestamp()
+   approval=NULL,discovery_slot=NULL,published_at=CASE WHEN eligible.has_live OR candidate.published_at<=now() THEN candidate.published_at ELSE NULL END,updated_at=clock_timestamp()
   FROM eligible WHERE candidate.id=eligible.id RETURNING candidate.*
  ), projection AS (
   UPDATE posts SET published=false,social_automation_enabled=false,urban_news_public=jsonb_set(urban_news_public,'{live}','false'::jsonb),updated_at=now()
