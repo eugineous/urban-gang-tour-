@@ -4,7 +4,7 @@
 // automatic commission per ticket via a Paystack subaccount split. Distinct
 // from lib/server/catalog.ts's tour_events (UGT's own shows) — never touch
 // that table from here.
-import { q, db } from './db';
+import { q, db, hasDb } from './db';
 import { ensureOpsSchema } from './ops';
 
 // ---------------------------------------------------------------------------
@@ -17,7 +17,12 @@ let columnsReady = false;
 export async function ensureMarketplaceColumns(): Promise<void> {
   if (columnsReady) return;
   await ensureOpsSchema();
+  await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_method TEXT DEFAULT 'mpesa'`);
+  await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS paystack_ref TEXT`);
   await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'internal'`);
+  await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS paystack_marketplace JSONB`);
+  await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_fulfillment_status TEXT`);
+  await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_payment_received_at TIMESTAMPTZ`);
   await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS organizer_id TEXT`);
   await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace_event_id TEXT`);
   await q(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS commission_amount INT`);
@@ -54,6 +59,18 @@ export async function getCommissionPercent(): Promise<number> {
   }
 }
 
+/** Checkout distinguishes an absent setting from an unavailable/invalid one. */
+export async function checkoutCommissionPercent(): Promise<number> {
+  if (!hasDb()) throw Error('db_not_configured');
+  const rows = await q<{value: unknown}>("SELECT value FROM settings WHERE key='marketplace_commission_percent'");
+  if (!rows.length) return DEFAULT_COMMISSION_PERCENT;
+  const raw=rows[0].value;
+  if(typeof raw!=='number'&&(typeof raw!=='string'||!/^\d+(?:\.\d+)?$/.test(raw)))throw Error('commission_unavailable');
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 100) throw Error('commission_unavailable');
+  return n;
+}
+
 export async function setCommissionPercent(pct: number): Promise<void> {
   const n = Math.max(0, Math.min(100, Math.round(pct * 100) / 100));
   await q(
@@ -72,7 +89,7 @@ export function computeSplit(totalKes: number, commissionPercent: number): { com
 // Marketplace event read layer (public checkout / browse — always re-priced
 // server-side from this table, never from client-sent tier prices).
 // ---------------------------------------------------------------------------
-export interface MarketplaceTier { name: string; price: number }
+export interface MarketplaceTier { name: string; price: number; capacity: number | null }
 export interface MarketplaceEventRow {
   id: string;
   organizer_id: string;
@@ -95,7 +112,7 @@ export interface MarketplaceEventRow {
 function parseTiers(v: unknown): MarketplaceTier[] {
   try {
     const arr = typeof v === 'string' ? JSON.parse(v) : v;
-    return Array.isArray(arr) ? arr.map((t: any) => ({ name: String(t.name), price: Number(t.price) || 0 })) : [];
+    return Array.isArray(arr) ? arr.map((t: any) => ({ name: String(t.name), price: Number(t.price), capacity: Number.isSafeInteger(t.capacity) && t.capacity >= 0 ? t.capacity : null })) : [];
   } catch {
     return [];
   }

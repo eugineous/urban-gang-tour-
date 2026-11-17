@@ -18,11 +18,10 @@
 //     subaccount's own percentage_charge is just a required-field fallback,
 //     never the source of truth.
 //   - `bearer` controls who pays Paystack's own processing fee: 'account'
-//     (default) or 'subaccount'. We explicitly pass 'account' — UGT eats the
-//     Paystack processing fee, so the organizer's payout is always exactly
-//     total - commission_amount, with no surprise deduction. This is a
-//     deliberate business choice, documented here so it is never silently
-//     re-decided by a future edit.
+//     (default) or 'subaccount'. We explicitly request 'account': UGT bears
+//     the processing fee, and the ledger records total - commission_amount
+//     as the organizer share. Actual merchant/channel settlement must be
+//     verified separately; these fields do not certify a payout outcome.
 const API = 'https://api.paystack.co';
 const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -59,7 +58,7 @@ export async function paystackInit(params: {
   reference: string;
   callbackUrl: string;
   metadata?: Record<string, unknown>;
-  // Opt in per flow. Marketplace/ticket callers remain card-only by default.
+  // Opt in per flow; the adapter default stays card-only.
   channels?: ('card' | 'mobile_money')[];
   // Marketplace split (omit for UGT's own internal checkouts).
   subaccountCode?: string;

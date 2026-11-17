@@ -1,6 +1,10 @@
-// Test-only transport. Real Postgres sessions through docker exec, network=none.
+// Test-only real SQL transport: default network-none Docker, or explicit owned
+// cached-image binaries in an isolated Unix-socket-only temporary native cluster.
 import {execFileSync,spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
+import {mkdtempSync,realpathSync,statSync,rmSync,readFileSync,readdirSync,existsSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 const env={...process.env};
 for(const key of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'])delete env[key];
 const prefix=['--host=unix:///var/run/docker.sock'];
@@ -14,10 +18,26 @@ function csv(text:string):string[][]{
 }
 const literal=(value:unknown):string=>value==null?'NULL':Array.isArray(value)?(value.length?'ARRAY['+value.map(literal).join(',')+']':'ARRAY[]::text[]'):typeof value==='number'||typeof value==='boolean'?String(value):"'"+String(value).replaceAll("'","''")+"'";
 export class DisposablePostgres{
+ // Explicit local-only fallback for the owner-approved cached-image binaries.
+ // Never accepts a connection URI, supplied database or supplied socket target.
+ private readonly nativeRoot=process.env.UGT_NATIVE_POSTGRES_ROOT;
+ private nativeDirectory:string|undefined;
+ private nativeStarted=false;
  private readonly existing=process.env.UGT_EDITORIAL_SQL_CONTAINER;
  readonly name=this.existing||'ugt-operations-fixture-'+randomUUID();private created=false;
  private readonly isolatedSchema='ugt_operations_fixture_'+randomUUID().replaceAll('-','');private schemaOwned=false;
  start(){
+  if(this.nativeRoot){
+   if(this.existing||this.nativeRoot!=='/tmp/ugt-marketplace-native-pg'||realpathSync(this.nativeRoot)!==this.nativeRoot||statSync(this.nativeRoot).uid!==process.getuid?.())throw Error('native_fixture_target_not_allowlisted');
+   for(const binary of ['postgres','initdb','pg_ctl','psql']){const path=join(this.nativeRoot,'usr/local/bin',binary);if(realpathSync(path)!==path||statSync(path).uid!==process.getuid?.())throw Error('native_fixture_binary_not_owned')}
+   this.nativeDirectory=mkdtempSync(join(tmpdir(),'ugt-operations-native-'));
+   this.nativeCommand('initdb',['-D',join(this.nativeDirectory,'data'),'-A','trust','--no-locale','-E','UTF8','-U','postgres']);
+   this.nativeStarted=true;
+   this.nativeCommand('pg_ctl',['-D',join(this.nativeDirectory,'data'),'-l',join(this.nativeDirectory,'postgres.log'),'-o',"-F -c listen_addresses='' -k "+this.nativeDirectory+' -c max_connections=40','-w','start']);
+   const config=this.nativeCommand('psql',['-h',this.nativeDirectory,'-U','postgres','-d','postgres','-Atc',"SELECT current_setting('listen_addresses')||'|'||current_setting('unix_socket_directories')"]);
+   if(config!=='|'+this.nativeDirectory)throw Error('native_fixture_not_isolated');
+   return;
+  }
   if(this.existing&&this.existing!=='ugt-editorial-fixture-20261019')throw Error('fixture_target_not_allowlisted');
   docker(['info','--format','{{.ServerVersion}}']);
   if(this.existing){
@@ -26,11 +46,17 @@ export class DisposablePostgres{
   }
   docker(['run','--rm','-d','--network','none','--name',this.name,'-e','POSTGRES_HOST_AUTH_METHOD=trust','postgres:16-alpine']);this.created=true;if(docker(['inspect',this.name,'--format','{{.HostConfig.NetworkMode}}'])!=='none')throw Error('fixture_not_isolated');
  }
- ready(){return docker(['exec',this.name,'pg_isready','-h','127.0.0.1','-U','postgres']).includes('accepting connections')}
- stop(){if(this.schemaOwned){docker(['exec',this.name,'psql','-X','-q','-U','postgres','-v','ON_ERROR_STOP=1','-c',`DROP SCHEMA ${this.isolatedSchema} CASCADE`]);this.schemaOwned=false}if(this.created){docker(['stop',this.name]);this.created=false}}
+ private nativeEnv(){const icu=join(this.nativeRoot!,'usr/share/icu'),versions=readdirSync(icu).filter(name=>/^\d+\.\d+$/.test(name));if(versions.length!==1)throw Error('native_fixture_icu_unavailable');const result:NodeJS.ProcessEnv={...env,ICU_DATA:join(icu,versions[0]),LD_LIBRARY_PATH:[join(this.nativeRoot!,'lib'),join(this.nativeRoot!,'usr/lib'),join(this.nativeRoot!,'usr/local/lib')].join(':')};for(const key of Object.keys(result))if(key.startsWith('PG'))delete result[key];return result}
+ private nativeCommand(binary:string,args:string[]){return execFileSync(join(this.nativeRoot!,'usr/local/bin',binary),args,{env:this.nativeEnv(),encoding:'utf8',timeout:15000,stdio:['ignore','pipe','pipe']}).trim()}
+ ready(){return this.nativeRoot?this.nativeStarted&&this.nativeCommand('psql',['-h',this.nativeDirectory!,'-U','postgres','-d','postgres','-Atc','SELECT 1'])==='1':docker(['exec',this.name,'pg_isready','-h','127.0.0.1','-U','postgres']).includes('accepting connections')}
+ stop(){if(this.nativeDirectory){
+  if(this.nativeStarted&&existsSync(join(this.nativeDirectory,'data/postmaster.pid'))){const pid=Number(readFileSync(join(this.nativeDirectory,'data/postmaster.pid'),'utf8').split('\n')[0]);if(!Number.isSafeInteger(pid)||pid<2)throw Error('native_fixture_pid_invalid');this.nativeCommand('pg_ctl',['-D',join(this.nativeDirectory,'data'),'-m','fast','-w','stop'])}this.nativeStarted=false;
+  rmSync(this.nativeDirectory,{recursive:true,force:true});this.nativeDirectory=undefined;return;
+ }if(this.schemaOwned){docker(['exec',this.name,'psql','-X','-q','-U','postgres','-v','ON_ERROR_STOP=1','-c',`DROP SCHEMA ${this.isolatedSchema} CASCADE`]);this.schemaOwned=false}if(this.created){docker(['stop',this.name]);this.created=false}}
  connect(){
+  if(this.nativeRoot&&(!this.nativeDirectory||!this.nativeStarted))throw Error('native_fixture_not_owned');
   if(this.existing&&!this.schemaOwned)throw Error('fixture_schema_not_owned');
-  const child=spawn('docker',[...prefix,'exec','-i',this.name,'psql','-X','-q','--csv','-U','postgres','-v','ON_ERROR_STOP=1'],{env,stdio:['pipe','pipe','pipe']});
+  const child=this.nativeRoot?spawn(join(this.nativeRoot,'usr/local/bin/psql'),['-h',this.nativeDirectory!,'-d','postgres','-X','-q','--csv','-U','postgres','-v','ON_ERROR_STOP=1'],{env:this.nativeEnv(),stdio:['pipe','pipe','pipe']}):spawn('docker',[...prefix,'exec','-i',this.name,'psql','-X','-q','--csv','-U','postgres','-v','ON_ERROR_STOP=1'],{env,stdio:['pipe','pipe','pipe']});
   if(this.schemaOwned)child.stdin.write(`SET search_path TO ${this.isolatedSchema};\n`);
   let output='',errors='',ended=false,chain=Promise.resolve(),serial=0;
   let pending:{marker:string;resolve:(value:{rows:Record<string,any>[]})=>void;reject:(error:Error)=>void}|undefined;

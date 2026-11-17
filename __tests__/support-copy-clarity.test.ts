@@ -50,12 +50,13 @@ describe('plain-language support pages',()=>{
   expect(html).toContain('href="/welcome/en"');
   expect(html).toContain('Report an accessibility problem');
  });
- it('uses plain payout-bank labels without changing application eligibility or promises',()=>{
+ it('uses plain payout-bank labels and accurate Paystack choices while preserving eligibility',()=>{
   const html=renderToStaticMarkup(createElement(SignupForm)).replace(/\s+/g,' ');
   expect(html).toContain('Payout bank *');
   expect(html).toContain('Bank account number *');
   expect(html).not.toContain('Settlement bank');
-  for(const text of ['automatic bank payouts','Card payments only','We review every application','our commission is deducted','18 or older and authorised','Terms','Privacy Policy'])expect(html).toContain(text);
+  for(const text of ['available card and M-Pesa options','organizer payouts follow Paystack settlement terms','We review every application','Our commission is applied per sale','18 or older and authorised','Terms','Privacy Policy'])expect(html).toContain(text);
+  expect(html).not.toContain('Card payments only');
  });
  it('keeps organizer request field names, endpoints and confirmation gates unchanged',()=>{
   const source=readFileSync('app/organizer/signup/SignupForm.tsx','utf8');

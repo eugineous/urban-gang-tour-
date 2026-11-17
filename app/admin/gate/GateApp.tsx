@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
+import {getGateAccess,verifyGateTicket,type GateVerdict} from '@/lib/client/gate-verification';
 
 // Full-screen camera gate scanner. Auth: probes an admin endpoint; a 401
 // sends staff to /admin to sign in (same ugt_admin cookie session). Decoding
@@ -9,13 +10,6 @@ import jsQR from 'jsqr';
 // decoded code hits POST /api/tickets/verify which flips used_at atomically.
 
 const CODE_RE = /TKT-(?:[A-HJ-NP-Z2-9]{22}-[A-HJ-NP-Z2-9]{12}|[A-HJ-NP-Z2-9]{10}-[A-HJ-NP-Z2-9]{4})/i;
-
-type Verdict = {
-  result: 'valid' | 'used' | 'invalid';
-  reason?: string;
-  usedAt?: string;
-  ticket?: { event: string; eventDate: string; tier: string; holder: string; position: number; ofCount: number };
-};
 
 const C = { pink: '#E6218C', yellow: '#FFD400', cyan: '#21C7E6', green: '#1F8A5B', red: '#C62828' };
 
@@ -27,7 +21,9 @@ export default function GateApp() {
   // the owner to grant them the perm (see app/api/admin/accounts).
   const [permDenied, setPermDenied] = useState(false);
   const [camErr, setCamErr] = useState('');
-  const [verdict, setVerdict] = useState<Verdict | null>(null);
+  const [verdict, setVerdict] = useState<GateVerdict | null>(null);
+  const [accessError,setAccessError]=useState(false);
+  const [online,setOnline]=useState(true);
   const [busy, setBusy] = useState(false);
   const [manual, setManual] = useState('');
   const [lastCode,setLastCode]=useState('');
@@ -40,6 +36,7 @@ export default function GateApp() {
   const rafRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
   const resumeT = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestRef=useRef<AbortController|null>(null);
 
   // Auth probe - same ugt_admin session as the Control Room, but gate
   // scanning additionally requires the 'gate_scanner' perm (super_admin
@@ -47,40 +44,33 @@ export default function GateApp() {
   // check only - the real gate is POST /api/tickets/verify's own
   // hasPerm(req,'gate_scanner') check, which fails closed regardless of
   // what this probe says.
-  useEffect(() => {
-    fetch('/api/admin/me')
-      .then(async (r) => {
-        if (r.status === 401) { setAuthed(false); return; }
-        const data = await r.json().catch(() => ({}));
-        const ok = data.scope === 'super_admin' || (Array.isArray(data.perms) && data.perms.includes('gate_scanner'));
-        setPermDenied(!ok);
-        setAuthed(ok);
-      })
-      .catch(() => setAuthed(false));
-  }, []);
+  const probeAccess=useCallback(async()=>{
+    requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;
+    setAuthed(null);setAccessError(false);
+    const access=await getGateAccess(controller.signal);if(controller.signal.aborted)return;
+    setAccessError(access.result==='unverified');setPermDenied(access.result==='forbidden');setAuthed(access.result==='allowed');
+  },[]);
+  useEffect(()=>{void probeAccess();return()=>requestRef.current?.abort()},[probeAccess]);
+  useEffect(()=>{const update=()=>setOnline(navigator.onLine);update();addEventListener('online',update);addEventListener('offline',update);return()=>{removeEventListener('online',update);removeEventListener('offline',update)}},[]);
 
-  const submitCode = useCallback(async (code: string) => {
-    if (pausedRef.current) return;
+  const submitCode = useCallback(async (code: string,retry=false) => {
+    if (pausedRef.current&&!retry) return;
     pausedRef.current = true;
     setBusy(true);
     setLastCode(code);setHolderContact(null);setContactNotice('');
-    let v: Verdict = { result: 'invalid', reason: 'network' };
-    try {
-      const r = await fetch('/api/tickets/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (r.status === 401) { setAuthed(false); return; }
-      if (r.status === 403) { setPermDenied(true); setAuthed(false); return; }
-      if (d && d.result) v = d as Verdict;
-    } catch { /* network verdict already set */ }
+    requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;
+    const reply=navigator.onLine?await verifyGateTicket(code,controller.signal):{result:'unverified' as const,reason:'offline' as const};
+    if(controller.signal.aborted)return;
     setBusy(false);
+    if(reply.result==='signed_out'||reply.result==='forbidden'){setPermDenied(reply.result==='forbidden');setAccessError(false);setAuthed(false);pausedRef.current=false;return}
+    const v=reply;
     setVerdict(v);
-    setScans((n) => n + 1);
+    if(v.result!=='unverified')setScans((n) => n + 1);
     try { navigator.vibrate?.(v.result === 'valid' ? [90] : [70, 60, 70]); } catch { /* no haptics */ }
     if (resumeT.current) clearTimeout(resumeT.current);
+    // Unknown outcomes remain paused for an explicit staff decision. A retry
+    // may report already-used if the original server write actually committed.
+    if(v.result==='unverified')return;
     resumeT.current = setTimeout(() => {
       setVerdict(null);
       pausedRef.current = false;
@@ -90,7 +80,7 @@ export default function GateApp() {
   const onDecoded = useCallback((text: string) => {
     // accept a full /t/<code> URL or a bare code
     const m = String(text || '').match(CODE_RE);
-    if (m) void submitCode(m[0].toUpperCase());
+    if (m&&navigator.onLine) void submitCode(m[0].toUpperCase());
   }, [submitCode]);
 
   // camera + jsQR loop
@@ -159,10 +149,11 @@ export default function GateApp() {
         <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 60, marginBottom: 14 }} />
         <div style={{ fontFamily: headingFont, fontSize: 26, textTransform: 'uppercase' }}>Gate Scanner</div>
         <p style={{ color: '#9a9aa4', fontSize: 13.5, lineHeight: 1.6, maxWidth: 300 }}>
-          {permDenied
+          {accessError?'The access check is unavailable. Your session may still be valid. Retry when the connection is restored.':permDenied
             ? "Signed in, but this account isn't authorised for gate scanning. Ask the owner to grant the gate_scanner module in Admins."
             : 'Staff only. Sign in to the Control Room first, then come back here.'}
         </p>
+        {accessError&&<button type="button" onClick={()=>void probeAccess()} style={{background:C.pink,color:'#fff',minHeight:44,padding:'12px 20px',border:0,borderRadius:12,marginBottom:16}}>Retry access check</button>}
         <a href="/admin" style={{ background: C.yellow, color: '#111', fontFamily: headingFont, fontSize: 16, textDecoration: 'none', padding: '13px 26px', border: '1px solid #ddd', borderRadius: 12, boxShadow: '5px 5px 0 rgba(230,33,140,.5)', textTransform: 'uppercase' }}>
           {permDenied ? 'Back to /admin' : 'Sign in at /admin'}
         </a>
@@ -170,7 +161,7 @@ export default function GateApp() {
     );
   }
 
-  const verdictBg = verdict?.result === 'valid' ? C.green : C.red;
+  const verdictBg = verdict?.result === 'valid' ? C.green : verdict?.result==='unverified'?'#28344a':C.red;
 
   return (
     <div style={wrap}>
@@ -185,11 +176,12 @@ export default function GateApp() {
           <img src="/uploads/URBAN%20GANG%20TOUR%20OFFICIAL%20LOGO.png" alt="Urban Gang Tour" style={{ height: 32 }} />
           <div>
             <div style={{ fontFamily: headingFont, fontSize: 16, lineHeight: 1, textTransform: 'uppercase' }}>Gate Scanner</div>
-            <div style={{ fontSize: 10, letterSpacing: '.18em', color: C.yellow }}>SCANS: {scans}</div>
+            <div style={{ fontSize: 12, color: '#fff',marginTop:6 }}>Verified checks: {scans}</div>
           </div>
         </div>
         <a href="/admin" style={{ color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textDecoration: 'none', border: '2px solid rgba(255,255,255,.4)', borderRadius: 999, padding: '7px 12px' }}>CONTROL ROOM</a>
       </div>
+      <p role="status" style={{position:'relative',zIndex:3,margin:'0 16px',padding:'8px 0',fontSize:13,color:online?'#ddd':'#fff'}}>{online?'Online verification required for admission.':'No connection. Restore internet or use the staffed exception lane.'}</p>
 
       {/* scan box overlay */}
       <div style={{ position: 'relative', zIndex: 2, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -220,13 +212,13 @@ export default function GateApp() {
           style={{ display: 'flex', gap: 8, maxWidth: 440, margin: '0 auto' }}
         >
           <input
-            value={manual}
+            value={manual} aria-label="Ticket code" maxLength={600}
             onChange={(e) => setManual(e.target.value)}
             placeholder="Type code: TKT-XXXXXXXXXX-XXXX"
             autoCapitalize="characters" autoCorrect="off" spellCheck={false}
-            style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: '2px solid rgba(255,255,255,.35)', background: 'rgba(17,17,17,.85)', color: '#fff', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: 13, letterSpacing: '.08em' }}
+            style={{ flex: 1,minWidth:0, padding: '12px 14px', borderRadius: 12, border: '2px solid rgba(255,255,255,.35)', background: 'rgba(17,17,17,.85)', color: '#fff', fontFamily: "ui-monospace,'Courier New',monospace", fontSize: 16, letterSpacing: '.02em' }}
           />
-          <button type="submit" style={{ background: C.yellow, color: '#111', fontFamily: headingFont, fontSize: 14, padding: '0 18px', border: '1px solid #ddd', borderRadius: 12, cursor: 'pointer', textTransform: 'uppercase' }}>Check</button>
+          <button type="submit" disabled={busy||!online} style={{ background: C.pink, color: '#fff',minHeight:44,fontFamily: headingFont, fontSize: 14, padding: '0 18px', border: '1px solid #ddd', borderRadius: 12, cursor: 'pointer', textTransform: 'uppercase' }}>Check</button>
         </form>
         {lastCode&&<details style={{maxWidth:440,margin:'12px auto',color:'#fff'}}><summary>Private holder contact lookup</summary><p style={{fontSize:13}}>For authorised event operations or safety only. Access is logged.</p><button onClick={async()=>{setContactNotice('Looking up…');try{const r=await fetch('/api/admin/tickets/'+encodeURIComponent(lastCode)+'/holder',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error();setHolderContact(d.holder);setContactNotice('')}catch{setContactNotice('Contact lookup unavailable.')}}}>View holder contacts</button>{holderContact&&<div><p>{holderContact.holder}</p><p>{holderContact.email||'No email supplied'}</p><p>{holderContact.phone||'No phone supplied'}</p><button onClick={()=>setHolderContact(null)}>Hide contacts</button></div>}<p role="status">{contactNotice}</p></details>}
 
@@ -234,11 +226,11 @@ export default function GateApp() {
 
       {/* verdict overlay */}
       {verdict ? (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: verdictBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
-          <div style={{ fontFamily: headingFont, fontSize: 'clamp(44px, 14vw, 72px)', lineHeight: 1, textTransform: 'uppercase', textShadow: '4px 4px 0 rgba(0,0,0,.35)' }}>
-            {verdict.result === 'valid' ? 'VALID' : verdict.result === 'used' ? 'ALREADY USED' : 'INVALID'}
-          </div>
-          {verdict.ticket ? (
+        <div role="status" aria-live="polite" style={{ position: 'absolute', inset: 0, zIndex: 10, background: verdictBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center',overflowY:'auto',overflowWrap:'anywhere' }}>
+          <h1 style={{ fontFamily: headingFont, fontSize: 'clamp(28px, 8vw, 44px)', lineHeight: 1.2,margin:0 }}>
+            {verdict.result === 'valid' ? 'Valid ticket' : verdict.result === 'used' ? 'Already used' : verdict.result==='unverified'?'Check-in not confirmed':'Invalid ticket'}
+          </h1>
+          {'ticket' in verdict ? (
             <div style={{ marginTop: 18, background: 'rgba(0,0,0,.3)', border: '2px solid rgba(255,255,255,.5)', borderRadius: 14, padding: '14px 20px', fontSize: 15, lineHeight: 1.7, maxWidth: 340 }}>
               <div style={{ fontFamily: headingFont, fontSize: 19, textTransform: 'uppercase' }}>{verdict.ticket.event}</div>
               <div><b>{verdict.ticket.tier}</b> &middot; {verdict.ticket.position} of {verdict.ticket.ofCount}</div>
@@ -252,11 +244,16 @@ export default function GateApp() {
           ) : verdict.result === 'invalid' ? (
             <div style={{ marginTop: 14, fontSize: 15, fontWeight: 700, opacity: .95 }}>
               {verdict.reason === 'order_not_paid' ? 'Ticket exists but the order is not paid.'
-                : verdict.reason === 'network' ? 'Network error - try again.'
+                : verdict.reason === 'ticket_voided' ? 'This ticket has been voided. Ask the supervisor to review the order.'
                 : 'Not a real Urban Gang Tour ticket.'}
             </div>
           ) : null}
-          <div style={{ marginTop: 22, fontSize: 11, letterSpacing: '.2em', opacity: .85 }}>SCANNING AGAIN IN A MOMENT...</div>
+          {verdict.result==='unverified'?<>
+            <p style={{maxWidth:360,lineHeight:1.6}}>{verdict.reason==='rate_limited'?'This scanner is temporarily rate limited.':verdict.reason==='timeout'?'The check timed out.':verdict.reason==='offline'?'The device is offline.':'A reliable result could not be received.'} The server may already have recorded this scan. This message does not authorize admission.</p>
+            <p style={{maxWidth:360,lineHeight:1.6}}>Retry the check, or move the attendee to the staffed exception lane. An “already used” reply may be the original check-in; ask the supervisor to review it before admitting anyone again.</p>
+            <button type="button" disabled={busy||!online} onClick={()=>void submitCode(lastCode,true)} style={{minHeight:44,padding:'12px 24px',background:'#fff',color:'#172030',border:0,borderRadius:12,font:'inherit'}}>{busy?'Checking…':'Retry check'}</button>
+            <button type="button" disabled={busy} onClick={()=>{setVerdict(null);pausedRef.current=false}} style={{minHeight:44,padding:'12px 24px',background:'transparent',color:'#fff',border:'1px solid #fff',borderRadius:12,font:'inherit',marginTop:12}}>Set aside and continue</button>
+          </>:<div style={{ marginTop: 22, fontSize: 11, letterSpacing: '.2em', opacity: .85 }}>SCANNING AGAIN IN A MOMENT...</div>}
         </div>
       ) : null}
     </div>

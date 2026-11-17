@@ -2,7 +2,7 @@
 // fields become the public event listing and the server-side checkout catalog,
 // so they must be complete and typed before an organizer can submit them.
 
-export type OrganizerTier = { name: string; price: number };
+export type OrganizerTier = { name: string; price: number; capacity?: number | null };
 
 export type OrganizerEventFields = {
   name: string;
@@ -79,7 +79,10 @@ function tiers(value: unknown): OrganizerTier[] | null {
     const key = name.toLocaleLowerCase();
     if (labels.has(key)) return null;
     labels.add(key);
-    result.push({ name, price });
+    const capacity=(candidate as {capacity?:unknown}).capacity;
+    if(capacity!==undefined&&capacity!==null&&(!Number.isSafeInteger(capacity)||Number(capacity)<0||Number(capacity)>2147483647))return null;
+    if(Object.keys(candidate).some(key=>!['name','price','capacity'].includes(key)))return null;
+    result.push({ name, price,...(capacity===undefined?{}:{capacity:capacity as number|null}) });
   }
   return result;
 }

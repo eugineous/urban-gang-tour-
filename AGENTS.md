@@ -1,5 +1,22 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## UGT ticketing reliability (16 November 2026)
+- Owner chooses UGT implementation only after the Little comparison: no pilot,
+  outreach, provider switch or commission/price changes. Marketplace checkout
+  uses durable guest attempts, accepted split snapshots and explicit capacities;
+  Paystack requests card + mobile_money. Never initiate a replacement payment
+  after uncertain dispatch or certify merchant/subaccount readiness from mocks.
+- Unknown gate responses stay paused and unverified; only the online authority
+  can authorize admission. Private ticket/order work suppresses automatic consent
+  prompts without changing saved preferences or granting private-route tracking.
+- Owner confirms individual and school-group booking, with online/local-Wi-Fi
+  fallback desired. Keep adult contact and aggregate counts; no invented student
+  roster, disconnected anti-replay guarantee or server signing secrets on devices.
+  A local gate authority requires exclusive handoff and venue rehearsal before use.
+- Preserve existing launch gates, accounts, records, prices, bindings and cron.
+  Continue isolated proofs, independent review and normal PR/keep-vars release;
+  no live charge/STK/message/account/key/event tests or new paid services.
+
 ## Free-first media and handover (16 November 2026)
 - Owner says finish and deploy. Supabase/R2 creation is dropped; add no paid
   storage or automatic upgrade. Retain existing archives, database identities,

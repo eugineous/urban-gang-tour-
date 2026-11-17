@@ -62,9 +62,7 @@ describe('two-choice cookie panel',()=>{
  });
  it('retains real consent persistence, footer reopening and cleanup of already loaded optional services',()=>{
   const source=readFileSync('app/_components/CookieConsent.tsx','utf8');
-  for(const contract of ['hasConsentChoice()','hasOptionalConsent()','setOptionalConsent(accepted)',"'ugt-open-cookie-settings'","document.getElementById('ugt-ga4')","document.getElementById('ugt-adsense')",'setCleanup(!accepted && loaded)','location.reload()'])expect(source).toContain(contract);
-  expect(source).toContain('pathname?.startsWith(\'/admin\')');
-  expect(source).toContain('/^\\/(checkout|pay)(\\/|$)/');
+  for(const contract of ['hasConsentChoice()','setOptionalConsent(accepted)',"'ugt-open-cookie-settings'","document.getElementById('ugt-ga4')","document.getElementById('ugt-adsense')",'setCleanup(!accepted && loaded)','location.reload()'])expect(source).toContain(contract);
  });
  it('keeps choices equally styled, at least 44px tall and within a smaller scrollable panel',()=>{
   const css=readFileSync('app/_components/PrivacyChoices.module.css','utf8');

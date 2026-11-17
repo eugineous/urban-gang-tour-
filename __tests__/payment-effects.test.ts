@@ -54,6 +54,12 @@ describe('durable settlement transition boundary', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it('legacy marketplace money cannot fall through to merchandise fulfilment without an accepted capacity snapshot',async()=>{
+    database.q.mockImplementation(async(sql:string)=>sql.includes("to_jsonb(o)->'paystack_marketplace'")?[{purchase:null,source:'marketplace'}]:sql.includes("UPDATE orders")?[{id:input.orderId,status:'paid',total:1000}]:[]);
+    expect(await settlePaystackOrder(input)).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('can retry a failed schema initialization instead of caching the rejection', async () => {
     vi.resetModules();
     const cold = await import('@/lib/server/payment-effects');

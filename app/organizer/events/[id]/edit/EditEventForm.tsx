@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { shell, wrap, card, btn, btnMagenta, btnDark, inp, label, h1, Chip, STATUS_CHIP, api, organizerAccessMessage, useToast, Toast } from '../../../ui';
 
-interface Tier { name: string; price: number }
+interface Tier { name: string; price: number; capacity?: number | null }
 
 export default function EditEventForm() {
   const params = useParams<{ id: string }>();
@@ -16,6 +16,7 @@ export default function EditEventForm() {
   const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState('draft');
   const [ticketsSold, setTicketsSold] = useState(0);
+  const [materialLocked, setMaterialLocked] = useState(false);
   const [name, setName] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [venue, setVenue] = useState('');
@@ -26,7 +27,7 @@ export default function EditEventForm() {
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
-  const locked = status === 'published' && ticketsSold > 0;
+  const locked = materialLocked || ticketsSold > 0;
 
   useEffect(() => {
     if (!id) return;
@@ -42,6 +43,7 @@ export default function EditEventForm() {
         const r = d.row;
         setStatus(r.status);
         setTicketsSold(d.ticketsSold || 0);
+        setMaterialLocked(d.materialLocked === true);
         setName(r.name);
         setEventDate(r.event_date || '');
         setVenue(r.venue || '');
@@ -63,9 +65,11 @@ export default function EditEventForm() {
     if (!locked && !venue.trim()) return say('Enter the venue');
     if (!locked && !city.trim()) return say('Enter the city');
     if (!locked && (!tiers.length || tiers.some((tier) => !tier.name.trim()))) return say('Every ticket tier needs a name');
-    setBusy(true);
     const body: any = { name, description, image };
-    if (!locked) Object.assign(body, { eventDate: eventDate || null, venue, city, tiers });
+    if(tiers.some(t=>!Number.isSafeInteger(t.capacity)||Number(t.capacity)<0))return say('Enter a finite capacity for every tier');
+    body.tiers=tiers;
+    if (!locked) Object.assign(body, { eventDate: eventDate || null, venue, city });
+    setBusy(true);
     const { data } = await api(`/api/organizer/events/${id}`, { method: 'POST', body: JSON.stringify(body) });
     setBusy(false);
     if (data.ok) { say('Saved'); window.location.href = '/organizer/dashboard'; }
@@ -90,7 +94,7 @@ export default function EditEventForm() {
         {locked && (
           <div style={{ ...card, background: '#FDF2D9', marginBottom: 16, fontSize: 13 }}>
             This event is live and already has {ticketsSold} ticket{ticketsSold > 1 ? 's' : ''} sold — date, venue, city and
-            ticket prices are locked so buyers who already paid are never affected. You can still edit the name, description and image.
+            ticket names and prices are locked. Capacity must cover paid tickets and pending payments. You can still edit the name, description and image.
           </div>
         )}
         <div style={card}>
@@ -122,18 +126,18 @@ export default function EditEventForm() {
               <input id="edit-evt-image" style={inp} value={image} onChange={(e) => setImage(e.target.value)} />
             </div>
             <div>
-              <span style={label}>Ticket tiers{locked ? ' (locked — tickets already sold)' : ''}</span>
+              <span style={label}>Ticket tiers{locked ? ' (names and prices locked)' : ''}</span>
               {tiers.map((t, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                   <input
-                    style={{ ...inp, flex: 2 }}
+                    style={{ ...inp, flex: 2, minWidth: 0 }}
                     aria-label={`Tier ${i + 1} name`}
                     value={t.name}
                     disabled={locked}
                     onChange={(e) => setTier(i, { name: e.target.value })}
                   />
                   <input
-                    style={{ ...inp, flex: 1 }}
+                    style={{ ...inp, flex: 1, minWidth: 0 }}
                     type="number"
                     min={0}
                     aria-label={`Tier ${i + 1} price in KES`}
@@ -141,12 +145,15 @@ export default function EditEventForm() {
                     disabled={locked}
                     onChange={(e) => setTier(i, { price: Number(e.target.value) || 0 })}
                   />
+                  <input style={{ ...inp, flex: 1, minWidth: 0 }} type="number" min={0} step={1} required
+                    aria-label={`Tier ${i + 1} capacity`} placeholder="Capacity" value={t.capacity ?? ''}
+                    onChange={e => setTier(i, { capacity: e.target.value === '' ? null : Number(e.target.value) })}/>
                   {!locked && tiers.length > 1 && (
                     <button style={btnDark} aria-label={`Remove tier ${i + 1}`} onClick={() => setTiers(tiers.filter((_, idx) => idx !== i))}>✕</button>
                   )}
                 </div>
               ))}
-              {!locked && <button style={btn} onClick={() => setTiers([...tiers, { name: '', price: 0 }])}>+ Add tier</button>}
+              {!locked && <button style={btn} onClick={() => setTiers([...tiers, { name: '', price: 0, capacity: null }])}>+ Add tier</button>}
             </div>
             <button style={{ ...btnMagenta, marginTop: 4 }} disabled={busy} onClick={submit}>{busy ? 'Saving…' : 'Save changes'}</button>
           </div>

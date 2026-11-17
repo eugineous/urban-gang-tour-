@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { shell, wrap, card, btn, btnMagenta, btnDark, inp, label, h1, api, organizerAccessMessage, useToast, Toast } from '../../ui';
 
-interface Tier { name: string; price: number }
+interface Tier { name: string; price: number; capacity?: number | null }
 
 export default function NewEventForm() {
   const [ready, setReady] = useState(false);
@@ -14,7 +14,7 @@ export default function NewEventForm() {
   const [city, setCity] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
-  const [tiers, setTiers] = useState<Tier[]>([{ name: 'Regular', price: 0 }]);
+  const [tiers, setTiers] = useState<Tier[]>([{ name: 'Regular', price: 0, capacity: null }]);
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
 
@@ -34,6 +34,7 @@ export default function NewEventForm() {
     if (!city.trim()) return say('Enter the city');
     if (!description.trim()) return say('Add a description for buyers and reviewers');
     if (!tiers.length || tiers.some((t) => !t.name.trim())) return say('Every ticket tier needs a name');
+    if(tiers.some(t=>!Number.isSafeInteger(t.capacity)||Number(t.capacity)<0))return say('Enter a finite capacity for every tier');
     setBusy(true);
     const { data } = await api('/api/organizer/events', {
       method: 'POST',
@@ -86,14 +87,14 @@ export default function NewEventForm() {
               {tiers.map((t, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                   <input
-                    style={{ ...inp, flex: 2 }}
+                    style={{ ...inp, flex: 2, minWidth: 0 }}
                     aria-label={`Tier ${i + 1} name`}
                     value={t.name}
                     onChange={(e) => setTier(i, { name: e.target.value })}
                     placeholder="Tier name"
                   />
                   <input
-                    style={{ ...inp, flex: 1 }}
+                    style={{ ...inp, flex: 1, minWidth: 0 }}
                     type="number"
                     min={0}
                     aria-label={`Tier ${i + 1} price in KES`}
@@ -101,12 +102,15 @@ export default function NewEventForm() {
                     onChange={(e) => setTier(i, { price: Number(e.target.value) || 0 })}
                     placeholder="Price KES"
                   />
+                  <input style={{ ...inp, flex: 1, minWidth: 0 }} type="number" min={0} step={1} required
+                    aria-label={`Tier ${i + 1} capacity`} placeholder="Capacity" value={t.capacity ?? ''}
+                    onChange={e => setTier(i, { capacity: e.target.value === '' ? null : Number(e.target.value) })}/>
                   {tiers.length > 1 && (
                     <button style={btnDark} aria-label={`Remove tier ${i + 1}`} onClick={() => setTiers(tiers.filter((_, idx) => idx !== i))}>✕</button>
                   )}
                 </div>
               ))}
-              <button style={btn} onClick={() => setTiers([...tiers, { name: '', price: 0 }])}>+ Add tier</button>
+              <button style={btn} onClick={() => setTiers([...tiers, { name: '', price: 0, capacity: null }])}>+ Add tier</button>
             </div>
             <button style={{ ...btnMagenta, marginTop: 4 }} disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Submit for review'}</button>
           </div>

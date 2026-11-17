@@ -49,6 +49,7 @@ export async function POST(req: Request) {
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
   const event = validateOrganizerEvent(parsed.patch);
   if (!event.ok) return NextResponse.json({ error: event.error }, { status: 400 });
+  if(event.value.tiers.some(t=>!Number.isSafeInteger(t.capacity)||Number(t.capacity)<0))return NextResponse.json({error:'finite_capacity_required'},{status:400});
 
   try {
     await ensureOpsSchema();

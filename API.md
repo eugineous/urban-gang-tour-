@@ -199,9 +199,9 @@ touches the database. 200 PDF attachment `UGT-Ticket-<code>.pdf` · 404
 invalid/unknown code · 429 (20/min/IP) · 503 no DB. Embeds the real signed QR
 plus a second small QR carrying an HMAC-SHA256-signed data blob (code, order
 id, event, tier, issued-at - same `SESSION_SECRET`, `lib/server/tickets.ts`
-`signedTicketBlob`/`verifyTicketBlob`) so an offline gate device could
-re-derive and check that the printed facts were not edited after issuance.
-This is a redundant hardening layer, not a replacement for the live gate scan
+`signedTicketBlob`/`verifyTicketBlob`) for server-side integrity checks on
+printed facts. Never distribute SESSION_SECRET to gate devices. This is a
+redundant hardening layer, not a replacement for the live gate scan
 (`/api/tickets/verify`), which is what actually catches reuse/refunds - it
 checks the code against the current database state, something no signature
 embedded in a PDF can ever do offline.
@@ -291,11 +291,21 @@ Page-view counter (path only, no PII, no third-party trackers). 429 (60/min/IP).
   reply, audit-logs it, and advances a new/review booking to `replied`.
 - `GET /api/admin/data?view=bookings|orders|posts|users|submissions|subscribers|traffic|settings|audit|stats|tickets`
 - `POST /api/tickets/verify` `{code}` — gate check-in (admin session +
-  strict Origin, 120/min/IP). Validates the code's HMAC tag, then atomically
-  flips `used_at` once (`WHERE used_at IS NULL AND order paid`). Returns
+  gate_scanner permission + strict Origin; 120/min/signed scanner session,
+  4,800/min/network). Actual streamed JSON is limited to 1 KiB/5 seconds
+  (413 oversized, 408 stalled, 400 malformed). Validates the code's HMAC tag,
+  then atomically flips `used_at` once while unused, unvoided and the order
+  is paid (or explicitly eligible after allocated partial refund). Returns
   `{result: valid|used|invalid, ticket?, usedAt?, reason?}`; every scan is
   audit-logged. UI: `/admin/gate` (on-device jsQR camera scanner + manual
   entry; same `ugt_admin` session as the Control Room).
+  Voided historical tickets return `invalid`/`ticket_voided` before `used`.
+  The client bounds headers/body at 12 seconds/32 KiB and treats network,
+  timeout, malformed or throttled responses as unverified, never invalid or
+  permission to admit. Unknown checks stay paused until an explicit retry or
+  exception-lane action; they do not increment the verified-check counter.
+  A retry may return `used` if the original server write committed. Admission
+  still requires online authority; local/offline multi-gate support is not shipped.
 - `POST /api/admin/save` `{kind, ...}` — post/status/setting mutations (audited).
 - `POST /api/admin/tickets/comp` `{eventId, tier, qty, holderName, holderEmail?,
   holderPhone?, reason}` — admin-only complimentary tickets. Validates
@@ -1076,8 +1086,8 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   PIN. `/api/checkout/fulfillment` exposes `payments.paystackMobileMoney` alongside
   the compatibility card flag; `payments.mpesa` still means direct Daraja and
   remainsfalse. Both hosted rails share the same durable reference/recovery and
-  signed exact-amount settlement. Marketplace adapter defaults and ticket-sales
-  gates remain unchanged. Initialization/redirect is never proof of payment.
+  signed exact-amount settlement. The owned-ticket launch gate is separate.
+  Initialization/redirect is never proof of payment.
   and opaque `idempotencyKey` required. Existing server pricing, variant, delivery
   and stock checks remain authoritative. Atomic preparation saves the order and
   its delivery snapshot before a single durable initiation claim. An unchanged
@@ -1090,7 +1100,7 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   A separate server-only ticket flag is CLOSED by default. Ticket pricing comes
   from the owned event; finite capacity, lifecycle, schedule, venue, sale window
   and tier identity are rechecked under the event lock. The seat hold and unique
-  provider-send claim commit atomically before card-only hosted initialization.
+  provider-send claim commit atomically before hosted card/mobile_money initialization.
   Initialization uncertainty, failed charges and abandonment never release a
   potentially payable seat on a local timer. Verified late success reacquires
   actually free capacity or durably records paid/manual-refund-review without
@@ -1108,6 +1118,43 @@ acceptance is distinct from delivery. Draft clearing is distinct from cancellati
   Failure notifications do not establish hosted-session cancellation: matching
   `charge.failed` retains the reference/hold and enters reconciliation, not a
   terminal release. Settlement, provider initialization and delivery are distinct.
+- `POST /api/marketplace/checkout`: public same-origin, rate-limited, signed
+  guest-checkout scope required (428 otherwise); buyer accounts remain optional.
+  Accepts only `{eventId,tier,qty,name,email?,idempotencyKey}`; the key uses the
+  same 32–128 character Paystack attempt contract. Streamed JSON is bounded to
+  8 KiB/5 seconds (413 oversized, 408 stalled). Prices, quantity limits,
+  approved organizer/payout configuration, publication, date, venue and finite
+  tier capacity are checked server-side. Unknown capacities cannot start sales.
+  An absent commission setting retains the existing 8% default; an unavailable
+  or invalid setting fails closed. Commission rounding is unchanged.
+  The accepted purchase, organizer subaccount, commission/net amounts, bearer
+  and requested card/mobile_money channels are saved immutably before one
+  dispatch claim and capacity hold. Retries recover that reference and split;
+  changed input under a key returns 409. Success returns
+  `{ok,id,orderId,total,attemptState,authorizationUrl?}`; unknown initialization
+  returns 202 with its reference and no new-payment permission. Responses are
+  no-store. Signed success and server verification share capacity-aware
+  settlement; mint uses the saved tier name and receipt waits for ticket work.
+  Paid money without safe entitlement becomes `paid`/`refund_review` for an
+  operator, without an automatic refund. Historical payable marketplace orders
+  without the required snapshot also enter review on newly received money;
+  existing paid tickets retain their entitlement. There is no historical backfill.
+  Browser cancellation, failed charges, abandonment and local hold expiry do
+  not establish that a hosted session is no longer payable. Unresolved payable
+  holds retain capacity until an authoritative operational resolution. No
+  automatic cancellation/refund provider API is implemented by this flow.
+  Requested channels/split fields do not certify merchant eligibility or actual
+  mobile-money/subaccount settlement; verify those separately before launch.
+- Organizer create and marketplace approval require explicit non-negative integer
+  tier capacities. Existing records keep unknown capacity until explicitly set.
+  Own-event edits serialize with checkout and settlement. Paid or payable
+  obligations lock date, venue, city, tier names/prices/order; capacity-only
+  updates remain possible if every tier covers sold plus reserved admissions.
+  `GET /api/organizer/events/:id` includes `materialLocked` for that UI state.
+  Organizer edits parse/validate bounded JSON (32 KiB/5 seconds) before acquiring
+  organizer/event locks; slow request uploads cannot hold payment-path locks.
+  Existing owned-ticket launch flags and merchandise payment contracts remain
+  separate and unchanged.
 - New payment initiation is Paystack-only by explicit server policy, independent
   of stored legacy credentials. `POST /api/orders` and
   `POST /api/stripe/checkout` return 503 `paystack_only` before ledger/provider

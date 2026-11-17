@@ -18,7 +18,7 @@ describe('organizer application entry',()=>{
    const input=html.match(new RegExp('<(?:input|select)[^>]*name="'+name+'"[^>]*>'))?.[0];
    expect(input,name).toBeTruthy();expect(input,name).toContain('required');
   }
-  expect(html).toContain('Card payments only');expect(html).toContain('We review every application.');
+   expect(html).toContain('Paystack checkout');expect(html).toContain('We review every application.');
   expect(html).toContain('href="/terms"');expect(html).toContain('href="/privacy-policy"');
  });
 });

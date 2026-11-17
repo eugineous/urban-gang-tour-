@@ -1,0 +1,16 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+const state=vi.hoisted(()=>({q:vi.fn()}));
+vi.mock('@/lib/server/db',()=>({...state,db:()=>null,hasDb:()=>true}));
+vi.mock('@/lib/server/ops',()=>({ensureOpsSchema:async()=>{}}));
+vi.mock('@/lib/server/organizer-session',()=>({currentApprovedOrganizer:async()=>({organizer:{id:'org'}})}));
+vi.mock('@/lib/server/ratelimit',()=>({rateLimit:()=>true,clientIp:()=> 'fixture'}));
+import {POST} from '@/app/api/organizer/events/route';
+import {parseOrganizerEventPatch} from '@/lib/server/organizer-event-validation';
+import {checkoutCommissionPercent} from '@/lib/server/marketplace';
+beforeEach(()=>{state.q.mockReset().mockImplementation(async(sql:string)=>sql.startsWith('INSERT INTO marketplace_events')?[{id:'mkt-fixture'}]:[])});
+const body={name:'Fixture event',eventDate:'2099-12-01',venue:'Fixture venue',city:'Nairobi',description:'Fixture description',image:''};
+const request=(tiers:unknown)=>new Request('https://urbangangtour.co.ke/api/organizer/events',{method:'POST',headers:{origin:'https://urbangangtour.co.ke','content-type':'application/json'},body:JSON.stringify({...body,tiers})});
+it('new organizer submissions require an explicit finite capacity without assigning stock to legacy records',async()=>{const response=await POST(request([{name:'General',price:500}]));expect(response.status).toBe(400);expect(await response.json()).toEqual({error:'finite_capacity_required'});expect(state.q).not.toHaveBeenCalled()});
+it('zero capacity is explicit sold-out stock and valid submissions retain their commercial price',async()=>{const response=await POST(request([{name:'General',price:500,capacity:0}]));expect(response.status).toBe(200);const insert=state.q.mock.calls.find(([sql])=>String(sql).startsWith('INSERT INTO marketplace_events'))!;expect(JSON.parse(insert[1][8])).toEqual([{name:'General',price:500,capacity:0}])});
+it.each([-1,1.5,'20',Infinity])('invalid capacity %s is rejected rather than rounded or dropped',capacity=>{expect(parseOrganizerEventPatch({tiers:[{name:'General',price:500,capacity}]}).ok).toBe(false)});
+it.each([null,true,'',[]])('invalid stored commission %j cannot become a zero or one percent sale',async value=>{state.q.mockResolvedValue([{value}]);await expect(checkoutCommissionPercent()).rejects.toThrow('commission_unavailable')});

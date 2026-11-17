@@ -16,14 +16,15 @@ import {build} from 'esbuild';
 import {chromium} from 'playwright';
 import {existsSync} from 'node:fs';
 const selected=vi.hoisted(()=>({locale:'en' as InterfaceLocale}));
+vi.mock('next/navigation',async original=>({...await original<typeof import('next/navigation')>(),useRouter:()=>({push:vi.fn()})}));
 vi.mock('@/ui/i18n/LanguageProvider',async original=>({
  ...await original<typeof import('@/ui/i18n/LanguageProvider')>(),
  useInterfaceLanguage:()=>({locale:selected.locale}),
  useMessages:(catalogue:Catalogue<string>)=>(key:string,values?:MessageValues)=>formatMessage(catalogue,selected.locale,key,values).text,
 }));
 vi.mock('@/lib/server/marketplace',()=>({
- getPublishedMarketplaceEvents:async()=>[{id:'original-event',name:'Original Event',event_date:'2026-10-27',venue:'Original Venue',city:'Original City',image:'/original-event.webp',organizer_business_name:'Original Organizer',tiers:[{name:'Original Tier',price:125.5}]}],
- getMarketplaceEventById:async()=>({id:'original-event',name:'Original Event',event_date:'2026-10-27',venue:'Original Venue',city:'Original City',description:'Original event description.',organizer_business_name:'Original Organizer',status:'published',tiers:[{name:'Original Tier',price:125.5}]}),
+ getPublishedMarketplaceEvents:async()=>[{id:'original-event',name:'Original Event',event_date:'2026-10-27',venue:'Original Venue',city:'Original City',image:'/original-event.webp',organizer_business_name:'Original Organizer',tiers:[{name:'Original Tier',price:125.5,capacity:20}]}],
+ getMarketplaceEventById:async()=>({id:'original-event',name:'Original Event',event_date:'2026-10-27',venue:'Original Venue',city:'Original City',description:'Original event description.',organizer_business_name:'Original Organizer',status:'published',tiers:[{name:'Original Tier',price:125.5,capacity:20}]}),
 }));
 const labels={en:'Add to cart',sw:'Ongeza kwenye kikapu',fr:'Ajouter au panier','zh-Hans':'加入购物车',ru:'Добавить в корзину',es:'Añadir al carrito'};
 const product={id:'approved-original-sku',name:'Original Product',price:0.5,image:'/original.webp',category:'Original Category',description:'Original description',stock:10,name_on_back_enabled:true,variants:[{label:'Original Blue / M',priceAdjustment:0.25,stock:5}]};
@@ -154,11 +155,11 @@ it.skipIf(!existsSync('/usr/bin/chromium'))('retains filled forms, live errors, 
   createRoot(document.getElementById('app')).render(<LanguageProvider>
    <div id="checkout"><LiveCommerce view="checkout"/></div>
    <div id="purchase"><ProductPurchase {...${JSON.stringify(fixtureProduct)}} nameOnBackEnabled/></div>
-   <div id="marketplace"><BuyBox eventId="original-event" tiers={[{name:'Original Tier',price:125.5},{name:'Original VIP',price:200.75}]}/></div>
+   <div id="marketplace"><BuyBox eventId="original-event" tiers={[{name:'Original Tier',price:125.5,capacity:20},{name:'Original VIP',price:200.75,capacity:20}]}/></div>
   </LanguageProvider>);
  `},bundle:true,write:false,jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'isolated-commerce',setup(builder){
   builder.onResolve({filter:/^next\/navigation$/},()=>({path:'navigation',namespace:'fixture'}));
-  builder.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const usePathname=()=>"/checkout";'}));
+  builder.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const usePathname=()=>"/checkout";export const useRouter=()=>({push:path=>history.pushState({},"",path)});'}));
   builder.onLoad({filter:/\.css$/},()=>({contents:'export default {};',loader:'js'}));
  }}]});
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
@@ -278,7 +279,7 @@ it.each(INTERFACE_LOCALES)('localizes purchase and catalogue actions while keepi
 });
 it.each(INTERFACE_LOCALES)('keeps marketplace tier values and design identity under translated presentation in %s',locale=>{
  selected.locale=locale;
- const html=renderToStaticMarkup(createElement(BuyBox,{eventId:'original-event',tiers:[{name:'Original Tier',price:125.5}]}));
+ const html=renderToStaticMarkup(createElement(BuyBox,{eventId:'original-event',tiers:[{name:'Original Tier',price:125.5,capacity:20}]}));
  expect(html).toContain('value="0"');expect(html).toContain('Original Tier');expect(html).toContain(formatKes(125.5,locale));
  const design=renderToStaticMarkup(createElement(ColorBlastShop,{product:merchProducts[0]}));
  expect(design).toContain(merchProducts[0].name);expect(design).toContain(merchProducts[0].description);

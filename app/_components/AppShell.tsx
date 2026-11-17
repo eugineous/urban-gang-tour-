@@ -91,7 +91,7 @@ function PathShell({children,path,events,initialNow}:{children:React.ReactNode;p
  function toggleFocus(){setFocusView(!focus)}
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <><InteractionCraft/><main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main></>;
- const critical=/^\/(shop|checkout|pay|book|account|my-tickets|organizer|cart|receipt|tickets|t|verify)(\/|$)/.test(path);
+ const critical=/^\/(shop|checkout|pay|book|account|my-tickets|organizer|cart|orders|receipt|tickets|t|verify)(\/|$)/.test(path);
  return <>
   <InteractionCraft/>
   <header ref={header} className="site-header" data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
