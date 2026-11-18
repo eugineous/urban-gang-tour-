@@ -65,17 +65,17 @@ getServerSnapshot/start/stop/set/reset;
 `readNewsPreferences(userId)` and `saveNewsPreferences(userId,expectedVersion,prefs)`
 return `{preferences,version}`. Conflicts throw `news_preferences_conflict`.
 
-- [ ] Write failing default/invalid/dedup/blocked-storage/cross-tab/ranking tests.
+- [x] Write failing default/invalid/dedup/blocked-storage/cross-tab/ranking tests.
   Cover empty coverage, stable ties, public-only inputs and country/topic diversity.
   Run `npx vitest run __tests__/news-preferences.test.ts`; expect RED.
-- [ ] Implement shared validation, stable explicit-input ranking and the existing
+- [x] Implement shared validation, stable explicit-input ranking and the existing
   useSyncExternalStore-compatible storage pattern. No analytics/fingerprints.
   Run the same tests; expect GREEN.
-- [ ] Write failing authenticated API/private-cache/strict-Origin/stream-limit/
+- [x] Write failing authenticated API/private-cache/strict-Origin/stream-limit/
   invalid-body/session-expiry tests and disposable SQL ownership/CAS cases.
   GET returns only the validated buyer’s record; PUT accepts only expectedVersion
   and preferences. Use the existing readJsonObject and shared rate limiter.
-- [ ] Implement additive user-keyed JSON/version table with FK, bounded input and
+- [x] Implement additive user-keyed JSON/version table with FK, bounded input and
   atomic INSERT/UPDATE expected-version matching. Run API tests plus opted-in
   `UGT_NEWS_PREFERENCES_PG_FIXTURE=1` network-none PostgreSQL; expect GREEN. Commit.
 

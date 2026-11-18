@@ -25,5 +25,11 @@ Cost if wrong:manual ledger maintenance, no mechanical CLI identity certificate.
 Task1:complete. Inventory generated; live320/390px click obstruction reproduced,
 then22/22actual Chromium consent/navigation tests passed after dock clearance.
 Verified320×568,390×844 and980coarse fallback without consent writes/reporting. Audit artifacts:/workspace/artifacts/ugt-platform-integration-20261118.
-Task2:in progress. Eight RED shared/storage/ranking tests observed before code.
-Tasks3–6:not started. Larger growth/native/distribution roadmap remains active.
+Task2:complete. Eight RED shared/storage/ranking tests and private API/store
+REDs observed first; combined19/19passed including4network-none PostgreSQL
+ownership/first-save-race/stale-version/FK cases. TypeScript passed; scoped lint0errors.
+Ruling:apply diversity only within the first24ranked positions, then preserve the
+remaining stable order. This bounds diversity work instead of quadratic scans of
+every historical story. Cost if wrong:less topic mixing far below the initial feed.
+Task3:in progress. Building explicit guest/device and optional account controls.
+Tasks4–6:not started. Larger growth/native/distribution roadmap remains active.
