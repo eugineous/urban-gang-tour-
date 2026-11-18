@@ -127,7 +127,7 @@ policy, sitemap/feed/JSON-LD integration and worker scheduled job entry.
   auth boundaries and failure/retry. Never introduce a production dev-auth bypass.
 - [x] Inspect/cherry-pick actual writer commits. Verify no paid/social/account/
   money changes. Update API/operator setup and .21st decisions from final UI.
-- [ ] Independent whole-branch review; resolve substantive findings. One combined
+- [x] Independent whole-branch review; resolve substantive findings. One combined
   suite, opted-in real SQL, types/lint, dependency audit, production build/dryrun
   and frozen browser checks; repeat only affected checks after justified fixes.
 - [ ] Normal PR/attach/exact-head merge and keep-vars deploy. Preserve existing
@@ -151,6 +151,12 @@ policy, sitemap/feed/JSON-LD integration and worker scheduled job entry.
   React Compiler diagnostics. New review-fix modules:0errors/1test typing warning.
 - Independent review reproduced two P2issues (retracted correction field and
   mismatched discovery URL policy); both have RED/GREEN regressions and fixes.
-- Next production build passed; initial Cloudflare packaging exposed the shared
-  dependency-directory symlink. A physical local dependency tree is being verified.
-- Release/keep-vars/live checks are pending; do not describe this record as deployed.
+- Final Next/OpenNext production build and Wrangler dry run passed. Initial
+  packaging exposed the shared dependency-directory symlink; a physical local
+  dependency tree fixed it without installing or changing dependencies. The final
+  frozen packaged-worker check passed18HTTP checks and18actual browser views
+  across320/390/1440px. Empty-state copy has its own12passing review/Chromium checks.
+- PR136 contains the reviewed implementation. Release/keep-vars/live checks
+  follow the normal exact-head merge; the final release receipt records their
+  outcome. Do not infer live provider readiness from fixture tests. A single
+  read-only GDELT request returned503; manual editing remains available.
