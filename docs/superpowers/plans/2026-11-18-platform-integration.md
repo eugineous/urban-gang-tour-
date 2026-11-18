@@ -87,14 +87,14 @@ app/admin/NewsMarketPreview.tsx. Modify UrbanNews.tsx,UrbanNewsDesk.tsx and acco
 preferences page. Add __tests__/news-preferences-browser.test.ts.
 Consumes Task2 contracts and existing LanguageProvider, NewsCards and public feed.
 
-- [ ] Write real Chromium cases for guest device saves/reset, blocked storage,
+- [x] Write real Chromium cases for guest device saves/reset, blocked storage,
   optional account load/save/conflict/session-expiry, language independence,
   personalized explanations and admin preview never writing storage. Observe RED.
-- [ ] Implement labelled controls with explicit device/account persistence status,
+- [x] Implement labelled controls with explicit device/account persistence status,
   no login gate, independent interface language and retained typed choices on409.
   Add generic server-rendered Kenya-first `/for-you` with noindex and client-only
   preference application; Latest archive keeps its current explicit filters.
-- [ ] Add admin preview with local state/defaultKE and public summaries only.
+- [x] Add admin preview with local state/defaultKE and public summaries only.
   Run browser/shared/API cases; expect GREEN. Commit.
 
 ### Task4: Restore founder/video discovery and real Watch destination

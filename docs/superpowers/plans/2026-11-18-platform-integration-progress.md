@@ -31,5 +31,13 @@ ownership/first-save-race/stale-version/FK cases. TypeScript passed; scoped lint
 Ruling:apply diversity only within the first24ranked positions, then preserve the
 remaining stable order. This bounds diversity work instead of quadratic scans of
 every historical story. Cost if wrong:less topic mixing far below the initial feed.
-Task3:in progress. Building explicit guest/device and optional account controls.
-Tasks4–6:not started. Larger growth/native/distribution roadmap remains active.
+Task3:complete. Guest/device choices, optional account sync, personal edition and
+isolated Kenya-default admin preview. 29/29combined browser/API/public/desk tests
+passed; types passed and scoped lint0errors (3existing-pattern hook warnings).
+Cross-account form save and stalled preview first reproduced RED, then GREEN.
+Private account saves use session-bound/version-bound ETag/If-Match, retaining
+edits on account changes or conflicts; timeout now resolves with a retry action.
+Ruling:rank a bounded window of200current published summaries on client editions
+instead of sending the full archive. Cost if wrong:older matching stories are
+reachable through Latest/search rather than the initial personalized window.
+Task4:in progress. RED media restoration assertions recorded. Tasks5–6:not started. Larger growth/native/distribution roadmap remains active.
