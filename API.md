@@ -1408,3 +1408,13 @@ interface language. The form keeps edited choices after a conflict and requires
 explicit reloading. These choices neither grant marketing consent nor identify
 a reader from their country. Both methods are private/no-store and limited to
 30 requests/minute per shared client-IP budget; bodies are bounded to4096bytes.
+
+### Shared public search
+
+`GET /search?q=…` is a server-rendered noindex search page, not an external
+article scraper or AI answer API. Query normalization uses Unicode NFKC, whitespace
+normalization and a200-character maximum. Public groups are limited to8results
+each, scanning at most5000rows per source. Draft/future stories, private or
+non-discoverable events, retired products and adult archive films are excluded.
+An unavailable source is distinguished from an empty result set; available groups
+remain usable. Search URLs are excluded from optional reporting and campaigns.

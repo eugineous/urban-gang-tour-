@@ -1,0 +1,11 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+const source=vi.hoisted(()=>({news:vi.fn(),events:vi.fn(),products:vi.fn(),gallery:vi.fn()}));
+vi.mock('@/app/_lib/blog',()=>({getBlogPostSummaries:source.news}));
+vi.mock('@/lib/server/public-events',()=>({readPublicEvents:source.events}));
+vi.mock('@/lib/server/public-products',()=>({readPublicProducts:source.products}));
+vi.mock('@/lib/server/published-gallery',()=>({publishedGallery:source.gallery}));
+import {readSiteSearch} from '@/lib/server/site-search';
+beforeEach(()=>{for(const mock of Object.values(source))mock.mockReset().mockResolvedValue([])});
+it('does no source work for an empty or invalid query',async()=>{expect(await readSiteSearch([],Date.now())).toEqual({query:'',results:[],unavailable:false});for(const mock of Object.values(source))expect(mock).not.toHaveBeenCalled()});
+it('preserves available genuine profiles while accurately reporting failed sources',async()=>{source.news.mockRejectedValue(Error('database fixture'));source.products.mockRejectedValue(Error('catalogue fixture'));const result=await readSiteSearch('Lucy Ogunde',Date.now());expect(result.unavailable).toBe(true);expect(result.results).toMatchObject([{group:'people',items:[{href:'/author/lucy-ogunde'}]}])});
+it('includes only published uploaded video DTOs with a specific reachable destination',async()=>{source.gallery.mockResolvedValue([{id:12,caption:'Fictional studio reel',category:'Archive',altText:'Studio footage',mediaType:'video'},{id:13,caption:'Studio photo',category:'Archive',altText:'Photo'}]);const result=await readSiteSearch('studio',Date.now());expect(result.results).toEqual([{group:'films',items:[{title:'Fictional studio reel',description:'Archive',href:'/watch?managed=12#uploaded-film-12'}]}])});

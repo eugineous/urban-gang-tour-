@@ -56,7 +56,7 @@ async function ready(page:Page,path:string){await page.waitForFunction(path=>doc
 async function navigate(page:Page,path:string){await page.evaluate(path=>(window as unknown as {navigate:(path:string)=>void}).navigate(path),path);await ready(page,path)}
 const panel='[data-privacy-preferences]';
 
-it.skipIf(!enabled).each(['/my-tickets','/account','/cart','/checkout','/pay/success','/orders/track','/t/private','/tickets/private','/receipt/private','/organizer/login','/book/status','/cookie-policy'])('does not prompt, write consent or report on a fresh private/quiet %s',async path=>{
+it.skipIf(!enabled).each(['/search','/my-tickets','/account','/cart','/checkout','/pay/success','/orders/track','/t/private','/tickets/private','/receipt/private','/organizer/login','/book/status','/cookie-policy'])('does not prompt, write consent or report on a fresh private/quiet %s',async path=>{
  const{context,page,requests}=await open(path);try{
   expect(await page.locator(panel).count()).toBe(0);
   expect(await page.evaluate(()=>localStorage.getItem('ugt-consent'))).toBeNull();
@@ -142,3 +142,5 @@ it.skipIf(!enabled)('treats private order recovery as a transaction without mark
 },20000);
 
 it.skipIf(!enabled).each([{width:320,height:568},{width:390,height:844},{width:980,height:1800,wide:true}])('keeps News reachable without choosing cookies at $width px',async options=>{const {context,page,requests}=await open('/about',undefined,false,{...options,newsMode:true});try{if(options.wide)await page.evaluate(script=>{const node=document.createElement('script');node.textContent=script;document.head.append(node)},VIEWPORT_BOOTSTRAP);await page.locator(panel).waitFor();const dock=page.locator('[data-mobile-app-navigation]'),notice=page.locator(panel);const bounds=await Promise.all([dock.boundingBox(),notice.boundingBox()]);expect(bounds[0]).not.toBeNull();expect(bounds[1]).not.toBeNull();expect(bounds[1]!.y+bounds[1]!.height).toBeLessThanOrEqual(bounds[0]!.y-4);await dock.locator('a[href="/blog"]').click({timeout:3000});await page.waitForURL('**/blog');expect(await page.evaluate(()=>localStorage.getItem('ugt-consent'))).toBeNull();expect(requests.some(r=>/\/api\/track|googletagmanager|googlesyndication/.test(r))).toBe(false)}finally{await context.close()}},20000);
+
+it.skipIf(!enabled)('keeps search quiet even with saved reporting consent',async()=>{const {context,page,requests}=await open('/search','yes');try{await page.evaluate(()=>(window as unknown as {reportEvent:()=>void}).reportEvent());expect(requests.some(request=>/\/api\/track|googletagmanager|googlesyndication|\/api\/campaigns/.test(request))).toBe(false);expect(await page.evaluate(()=>localStorage.getItem('ugt-consent'))).toBe('yes')}finally{await context.close()}},20000);

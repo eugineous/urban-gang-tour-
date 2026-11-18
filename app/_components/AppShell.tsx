@@ -102,7 +102,7 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
    <div className="header-actions">
     <a className="tickets-link" href="/my-tickets"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
     <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
-    <a className="mobile-search" href={newsMode?"/my-tickets":"/events#event-search"} aria-label={t(newsMode?'nav.tickets':'nav.search')}>{newsMode?<Ticket size={23} aria-hidden="true"/>:<MagnifyingGlass size={23} aria-hidden="true"/>}</a>
+    <a className="mobile-search" href={newsMode?"/search":"/events#event-search"} aria-label={discovery('search')}>{<MagnifyingGlass size={23} aria-hidden="true"/>}</a>
     <a className="start-link" href="/apply"><span className="header-rolling-label"><span>{t('contact.talk')}</span><span aria-hidden="true">{t('contact.talk')}</span></span><ArrowUpRight size={18} aria-hidden="true"/></a>
     <MobileMenuToggle buttonRef={trigger} open={open} onClick={event=>{menuOpener.current=event.currentTarget;setOpen(value=>!value)}}/>
    </div>
@@ -114,7 +114,7 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
    if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
   }}>
    <div className="menu-dialog-heading"><strong>{t('nav.menu')}</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label={t('nav.close')}>{t('nav.closeVisible')}</button></div>
-   <div className="menu-groups">{(newsMode?[{title:'Urban News',items:[['News','/blog'],['Watch','/watch'],['For you','/for-you'],['Reading preferences','/news-preferences']]},...menuGroups]:menuGroups).map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
+   <div className="menu-groups">{(newsMode?[{title:'Urban News',items:[['News','/blog'],['Watch','/watch'],['For you','/for-you'],['Reading preferences','/news-preferences'],['Search','/search']]},...menuGroups]:menuGroups).map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
    <div className="menu-bottom"><nav className="menu-account-links" aria-label={t('nav.accountHelp')}>{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav></div>
   </dialog>
   <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>

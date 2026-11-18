@@ -119,13 +119,13 @@ Create lib/shared/site-search.ts;app/search/page.tsx; scoped search tests.
 Modify public header/menu/home search links only. Consume existing approved news,
 public event/product readers, genuine founder records and non-adult media catalogue.
 
-- [ ] Write RED tests for query length/normalization, dedup/caps, actual destinations,
+- [x] Write RED tests for query length/normalization, dedup/caps, actual destinations,
   unavailable sources, and no private/draft/unpublished records in results.
-- [ ] Implement categorized bounded search with noindex/encoded links and honest
+- [x] Implement categorized bounded search with noindex/encoded links and honest
   empty/unavailable states. No external AI invocation or raw-query analytics.
   Keep existing campaigns/placements and event/shop workflows; do not auto-create
   advertising inventory, products, offers or sponsored editorial claims.
-- [ ] Run search/public-feed/commerce/consent cases; expect GREEN. Commit.
+- [x] Run search/public-feed/commerce/consent cases; expect GREEN. Commit.
 
 ### Task6: Integrated verification and normal release
 

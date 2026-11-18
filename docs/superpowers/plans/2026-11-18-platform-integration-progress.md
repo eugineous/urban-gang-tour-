@@ -47,4 +47,17 @@ Android/caption/motion regressions. Device-saving and reduced-motion runs made
 zero autoplay calls, native control/error fallback remained reachable.
 Task3follow-up:async cutover omission reproduced RED and corrected with awaited
 flag, covered by dedicated edition-route test.
-Task5:in progress. Search contract tests RED before implementation. Task6:not started. Larger growth/native/distribution roadmap remains active.
+Task5:complete. Shared noindex search uses eligible public news/events/products,
+original films, published website uploads and genuine profiles. Search quieting
+and gallery outage reporting each reproduced RED then GREEN. Uploaded film links
+explicitly promote their target into the first visible page. Optional reporting
+and campaigns are suppressed on search without changing saved consent.
+Task6:in progress. Combined20files/198tests passed, including4fresh network-none
+PostgreSQL ownership/CAS tests, all new real-browser flows and Paystack adapter/
+client/recovery regressions. Types0errors; scoped lint0errors/7warnings.
+Credential-free real Next development smoke passed11routes including new pages
+and private API401. Pre-release capture confirms56bindings and unchanged15mincron.
+Ruling:shared search scans at most5000rows per source and displays8per group;
+completed events stay in their archive rather than active search discovery.
+Cost if wrong:large future archives need dedicated search pagination/indexing.
+Task6whole-branch review/build/packaged preview/release remain pending. Larger growth/native/distribution roadmap remains active.

@@ -14,7 +14,7 @@ export function hasOptionalConsent(): boolean {
 }
 /** A saved choice never permits reporting from private workflows. */
 export function optionalReportingAllowedOn(path: string | null): boolean {
-  return typeof path === 'string' && !/^\/(api|admin|organizer|account|my-tickets|cart|checkout|pay|receipt|receipts|tickets|t|verify|orders|book\/status)(\/|$)/.test(path);
+  return typeof path === 'string' && !/^\/(api|admin|organizer|account|search|my-tickets|cart|checkout|pay|receipt|receipts|tickets|t|verify|orders|book\/status)(\/|$)/.test(path);
 }
 export function hasOptionalReportingConsent(path: string | null = typeof location === 'undefined' ? null : location.pathname): boolean {
   return hasOptionalConsent() && optionalReportingAllowedOn(path);
