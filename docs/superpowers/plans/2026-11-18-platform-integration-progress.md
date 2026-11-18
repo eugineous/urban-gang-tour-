@@ -40,4 +40,11 @@ edits on account changes or conflicts; timeout now resolves with a retry action.
 Ruling:rank a bounded window of200current published summaries on client editions
 instead of sending the full archive. Cost if wrong:older matching stories are
 reachable through Latest/search rather than the initial personalized window.
-Task4:in progress. RED media restoration assertions recorded. Tasks5–6:not started. Larger growth/native/distribution roadmap remains active.
+Task4:complete. Genuine host photos, original archive film, personal home edition,
+Watch catalogue and localized header/menu entrances restored. Combined43/43passed
+including real Chromium320/360/390/430/768/1440 plus980coarse Watch, existing
+Android/caption/motion regressions. Device-saving and reduced-motion runs made
+zero autoplay calls, native control/error fallback remained reachable.
+Task3follow-up:async cutover omission reproduced RED and corrected with awaited
+flag, covered by dedicated edition-route test.
+Task5:in progress. Search contract tests RED before implementation. Task6:not started. Larger growth/native/distribution roadmap remains active.

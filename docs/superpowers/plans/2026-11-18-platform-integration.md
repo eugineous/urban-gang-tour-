@@ -104,13 +104,13 @@ app/watch/page.tsx. Modify UrbanNews home and news-mode header/menu links, using
 existing M230/M228 portraits and49catalogue films filtered to non-adult footage.
 Add __tests__/urban-media.test.ts and browser coverage.
 
-- [ ] Write RED assertions for founder photo links, film controls, real Watch route,
+- [x] Write RED assertions for founder photo links, film controls, real Watch route,
   no adult assets, keyboard/mute/caption/error behavior and Data Saver/reduced motion.
-- [ ] Add compact genuine host identity near the news header, original films after
+- [x] Add compact genuine host identity near the news header, original films after
   the initial reporting, event/shop/booking paths and a filterable Watch catalogue.
   Reuse existing MediaFilm/MediaImage controls; no duplicate video downloads or
   autoplay without its existing permission/visibility/media-setting controls.
-- [ ] Run media and existing mobile/video/caption/consent browser regressions at
+- [x] Run media and existing mobile/video/caption/consent browser regressions at
   320/360/390/430/768/1440 and980coarse fallback. Expect GREEN. Commit.
 
 ### Task5: Shared search and clear commercial discovery

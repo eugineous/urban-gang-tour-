@@ -2,6 +2,7 @@
 import InteractionCraft from './InteractionCraft';
 import BackToTop from './BackToTop';
 import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/catalogues/shell';
+import {discoveryMessages} from '@/ui/i18n/catalogues/urban-discovery';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
@@ -31,8 +32,8 @@ export function AppShell({children,events=[],initialNow=0,newsMode=false}:{child
 }
 /** A route change closes transient navigation without a cascading state effect. */
 function PathShell({children,path,events,initialNow,newsMode}:{children:React.ReactNode;path:string;events:OwnedEvent[];initialNow:number;newsMode:boolean}){
- const t=useMessages(shellMessages);
- const navLabel=(label:string,href:string)=>{const key=navigationMessageKey(href);return key?t(key):label};
+ const t=useMessages(shellMessages),discovery=useMessages(discoveryMessages);
+ const navLabel=(label:string,href:string)=>{const discoveryKey=({'/watch':'watch','/for-you':'forYou','/news-preferences':'preferences','/search':'search'} as const)[href as '/watch'];if(discoveryKey)return discovery(discoveryKey);const key=navigationMessageKey(href);return key?t(key):label};
  const groupLabel=(group:string)=>{const key=navigationGroupKey(group);return key?t(key):group};
  const [focus,setFocus]=useState(false),[open,setOpen]=useState(false),[elevated,setElevated]=useState(false),[cartCount,setCartCount]=useState(0);
  const [navWidth,setNavWidth]=useState<number>();
@@ -97,7 +98,7 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
   <header ref={header} className="site-header" data-news-mode={newsMode||undefined} data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
    <div className="header-content">
    <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
-   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{(newsMode?[['News','/blog'],['Events','/events'],['Shop','/shop'],['About','/about'],['Book Us','/book']]:links).map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
+   <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{(newsMode?[['News','/blog'],['Watch','/watch'],['Events','/events'],['Shop','/shop'],['About','/about'],['Book Us','/book']]:links).map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
    <div className="header-actions">
     <a className="tickets-link" href="/my-tickets"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
     <a className="cart-link" href="/cart" aria-label={t('nav.cartCount',{count:cartCount})} aria-current={isNavigationCurrent(path,'/cart')?'page':undefined}><ShoppingCart size={21} aria-hidden="true"/><span className="cart-count" aria-hidden="true">{cartCount}</span></a>
@@ -113,7 +114,7 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
    if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)setOpen(false);
   }}>
    <div className="menu-dialog-heading"><strong>{t('nav.menu')}</strong><button type="button" autoFocus onClick={()=>setOpen(false)} aria-label={t('nav.close')}>{t('nav.closeVisible')}</button></div>
-   <div className="menu-groups">{(newsMode?[{title:'Explore',items:[['News','/blog'],...menuGroups[0].items]}]:menuGroups).map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
+   <div className="menu-groups">{(newsMode?[{title:'Urban News',items:[['News','/blog'],['Watch','/watch'],['For you','/for-you'],['Reading preferences','/news-preferences']]},...menuGroups]:menuGroups).map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
    <div className="menu-bottom"><nav className="menu-account-links" aria-label={t('nav.accountHelp')}>{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav></div>
   </dialog>
   <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
