@@ -19,7 +19,7 @@ it.skipIf(!enabled).each([320,390,1440])('keeps public news states, filters and 
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const select=page.locator('select[name="category"]').first();expect((await select.boundingBox())!.height).toBeGreaterThanOrEqual(44);await select.selectOption('screen');expect(await select.inputValue()).toBe('screen');
  if(state==='current'){await page.screenshot({path:'/tmp/urban-news-'+width+'.png',fullPage:true});expect(await page.locator('[data-news-story]').count()).toBe(10);await page.locator('input[name="q"]').first().focus();expect(await page.locator('input[name="q"]').first().evaluate(el=>getComputedStyle(el).outlineStyle)).not.toBe('none');}
- else{expect(await page.locator('[data-news-story]').count()).toBe(0);expect(await page.getByRole('status').first().textContent()).toContain(state==='outage'?'temporarily unavailable':'in review');}
+ else{expect(await page.locator('[data-news-story]').count()).toBe(0);expect(await page.getByRole('status').first().textContent()).toContain(state==='outage'?'temporarily unavailable':'published yet');}
  if(width<768){expect(await page.locator('.mobile-search').getAttribute('href')).toBe('/my-tickets');expect((await page.locator('.mobile-search').boundingBox())!.height).toBeGreaterThanOrEqual(44);const dock=page.locator('[data-mobile-app-navigation]');expect(await dock.locator('a').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('href')))).toEqual(['/blog','/events','/','/shop','/apply']);for(const link of await dock.locator('a').all())expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);expect(await dock.evaluate(el=>getComputedStyle(el).animationName)).toBe('none');}
  }
  }finally{await page.close()}

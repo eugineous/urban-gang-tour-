@@ -38,5 +38,5 @@ it('shows approved sources, correction, disclosure and actual timestamps',()=>{
 });
 it('preserves founder and booking paths after the honest news/events/shop empty states',()=>{
  const html=renderToStaticMarkup(createElement(UrbanNewsHome,{posts:[],newsCurrent:true,events:[],eventsCurrent:false,products:[],productsCurrent:false,now:Date.parse('2026-11-17T12:00:00Z')}));
- expect(html).toContain('Our next stories are in review');expect(html).toContain('The catalogue is temporarily unavailable.');expect(html).toContain('/author/eugine-micah');expect(html).toContain('/author/lucy-ogunde');expect(html).toContain('href="/book"');
+ expect(html).toContain('No stories published yet');expect(html).toContain('The catalogue is temporarily unavailable.');expect(html).toContain('/author/eugine-micah');expect(html).toContain('/author/lucy-ogunde');expect(html).toContain('href="/book"');
 });
