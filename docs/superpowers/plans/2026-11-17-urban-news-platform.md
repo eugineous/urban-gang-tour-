@@ -48,21 +48,21 @@ ingestUrbanNewsCandidates(items:DiscoveredNews[],runId:string):Promise<{added:nu
 releaseApprovedUrbanNews(limit?:number):Promise<{released:number;slugs:string[]}>
 ```
 
-- [ ] Write failing policy/SQL tests for source/hash/revision guards, private
+- [x] Write failing policy/SQL tests for source/hash/revision guards, private
   corrections, response replay, public new-lane filtering and legacy preservation.
-- [ ] Run focused tests plus opt-in UGT_URBAN_NEWS_PG_FIXTURE=1 using the existing
+- [x] Run focused tests plus opt-in UGT_URBAN_NEWS_PG_FIXTURE=1 using the existing
   network-none DisposablePostgres helper. Record RED before implementation.
-- [ ] Implement additive schema, bounded keyset lists and atomic CAS/publication
+- [x] Implement additive schema, bounded keyset lists and atomic CAS/publication
   transactions. New posts carry urban_news_id and public-only payload; managed=false
   avoids the old daily-slot index. Exclude the marker from legacy eligibility,
   generic saves/history/trash and every social claim/scan path.
-- [ ] Provide dynamic public predicate/projection getters so runtime mode is read
+- [x] Provide dynamic public predicate/projection getters so runtime mode is read
   per request. BlogPost includes optional public sources/verification/correction.
   Private excerpts never appear in any public select. Public reads retain coalescing
   and fail closed without stale publication fallback.
-- [ ] Prove parallel edit/publish/retraction and failed correction preserve the
+- [x] Prove parallel edit/publish/retraction and failed correction preserve the
   correct live snapshot; old rows/keys and source-independent roles are preserved.
-- [ ] Run focused SQL/unit tests, types and scoped lint. Commit only owned files.
+- [x] Run focused SQL/unit tests, types and scoped lint. Commit only owned files.
 
 ## Task2 — Provider credentials, jobs and automation
 
@@ -82,21 +82,21 @@ generateUrbanNewsDraft(id:string,expectedRevision:number,requestId:string,actor:
 runUrbanNewsAutomation():Promise<NewsJobResult>
 ```
 
-- [ ] Write failing tests for encrypted-only credentials, no-key/terms-disabled
+- [x] Write failing tests for encrypted-only credentials, no-key/terms-disabled
   operation, exact fixed origins, body deadlines, prompt injection and wrong IDs.
-- [ ] Prove real SQL daily-budget/one-send claim races before implementing jobs.
+- [x] Prove real SQL daily-budget/one-send claim races before implementing jobs.
   Reserve before dispatch; unknown dispatched outcomes consume a slot and cannot
   be reclaimed by lease expiry. Prepared jobs may resume without double spend.
-- [ ] Implement bounded GDELT metadata discovery/dedup and private structured
+- [x] Implement bounded GDELT metadata discovery/dedup and private structured
   Gemini/OpenAI drafting. No Search Grounding, tools or arbitrary provider URLs.
   Unsupported facts/finish states become a held draft or bounded failure, never
   approval. Persist only bounded errors and usage metadata without source/key logs.
-- [ ] Add strict config/credential handling in dedicated encrypted storage derived
+- [x] Add strict config/credential handling in dedicated encrypted storage derived
   from SESSION_SECRET. Default discovery/drafting off and budget2drafts/96discovery
   daily. Model/provider/terms are explicit; key installation alone changes no flags.
-- [ ] Implement cron secret authentication and bounded job lease/heartbeat; use
+- [x] Implement cron secret authentication and bounded job lease/heartbeat; use
   releaseApprovedUrbanNews for unchanged due approvals only. No social calls.
-- [ ] Run focused SQL/fixture provider tests, types and lint; commit owned files.
+- [x] Run focused SQL/fixture provider tests, types and lint; commit owned files.
 
 ## Task3 — Admin, homepage, navigation and article/SEO experience
 
@@ -104,28 +104,28 @@ Root owns /api/admin/urban-news, provider endpoints orchestration, UrbanNewsDesk
 AdminApp integration, homepage/news index/article/source panels, navigation, public
 policy, sitemap/feed/JSON-LD integration and worker scheduled job entry.
 
-- [ ] Add failing API/browser cases for role/Origin/stream limits, bad commands,
+- [x] Add failing API/browser cases for role/Origin/stream limits, bad commands,
   key redaction, revision conflicts, missing providers and source review state.
-- [ ] Reuse content permission for editing/draft requests; restrict provider
+- [x] Reuse content permission for editing/draft requests; restrict provider
   configuration/publication/retraction to super-admin. Dispatch the exact shared
   functions; reject unexpected fields. The Newsroom pitches desk stays distinct.
-- [ ] Implement inbox, editor/evidence, review, corrections, scheduled/live and
+- [x] Implement inbox, editor/evidence, review, corrections, scheduled/live and
   setup/status panels with stable loading and explicit saved/unsaved/error state.
-- [ ] Rework home/news surfaces around news/events/shop, actual records and owned
+- [x] Rework home/news surfaces around news/events/shop, actual records and owned
   assets. Preserve existing shop UI, hosts and guest tickets. Mobile adds News and
   moves My tickets to a prominent header action; Home remains central.
-- [ ] Render public source, verification, AI disclosure and corrections; use actual
+- [x] Render public source, verification, AI disclosure and corrections; use actual
   NewsArticle dates/canonicals and optional licensed imagery. Keep SEO/edge/feed/
   media eligibility shared. Add the cron job without replacing existing jobs.
-- [ ] Run source-grounded UI review and actual browser cases at320/390/1440px,
+- [x] Run source-grounded UI review and actual browser cases at320/390/1440px,
   six-language navigation, keyboard/reduced motion, empty/error/current states.
 
 ## Task4 — Development, integration and release
 
-- [ ] Provide a local doctor/smoke command and example configuration without
+- [x] Provide a local doctor/smoke command and example configuration without
   credentials. Test npm dev on loopback, honest no-DB/provider readiness, admin
   auth boundaries and failure/retry. Never introduce a production dev-auth bypass.
-- [ ] Inspect/cherry-pick actual writer commits. Verify no paid/social/account/
+- [x] Inspect/cherry-pick actual writer commits. Verify no paid/social/account/
   money changes. Update API/operator setup and .21st decisions from final UI.
 - [ ] Independent whole-branch review; resolve substantive findings. One combined
   suite, opted-in real SQL, types/lint, dependency audit, production build/dryrun
@@ -135,3 +135,22 @@ policy, sitemap/feed/JSON-LD integration and worker scheduled job entry.
   Verify live mode, legacy article withdrawal, new public eligibility, secret/admin
   boundaries, commerce and no unexpected crossposting. Report credential and
   source-availability dependencies honestly; no live model/publication tests.
+
+## Verification record before release
+
+- Store/provider SQL: 21/21 in disposable network-none PostgreSQL.
+- Combined suite: 2838 passed, 312 skipped, 5 failures in 2 affected files.
+  Three missing generated-logo fixture failures passed after normal asset sync
+  (13 checkout browser cases); two scheduler assertions passed after adding
+  the sixth job (3 observation cases). This is not a single all-green full run.
+- Root API/mobile/public browser checks: 20/20. Provider/manual-work regression
+  checks: 17/17. Scoped integration/cache checks: 98/98 before the extra review cases.
+- Development smoke: actual Next dev, six public/admin-boundary routes passed,
+  no database/provider credentials. TypeScript passed. Production dependency audit0.
+- Full lint: 0 errors, 858 warnings, including localized unchanged legacy
+  React Compiler diagnostics. New review-fix modules:0errors/1test typing warning.
+- Independent review reproduced two P2issues (retracted correction field and
+  mismatched discovery URL policy); both have RED/GREEN regressions and fixes.
+- Next production build passed; initial Cloudflare packaging exposed the shared
+  dependency-directory symlink. A physical local dependency tree is being verified.
+- Release/keep-vars/live checks are pending; do not describe this record as deployed.

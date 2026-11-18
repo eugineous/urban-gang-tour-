@@ -47,8 +47,11 @@ Automate discovery, canonicalization/deduplication, clustering and structured dr
 generation. Provider output never approves itself. Publication requires owner
 review against the exact revision/hash, source/rights/attribution checks and
 additional notes for sensitive reporting. Sensitive/unknown/incomplete claims
-cannot auto-publish. Routine automatic release may publish only an already
-approved unchanged revision when scheduled; never infer approval from AI labels.
+cannot self-publish from automation. Scheduled release may publish only an exact,
+unchanged, explicitly owner-reviewed revision, including attributed/sensitive
+reporting only after the required source checks and review notes. Never infer
+approval from AI labels. Holding a private correction preserves the live version;
+only the owner retraction command withdraws a current public projection.
 Do not expose private personal information or unsupported allegations.
 
 ## Providers and budgets

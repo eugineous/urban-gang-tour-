@@ -3,6 +3,9 @@ main = "worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+URBAN_NEWS_ENABLED = "true"
+
 # Persists invocation logs + traces to the dashboard for debugging.
 [observability]
 enabled = true
