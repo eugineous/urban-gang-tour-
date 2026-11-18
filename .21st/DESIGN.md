@@ -43,6 +43,14 @@ magenta #e6218c; yellow #ffd400; cyan #21c7e6. Inter typography.
 
 ## Decisions
 
+- 17 November Urban News: compact real reporting leads, followed by eligible events
+  and the existing merchandise preview. Magenta/neutral tokens and owned primitives
+  remain. Five mobile destinations are News, Events, centred Home, Shop, Contact;
+  My tickets occupies the header search slot. Topic/search/coverage URLs, source
+  panels and truthful empty/error states retain readable 44px controls. The old
+  interface remains available with URBAN_NEWS_ENABLED disabled. 21st search was
+  unavailable without sign-in; no hosted generation or external assets were used.
+
 - 10 November guest-first tickets: My tickets opens private confirmation links
   without demanding an account. Optional account sign-in/create actions follow
   the guest panel. Compact white bordered panels, magenta primary action,

@@ -34,6 +34,7 @@ const opsLoading = () => (
 );
 const Campaigns = dynamic(() => import('./Campaigns'), { ssr: false, loading: opsLoading });
 const WebsiteStudio=dynamic(()=>import('./WebsiteStudio'),{ssr:false,loading:opsLoading});
+const UrbanNewsDesk=dynamic(()=>import('./UrbanNewsDesk'),{ssr:false,loading:opsLoading});
 const PerformancePanel=dynamic(()=>import("./PerformancePanel"),{ssr:false,loading:opsLoading});
 const Budgeter = dynamic(() => import("./ops/Budgeter"), {
   ssr: false,
@@ -190,6 +191,7 @@ const TABS = [
   "Bookings",
   "Orders",
   "Content",
+  "Urban News",
   "Website",
   "Newsroom",
   "Comms",
@@ -252,6 +254,7 @@ const NAV_GROUPS: {
   {
     label: "Content & shop",
     items: [
+      { tab: "Urban News", icon: "▤", label: "Urban News" },
       { tab: "Content", icon: "✎", label: "Stories" },
       { tab: "Website", icon: "▦", label: "Edit website" },
       { tab: "Newsroom", icon: "▤", label: "Newsroom" },
@@ -299,6 +302,7 @@ const TAB_PERM: Partial<Record<Tab, string | string[]>> = {
   Bookings: "bookings",
   Orders: "orders",
   Content: "content",
+  "Urban News": "content",
   Website: "site_seo",
   Newsroom: "newsroom",
   Comms: "comms",
@@ -477,7 +481,7 @@ export default function AdminApp({
   }, [probeSession]);
   useEffect(()=>{
     if(!authed){setOpenedTools([]);if(authed===false){setEditPost(null);setProtectedDraft({id:'',fingerprint:''});setStorySaveError('');setRows([]);setBookingRows([]);setSettings({});setTix({});setStats(null)}return}
-    if(['Events','Products','Gallery','Contacts','Inbox','Bookings','Website'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
+    if(['Events','Products','Gallery','Contacts','Inbox','Bookings','Website','Urban News'].includes(tab))setOpenedTools(current=>current.includes(tab)?current:[...current,tab]);
   },[authed,tab]);
   useEffect(()=>{
     if(!session)return;
@@ -753,6 +757,7 @@ export default function AdminApp({
       {canSee('Orders')&&refundOrder&&<div hidden={tab!=='Orders'}><RefundRecorder key={refundOrder.id} order={refundOrder} onClose={()=>setRefundOrder(null)} onSaved={()=>{void load('orders').then(next=>{if(currentTab.current==='Orders')setRows(next)})}}/></div>}
 
       {tab === "Connected Tools" && canSee("Connected Tools") && <ConnectedTools />}
+      {canSee('Urban News')&&(tab==='Urban News'||openedTools.includes('Urban News'))&&<div hidden={tab!=='Urban News'}><UrbanNewsDesk/></div>}
       {tab === "Dashboard" && (
         <ControlRoomHome stats={stats} scope={session?.scope} perms={session?.perms || []} onOpen={(next) => setTab(next as Tab)} />
       )}
@@ -1018,6 +1023,7 @@ function Shell({
     System: ["System tools", "Access, backups and maintenance live here."],
     Events: ["Events", "Create, publish and run your events."],
     Content: ["Stories", "Write, add photos and publish when ready."],
+    "Urban News": ["Urban News", "Source, draft and review entertainment reporting."],
     Website: ["Edit website", "Draft, preview and publish your page content."],
     Promos: ["Discounts", "Manage codes, dates and eligible products."],
     Campaigns: ["Campaigns", "Schedule banners and pop-ups."],

@@ -2,7 +2,7 @@ import { canCachePublicPage, mustNotStoreResponse } from './public-cache-policy.
 import { sharedRateGuard } from './shared-rate-limit.mjs';
 import { newsArchive, newsArchiveQuery } from './lib/shared/news-archive.ts';
 
-const release = 'ticketing-reliability-20261116-v1';
+const release = 'urban-news-20261117-v1';
 const welcomeLanguages = ['en','sw','fr','zh-Hans','ru','es'];
 const storyNotFound='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Story not available — Urban News</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;background:#f4f4f4;color:#151515;font:18px/1.6 Arial,sans-serif}main{max-width:680px;margin:auto;padding:48px 24px}h1{line-height:1.2}a{color:inherit;display:inline-flex;align-items:center;min-height:44px;margin-right:24px}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}</style></head><body><main id="main-content"><a href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" width="96" height="72" alt="Urban Gang Tour"></a><h1>This story isn’t available.</h1><p>It may be unpublished, moved or removed.</p><nav aria-label="Next steps"><a href="/blog">Read Urban News</a><a href="/">Home</a></nav></main></body></html>';
 const languageNotFound = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Language not available — Urban Gang Tour</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;background:#f4f4f4;color:#151515;font:18px/1.6 Arial,sans-serif}main{max-width:680px;margin:auto;padding:48px 24px}img{object-fit:contain}h1{line-height:1.2}nav{display:flex;flex-wrap:wrap;gap:12px 24px}a{color:inherit;display:inline-flex;align-items:center;min-height:44px}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}</style></head><body><main id="main-content"><a href="/" aria-label="Urban Gang Tour home"><img src="/assets/ugt-logo.png" width="96" height="72" alt="Urban Gang Tour"></a><h1>This language page isn’t available.</h1><p>Choose an available welcome page. Booking, checkout and legal pages are currently in English.</p><nav aria-label="Available languages"><a href="/welcome/en" lang="en">English</a><a href="/welcome/sw" lang="sw">Kiswahili</a><a href="/welcome/fr" lang="fr">Français</a><a href="/welcome/zh-Hans" lang="zh-Hans">简体中文</a><a href="/welcome/ru" lang="ru">Русский</a><a href="/welcome/es" lang="es">Español</a></nav><p><a href="/contact-us">Contact the team</a></p></main></body></html>`;
@@ -62,7 +62,8 @@ export function createWorker(app) {
         const params=Object.fromEntries([...new Set(url.searchParams.keys())].map(key=>{
           const values=url.searchParams.getAll(key);return [key,values.length===1?values[0]:values];
         }));
-        const query=newsArchiveQuery(params);
+        const newsOptions={newsMode:env.URBAN_NEWS_ENABLED==='true'};
+        const query=newsArchiveQuery(params,newsOptions);
         if(query.page>1){
           let unavailable=false,missing=false;
           try{
@@ -73,7 +74,7 @@ export function createWorker(app) {
             else{
               const data=await feed.json();
               if(data.ok!==true||!Array.isArray(data.posts)||!data.posts.every(post=>post&&typeof post==='object'&&!Array.isArray(post)&&typeof post.id==='string'&&post.id&&typeof post.headline==='string'))unavailable=true;
-              else missing=query.page>newsArchive(data.posts,query).pageCount;
+              else missing=query.page>newsArchive(data.posts,query,newsOptions).pageCount;
             }
           }catch{unavailable=true}
           if(unavailable||missing){
@@ -147,7 +148,7 @@ export function createWorker(app) {
     async scheduled(_controller,env,ctx) {
       // Preserve the existing authenticated self-service cron jobs and bindings.
       if (!env.UGT_CRON_SECRET || !env.WORKER_SELF_REFERENCE) return;
-      for (const job of ['content-announcements','ticket-sweeper','payment-reconcile','email-delivery','editorial']) {
+      for (const job of ['content-announcements','ticket-sweeper','payment-reconcile','email-delivery','editorial','urban-news']) {
         ctx.waitUntil(Promise.resolve().then(()=>env.WORKER_SELF_REFERENCE.fetch(new Request('https://urbangangtour.co.ke/api/internal/cron/'+job,{
           method:'POST',headers:{'x-ugt-cron':env.UGT_CRON_SECRET},
         }))).then(response=>{

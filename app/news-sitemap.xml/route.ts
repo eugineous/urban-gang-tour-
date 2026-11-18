@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const posts = await getBlogPosts();
   const now=Date.now(),cutoff = now - 48 * 3600_000;
-  const fresh = posts.filter((p) => {const time=publicationInstant(p.datePublished).getTime();return p.schemaType!=='BlogPosting'&&time>=cutoff&&time<=now;});
+  const fresh = posts.filter((p) => {const time=publicationInstant(p.datePublished).getTime();return p.schemaType!=='BlogPosting'&&time>=cutoff&&time<=now;}).slice(0,1000);
 
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

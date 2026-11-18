@@ -3,7 +3,9 @@ import {publicImageUrl} from '@/lib/public-image-url';
 import { cached } from '@/lib/server/microcache';
 import { q, hasDb } from '@/lib/server/db';
 import { NEWS_PUBLISHER_ID } from './jsonld';
-import {PUBLIC_POST_SELECT,PUBLIC_POST_SUMMARY_SELECT} from '@/lib/server/editorial-publication';
+import {getPublicPostSelect,getPublicPostSummarySelect} from '@/lib/server/editorial-publication';
+import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
+import type {PublicNewsSource,NewsVerification} from '@/lib/shared/urban-news';
 
 export type BlogPost = {
   slug: string;
@@ -21,12 +23,18 @@ export type BlogPost = {
   imageIllustration?:boolean;
   ogImage?:string;
   disclosure?:string;
+  newsSources?:PublicNewsSource[];
+  newsVerification?:NewsVerification;
+  newsCorrection?:string;
+  newsRevision?:number;
+  newsCountry?:string;
 };
 
-export type BlogPostSummary = Pick<BlogPost,'slug'|'headline'|'datePublished'|'section'|'image'|'description'|'imageAlt'>;
+export type BlogPostSummary = Pick<BlogPost,'slug'|'headline'|'datePublished'|'section'|'image'|'description'|'imageAlt'|'newsCountry'|'newsVerification'>;
 type BlogPostSummaryRow = {
   slug:string;headline:string;date:string|Date;publication_time?:string|null;
   section?:string|null;image?:string|null;dek?:string|null;public_asset?:{alt?:string}|null;
+  public_country?:string|null;public_verification?:NewsVerification|null;
 };
 
 // PostgreSQL DATE values may arrive as Dates; preserve the existing ISO day.
@@ -37,6 +45,7 @@ function postSummary(r: BlogPostSummaryRow): BlogPostSummary {
     datePublished:r.publication_time ? new Date(r.publication_time).toISOString() : iso(r.date),
     section:r.section || 'News',image:r.image || '/assets/poster.png',description:r.dek || '',
     imageAlt:r.public_asset?.alt,
+    ...(r.public_country?{newsCountry:r.public_country}:{}),...(r.public_verification?{newsVerification:r.public_verification}:{}),
   };
 }
 
@@ -44,7 +53,9 @@ function postSummary(r: BlogPostSummaryRow): BlogPostSummary {
 export async function getBlogPostSummaries(throwOnError=false): Promise<BlogPostSummary[]> {
   try {
     if (hasDb()) {
-      const rows = await cached('blog-published-post-summaries', 1_000, () => q<BlogPostSummaryRow>(PUBLIC_POST_SUMMARY_SELECT), false);
+      const key='blog-published-post-summaries'+(urbanNewsEnabled()?':urban-news':'');
+      const sql=getPublicPostSummarySelect();
+      const rows = await cached(key, 1_000, () => q<BlogPostSummaryRow>(sql), false);
       return rows.map(postSummary);
     }
   } catch(error) { if(throwOnError)throw error; }
@@ -61,14 +72,17 @@ export async function getBlogPosts(throwOnError=false): Promise<BlogPost[]> {
       // the database session's timezone. Stable slug order for date ties.
       // Coalesce bursts for one second, never serve stale approved/retracted
       // snapshots during an outage. Public HTML/XML have no outer story cache.
-      const rows = await cached('blog-published-posts', 1_000, () => q(PUBLIC_POST_SELECT), false);
+      const key='blog-published-posts'+(urbanNewsEnabled()?':urban-news':'');
+      const sql=getPublicPostSelect();
+      const rows = await cached(key, 1_000, () => q(sql), false);
       if (rows.length) {
         return rows.map((r: any) => ({
           ...postSummary(r),
-          dateModified: r.updated_at ? new Date(Math.max(new Date(r.updated_at).getTime(),r.publication_time?new Date(r.publication_time).getTime():0)).toISOString() : iso(r.date),
+          dateModified: r.modification_time||r.updated_at ? new Date(Math.max(new Date(r.modification_time||r.updated_at).getTime(),r.publication_time?new Date(r.publication_time).getTime():0)).toISOString() : iso(r.date),
           body: Array.isArray(r.body) ? r.body : [],
           author:r.author||undefined,schemaType:r.schema_type||'NewsArticle',
           imageCaption:r.public_asset?.caption,imageIllustration:r.public_asset?.illustration===true,ogImage:r.public_asset?.og,disclosure:r.disclosure||undefined,
+          ...(r.public_revision?{newsSources:Array.isArray(r.public_sources)?r.public_sources:[],newsVerification:r.public_verification,newsCorrection:r.public_correction||undefined,newsRevision:Number(r.public_revision)}:{}),
         }));
       }
     }
@@ -89,7 +103,7 @@ export function articleJsonLd(post: BlogPost) {
     datePublished: post.datePublished,
     dateModified: post.dateModified,
     articleSection: post.section,
-    image: [publicImageUrl(post.image)],
+    ...(post.newsRevision&&post.image==='/assets/pwa-512.png'?{}:{image:[publicImageUrl(post.image)]}),
     description: post.description,
     articleBody: post.body.join('\n\n'),
     mainEntityOfPage: url,
@@ -98,5 +112,6 @@ export function articleJsonLd(post: BlogPost) {
     // Do not turn the founders or an article's subject into its author.
     author: { '@type': 'Organization', name: post.author||'Urban Gang Tour Newsroom', url: `${SITE.domain}/blog` },
     publisher: { '@id': NEWS_PUBLISHER_ID },
+    ...(post.newsSources?.length?{citation:post.newsSources.map(source=>({'@type':'CreativeWork',url:source.url,name:source.title,publisher:{'@type':'Organization',name:source.publisher},...(source.publishedAt?{datePublished:source.publishedAt}:{})}))}:{}),
   };
 }

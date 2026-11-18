@@ -90,6 +90,7 @@ export async function dispatchArticleAnnouncement(slug: string): Promise<Dispatc
        AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date
        AND social_automation_enabled=true
        AND COALESCE(to_jsonb(posts)->>'editorial_managed','false')<>'true'
+       AND COALESCE(to_jsonb(posts)->>'urban_news_id','')=''
        AND social_posted_at IS NULL
        AND social_automation_claimed_at IS NULL
      RETURNING slug, headline, dek, image`,
@@ -135,6 +136,7 @@ export async function dispatchDueArticleAnnouncements(limit = 10): Promise<{ sca
      WHERE published AND date <= (now() AT TIME ZONE 'Africa/Nairobi')::date
        AND social_automation_enabled=true
        AND COALESCE(to_jsonb(posts)->>'editorial_managed','false')<>'true'
+       AND COALESCE(to_jsonb(posts)->>'urban_news_id','')=''
        AND social_posted_at IS NULL AND social_automation_claimed_at IS NULL
      ORDER BY date ASC, slug ASC LIMIT $1`,
     [Math.max(1, Math.min(25, Math.floor(limit)))]

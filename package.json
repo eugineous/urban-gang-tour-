@@ -4,7 +4,12 @@
   "private": true,
   "scripts": {
     "predev": "node scripts/sync-assets.mjs",
-    "dev": "next dev",
+    "dev": "next dev --webpack",
+    "dev:news": "node scripts/dev-news.mjs",
+    "predev:news": "node scripts/sync-assets.mjs",
+    "dev:doctor": "node scripts/dev-doctor.mjs",
+    "dev:smoke": "node scripts/dev-smoke.mjs",
+    "predev:smoke": "node scripts/sync-assets.mjs",
     "docs:audit": "node scripts/audit-doc-templates.mjs",
     "prebuild": "node scripts/sync-assets.mjs",
     "build": "next build --webpack",

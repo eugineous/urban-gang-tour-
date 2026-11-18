@@ -32,6 +32,7 @@ import { AdSenseLoader } from './_components/Ads';
 import { GoogleAnalytics } from './_components/GoogleAnalytics';
 import { InstallableApp } from './_components/InstallableApp';
 import { ORG, WEBSITE } from './_lib/jsonld';
+import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
 import {requestTime} from '@/lib/server/request-time';
 
 export const metadata: Metadata = {
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // still server-render their own authoritative data; optional lower-page
   // event placements use their existing fresh public-feed request instead.
   const initialNow=requestTime();
+  const newsMode=urbanNewsEnabled();
   return (
     <html lang="en-KE" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{__html:PAGE_ENTRY_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:DISPLAY_PREFERENCES_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:MEDIA_LIFECYCLE_BOOTSTRAP}}/><script dangerouslySetInnerHTML={{__html:VIEWPORT_BOOTSTRAP}}/>
@@ -133,7 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* Site-wide structured data on every page */}
         <JsonLd data={[ORG, WEBSITE]} />
-        <AppShell initialNow={initialNow}>{children}</AppShell>
+        <AppShell initialNow={initialNow} newsMode={newsMode}>{children}</AppShell>
         <InstallableApp />
         {/* error beacon: surfaces real visitor errors (iOS Safari especially,
             where we can't attach a debugger) in the server logs */}

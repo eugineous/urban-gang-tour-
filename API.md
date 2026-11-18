@@ -1381,3 +1381,17 @@ oversized bodies fail before storage/event effects. Missing SQL/storage/protecti
 fails closed. Neither existing-event edits, publication, sales, payments, users
 nor general admin access is exposed. ChatGPT Actions require manual API-Key/Bearer
 setup; direct attachment transport is intentionally unsupported (no URL downloader).
+# Urban News
+
+`GET /api/admin/urban-news` requires authenticated content permission and returns
+the private keyset inbox, counts, sanitized provider readiness and configuration.
+Optional parameters: `id`, `cursor`, `q` (100 chars), `stage`, `category`.
+`POST` requires the same permission, strict same-origin requests and bounded JSON.
+Commands: `create`, `save`, `discover`, `generate`, `hold`; owner-only `publish`,
+`retract`, `config.save`, `key.save`, `key.delete`. Saved revision/hash/live-version
+checks prevent lost updates. Keys are write-only, encrypted and never returned.
+Replies are private/no-store. Manual discovery/generation are explicit actions;
+automation toggles govern scheduled requests. Neither action approves publication.
+`POST /api/internal/cron/urban-news` accepts only the existing server scheduler
+credential. Public `/api/site-data/posts`, `/blog`, feeds and sitemaps all share
+the currently selected publication predicate. See [operations](docs/urban-news-operations.md).

@@ -1,5 +1,31 @@
 # AGENTS.md — Urban Gang Tour engineering rules
 
+## Urban News platform phase (17 November 2026)
+- Owner confirms Urban Gang Tour + Urban News. News, events and merchandise are
+  the primary journeys; preserve Eugine Micah/Lucy Ogunde profiles, magenta,
+  guest tickets, Paystack-only commerce and private/admin controls. Android-first
+  remains a follow-on native target for this information architecture.
+- Replace the public legacy blog feed with a distinct entertainment/news lane;
+  retain all old records and private manuscripts. Preserve canonical /blog URLs
+  as Urban News, with genuine404for withdrawn old articles in enabled news mode.
+  URBAN_NEWS_ENABLED controls a reversible cutover; old archive controls cannot
+  resurrect legacy stories into the new feed or crosspost new stories.
+- Use GDELT discovery and server-side text-only Google/Gemini or OpenAI drafting.
+  No Google Search Grounding syndication, publisher article/photo copying,
+  paywall/private-login bypass, invented verification or ranking/legal guarantees.
+  Source/model text is untrusted data. Automated discovery/drafting never grants
+  publication approval; incomplete/sensitive claims stay held for editorial review.
+- Keys belong in dedicated authenticated encrypted storage or Worker secrets,
+  never generic settings, client bundles, URLs or logs. Installing a key never
+  enables automation/spend/publication. Durable quotas precede provider dispatch.
+- Social broadcasting is explicitly a later phase: no new Instagram/Facebook/X/
+  TikTok/Substack dispatch now. Preserve old media rights and all customer data.
+- Owner asks implementation through completion and a working development setup.
+  Execute scoped spec/plan inline without repeated approval loops. Independent
+  writers use clean isolated worktrees and root reviews actual commits. No paid
+  resources, live charges/STKs/messages/accounts/events, or secret/billing changes.
+  Normal reviewed PR/keep-vars release preserves existing bindings and cron.
+
 ## UGT ticketing reliability (16 November 2026)
 - Owner chooses UGT implementation only after the Little comparison: no pilot,
   outreach, provider switch or commission/price changes. Marketplace checkout

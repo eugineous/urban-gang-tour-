@@ -1,0 +1,7 @@
+import {afterEach,expect,it,vi} from 'vitest';
+const state=vi.hoisted(()=>({run:vi.fn()}));
+vi.mock('@/lib/server/urban-news-automation',()=>({runUrbanNewsAutomation:state.run}));
+afterEach(()=>{vi.unstubAllEnvs();state.run.mockReset()});
+async function route(){const loaded=await import('@/app/api/internal/cron/urban-news/route').catch(()=>null);expect(loaded,'private scheduler route must exist').not.toBeNull();return loaded!}
+it('requires a configured timing-safe cron secret before invoking any job',async()=>{const api=await route();vi.stubEnv('UGT_CRON_SECRET','');expect((await api.POST(new Request('https://site.example/api/internal/cron/urban-news',{method:'POST'}))).status).toBe(503);vi.stubEnv('UGT_CRON_SECRET','fixture-cron-secret');expect((await api.POST(new Request('https://site.example/api/internal/cron/urban-news',{method:'POST',headers:{'x-ugt-cron':'wrong'}}))).status).toBe(401);expect(state.run).not.toHaveBeenCalled()});
+it('returns bounded private outcomes and never serializes upstream exception text',async()=>{const api=await route();vi.stubEnv('UGT_CRON_SECRET','fixture-cron-secret');state.run.mockRejectedValue(Error('upstream private-key'));const response=await api.POST(new Request('https://site.example/api/internal/cron/urban-news',{method:'POST',headers:{'x-ugt-cron':'fixture-cron-secret'}}));expect(response.status).toBe(503);expect(response.headers.get('Cache-Control')).toBe('private, no-store');expect(await response.text()).not.toContain('private-key')});

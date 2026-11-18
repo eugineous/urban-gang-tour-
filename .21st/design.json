@@ -81,6 +81,13 @@
   },
   "decisions": [
     {
+      "date": "2026-11-17",
+      "direction": "Urban Gang Tour + Urban News: reviewed reporting, events and merchandise",
+      "ui": "Compact editorial lead and phone story rows, magenta/neutral tokens, real sources, coverage/topic/search URLs and honest empty/unavailable states. News/Events/Home/Shop/Contact dock; My tickets replaces mobile search in the header. Existing HomeEvents/HomeMerch/DocumentLink/PublicationDate primitives reused.",
+      "preserve": "Legacy UI when news mode is disabled, founder profiles, Mkurugenzi shop catalogue, six languages, owned/licensed media and all payment/auth/publication boundaries.",
+      "inspiration": "21st search attempted by orchestrator with CLI 1.18; unavailable without sign-in. No hosted generation or new dependency."
+    },
+    {
       "date": "2026-11-10",
       "direction": "Guest-first tickets and optional permanent Urban Gang account",
       "ui": "My tickets opens private confirmation links or strong order references before optional sign-in/create actions. Compact white bordered panels, magenta CTA, 16px inputs, 44px targets, six languages and Android coarse-pointer reflow reuse current primitives.",

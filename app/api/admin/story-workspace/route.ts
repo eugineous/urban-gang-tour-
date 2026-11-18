@@ -36,7 +36,7 @@ export async function GET(req:Request){
     }
     const [drafts,trash]=await Promise.all([
       q(`SELECT id,content->>'headline' AS headline,revision,updated_at FROM admin_story_drafts WHERE actor=$1 ORDER BY updated_at DESC LIMIT 100`,[actor]),
-      q(`SELECT slug,snapshot->>'headline' AS headline,removed_at FROM admin_story_trash WHERE $2::boolean OR removed_by=$1 ORDER BY removed_at DESC LIMIT 100`,[actor,isSuperAdmin(req)])
+      q(`SELECT slug,snapshot->>'headline' AS headline,removed_at FROM admin_story_trash WHERE ($2::boolean OR removed_by=$1) AND COALESCE(snapshot->>'urban_news_id','')='' ORDER BY removed_at DESC LIMIT 100`,[actor,isSuperAdmin(req)])
     ]);
     return reply({ok:true,drafts,trash});
   }catch{return reply({error:'workspace_unavailable'},503)}

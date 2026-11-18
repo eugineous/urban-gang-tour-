@@ -1,0 +1,15 @@
+import {existsSync} from 'node:fs';
+import nextEnv from '@next/env';
+nextEnv.loadEnvConfig(process.cwd(),true);
+const [major,minor]=process.versions.node.split('.').map(Number);
+const supported=major>20||(major===20&&minor>=9);
+const dependencies=existsSync('node_modules/next/dist/bin/next');
+const state=name=>process.env[name]?.trim()?'configured':'missing';
+console.log(`Node ${process.versions.node}: ${supported?'ready':'requires Node 20.9 or newer'}`);
+console.log(`Dependencies: ${dependencies?'ready':'run npm ci'}`);
+console.log(`Database: ${state('DATABASE_URL')} (required to save content)`);
+console.log(`Session signing: ${state('SESSION_SECRET')} (required for authenticated admin)`);
+console.log(`Cron authorization: ${state('UGT_CRON_SECRET')} (required for scheduled work)`);
+console.log('Provider keys are optional for manual editing; owner-managed keys are checked in Control Room → Urban News.');
+console.log('Run npm run dev:news for the news UI, or npm run dev for the configured lane. No credentials are printed or created.');
+if(!supported||!dependencies)process.exitCode=1;
