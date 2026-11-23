@@ -15,7 +15,7 @@ export function reserveNewsDraftCents(provider:NewsProvider,model:string):number
 export function validNewsBudget(value:unknown):value is Pick<UrbanNewsBudget,'monthlyLimitCents'|'enabledProviders'>{
  if(!value||typeof value!=='object'||Array.isArray(value))return false;
  const data=value as Record<string,unknown>,enabled=data.enabledProviders;
- if(!Number.isInteger(data.monthlyLimitCents)||Number(data.monthlyLimitCents)<300||Number(data.monthlyLimitCents)>500)return false;
+ if(typeof data.monthlyLimitCents!=='number'||!Number.isInteger(data.monthlyLimitCents)||data.monthlyLimitCents<300||data.monthlyLimitCents>500)return false;
  if(!enabled||typeof enabled!=='object'||Array.isArray(enabled))return false;
  const e=enabled as Record<string,unknown>,keys=Object.keys(e);
  return keys.length===3&&keys.every(k=>['qwen','gemini','openai'].includes(k))&&['qwen','gemini','openai'].every(k=>typeof e[k]==='boolean');
