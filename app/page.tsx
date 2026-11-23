@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   if(await urbanNewsEnabled()){
     const [news,events,products]=await Promise.allSettled([getBlogPostSummaries(true),readPublicEvents(),readPublicProducts()]);
-    return <UrbanNewsHome posts={news.status==='fulfilled'?news.value:[]} newsCurrent={news.status==='fulfilled'} events={events.status==='fulfilled'?events.value:[]} eventsCurrent={events.status==='fulfilled'} products={products.status==='fulfilled'?products.value:[]} productsCurrent={products.status==='fulfilled'} now={requestTime()}/>;
+    return <UrbanNewsHome posts={news.status==='fulfilled'?news.value.slice(0,200):[]} newsCurrent={news.status==='fulfilled'} events={events.status==='fulfilled'?events.value:[]} eventsCurrent={events.status==='fulfilled'} products={products.status==='fulfilled'?products.value:[]} productsCurrent={products.status==='fulfilled'} now={requestTime()}/>;
   }
   return (
     <>

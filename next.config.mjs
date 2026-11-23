@@ -100,6 +100,7 @@ const nextConfig = {
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
         ],
       })),
+      { source: '/search', headers: [{key:'Referrer-Policy',value:'no-referrer'}] },
       { source: '/admin/gate', headers: [{key:'Permissions-Policy',value:'camera=(self), microphone=(), geolocation=()'}] },
       { source: '/verify/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Referrer-Policy',value:'no-referrer'}] },
       { source: '/receipt/:path*', headers: [{key:'Cache-Control',value:'private, no-store'},{key:'Cloudflare-CDN-Cache-Control',value:'no-store'},{key:'Referrer-Policy',value:'no-referrer'},{key:'X-Robots-Tag',value:'noindex, nofollow'}] },

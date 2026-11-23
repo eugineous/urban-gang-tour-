@@ -1,6 +1,7 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import ImageUploadField from './ImageUploadField';
+import NewsMarketPreview from './NewsMarketPreview';
 import {NEWS_CATEGORIES,type UrbanNewsItem,type UrbanNewsDraft,type UrbanNewsConfig,type NewsProviderReadiness,type NewsEvidence} from '@/lib/shared/urban-news';
 import styles from './UrbanNewsDesk.module.css';
 
@@ -59,10 +60,12 @@ export default function UrbanNewsDesk(){
  }
  async function changeState(action:'hold'|'retract'){if(!item||dirty)return;const reason=prompt(action==='retract'?'Why are you taking this story offline?':'Why should this draft be held for review?');if(!reason)return;const result=await send({action,id:item.id,expectedRevision:item.revision,reason});if(result?.item){apply(result.item);setNotice(action==='retract'?'Story retracted.':'Draft held for review.')}}
  const generationReady=!!providers?.providers[config.provider]?.configured&&config.termsConfirmed;
+ const [previewOpen,setPreviewOpen]=useState(false);
  return <section className={styles.desk} aria-label="Urban News desk">
   <header className={styles.heading}><div><p className={styles.eyebrow}>Urban News</p><h2>Newsroom</h2><p>Find the story. Check the sources. Publish with confidence.</p></div><div className={styles.actions}><button type="button" disabled={busy||!providers?.discoveryAvailable} onClick={()=>void discover()}>Find stories</button><button type="button" className={styles.quiet} disabled={loading} onClick={()=>void load()}>Refresh inbox</button></div></header>
   <div className={styles.readiness}><span>{providers?.storageAvailable?'Newsroom connected':loading?'Checking newsroom…':'Storage unavailable'}</span><span>{providers?.providers[config.provider]?.configured?`${label(config.provider)} key configured`:'Writing provider not configured'}</span><span>{providers?`${providers.draftsUsedToday} / ${config.dailyDraftLimit} drafts today`:'Provider usage unavailable'}</span>{!enabled&&<span>Public news mode is disabled</span>}</div>
   {error&&<p className={styles.error} role="alert">{error}</p>}{notice&&<p className={styles.notice} role="status">{notice}</p>}
+  <details onToggle={event=>setPreviewOpen(event.currentTarget.open)}><summary>Market preview</summary>{previewOpen&&<NewsMarketPreview/>}</details>
   <div className={styles.workspace}>
    <aside className={styles.inbox}><h3>Story inbox <span>{Object.values(counts).reduce((total,n)=>total+(Number(n)||0),0)}</span></h3><label>Search stories<input type="search" value={query} maxLength={100} onChange={e=>setQuery(e.target.value)}/></label><label>Show<select value={stage} onChange={e=>setStage(e.target.value)}><option value="all">All stories</option>{['discovered','draft','review','approved','live','held','retracted','archived'].map(value=><option key={value} value={value}>{label(value)}</option>)}</select></label>
     {loading&&!rows.length?<p role="status">Loading stories…</p>:!rows.length?<p>No stories in this view. Add a source or run discovery.</p>:<div className={styles.storyList}>{rows.map(row=><button type="button" key={row.id} aria-pressed={row.id===item?.id} disabled={busy||imageBusy} onClick={()=>void choose(row)}><strong>{row.draft.headline||'Untitled story'}</strong><span>{label(row.stage)} · {row.draft.country||'Global'}</span></button>)}</div>}

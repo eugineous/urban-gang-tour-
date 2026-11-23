@@ -10,5 +10,10 @@
 .links span{flex-basis:100%;font-size:11px;line-height:1.4}
 .banner p strong{font-size:inherit}
 .banner :focus-visible{outline:2px solid var(--action);outline-offset:3px}
+/* Keep the first-visit choice independent of navigation, including Android's
+   zoomed desktop-layout fallback. The dock is76px tall plus its safe inset. */
+@media(max-width:767px),(max-device-width:600px) and (pointer:coarse){
+ :global(body:has([data-mobile-app-navigation])) .banner{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 92px);max-height:calc(100dvh / var(--ugt-phone-zoom,1) - 140px)}
+}
 @media(max-width:360px){.banner{padding:12px}.actions{gap:5px}.actions button{padding-inline:5px}}
 @media(max-height:500px){.banner{max-height:calc(100dvh - 24px)}.banner>div:first-child{position:sticky;top:0;background:#fff;z-index:1}}

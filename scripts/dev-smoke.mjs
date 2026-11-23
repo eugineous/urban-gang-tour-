@@ -22,7 +22,7 @@ try{
  const base=`http://127.0.0.1:${port}`,deadline=Date.now()+120000;
  let ready=false;while(Date.now()<deadline){if(child.exitCode!==null)throw Error('Development server exited early');try{const r=await fetch(base+'/api/admin/urban-news',{signal:AbortSignal.timeout(1500)});if(r.status===401){ready=true;break}}catch{}await new Promise(resolve=>setTimeout(resolve,350))}
  if(!ready)throw Error('Development server did not become ready');
- for(const [path,expected,text] of [['/',200,'Urban News'],['/blog',200,'Urban News'],['/editorial-policy',200,'Editorial'],['/admin',200,'Control Room'],['/api/admin/urban-news',401,'unauthorized'],['/api/site-data/posts',200,'posts']]){
+ for(const [path,expected,text] of [['/',200,'Urban News'],['/blog',200,'Urban News'],['/watch',200,'Urban Gang Tour on film'],['/search?q=Lucy',200,'Lucy Ogunde'],['/news-preferences',200,'Your reading choices'],['/for-you',200,'Your edition'],['/api/account/news-preferences',401,'sign_in_required'],['/editorial-policy',200,'Editorial'],['/admin',200,'Control Room'],['/api/admin/urban-news',401,'unauthorized'],['/api/site-data/posts',200,'posts']]){
   const response=await fetch(base+path,{signal:AbortSignal.timeout(180000)}),body=await response.text();
   if(response.status!==expected||!body.toLowerCase().includes(text.toLowerCase()))throw Error(`Development smoke failed: ${path} returned ${response.status}`);
   console.log(`PASS ${path}: ${response.status}`);
