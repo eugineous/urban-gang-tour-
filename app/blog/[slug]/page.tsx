@@ -70,11 +70,11 @@ export default async function BlogPost(
     <article className="news-article">
       <OriginalContent disclose><p className="eyebrow">{post.section}</p><h1>{post.headline}</h1></OriginalContent>
       <div className="article-byline"><PublicationDate value={post.datePublished} long/><span><MessageText catalogue={discoveryMessages} message="by"/> <a href="/blog" lang="en-KE">{post.author||'Urban Gang Tour Newsroom'}</a></span></div>
-      <p className="article-summary" lang="en-KE">{post.description}</p><img lang="en-KE" className="article-cover" src={post.image} alt={artwork.alt||post.headline} data-editorial-illustration={post.imageIllustration||undefined}/>
+      <p className="article-summary" lang="en-KE">{post.description}</p>{post.image&&<img lang="en-KE" className="article-cover" src={post.image} alt={artwork.alt||post.headline} data-editorial-illustration={post.imageIllustration||undefined}/>}
       {artwork.caption&&<p className="article-caption" lang="en-KE">{artwork.caption}</p>}<ShareBar url={`${SITE.domain}/blog/${post.slug}`} title={post.headline}/>
       <div className="article-body">{post.body.map((para,i)=><div key={i}>{i===3&&post.body.length>4&&<ArticleAd/>}<ArticleText paragraph={para}/></div>)}</div>
       {post.newsSources&&<NewsSourcePanel sources={post.newsSources} verification={post.newsVerification} correction={post.newsCorrection} disclosure={post.disclosure} published={post.datePublished} modified={post.dateModified}/>}
-      {!post.newsSources&&post.disclosure&&<p className="article-disclosure" lang="en-KE">{post.disclosure}</p>}<div className="modern-actions"><a href="/blog"><MessageText catalogue={discoveryMessages} message="news.all"/></a><a href="/book"><MessageText catalogue={discoveryMessages} message="planEvent"/></a></div>
+      {!post.newsSources&&post.disclosure&&<p className="article-disclosure" lang="en-KE">{post.disclosure}</p>}<div className="modern-actions"><a href="/blog"><MessageText catalogue={discoveryMessages} message="news.all"/></a><a href="/events"><MessageText catalogue={discoveryMessages} message="events"/></a><a href="/shop"><MessageText catalogue={discoveryMessages} message="shop"/></a><a href="/book"><MessageText catalogue={discoveryMessages} message="planEvent"/></a></div>
     </article>
     <PartnerEventPortfolio newsSlug={post.slug}/>
     {related.length>0&&<section className="related-stories"><h2><MessageText catalogue={discoveryMessages} message="news.moreUrban"/></h2><div className="modern-grid">{related.map(r=><a className="news-card" key={r.slug} href={'/blog/'+r.slug}><img src={r.image} alt="" loading="lazy"/><p className="eyebrow" lang="en-KE">{r.section}</p><h3 lang="en-KE">{r.headline}</h3></a>)}</div></section>}

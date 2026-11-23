@@ -1,3 +1,5 @@
+import {Suspense} from 'react';
+import UrbanMusicChart from '@/app/_components/UrbanMusicChart';
 import type {Metadata} from 'next';
 import {metadataForPathDynamic} from '@/app/_lib/seo';
 import {newsIndexJsonLd,structuredDataForPath} from '@/app/_lib/jsonld';
@@ -28,6 +30,6 @@ export default async function BlogIndex({searchParams}:Props={}){
   const archive=newsArchive(posts,query,{newsMode});
   if(feed.current&&query.page>archive.pageCount)notFound();
   const url=SITE.domain+newsArchiveHref(query),schema={...newsIndexJsonLd(archive.visible),'@id':url+'#collection',url};
-  if(newsMode)return <><JsonLd data={[...structuredDataForPath('/blog'),schema]}/><UrbanNewsIndex posts={archive.visible} query={query} pageCount={archive.pageCount} current={feed.current} countries={[...new Set(posts.map(p=>p.newsCountry).filter((country):country is string=>!!country))].sort()}/></>;
+  if(newsMode)return <><JsonLd data={[...structuredDataForPath('/blog'),schema]}/><UrbanNewsIndex chart={query.page===1&&!query.q&&(!query.country||query.country==='KE')&&['all','music'].includes(query.category)?<Suspense fallback={null}><UrbanMusicChart/></Suspense>:undefined} posts={archive.visible} query={query} pageCount={archive.pageCount} current={feed.current} countries={[...new Set(posts.map(p=>p.newsCountry).filter((country):country is string=>!!country))].sort()}/></>;
   return <><JsonLd data={[...structuredDataForPath('/blog'),schema]}/><HostedSite path="/blog" screens={[]} events={[]} products={[]} newsCurrent={feed.current} newsArchive={query} posts={posts.map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description,imageAlt:p.imageAlt}))}/></>;
 }
