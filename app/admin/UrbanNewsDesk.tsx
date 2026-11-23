@@ -23,6 +23,7 @@ export default function UrbanNewsDesk(){
  const [item,setItem]=useState<UrbanNewsItem|null>(null),[draft,setDraft]=useState<UrbanNewsDraft|null>(null),[owner,setOwner]=useState(false),[enabled,setEnabled]=useState(true),[config,setConfig]=useState(initialConfig),[providers,setProviders]=useState<NewsProviderReadiness|null>(null);
  const [savedConfig,setSavedConfig]=useState<UrbanNewsConfig|null>(null),[configRevision,setConfigRevision]=useState<number|null>(null),[configConflict,setConfigConflict]=useState(false);
  const providerSnapshot=useRef<{config:UrbanNewsConfig;revision:number}|null>(null);
+ const [budgetDraft,setBudgetDraft]=useState<{monthlyLimitCents:number;enabledProviders:{qwen:boolean;gemini:boolean;openai:boolean};revision:number}|null>(null);
  const [busy,setBusy]=useState(false),[imageBusy,setImageBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[checks,setChecks]=useState({facts:false,rights:false,attribution:false}),[reviewNotes,setReviewNotes]=useState(''),[correction,setCorrection]=useState(''),[schedule,setSchedule]=useState('');
  const [source,setSource]=useState({url:'',title:'',publisher:'',country:'Global'}),[credentialProvider,setCredentialProvider]=useState<NewsProvider>('gemini'),[key,setKey]=useState(''),[unconfirmed,setUnconfirmed]=useState<UrbanNewsDraft|null>(null);
  const lock=useRef(false),selected=useRef<string|null>(null),listController=useRef<AbortController|null>(null),jobKeys=useRef<Record<string,string>>({});
@@ -71,7 +72,6 @@ export default function UrbanNewsDesk(){
  async function reloadProviderSettings(){if(lock.current)return;lock.current=true;setBusy(true);setError('');try{const data=await request('/api/admin/urban-news');adoptProviderState(data,true);setKey('');setNotice('Provider settings reloaded. Review them before drafting.')}catch{setConfigConflict(true);setError('Provider settings could not load. Your edits remain here.')}finally{lock.current=false;setBusy(false)}}
  const providerReady=configRevision!==null&&!configConflict&&!!providers?.providers[config.provider]?.configured&&config.termsConfirmed;
  const generationReady=providerReady&&providers?.budget?.enabledProviders[config.provider]!==false&&!!savedConfig&&configRevision!==null&&!configConflict&&JSON.stringify(config)===JSON.stringify(savedConfig)&&!!providers?.providers[savedConfig.provider]?.configured&&savedConfig.termsConfirmed;
- const [budgetDraft,setBudgetDraft]=useState<{monthlyLimitCents:number;enabledProviders:{qwen:boolean;gemini:boolean;openai:boolean};revision:number}|null>(null);
  const [previewOpen,setPreviewOpen]=useState(false);
  return <section className={styles.desk} aria-label="Urban News desk">
   <header className={styles.heading}><div><p className={styles.eyebrow}>Urban News</p><h2>Newsroom</h2><p>Find the story. Check the sources. Publish with confidence.</p></div><div className={styles.actions}><button type="button" disabled={busy||!providers?.discoveryAvailable} onClick={()=>void discover()}>Find stories</button><button type="button" className={styles.quiet} disabled={loading} onClick={()=>void load()}>Refresh inbox</button></div></header>
