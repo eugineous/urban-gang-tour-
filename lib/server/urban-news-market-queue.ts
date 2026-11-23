@@ -1,3 +1,4 @@
+import {URBAN_NEWS_PUBLIC_PREDICATE} from './editorial-publication';
 import {q} from './db';
 import {ensureUrbanNewsSchema,getUrbanNewsItem} from './urban-news-store';
 import {NEWS_MARKETS} from '@/lib/shared/news-preferences';
@@ -35,4 +36,20 @@ export async function listReadyMarketDrafts(target:number,limit:number):Promise<
  ) SELECT id FROM eligible WHERE today+position<=$1 ORDER BY position,today,updated_at,id LIMIT $2`,[target,limit]);
  const items=await Promise.all(rows.map(row=>getUrbanNewsItem(row.id)));
  return items.filter((item):item is UrbanNewsItem=>item!==null);
+}
+
+export async function getMarketCoverageToday(){
+ await ensureUrbanNewsSchema();
+ const rows=await q<{market:string;leads:number;prepared:number;published:number}>(`
+ WITH leads AS (SELECT draft->>'country' AS market,count(*)::int AS n
+  FROM urban_news_candidates WHERE created_at>=${dayStart} GROUP BY 1),
+ briefs AS (SELECT draft->>'country' AS market,count(DISTINCT candidate_id)::int AS n
+  FROM urban_news_revisions WHERE created_at>=${dayStart} AND jsonb_array_length(draft->'claims')>0
+  AND jsonb_array_length(draft->'body')>0 GROUP BY 1),
+ published AS (SELECT urban_news_public->>'country' AS market,count(*)::int AS n FROM posts
+  WHERE ${URBAN_NEWS_PUBLIC_PREDICATE} AND (urban_news_public->>'publishedAt')::timestamptz>=${dayStart} GROUP BY 1)
+ SELECT markets.market,coalesce(leads.n,0) AS leads,coalesce(briefs.n,0) AS prepared,coalesce(published.n,0) AS published
+ FROM unnest($1::text[]) AS markets(market) LEFT JOIN leads USING(market)
+ LEFT JOIN briefs USING(market) LEFT JOIN published USING(market)`,[markets]);
+ return rows.map(row=>({...row,leads:Number(row.leads),prepared:Number(row.prepared),published:Number(row.published)}));
 }

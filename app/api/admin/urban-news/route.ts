@@ -1,3 +1,4 @@
+import {getMarketCoverageToday} from '@/lib/server/urban-news-market-queue';
 import {validNewsProviderKey} from '@/lib/shared/news-provider-key';
 import {NextResponse} from 'next/server';
 import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
@@ -55,6 +56,9 @@ export async function GET(req:Request){
  const denied=await access(req);if(denied)return denied;
  if(!rateLimit('urban-news-read:'+clientIp(req),90,60000))return reply({error:'too_many_requests'},429);
  const params=new URL(req.url).searchParams;
+ if(params.get('view')==='coverage'&&params.size===1){
+  try{return reply({ok:true,rows:await getMarketCoverageToday()})}catch(error){return failure(error)}
+ }
  if([...params.keys()].some(k=>!['id','cursor','q','stage','category'].includes(k)||params.getAll(k).length!==1))return reply({error:'invalid_news_request'},400);
  const id=params.get('id');if(id!==null&&!identifier(id))return reply({error:'invalid_news_request'},400);
  const q=params.get('q')||'',stage=params.get('stage')||'all',category=params.get('category')||'all',cursor=params.get('cursor')||undefined;

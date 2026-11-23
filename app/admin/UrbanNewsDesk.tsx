@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
+import UrbanNewsCoverage from './UrbanNewsCoverage';
 import NewsProviderAccess from './NewsProviderAccess';
 import ImageUploadField from './ImageUploadField';
 import NewsMarketPreview from './NewsMarketPreview';
@@ -95,6 +96,7 @@ export default function UrbanNewsDesk(){
   {providers?.lastRun&&<p className={styles.help}>Last newsroom run · {new Date(providers.lastRun.at).toLocaleString()} · {label(providers.lastRun.state)}{providers.lastRun.code?' · '+(messages[providers.lastRun.code]||label(providers.lastRun.code)):''}</p>}
   {error&&<p className={styles.error} role="alert">{error}</p>}{notice&&<p className={styles.notice} role="status">{notice}</p>}
   <details onToggle={event=>setPreviewOpen(event.currentTarget.open)}><summary>Market preview</summary>{previewOpen&&<NewsMarketPreview/>}</details>
+  <UrbanNewsCoverage target={savedConfig?.dailyMarketTarget??5}/>
   <UrbanNewsCommunityReplies/>
   <div className={styles.workspace}>
    <aside className={styles.inbox}><h3>Story inbox <span>{Object.values(counts).reduce((total,n)=>total+(Number(n)||0),0)}</span></h3><label>Search stories<input type="search" value={query} maxLength={100} onChange={e=>setQuery(e.target.value)}/></label><label>Show<select value={stage} onChange={e=>setStage(e.target.value)}><option value="all">All stories</option>{['discovered','draft','review','approved','live','held','retracted','archived'].map(value=><option key={value} value={value}>{label(value)}</option>)}</select></label>

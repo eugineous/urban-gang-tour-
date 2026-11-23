@@ -1,4 +1,4 @@
-const CACHE = 'ugt-urban-newsdesk-v2';
+const CACHE = 'ugt-urban-marketdesk-v3';
 const RUNTIME = `${CACHE}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
 // A standalone document cannot fail hydration when route chunks are unavailable.
