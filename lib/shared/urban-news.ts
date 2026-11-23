@@ -1,6 +1,7 @@
 export const NEWS_CATEGORIES=['celebrity','music','screen','style','creators','sport','culture'] as const;
 export type NewsCategory=typeof NEWS_CATEGORIES[number];
-export type NewsProvider='gemini'|'openai';
+export type NewsProvider='gemini'|'openai'|'qwen';
+export const NEWS_DRAFT_MODELS:Record<NewsProvider,readonly string[]>={gemini:['gemini-3.5-flash-lite','gemini-3.8-flash'],openai:['gpt-4.1-mini','gpt-4.1','gpt-5-mini'],qwen:['qwen3.8-flash']};
 export type NewsStage='discovered'|'draft'|'review'|'approved'|'live'|'held'|'retracted'|'archived';
 export type NewsVerification='confirmed'|'attributed'|'developing';
 export type NewsEvidence={id:string;url:string;publisher:string;title:string;observedAt:string;publishedAt:string|null;excerpt:string;rights:'unknown'|'link_only'|'public_facts'|'owned'|'licensed';role:'primary'|'report';independenceKey:string;checked:boolean};

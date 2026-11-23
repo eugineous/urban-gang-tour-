@@ -83,3 +83,31 @@ These are separate deliverables; this foundation does not claim them operational
 Native, social distribution, memberships and marketplace readiness require their
 own scoped implementation and validation. This list records unfinished work; it
 is not a substitute for implementing those later phases.
+
+## QwenCloud provider setup
+
+Control Room → Urban News → Provider access and automation now includes
+QwenCloud · Singapore. Enter the full Singapore application API key in the private
+password field and save it. The field clears; readiness returns configuration
+status only. Existing Gemini/OpenAI ciphertext and configuration survive the
+additive provider-check upgrade. Keys are encrypted separately by provider; saving
+or deleting a managed key pauses automatic drafting, as before.
+
+Select QwenCloud as Writing provider and choose the supported `qwen3.8-flash`
+model. Changing provider/model leaves automatic drafting paused. Confirm that your
+QwenCloud workspace permits editorial application use, set a daily request limit
+and enable work deliberately. Application API usage may be billed by QwenCloud;
+installing a key never activates spending. Coding-plan keys are not the application
+API. This integration uses the owner-confirmed fixed Singapore endpoint only:
+`https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1/chat/completions`.
+
+Drafting remains text-only with thinking disabled,4500maximum output tokens,
+strict JSON schema, checked evidence, one deadline/no automatic retries, durable
+request budgets and manual editorial approval. A model reply cannot authorize
+publication or request tools. No live Qwen call was made as verification; actual
+workspace/model availability and billing must be checked by the owner on activation.
+
+References: [QwenCloud API keys](https://docs.qwencloud.com/api-reference/preparation/api-key),
+[regions](https://docs.qwencloud.com/developer-guides/getting-started/regions),
+[chat API](https://docs.qwencloud.com/api-reference/chat/openai-chat),
+[structured output](https://docs.qwencloud.com/developer-guides/text-generation/structured-output).

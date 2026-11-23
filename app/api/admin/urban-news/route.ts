@@ -18,7 +18,7 @@ const keys=(v:Record<string,unknown>,allowed:readonly string[])=>Object.keys(v).
 const identifier=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,160}$/.test(v);
 const revision=(v:unknown):v is number=>Number.isSafeInteger(v)&&Number(v)>0;
 const requestId=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,128}$/.test(v);
-const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai';
+const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai'||v==='qwen';
 const stages=['discovered','draft','review','approved','live','held','retracted','archived','all'];
 const actions={create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId'],'config.save':['config'],'key.save':['provider','key'],'key.delete':['provider']} as const;
 const ownerActions=new Set(['publish','retract','config.save','key.save','key.delete']);
@@ -28,13 +28,13 @@ async function access(req:Request){
  return null;
 }
 function safeConfig(c:UrbanNewsConfig):UrbanNewsConfig{
- return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
+ return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
 }
 function safeReadiness(p:NewsProviderReadiness):NewsProviderReadiness{
  const item=(key:NewsProvider)=>({configured:p.providers?.[key]?.configured===true,keySource:(['managed','environment'].includes(p.providers?.[key]?.keySource)?p.providers[key].keySource:'none') as 'managed'|'environment'|'none'});
  const number=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:0;
  const last=p.lastRun;
- return {storageAvailable:p.storageAvailable===true,providers:{gemini:item('gemini'),openai:item('openai')},discoveryAvailable:p.discoveryAvailable===true,draftsUsedToday:number(p.draftsUsedToday),discoveriesUsedToday:number(p.discoveriesUsedToday),lastRun:last&&typeof last.at==='string'&&Number.isFinite(Date.parse(last.at))?{at:last.at,state:String(last.state).slice(0,40),code:typeof last.code==='string'&&/^[a-z0-9_]{1,80}$/.test(last.code)?last.code:null}:null};
+ return {storageAvailable:p.storageAvailable===true,providers:{gemini:item('gemini'),openai:item('openai'),qwen:item('qwen')},discoveryAvailable:p.discoveryAvailable===true,draftsUsedToday:number(p.draftsUsedToday),discoveriesUsedToday:number(p.discoveriesUsedToday),lastRun:last&&typeof last.at==='string'&&Number.isFinite(Date.parse(last.at))?{at:last.at,state:String(last.state).slice(0,40),code:typeof last.code==='string'&&/^[a-z0-9_]{1,80}$/.test(last.code)?last.code:null}:null};
 }
 function failure(error:unknown){
  const code=error instanceof Error?error.message:'';
