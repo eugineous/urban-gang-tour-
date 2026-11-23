@@ -98,3 +98,26 @@ deliverables, not claims from this foundation's test results. Cost if wrong:thos
 capabilities cannot be advertised as delivered yet. Owner has now requested a
 QwenCloud integration using the confirmed Singapore application endpoint; key
 entry must be private, drafting remains off until deliberately enabled.
+
+Task6:complete. PR137merged normally to96d9bf1; feature/main source trees matched
+3cda937a8820baaa852c11524be2b0ef7464c22b. Cloudflare version
+f9b537d9-0032-4efa-af95-b3ba9b21d403, markerurban-platform-20261118-v1.
+Live12HTTP/5browser scenarios passed;24product identities/prices/images and11
+event identities were unchanged. All56bindings and exact15mincron/timestamps
+strictly unchanged. Hosted CI is externally blocked (Workers build token deleted/
+rolled; Vercel account blocked); verified CLI release succeeded without bypass,
+secret or billing changes. PR attachment tool was called but host rejected the
+dynamic attach capability; URL remains in release record. Worktree retained for
+continued authorized work. Exact artifacts:ugt-platform-integration-20261118/RELEASED.md.
+
+Bounded follow-on:QwenCloud. Owner confirmed Singapore application endpoint;
+reuse the existing provider/key/config/drafting flow, not a new subsystem. Key
+entry stays private; no full owner key has been supplied in chat or installed.
+Ruling:continue the already-authorized provider integration after owner supplied
+its requested endpoint details; no repeated design/permission loop. Cost if wrong:
+the owner can leave the new provider unconfigured; defaults/activation are unchanged.
+Qwen REDs:4adapter/API +3realSQL migration +3admin/browser failures before support.
+Initial GREEN:41adapter/admin/browser/automation/cron checks and13network-none
+SQL checks, including legacy credential/config preservation and idempotent upgrade.
+TypeScript0errors; scoped lint0errors/1existing test-any warning.
+Qwen final full-suite/review/build/release pending; wider strategy remains active.

@@ -5,7 +5,7 @@ import {requireOrigin} from '@/lib/server/origin';
 import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 import {readJsonObject} from '@/lib/server/json-body';
 import {getUrbanNewsOverview,getUrbanNewsItem,createUrbanNewsCandidate,saveUrbanNewsDraft,publishUrbanNews,holdUrbanNews,retractUrbanNews} from '@/lib/server/urban-news-store';
-import {getUrbanNewsProviderStatus,getUrbanNewsConfig,saveUrbanNewsConfig,discoverUrbanNews,generateUrbanNewsDraft} from '@/lib/server/urban-news-automation';
+import {getUrbanNewsProviderStatus,getUrbanNewsConfigState,saveUrbanNewsConfig,discoverUrbanNews,generateUrbanNewsDraft} from '@/lib/server/urban-news-automation';
 import {saveUrbanNewsProviderKey,deleteUrbanNewsProviderKey} from '@/lib/server/urban-news-secrets';
 import {NEWS_CATEGORIES,type NewsStage,type NewsProvider,type UrbanNewsDraft,type UrbanNewsConfig,type NewsPublication,type NewsProviderReadiness} from '@/lib/shared/urban-news';
 
@@ -18,9 +18,9 @@ const keys=(v:Record<string,unknown>,allowed:readonly string[])=>Object.keys(v).
 const identifier=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,160}$/.test(v);
 const revision=(v:unknown):v is number=>Number.isSafeInteger(v)&&Number(v)>0;
 const requestId=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,128}$/.test(v);
-const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai';
+const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai'||v==='qwen';
 const stages=['discovered','draft','review','approved','live','held','retracted','archived','all'];
-const actions={create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId'],'config.save':['config'],'key.save':['provider','key'],'key.delete':['provider']} as const;
+const actions={create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId','expectedConfigRevision','provider','model'],'config.save':['config','expectedConfigRevision'],'key.save':['provider','key'],'key.delete':['provider']} as const;
 const ownerActions=new Set(['publish','retract','config.save','key.save','key.delete']);
 async function access(req:Request){
  if(!await verifyAdminSession(req))return reply({error:'unauthorized'},401);
@@ -28,18 +28,18 @@ async function access(req:Request){
  return null;
 }
 function safeConfig(c:UrbanNewsConfig):UrbanNewsConfig{
- return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
+ return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
 }
 function safeReadiness(p:NewsProviderReadiness):NewsProviderReadiness{
  const item=(key:NewsProvider)=>({configured:p.providers?.[key]?.configured===true,keySource:(['managed','environment'].includes(p.providers?.[key]?.keySource)?p.providers[key].keySource:'none') as 'managed'|'environment'|'none'});
  const number=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:0;
  const last=p.lastRun;
- return {storageAvailable:p.storageAvailable===true,providers:{gemini:item('gemini'),openai:item('openai')},discoveryAvailable:p.discoveryAvailable===true,draftsUsedToday:number(p.draftsUsedToday),discoveriesUsedToday:number(p.discoveriesUsedToday),lastRun:last&&typeof last.at==='string'&&Number.isFinite(Date.parse(last.at))?{at:last.at,state:String(last.state).slice(0,40),code:typeof last.code==='string'&&/^[a-z0-9_]{1,80}$/.test(last.code)?last.code:null}:null};
+ return {storageAvailable:p.storageAvailable===true,providers:{gemini:item('gemini'),openai:item('openai'),qwen:item('qwen')},discoveryAvailable:p.discoveryAvailable===true,draftsUsedToday:number(p.draftsUsedToday),discoveriesUsedToday:number(p.discoveriesUsedToday),lastRun:last&&typeof last.at==='string'&&Number.isFinite(Date.parse(last.at))?{at:last.at,state:String(last.state).slice(0,40),code:typeof last.code==='string'&&/^[a-z0-9_]{1,80}$/.test(last.code)?last.code:null}:null};
 }
 function failure(error:unknown){
  const code=error instanceof Error?error.message:'';
  if(code==='news_not_found')return reply({error:code},404);
- if(code==='news_conflict'||code==='news_capacity_reached')return reply({error:code},409);
+ if(code==='news_conflict'||code==='news_capacity_reached'||code==='news_config_changed')return reply({error:code},409);
  if(code.startsWith('invalid_news_'))return reply({error:'invalid_news_request'},400);
  const review=['news_correction_note_required','news_evidence_required','news_review_checks_required','news_risk_review_required','news_sensitive_notes_required','news_claim_evidence_required','news_independent_sources_required','news_image_rights_required','news_incomplete_draft'];
  if(review.includes(code))return reply({error:code},422);
@@ -57,8 +57,8 @@ export async function GET(req:Request){
  if(q.length>100||/[\u0000-\u001f]/.test(q)||!stages.includes(stage)||category!=='all'&&!(NEWS_CATEGORIES as readonly string[]).includes(category)||cursor&&cursor.length>1000)return reply({error:'invalid_news_request'},400);
  try{
   if(id){const item=await getUrbanNewsItem(id);return item?reply({ok:true,item}):reply({error:'news_not_found'},404)}
-  const [overview,config,providers]=await Promise.all([getUrbanNewsOverview(cursor,{q,stage:stage as NewsStage|'all',category:category as typeof NEWS_CATEGORIES[number]|'all'}),getUrbanNewsConfig(),getUrbanNewsProviderStatus()]);
-  return reply({ok:true,...overview,config:safeConfig(config),providers:safeReadiness(providers),canPublish:isSuperAdmin(req),enabled:urbanNewsEnabled()});
+  const [overview,config,providers]=await Promise.all([getUrbanNewsOverview(cursor,{q,stage:stage as NewsStage|'all',category:category as typeof NEWS_CATEGORIES[number]|'all'}),getUrbanNewsConfigState(),getUrbanNewsProviderStatus()]);
+  return reply({ok:true,...overview,config:safeConfig(config.config),configRevision:config.revision,providers:safeReadiness(providers),canPublish:isSuperAdmin(req),enabled:urbanNewsEnabled()});
  }catch(error){return failure(error)}
 }
 
@@ -81,13 +81,13 @@ export async function POST(req:Request){
   }
   if(action==='key.save'||action==='key.delete'){
    if(!provider(body.provider))return reply({error:'invalid_news_request'},400);
-   if(action==='key.save'){if(typeof body.key!=='string'||body.key.length<20||body.key.length>4096||/[\s\u0000-\u001f]/.test(body.key))return reply({error:'invalid_news_request'},400);await saveUrbanNewsProviderKey(body.provider,body.key,actor)}
-   else await deleteUrbanNewsProviderKey(body.provider,actor);
-   return reply({ok:true,providers:safeReadiness(await getUrbanNewsProviderStatus())});
+   let updated;if(action==='key.save'){if(typeof body.key!=='string'||body.key.length<20||body.key.length>4096||/[\s\u0000-\u001f]/.test(body.key))return reply({error:'invalid_news_request'},400);updated=await saveUrbanNewsProviderKey(body.provider,body.key,actor)}
+   else updated=await deleteUrbanNewsProviderKey(body.provider,actor);
+   return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision,providers:safeReadiness(await getUrbanNewsProviderStatus())});
   }
   if(action==='config.save'){
-   if(!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed']))return reply({error:'invalid_news_request'},400);
-   return reply({ok:true,config:safeConfig(await saveUrbanNewsConfig(body.config as UrbanNewsConfig,actor))});
+   if(!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed']))return reply({error:'invalid_news_request'},400);
+   const updated=await saveUrbanNewsConfig(body.config as UrbanNewsConfig,actor,Number(body.expectedConfigRevision));return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision});
   }
   if(action==='discover'){if(!requestId(body.requestId))return reply({error:'invalid_news_request'},400);return reply(await discoverUrbanNews(body.requestId,actor))}
   if(action==='publish'){
@@ -97,7 +97,7 @@ export async function POST(req:Request){
   }
   if(!identifier(body.id)||!revision(body.expectedRevision))return reply({error:'invalid_news_request'},400);
   if(action==='save'){if(!object(body.draft))return reply({error:'invalid_news_request'},400);return reply({ok:true,item:await saveUrbanNewsDraft(body.id,body.expectedRevision,body.draft as UrbanNewsDraft,actor)})}
-  if(action==='generate'){if(!requestId(body.requestId))return reply({error:'invalid_news_request'},400);return reply(await generateUrbanNewsDraft(body.id,body.expectedRevision,body.requestId,actor))}
+  if(action==='generate'){if(!requestId(body.requestId)||!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!provider(body.provider)||typeof body.model!=='string'||body.model.length>100)return reply({error:'invalid_news_request'},400);return reply(await generateUrbanNewsDraft(body.id,body.expectedRevision,body.requestId,actor,{configRevision:Number(body.expectedConfigRevision),provider:body.provider,model:body.model,mode:'manual'}))}
   if(typeof body.reason!=='string'||body.reason.trim().length<10||body.reason.length>2000)return reply({error:'invalid_news_request'},400);
   return reply({ok:true,item:await(action==='hold'?holdUrbanNews:retractUrbanNews)(body.id,body.expectedRevision,body.reason.trim(),actor)});
  }catch(error){return failure(error)}

@@ -1392,6 +1392,18 @@ Commands: `create`, `save`, `discover`, `generate`, `hold`; owner-only `publish`
 checks prevent lost updates. Keys are write-only, encrypted and never returned.
 Replies are private/no-store. Manual discovery/generation are explicit actions;
 automation toggles govern scheduled requests. Neither action approves publication.
+The overview includes `configRevision`. `config.save` accepts the exact seven-field
+`config` and `expectedConfigRevision`; a stale version returns409 with
+`news_config_changed`. Key save/delete accepts `provider` (`gemini`, `openai`,
+`qwen`), plus write-only `key` for save, and atomically returns the paused config
+and its new revision. Existing admin tabs must reload before another settings save.
+`generate` requires `id`, story `expectedRevision`, `requestId`,
+`expectedConfigRevision`, `provider` and `model`; the server chooses manual mode.
+Scheduled work carries its captured saved revision and requires drafting enabled
+at durable dispatch. Both modes recheck recipient, consent and current daily cap;
+no browser-supplied scheduled mode or custom provider URL is accepted. Qwen uses
+only the fixed Singapore application endpoint and supported `qwen3.8-flash` model.
+See [provider setup](docs/platform-integration-operations.md#qwencloud-provider-setup).
 `POST /api/internal/cron/urban-news` accepts only the existing server scheduler
 credential. Public `/api/site-data/posts`, `/blog`, feeds and sitemaps all share
 the currently selected publication predicate. See [operations](docs/urban-news-operations.md).

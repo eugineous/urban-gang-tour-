@@ -134,7 +134,7 @@ public event/product readers, genuine founder records and non-adult media catalo
   production build/dryrun and real packaged-worker viewport/navigation checks.
 - [x] Keep a complete roadmap of distribution/retention/commercial/native work with
   evidence and operational dependencies. Do not call those future capabilities done.
-- [ ] Use the already-authorized normal PR/attach/exact-head/keep-vars procedure
+- [x] Use the already-authorized normal PR/attach/exact-head/keep-vars procedure
   only after review and verification; validate public/mobile/preferences/assets,
   catalogue and all existing bindings/cron afterward. Record actual outcomes.
 
