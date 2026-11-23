@@ -30,6 +30,14 @@ describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolate
   await pg.schema(`CREATE TABLE posts(slug TEXT PRIMARY KEY,headline TEXT NOT NULL,section TEXT,image TEXT,dek TEXT,body JSONB,published BOOLEAN NOT NULL DEFAULT false,date DATE NOT NULL DEFAULT CURRENT_DATE,updated_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE TABLE audit_log(id BIGSERIAL PRIMARY KEY,actor TEXT,action TEXT,detail JSONB); INSERT INTO posts(slug,headline,body,published,date) VALUES('old-fixture','Preserved old story','["Preserved manuscript"]',true,'2020-01-01');`);
  },30000);
  afterAll(()=>{pg.stop();vi.unstubAllEnvs()});
+ it('turns a first-party chart snapshot into an editable brief and publishes only after owner review',async()=>{
+  const record=await createUrbanNewsCandidate({...source,provider:'apple_chart',url:'https://music.apple.com/ke/album/test/1?i=2',title:'Fixture leads the Kenya chart',publisher:'Apple Music'},'owner','fixture-chart-first');
+  expect(record.draft.evidence[0]).toMatchObject({checked:true,role:'primary',rights:'public_facts'});expect(record.liveRevision).toBeNull();
+  expect(record.draft.body[0]).toContain('2026-11-17');
+  const live=await publishUrbanNews(approve(record,record.draft),'owner');
+  expect(live.liveRevision).toBe(record.revision);
+  await retractUrbanNews(live.id,live.revision,'End isolated chart fixture.','owner');
+ });
  it('deduplicates canonical discovery and response replays without changing legacy content',async()=>{
   const [a,b]=await Promise.all([createUrbanNewsCandidate(source,'fixture-editor','request-1'),createUrbanNewsCandidate({...source,url:'https://example.test/fixture'},'fixture-editor','request-2')]);
   expect(a.id).toBe(b.id);expect(a.revision).toBe(1);

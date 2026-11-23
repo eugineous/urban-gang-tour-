@@ -78,3 +78,14 @@ test('monthly cost guard blocks a draft before sending it to the model',async()=
  const run=await secrets.reserveUrbanNewsRun('draft','would-exceed-month','would-exceed-month',2);
  expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,authorization)).toEqual({ok:false,code:'monthly_budget_exhausted'});
 });
+
+test('replacing a rejected key permits a fresh attempt and retains its prior spend',async()=>{
+ const auth=await manualAuthorization(),first=await secrets.reserveUrbanNewsRun('draft','invalid-first','retry-key-story',2);
+ expect(await secrets.dispatchUrbanNewsDraftRun(first.id!,auth)).toEqual({ok:true});
+ await secrets.finishUrbanNewsRun(first.id!,{ok:false,state:'failed',code:'provider_auth_rejected'});
+ await secrets.saveUrbanNewsProviderKey(auth.provider,'fixture-replacement-credential','owner');
+ expect(await secrets.readUrbanNewsRun('draft','new-owner-request','retry-key-story')).toBeNull();
+ const next=await secrets.reserveUrbanNewsRun('draft','new-owner-request','retry-key-story',2);
+ expect(next.id).not.toEqual(first.id);
+ expect((await secrets.getUrbanNewsProviderStatus()).budget!.reservedCents).toBeGreaterThan(0);
+});

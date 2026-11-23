@@ -64,3 +64,17 @@ it('does not retry or accept truncated, refused, or tool-directed Qwen completio
 it('retains the single Qwen deadline through a stalled body and leaves uncertain dispatch unretried',async()=>{
  const api=await provider();vi.useFakeTimers();const fetcher=vi.fn(async()=>new Response(new ReadableStream({start(){}}),{headers:{'Content-Type':'application/json'}}));vi.stubGlobal('fetch',fetcher);const result=api.draftFromEvidence('qwen','qwen3.8-flash','fixture-qwen-key',draft).catch((error:Error)=>error.message);await vi.advanceTimersByTimeAsync(8001);expect(await result).toBe('provider_timeout');expect(fetcher).toHaveBeenCalledTimes(1);
 });
+
+it('checks the Kenyan chart identity and freshness before preparing attributed evidence',async()=>{
+ const api=await provider();
+ const track={id:'123',artistName:'Act',name:'Title',kind:'songs',url:'https://music.apple.com/ke/album/a/321?i=123'};
+ const feed={id:api.KENYA_CHART_URL,country:'ke',updated:new Date().toISOString(),results:[track]};
+ vi.stubGlobal('fetch',async()=>Response.json({feed}));
+ expect(await api.fetchKenyaMusicLead()).toMatchObject({provider:'apple_chart',country:'KE',url:track.url});
+ feed.updated='2020-01-01';await expect(api.fetchKenyaMusicLead()).rejects.toThrow('provider_output_invalid');
+});
+it('keeps NVIDIA credentials on its own endpoint and distinguishes rejected credentials',async()=>{
+ const api=await provider(),fetcher=vi.fn(async()=>new Response('',{status:401}));vi.stubGlobal('fetch',fetcher);
+ await expect(api.draftFromEvidence('nvidia','meta/llama-3.3-70b-instruct','fixture-nvidia-key',draft)).rejects.toThrow('provider_auth_rejected');
+ expect(fetcher).toHaveBeenCalledWith('https://integrate.api.nvidia.com/v1/chat/completions',expect.objectContaining({redirect:'error'}));
+});

@@ -11,7 +11,7 @@ export default function UrbanNewsCommunityReplies(){
   {notice&&<p role="status">{notice}</p>}
   {drafts&&<section aria-label="Reply suggestions">
    <p><strong>{drafts.classification==='sensitive'?'Sensitive comment':drafts.classification==='correction'?'Correction request':drafts.classification==='source'?'Source request':'Routine comment'}</strong>. {drafts.humanReviewRequired?'Editorial review required. No automatic reply.':'Review wording before replying.'}</p>
-   {drafts.suggestions.length===0?<p>Do not use an automatic response. Refer this comment to an editor or trained moderator.</p>:drafts.suggestions.map((reply,index)=><div key={index}><p>{reply}</p><button type="button" onClick={()=>{void navigator.clipboard.writeText(reply).then(()=>setNotice('Reply suggestion copied.')).catch(()=>setNotice('Copy unavailable. Select the suggested text manually.'))}}>Copy suggestion {index+1}</button></div>)}
+   {drafts.suggestions.length===0?<p>Do not use an automatic response. Refer this comment to an editor or trained moderator.</p>:drafts.suggestions.map((reply,index)=><div key={index}><p>{reply}</p><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(reply);setNotice('Reply suggestion copied.')}catch{setNotice('Copy unavailable. Select the suggested text manually.')}}}>Copy suggestion {index+1}</button></div>)}
   </section>}
  </details>;
 }
