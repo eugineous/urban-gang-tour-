@@ -67,7 +67,7 @@ export default function NewsProviderAccess({busy,config,providers,send,onProvide
    <option value="">Identify from key</option>
    {(Object.keys(names) as NewsProvider[]).map(p=><option key={p} value={p}>{names[p]}</option>)}
   </select></label>
-  {key&&<p>{!destination?'Choose the provider that issued this key.':detected&&selected&&detected!==selected?'The key prefix belongs to '+names[detected]+'. Discard the paste and choose its provider.':!valid?'Paste the complete, unmasked key.':detected?'Recognized '+names[detected]+' key format.':'Selected provider: '+names[provider]+'.'}</p>}
+  {key&&<p>{!destination?'Choose the provider that issued this key.':detected&&selected&&detected!==selected?'The key prefix belongs to '+names[detected]+'. Discard the paste and choose its provider.':key.startsWith('sk-sp-')?'This Qwen Token Plan key uses a separate endpoint. Paste a Singapore Pay-As-You-Go key.':!valid?'Paste the complete, unmasked key.':detected?'Recognized '+names[detected]+' key format.':'Selected provider: '+names[provider]+'.'}</p>}
   {provider==='qwen'&&<p>Use a Singapore Pay-As-You-Go application key for QwenCloud.</p>}
   <p>{names[provider]} · {stored?.keySource==='managed'?(stored.configured?'Encrypted key saved.':'Saved key cannot be read. Replace it.'):stored?.keySource==='environment'?'Server key configured.':'No key saved.'}</p>
   <div className={styles.actions}>
