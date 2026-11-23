@@ -47,4 +47,10 @@ Task5:complete. Fresh post-review full suite:2963passed/291skipped;347files
 passed/19skipped,366total;exit0. Dev doctor confirms runtime/dependencies ready;
 local DB/session/cron credentials absent as expected, no demo authority. API.md
 records version-bound config/generation and key-pause response contracts.
-Task6:production build/packaged verification/release pending.
+Task6:build/verification complete; release pending. Next/OpenNext build and
+keep-vars dryrun exit0. Packaged Worker:12HTTP checks and5real Chromium
+scenarios passed;320/390/1440/980coarse viewports plus blocked-storage reader
+navigation. Full-project lint0errors/859existing warnings; scoped lint1warning.
+Fresh before capture:56bindings and unchanged15mincron. No full owner key
+installed, no real model call or editorial publication as verification.
+Normal PR/attach/exact-head merge/keep-vars/live checks remain next.
