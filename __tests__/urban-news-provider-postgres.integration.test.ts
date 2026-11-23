@@ -5,7 +5,7 @@ vi.mock('@/lib/server/db',()=>({hasDb:()=>true,q:state.query,qSchema:state.schem
 const enabled=process.env.UGT_URBAN_NEWS_PG_FIXTURE==='1',test=it.skipIf(!enabled),fixture=new DisposablePostgres();
 let secrets:typeof import('@/lib/server/urban-news-secrets');
 beforeAll(async()=>{if(!enabled)return;const loaded=await import('@/lib/server/urban-news-secrets').catch(()=>null);expect(loaded,'durable provider store must exist').not.toBeNull();secrets=loaded!;fixture.start();await vi.waitFor(()=>expect(fixture.ready()).toBe(true),{timeout:10000});state.schema.mockImplementation((s:string|readonly string[])=>fixture.schema(typeof s==='string'?s:s.join(';\n')));state.query.mockImplementation(async(s:string,a:unknown[])=>{const rows=await fixture.query(s,a);return rows.map(row=>Object.fromEntries(Object.entries(row).map(([key,value])=>[key,typeof value==='string'&&(value.startsWith('{')||value.startsWith('['))?JSON.parse(value):value])))});state.pool.mockImplementation(()=>fixture.pool());await secrets.getUrbanNewsConfig()},30000);
-beforeEach(async()=>{if(!enabled)return;vi.stubEnv('SESSION_SECRET','fixture-only-session-secret-never-production');vi.stubEnv('GEMINI_API_KEY','');vi.stubEnv('OPENAI_API_KEY','');vi.stubEnv('QWEN_API_KEY','');await fixture.query('TRUNCATE urban_news_provider_keys,urban_news_provider_config,urban_news_provider_runs,urban_news_provider_lease')});
+beforeEach(async()=>{if(!enabled)return;vi.stubEnv('SESSION_SECRET','fixture-only-session-secret-never-production');vi.stubEnv('GEMINI_API_KEY','');vi.stubEnv('OPENAI_API_KEY','');vi.stubEnv('QWEN_API_KEY','');await fixture.query('TRUNCATE urban_news_provider_keys,urban_news_provider_config,urban_news_provider_runs,urban_news_provider_lease,urban_news_provider_budget');await secrets.saveUrbanNewsBudget({monthlyLimitCents:500,enabledProviders:{qwen:true,gemini:true,openai:true}},'fixture-owner',0)});
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals()});afterAll(()=>{if(enabled&&secrets)fixture.stop()},15000);
 
 async function manualAuthorization(){const current=await secrets.getUrbanNewsConfigState(),saved=await secrets.saveUrbanNewsConfig({...current.config,termsConfirmed:true},'owner',current.revision);return {configRevision:saved.revision,provider:saved.config.provider,model:saved.config.model,mode:'manual' as const}}
@@ -62,4 +62,30 @@ test('applies a lowered daily limit to prepared model requests before dispatch',
 });
 test('resumes only known-unsent prepared work after fresh consent and never resends it after dispatch',async()=>{
  const first=await manualAuthorization(),run=await secrets.reserveUrbanNewsRun('draft','known-unsent','known-unsent',2);await secrets.saveUrbanNewsConfig({...await secrets.getUrbanNewsConfig(),draftingEnabled:false},'owner',first.configRevision);expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,first)).toEqual({ok:false,code:'news_config_changed'});const current=await secrets.getUrbanNewsConfigState(),fresh={configRevision:current.revision,provider:current.config.provider,model:current.config.model,mode:'manual' as const};expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,fresh)).toEqual({ok:true});expect(await secrets.readUrbanNewsRun('draft','known-unsent','known-unsent')).toMatchObject({state:'unknown',code:'provider_outcome_unknown'});expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,fresh)).toEqual({ok:false,code:'provider_outcome_unknown'});
+});
+
+test('disabling a paid provider blocks even a previously prepared draft',async()=>{
+ const authorization=await manualAuthorization(),status=await secrets.getUrbanNewsProviderStatus();
+ const policy=await secrets.saveUrbanNewsBudget({monthlyLimitCents:300,enabledProviders:{qwen:true,gemini:false,openai:false}},'owner',status.budget!.revision);
+ expect(policy.revision).toBe(status.budget!.revision+1);
+ const run=await secrets.reserveUrbanNewsRun('draft','disabled-provider','disabled-provider',2);
+ expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,authorization)).toEqual({ok:false,code:'news_provider_disabled'});
+});
+test('monthly cost guard blocks a draft before sending it to the model',async()=>{
+ const authorization=await manualAuthorization(),status=await secrets.getUrbanNewsProviderStatus();
+ await secrets.saveUrbanNewsBudget({monthlyLimitCents:300,enabledProviders:{qwen:true,gemini:true,openai:true}},'owner',status.budget!.revision);
+ await fixture.query("INSERT INTO urban_news_provider_runs(id,kind,fingerprint,state,reserved_cost_cents,provider,model) VALUES('spent-fixture','draft','spent-fixture','complete',299,'gemini','gemini-3.5-flash-lite')");
+ const run=await secrets.reserveUrbanNewsRun('draft','would-exceed-month','would-exceed-month',2);
+ expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,authorization)).toEqual({ok:false,code:'monthly_budget_exhausted'});
+});
+
+test('replacing a rejected key permits a fresh attempt and retains its prior spend',async()=>{
+ const auth=await manualAuthorization(),first=await secrets.reserveUrbanNewsRun('draft','invalid-first','retry-key-story',2);
+ expect(await secrets.dispatchUrbanNewsDraftRun(first.id!,auth)).toEqual({ok:true});
+ await secrets.finishUrbanNewsRun(first.id!,{ok:false,state:'failed',code:'provider_auth_rejected'});
+ await secrets.saveUrbanNewsProviderKey(auth.provider,'fixture-replacement-credential','owner');
+ expect(await secrets.readUrbanNewsRun('draft','new-owner-request','retry-key-story')).toBeNull();
+ const next=await secrets.reserveUrbanNewsRun('draft','new-owner-request','retry-key-story',2);
+ expect(next.id).not.toEqual(first.id);
+ expect((await secrets.getUrbanNewsProviderStatus()).budget!.reservedCents).toBeGreaterThan(0);
 });

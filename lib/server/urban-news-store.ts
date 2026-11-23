@@ -66,14 +66,24 @@ export async function getUrbanNewsOverview(cursor?:string,query?:{q?:string;stag
  return {items:visible.map(item),counts,nextCursor:rows.length>50&&last?Buffer.from(JSON.stringify([last.updated_at,last.id,filter])).toString('base64url'):null};
 }
 function discovered(value:DiscoveredNews):DiscoveredNews{
- if(!value||typeof value!=='object'||Object.keys(value).some(key=>!['url','title','publisher','country','language','observedAt','provider'].includes(key))||typeof value.title!=='string'||!value.title.trim()||value.title.length>500||typeof value.publisher!=='string'||!value.publisher.trim()||value.publisher.length>300||typeof value.country!=='string'||value.country.length>80||typeof value.language!=='string'||value.language.length>30||typeof value.observedAt!=='string'||!Number.isFinite(Date.parse(value.observedAt))||Date.parse(value.observedAt)>Date.now()+60000||!['gdelt','manual'].includes(value.provider))throw Error('invalid_news_candidate');
+ if(!value||typeof value!=='object'||Object.keys(value).some(key=>!['url','title','publisher','country','language','observedAt','provider'].includes(key))||typeof value.title!=='string'||!value.title.trim()||value.title.length>500||typeof value.publisher!=='string'||!value.publisher.trim()||value.publisher.length>300||typeof value.country!=='string'||value.country.length>80||typeof value.language!=='string'||value.language.length>30||typeof value.observedAt!=='string'||!Number.isFinite(Date.parse(value.observedAt))||Date.parse(value.observedAt)>Date.now()+60000||!['gdelt','manual','apple_chart'].includes(value.provider))throw Error('invalid_news_candidate');
  return {...value,url:canonicalNewsUrl(value.url)};
 }
 function initialDraft(source:DiscoveredNews):UrbanNewsDraft{return {headline:source.title,dek:'',body:[],category:'celebrity',country:'Global',verification:'developing',subjectKind:'unknown',risk:'unknown',evidence:[{id:'discovery',url:source.url,publisher:source.publisher,title:source.title,observedAt:source.observedAt,publishedAt:null,excerpt:'',rights:'unknown',role:'report',independenceKey:new URL(source.url).hostname,checked:false}],claims:[],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:''}}
 
 async function createCandidate(input:DiscoveredNews,actor:string,requestId:string):Promise<{item:UrbanNewsItem;added:boolean}>{
  const source=discovered(input);actorId(actor);if(typeof requestId!=='string'||!requestId.trim()||requestId.length>200)throw Error('invalid_news_request');await ensureUrbanNewsSchema();
- const id=randomUUID(),draft=initialDraft(source),hash=urbanNewsDraftHash(draft),requestKey=createHash('sha256').update(actor+'\0'+requestId).digest('hex');
+ const id=randomUUID(),draft=initialDraft(source);
+ if(source.provider==='apple_chart'){
+  draft.category='music';draft.country='KE';draft.subjectKind='organization';draft.verification='attributed';draft.risk='routine';
+  const date=source.observedAt.slice(0,10);
+  draft.dek='Apple Music Kenya’s most-played songs, as recorded on '+date+'.';
+  draft.body=[source.title+' in Apple’s '+date+' update. The ranking covers listening on Apple Music in Kenya.'];
+  draft.claims=[{text:source.title+' on '+date+'.',evidenceIds:['discovery']}];
+  draft.disclosure='Chart brief compiled from Apple Music’s public Kenya feed.';
+  draft.evidence[0]={...draft.evidence[0],url:'https://rss.marketingtools.apple.com/api/v2/ke/music/most-played/10/songs.json',role:'primary',rights:'public_facts',checked:true,excerpt:source.title+' in the chart snapshot dated '+date+'.',independenceKey:'music.apple.com'};
+ }
+ const hash=urbanNewsDraftHash(draft),requestKey=createHash('sha256').update(actor+'\0'+requestId).digest('hex');
  for(let attempt=0;attempt<5;attempt++){
   const rows=await q<Row>(`WITH saved AS (
    INSERT INTO urban_news_candidates(id,canonical_url,request_key,source,draft,draft_hash,discovery_slot)

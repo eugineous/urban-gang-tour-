@@ -5,8 +5,9 @@ import {requireOrigin} from '@/lib/server/origin';
 import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 import {readJsonObject} from '@/lib/server/json-body';
 import {getUrbanNewsOverview,getUrbanNewsItem,createUrbanNewsCandidate,saveUrbanNewsDraft,publishUrbanNews,holdUrbanNews,retractUrbanNews} from '@/lib/server/urban-news-store';
-import {getUrbanNewsProviderStatus,getUrbanNewsConfigState,saveUrbanNewsConfig,discoverUrbanNews,generateUrbanNewsDraft} from '@/lib/server/urban-news-automation';
-import {saveUrbanNewsProviderKey,deleteUrbanNewsProviderKey} from '@/lib/server/urban-news-secrets';
+import {getUrbanNewsProviderStatus,getUrbanNewsConfigState,saveUrbanNewsConfig,discoverUrbanNews,generateUrbanNewsDraft,saveUrbanNewsBudget} from '@/lib/server/urban-news-automation';
+import {fetchKenyaMusicLead,checkNewsProviderModel} from '@/lib/server/urban-news-providers';
+import {getUrbanNewsProviderKey,saveUrbanNewsProviderKey,deleteUrbanNewsProviderKey} from '@/lib/server/urban-news-secrets';
 import {NEWS_CATEGORIES,type NewsStage,type NewsProvider,type UrbanNewsDraft,type UrbanNewsConfig,type NewsPublication,type NewsProviderReadiness} from '@/lib/shared/urban-news';
 
 export const dynamic='force-dynamic';
@@ -18,26 +19,27 @@ const keys=(v:Record<string,unknown>,allowed:readonly string[])=>Object.keys(v).
 const identifier=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,160}$/.test(v);
 const revision=(v:unknown):v is number=>Number.isSafeInteger(v)&&Number(v)>0;
 const requestId=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,128}$/.test(v);
-const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai'||v==='qwen';
+const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai'||v==='qwen'||v==='nvidia';
 const stages=['discovered','draft','review','approved','live','held','retracted','archived','all'];
-const actions={create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId','expectedConfigRevision','provider','model'],'config.save':['config','expectedConfigRevision'],'key.save':['provider','key'],'key.delete':['provider']} as const;
-const ownerActions=new Set(['publish','retract','config.save','key.save','key.delete']);
+const actions={'key.check':['provider','model'],'chart.prepare':['requestId'],create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId','expectedConfigRevision','provider','model'],'config.save':['config','expectedConfigRevision'],'key.save':['provider','key'],'key.delete':['provider'],'budget.save':['budget','expectedBudgetRevision']} as const;
+const ownerActions=new Set(['key.check','chart.prepare','publish','retract','config.save','key.save','key.delete','budget.save']);
 async function access(req:Request){
  if(!await verifyAdminSession(req))return reply({error:'unauthorized'},401);
  if(!hasPerm(req,'content'))return reply({error:'forbidden'},403);
  return null;
 }
 function safeConfig(c:UrbanNewsConfig):UrbanNewsConfig{
- return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
+ return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='nvidia'?'nvidia':c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
 }
 function safeReadiness(p:NewsProviderReadiness):NewsProviderReadiness{
  const item=(key:NewsProvider)=>({configured:p.providers?.[key]?.configured===true,keySource:(['managed','environment'].includes(p.providers?.[key]?.keySource)?p.providers[key].keySource:'none') as 'managed'|'environment'|'none'});
  const number=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:0;
  const last=p.lastRun;
- return {storageAvailable:p.storageAvailable===true,providers:{gemini:item('gemini'),openai:item('openai'),qwen:item('qwen')},discoveryAvailable:p.discoveryAvailable===true,draftsUsedToday:number(p.draftsUsedToday),discoveriesUsedToday:number(p.discoveriesUsedToday),lastRun:last&&typeof last.at==='string'&&Number.isFinite(Date.parse(last.at))?{at:last.at,state:String(last.state).slice(0,40),code:typeof last.code==='string'&&/^[a-z0-9_]{1,80}$/.test(last.code)?last.code:null}:null};
+ return {storageAvailable:p.storageAvailable===true,providers:{nvidia:item('nvidia'),gemini:item('gemini'),openai:item('openai'),qwen:item('qwen')},discoveryAvailable:p.discoveryAvailable===true,draftsUsedToday:number(p.draftsUsedToday),discoveriesUsedToday:number(p.discoveriesUsedToday),budget:p.budget?{monthlyLimitCents:number(p.budget.monthlyLimitCents),reservedCents:number(p.budget.reservedCents),revision:number(p.budget.revision),enabledProviders:{nvidia:p.budget.enabledProviders?.nvidia===true,qwen:p.budget.enabledProviders?.qwen===true,gemini:p.budget.enabledProviders?.gemini===true,openai:p.budget.enabledProviders?.openai===true}}:undefined,lastRun:last&&typeof last.at==='string'&&Number.isFinite(Date.parse(last.at))?{at:last.at,state:String(last.state).slice(0,40),code:typeof last.code==='string'&&/^[a-z0-9_]{1,80}$/.test(last.code)?last.code:null}:null};
 }
 function failure(error:unknown){
  const code=error instanceof Error?error.message:'';
+ if(['provider_auth_rejected','provider_rate_limited','news_key_unavailable','news_model_not_listed','provider_unavailable','provider_timeout'].includes(code))return reply({error:code},422);
  if(code==='news_not_found')return reply({error:code},404);
  if(code==='news_conflict'||code==='news_capacity_reached'||code==='news_config_changed')return reply({error:code},409);
  if(code.startsWith('invalid_news_'))return reply({error:'invalid_news_request'},400);
@@ -73,6 +75,17 @@ export async function POST(req:Request){
  if(!keys(body,['action',...actions[action as keyof typeof actions]]))return reply({error:'invalid_news_request'},400);
  const actor=adminActor(req);
  try{
+  if(action==='key.check'){
+   if(!provider(body.provider)||typeof body.model!=='string')return reply({error:'invalid_news_request'},400);
+   const key=await getUrbanNewsProviderKey(body.provider);
+   if(!key)return reply({error:'news_key_unavailable'},422);
+   return reply({ok:true,access:await checkNewsProviderModel(body.provider,body.model,key)});
+  }
+  if(action==='chart.prepare'){
+   if(!requestId(body.requestId))return reply({error:'invalid_news_request'},400);
+   const source=await fetchKenyaMusicLead();
+   return reply({ok:true,item:await createUrbanNewsCandidate(source,actor,body.requestId)});
+  }
   if(action==='create'){
    const c=body.candidate;
    if(!object(c)||!keys(c,['url','title','publisher','country','language'])||!requestId(body.requestId)||typeof c.url!=='string'||typeof c.title!=='string'||typeof c.publisher!=='string'||c.url.length>2048||c.title.length>240||c.publisher.length>120||c.country!==undefined&&typeof c.country!=='string'||c.language!==undefined&&typeof c.language!=='string')return reply({error:'invalid_news_request'},400);
@@ -84,6 +97,11 @@ export async function POST(req:Request){
    let updated;if(action==='key.save'){if(typeof body.key!=='string'||body.key.length<20||body.key.length>4096||/[\s\u0000-\u001f]/.test(body.key))return reply({error:'invalid_news_request'},400);updated=await saveUrbanNewsProviderKey(body.provider,body.key,actor)}
    else updated=await deleteUrbanNewsProviderKey(body.provider,actor);
    return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision,providers:safeReadiness(await getUrbanNewsProviderStatus())});
+  }
+  if(action==='budget.save'){
+   if(!Number.isSafeInteger(body.expectedBudgetRevision)||Number(body.expectedBudgetRevision)<0||!object(body.budget)||!keys(body.budget,['monthlyLimitCents','enabledProviders']))return reply({error:'invalid_news_request'},400);
+   await saveUrbanNewsBudget(body.budget,actor,Number(body.expectedBudgetRevision));
+   return reply({ok:true,providers:safeReadiness(await getUrbanNewsProviderStatus())});
   }
   if(action==='config.save'){
    if(!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed']))return reply({error:'invalid_news_request'},400);
