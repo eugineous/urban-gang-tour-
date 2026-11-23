@@ -18,7 +18,7 @@ as archive material, separate from reviewed reporting.
   active products, original films, published website films and genuine profiles.
   Results are limited to8per group and5000source rows per group. Search does not
   invoke a model or fetch third-party articles. Search pages are noindex and quiet
-  for optional reporting/campaigns so query strings are not sent to GA.
+  for optional reporting/campaigns with a no-referrer response so queries are not forwarded to result landing pages.
 - Existing Events, central Home, Shop and Contact dock entrances remain; Watch,
   personal edition and reading preferences are available in the full menu. The
   mobile search control now opens shared search. Tickets remain in account/help
@@ -32,7 +32,8 @@ registry is a controlled pilot registry, not a claim of staffed country desks.
 The six existing interface languages do not translate article text.
 
 Guest choices use `ugt-news-preferences-v1`; unavailable storage is labelled
-session-only. Reset clears reading selections while preserving the selected
+temporary until reload. Reader links preserve memory choices across preference,
+edition and home client navigation. Reset clears reading selections while preserving the selected
 interface language. Neither action changes cookie, marketing or email consent.
 
 Account sync is deliberate. Load account choices before saving them; loading does
@@ -41,6 +42,9 @@ buyer identity, an additive foreign-keyed table, versioned compare-and-swap and
 an account/version-bound ETag. `If-Match` prevents a form loaded for one account
 being saved into another after a session change.409retains local edits and asks
 for deliberate reload; expired sessions still permit guest use.
+
+Missing coverage falls back to literal newest-first reporting; explicit Global
+is a selectable market and absent country metadata is never labelled Global.
 
 The Control Room market preview starts in Kenya, reads public summaries only and
 never saves browser/account preferences. It resolves unavailable/timed-out reads

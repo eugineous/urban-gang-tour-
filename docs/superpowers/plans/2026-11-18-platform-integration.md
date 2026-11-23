@@ -129,10 +129,10 @@ public event/product readers, genuine founder records and non-adult media catalo
 
 ### Task6: Integrated verification and normal release
 
-- [ ] Review actual whole-branch changes independently; fix substantive findings
+- [x] Review actual whole-branch changes independently; fix substantive findings
   with reproducing tests. Run relevant combined suite, isolated SQL, types/lint,
   production build/dryrun and real packaged-worker viewport/navigation checks.
-- [ ] Keep a complete roadmap of distribution/retention/commercial/native work with
+- [x] Keep a complete roadmap of distribution/retention/commercial/native work with
   evidence and operational dependencies. Do not call those future capabilities done.
 - [ ] Use the already-authorized normal PR/attach/exact-head/keep-vars procedure
   only after review and verification; validate public/mobile/preferences/assets,

@@ -29,3 +29,4 @@ it('keeps real hosts, original video and personal-edition access in the news-fir
  const html=renderToStaticMarkup(createElement(UrbanNewsHome,{posts:[],newsCurrent:true,events:[],eventsCurrent:true,products:[],productsCurrent:true,now:Date.parse('2026-11-18T00:00:00Z')}));
  expect(html).toContain('<video');expect(html).toContain('/media-library/8e63b88fd01a11a4.webp');expect(html).toContain('href="/news-preferences"');
 });
+it('gives desktop visitors a contextual link to their personal edition',()=>{const html=renderToStaticMarkup(createElement(UrbanNewsHome,{posts:[],newsCurrent:true,events:[],eventsCurrent:true,products:[],productsCurrent:true,now:Date.parse('2026-11-18T00:00:00Z')}));expect(html).toContain('href="/for-you"')});

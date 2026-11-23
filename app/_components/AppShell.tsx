@@ -1,4 +1,5 @@
 "use client";
+import ReaderLink from '@/ui/components/ReaderLink';
 import InteractionCraft from './InteractionCraft';
 import BackToTop from './BackToTop';
 import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/catalogues/shell';
@@ -93,11 +94,12 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <><InteractionCraft/><main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main></>;
  const critical=/^\/(shop|checkout|pay|book|account|my-tickets|organizer|cart|orders|receipt|tickets|t|verify)(\/|$)/.test(path);
+ const HomeLink=newsMode&&!critical?ReaderLink:'a';
  return <>
   <InteractionCraft/>
   <header ref={header} className="site-header" data-news-mode={newsMode||undefined} data-public-surface="navigation" data-elevated={elevated} style={{'--nav-compact-width':navWidth?navWidth+'px':undefined} as CSSProperties}>
    <div className="header-content">
-   <a className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></a>
+   <HomeLink className="brand" href="/" aria-label={t('brand.home')}><img src="/assets/ugt-logo.png" alt="Urban Gang Tour"/></HomeLink>
    <nav ref={navigation} className="desktop-nav" aria-label={t('nav.main')}>{(newsMode?[['News','/blog'],['Watch','/watch'],['Events','/events'],['Shop','/shop'],['About','/about'],['Book Us','/book']]:links).map(([label,href])=><a key={href} href={href} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav>
    <div className="header-actions">
     <a className="tickets-link" href="/my-tickets"><Ticket size={18} aria-hidden="true"/><span>{t('nav.tickets')}</span></a>
