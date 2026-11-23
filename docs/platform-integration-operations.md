@@ -104,10 +104,23 @@ API. This integration uses the owner-confirmed fixed Singapore endpoint only:
 Drafting remains text-only with thinking disabled,4500maximum output tokens,
 strict JSON schema, checked evidence, one deadline/no automatic retries, durable
 request budgets and manual editorial approval. A model reply cannot authorize
-publication or request tools. No live Qwen call was made as verification; actual
+publication or execute tools. No live Qwen call was made as verification; actual
 workspace/model availability and billing must be checked by the owner on activation.
 
 References: [QwenCloud API keys](https://docs.qwencloud.com/api-reference/preparation/api-key),
 [regions](https://docs.qwencloud.com/developer-guides/getting-started/regions),
 [chat API](https://docs.qwencloud.com/api-reference/chat/openai-chat),
 [structured output](https://docs.qwencloud.com/developer-guides/text-generation/structured-output).
+
+Provider settings are versioned. Saving a key pauses drafting and advances that
+version; an older tab cannot silently restore its previous enabled settings. A
+conflict keeps local edits and requires the explicit Reload provider settings
+action. Manual generation stays unavailable until the displayed provider/model
+and settings are saved. Each request binds that saved version and recipient.
+
+Scheduled work checks that same consent at durable dispatch under the budget lock;
+it cannot switch to a new paused provider. A pause fences work not yet dispatched,
+while a previously dispatched external request may still finish. Known-unsent
+prepared work can resume with fresh consent on the same budget day. An uncertain
+or already-dispatched request is never reclaimed or automatically replaced.
+Changing the credential destination clears the password field.
