@@ -6,7 +6,10 @@ it('recognizes distinct provider prefixes while leaving generic sk- keys ambiguo
  expect(detectNewsProvider('AQ.fixture-auth-key-12345678')).toBe('gemini');
  expect(validNewsProviderKey('gemini','AQ.fixture-auth-key-12345678')).toBe(true);
  expect(detectNewsProvider('sk-ws-fixture-private-12345678')).toBe('qwen');
- expect(validNewsProviderKey('openai','sk-ws-fixture-private-12345678')).toBe(false);
+ const workspaceKey='sk-ws-H.'+'fixture-only-payload';
+ expect(detectNewsProvider(workspaceKey)).toBe('qwen');
+ expect(validNewsProviderKey('qwen',workspaceKey)).toBe(true);
+ expect(validNewsProviderKey('openai',workspaceKey)).toBe(false);
  expect(validNewsProviderKey('qwen','sk-sp-fixture-private-12345678')).toBe(false);
  for(const key of ['sk-proj-fixture','sk-svcacct-fixture'])expect(detectNewsProvider(key)).toBe('openai');
  expect(detectNewsProvider('nvapi-fixture')).toBe('nvidia');
