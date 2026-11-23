@@ -2,7 +2,7 @@ import type {NewsDraftAuthorization,NewsJobResult} from '@/lib/shared/urban-news
 import {getUrbanNewsItem,getUrbanNewsOverview,saveUrbanNewsDraft,holdUrbanNews,ingestUrbanNewsCandidates,releaseApprovedUrbanNews} from './urban-news-store';
 import {getUrbanNewsConfigState,getUrbanNewsConfig,getUrbanNewsProviderKey,reserveUrbanNewsRun,readUrbanNewsRun,dispatchUrbanNewsDraftRun,dispatchUrbanNewsRun,finishUrbanNewsRun,newsRunFingerprint,safeNewsError,claimUrbanNewsLease,heartbeatUrbanNewsLease,releaseUrbanNewsLease} from './urban-news-secrets';
 import {draftFromEvidence,fetchDiscoveredNews,hasDraftEvidence} from './urban-news-providers';
-export {getUrbanNewsConfigState,getUrbanNewsConfig,saveUrbanNewsConfig,getUrbanNewsProviderStatus} from './urban-news-secrets';
+export {getUrbanNewsConfigState,getUrbanNewsConfig,saveUrbanNewsConfig,getUrbanNewsProviderStatus,saveUrbanNewsBudget} from './urban-news-secrets';
 
 function identity(requestId:string,actor:string){if(typeof requestId!=='string'||!requestId.trim()||requestId.length>120||typeof actor!=='string'||!actor.trim()||actor.length>100)throw Error('invalid_news_request');return actor+'\0'+requestId}
 const blocked=(code:string):NewsJobResult=>({ok:false,state:'blocked',code});
