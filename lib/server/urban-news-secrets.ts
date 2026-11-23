@@ -22,7 +22,7 @@ const schema=`CREATE TABLE IF NOT EXISTS urban_news_provider_keys(
  id BOOLEAN PRIMARY KEY DEFAULT true CHECK(id),token TEXT NOT NULL,expires_at TIMESTAMPTZ NOT NULL,heartbeat_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp());
  CREATE TABLE IF NOT EXISTS urban_news_provider_budget(
  id BOOLEAN PRIMARY KEY DEFAULT true CHECK(id),limit_cents INTEGER NOT NULL DEFAULT 500 CHECK(limit_cents BETWEEN 300 AND 500),
- enabled JSONB NOT NULL DEFAULT '{"qwen":true,"gemini":true,"openai":true}'::jsonb,
+ enabled JSONB NOT NULL DEFAULT '{"qwen":true,"gemini":false,"openai":false}'::jsonb,
  revision BIGINT NOT NULL DEFAULT 1 CHECK(revision>0),updated_by TEXT NOT NULL DEFAULT 'system',
  updated_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp());`;
 let ready:Promise<void>|undefined;

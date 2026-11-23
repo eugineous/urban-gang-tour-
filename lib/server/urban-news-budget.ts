@@ -3,7 +3,7 @@ import type {NewsProvider,UrbanNewsBudget} from '@/lib/shared/urban-news';
 /** A deliberately conservative per-dispatch allowance, not a price quotation. */
 export const DEFAULT_NEWS_BUDGET:UrbanNewsBudget={
  monthlyLimitCents:500,reservedCents:0,revision:0,
- enabledProviders:{qwen:true,gemini:true,openai:true}
+ enabledProviders:{qwen:true,gemini:false,openai:false}
 };
 export function reserveNewsDraftCents(provider:NewsProvider,model:string):number{
  if(provider==='qwen'&&model==='qwen-flash')return 2;

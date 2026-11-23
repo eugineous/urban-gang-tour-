@@ -20,7 +20,7 @@ Avoid recursive multi-agent conversations. Use the existing PostgreSQL workflow 
 
 ## Provider controls
 
-Owner can toggle the Qwen/Gemini/OpenAI dispatch permissions independently, keep/delete each managed credential, select the single active provider and set a strict application reservation ceiling between USD 3.00 and USD 5.00 per UTC month. No automatic cross-provider fallback. Default existing-provider allowances remain enabled to preserve migration behaviour; the owner should disable any unnecessary provider before enabling scheduled work.
+Owner can toggle the Qwen/Gemini/OpenAI dispatch permissions independently, keep/delete each managed credential, select the single active provider and set a strict application reservation ceiling between USD 3.00 and USD 5.00 per UTC month. No automatic cross-provider fallback. Only Qwen is permitted by default for a fresh budget policy. Gemini and OpenAI remain configured as optional providers, but must be explicitly enabled before dispatch. Existing credentials are preserved. The owner may enable individual providers when desired.
 
 The cost guard applies to this Urban News draft pipeline only. It is not a hard external billing limit, and it does not cover account usage from other apps, other sites, provider-side tools or earlier unmetered calls. Set QwenCloud Pay-as-you-go spending alerts in the provider console and reconcile actual bills regularly. Production API credentials remain private.
 
