@@ -106,7 +106,7 @@ export async function reserveUrbanNewsRun(kind:'draft'|'discovery',requestId:str
  })}
 export async function dispatchUrbanNewsRun(id:string):Promise<boolean>{await ensure();return (await q("UPDATE urban_news_provider_runs SET state='dispatched',updated_at=clock_timestamp() WHERE id=$1 AND kind='discovery' AND state='prepared' AND budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date RETURNING id",[id])).length===1}
 /** The budget lock also serializes owner settings/key changes with durable dispatch. */
-export async function dispatchUrbanNewsDraftRun(id:string,authorization:NewsDraftAuthorization):Promise<{ok:true}|{ok:false;code:'news_config_changed'|'daily_budget_exhausted'|'provider_outcome_unknown'}>{
+export async function dispatchUrbanNewsDraftRun(id:string,authorization:NewsDraftAuthorization):Promise<{ok:true}|{ok:false;code:'news_config_changed'|'daily_budget_exhausted'|'monthly_budget_exhausted'|'news_provider_disabled'|'provider_outcome_unknown'}>{
  return transaction(async client=>{
   const run=(await client.query("SELECT id FROM urban_news_provider_runs WHERE id=$1 AND kind='draft' AND state='prepared' AND budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date FOR UPDATE",[id])).rows[0];
   if(!run)return{ok:false,code:'provider_outcome_unknown'};
