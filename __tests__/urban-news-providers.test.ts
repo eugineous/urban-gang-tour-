@@ -75,6 +75,11 @@ it('checks the Kenyan chart identity and freshness before preparing attributed e
 });
 it('keeps NVIDIA credentials on its own endpoint and distinguishes rejected credentials',async()=>{
  const api=await provider(),fetcher=vi.fn(async()=>new Response('',{status:401}));vi.stubGlobal('fetch',fetcher);
- await expect(api.draftFromEvidence('nvidia','meta/llama-3.3-70b-instruct','fixture-nvidia-key',draft)).rejects.toThrow('provider_auth_rejected');
+ await expect(api.draftFromEvidence('nvidia','nvidia/nemotron-3.5-lightning-30b-a3b','fixture-nvidia-key',draft)).rejects.toThrow('provider_auth_rejected');
  expect(fetcher).toHaveBeenCalledWith('https://integrate.api.nvidia.com/v1/chat/completions',expect.objectContaining({redirect:'error'}));
+});
+it('checks saved Qwen access without generating or sending a prompt',async()=>{
+ const api=await provider(),fetcher=vi.fn(async()=>Response.json({data:[{id:'qwen-flash'}]}));vi.stubGlobal('fetch',fetcher);
+ expect(await api.checkNewsProviderModel('qwen','qwen-flash','fixture-only')).toBe('private_catalogue');
+ expect(fetcher).toHaveBeenCalledWith('https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1/models',expect.objectContaining({method:'GET',headers:{Accept:'application/json',Authorization:'Bearer fixture-only'}}));
 });
