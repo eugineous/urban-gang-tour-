@@ -83,3 +83,21 @@ it('checks saved Qwen access without generating or sending a prompt',async()=>{
  expect(await api.checkNewsProviderModel('qwen','qwen-flash','fixture-only')).toBe('private_catalogue');
  expect(fetcher).toHaveBeenCalledWith('https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1/models',expect.objectContaining({method:'GET',headers:{Accept:'application/json',Authorization:'Bearer fixture-only'}}));
 });
+
+it.each([200,403,401])('separates NVIDIA account authentication (%i) from the anonymous model list',async status=>{
+ const api=await provider(),model='nvidia/nemotron-3.5-lightning-30b-a3b';
+ const fetcher=vi.fn(async(url:string,options:RequestInit)=>{
+  expect(options).toMatchObject({method:'GET',redirect:'error'});
+  expect(options.body).toBeUndefined();
+  if(url==='https://api.ngc.nvidia.com/v2/users/me'){
+   expect(options.headers).toMatchObject({Authorization:'Bearer fixture-only'});
+   return Response.json({user:{id:12345}},{status});
+  }
+  expect(url).toBe('https://integrate.api.nvidia.com/v1/models');
+  expect(options.headers).not.toHaveProperty('Authorization');
+  return Response.json({data:[{id:model}]});
+ });
+ vi.stubGlobal('fetch',fetcher);
+ expect(await api.checkNewsProviderModel('nvidia',model,'fixture-only')).toBe(status===200?'authenticated_public_catalogue':'public_catalogue');
+ expect(fetcher).toHaveBeenCalledTimes(2);
+});

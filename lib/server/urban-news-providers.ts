@@ -13,7 +13,7 @@ export function canonicalNewsUrl(value:unknown):string|null{try{return checkedNe
 /** The single deadline includes DNS, headers, and streamed body; no retries or redirects. */
 async function requestJson(url:string,options:RequestInit):Promise<unknown>{const controller=new AbortController();let timedOut=false;let reader:ReadableStreamDefaultReader<Uint8Array>|undefined;let timeout:ReturnType<typeof setTimeout>|undefined;const expiry=new Promise<never>((_,reject)=>{timeout=setTimeout(()=>{timedOut=true;controller.abort();void reader?.cancel().catch(()=>{});reject(Error('provider_timeout'))},DEADLINE)});try{return await Promise.race([expiry,(async()=>{const response=await fetch(url,{...options,signal:controller.signal,redirect:'error',cache:'no-store'});if(response.status===401||response.status===403)throw Error('provider_auth_rejected');if(response.status===429)throw Error('provider_rate_limited');if(!response.ok)throw Error('provider_unavailable');if(!/^application\/(?:[\w.+-]+\+)?json(?:\s*;|$)/i.test(response.headers.get('content-type')||''))throw Error('provider_non_json');const length=Number(response.headers.get('content-length')||0);if(length>MAX_BYTES)throw Error('provider_body_too_large');if(!response.body)throw Error('provider_json_invalid');reader=response.body.getReader();const chunks:Uint8Array[]=[];let total=0;while(true){const part=await reader.read();if(part.done)break;total+=part.value.byteLength;if(total>MAX_BYTES){void reader.cancel().catch(()=>{});throw Error('provider_body_too_large')}chunks.push(part.value)}const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength}try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)) as unknown}catch{throw Error('provider_json_invalid')}})()])}catch(error){if(timedOut)throw Error('provider_timeout');if(error instanceof Error&&/^provider_[a-z_]+$/.test(error.message))throw error;throw Error('provider_unavailable')}finally{if(timeout)clearTimeout(timeout);controller.abort();reader?.releaseLock()}}
 
-/** Read-only metadata lookup. NVIDIA's catalogue is public and cannot authenticate a key. */
+/** Read-only metadata checks. NVIDIA authenticates separately from its public catalogue. */
 export async function checkNewsProviderModel(provider:NewsProvider,model:string,key:string){
  validateNewsModel(provider,model);
  if(!key)throw Error('news_key_unavailable');
@@ -26,11 +26,23 @@ export async function checkNewsProviderModel(provider:NewsProvider,model:string,
  const headers:Record<string,string>={Accept:'application/json'};
  if(provider==='gemini')headers['x-goog-api-key']=key;
  else if(provider!=='nvidia')headers.Authorization='Bearer '+key;
- const result=await requestJson(endpoints[provider],{method:'GET',headers});
+ const catalogue=requestJson(endpoints[provider],{method:'GET',headers});
+ // NGC user lookup may be denied to a scoped key. Return only the check outcome.
+ const identity=provider==='nvidia' ? requestJson('https://api.ngc.nvidia.com/v2/users/me',{
+  method:'GET',headers:{Accept:'application/json',Authorization:'Bearer '+key}
+ }).then(data=>{
+  if(!object(data)||!object(data.user)||!Object.keys(data.user).length)throw Error('provider_output_invalid');
+  return true;
+ }).catch(error=>{
+  if(error instanceof Error&&error.message==='provider_auth_rejected')return false;
+  throw error;
+ }) : Promise.resolve(false);
+ const [result,authenticated]=await Promise.all([catalogue,identity]);
  const listed=object(result)&&(provider==='gemini'?result.name==='models/'+model:provider==='openai'?result.id===model:
   Array.isArray(result.data)&&result.data.some(row=>object(row)&&row.id===model));
  if(!listed)throw Error('news_model_not_listed');
- return provider==='nvidia'?'public_catalogue':'private_catalogue';
+ if(provider==='nvidia')return authenticated?'authenticated_public_catalogue':'public_catalogue';
+ return 'private_catalogue';
 }
 
 export async function fetchDiscoveredNews():Promise<DiscoveredNews[]>{const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.search=new URLSearchParams({query:'(celebrity OR music OR concert OR film OR fashion OR entertainment) -politics -election -parliament',mode:'artlist',format:'json',maxrecords:'50',sort:'datedesc',timespan:'2h'}).toString();const payload=await requestJson(url.toString(),{method:'GET',headers:{Accept:'application/json'}});if(!object(payload)||!Array.isArray(payload.articles)||payload.articles.length>250)throw Error('provider_output_invalid');const found=new Set<string>();const result:DiscoveredNews[]=[];for(const value of payload.articles){if(!object(value))continue;const canonical=canonicalNewsUrl(value.url),title=text(value.title,300);if(!canonical||!title||found.has(canonical))continue;const date=text(value.seendate,40),match=/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(date);const observed=match?new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`):new Date(NaN);if(!Number.isFinite(observed.valueOf()))continue;found.add(canonical);result.push({url:canonical,title,publisher:new URL(canonical).hostname,country:text(value.sourcecountry,80)||'Unknown',language:text(value.language,60)||'Unknown',observedAt:observed.toISOString(),provider:'gdelt'});if(result.length===50)break}return result}
