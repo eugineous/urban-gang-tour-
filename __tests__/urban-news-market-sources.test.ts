@@ -1,6 +1,6 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import snapshot from '../data/urban-news-kenya-chart.json';
-import {discoverMarketSources,fetchKenyaChartBackup,marketChartUrl} from '../lib/server/urban-news-market-sources';
+import {readPublisherHeadlines,discoverMarketSources,fetchKenyaChartBackup,marketChartUrl} from '../lib/server/urban-news-market-sources';
 
 const updated='2026-11-23T12:00:00Z';
 function rss(itemBody:string){
@@ -88,4 +88,13 @@ it('builds automatic briefs only from fresh, exact Apple song rows with safe lab
  expect(await fetchAutomaticChartRows('KE')).toEqual([]);
  feed={...base,id:marketChartUrl('UG'),results:rows};
  expect(await fetchAutomaticChartRows('KE')).toEqual([]);
+});
+
+it('keeps attributed press headlines current and scoped to the requested outlet',async()=>{
+  vi.stubGlobal('fetch',async()=>rss(item('Music festival','https://notjustok.com/music/test')+item('Different outlet','https://example.com/music')));
+  const stories=await readPublisherHeadlines('NG');
+  expect(stories).toMatchObject([{publisher:'NotJustOk',publishedAt:'2026-11-23T12:00:00.000Z'}]);
+  vi.setSystemTime(new Date('2026-11-27T13:00:00Z'));
+  vi.stubGlobal('fetch',async()=>new Response('',{status:503}));
+  expect(await readPublisherHeadlines('NG')).toEqual([]);
 });
