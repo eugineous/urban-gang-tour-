@@ -1,3 +1,5 @@
+import {getMarketCoverageToday} from '@/lib/server/urban-news-market-queue';
+import {validNewsProviderKey} from '@/lib/shared/news-provider-key';
 import {NextResponse} from 'next/server';
 import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
 import {verifyAdminSession,hasPerm,isSuperAdmin,adminActor} from '@/lib/server/session';
@@ -6,6 +8,7 @@ import {rateLimit,clientIp} from '@/lib/server/ratelimit';
 import {readJsonObject} from '@/lib/server/json-body';
 import {getUrbanNewsOverview,getUrbanNewsItem,createUrbanNewsCandidate,saveUrbanNewsDraft,publishUrbanNews,holdUrbanNews,retractUrbanNews} from '@/lib/server/urban-news-store';
 import {getUrbanNewsProviderStatus,getUrbanNewsConfigState,saveUrbanNewsConfig,discoverUrbanNews,generateUrbanNewsDraft,saveUrbanNewsBudget} from '@/lib/server/urban-news-automation';
+import {fetchKenyaChartBackup} from '@/lib/server/urban-news-market-sources';
 import {fetchKenyaMusicLead,checkNewsProviderModel} from '@/lib/server/urban-news-providers';
 import {getUrbanNewsProviderKey,saveUrbanNewsProviderKey,deleteUrbanNewsProviderKey} from '@/lib/server/urban-news-secrets';
 import {NEWS_CATEGORIES,type NewsStage,type NewsProvider,type UrbanNewsDraft,type UrbanNewsConfig,type NewsPublication,type NewsProviderReadiness} from '@/lib/shared/urban-news';
@@ -29,7 +32,7 @@ async function access(req:Request){
  return null;
 }
 function safeConfig(c:UrbanNewsConfig):UrbanNewsConfig{
- return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='nvidia'?'nvidia':c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true};
+ return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='nvidia'?'nvidia':c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true,...(Array.isArray(c.parallelProviders)?{parallelProviders:c.parallelProviders.filter(provider)}:{}),...(typeof c.voice==='string'?{voice:c.voice.slice(0,1000)}:{}),...(Number.isInteger(c.dailyMarketTarget)?{dailyMarketTarget:c.dailyMarketTarget}:{})};
 }
 function safeReadiness(p:NewsProviderReadiness):NewsProviderReadiness{
  const item=(key:NewsProvider)=>({configured:p.providers?.[key]?.configured===true,keySource:(['managed','environment'].includes(p.providers?.[key]?.keySource)?p.providers[key].keySource:'none') as 'managed'|'environment'|'none'});
@@ -53,6 +56,9 @@ export async function GET(req:Request){
  const denied=await access(req);if(denied)return denied;
  if(!rateLimit('urban-news-read:'+clientIp(req),90,60000))return reply({error:'too_many_requests'},429);
  const params=new URL(req.url).searchParams;
+ if(params.get('view')==='coverage'&&params.size===1){
+  try{return reply({ok:true,rows:await getMarketCoverageToday()})}catch(error){return failure(error)}
+ }
  if([...params.keys()].some(k=>!['id','cursor','q','stage','category'].includes(k)||params.getAll(k).length!==1))return reply({error:'invalid_news_request'},400);
  const id=params.get('id');if(id!==null&&!identifier(id))return reply({error:'invalid_news_request'},400);
  const q=params.get('q')||'',stage=params.get('stage')||'all',category=params.get('category')||'all',cursor=params.get('cursor')||undefined;
@@ -83,7 +89,7 @@ export async function POST(req:Request){
   }
   if(action==='chart.prepare'){
    if(!requestId(body.requestId))return reply({error:'invalid_news_request'},400);
-   const source=await fetchKenyaMusicLead();
+   const source=await fetchKenyaMusicLead().catch(()=>fetchKenyaChartBackup());
    return reply({ok:true,item:await createUrbanNewsCandidate(source,actor,body.requestId)});
   }
   if(action==='create'){
@@ -94,7 +100,7 @@ export async function POST(req:Request){
   }
   if(action==='key.save'||action==='key.delete'){
    if(!provider(body.provider))return reply({error:'invalid_news_request'},400);
-   let updated;if(action==='key.save'){if(typeof body.key!=='string'||body.key.length<20||body.key.length>4096||/[\s\u0000-\u001f]/.test(body.key))return reply({error:'invalid_news_request'},400);updated=await saveUrbanNewsProviderKey(body.provider,body.key,actor)}
+   let updated;if(action==='key.save'){if(typeof body.key!=='string'||!validNewsProviderKey(body.provider,body.key)||body.key.length<20||body.key.length>4096||/[\s\u0000-\u001f]/.test(body.key))return reply({error:'invalid_news_request'},400);updated=await saveUrbanNewsProviderKey(body.provider,body.key,actor)}
    else updated=await deleteUrbanNewsProviderKey(body.provider,actor);
    return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision,providers:safeReadiness(await getUrbanNewsProviderStatus())});
   }
@@ -104,7 +110,7 @@ export async function POST(req:Request){
    return reply({ok:true,providers:safeReadiness(await getUrbanNewsProviderStatus())});
   }
   if(action==='config.save'){
-   if(!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed']))return reply({error:'invalid_news_request'},400);
+   if(!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed','parallelProviders','voice','dailyMarketTarget']))return reply({error:'invalid_news_request'},400);
    const updated=await saveUrbanNewsConfig(body.config as UrbanNewsConfig,actor,Number(body.expectedConfigRevision));return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision});
   }
   if(action==='discover'){if(!requestId(body.requestId))return reply({error:'invalid_news_request'},400);return reply(await discoverUrbanNews(body.requestId,actor))}

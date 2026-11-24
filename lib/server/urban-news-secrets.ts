@@ -54,7 +54,41 @@ export async function saveUrbanNewsProviderKey(provider:NewsProvider,key:string,
 export async function deleteUrbanNewsProviderKey(provider:NewsProvider,actor:string):Promise<NewsConfigState>{validProvider(provider);actorValue(actor);return transaction(async client=>{await client.query('DELETE FROM urban_news_provider_keys WHERE provider=$1',[provider]);return pauseConfig(client,actor)})}
 /** Server-only capability. Never return this value through an API or a log. */
 export async function getUrbanNewsProviderKey(provider:NewsProvider):Promise<string|null>{validProvider(provider);if(!hasDb())return environmentKey(provider);await ensure();const rows=await q<{ciphertext:string}>('SELECT ciphertext FROM urban_news_provider_keys WHERE provider=$1',[provider]);return rows[0]?decrypt(provider,rows[0].ciphertext):environmentKey(provider)}
-function parseConfig(value:unknown):UrbanNewsConfig{if(typeof value!=='object'||!value||Array.isArray(value))throw Error('invalid_news_config');const v=value as UrbanNewsConfig;const keys=Object.keys(defaults);if(Object.keys(v).length!==keys.length||Object.keys(v).some(k=>!keys.includes(k))||typeof v.discoveryEnabled!=='boolean'||typeof v.draftingEnabled!=='boolean'||typeof v.termsConfirmed!=='boolean'||!Number.isInteger(v.dailyDraftLimit)||v.dailyDraftLimit<1||v.dailyDraftLimit>100||!Number.isInteger(v.dailyDiscoveryLimit)||v.dailyDiscoveryLimit<1||v.dailyDiscoveryLimit>96)throw Error('invalid_news_config');validProvider(v.provider);validateNewsModel(v.provider,v.model);if((v.discoveryEnabled||v.draftingEnabled)&&!v.termsConfirmed)throw Error('news_terms_required');return {...v}}
+function parseConfig(value:unknown):UrbanNewsConfig {
+ if(typeof value!=='object'||!value||Array.isArray(value))throw Error('invalid_news_config');
+ const v=value as UrbanNewsConfig;
+ const required=Object.keys(defaults);
+ const allowed=[...required,'parallelProviders','voice','dailyMarketTarget'];
+ if(!required.every(key=>Object.hasOwn(v,key))||Object.keys(v).some(key=>!allowed.includes(key))
+  ||typeof v.discoveryEnabled!=='boolean'||typeof v.draftingEnabled!=='boolean'||typeof v.termsConfirmed!=='boolean'
+  ||!Number.isInteger(v.dailyDraftLimit)||v.dailyDraftLimit<1||v.dailyDraftLimit>100
+  ||!Number.isInteger(v.dailyDiscoveryLimit)||v.dailyDiscoveryLimit<1||v.dailyDiscoveryLimit>96)
+  throw Error('invalid_news_config');
+ validProvider(v.provider);
+ validateNewsModel(v.provider,v.model);
+ if(Object.hasOwn(v,'voice')&&(typeof v.voice!=='string'||v.voice.length>1000))throw Error('invalid_news_config');
+ if(Object.hasOwn(v,'dailyMarketTarget')&&(typeof v.dailyMarketTarget!=='number'||!Number.isInteger(v.dailyMarketTarget)||v.dailyMarketTarget<1||v.dailyMarketTarget>20))
+  throw Error('invalid_news_config');
+ if(Object.hasOwn(v,'parallelProviders')){
+  const pool=v.parallelProviders;
+  if(!Array.isArray(pool)||pool.length>4||new Set(pool).size!==pool.length)throw Error('invalid_news_config');
+  pool.forEach(validProvider);
+ }
+ if((v.discoveryEnabled||v.draftingEnabled)&&!v.termsConfirmed)throw Error('news_terms_required');
+ return {...v};
+}
+
+/** Scheduled alternates use their first allowlisted model. Manual requests require the saved primary selection. */
+export function matchesNewsSelection(current:NewsConfigState,authorization:NewsDraftAuthorization):boolean {
+ if(!authorization||current.revision!==authorization.configRevision)return false;
+ const {config}=current;
+ const primary=authorization.provider===config.provider&&authorization.model===config.model;
+ if(authorization.mode==='manual')return primary;
+ if(authorization.mode!=='scheduled'||!config.draftingEnabled)return false;
+ if(authorization.provider===config.provider)return primary;
+ return config.parallelProviders?.includes(authorization.provider)===true
+  &&authorization.model===NEWS_MODELS[authorization.provider][0];
+}
 function configState(row?:Record<string,unknown>):NewsConfigState{
  if(!row)return{config:{...defaults},revision:0};const revision=Number(row.revision);if(!Number.isSafeInteger(revision)||revision<1)throw Error('news_storage_unavailable');
  return{config:parseConfig(typeof row.value==='string'?JSON.parse(row.value):row.value),revision};
@@ -98,13 +132,23 @@ function budgetRow(row?:Record<string,unknown>):UrbanNewsBudget{
 const monthCostSql="SELECT COALESCE(SUM(CASE WHEN reserved_cost_cents>0 THEN reserved_cost_cents ELSE 50 END),0) AS reserved FROM urban_news_provider_runs WHERE kind='draft' AND state<>'prepared' AND budget_day>=date_trunc('month',clock_timestamp() AT TIME ZONE 'UTC')::date AND budget_day<(date_trunc('month',clock_timestamp() AT TIME ZONE 'UTC')+interval '1 month')::date";
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
 export const newsRunFingerprint=(value:unknown)=>hash(JSON.stringify(value));
-export async function readUrbanNewsRun(kind:'draft'|'discovery',requestId:string,fingerprint:string):Promise<NewsJobResult|null>{await ensure();const requestKey=hash(kind+'\0'+requestId);const rows=await q<{id:string;state:string;fingerprint:string;result:NewsJobResult|string|null}>("SELECT id,state,fingerprint,result FROM urban_news_provider_runs WHERE id=$1 OR ($2='draft' AND kind='draft' AND fingerprint=$3) ORDER BY (id=$1) DESC LIMIT 1",[requestKey,kind,fingerprint]);if(!rows[0])return null;const row=rows[0],id=row.id;if(row.fingerprint!==fingerprint)throw Error('news_request_conflict');if(row.result)return {...(typeof row.result==='string'?JSON.parse(row.result):row.result),id};return {ok:row.state==='prepared',state:row.state==='prepared'?'prepared':'unknown',...(row.state==='prepared'?{}:{code:'provider_outcome_unknown'}),id}}
+const recentRateLimit="result->>'code'='provider_rate_limited' AND updated_at>clock_timestamp()-interval '15 minutes'";
+export async function pausedUrbanNewsProviders():Promise<(NewsProvider|null)[]>{
+ await ensure();
+ return (await q<{provider:NewsProvider|null}>(`SELECT DISTINCT provider FROM urban_news_provider_runs WHERE kind='draft' AND ${recentRateLimit}`)).map(row=>row.provider);
+}
+export async function readUrbanNewsRun(kind:'draft'|'discovery',requestId:string,fingerprint:string,scheduledSlot=false):Promise<NewsJobResult|null>{await ensure();const requestKey=hash(kind+'\0'+requestId);const rows=await q<{id:string;state:string;fingerprint:string;result:NewsJobResult|string|null}>("SELECT id,state,fingerprint,result FROM urban_news_provider_runs WHERE id=$1 OR ($2='draft' AND kind='draft' AND fingerprint=$3) ORDER BY (id=$1) DESC LIMIT 1",[requestKey,kind,fingerprint]);if(!rows[0])return null;const row=rows[0],id=row.id;if(row.fingerprint!==fingerprint){
+ // A repeated cron window can see a different head of queue. Replay the original
+ // slot, but never resume an unsent reservation with another story's evidence.
+ if(!scheduledSlot||kind!=='draft'||id!==requestKey)throw Error('news_request_conflict');
+ if(row.state==='prepared')return {ok:false,state:'blocked',code:'news_request_conflict',id};
+ }if(row.result)return {...(typeof row.result==='string'?JSON.parse(row.result):row.result),id};return {ok:row.state==='prepared',state:row.state==='prepared'?'prepared':'unknown',...(row.state==='prepared'?{}:{code:'provider_outcome_unknown'}),id}}
 /** A reservation is durable before dispatch, and is never refunded after uncertainty. */
-export async function reserveUrbanNewsRun(kind:'draft'|'discovery',requestId:string,fingerprint:string,limit:number):Promise<NewsJobResult>{if(!['draft','discovery'].includes(kind)||typeof requestId!=='string'||!requestId||requestId.length>240||typeof fingerprint!=='string'||!fingerprint||fingerprint.length>240||!Number.isInteger(limit)||limit<1||limit>(kind==='draft'?100:96))throw Error('invalid_news_run');const id=hash(kind+'\0'+requestId);return transaction(async client=>{
+export async function reserveUrbanNewsRun(kind:'draft'|'discovery',requestId:string,fingerprint:string,limit:number,provider?:NewsProvider):Promise<NewsJobResult>{if(!['draft','discovery'].includes(kind)||typeof requestId!=='string'||!requestId||requestId.length>240||typeof fingerprint!=='string'||!fingerprint||fingerprint.length>240||!Number.isInteger(limit)||limit<1||limit>(kind==='draft'?100:96))throw Error('invalid_news_run');const id=hash(kind+'\0'+requestId);return transaction(async client=>{
  const existing=(await client.query("SELECT id,state,fingerprint,result FROM urban_news_provider_runs WHERE id=$1 OR ($2='draft' AND kind='draft' AND fingerprint=$3) ORDER BY (id=$1) DESC LIMIT 1",[id,kind,fingerprint])).rows[0];if(existing){if(existing.fingerprint!==fingerprint)throw Error('news_request_conflict');if(kind==='draft'&&existing.state==='prepared'){
   await client.query("UPDATE urban_news_provider_runs SET budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date WHERE id=$1 AND state='prepared' AND budget_day<(clock_timestamp() AT TIME ZONE 'UTC')::date",[existing.id]);
  }if(existing.result)return {...(typeof existing.result==='string'?JSON.parse(existing.result):existing.result as NewsJobResult),id:String(existing.id)};return {ok:false,state:existing.state==='prepared'?'prepared':'unknown',...(existing.state==='prepared'?{}:{code:'provider_outcome_unknown'}),id:String(existing.id)}}
- const backoff=(await client.query("SELECT id FROM urban_news_provider_runs WHERE kind=$1 AND result->>'code'='provider_rate_limited' AND updated_at>clock_timestamp()-interval '15 minutes' LIMIT 1",[kind])).rows[0];if(backoff)return {ok:false,state:'blocked',code:'provider_backoff'};
+ const backoff=(await client.query(`SELECT id FROM urban_news_provider_runs WHERE kind=$1 AND ${recentRateLimit} AND ($2::text IS NULL OR provider=$2 OR provider IS NULL) LIMIT 1`,[kind,provider??null])).rows[0];if(backoff)return {ok:false,state:'blocked',code:'provider_backoff'};
  const usage=(await client.query("SELECT count(*) AS used FROM urban_news_provider_runs WHERE kind=$1 AND budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date",[kind])).rows[0];if(Number(usage.used)>=limit)return {ok:false,state:'blocked',code:'daily_budget_exhausted'};
  await client.query("INSERT INTO urban_news_provider_runs(id,kind,fingerprint,state) VALUES($1,$2,$3,'prepared')",[id,kind,fingerprint]);return {ok:true,state:'prepared',id};
  })}
@@ -115,7 +159,7 @@ export async function dispatchUrbanNewsDraftRun(id:string,authorization:NewsDraf
   const run=(await client.query("SELECT id FROM urban_news_provider_runs WHERE id=$1 AND kind='draft' AND state='prepared' AND budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date FOR UPDATE",[id])).rows[0];
   if(!run)return{ok:false,code:'provider_outcome_unknown'};
   const current=configState((await client.query('SELECT value,revision FROM urban_news_provider_config WHERE id=true FOR UPDATE')).rows[0]);
-  const allowed=authorization&&(authorization.mode==='manual'||authorization.mode==='scheduled')&&current.revision===authorization.configRevision&&current.config.provider===authorization.provider&&current.config.model===authorization.model&&current.config.termsConfirmed&&(authorization.mode==='manual'||current.config.draftingEnabled);
+  const allowed=matchesNewsSelection(current,authorization)&&current.config.termsConfirmed;
   const spent=allowed?Number((await client.query("SELECT count(*) AS used FROM urban_news_provider_runs WHERE kind='draft' AND state<>'prepared' AND budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date")).rows[0]?.used||0):0;
   const policy=budgetRow((await client.query('SELECT limit_cents,enabled,revision FROM urban_news_provider_budget WHERE id=true FOR UPDATE')).rows[0]);
   const reserved=allowed?reserveNewsDraftCents(authorization.provider,authorization.model):0;
@@ -125,9 +169,9 @@ export async function dispatchUrbanNewsDraftRun(id:string,authorization:NewsDraf
   await client.query("UPDATE urban_news_provider_runs SET state='dispatched',result=NULL,reserved_cost_cents=$2,provider=$3,model=$4,updated_at=clock_timestamp() WHERE id=$1 AND state='prepared'",[id,reserved,authorization.provider,authorization.model]);return{ok:true};
  });
 }
-const resultCodes=new Set(['provider_auth_rejected','news_config_changed','provider_rate_limited','provider_timeout','provider_unavailable','provider_non_json','provider_body_too_large','provider_json_invalid','provider_output_invalid','provider_evidence_invalid','provider_copying_detected','provider_finish_unsafe','news_revision_conflict','insufficient_evidence','news_storage_unavailable','provider_outcome_unknown','news_item_unavailable','news_terms_required','news_key_unavailable','monthly_budget_exhausted','news_provider_disabled']);
+const resultCodes=new Set(['news_capacity_reached','provider_auth_rejected','news_config_changed','provider_rate_limited','provider_timeout','provider_unavailable','provider_non_json','provider_body_too_large','provider_json_invalid','provider_output_invalid','provider_evidence_invalid','provider_copying_detected','provider_finish_unsafe','news_revision_conflict','insufficient_evidence','news_storage_unavailable','provider_outcome_unknown','news_item_unavailable','news_terms_required','news_key_unavailable','monthly_budget_exhausted','news_provider_disabled']);
 export function safeNewsError(error:unknown){const code=error instanceof Error?error.message:'';return resultCodes.has(code)?code:'provider_unavailable'}
-export async function finishUrbanNewsRun(id:string,value:NewsJobResult,usage?:{inputTokens:number;outputTokens:number}):Promise<NewsJobResult>{const result:NewsJobResult={ok:value.ok===true,state:value.state==='complete'?'complete':value.state==='unknown'?'unknown':'failed',id};if(value.code)result.code=safeNewsError(Error(value.code));for(const key of ['added','duplicates','drafted','released'] as const)if(typeof value[key]==='number'&&Number.isSafeInteger(value[key])&&value[key]!>=0)result[key]=value[key];const boundedUsage=usage&&Number.isSafeInteger(usage.inputTokens)&&usage.inputTokens>=0&&usage.inputTokens<10000000&&Number.isSafeInteger(usage.outputTokens)&&usage.outputTokens>=0&&usage.outputTokens<1000000?usage:{};await ensure();await q("UPDATE urban_news_provider_runs SET state=$2,result=$3::jsonb,usage=$4::jsonb,updated_at=clock_timestamp() WHERE id=$1 AND state='dispatched'",[id,result.state,JSON.stringify(result),JSON.stringify(boundedUsage)]);return result}
+export async function finishUrbanNewsRun(id:string,value:NewsJobResult,usage?:{inputTokens:number;outputTokens:number}):Promise<NewsJobResult>{const result:NewsJobResult={ok:value.ok===true,state:value.state==='complete'?'complete':value.state==='unknown'?'unknown':'failed',id};if(value.limited===true)result.limited=true;if(value.code)result.code=safeNewsError(Error(value.code));for(const key of ['added','duplicates','drafted','released'] as const)if(typeof value[key]==='number'&&Number.isSafeInteger(value[key])&&value[key]!>=0)result[key]=value[key];const boundedUsage=usage&&Number.isSafeInteger(usage.inputTokens)&&usage.inputTokens>=0&&usage.inputTokens<10000000&&Number.isSafeInteger(usage.outputTokens)&&usage.outputTokens>=0&&usage.outputTokens<1000000?usage:{};await ensure();await q("UPDATE urban_news_provider_runs SET state=$2,result=$3::jsonb,usage=$4::jsonb,updated_at=clock_timestamp() WHERE id=$1 AND state='dispatched'",[id,result.state,JSON.stringify(result),JSON.stringify(boundedUsage)]);return result}
 export async function getUrbanNewsProviderStatus():Promise<NewsProviderReadiness>{const providers:NewsProviderReadiness['providers']={nvidia:{configured:!!environmentKey('nvidia'),keySource:environmentKey('nvidia')?'environment':'none'},gemini:{configured:!!environmentKey('gemini'),keySource:environmentKey('gemini')?'environment':'none'},openai:{configured:!!environmentKey('openai'),keySource:environmentKey('openai')?'environment':'none'},qwen:{configured:!!environmentKey('qwen'),keySource:environmentKey('qwen')?'environment':'none'}};const base:NewsProviderReadiness={storageAvailable:false,providers,discoveryAvailable:false,draftsUsedToday:0,discoveriesUsedToday:0,lastRun:null};if(!hasDb())return base;try{await ensure();const keys=await q<{provider:NewsProvider;ciphertext:string}>('SELECT provider,ciphertext FROM urban_news_provider_keys');for(const row of keys){if(row.provider!=='gemini'&&row.provider!=='openai'&&row.provider!=='qwen'&&row.provider!=='nvidia')continue;try{decrypt(row.provider,row.ciphertext);providers[row.provider]={configured:true,keySource:'managed'}}catch{providers[row.provider]={configured:false,keySource:'managed'}}}const usage=await q<{kind:string;used:string}>("SELECT kind,count(*) AS used FROM urban_news_provider_runs WHERE budget_day=(clock_timestamp() AT TIME ZONE 'UTC')::date GROUP BY kind");const latest=await q<{at:string;state:string;code:string|null}>("SELECT updated_at::text AS at,state,result->>'code' AS code FROM urban_news_provider_runs ORDER BY updated_at DESC,id DESC LIMIT 1");const row=(await q<Record<string,unknown>>('SELECT limit_cents,enabled,revision FROM urban_news_provider_budget WHERE id=true'))[0];
  const budget=budgetRow(row);
  budget.reservedCents=Number((await q<{reserved:string}>(monthCostSql))[0]?.reserved||0);

@@ -158,6 +158,15 @@ describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolate
   expect((await pg.query('SELECT headline,urban_news_revision FROM posts WHERE urban_news_id=$1',[live.id]))[0]).toMatchObject({headline:draft.headline,urban_news_revision:String(live.liveRevision)});
   expect((await pg.query("SELECT count(*)::text AS count FROM urban_news_audit WHERE candidate_id=$1 AND revision=$2 AND action='approve_publication'",[live.id,next.revision]))[0].count).toBe('0');
  });
+ it('selects ready market work beyond terminal inputs and measures published coverage separately',async()=>{
+  const {listReadyMarketDrafts,getMarketCoverageToday}=await import('@/lib/server/urban-news-market-queue');
+  await pg.schema('CREATE TABLE IF NOT EXISTS urban_news_provider_runs(kind TEXT, state TEXT, fingerprint TEXT)');
+  const lead=await createUrbanNewsCandidate({...source,provider:'market_chart',url:'https://music.apple.com/rw/album/fixture/6?i=7',country:'RW',title:'Fixture ranks on the Rwanda songs chart'},'owner','new-market-queue-fixture');
+  expect((await getMarketCoverageToday()).find(row=>row.market==='RW')).toMatchObject({prepared:1,published:0});
+  const fingerprint=(await import('node:crypto')).createHash('sha256').update(JSON.stringify({kind:'draft',id:lead.id,revision:lead.revision,version:1})).digest('hex');
+  await pg.query("INSERT INTO urban_news_provider_runs(kind,state,fingerprint) VALUES('draft','unknown',$1)",[fingerprint]);
+  expect((await listReadyMarketDrafts(5,4)).map(row=>row.id)).not.toContain(lead.id);
+ });
  it('uses filter-bound keyset cursors and bounds discovery storage without pruning drafted records',async()=>{
   await pg.query(`INSERT INTO urban_news_candidates(id,canonical_url,request_key,source,draft,draft_hash,stage)
    SELECT gen_random_uuid(),'https://example.test/page-'||n,'fixture-page-'||n,'{}'::jsonb,$1::jsonb||jsonb_build_object('headline','Pagination fixture '||n),$2,'draft' FROM generate_series(1,51) n`,[JSON.stringify(draft),urbanNewsDraftHash(draft)]);
