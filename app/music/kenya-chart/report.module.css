@@ -18,3 +18,5 @@
   .report a { transition: text-underline-offset .15s ease; }
   .report a:hover, .report a:focus-visible { text-underline-offset: .35em; }
 }
+
+.cover {display:block;width:100%;height:auto;border-radius:.75rem;margin:1rem 0}

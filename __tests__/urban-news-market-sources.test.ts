@@ -94,7 +94,7 @@ it('keeps attributed press headlines current and scoped to the requested outlet'
   vi.stubGlobal('fetch',async()=>rss(item('Music festival','https://notjustok.com/music/test')+item('Different outlet','https://example.com/music')));
   const stories=await readPublisherHeadlines('NG');
   expect(stories).toMatchObject([{publisher:'NotJustOk',publishedAt:'2026-11-23T12:00:00.000Z'}]);
-  vi.setSystemTime(new Date('2026-11-27T13:00:00Z'));
+  vi.setSystemTime(new Date('2026-11-29T13:00:00Z'));
   vi.stubGlobal('fetch',async()=>new Response('',{status:503}));
   expect(await readPublisherHeadlines('NG')).toEqual([]);
 });

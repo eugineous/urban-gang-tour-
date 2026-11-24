@@ -1,6 +1,7 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
 import snapshot from '../data/urban-news-kenya-chart.json';
+import archived from '../data/urban-news-feeds.json';
 import {invalidate} from '../lib/server/microcache';
 import {parseKenyaMusicChart} from '../lib/server/urban-music-chart';
 import UrbanMusicChart from '../app/_components/UrbanMusicChart';
@@ -29,7 +30,7 @@ it('renders the exact first-party lead player, source date and accessible song l
   expect(html).toContain(snapshot.feed.results[0].url.replace('music.apple.com', 'embed.music.apple.com'));
   for (const track of snapshot.feed.results) expect(html).toContain(track.url);
   expect(html).toContain(new Date(asOf).toISOString());
-  vi.setSystemTime(asOf + 49 * 3600_000);
+  vi.setSystemTime(Math.max(asOf,Date.parse(archived.charts.KE.feed.updated)) + 49 * 3600_000);
   expect(await UrbanMusicChart()).toBeNull();
 });
 
