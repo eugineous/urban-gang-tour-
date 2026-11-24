@@ -168,7 +168,7 @@ test('revalidates chart facts, leaves edits private and atomically records just 
  expect(record).toMatchObject({stage:'live',revision:'1',actor:'scheduler',headline:expect.stringContaining('ranks No. 2')});
  expect(JSON.parse(record.approval)).toMatchObject({method:'automatic_chart',configRevision:active.revision});
  expect(JSON.parse(record.approval)).not.toHaveProperty('checks');
- expect(JSON.parse(record.urban_news_public)).toMatchObject({publicationMethod:'automatic_chart',sources:[expect.objectContaining({url:feed})]});
+ expect(JSON.parse(record.urban_news_public)).toMatchObject({publicationMethod:'automatic_chart',sources:[expect.objectContaining({url:feed}),expect.objectContaining({url:tracks[1].url})]});
  expect(JSON.parse(record.detail)).toMatchObject({marketTrack:country+':1002',observedAt});
  expect(await store.publishScheduledChartBrief(active.revision,lease,tick)).toBe(0);
  await fixture.query('UPDATE urban_news_chart_publications SET tick=tick-1');

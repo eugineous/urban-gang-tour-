@@ -77,7 +77,7 @@ function parseConfig(value:unknown):UrbanNewsConfig {
   if(!Array.isArray(pool)||pool.length>4||new Set(pool).size!==pool.length)throw Error('invalid_news_config');
   pool.forEach(validProvider);
  }
- if((v.discoveryEnabled||v.draftingEnabled||v.automaticChartBriefs)&&!v.termsConfirmed)throw Error('news_terms_required');
+ if((v.discoveryEnabled||v.draftingEnabled)&&!v.termsConfirmed)throw Error('news_terms_required');
  return {automaticChartBriefs:false,dailyPublicationLimit:10,...v};
 }
 
@@ -97,6 +97,17 @@ function configState(row?:Record<string,unknown>):NewsConfigState{
  return{config:parseConfig(typeof row.value==='string'?JSON.parse(row.value):row.value),revision};
 }
 export async function getUrbanNewsConfigState():Promise<NewsConfigState>{if(!hasDb())return configState();await ensure();return configState((await q<Record<string,unknown>>('SELECT value,revision FROM urban_news_provider_config WHERE id=true'))[0])}
+/** The commissioned chart edition is free. Keep previously saved publication choices and paid-model settings. */
+export async function chartEditionConfig():Promise<NewsConfigState>{
+ await ensure();
+ const initial={...defaults,automaticChartBriefs:true,dailyPublicationLimit:10};
+ await q(`INSERT INTO urban_news_provider_config(id,value,updated_by,revision)
+ VALUES(true,$1::jsonb,'release:chart-edition',1)
+ ON CONFLICT(id) DO UPDATE SET value=urban_news_provider_config.value||jsonb_build_object('automaticChartBriefs',true),
+ revision=urban_news_provider_config.revision+1,updated_by='release:chart-edition',updated_at=now()
+ WHERE NOT (urban_news_provider_config.value ? 'automaticChartBriefs')`,[JSON.stringify(initial)]);
+ return getUrbanNewsConfigState();
+}
 export async function getUrbanNewsConfig():Promise<UrbanNewsConfig>{return (await getUrbanNewsConfigState()).config}
 export async function saveUrbanNewsConfig(value:UrbanNewsConfig,actor:string,expectedRevision:number):Promise<NewsConfigState>{
  actorValue(actor);const config=parseConfig(value);if(!Number.isSafeInteger(expectedRevision)||expectedRevision<0)throw Error('invalid_news_config');

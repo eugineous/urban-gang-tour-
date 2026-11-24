@@ -1,7 +1,7 @@
 import {budgetAllows,reserveNewsDraftCents} from './urban-news-budget';
 import {NEWS_DRAFT_MODELS,type NewsConfigState,type NewsDraftAuthorization,type NewsJobResult,type UrbanNewsItem} from '@/lib/shared/urban-news';
 import {getUrbanNewsItem,saveUrbanNewsDraft,holdUrbanNews,ingestUrbanNewsCandidates,releaseApprovedUrbanNews,publishScheduledChartBrief} from './urban-news-store';
-import {matchesNewsSelection,pausedUrbanNewsProviders,getUrbanNewsProviderStatus,getUrbanNewsConfigState,getUrbanNewsConfig,getUrbanNewsProviderKey,reserveUrbanNewsRun,readUrbanNewsRun,dispatchUrbanNewsDraftRun,dispatchUrbanNewsRun,finishUrbanNewsRun,newsRunFingerprint,safeNewsError,claimUrbanNewsLease,heartbeatUrbanNewsLease,releaseUrbanNewsLease} from './urban-news-secrets';
+import {chartEditionConfig,matchesNewsSelection,pausedUrbanNewsProviders,getUrbanNewsProviderStatus,getUrbanNewsConfigState,getUrbanNewsConfig,getUrbanNewsProviderKey,reserveUrbanNewsRun,readUrbanNewsRun,dispatchUrbanNewsDraftRun,dispatchUrbanNewsRun,finishUrbanNewsRun,newsRunFingerprint,safeNewsError,claimUrbanNewsLease,heartbeatUrbanNewsLease,releaseUrbanNewsLease} from './urban-news-secrets';
 import {draftFromEvidence,fetchDiscoveredNews,fetchKenyaMusicLead,hasDraftEvidence} from './urban-news-providers';
 import {chooseDiscoveryCountry,listReadyMarketDrafts} from '@/lib/server/urban-news-market-queue';
 import {discoverMarketSources,fetchKenyaChartBackup,eligibleGlobalNewsLead} from '@/lib/server/urban-news-market-sources';
@@ -102,14 +102,14 @@ export async function runUrbanNewsAutomation():Promise<NewsJobResult>{
  const lease=await claimUrbanNewsLease();
  if(!lease)return {ok:false,state:'processing',code:'news_job_busy'};
  try{
-  const snapshot=await getUrbanNewsConfigState(),config=snapshot.config;
+  const snapshot=await chartEditionConfig(),config=snapshot.config;
   if(!await heartbeatUrbanNewsLease(lease))return blocked('news_lease_lost');
   const {released}=await releaseApprovedUrbanNews(5);
   const window=Math.floor(Date.now()/900_000);
   let discovered:NewsJobResult={ok:true,state:'complete'};
   if(config.discoveryEnabled)discovered=await discoverUrbanNews('scheduled-discovery-'+window,'scheduler');
   let automaticPublished=0,chartFailure:NewsJobResult|null=null;
-  if(config.automaticChartBriefs&&config.termsConfirmed){
+  if(config.automaticChartBriefs){
    try{automaticPublished=await publishScheduledChartBrief(snapshot.revision,lease,window)}
    catch(error){chartFailure=failure(error)}
   }

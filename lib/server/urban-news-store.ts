@@ -263,7 +263,7 @@ const chartAllowance=`SELECT clock.day,clock.tick,used.total+1 AS ordinal
  JOIN urban_news_provider_config settings ON settings.id AND settings.revision=$1
  JOIN urban_news_provider_lease lease ON lease.id AND lease.token=$2 AND lease.expires_at>clock_timestamp()
  CROSS JOIN LATERAL (SELECT count(*) AS total FROM urban_news_chart_publications WHERE publication_day=clock.day) used
- WHERE settings.value->'automaticChartBriefs'='true'::jsonb AND settings.value->'termsConfirmed'='true'::jsonb
+ WHERE settings.value->'automaticChartBriefs'='true'::jsonb
  AND used.total<=floor(clock.day_fraction*coalesce((settings.value->>'dailyPublicationLimit')::int,10))
  AND clock.tick=$3 AND NOT EXISTS(SELECT 1 FROM urban_news_chart_publications WHERE tick=clock.tick)
  FOR SHARE OF settings,lease`;
@@ -280,18 +280,36 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
  if(!leads.length)return 0;
  const trackKey=(lead:DiscoveredNews)=>country+':'+new URL(lead.url).searchParams.get('i');
  const known=await q<{canonical_url:string;usable:boolean}>(`SELECT canonical_url,
-  (revision=1 AND stage='discovered' AND live_revision IS NULL AND published_at IS NULL) AS usable
+  (stage='discovered' AND live_revision IS NULL AND published_at IS NULL) AS usable
   FROM urban_news_candidates WHERE canonical_url=ANY($1::text[])`,[leads.map(lead=>lead.url)]);
  const published=await q<{market_track:string}>('SELECT market_track FROM urban_news_chart_publications WHERE market_track=ANY($1::text[])',[leads.map(trackKey)]);
  for(const lead of leads){
   if(published.some(row=>row.market_track===trackKey(lead))||known.some(row=>row.canonical_url===lead.url&&!row.usable))continue;
-  const {item:candidate}=await createCandidate(lead,'scheduler:chart-feed',createHash('sha256').update(lead.url).digest('hex'));
+  const created=await createCandidate(lead,'scheduler:chart-feed',createHash('sha256').update(lead.url).digest('hex'));
+  const candidate=created.item;
   const draft=discoveryDraft(lead),hash=urbanNewsDraftHash(draft);
-  if(candidate.revision!==1||candidate.stage!=='discovered'||candidate.draftHash!==hash)continue;
-  const snapshot={...publicSnapshot(draft,1,hash,null),publicationMethod:'automatic_chart',imageAlt:'Urban News record illustration for the music charts',sources:[...draft.evidence.map(e=>({id:e.id,url:e.url,publisher:e.publisher,title:e.title,publishedAt:e.publishedAt})),{id:'chart-track',publisher:'Apple Music',title:lead.title,url:lead.url,publishedAt:null}],disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
+  if(candidate.stage!=='discovered')continue;
+  let revision=candidate.revision;
+  if(candidate.draftHash!==hash){
+   const refreshed=await q<{revision:number}>(`WITH saved AS (
+    UPDATE urban_news_candidates c SET source=$3::jsonb,draft=$4::jsonb,draft_hash=$5,revision=revision+1,updated_at=clock_timestamp()
+    WHERE c.id=$1 AND revision=$2 AND stage='discovered' AND live_revision IS NULL AND published_at IS NULL
+    AND source->>'provider' IN ('apple_chart','market_chart') AND source->>'url'=$6
+    AND NOT EXISTS(SELECT 1 FROM urban_news_revisions r WHERE r.candidate_id=c.id AND r.actor NOT LIKE 'discovery:%' AND r.actor<>'scheduler:chart-feed')
+    RETURNING id,revision,draft,draft_hash
+   ), history AS (
+    INSERT INTO urban_news_revisions(candidate_id,revision,draft,draft_hash,actor)
+    SELECT id,revision,draft,draft_hash,'scheduler:chart-feed' FROM saved RETURNING candidate_id
+   ), evidence AS (
+    INSERT INTO urban_news_evidence(candidate_id,revision,evidence_id,record) SELECT id,revision,'discovery',draft->'evidence'->0 FROM saved RETURNING candidate_id
+   ) SELECT revision FROM saved`,[candidate.id,revision,JSON.stringify(lead),JSON.stringify(draft),hash,lead.url]);
+   if(!refreshed.length)continue;
+   revision=Number(refreshed[0].revision);
+  }
+  const snapshot={...publicSnapshot(draft,revision,hash,null),publicationMethod:'automatic_chart',imageAlt:'Urban News record illustration for the music charts',sources:[...draft.evidence.map(e=>({id:e.id,url:e.url,publisher:e.publisher,title:e.title,publishedAt:e.publishedAt})),{id:'chart-track',publisher:'Apple Music',title:lead.title,url:lead.url,publishedAt:null}],disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
   const rows=await q(`WITH allowance AS MATERIALIZED (${chartAllowance}), eligible AS MATERIALIZED (
-   SELECT c.id FROM urban_news_candidates c JOIN urban_news_revisions r ON r.candidate_id=c.id AND r.revision=1
-   WHERE c.id=$4 AND c.revision=1 AND c.live_revision IS NULL AND c.published_at IS NULL AND c.stage='discovered'
+   SELECT c.id FROM urban_news_candidates c JOIN urban_news_revisions r ON r.candidate_id=c.id AND r.revision=$13
+   WHERE c.id=$4 AND c.revision=$13 AND c.live_revision IS NULL AND c.published_at IS NULL AND c.stage='discovered'
    AND c.source=$5::jsonb AND c.draft=$6::jsonb AND r.draft=c.draft AND c.draft_hash=$7 AND r.draft_hash=c.draft_hash
    AND (r.actor='scheduler:chart-feed' OR r.actor LIKE 'discovery:%')
    FOR UPDATE OF c
@@ -302,16 +320,16 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
   ), projection AS (
    INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,editorial_managed,social_automation_enabled,urban_news_id,urban_news_revision,urban_news_hash,urban_news_public,updated_at)
    SELECT $9,c.draft->>'headline','music','/news/chart-edition.svg',c.draft->>'dek',c.draft->'body',true,
-    (now() AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,c.id,1,c.draft_hash,
+    (now() AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,c.id,$13,c.draft_hash,
     $10::jsonb||jsonb_build_object('scheduledAt',now(),'publishedAt',now(),'modifiedAt',now()),now()
    FROM urban_news_candidates c JOIN reserved ON reserved.candidate_id=c.id RETURNING urban_news_id
   ), saved AS (
-   UPDATE urban_news_candidates SET stage='live',live_revision=1,slug=$9,published_at=now(),discovery_slot=NULL,
-    approval=jsonb_build_object('method','automatic_chart','actor','scheduler','revision',1,'hash',draft_hash,'configRevision',$1::bigint),
+   UPDATE urban_news_candidates SET stage='live',live_revision=$13,slug=$9,published_at=now(),discovery_slot=NULL,
+    approval=jsonb_build_object('method','automatic_chart','actor','scheduler','revision',$13,'hash',draft_hash,'configRevision',$1::bigint),
     updated_at=clock_timestamp() WHERE id IN(SELECT urban_news_id FROM projection) RETURNING id
   ) INSERT INTO urban_news_audit(candidate_id,actor,action,revision,detail)
-   SELECT id,'scheduler','automatic_chart_publication',1,jsonb_build_object('hash',$7::text,'feedUrl',$11::text,'observedAt',$12::text,'marketTrack',$8::text,'configRevision',$1::bigint)
-   FROM saved RETURNING candidate_id`,[...authority,candidate.id,JSON.stringify(lead),JSON.stringify(draft),hash,trackKey(lead),publicationSlug(candidate),JSON.stringify(snapshot),marketChartUrl(country),lead.observedAt]);
+   SELECT id,'scheduler','automatic_chart_publication',$13,jsonb_build_object('hash',$7::text,'feedUrl',$11::text,'observedAt',$12::text,'marketTrack',$8::text,'configRevision',$1::bigint)
+   FROM saved RETURNING candidate_id`,[...authority,candidate.id,JSON.stringify(lead),JSON.stringify(draft),hash,trackKey(lead),publicationSlug(candidate),JSON.stringify(snapshot),marketChartUrl(country),lead.observedAt,revision]);
   if(rows.length){refreshPublic();return 1}
   if(!(await q(chartAllowance,authority)).length)return 0;
  }
