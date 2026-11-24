@@ -101,3 +101,10 @@ it.each([200,403,401])('separates NVIDIA account authentication (%i) from the an
  expect(await api.checkNewsProviderModel('nvidia',model,'fixture-only')).toBe(status===200?'authenticated_public_catalogue':'public_catalogue');
  expect(fetcher).toHaveBeenCalledTimes(2);
 });
+it('blocks a recognizable legacy key stored for the wrong provider before any network request',async()=>{
+ const api=await provider(),fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
+ const wrong='nvapi-fixture-never-for-qwen';
+ await expect(api.checkNewsProviderModel('qwen','qwen-flash',wrong)).rejects.toThrow('news_key_unavailable');
+ await expect(api.draftFromEvidence('qwen','qwen-flash',wrong,draft)).rejects.toThrow('news_key_unavailable');
+ expect(fetcher).not.toHaveBeenCalled();
+});

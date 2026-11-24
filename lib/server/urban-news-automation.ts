@@ -1,10 +1,10 @@
 import {budgetAllows,reserveNewsDraftCents} from './urban-news-budget';
 import {NEWS_DRAFT_MODELS,type NewsConfigState,type NewsDraftAuthorization,type NewsJobResult,type UrbanNewsItem} from '@/lib/shared/urban-news';
-import {getUrbanNewsItem,getUrbanNewsOverview,saveUrbanNewsDraft,holdUrbanNews,ingestUrbanNewsCandidates,releaseApprovedUrbanNews} from './urban-news-store';
+import {getUrbanNewsItem,saveUrbanNewsDraft,holdUrbanNews,ingestUrbanNewsCandidates,releaseApprovedUrbanNews} from './urban-news-store';
 import {matchesNewsSelection,pausedUrbanNewsProviders,getUrbanNewsProviderStatus,getUrbanNewsConfigState,getUrbanNewsConfig,getUrbanNewsProviderKey,reserveUrbanNewsRun,readUrbanNewsRun,dispatchUrbanNewsDraftRun,dispatchUrbanNewsRun,finishUrbanNewsRun,newsRunFingerprint,safeNewsError,claimUrbanNewsLease,heartbeatUrbanNewsLease,releaseUrbanNewsLease} from './urban-news-secrets';
 import {draftFromEvidence,fetchDiscoveredNews,fetchKenyaMusicLead,hasDraftEvidence} from './urban-news-providers';
 import {chooseDiscoveryCountry,listReadyMarketDrafts} from '@/lib/server/urban-news-market-queue';
-import {discoverMarketSources,fetchKenyaChartBackup} from '@/lib/server/urban-news-market-sources';
+import {discoverMarketSources,fetchKenyaChartBackup,eligibleGlobalNewsLead} from '@/lib/server/urban-news-market-sources';
 export {getUrbanNewsConfigState,getUrbanNewsConfig,saveUrbanNewsConfig,getUrbanNewsProviderStatus,saveUrbanNewsBudget} from './urban-news-secrets';
 
 function identity(requestId:string,actor:string){if(typeof requestId!=='string'||!requestId.trim()||requestId.length>120||typeof actor!=='string'||!actor.trim()||actor.length>100)throw Error('invalid_news_request');return actor+'\0'+requestId}
@@ -35,7 +35,7 @@ export async function discoverUrbanNews(requestId:string,actor:string):Promise<N
  }
  const found=chart.status==='fulfilled'?[chart.value]:[];
  found.push(...marketItems);
- if(headlines.status==='fulfilled')found.push(...headlines.value.slice(0,2));
+ if(headlines.status==='fulfilled')found.push(...headlines.value.filter(eligibleGlobalNewsLead).slice(0,2));
  let imported;
  try{imported=await ingestUrbanNewsCandidates(found,id)}
  catch(error){
@@ -81,8 +81,7 @@ async function scheduledDrafts(snapshot:NewsConfigState,window:number):Promise<N
   providers=providers.filter(provider=>!paused.includes(null)&&!paused.includes(provider));
   if(!providers.length)return blocked('provider_backoff');
  }
- const items=config.dailyMarketTarget===undefined?(await getUrbanNewsOverview()).items:
-  await listReadyMarketDrafts(config.dailyMarketTarget,providers.length);
+ const items=await listReadyMarketDrafts(config.dailyMarketTarget??5,providers.length);
  const candidates=items.filter(draftable).slice(0,providers.length);
  if(!candidates.length)return null;
  const results=await Promise.allSettled(candidates.map((item,index)=>{

@@ -38,6 +38,10 @@ function attribution(value:unknown) {
   try { return new URL(canonicalNewsUrl(value)); } catch { return null; }
 }
 
+export function eligibleGlobalNewsLead(lead:DiscoveredNews):boolean {
+  return typeof lead.title==='string'&&entertainment.test(lead.title)&&!sensitive.test(lead.title)&&fresh(Date.parse(lead.observedAt),72*hour);
+}
+
 export function marketChartUrl(country:string):string {
   if(!/^[A-Z]{2}$/.test(country)||!regionNames.of(country))throw Error('invalid_news_market');
   return 'https://rss.marketingtools.apple.com/api/v2/'+country.toLowerCase()+'/music/most-played/10/songs.json';

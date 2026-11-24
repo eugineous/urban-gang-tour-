@@ -107,7 +107,7 @@ async function createCandidate(input:DiscoveredNews,actor:string,requestId:strin
  throw Error('news_capacity_reached');
 }
 export async function createUrbanNewsCandidate(input:DiscoveredNews,actor:string,requestId:string):Promise<UrbanNewsItem>{return (await createCandidate(input,actor,requestId)).item}
-export async function ingestUrbanNewsCandidates(items:DiscoveredNews[],runId:string):Promise<{added:number;duplicates:number}>{
+export async function ingestUrbanNewsCandidates(items:DiscoveredNews[],runId:string):Promise<{added:number;duplicates:number;limited?:boolean}>{
  if(!Array.isArray(items)||items.length>50||typeof runId!=='string'||!runId||runId.length>150)throw Error('invalid_news_batch');
  const validated=items.map(discovered);await ensureUrbanNewsSchema();let added=0,duplicates=0;
  for(const source of validated){
@@ -115,7 +115,7 @@ export async function ingestUrbanNewsCandidates(items:DiscoveredNews[],runId:str
    const created=await createCandidate(source,'discovery:'+runId,createHash('sha256').update(source.url).digest('hex'));
    if(created.added)added++;else duplicates++;
   }catch(error){
-   if(error instanceof Error&&error.message==='news_capacity_reached'&&(added||duplicates))break;
+   if(error instanceof Error&&error.message==='news_capacity_reached'&&(added||duplicates))return {added,duplicates,limited:true};
    throw error;
   }
  }

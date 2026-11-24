@@ -8,7 +8,7 @@ import UrbanNewsCommunityReplies from './UrbanNewsCommunityReplies';
 import {NEWS_CATEGORIES,NEWS_DRAFT_MODELS,type NewsProvider,type UrbanNewsItem,type UrbanNewsDraft,type UrbanNewsConfig,type NewsProviderReadiness,type NewsEvidence} from '@/lib/shared/urban-news';
 import styles from './UrbanNewsDesk.module.css';
 
-type ResponseData={added?:number;duplicates?:number;access?:'public_catalogue'|'private_catalogue'|'authenticated_public_catalogue';ok?:boolean;error?:string;code?:string;state?:string;item?:UrbanNewsItem;items?:UrbanNewsItem[];nextCursor?:string|null;counts?:Record<string,number>;config?:UrbanNewsConfig;configRevision?:number;providers?:NewsProviderReadiness;canPublish?:boolean;enabled?:boolean};
+type ResponseData={limited?:boolean;added?:number;duplicates?:number;access?:'public_catalogue'|'private_catalogue'|'authenticated_public_catalogue';ok?:boolean;error?:string;code?:string;state?:string;item?:UrbanNewsItem;items?:UrbanNewsItem[];nextCursor?:string|null;counts?:Record<string,number>;config?:UrbanNewsConfig;configRevision?:number;providers?:NewsProviderReadiness;canPublish?:boolean;enabled?:boolean};
 class DeskError extends Error{constructor(readonly code:string){super(code)}}
 const clone=<T,>(value:T):T=>JSON.parse(JSON.stringify(value));
 const initialConfig:UrbanNewsConfig={discoveryEnabled:false,draftingEnabled:false,provider:'gemini',model:'gemini-3.5-flash-lite',dailyDraftLimit:2,dailyDiscoveryLimit:96,termsConfirmed:false};
@@ -60,7 +60,7 @@ export default function UrbanNewsDesk(){
   catch{setError('The saved version could not be checked. Your draft is preserved.')}
  }
  async function save(){if(!item||!draft)return;const result=await send({action:'save',id:item.id,expectedRevision:item.revision,draft});if(result?.item){apply(result.item);setNotice('Saved draft.')}}
- async function discover(){const result=await send({action:'discover',requestId:crypto.randomUUID()});if(result?.ok){setNotice('Discovery complete. Added '+(result.added??0)+' new sources. Already in the inbox: '+(result.duplicates??0)+'.');void load()}}
+ async function discover(){const result=await send({action:'discover',requestId:crypto.randomUUID()});if(result?.ok){setNotice('Discovery complete. Added '+(result.added??0)+' new sources. Already in the inbox: '+(result.duplicates??0)+'.'+(result.limited?' The inbox is full. Review existing leads before importing the rest.':''));void load()}}
  async function generate(){if(!item||dirty||!generationReady||!savedConfig||configRevision===null)return;const fingerprint=item.id+':'+item.revision+':'+configRevision,id=jobKeys.current[fingerprint]||(jobKeys.current[fingerprint]=crypto.randomUUID());const result=await send({action:'generate',id:item.id,expectedRevision:item.revision,requestId:id,expectedConfigRevision:configRevision,provider:savedConfig.provider,model:savedConfig.model});if(result?.ok){delete jobKeys.current[fingerprint];await reloadSaved();setNotice('Draft prepared. Review every claim before publication.')}}
  function update<K extends keyof UrbanNewsDraft>(field:K,value:UrbanNewsDraft[K]){setDraft(old=>old?{...old,[field]:value}:old);setNotice('')}
  function evidence(index:number,value:Partial<NewsEvidence>){if(!draft)return;update('evidence',draft.evidence.map((record,i)=>i===index?{...record,...value}:record))}
