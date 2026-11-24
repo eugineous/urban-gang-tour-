@@ -89,3 +89,33 @@ test('replacing a rejected key permits a fresh attempt and retains its prior spe
  expect(next.id).not.toEqual(first.id);
  expect((await secrets.getUrbanNewsProviderStatus()).budget!.reservedCents).toBeGreaterThan(0);
 });
+
+test('reserves the last monthly allowance once across simultaneous approved writers and scopes rate limits per provider',async()=>{
+ const initial=await secrets.getUrbanNewsConfigState();
+ const settings=await secrets.saveUrbanNewsConfig({...initial.config,draftingEnabled:true,termsConfirmed:true,dailyDraftLimit:10,parallelProviders:['qwen'],voice:'Plain English',dailyMarketTarget:5},'owner',initial.revision);
+ await fixture.query("INSERT INTO urban_news_provider_runs(id,kind,fingerprint,state,reserved_cost_cents) VALUES('prior','draft','prior','complete',475)");
+ const main={mode:'scheduled' as const,configRevision:settings.revision,provider:settings.config.provider,model:settings.config.model};
+ const alternate={...main,provider:'qwen' as const,model:'qwen-flash'};
+ const [a,b]=await Promise.all([secrets.reserveUrbanNewsRun('draft','slot-primary','story-primary',10,main.provider),secrets.reserveUrbanNewsRun('draft','slot-qwen','story-qwen',10,alternate.provider)]);
+ const results=await Promise.all([secrets.dispatchUrbanNewsDraftRun(a.id!,main),secrets.dispatchUrbanNewsDraftRun(b.id!,alternate)]);
+ expect(results.filter(result=>result.ok)).toHaveLength(1);
+ expect(results).toContainEqual({ok:false,code:'monthly_budget_exhausted'});
+ const run=results[0].ok?a:b,winner=results[0].ok?main:alternate,other=results[0].ok?alternate:main;
+ await secrets.finishUrbanNewsRun(run.id!,{ok:false,state:'failed',code:'provider_rate_limited'});
+ expect(await secrets.reserveUrbanNewsRun('draft','limited','limited',10,winner.provider)).toMatchObject({code:'provider_backoff'});
+ expect(await secrets.reserveUrbanNewsRun('draft','available','available',10,other.provider)).toMatchObject({state:'prepared'});
+ expect(await secrets.readUrbanNewsRun('draft',results[0].ok?'slot-primary':'slot-qwen','different-story',true)).toMatchObject({state:'failed',code:'provider_rate_limited'});
+},20000);
+
+test('validates optional settings, fences unsaved alternate selections and keeps manual requests on the primary provider',async()=>{
+ const {config}=await secrets.getUrbanNewsConfigState();
+ for(const invalid of [{voice:'a'.repeat(1001)},{dailyMarketTarget:0},{dailyMarketTarget:21},{parallelProviders:['openai','openai']},{parallelProviders:['unknown']}])
+  await expect(secrets.saveUrbanNewsConfig({...config,...invalid} as typeof config,'owner',0)).rejects.toThrow();
+ const active=await secrets.saveUrbanNewsConfig({...config,draftingEnabled:true,termsConfirmed:true,parallelProviders:['qwen']},'owner',0);
+ const run=await secrets.reserveUrbanNewsRun('draft','slot-alt','story-alt',2,'qwen');
+ const selected={mode:'scheduled' as const,provider:'qwen' as const,model:'qwen-flash',configRevision:active.revision};
+ for(const forbidden of [{...selected,mode:'manual' as const},{...selected,model:'qwen3.8-flash'},{...selected,provider:'openai' as const,model:'gpt-4.1-mini'}])
+  expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,forbidden)).toEqual({ok:false,code:'news_config_changed'});
+ await secrets.saveUrbanNewsConfig({...active.config,parallelProviders:[]},'owner',active.revision);
+ expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,selected)).toEqual({ok:false,code:'news_config_changed'});
+});

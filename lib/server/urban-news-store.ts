@@ -71,7 +71,7 @@ function discovered(value:DiscoveredNews):DiscoveredNews{
  if(!value||typeof value!=='object'||Object.keys(value).some(key=>!['url','title','publisher','country','language','observedAt','provider'].includes(key))||typeof value.title!=='string'||!value.title.trim()||value.title.length>500||typeof value.publisher!=='string'||!value.publisher.trim()||value.publisher.length>300||typeof value.country!=='string'||value.country.length>80||typeof value.language!=='string'||value.language.length>30||typeof value.observedAt!=='string'||!Number.isFinite(Date.parse(value.observedAt))||Date.parse(value.observedAt)>Date.now()+60000||!['gdelt','manual','apple_chart','market_chart','publisher_feed'].includes(value.provider))throw Error('invalid_news_candidate');
  return {...value,url:canonicalNewsUrl(value.url)};
 }
-function initialDraft(source:DiscoveredNews):UrbanNewsDraft{return {headline:source.title,dek:'',body:[],category:'celebrity',country:NEWS_MARKETS.find(m=>m.code===source.country||m.name===source.country)?.code??'Global',verification:'developing',subjectKind:'unknown',risk:'unknown',evidence:[{id:'discovery',url:source.url,publisher:source.publisher,title:source.title,observedAt:source.observedAt,publishedAt:null,excerpt:'',rights:'unknown',role:'report',independenceKey:new URL(source.url).hostname,checked:false}],claims:[],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:''}}
+function initialDraft(source:DiscoveredNews):UrbanNewsDraft{return {headline:source.title,dek:'',body:[],category:'celebrity',country:NEWS_MARKETS.find(m=>m.code===source.country||m.name===source.country)?.code??(/^[A-Z]{2}$/.test(source.country)?source.country:'Global'),verification:'developing',subjectKind:'unknown',risk:'unknown',evidence:[{id:'discovery',url:source.url,publisher:source.publisher,title:source.title,observedAt:source.observedAt,publishedAt:null,excerpt:'',rights:'unknown',role:'report',independenceKey:new URL(source.url).hostname,checked:false}],claims:[],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:''}}
 
 async function createCandidate(input:DiscoveredNews,actor:string,requestId:string):Promise<{item:UrbanNewsItem;added:boolean}>{
  const source=discovered(input);actorId(actor);if(typeof requestId!=='string'||!requestId.trim()||requestId.length>200)throw Error('invalid_news_request');await ensureUrbanNewsSchema();
@@ -111,8 +111,13 @@ export async function ingestUrbanNewsCandidates(items:DiscoveredNews[],runId:str
  if(!Array.isArray(items)||items.length>50||typeof runId!=='string'||!runId||runId.length>150)throw Error('invalid_news_batch');
  const validated=items.map(discovered);await ensureUrbanNewsSchema();let added=0,duplicates=0;
  for(const source of validated){
-  const created=await createCandidate(source,'discovery:'+runId,createHash('sha256').update(source.url).digest('hex'));
-  if(created.added)added++;else duplicates++;
+  try{
+   const created=await createCandidate(source,'discovery:'+runId,createHash('sha256').update(source.url).digest('hex'));
+   if(created.added)added++;else duplicates++;
+  }catch(error){
+   if(error instanceof Error&&error.message==='news_capacity_reached'&&(added||duplicates))break;
+   throw error;
+  }
  }
  return {added,duplicates};
 }

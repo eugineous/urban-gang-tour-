@@ -13,6 +13,7 @@ const dailyTotals=`SELECT r.draft->>'country' AS market,count(DISTINCT r.candida
 export async function chooseDiscoveryCountry(window:number,target:number):Promise<string>{
  await ensureUrbanNewsSchema();
  const totals=new Map((await q<{market:string;total:number}>(dailyTotals)).map(row=>[row.market,Number(row.total)]));
+ if(window%(markets.length+1)===markets.length)return 'Global';
  const start=window%markets.length;
  const order=markets.slice(start).concat(markets.slice(0,start));
  return order.find(country=>(totals.get(country)??0)<target)??order[0];
