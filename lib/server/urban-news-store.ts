@@ -1,6 +1,6 @@
 import {createHash,randomUUID} from 'node:crypto';
 import {NEWS_MARKETS} from '@/lib/shared/news-preferences';
-import {marketChartUrl} from './urban-news-market-sources';
+import {marketChartUrl,fetchAutomaticChartRows} from './urban-news-market-sources';
 import {q,qSchema,hasDb} from './db';
 import {ensureEditorialSchema} from './editorial-schema';
 import {invalidate} from './microcache';
@@ -31,6 +31,11 @@ export const URBAN_NEWS_SCHEMA=`
  CREATE TABLE IF NOT EXISTS urban_news_evidence (
   candidate_id UUID NOT NULL,revision INTEGER NOT NULL,evidence_id TEXT NOT NULL,record JSONB NOT NULL,
   PRIMARY KEY(candidate_id,revision,evidence_id),FOREIGN KEY(candidate_id,revision) REFERENCES urban_news_revisions(candidate_id,revision)
+ );
+ CREATE TABLE IF NOT EXISTS urban_news_chart_publications (
+  candidate_id UUID PRIMARY KEY REFERENCES urban_news_candidates(id),market_track TEXT NOT NULL UNIQUE,
+  publication_day DATE NOT NULL,ordinal SMALLINT NOT NULL CHECK(ordinal BETWEEN 1 AND 15),
+  tick BIGINT NOT NULL UNIQUE,UNIQUE(publication_day,ordinal)
  );
  CREATE TABLE IF NOT EXISTS urban_news_audit (
   id BIGSERIAL PRIMARY KEY,candidate_id UUID NOT NULL,actor TEXT NOT NULL,action TEXT NOT NULL,revision INTEGER NOT NULL,
@@ -68,14 +73,13 @@ export async function getUrbanNewsOverview(cursor?:string,query?:{q?:string;stag
  return {items:visible.map(item),counts,nextCursor:rows.length>50&&last?Buffer.from(JSON.stringify([last.updated_at,last.id,filter])).toString('base64url'):null};
 }
 function discovered(value:DiscoveredNews):DiscoveredNews{
- if(!value||typeof value!=='object'||Object.keys(value).some(key=>!['url','title','publisher','country','language','observedAt','provider'].includes(key))||typeof value.title!=='string'||!value.title.trim()||value.title.length>500||typeof value.publisher!=='string'||!value.publisher.trim()||value.publisher.length>300||typeof value.country!=='string'||value.country.length>80||typeof value.language!=='string'||value.language.length>30||typeof value.observedAt!=='string'||!Number.isFinite(Date.parse(value.observedAt))||Date.parse(value.observedAt)>Date.now()+60000||!['gdelt','manual','apple_chart','market_chart','publisher_feed'].includes(value.provider))throw Error('invalid_news_candidate');
+ if(!value||typeof value!=='object'||Object.keys(value).some(key=>!['url','title','publisher','country','language','observedAt','publishedAt','provider'].includes(key))||value.publishedAt!==undefined&&(typeof value.publishedAt!=='string'||!isNewsInstant(value.publishedAt)||Date.parse(value.publishedAt)>Date.now()+60000)||typeof value.title!=='string'||!value.title.trim()||value.title.length>500||typeof value.publisher!=='string'||!value.publisher.trim()||value.publisher.length>300||typeof value.country!=='string'||value.country.length>80||typeof value.language!=='string'||value.language.length>30||typeof value.observedAt!=='string'||!Number.isFinite(Date.parse(value.observedAt))||Date.parse(value.observedAt)>Date.now()+60000||!['gdelt','manual','apple_chart','market_chart','publisher_feed'].includes(value.provider))throw Error('invalid_news_candidate');
  return {...value,url:canonicalNewsUrl(value.url)};
 }
-function initialDraft(source:DiscoveredNews):UrbanNewsDraft{return {headline:source.title,dek:'',body:[],category:'celebrity',country:NEWS_MARKETS.find(m=>m.code===source.country||m.name===source.country)?.code??(/^[A-Z]{2}$/.test(source.country)?source.country:'Global'),verification:'developing',subjectKind:'unknown',risk:'unknown',evidence:[{id:'discovery',url:source.url,publisher:source.publisher,title:source.title,observedAt:source.observedAt,publishedAt:null,excerpt:'',rights:'unknown',role:'report',independenceKey:new URL(source.url).hostname,checked:false}],claims:[],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:''}}
+function initialDraft(source:DiscoveredNews):UrbanNewsDraft{return {headline:source.title,dek:'',body:[],category:'celebrity',country:NEWS_MARKETS.find(m=>m.code===source.country||m.name===source.country)?.code??(/^[A-Z]{2}$/.test(source.country)?source.country:'Global'),verification:'developing',subjectKind:'unknown',risk:'unknown',evidence:[{id:'discovery',url:source.url,publisher:source.publisher,title:source.title,observedAt:source.observedAt,publishedAt:source.publishedAt??null,excerpt:'',rights:'unknown',role:'report',independenceKey:new URL(source.url).hostname,checked:false}],claims:[],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:''}}
 
-async function createCandidate(input:DiscoveredNews,actor:string,requestId:string):Promise<{item:UrbanNewsItem;added:boolean}>{
- const source=discovered(input);actorId(actor);if(typeof requestId!=='string'||!requestId.trim()||requestId.length>200)throw Error('invalid_news_request');await ensureUrbanNewsSchema();
- const id=randomUUID(),draft=initialDraft(source);
+function discoveryDraft(source:DiscoveredNews):UrbanNewsDraft{
+ const draft=initialDraft(source);
  if(source.provider==='apple_chart'||source.provider==='market_chart'){
   draft.category='music';draft.country=source.country;draft.subjectKind='organization';draft.verification='attributed';draft.risk='routine';
   const date=source.observedAt.slice(0,10);
@@ -86,6 +90,12 @@ async function createCandidate(input:DiscoveredNews,actor:string,requestId:strin
   draft.disclosure='Chart brief compiled from Apple Music’s public chart feed.';
   draft.evidence[0]={...draft.evidence[0],url:marketChartUrl(source.country),role:'primary',rights:'public_facts',checked:true,excerpt:source.title+' in the chart snapshot dated '+date+'.',independenceKey:'music.apple.com'};
  }
+ return draft;
+}
+
+async function createCandidate(input:DiscoveredNews,actor:string,requestId:string):Promise<{item:UrbanNewsItem;added:boolean}>{
+ const source=discovered(input);actorId(actor);if(typeof requestId!=='string'||!requestId.trim()||requestId.length>200)throw Error('invalid_news_request');await ensureUrbanNewsSchema();
+ const id=randomUUID(),draft=discoveryDraft(source);
  const hash=urbanNewsDraftHash(draft),requestKey=createHash('sha256').update(actor+'\0'+requestId).digest('hex');
  for(let attempt=0;attempt<5;attempt++){
   const rows=await q<Row>(`WITH saved AS (
@@ -150,6 +160,9 @@ export async function saveUrbanNewsDraft(id:string,expectedRevision:number,value
  return resultOrConflict([],id);
 }
 
+function publicationSlug(current:UrbanNewsItem){
+ return current.draft.headline.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,110).replace(/-$/,'')+'-'+current.id.slice(0,8);
+}
 function publicSnapshot(draft:UrbanNewsDraft,revision:number,hash:string,note:string|null){
  const sources:PublicNewsSource[]=draft.evidence.map(source=>({id:source.id,url:canonicalNewsUrl(source.url),title:source.title,publisher:source.publisher,publishedAt:source.publishedAt}));
  return {revision,approvedRevision:revision,hash,approvedHash:hash,live:true,sources,verification:draft.verification,country:draft.country,correction:note,author:draft.author,disclosure:draft.disclosure,imageAlt:draft.imageAlt,imageRights:draft.imageRights};
@@ -162,7 +175,7 @@ export async function publishUrbanNews(input:NewsPublication,actor:string):Promi
  if(current.revision!==input.expectedRevision||current.liveRevision!==input.expectedLiveRevision||current.draftHash!==input.approvedHash||current.stage==='archived')throw Error('news_conflict');
  validateNewsPublication(current.draft,input.checks);
  const correction=input.correctionNote?.trim()||null;if(current.publishedAt!==null&&Date.parse(current.publishedAt)<=Date.now()&&!correction)throw Error('news_correction_note_required');
- const slug=current.slug||current.draft.headline.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,110).replace(/-$/,'')+'-'+current.id.slice(0,8);
+ const slug=current.slug||publicationSlug(current);
  const snapshot=publicSnapshot(current.draft,current.revision,current.draftHash,correction);
  const rows=await q<Row>(`WITH eligible AS MATERIALIZED (
   SELECT candidate.*,EXISTS(SELECT 1 FROM posts WHERE urban_news_id=candidate.id AND ${URBAN_NEWS_PUBLIC_PREDICATE}) AS has_live
@@ -240,4 +253,89 @@ export async function releaseApprovedUrbanNews(limit=10):Promise<{released:numbe
   INSERT INTO urban_news_audit(candidate_id,actor,action,revision) SELECT id,'scheduler','release',revision FROM saved RETURNING candidate_id
  ) SELECT slug FROM saved`,[bounded]);
  if(rows.length)refreshPublic();return {released:rows.length,slugs:rows.map(row=>row.slug)};
+}
+
+const chartClock=`SELECT (now() AT TIME ZONE 'Africa/Nairobi')::date AS day,
+ extract(epoch FROM (now() AT TIME ZONE 'Africa/Nairobi')::time)/86400 AS day_fraction,
+ floor(extract(epoch FROM now())/900)::bigint AS tick`;
+const chartAllowance=`SELECT clock.day,clock.tick,used.total+1 AS ordinal
+ FROM (${chartClock}) clock
+ JOIN urban_news_provider_config settings ON settings.id AND settings.revision=$1
+ JOIN urban_news_provider_lease lease ON lease.id AND lease.token=$2 AND lease.expires_at>clock_timestamp()
+ CROSS JOIN LATERAL (SELECT count(*) AS total FROM urban_news_chart_publications WHERE publication_day=clock.day) used
+ WHERE settings.value->'automaticChartBriefs'='true'::jsonb
+ AND used.total<=floor(clock.day_fraction*coalesce((settings.value->>'dailyPublicationLimit')::int,10))
+ AND clock.tick=$3 AND NOT EXISTS(SELECT 1 FROM urban_news_chart_publications WHERE tick=clock.tick)
+ FOR SHARE OF settings,lease`;
+
+/** Every public claim is reconstructed from a newly fetched song position in Apple's own feed. */
+export async function publishScheduledChartBrief(configRevision:number,lease:string,tick:number):Promise<number>{
+ if(process.env.URBAN_NEWS_ENABLED!=='true')return 0;
+ await ensureUrbanNewsSchema();
+ const authority=[configRevision,lease,tick];
+ if(!(await q(chartAllowance,authority)).length)return 0;
+ const markets=NEWS_MARKETS.filter(market=>market.code!=='Global');
+ let country=markets[tick%markets.length].code;
+ let leads=await fetchAutomaticChartRows(country).catch(()=>[]);
+ if(!leads.length && country!=='KE'){
+  country='KE';
+  leads=await fetchAutomaticChartRows(country);
+ }
+ if(!leads.length)return 0;
+ const trackKey=(lead:DiscoveredNews)=>country+':'+new URL(lead.url).searchParams.get('i');
+ const known=await q<{canonical_url:string;usable:boolean}>(`SELECT canonical_url,
+  (stage='discovered' AND live_revision IS NULL AND published_at IS NULL) AS usable
+  FROM urban_news_candidates WHERE canonical_url=ANY($1::text[])`,[leads.map(lead=>lead.url)]);
+ const published=await q<{market_track:string}>('SELECT market_track FROM urban_news_chart_publications WHERE market_track=ANY($1::text[])',[leads.map(trackKey)]);
+ for(const lead of leads){
+  if(published.some(row=>row.market_track===trackKey(lead))||known.some(row=>row.canonical_url===lead.url&&!row.usable))continue;
+  const created=await createCandidate(lead,'scheduler:chart-feed',createHash('sha256').update(lead.url).digest('hex'));
+  const candidate=created.item;
+  const draft=discoveryDraft(lead),hash=urbanNewsDraftHash(draft);
+  if(candidate.stage!=='discovered')continue;
+  let revision=candidate.revision;
+  if(candidate.draftHash!==hash){
+   const refreshed=await q<{revision:number}>(`WITH saved AS (
+    UPDATE urban_news_candidates c SET source=$3::jsonb,draft=$4::jsonb,draft_hash=$5,revision=revision+1,updated_at=clock_timestamp()
+    WHERE c.id=$1 AND revision=$2 AND stage='discovered' AND live_revision IS NULL AND published_at IS NULL
+    AND source->>'provider' IN ('apple_chart','market_chart') AND source->>'url'=$6
+    AND NOT EXISTS(SELECT 1 FROM urban_news_revisions r WHERE r.candidate_id=c.id AND r.actor NOT LIKE 'discovery:%' AND r.actor<>'scheduler:chart-feed')
+    RETURNING id,revision,draft,draft_hash
+   ), history AS (
+    INSERT INTO urban_news_revisions(candidate_id,revision,draft,draft_hash,actor)
+    SELECT id,revision,draft,draft_hash,'scheduler:chart-feed' FROM saved RETURNING candidate_id
+   ), evidence AS (
+    INSERT INTO urban_news_evidence(candidate_id,revision,evidence_id,record) SELECT id,revision,'discovery',draft->'evidence'->0 FROM saved RETURNING candidate_id
+   ) SELECT revision FROM saved`,[candidate.id,revision,JSON.stringify(lead),JSON.stringify(draft),hash,lead.url]);
+   if(!refreshed.length)continue;
+   revision=Number(refreshed[0].revision);
+  }
+  const snapshot={...publicSnapshot(draft,revision,hash,null),publicationMethod:'automatic_chart',imageAlt:'Urban News record illustration for the music charts',sources:[...draft.evidence.map(e=>({id:e.id,url:e.url,publisher:e.publisher,title:e.title,publishedAt:e.publishedAt})),{id:'chart-track',publisher:'Apple Music',title:lead.title,url:lead.url,publishedAt:null}],disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
+  const rows=await q(`WITH allowance AS MATERIALIZED (${chartAllowance}), eligible AS MATERIALIZED (
+   SELECT c.id FROM urban_news_candidates c JOIN urban_news_revisions r ON r.candidate_id=c.id AND r.revision=$13
+   WHERE c.id=$4 AND c.revision=$13 AND c.live_revision IS NULL AND c.published_at IS NULL AND c.stage='discovered'
+   AND c.source=$5::jsonb AND c.draft=$6::jsonb AND r.draft=c.draft AND c.draft_hash=$7 AND r.draft_hash=c.draft_hash
+   AND (r.actor='scheduler:chart-feed' OR r.actor LIKE 'discovery:%')
+   FOR UPDATE OF c
+  ), reserved AS (
+   INSERT INTO urban_news_chart_publications(candidate_id,market_track,publication_day,ordinal,tick)
+   SELECT eligible.id,$8,day,ordinal,tick FROM eligible CROSS JOIN allowance
+   ON CONFLICT DO NOTHING RETURNING candidate_id
+  ), projection AS (
+   INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,editorial_managed,social_automation_enabled,urban_news_id,urban_news_revision,urban_news_hash,urban_news_public,updated_at)
+   SELECT $9,c.draft->>'headline','music','/news/chart-edition.svg',c.draft->>'dek',c.draft->'body',true,
+    (now() AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,c.id,$13,c.draft_hash,
+    $10::jsonb||jsonb_build_object('scheduledAt',now(),'publishedAt',now(),'modifiedAt',now()),now()
+   FROM urban_news_candidates c JOIN reserved ON reserved.candidate_id=c.id RETURNING urban_news_id
+  ), saved AS (
+   UPDATE urban_news_candidates SET stage='live',live_revision=$13,slug=$9,published_at=now(),discovery_slot=NULL,
+    approval=jsonb_build_object('method','automatic_chart','actor','scheduler','revision',$13,'hash',draft_hash,'configRevision',$1::bigint),
+    updated_at=clock_timestamp() WHERE id IN(SELECT urban_news_id FROM projection) RETURNING id
+  ) INSERT INTO urban_news_audit(candidate_id,actor,action,revision,detail)
+   SELECT id,'scheduler','automatic_chart_publication',$13,jsonb_build_object('hash',$7::text,'feedUrl',$11::text,'observedAt',$12::text,'marketTrack',$8::text,'configRevision',$1::bigint)
+   FROM saved RETURNING candidate_id`,[...authority,candidate.id,JSON.stringify(lead),JSON.stringify(draft),hash,trackKey(lead),publicationSlug(candidate),JSON.stringify(snapshot),marketChartUrl(country),lead.observedAt,revision]);
+  if(rows.length){refreshPublic();return 1}
+  if(!(await q(chartAllowance,authority)).length)return 0;
+ }
+ return 0;
 }

@@ -1,0 +1,20 @@
+.report { width: min(100% - 2.5rem, 45rem); margin: 0 auto; padding: 8rem 0 4rem; font-size: 1.07rem; line-height: 1.65; overflow-wrap: anywhere; }
+.report header { margin-block: 1rem 1.5rem; padding-block: 1.2rem; border-block: 1px solid #d6cdd4; }
+.report h1 { margin: .35rem 0 1rem; font-size: clamp(2.25rem, 5.5vw, 4.2rem); letter-spacing: -.045em; line-height: 1.03; }
+.report h2 { font-size: 1.5rem; margin: 2rem 0 .5rem; }
+.report header p { margin: 0; font-size: .85rem; }
+.section { color: #910057; font-weight: 700; }
+.lede { font-size: clamp(1.18rem, 2.3vw, 1.5rem); line-height: 1.45; }
+.report figure { margin: 1.5rem 0; padding: 1rem; border: 1px solid #ded9e1; border-radius: .8rem; }
+.report figure iframe { margin: 0; }
+.report figcaption { margin-top: .25rem; font-size: .9rem; }
+.report a { color: #910057; text-decoration: underline; text-underline-offset: .22em; }
+.report .back, .report footer a, .report figcaption a { display: inline-flex; align-items: center; min-height: 44px; }
+.tracks { padding-left: 2.2rem; }
+.tracks li { padding: .5rem 0; border-bottom: 1px solid #ded9e1; }
+.tracks li::marker { font-weight: 700; }
+.report footer { margin-top: 1.5rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .report a { transition: text-underline-offset .15s ease; }
+  .report a:hover, .report a:focus-visible { text-underline-offset: .35em; }
+}

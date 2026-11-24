@@ -1,5 +1,6 @@
 import {createCipheriv,createDecipheriv,createHash,randomBytes,randomUUID} from 'node:crypto';
 import {db,hasDb,q,qSchema} from './db';
+import {detectNewsProvider} from '@/lib/shared/news-provider-key';
 import {NEWS_DRAFT_MODELS} from '@/lib/shared/urban-news';
 import {DEFAULT_NEWS_BUDGET,reserveNewsDraftCents,validNewsBudget,budgetAllows} from './urban-news-budget';
 import type {NewsConfigState,NewsDraftAuthorization,NewsJobResult,NewsProvider,NewsProviderReadiness,UrbanNewsConfig,UrbanNewsBudget} from '@/lib/shared/urban-news';
@@ -58,7 +59,9 @@ function parseConfig(value:unknown):UrbanNewsConfig {
  if(typeof value!=='object'||!value||Array.isArray(value))throw Error('invalid_news_config');
  const v=value as UrbanNewsConfig;
  const required=Object.keys(defaults);
- const allowed=[...required,'parallelProviders','voice','dailyMarketTarget'];
+ const allowed=[...required,'parallelProviders','voice','dailyMarketTarget','automaticChartBriefs','dailyPublicationLimit'];
+ if(Object.hasOwn(v,'automaticChartBriefs')&&typeof v.automaticChartBriefs!=='boolean')throw Error('invalid_news_config');
+ if(Object.hasOwn(v,'dailyPublicationLimit')&&(typeof v.dailyPublicationLimit!=='number'||!Number.isInteger(v.dailyPublicationLimit)||v.dailyPublicationLimit<1||v.dailyPublicationLimit>15))throw Error('invalid_news_config');
  if(!required.every(key=>Object.hasOwn(v,key))||Object.keys(v).some(key=>!allowed.includes(key))
   ||typeof v.discoveryEnabled!=='boolean'||typeof v.draftingEnabled!=='boolean'||typeof v.termsConfirmed!=='boolean'
   ||!Number.isInteger(v.dailyDraftLimit)||v.dailyDraftLimit<1||v.dailyDraftLimit>100
@@ -75,7 +78,7 @@ function parseConfig(value:unknown):UrbanNewsConfig {
   pool.forEach(validProvider);
  }
  if((v.discoveryEnabled||v.draftingEnabled)&&!v.termsConfirmed)throw Error('news_terms_required');
- return {...v};
+ return {automaticChartBriefs:false,dailyPublicationLimit:10,...v};
 }
 
 /** Scheduled alternates use their first allowlisted model. Manual requests require the saved primary selection. */
@@ -90,16 +93,30 @@ export function matchesNewsSelection(current:NewsConfigState,authorization:NewsD
   &&authorization.model===NEWS_MODELS[authorization.provider][0];
 }
 function configState(row?:Record<string,unknown>):NewsConfigState{
- if(!row)return{config:{...defaults},revision:0};const revision=Number(row.revision);if(!Number.isSafeInteger(revision)||revision<1)throw Error('news_storage_unavailable');
+ if(!row)return{config:parseConfig(defaults),revision:0};const revision=Number(row.revision);if(!Number.isSafeInteger(revision)||revision<1)throw Error('news_storage_unavailable');
  return{config:parseConfig(typeof row.value==='string'?JSON.parse(row.value):row.value),revision};
 }
 export async function getUrbanNewsConfigState():Promise<NewsConfigState>{if(!hasDb())return configState();await ensure();return configState((await q<Record<string,unknown>>('SELECT value,revision FROM urban_news_provider_config WHERE id=true'))[0])}
+/** The commissioned chart edition is free. Keep previously saved publication choices and paid-model settings. */
+export async function chartEditionConfig():Promise<NewsConfigState>{
+ await ensure();
+ const initial={...defaults,automaticChartBriefs:true,dailyPublicationLimit:10};
+ await q(`INSERT INTO urban_news_provider_config(id,value,updated_by,revision)
+ VALUES(true,$1::jsonb,'release:chart-edition',1)
+ ON CONFLICT(id) DO UPDATE SET value=urban_news_provider_config.value||jsonb_build_object('automaticChartBriefs',true),
+ revision=urban_news_provider_config.revision+1,updated_by='release:chart-edition',updated_at=now()
+ WHERE NOT (urban_news_provider_config.value ? 'automaticChartBriefs')`,[JSON.stringify(initial)]);
+ return getUrbanNewsConfigState();
+}
 export async function getUrbanNewsConfig():Promise<UrbanNewsConfig>{return (await getUrbanNewsConfigState()).config}
 export async function saveUrbanNewsConfig(value:UrbanNewsConfig,actor:string,expectedRevision:number):Promise<NewsConfigState>{
  actorValue(actor);const config=parseConfig(value);if(!Number.isSafeInteger(expectedRevision)||expectedRevision<0)throw Error('invalid_news_config');
  return transaction(async client=>{const current=configState((await client.query('SELECT value,revision FROM urban_news_provider_config WHERE id=true FOR UPDATE')).rows[0]);if(current.revision!==expectedRevision)throw Error('news_config_changed');
- const rows=current.revision===0?(await client.query('INSERT INTO urban_news_provider_config(id,value,updated_by,revision) VALUES(true,$1::jsonb,$2,1) ON CONFLICT DO NOTHING RETURNING value,revision',[JSON.stringify(config),actor])).rows:(await client.query('UPDATE urban_news_provider_config SET value=$1::jsonb,updated_by=$2,updated_at=now(),revision=revision+1 WHERE id=true AND revision=$3 RETURNING value,revision',[JSON.stringify(config),actor,expectedRevision])).rows;
- if(!rows[0])throw Error('news_config_changed');return configState(rows[0]);});
+ return writeConfig(client,config,actor,expectedRevision)});
+}
+async function writeConfig(client:Client,config:UrbanNewsConfig,actor:string,revision:number){
+ const rows=revision===0?(await client.query('INSERT INTO urban_news_provider_config(id,value,updated_by,revision) VALUES(true,$1::jsonb,$2,1) ON CONFLICT DO NOTHING RETURNING value,revision',[JSON.stringify(config),actor])).rows:(await client.query('UPDATE urban_news_provider_config SET value=$1::jsonb,updated_by=$2,updated_at=now(),revision=revision+1 WHERE id=true AND revision=$3 RETURNING value,revision',[JSON.stringify(config),actor,revision])).rows;
+ if(!rows[0])throw Error('news_config_changed');return configState(rows[0]);
 }
 type Client={query:(sql:string,args?:unknown[])=>Promise<{rows:Record<string,unknown>[]}>};
 async function transaction<T>(work:(client:Client)=>Promise<T>):Promise<T>{await ensure();const pool=db();if(!pool)throw Error('news_storage_unavailable');let client;try{client=await pool.connect();await client.query('BEGIN');await client.query("SET LOCAL statement_timeout='8s'");await client.query("SELECT pg_advisory_xact_lock(hashtext('ugt:urban-news:provider-budget:v1'))");const value=await work(client);await client.query('COMMIT');return value}catch(error){await client?.query('ROLLBACK').catch(()=>{});throw error}finally{client?.release();await pool.end().catch(()=>{})}}
@@ -111,12 +128,37 @@ export async function saveUrbanNewsBudget(value:unknown,actor:string,expectedRev
   const previous=(await client.query('SELECT revision FROM urban_news_provider_budget WHERE id=true FOR UPDATE')).rows[0];
   const revision=previous?Number(previous.revision):0;
   if(revision!==expectedRevision)throw Error('news_config_changed');
+  return writeBudget(client,value,actor,revision);
+ });
+}
+async function writeBudget(client:Client,value:Pick<UrbanNewsBudget,'monthlyLimitCents'|'enabledProviders'>,actor:string,revision:number){
   const enabled=JSON.stringify(value.enabledProviders);
   const rows=revision===0
    ?(await client.query('INSERT INTO urban_news_provider_budget(id,limit_cents,enabled,updated_by) VALUES(true,$1,$2::jsonb,$3) ON CONFLICT DO NOTHING RETURNING revision',[value.monthlyLimitCents,enabled,actor])).rows
-   :(await client.query('UPDATE urban_news_provider_budget SET limit_cents=$1,enabled=$2::jsonb,revision=revision+1,updated_by=$3,updated_at=clock_timestamp() WHERE id=true AND revision=$4 RETURNING revision',[value.monthlyLimitCents,enabled,actor,expectedRevision])).rows;
+   :(await client.query('UPDATE urban_news_provider_budget SET limit_cents=$1,enabled=$2::jsonb,revision=revision+1,updated_by=$3,updated_at=clock_timestamp() WHERE id=true AND revision=$4 RETURNING revision',[value.monthlyLimitCents,enabled,actor,revision])).rows;
   if(!rows[0])throw Error('news_config_changed');
-  return {...value,revision:Number(rows[0].revision),reservedCents:0};
+  return {...value,revision:Number(rows[0].revision),reservedCents:Number((await client.query(monthCostSql)).rows[0]?.reserved??0)};
+}
+export async function activateUrbanNewsDesk(input:{expectedConfigRevision:number;expectedBudgetRevision:number;termsConfirmed:boolean;dailyPublicationLimit:number},actor:string):Promise<{configState:NewsConfigState;budget:UrbanNewsBudget}>{
+ actorValue(actor);
+ if(!input||input.termsConfirmed!==true)throw Error('news_terms_required');
+ if(![input.expectedConfigRevision,input.expectedBudgetRevision].every(value=>Number.isSafeInteger(value)&&value>=0)
+  ||!Number.isInteger(input.dailyPublicationLimit)||input.dailyPublicationLimit<1||input.dailyPublicationLimit>15)throw Error('invalid_news_config');
+ return transaction(async client=>{
+  const current=configState((await client.query('SELECT value,revision FROM urban_news_provider_config WHERE id=true FOR UPDATE')).rows[0]);
+  const budget=budgetRow((await client.query('SELECT limit_cents,enabled,revision FROM urban_news_provider_budget WHERE id=true FOR UPDATE')).rows[0]);
+  if(current.revision!==input.expectedConfigRevision||budget.revision!==input.expectedBudgetRevision)throw Error('news_config_changed');
+  const keys=(await client.query("SELECT provider,ciphertext FROM urban_news_provider_keys WHERE provider IN ('qwen','nvidia')")).rows;
+  for(const provider of ['qwen','nvidia'] as const){
+   const managed=keys.find(row=>row.provider===provider);
+   const key=managed?decrypt(provider,String(managed.ciphertext)):environmentKey(provider);
+   if(!key||(detectNewsProvider(key)&&detectNewsProvider(key)!==provider))throw Error('news_key_unavailable');
+  }
+  const config=parseConfig({...current.config,termsConfirmed:true,discoveryEnabled:true,draftingEnabled:true,
+   provider:'qwen',model:NEWS_MODELS.qwen[0],parallelProviders:['nvidia'],automaticChartBriefs:true,dailyPublicationLimit:input.dailyPublicationLimit});
+  const savedConfig=await writeConfig(client,config,actor,current.revision);
+  const savedBudget=await writeBudget(client,{monthlyLimitCents:budget.monthlyLimitCents,enabledProviders:{...budget.enabledProviders,qwen:true,nvidia:true}},actor,budget.revision);
+  return {configState:savedConfig,budget:savedBudget};
  });
 }
 /** Missing policy rows use defaults; existing provider credentials and consent remain unchanged. */

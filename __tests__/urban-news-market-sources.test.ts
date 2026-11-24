@@ -1,6 +1,6 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import snapshot from '../data/urban-news-kenya-chart.json';
-import {discoverMarketSources,fetchKenyaChartBackup,marketChartUrl} from '../lib/server/urban-news-market-sources';
+import {readPublisherHeadlines,discoverMarketSources,fetchKenyaChartBackup,marketChartUrl} from '../lib/server/urban-news-market-sources';
 
 const updated='2026-11-23T12:00:00Z';
 function rss(itemBody:string){
@@ -74,4 +74,37 @@ it('attributes a public YouTube upload only to its fixed channel',async()=>{
  const entry=(channel:string)=>'<entry><yt:channelId>'+channel+'</yt:channelId><yt:videoId>AbCdEfGhI12</yt:videoId><title>Music performance</title><published>'+updated+'</published></entry>';
  vi.stubGlobal('fetch',async(url:string)=>url.startsWith('https://www.youtube.com/feeds/')?new Response('<feed>'+entry('unrelated')+entry('UC4eYXhJI4-7wSWc8UNRwD4A')+'</feed>',{headers:{'content-type':'application/atom+xml'}}):new Response('',{status:503}));
  expect(await discoverMarketSources('US',5)).toMatchObject([{publisher:'NPR Music',url:'https://www.youtube.com/watch?v=AbCdEfGhI12',provider:'publisher_feed'}]);
+});
+it('builds automatic briefs only from fresh, exact Apple song rows with safe labels and original ranks',async()=>{
+ const {fetchAutomaticChartRows}=await import('../lib/server/urban-news-market-sources');
+ const base=chart('KE').feed,good=base.results[1];
+ const rows=[{...good,name:'Allegations about singer'},{...good,url:good.url.replace('/album/release/1','/album/other/page/1')},{...good,url:good.url.replace('music.apple.com','music.apple.com.example.org')},good];
+ let feed={...base,results:rows};
+ const fetch=vi.fn(async()=>Response.json({feed}));
+ vi.stubGlobal('fetch',fetch);
+ expect(await fetchAutomaticChartRows('KE')).toMatchObject([{title:expect.stringContaining('ranks No. 4'),url:good.url}]);
+ expect(fetch).toHaveBeenCalledWith(marketChartUrl('KE'),expect.objectContaining({redirect:'error',cache:'no-store'}));
+ feed={...feed,updated:'2020-01-01T00:00:00Z'};
+ expect(await fetchAutomaticChartRows('KE')).toEqual([]);
+ feed={...base,id:marketChartUrl('UG'),results:rows};
+ expect(await fetchAutomaticChartRows('KE')).toEqual([]);
+});
+
+it('keeps attributed press headlines current and scoped to the requested outlet',async()=>{
+  vi.stubGlobal('fetch',async()=>rss(item('Music festival','https://notjustok.com/music/test')+item('Different outlet','https://example.com/music')));
+  const stories=await readPublisherHeadlines('NG');
+  expect(stories).toMatchObject([{publisher:'NotJustOk',publishedAt:'2026-11-23T12:00:00.000Z'}]);
+  vi.setSystemTime(new Date('2026-11-27T13:00:00Z'));
+  vi.stubGlobal('fetch',async()=>new Response('',{status:503}));
+  expect(await readPublisherHeadlines('NG')).toEqual([]);
+});
+
+it('accepts an explicitly public-domain photo only on its own publisher media record',async()=>{
+ const url='https://www.matookerepublic.com/music';
+ const media=(name:string,licensed:boolean)=>'<media:content type="image/jpeg" url="'+url+'/'+name+'.jpg">'+(licensed?'<media:license href="https://creativecommons.org/publicdomain/zero/1.0/"/>':'')+'</media:content>';
+ const xml='<rss xmlns:media="http://search.yahoo.com/mrss/"><channel>'+item('Music interview',url,media('original',true))+item('Festival lineup',url+'/festival',media('restricted',false))+'</channel></rss>';
+ vi.stubGlobal('fetch',async()=>new Response(xml,{headers:{'content-type':'application/rss+xml'}}));
+ const rows=await readPublisherHeadlines('UG');
+ expect(rows[0].artwork?.url).toBe(url+'/original.jpg');
+ expect(rows[1].artwork).toBeUndefined();
 });

@@ -1,4 +1,4 @@
-import {expect,it} from 'vitest';
+import {expect,it,vi} from 'vitest';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {HostIdentity,UrbanMediaFeature,WatchLibrary,watchableFilms} from '@/ui/components/UrbanMedia';
@@ -30,3 +30,5 @@ it('keeps real hosts, original video and personal-edition access in the news-fir
  expect(html).toContain('<video');expect(html).toContain('/media-library/8e63b88fd01a11a4.webp');expect(html).toContain('href="/news-preferences"');
 });
 it('gives desktop visitors a contextual link to their personal edition',()=>{const html=renderToStaticMarkup(createElement(UrbanNewsHome,{posts:[],newsCurrent:true,events:[],eventsCurrent:true,products:[],productsCurrent:true,now:Date.parse('2026-11-18T00:00:00Z')}));expect(html).toContain('href="/for-you"')});
+
+vi.mock('next/navigation',async importOriginal=>({...await importOriginal<typeof import('next/navigation')>(),useRouter:()=>({refresh:vi.fn()})}));

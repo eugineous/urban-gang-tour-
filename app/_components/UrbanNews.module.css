@@ -15,3 +15,54 @@
 .chart{border-inline-start:4px solid var(--news-action,#b00067);padding:1rem 1.2rem;margin:1rem 0;background:var(--surface,#fff);color:var(--ink,#211822)}
 .chart h2{font-size:clamp(1.3rem,3vw,2rem);line-height:1.15;margin:.4rem 0 .65rem;text-wrap:balance}
 .chart a{display:inline-block;color:#920054;font-weight:650;margin-inline-end:1.2rem;padding:.5rem 0;text-underline-offset:.2em}
+
+.headlines {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block: 10px;
+  border-bottom: 1px solid #ded9e1;
+}
+.headlines h2 {
+  flex: none;
+  margin: 0;
+  font-size: 14px;
+  color: #930057;
+}
+.headlines ul {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  list-style: none;
+}
+.headlines li {
+  flex: none;
+  width: max-content;
+  max-width: min(32ch, 90%);
+  padding-inline: 14px;
+  border-inline-start: 1px solid #ded9e1;
+}
+.headlines a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  font: 600 15px/1.4 Inter, Arial, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .headlines {display: block}
+  .headlines ul {margin-top: 4px}
+  .headlines li:first-child {border: 0; padding-inline-start: 0}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card .art img {transition:transform .22s ease-out}
+  .card a:focus-visible .art img,.card a:active .art img {transform:scale(1.025)}
+  @media (hover:hover) { .card a:hover .art img {transform:scale(1.025)} }
+}
