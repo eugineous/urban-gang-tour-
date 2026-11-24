@@ -60,3 +60,9 @@
   .headlines ul {margin-top: 4px}
   .headlines li:first-child {border: 0; padding-inline-start: 0}
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .card .art img {transition:transform .22s ease-out}
+  .card a:focus-visible .art img,.card a:active .art img {transform:scale(1.025)}
+  @media (hover:hover) { .card a:hover .art img {transform:scale(1.025)} }
+}

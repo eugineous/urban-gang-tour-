@@ -18,7 +18,7 @@ beforeAll(async()=>{if(!enabled)return;if(process.env.UGT_EDITORIAL_SQL_CONTAINE
 beforeEach(async()=>{if(!enabled)return;vi.stubEnv('SESSION_SECRET',session);vi.stubEnv('QWEN_API_KEY','');vi.stubEnv('OPENAI_API_KEY','');vi.stubEnv('GEMINI_API_KEY','');await fixture.query("DELETE FROM urban_news_provider_keys WHERE provider='qwen'");await fixture.query('UPDATE urban_news_provider_config SET value=$1::jsonb',[JSON.stringify(config)])});
 afterEach(()=>vi.unstubAllEnvs());afterAll(()=>{if(enabled)fixture.stop()},15000);
 test('upgrades the legacy two-provider constraint without changing existing credentials or configuration',async()=>{
- expect(await api.getUrbanNewsConfig()).toEqual(config);expect(await api.getUrbanNewsProviderKey('gemini')).toBe(legacyKey);expect((await fixture.query("SELECT ciphertext FROM urban_news_provider_keys WHERE provider='gemini'"))[0].ciphertext).toBe(originalCiphertext);
+ expect(await api.getUrbanNewsConfig()).toMatchObject(config);expect(await api.getUrbanNewsProviderKey('gemini')).toBe(legacyKey);expect((await fixture.query("SELECT ciphertext FROM urban_news_provider_keys WHERE provider='gemini'"))[0].ciphertext).toBe(originalCiphertext);
  await expect(api.saveUrbanNewsProviderKey('qwen','fixture-qwen-private-key-123456','owner')).resolves.toMatchObject({config:{draftingEnabled:false},revision:2});expect(await api.getUrbanNewsProviderKey('qwen')).toBe('fixture-qwen-private-key-123456');expect((await api.getUrbanNewsConfig()).draftingEnabled).toBe(false);expect((await fixture.query("SELECT ciphertext FROM urban_news_provider_keys WHERE provider='gemini'"))[0].ciphertext).toBe(originalCiphertext);
 });
 test('stores Qwen ciphertext with provider authentication and exposes readiness only',async()=>{

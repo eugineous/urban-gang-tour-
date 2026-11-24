@@ -288,7 +288,7 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
   const {item:candidate}=await createCandidate(lead,'scheduler:chart-feed',createHash('sha256').update(lead.url).digest('hex'));
   const draft=discoveryDraft(lead),hash=urbanNewsDraftHash(draft);
   if(candidate.revision!==1||candidate.stage!=='discovered'||candidate.draftHash!==hash)continue;
-  const snapshot={...publicSnapshot(draft,1,hash,null),publicationMethod:'automatic_chart',disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
+  const snapshot={...publicSnapshot(draft,1,hash,null),publicationMethod:'automatic_chart',imageAlt:'Urban News record illustration for the music charts',sources:[...draft.evidence.map(e=>({id:e.id,url:e.url,publisher:e.publisher,title:e.title,publishedAt:e.publishedAt})),{id:'chart-track',publisher:'Apple Music',title:lead.title,url:lead.url,publishedAt:null}],disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
   const rows=await q(`WITH allowance AS MATERIALIZED (${chartAllowance}), eligible AS MATERIALIZED (
    SELECT c.id FROM urban_news_candidates c JOIN urban_news_revisions r ON r.candidate_id=c.id AND r.revision=1
    WHERE c.id=$4 AND c.revision=1 AND c.live_revision IS NULL AND c.published_at IS NULL AND c.stage='discovered'
@@ -301,7 +301,7 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
    ON CONFLICT DO NOTHING RETURNING candidate_id
   ), projection AS (
    INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,editorial_managed,social_automation_enabled,urban_news_id,urban_news_revision,urban_news_hash,urban_news_public,updated_at)
-   SELECT $9,c.draft->>'headline','music','/assets/pwa-512.png',c.draft->>'dek',c.draft->'body',true,
+   SELECT $9,c.draft->>'headline','music','/news/chart-edition.svg',c.draft->>'dek',c.draft->'body',true,
     (now() AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,c.id,1,c.draft_hash,
     $10::jsonb||jsonb_build_object('scheduledAt',now(),'publishedAt',now(),'modifiedAt',now()),now()
    FROM urban_news_candidates c JOIN reserved ON reserved.candidate_id=c.id RETURNING urban_news_id

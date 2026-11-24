@@ -14,3 +14,5 @@
 .press { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr)); gap:1rem 2rem; list-style:none; margin:0; padding:0; }
 .press a { display:block; padding-block:.55rem; color:inherit; font-weight:650; text-decoration-color:#b30066; text-underline-offset:.18em; }
 .press small { color:#625c67; }
+.chart h2 a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .15em; }
+.chart h2 a:hover, .chart h2 a:focus-visible { color: #920054; }

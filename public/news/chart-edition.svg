@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="title">
+<title id="title">Urban News music chart illustration</title>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#9a0051"/><stop offset="1" stop-color="#39082f"/></linearGradient><pattern id="grooves" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M0 0h7" stroke="#ffffff" stroke-opacity=".09" stroke-width="2"/></pattern></defs>
+<path fill="url(#bg)" d="M0 0h800v450H0z"/>
+<g transform="translate(598 212) rotate(-20)"><circle r="242" fill="#160f20"/><circle r="231" fill="url(#grooves)"/>
+<g fill="none" stroke="#57445b" stroke-width="2"><circle r="222"/><circle r="210"/><circle r="198"/><circle r="186"/><circle r="174"/><circle r="162"/><circle r="150"/><circle r="138"/><circle r="126"/><circle r="114"/></g>
+<circle r="89" fill="#f8539e"/><circle r="14" fill="#250e27"/></g>
+<g fill="white" font-family="Arial, sans-serif" font-weight="bold"><text x="41" y="67" font-size="25" letter-spacing="3">URBAN NEWS</text><text x="37" y="347" font-size="78">CHART</text><text x="40" y="400" font-size="40" letter-spacing="5">EDITION</text></g></svg>
