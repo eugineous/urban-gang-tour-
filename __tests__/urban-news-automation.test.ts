@@ -1,12 +1,12 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import type {UrbanNewsConfig,UrbanNewsItem} from '@/lib/shared/urban-news';
 it('explicit manual actions work while scheduled discovery and drafting remain disabled',async()=>{const api=await automation();state.config.mockResolvedValue({...config,discoveryEnabled:false,draftingEnabled:false});state.draft.mockResolvedValue({draft:{...item.draft,body:['Fixture reporting.'],claims:[{text:'Fixture report',evidenceIds:['primary']}]},usage:{inputTokens:5,outputTokens:5}});state.fetch.mockResolvedValue([]);state.ingest.mockResolvedValue({added:0,duplicates:0});expect(await api.generateUrbanNewsDraft(item.id,2,'manual-draft','owner',manualSelection)).toMatchObject({ok:true,state:'complete'});expect(await api.discoverUrbanNews('manual-discovery','owner')).toMatchObject({ok:true,state:'complete'});expect(state.reserve).toHaveBeenCalledTimes(2)});
-const state=vi.hoisted(()=>({chartBackup:vi.fn(),market:vi.fn(),country:vi.fn(),candidates:vi.fn(),readiness:vi.fn(),config:vi.fn(),configState:vi.fn(),dispatchDraft:vi.fn(),key:vi.fn(),reserve:vi.fn(),read:vi.fn(),dispatch:vi.fn(),finish:vi.fn(),fetch:vi.fn(),draft:vi.fn(),get:vi.fn(),save:vi.fn(),hold:vi.fn(),ingest:vi.fn(),release:vi.fn(),overview:vi.fn(),lease:vi.fn(),heartbeat:vi.fn(),unlease:vi.fn()}));
+const state=vi.hoisted(()=>({autoChart:vi.fn(),chartBackup:vi.fn(),market:vi.fn(),country:vi.fn(),candidates:vi.fn(),readiness:vi.fn(),config:vi.fn(),configState:vi.fn(),dispatchDraft:vi.fn(),key:vi.fn(),reserve:vi.fn(),read:vi.fn(),dispatch:vi.fn(),finish:vi.fn(),fetch:vi.fn(),draft:vi.fn(),get:vi.fn(),save:vi.fn(),hold:vi.fn(),ingest:vi.fn(),release:vi.fn(),overview:vi.fn(),lease:vi.fn(),heartbeat:vi.fn(),unlease:vi.fn()}));
 vi.mock('@/lib/server/urban-news-market-sources',()=>({discoverMarketSources:state.market,fetchKenyaChartBackup:state.chartBackup,eligibleGlobalNewsLead:()=>true}));
 vi.mock('@/lib/server/urban-news-market-queue',()=>({chooseDiscoveryCountry:state.country,listReadyMarketDrafts:state.candidates}));
 vi.mock('@/lib/server/urban-news-secrets',async original=>({...await original<typeof import('@/lib/server/urban-news-secrets')>(),pausedUrbanNewsProviders:async()=>[],getUrbanNewsProviderStatus:state.readiness,getUrbanNewsConfig:state.config,getUrbanNewsConfigState:state.configState,dispatchUrbanNewsDraftRun:state.dispatchDraft,getUrbanNewsProviderKey:state.key,reserveUrbanNewsRun:state.reserve,readUrbanNewsRun:state.read,dispatchUrbanNewsRun:state.dispatch,finishUrbanNewsRun:state.finish,claimUrbanNewsLease:state.lease,heartbeatUrbanNewsLease:state.heartbeat,releaseUrbanNewsLease:state.unlease,newsRunFingerprint:(v:unknown)=>JSON.stringify(v),safeNewsError:(e:unknown)=>e instanceof Error&&['provider_timeout','provider_evidence_invalid'].includes(e.message)?e.message:'provider_unavailable'}));
 vi.mock('@/lib/server/urban-news-providers',async original=>({...await original<typeof import('@/lib/server/urban-news-providers')>(),fetchKenyaMusicLead:async()=>{throw Error('fixture_feed_unavailable')},fetchDiscoveredNews:state.fetch,draftFromEvidence:state.draft}));
-vi.mock('@/lib/server/urban-news-store',()=>({getUrbanNewsItem:state.get,saveUrbanNewsDraft:state.save,holdUrbanNews:state.hold,ingestUrbanNewsCandidates:state.ingest,releaseApprovedUrbanNews:state.release,getUrbanNewsOverview:state.overview}));
+vi.mock('@/lib/server/urban-news-store',()=>({publishScheduledChartBrief:state.autoChart,getUrbanNewsItem:state.get,saveUrbanNewsDraft:state.save,holdUrbanNews:state.hold,ingestUrbanNewsCandidates:state.ingest,releaseApprovedUrbanNews:state.release,getUrbanNewsOverview:state.overview}));
 const config:UrbanNewsConfig={discoveryEnabled:true,draftingEnabled:true,provider:'gemini',model:'gemini-3.5-flash-lite',dailyDraftLimit:2,dailyDiscoveryLimit:96,termsConfirmed:true};
 const manualSelection={configRevision:1,provider:config.provider,model:config.model,mode:'manual' as const};
 const item:UrbanNewsItem={id:'a1111111-1111-4111-8111-111111111111',revision:2,liveRevision:null,draftHash:'hash-fixture',stage:'draft',createdAt:'2026-11-17T10:00:00Z',updatedAt:'2026-11-17T10:00:00Z',slug:null,publishedAt:null,correctionNote:null,draft:{headline:'New album announcement',dek:'',body:[],category:'music',country:'Global',verification:'attributed',subjectKind:'public_figure',risk:'routine',evidence:[{id:'primary',url:'https://artist.example/announcement',publisher:'Artist',title:'Album',observedAt:'2026-11-17T10:00:00Z',publishedAt:null,excerpt:'The artist has announced a new album in this fixture evidence.',rights:'public_facts',role:'primary',independenceKey:'artist',checked:true}],claims:[],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:''}};
@@ -71,4 +71,21 @@ it('retains a bounded market candidate when the headline source fills the batch'
  expect(state.market).toHaveBeenCalledWith('Nigeria',5);
  expect(state.ingest.mock.calls[0][0].length).toBeLessThanOrEqual(4);
  expect(state.ingest.mock.calls[0][0]).toContainEqual({title:'Regional lead'});
+});
+
+it('runs factual chart publication only under its own owner setting and isolates a feed failure from model work',async()=>{
+ const api=await automation();
+ state.config.mockResolvedValue({...config,discoveryEnabled:false});
+ await api.runUrbanNewsAutomation();
+ expect(state.autoChart).not.toHaveBeenCalled();
+ state.config.mockResolvedValue({...config,discoveryEnabled:false,automaticChartBriefs:true,draftingEnabled:false});
+ state.autoChart.mockResolvedValue(1);
+ expect(await api.runUrbanNewsAutomation()).toMatchObject({ok:true,automaticPublished:1});
+ expect(state.autoChart).toHaveBeenCalledWith(1,'lease-fixture',expect.any(Number));
+ expect(state.key).not.toHaveBeenCalled();
+ state.config.mockResolvedValue({...config,discoveryEnabled:false,automaticChartBriefs:true});
+ state.autoChart.mockRejectedValue(Error('provider_timeout'));
+ state.candidates.mockResolvedValue([item]);
+ state.draft.mockResolvedValue({draft:item.draft,usage:{inputTokens:2,outputTokens:2}});
+ expect(await api.runUrbanNewsAutomation()).toMatchObject({ok:false,code:'provider_timeout',automaticPublished:0,drafted:1});
 });

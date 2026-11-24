@@ -64,6 +64,17 @@ function chartRows(payload:unknown,country:string,leadOnly=false):DiscoveredNews
   });
 }
 
+/** Fetch current, first-party song rankings for the unattended chart template only. */
+export async function fetchAutomaticChartRows(country:string):Promise<DiscoveredNews[]> {
+  const endpoint=marketChartUrl(country);
+  const payload=JSON.parse(await readFeed(endpoint,'json'));
+  return chartRows(payload,country).filter(row=>{
+    const url=new URL(row.url);
+    return new RegExp('^/'+country.toLowerCase()+'/album/[^/]+/[0-9]+$').test(url.pathname)
+      && !sensitive.test(row.title) && !/[\p{Cf}“”]/u.test(row.title.replace('“','').replace('”',''));
+  });
+}
+
 // Video records are links for editorial discovery only. The song chart evidence path
 // intentionally applies only to songs.
 async function musicVideoRows(country:string):Promise<DiscoveredNews[]> {

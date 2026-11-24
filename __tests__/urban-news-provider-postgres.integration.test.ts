@@ -119,3 +119,58 @@ test('validates optional settings, fences unsaved alternate selections and keeps
  await secrets.saveUrbanNewsConfig({...active.config,parallelProviders:[]},'owner',active.revision);
  expect(await secrets.dispatchUrbanNewsDraftRun(run.id!,selected)).toEqual({ok:false,code:'news_config_changed'});
 });
+
+test('activates the two configured writers and the chart policy in one revision-checked transaction',async()=>{
+ let state=await secrets.getUrbanNewsConfigState();
+ const budget=(await secrets.getUrbanNewsProviderStatus()).budget!;
+ expect(state.config).toMatchObject({automaticChartBriefs:false,dailyPublicationLimit:10});
+ const input={expectedConfigRevision:state.revision,expectedBudgetRevision:budget.revision,termsConfirmed:true,dailyPublicationLimit:15};
+ vi.stubEnv('NVIDIA_API_KEY','');
+ await expect(secrets.activateUrbanNewsDesk(input,'owner')).rejects.toThrow('news_key_unavailable');
+ expect(await secrets.getUrbanNewsConfigState()).toEqual(state);
+ vi.stubEnv('NVIDIA_API_KEY','nvapi-fixture');
+ state=await secrets.saveUrbanNewsProviderKey('qwen','fixture-qwen-key','owner');
+ expect(state.config.automaticChartBriefs).toBe(false);
+ await expect(secrets.activateUrbanNewsDesk(input,'owner')).rejects.toThrow('news_config_changed');
+ const activation={...input,expectedConfigRevision:state.revision};
+ await expect(secrets.activateUrbanNewsDesk({...activation,termsConfirmed:false},'owner')).rejects.toThrow('news_terms_required');
+ await expect(secrets.activateUrbanNewsDesk({...activation,dailyPublicationLimit:16},'owner')).rejects.toThrow('invalid_news_config');
+ const results=await Promise.allSettled([secrets.activateUrbanNewsDesk(activation,'owner'),secrets.activateUrbanNewsDesk(activation,'owner')]);
+ expect(results.filter(result=>result.status==='fulfilled')).toHaveLength(1);
+ expect(await secrets.getUrbanNewsConfig()).toMatchObject({discoveryEnabled:true,draftingEnabled:true,automaticChartBriefs:true,dailyPublicationLimit:15,provider:'qwen',parallelProviders:['nvidia']});
+ expect((await secrets.getUrbanNewsProviderStatus()).budget).toMatchObject({monthlyLimitCents:budget.monthlyLimitCents,enabledProviders:{qwen:true,nvidia:true},revision:budget.revision+1});
+},30000);
+
+test('revalidates chart facts, leaves edits private and atomically records just one paced publication across retries',async()=>{
+ const store=await import('@/lib/server/urban-news-store');
+ await fixture.schema('CREATE TABLE IF NOT EXISTS posts(slug TEXT PRIMARY KEY,headline TEXT NOT NULL,section TEXT,image TEXT,dek TEXT,body JSONB,published BOOLEAN NOT NULL DEFAULT false,date DATE NOT NULL DEFAULT CURRENT_DATE,updated_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE TABLE IF NOT EXISTS audit_log(id BIGSERIAL PRIMARY KEY,actor TEXT,action TEXT,detail JSONB)');
+ const {NEWS_MARKETS}=await import('@/lib/shared/news-preferences');
+ const tick=Math.floor(Date.now()/900000),countries=NEWS_MARKETS.filter(m=>m.code!=='Global');
+ const country=countries[tick%countries.length].code,cc=country.toLowerCase(),observedAt=new Date().toISOString();
+ const feed='https://rss.marketingtools.apple.com/api/v2/'+cc+'/music/most-played/10/songs.json';
+ const track=(id:string,name:string)=>({id,name,artistName:'Fixture Singer',kind:'songs',url:'https://music.apple.com/'+cc+'/album/fixture/1?i='+id});
+ const tracks=[track('1001','Private edit'),track('1002','Neutral title'),track('1003','Another track')];
+ const payload={feed:{id:feed,country:cc,updated:observedAt,results:tracks}};
+ const fetch=vi.fn(async()=>new Response(JSON.stringify(payload),{headers:{'content-type':'application/json'}}));
+ vi.stubGlobal('fetch',fetch);vi.stubEnv('URBAN_NEWS_ENABLED','true');
+ const first=await store.createUrbanNewsCandidate({title:'Private draft',url:tracks[0].url,country,observedAt,language:'English',publisher:'Apple Music',provider:'manual'},'owner','private-edit');
+ await store.saveUrbanNewsDraft(first.id,1,{...first.draft,headline:'Held for editing'},'owner');
+ const lease=(await secrets.claimUrbanNewsLease())!;
+ const prior=await secrets.getUrbanNewsConfigState();
+ expect(await store.publishScheduledChartBrief(prior.revision,lease,tick)).toBe(0);
+ expect(fetch).not.toHaveBeenCalled();
+ const active=await secrets.saveUrbanNewsConfig({...prior.config,automaticChartBriefs:true,termsConfirmed:true,dailyPublicationLimit:1},'owner',prior.revision);
+ expect(await store.publishScheduledChartBrief(active.revision,'old-lease',tick)).toBe(0);
+ const results=await Promise.all([store.publishScheduledChartBrief(active.revision,lease,tick),store.publishScheduledChartBrief(active.revision,lease,tick)]);
+ expect(results.sort()).toEqual([0,1]);
+ expect((await store.getUrbanNewsItem(first.id))?.liveRevision).toBeNull();
+ const record=(await fixture.query("SELECT c.stage,c.revision,c.approval,p.headline,p.urban_news_public,a.action,a.actor,a.detail FROM urban_news_chart_publications ledger JOIN urban_news_candidates c ON c.id=ledger.candidate_id JOIN posts p ON p.urban_news_id=c.id JOIN urban_news_audit a ON a.candidate_id=c.id WHERE a.action='automatic_chart_publication'"))[0];
+ expect(record).toMatchObject({stage:'live',revision:'1',actor:'scheduler',headline:expect.stringContaining('ranks No. 2')});
+ expect(JSON.parse(record.approval)).toMatchObject({method:'automatic_chart',configRevision:active.revision});
+ expect(JSON.parse(record.approval)).not.toHaveProperty('checks');
+ expect(JSON.parse(record.urban_news_public)).toMatchObject({publicationMethod:'automatic_chart',sources:[expect.objectContaining({url:feed})]});
+ expect(JSON.parse(record.detail)).toMatchObject({marketTrack:country+':1002',observedAt});
+ expect(await store.publishScheduledChartBrief(active.revision,lease,tick)).toBe(0);
+ await fixture.query('UPDATE urban_news_chart_publications SET tick=tick-1');
+ expect(await store.publishScheduledChartBrief(active.revision,lease,tick)).toBe(0);
+},30000);

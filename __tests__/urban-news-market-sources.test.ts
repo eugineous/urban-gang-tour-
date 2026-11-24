@@ -75,3 +75,17 @@ it('attributes a public YouTube upload only to its fixed channel',async()=>{
  vi.stubGlobal('fetch',async(url:string)=>url.startsWith('https://www.youtube.com/feeds/')?new Response('<feed>'+entry('unrelated')+entry('UC4eYXhJI4-7wSWc8UNRwD4A')+'</feed>',{headers:{'content-type':'application/atom+xml'}}):new Response('',{status:503}));
  expect(await discoverMarketSources('US',5)).toMatchObject([{publisher:'NPR Music',url:'https://www.youtube.com/watch?v=AbCdEfGhI12',provider:'publisher_feed'}]);
 });
+it('builds automatic briefs only from fresh, exact Apple song rows with safe labels and original ranks',async()=>{
+ const {fetchAutomaticChartRows}=await import('../lib/server/urban-news-market-sources');
+ const base=chart('KE').feed,good=base.results[1];
+ const rows=[{...good,name:'Allegations about singer'},{...good,url:good.url.replace('/album/release/1','/album/other/page/1')},{...good,url:good.url.replace('music.apple.com','music.apple.com.example.org')},good];
+ let feed={...base,results:rows};
+ const fetch=vi.fn(async()=>Response.json({feed}));
+ vi.stubGlobal('fetch',fetch);
+ expect(await fetchAutomaticChartRows('KE')).toMatchObject([{title:expect.stringContaining('ranks No. 4'),url:good.url}]);
+ expect(fetch).toHaveBeenCalledWith(marketChartUrl('KE'),expect.objectContaining({redirect:'error',cache:'no-store'}));
+ feed={...feed,updated:'2020-01-01T00:00:00Z'};
+ expect(await fetchAutomaticChartRows('KE')).toEqual([]);
+ feed={...base,id:marketChartUrl('UG'),results:rows};
+ expect(await fetchAutomaticChartRows('KE')).toEqual([]);
+});
