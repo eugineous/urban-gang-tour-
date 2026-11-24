@@ -4,7 +4,7 @@ import type {BlogPost} from '@/app/_lib/blog';
 const state=vi.hoisted(()=>({posts:[] as BlogPost[],unavailable:false}));
 vi.mock('@/app/_lib/blog',()=>({getBlogPosts:async()=>{if(state.unavailable)throw Error('unavailable');return state.posts;}}));
 vi.mock('@/lib/server/db',()=>({hasDb:()=>false,q:async()=>[]}));
-vi.mock('next/navigation',()=>({notFound:()=>{throw Error('NEXT_NOT_FOUND')},usePathname:()=>'/blog',useSearchParams:()=>new URLSearchParams()}));
+vi.mock('next/navigation',()=>({notFound:()=>{throw Error('NEXT_NOT_FOUND')},useRouter:()=>({refresh:vi.fn()}),usePathname:()=>'/blog',useSearchParams:()=>new URLSearchParams()}));
 import BlogIndex,{generateMetadata} from '@/app/blog/page';
 import {GET as newsSitemap} from '@/app/news-sitemap.xml/route';
 const story=(i:number):BlogPost=>({slug:'fictional-'+i,headline:'Fictional studio report '+i,description:'Isolated fiction fixture',body:[],datePublished:new Date().toISOString(),dateModified:new Date().toISOString(),section:'music',image:'',newsCountry:i<25?'KE':'Global',newsVerification:'attributed',schemaType:'NewsArticle'});

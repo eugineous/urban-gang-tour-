@@ -1,4 +1,4 @@
-import {describe,it,expect} from 'vitest';
+import {describe,it,expect,vi} from 'vitest';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {newsArchive,newsArchiveQuery,newsArchiveHref} from '@/lib/shared/news-archive';
@@ -40,3 +40,5 @@ it('preserves founder and booking paths after the honest news/events/shop empty 
  const html=renderToStaticMarkup(createElement(UrbanNewsHome,{posts:[],newsCurrent:true,events:[],eventsCurrent:false,products:[],productsCurrent:false,now:Date.parse('2026-11-17T12:00:00Z')}));
  expect(html).toContain('No stories published yet');expect(html).toContain('The catalogue is temporarily unavailable.');expect(html).toContain('/author/eugine-micah');expect(html).toContain('/author/lucy-ogunde');expect(html).toContain('href="/book"');
 });
+
+vi.mock('next/navigation',async importOriginal=>({...await importOriginal<typeof import('next/navigation')>(),useRouter:()=>({refresh:vi.fn()})}));
