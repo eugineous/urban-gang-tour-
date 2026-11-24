@@ -78,6 +78,6 @@ export default async function BlogPost(
       {!post.newsSources&&post.disclosure&&<p className="article-disclosure" lang="en-KE">{post.disclosure}</p>}<div className="modern-actions"><a href="/blog"><MessageText catalogue={discoveryMessages} message="news.all"/></a><a href="/events"><MessageText catalogue={discoveryMessages} message="events"/></a><a href="/shop"><MessageText catalogue={shellMessages} message="nav.shop"/></a><a href="/book"><MessageText catalogue={discoveryMessages} message="planEvent"/></a></div>
     </article>
     <PartnerEventPortfolio newsSlug={post.slug}/>
-    {related.length>0&&<section className="related-stories"><h2><MessageText catalogue={discoveryMessages} message="news.moreUrban"/></h2><div className="modern-grid">{related.map(r=><a className="news-card" key={r.slug} href={'/blog/'+r.slug}><img src={r.image} alt="" loading="lazy"/><p className="eyebrow" lang="en-KE">{r.section}</p><h3 lang="en-KE">{r.headline}</h3></a>)}</div></section>}
+    {related.length>0&&<section className="related-stories"><h2><MessageText catalogue={discoveryMessages} message="news.moreUrban"/></h2><div className="modern-grid">{related.map(r=><a className="news-card" key={r.slug} href={'/blog/'+r.slug}>{r.image&&<img src={r.image} alt="" loading="lazy"/>}<p className="eyebrow" lang="en-KE">{r.section}</p><h3 lang="en-KE">{r.headline}</h3></a>)}</div></section>}
   </section>;
 }

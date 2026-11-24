@@ -1,5 +1,6 @@
 import type {DiscoveredNews} from '@/lib/shared/urban-news';
 import kenyaSnapshot from '../../data/urban-news-kenya-chart.json';
+import {cached} from './microcache';
 import {canonicalNewsUrl} from './urban-news-policy';
 
 type Publisher = {url:string; name:string; language?:string; hosts?:string[]; mixed?:boolean};
@@ -142,7 +143,7 @@ function rssRows(xml:string,source:Publisher,country:string):DiscoveredNews[] {
           const url=attribution(link?.trim());
           const headline=title?.trim().replace(/\s+/g,' ');
           if(clean(headline,300)&&!sensitive.test(headline)&&(!source.mixed||entertainment.test(headline))&&url&&hosts.includes(url.hostname)&&fresh(Date.parse(pubDate),7*24*hour)){
-            rows.push({url:url.href,title:headline,publisher:source.name,country,language:source.language??'English',observedAt:new Date().toISOString(),provider:'publisher_feed'});
+            rows.push({url:url.href,title:headline,publishedAt:new Date(pubDate).toISOString(),publisher:source.name,country,language:source.language??'English',observedAt:new Date().toISOString(),provider:'publisher_feed'});
           }
           fields={};
           if(rows.length>=30)break;
@@ -241,4 +242,20 @@ export async function discoverMarketSources(country:string,target:number):Promis
     rows.length<limit?gdeltRows(feedCountry).catch(()=>[]):[],
   ]);
   return unique([...preferred,videos.slice(0,1),rows,reports,videos],limit);
+}
+
+/** Read only headlines and links that a named publisher includes in its public feed. */
+export async function readPublisherHeadlines(country?:string):Promise<DiscoveredNews[]> {
+  const markets=country?[country]:['KE','UG','NG','GB'];
+  const groups=await Promise.all(markets.map(async market=>{
+    if(!Object.hasOwn(publishers,market))return [];
+    const source=publishers[market];
+    const rows=await cached('news:public-rss:'+market,30*60_000,async()=>{
+      const items=rssRows(await readFeed(source.url,'xml'),source,market);
+      return items.sort((a,b)=>String(b.publishedAt).localeCompare(String(a.publishedAt))).slice(0,5);
+    }).catch(()=>[]);
+    return rows.filter(row=>fresh(Date.parse(row.publishedAt??''),72*hour));
+  }));
+  const balanced=Array.from({length:5},(_,index)=>groups.flatMap(group=>group[index]?[group[index]]:[]));
+  return unique(balanced,6);
 }
