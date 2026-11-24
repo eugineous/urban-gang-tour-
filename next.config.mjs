@@ -72,7 +72,7 @@ const nextConfig = {
       // - tested against a real config with NEXT_PUBLIC_GA_MEASUREMENT_ID set,
       // not guessed, learning from the connect-src gap Google Sign-In hit today.
       `connect-src 'self' https://accounts.google.com https://*.google-analytics.com https://*.analytics.google.com https://urban-gang-tour-events.euginemicah.workers.dev${adsConfigured ? ' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net' : ''}`,
-      `frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com${adsConfigured ? ' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com' : ''}`,
+      `frame-src 'self' https://embed.music.apple.com https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com${adsConfigured ? ' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com' : ''}`,
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "object-src 'none'",

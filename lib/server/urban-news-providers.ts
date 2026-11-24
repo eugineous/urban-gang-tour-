@@ -50,8 +50,11 @@ export async function fetchDiscoveredNews():Promise<DiscoveredNews[]>{const url=
 
 /** Public first-party chart facts. Artwork and publisher copy never enter the draft. */
 export const KENYA_CHART_URL='https://rss.marketingtools.apple.com/api/v2/ke/music/most-played/10/songs.json';
+export function fetchKenyaMusicChartFeed():Promise<unknown>{
+ return requestJson(KENYA_CHART_URL,{method:'GET',headers:{Accept:'application/json'}});
+}
 export async function fetchKenyaMusicLead():Promise<DiscoveredNews>{
- const payload=await requestJson(KENYA_CHART_URL,{method:'GET',headers:{Accept:'application/json'}});
+ const payload=await fetchKenyaMusicChartFeed();
  if(!object(payload)||!object(payload.feed))throw Error('provider_output_invalid');
  const feed=payload.feed,track=Array.isArray(feed.results)?feed.results[0]:null;
  if(feed.id!==KENYA_CHART_URL||feed.country!=='ke'||!object(track)||track.kind!=='songs'||!stringIn(track.artistName,120)||!stringIn(track.name,160))throw Error('provider_output_invalid');
