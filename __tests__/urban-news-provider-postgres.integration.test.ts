@@ -153,6 +153,7 @@ test('revalidates chart facts, leaves edits private and atomically records just 
  const payload={feed:{id:feed,country:cc,updated:observedAt,results:tracks}};
  const fetch=vi.fn(async()=>new Response(JSON.stringify(payload),{headers:{'content-type':'application/json'}}));
  vi.stubGlobal('fetch',fetch);vi.stubEnv('URBAN_NEWS_ENABLED','true');
+ await store.ingestUrbanNewsCandidates([{title:'Yesterday’s chart position',url:tracks[1].url,country,observedAt:new Date(Date.now()-86400000).toISOString(),language:'English',publisher:'Apple Music',provider:'market_chart'}],'previous-chart-fixture');
  const first=await store.createUrbanNewsCandidate({title:'Private draft',url:tracks[0].url,country,observedAt,language:'English',publisher:'Apple Music',provider:'manual'},'owner','private-edit');
  await store.saveUrbanNewsDraft(first.id,1,{...first.draft,headline:'Held for editing'},'owner');
  const lease=(await secrets.claimUrbanNewsLease())!;
@@ -165,7 +166,7 @@ test('revalidates chart facts, leaves edits private and atomically records just 
  expect(results.sort()).toEqual([0,1]);
  expect((await store.getUrbanNewsItem(first.id))?.liveRevision).toBeNull();
  const record=(await fixture.query("SELECT c.stage,c.revision,c.approval,p.headline,p.urban_news_public,a.action,a.actor,a.detail FROM urban_news_chart_publications ledger JOIN urban_news_candidates c ON c.id=ledger.candidate_id JOIN posts p ON p.urban_news_id=c.id JOIN urban_news_audit a ON a.candidate_id=c.id WHERE a.action='automatic_chart_publication'"))[0];
- expect(record).toMatchObject({stage:'live',revision:'1',actor:'scheduler',headline:expect.stringContaining('ranks No. 2')});
+ expect(record).toMatchObject({stage:'live',revision:'2',actor:'scheduler',headline:expect.stringContaining('ranks No. 2')});
  expect(JSON.parse(record.approval)).toMatchObject({method:'automatic_chart',configRevision:active.revision});
  expect(JSON.parse(record.approval)).not.toHaveProperty('checks');
  expect(JSON.parse(record.urban_news_public)).toMatchObject({publicationMethod:'automatic_chart',sources:[expect.objectContaining({url:feed}),expect.objectContaining({url:tracks[1].url})]});
@@ -174,3 +175,13 @@ test('revalidates chart facts, leaves edits private and atomically records just 
  await fixture.query('UPDATE urban_news_chart_publications SET tick=tick-1');
  expect(await store.publishScheduledChartBrief(active.revision,lease,tick)).toBe(0);
 },30000);
+
+test('commissions free charts once and honours an explicit pause on later ticks',async()=>{
+ await fixture.query('DELETE FROM urban_news_provider_config');
+ const initial=await secrets.chartEditionConfig();
+ expect(initial.config).toMatchObject({automaticChartBriefs:true,dailyPublicationLimit:10,termsConfirmed:false,draftingEnabled:false});
+ expect((await secrets.chartEditionConfig()).revision).toBe(initial.revision);
+ const paused=await secrets.saveUrbanNewsConfig({...initial.config,automaticChartBriefs:false},'owner',initial.revision);
+ expect((await secrets.chartEditionConfig()).config.automaticChartBriefs).toBe(false);
+ expect((await secrets.chartEditionConfig()).revision).toBe(paused.revision);
+});
