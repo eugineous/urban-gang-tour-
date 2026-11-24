@@ -137,11 +137,16 @@ function unescapeXml(text:string):string {
 
 // Extract direct RSS item fields only. Article bodies, comments, and markup inside CDATA
 // never become new elements. No DTDs, external entities, media downloads or HTML rendering.
-function rssRows(xml:string,source:Publisher,country:string):DiscoveredNews[] {
+type PressHeadline=DiscoveredNews&{artwork?:{url:string;license:string}};
+function rssRows(xml:string,source:Publisher,country:string,includeArtwork=false):PressHeadline[] {
   if(/<!DOCTYPE/i.test(xml))return [];
-  const rows:DiscoveredNews[]=[],stack:string[]=[];
+  const rows:PressHeadline[]=[],stack:string[]=[];
   const hosts=source.hosts??[new URL(source.url).hostname];
   let fields:Record<string,string>={};
+  let mediaUrl='', license='', artwork:PressHeadline['artwork'];
+  const mediaRss=includeArtwork&&/<rss\b[^>]*\sxmlns:media=["']http:\/\/search\.yahoo\.com\/mrss\/["']/i.test(xml);
+  const attr=(tag:string,name:string)=>new RegExp('\\s'+name+'=["\x27]([^"\x27<>]*)["\x27]').exec(tag)?.[1]??'';
+
   for(const [token] of xml.matchAll(/<!\[CDATA\[[\s\S]*?\]\]>|<!--[\s\S]*?-->|<[^>]*>|[^<]+/g)){
     if(token.startsWith('<?')||token.startsWith('<!--'))continue;
     if(token.startsWith('<')&&!token.startsWith('<![CDATA[')){
@@ -149,17 +154,30 @@ function rssRows(xml:string,source:Publisher,country:string):DiscoveredNews[] {
       if(!name)return [];
       if(token.startsWith('</')){
         if(stack.pop()!==name)return [];
+        if(name==='media:content'&&stack.join('/')==='rss/channel/item'){
+          if(mediaUrl&&license)artwork={url:mediaUrl,license};
+          mediaUrl='';license='';
+        }
         if(name==='item'&&stack.join('/')==='rss/channel'){
           const {title,link,pubDate}=fields;
           const url=attribution(link?.trim());
           const headline=title?.trim().replace(/\s+/g,' ');
           if(clean(headline,300)&&!sensitive.test(headline)&&(!source.mixed||entertainment.test(headline))&&url&&hosts.includes(url.hostname)&&fresh(Date.parse(pubDate),7*24*hour)){
-            rows.push({url:url.href,title:headline,publishedAt:new Date(pubDate).toISOString(),publisher:source.name,country,language:source.language??'English',observedAt:new Date().toISOString(),provider:'publisher_feed'});
+            rows.push({...(artwork?{artwork}:{}),url:url.href,title:headline,publishedAt:new Date(pubDate).toISOString(),publisher:source.name,country,language:source.language??'English',observedAt:new Date().toISOString(),provider:'publisher_feed'});
           }
-          fields={};
+          fields={};artwork=undefined;
           if(rows.length>=30)break;
         }
-      }else if(!token.endsWith('/>')){
+      }else{
+        if(mediaRss&&name==='media:content'&&stack.join('/')==='rss/channel/item'){
+          const image=attribution(unescapeXml(attr(token,'url')));
+          mediaUrl=image&&image.protocol==='https:'&&hosts.includes(image.hostname)&&/^image\/(jpeg|png|webp)$/.test(attr(token,'type'))?image.href:'';
+          license='';
+        }else if(mediaUrl&&name==='media:license'&&stack.join('/')==='rss/channel/item/media:content'){
+          const href=attr(token,'href');
+          if(/^https:\/\/creativecommons\.org\/publicdomain\/(?:zero|mark)\/1\.0\/$/.test(href))license=href;
+        }
+        if(token.endsWith('/>'))continue;
         stack.push(name);
         if(stack.length>40)return [];
       }
@@ -256,13 +274,13 @@ export async function discoverMarketSources(country:string,target:number):Promis
 }
 
 /** Read only headlines and links that a named publisher includes in its public feed. */
-export async function readPublisherHeadlines(country?:string):Promise<DiscoveredNews[]> {
+export async function readPublisherHeadlines(country?:string):Promise<PressHeadline[]> {
   const markets=country?[country]:['KE','UG','NG','GB'];
   const groups=await Promise.all(markets.map(async market=>{
     if(!Object.hasOwn(publishers,market))return [];
     const source=publishers[market];
     const rows=await cached('news:public-rss:'+market,30*60_000,async()=>{
-      const items=rssRows(await readFeed(source.url,'xml'),source,market);
+      const items=rssRows(await readFeed(source.url,'xml'),source,market,true);
       return items.sort((a,b)=>String(b.publishedAt).localeCompare(String(a.publishedAt))).slice(0,5);
     }).catch(()=>[]);
     return rows.filter(row=>fresh(Date.parse(row.publishedAt??''),72*hour));

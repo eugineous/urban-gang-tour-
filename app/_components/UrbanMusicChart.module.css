@@ -16,3 +16,7 @@
 .press small { color:#625c67; }
 .chart h2 a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .15em; }
 .chart h2 a:hover, .chart h2 a:focus-visible { color: #920054; }
+
+.press figure {margin:0}
+.press figure img {width:100%;height:auto;aspect-ratio:16/9;object-fit:contain}
+.press figcaption {font-size:.75rem}

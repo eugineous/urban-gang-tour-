@@ -98,3 +98,13 @@ it('keeps attributed press headlines current and scoped to the requested outlet'
   vi.stubGlobal('fetch',async()=>new Response('',{status:503}));
   expect(await readPublisherHeadlines('NG')).toEqual([]);
 });
+
+it('accepts an explicitly public-domain photo only on its own publisher media record',async()=>{
+ const url='https://www.matookerepublic.com/music';
+ const media=(name:string,licensed:boolean)=>'<media:content type="image/jpeg" url="'+url+'/'+name+'.jpg">'+(licensed?'<media:license href="https://creativecommons.org/publicdomain/zero/1.0/"/>':'')+'</media:content>';
+ const xml='<rss xmlns:media="http://search.yahoo.com/mrss/"><channel>'+item('Music interview',url,media('original',true))+item('Festival lineup',url+'/festival',media('restricted',false))+'</channel></rss>';
+ vi.stubGlobal('fetch',async()=>new Response(xml,{headers:{'content-type':'application/rss+xml'}}));
+ const rows=await readPublisherHeadlines('UG');
+ expect(rows[0].artwork?.url).toBe(url+'/original.jpg');
+ expect(rows[1].artwork).toBeUndefined();
+});
