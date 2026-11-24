@@ -10,7 +10,7 @@ import {getUrbanNewsOverview,getUrbanNewsItem,createUrbanNewsCandidate,saveUrban
 import {getUrbanNewsProviderStatus,getUrbanNewsConfigState,saveUrbanNewsConfig,discoverUrbanNews,generateUrbanNewsDraft,saveUrbanNewsBudget} from '@/lib/server/urban-news-automation';
 import {fetchKenyaChartBackup} from '@/lib/server/urban-news-market-sources';
 import {fetchKenyaMusicLead,checkNewsProviderModel} from '@/lib/server/urban-news-providers';
-import {getUrbanNewsProviderKey,saveUrbanNewsProviderKey,deleteUrbanNewsProviderKey} from '@/lib/server/urban-news-secrets';
+import {activateUrbanNewsDesk,getUrbanNewsProviderKey,saveUrbanNewsProviderKey,deleteUrbanNewsProviderKey} from '@/lib/server/urban-news-secrets';
 import {NEWS_CATEGORIES,type NewsStage,type NewsProvider,type UrbanNewsDraft,type UrbanNewsConfig,type NewsPublication,type NewsProviderReadiness} from '@/lib/shared/urban-news';
 
 export const dynamic='force-dynamic';
@@ -24,15 +24,15 @@ const revision=(v:unknown):v is number=>Number.isSafeInteger(v)&&Number(v)>0;
 const requestId=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,128}$/.test(v);
 const provider=(v:unknown):v is NewsProvider=>v==='gemini'||v==='openai'||v==='qwen'||v==='nvidia';
 const stages=['discovered','draft','review','approved','live','held','retracted','archived','all'];
-const actions={'key.check':['provider','model'],'chart.prepare':['requestId'],create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId','expectedConfigRevision','provider','model'],'config.save':['config','expectedConfigRevision'],'key.save':['provider','key'],'key.delete':['provider'],'budget.save':['budget','expectedBudgetRevision']} as const;
-const ownerActions=new Set(['key.check','chart.prepare','publish','retract','config.save','key.save','key.delete','budget.save']);
+const actions={'desk.start':['expectedConfigRevision','expectedBudgetRevision','termsConfirmed','dailyPublicationLimit'],'key.check':['provider','model'],'chart.prepare':['requestId'],create:['candidate','requestId'],save:['id','expectedRevision','draft'],publish:['publication'],hold:['id','expectedRevision','reason'],retract:['id','expectedRevision','reason'],discover:['requestId'],generate:['id','expectedRevision','requestId','expectedConfigRevision','provider','model'],'config.save':['config','expectedConfigRevision'],'key.save':['provider','key'],'key.delete':['provider'],'budget.save':['budget','expectedBudgetRevision']} as const;
+const ownerActions=new Set(['desk.start','key.check','chart.prepare','publish','retract','config.save','key.save','key.delete','budget.save']);
 async function access(req:Request){
  if(!await verifyAdminSession(req))return reply({error:'unauthorized'},401);
  if(!hasPerm(req,'content'))return reply({error:'forbidden'},403);
  return null;
 }
 function safeConfig(c:UrbanNewsConfig):UrbanNewsConfig{
- return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='nvidia'?'nvidia':c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true,...(Array.isArray(c.parallelProviders)?{parallelProviders:c.parallelProviders.filter(provider)}:{}),...(typeof c.voice==='string'?{voice:c.voice.slice(0,1000)}:{}),...(Number.isInteger(c.dailyMarketTarget)?{dailyMarketTarget:c.dailyMarketTarget}:{})};
+ return {discoveryEnabled:c.discoveryEnabled===true,draftingEnabled:c.draftingEnabled===true,provider:c.provider==='nvidia'?'nvidia':c.provider==='qwen'?'qwen':c.provider==='openai'?'openai':'gemini',model:String(c.model||'').slice(0,100),dailyDraftLimit:Number(c.dailyDraftLimit),dailyDiscoveryLimit:Number(c.dailyDiscoveryLimit),termsConfirmed:c.termsConfirmed===true,...(Array.isArray(c.parallelProviders)?{parallelProviders:c.parallelProviders.filter(provider)}:{}),...(typeof c.voice==='string'?{voice:c.voice.slice(0,1000)}:{}),...(typeof c.automaticChartBriefs==='boolean'?{automaticChartBriefs:c.automaticChartBriefs}:{}),...(Number.isInteger(c.dailyPublicationLimit)?{dailyPublicationLimit:c.dailyPublicationLimit}:{}),...(Number.isInteger(c.dailyMarketTarget)?{dailyMarketTarget:c.dailyMarketTarget}:{})};
 }
 function safeReadiness(p:NewsProviderReadiness):NewsProviderReadiness{
  const item=(key:NewsProvider)=>({configured:p.providers?.[key]?.configured===true,keySource:(['managed','environment'].includes(p.providers?.[key]?.keySource)?p.providers[key].keySource:'none') as 'managed'|'environment'|'none'});
@@ -104,13 +104,19 @@ export async function POST(req:Request){
    else updated=await deleteUrbanNewsProviderKey(body.provider,actor);
    return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision,providers:safeReadiness(await getUrbanNewsProviderStatus())});
   }
+  if(action==='desk.start'){
+   const {expectedConfigRevision,expectedBudgetRevision,termsConfirmed,dailyPublicationLimit}=body;
+   if(![expectedConfigRevision,expectedBudgetRevision].every(v=>Number.isSafeInteger(v)&&Number(v)>=0)||termsConfirmed!==true||!Number.isInteger(dailyPublicationLimit)||Number(dailyPublicationLimit)<1||Number(dailyPublicationLimit)>15)return reply({error:'invalid_news_request'},400);
+   const {configState}=await activateUrbanNewsDesk({expectedConfigRevision:Number(expectedConfigRevision),expectedBudgetRevision:Number(expectedBudgetRevision),termsConfirmed:true,dailyPublicationLimit:Number(dailyPublicationLimit)},actor);
+   return reply({ok:true,config:safeConfig(configState.config),configRevision:configState.revision,providers:safeReadiness(await getUrbanNewsProviderStatus())});
+  }
   if(action==='budget.save'){
    if(!Number.isSafeInteger(body.expectedBudgetRevision)||Number(body.expectedBudgetRevision)<0||!object(body.budget)||!keys(body.budget,['monthlyLimitCents','enabledProviders']))return reply({error:'invalid_news_request'},400);
    await saveUrbanNewsBudget(body.budget,actor,Number(body.expectedBudgetRevision));
    return reply({ok:true,providers:safeReadiness(await getUrbanNewsProviderStatus())});
   }
   if(action==='config.save'){
-   if(!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed','parallelProviders','voice','dailyMarketTarget']))return reply({error:'invalid_news_request'},400);
+   if(!Number.isSafeInteger(body.expectedConfigRevision)||Number(body.expectedConfigRevision)<0||!object(body.config)||!keys(body.config,['discoveryEnabled','draftingEnabled','provider','model','dailyDraftLimit','dailyDiscoveryLimit','termsConfirmed','parallelProviders','voice','dailyMarketTarget','automaticChartBriefs','dailyPublicationLimit']))return reply({error:'invalid_news_request'},400);
    const updated=await saveUrbanNewsConfig(body.config as UrbanNewsConfig,actor,Number(body.expectedConfigRevision));return reply({ok:true,config:safeConfig(updated.config),configRevision:updated.revision});
   }
   if(action==='discover'){if(!requestId(body.requestId))return reply({error:'invalid_news_request'},400);return reply(await discoverUrbanNews(body.requestId,actor))}
