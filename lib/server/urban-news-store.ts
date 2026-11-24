@@ -275,8 +275,12 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
  const authority=[configRevision,lease,tick];
  if(!(await q(chartAllowance,authority)).length)return 0;
  const markets=NEWS_MARKETS.filter(market=>market.code!=='Global');
- const country=markets[tick%markets.length].code;
- const leads=await fetchAutomaticChartRows(country);
+ let country=markets[tick%markets.length].code;
+ let leads=await fetchAutomaticChartRows(country).catch(()=>[]);
+ if(!leads.length && country!=='KE'){
+  country='KE';
+  leads=await fetchAutomaticChartRows(country);
+ }
  if(!leads.length)return 0;
  const trackKey=(lead:DiscoveredNews)=>country+':'+new URL(lead.url).searchParams.get('i');
  const known=await q<{canonical_url:string;usable:boolean}>(`SELECT canonical_url,
