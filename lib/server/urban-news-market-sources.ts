@@ -1,4 +1,5 @@
 import type {DiscoveredNews} from '@/lib/shared/urban-news';
+import bundledFeeds from '../../data/urban-news-feeds.json';
 import kenyaSnapshot from '../../data/urban-news-kenya-chart.json';
 import {cached} from './microcache';
 import {canonicalNewsUrl} from './urban-news-policy';
@@ -64,11 +65,26 @@ function chartRows(payload:unknown,country:string,leadOnly=false):DiscoveredNews
   });
 }
 
+const mirror='https://raw.githubusercontent.com/eugineous/urban-gang-tour-/urban-news-feeds/feeds.json';
+type SourceArchive={charts:Record<string,unknown>;press:Record<string,unknown>};
+async function feedArchive():Promise<SourceArchive>{
+ return cached('urban-news:source-archive',15*60_000,async()=>{
+  const data:unknown=JSON.parse(await readFeed(mirror,'json'));
+  if(!object(data)||!object(data.charts)||!object(data.press))throw Error('provider_output_invalid');
+  return {charts:data.charts,press:data.press};
+ }).catch(()=>bundledFeeds);
+}
+export async function archivedChart(country:string):Promise<unknown>{
+ const live=(await feedArchive()).charts[country];
+ return chartRows(live,country).length?live:(bundledFeeds.charts as Record<string,unknown>)[country];
+}
+
 /** Fetch current, first-party song rankings for the unattended chart template only. */
 export async function fetchAutomaticChartRows(country:string):Promise<DiscoveredNews[]> {
   const endpoint=marketChartUrl(country);
-  const payload=JSON.parse(await readFeed(endpoint,'json'));
-  return chartRows(payload,country).filter(row=>{
+  const direct=await readFeed(endpoint,'json').then(data=>chartRows(JSON.parse(data),country)).catch(()=>[]);
+  const rows=direct.length?direct:chartRows(await archivedChart(country),country);
+  return rows.filter(row=>{
     const url=new URL(row.url);
     return new RegExp('^/'+country.toLowerCase()+'/album/[^/]+/[0-9]+$').test(url.pathname)
       && !sensitive.test(row.title) && !/[\p{Cf}“”]/u.test(row.title.replace('“','').replace('”',''));
@@ -110,7 +126,7 @@ async function readFeed(url:string,format:'xml'|'json'):Promise<string> {
     const mime=response.headers.get('content-type')??'';
     const allowed=format==='xml'?/^(?:application\/(?:rss\+xml|atom\+xml|xml)|text\/xml)\b/i:/^application\/json\b/i;
     const limit=512*1024;
-    if(!response.ok||!allowed.test(mime)||Number(response.headers.get('content-length')??0)>limit||!response.body)throw Error('provider_unavailable');
+    if(!response.ok||!(allowed.test(mime)||url===mirror&&/^text\/plain\b/i.test(mime))||Number(response.headers.get('content-length')??0)>limit||!response.body)throw Error('provider_unavailable');
     const reader=response.body.getReader();
     const decoder=new TextDecoder('utf-8',{fatal:true});
     let size=0,body='';
@@ -280,7 +296,15 @@ export async function readPublisherHeadlines(country?:string):Promise<PressHeadl
     if(!Object.hasOwn(publishers,market))return [];
     const source=publishers[market];
     const rows=await cached('news:public-rss:'+market,30*60_000,async()=>{
-      const items=rssRows(await readFeed(source.url,'xml'),source,market,true);
+      let items=await readFeed(source.url,'xml').then(xml=>rssRows(xml,source,market,true)).catch(()=>[]);
+      if(!items.length){
+        const xml=(await feedArchive()).press[market];
+        if(typeof xml==='string')items=rssRows(xml,source,market);
+        if(!items.length){
+          const offline=(bundledFeeds.press as Record<string,string>)[market];
+          if(offline)items=rssRows(offline,source,market);
+        }
+      }
       return items.sort((a,b)=>String(b.publishedAt).localeCompare(String(a.publishedAt))).slice(0,5);
     }).catch(()=>[]);
     return rows.filter(row=>fresh(Date.parse(row.publishedAt??''),72*hour));

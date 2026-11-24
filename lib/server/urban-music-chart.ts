@@ -1,3 +1,4 @@
+import {archivedChart} from './urban-news-market-sources';
 import kenyaSnapshot from '../../data/urban-news-kenya-chart.json';
 import {cached} from './microcache';
 import {fetchKenyaMusicChartFeed, KENYA_CHART_URL} from './urban-news-providers';
@@ -43,5 +44,6 @@ export async function getKenyaMusicChart(now: number) {
     if (!parsed) throw Error('provider_output_invalid');
     return parsed;
   }).catch(() => null);
-  return chart && isCurrent(chart.updated, now) ? chart : parseKenyaMusicChart(kenyaSnapshot, now);
+  if(chart&&isCurrent(chart.updated,now))return chart;
+  return parseKenyaMusicChart(await archivedChart('KE'),now)??parseKenyaMusicChart(kenyaSnapshot,now);
 }
