@@ -31,8 +31,8 @@ it('checks GDELT publisher country, topic, freshness and sensitive titles when l
   const fetcher=vi.fn(async(input:string)=>input.includes('gdeltproject')?Response.json({articles:[base,{...base,sourcecountry:'Canada'},{...base,title:'Election campaign features singer'},{...base,seendate:'20261101T060000Z'}]}):new Response('',{status:503}));
   vi.stubGlobal('fetch',fetcher);
   expect(await discoverMarketSources('SO',20)).toEqual([{country:'SO',language:'English',observedAt:'2026-11-23T06:00:00.000Z',provider:'gdelt',publisher:'example.org',title:base.title,url:base.url}]);
-  expect(fetcher.mock.calls).toHaveLength(3);
-  expect(new URL(fetcher.mock.calls[2][0]).searchParams.get('query')).toContain('sourcecountry:SO');
+  expect(fetcher.mock.calls).toHaveLength(4);
+  expect(new URL(fetcher.mock.calls.find(([url])=>url.includes('gdeltproject'))![0]).searchParams.get('query')).toContain('sourcecountry:SO');
 });
 it('rejects invalid markets, oversize feeds and wrong chart storefronts',async()=>{
   const fetcher=vi.fn(async(input:string)=>input.includes('apple.com')?Response.json(chart('US')):new Response('junk',{headers:{'content-type':'application/rss+xml','content-length':'600000'}}));
@@ -69,4 +69,9 @@ it('uses only the dated Kenya chart leader and expires the offline snapshot',asy
   expect(lead).toMatchObject({url:snapshot.feed.results[0].url,publisher:'Apple Music',country:'KE',provider:'apple_chart',observedAt:new Date(asOf).toISOString()});
   vi.setSystemTime(asOf+48*3600000+1);
   await expect(fetchKenyaChartBackup()).rejects.toThrow('provider_output_invalid');
+});
+it('attributes a public YouTube upload only to its fixed channel',async()=>{
+ const entry=(channel:string)=>'<entry><yt:channelId>'+channel+'</yt:channelId><yt:videoId>AbCdEfGhI12</yt:videoId><title>Music performance</title><published>'+updated+'</published></entry>';
+ vi.stubGlobal('fetch',async(url:string)=>url.startsWith('https://www.youtube.com/feeds/')?new Response('<feed>'+entry('unrelated')+entry('UC4eYXhJI4-7wSWc8UNRwD4A')+'</feed>',{headers:{'content-type':'application/atom+xml'}}):new Response('',{status:503}));
+ expect(await discoverMarketSources('US',5)).toMatchObject([{publisher:'NPR Music',url:'https://www.youtube.com/watch?v=AbCdEfGhI12',provider:'publisher_feed'}]);
 });

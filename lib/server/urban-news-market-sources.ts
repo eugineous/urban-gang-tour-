@@ -29,7 +29,7 @@ const gdeltMarkets:Record<string,[string,string]> = {
 const worldRotation=['BR','JP','FR','MX','PH','DE','AU','CA','KR','CO','JM','ID','IT','ES','TR','MY'];
 const regionNames=new Intl.DisplayNames(['en'],{type:'region',fallback:'none'});
 const hour=3600000;
-const entertainment=/\b(?:albums?|songs?|music(?:ian)?s?|concerts?|festivals?|films?|movies?|actors?|actresses?|artists?|singers?|fashion|cinema|dancers?|comedy|entertainment|theat[er]+|filmmakers?|hees(?:ta|aha)?|fannaan\w*|fanaan\w*|fanka|fankaanka|muusig\w*|bandhig(?:ga)?|filim\w*)\b/i;
+const entertainment=/\b(?:albums?|songs?|music(?:ian)?s?|concerts?|festivals?|films?|movies?|actors?|actresses?|artists?|singers?|fashion|cinema|dancers?|comedy|entertainment|fannaan\w*|hees\w*|muusig\w*|filim\w*|fanka|theat[er]+|filmmakers?|hees(?:ta|aha)?|fannaan\w*|fanaan\w*|fanka|fankaanka|muusig\w*|bandhig(?:ga)?|filim\w*)\b/i;
 const sensitive=/\b(?:politic\w*|elections?|president\w*|prime minister|parliament\w*|ministers?|senators?|government|campaign rally|police|courts?|arrest\w*|accus\w*|alleg\w*|assault\w*|abus\w*|shooting|gunman|kill\w*|murder\w*|terror\w*|kidnap\w*|suicid\w*|death|dies|died|dead|funeral|wars?|genocide|rape|rapist|fraud|charged|criminal|convicted|lawsuit|overdose|uchaguzi|siasa|rais|polisi|mauaji|ubakaji|serikali|overleden|politie|verkiezingen|regering|moord|misbruik|mord|polis|regeringen|våldtäkt|siyaasad\w*|ciidan\w*|madaxweynaha|dowlad\w*|dagaal\w*|dil\w*|boolis\w*|weerar\w*|xukuumad\w*)\b/i;
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const fresh=(date:number,maxAge:number)=>Number.isFinite(date)&&date<=Date.now()+60000&&date>=Date.now()-maxAge;
@@ -94,9 +94,9 @@ async function readFeed(url:string,format:'xml'|'json'):Promise<string> {
   const abort=new AbortController();
   const timer=setTimeout(()=>abort.abort(),4500);
   try {
-    const response=await fetch(url,{signal:abort.signal,cache:'no-store',redirect:'error',headers:{Accept:format==='xml'?'application/rss+xml, application/xml, text/xml':'application/json'}});
+    const response=await fetch(url,{signal:abort.signal,cache:'no-store',redirect:'error',headers:{Accept:format==='xml'?'application/rss+xml, application/atom+xml, application/xml, text/xml':'application/json'}});
     const mime=response.headers.get('content-type')??'';
-    const allowed=format==='xml'?/^(?:application\/(?:rss\+xml|xml)|text\/xml)\b/i:/^application\/json\b/i;
+    const allowed=format==='xml'?/^(?:application\/(?:rss\+xml|atom\+xml|xml)|text\/xml)\b/i:/^application\/json\b/i;
     const limit=512*1024;
     if(!response.ok||!allowed.test(mime)||Number(response.headers.get('content-length')??0)>limit||!response.body)throw Error('provider_unavailable');
     const reader=response.body.getReader();
@@ -160,6 +160,33 @@ function rssRows(xml:string,source:Publisher,country:string):DiscoveredNews[] {
   return rows;
 }
 
+// Read public uploads from a named music publisher. The feed supplies metadata only.
+async function publicMusicVideoLeads():Promise<DiscoveredNews[]>{
+  const channel='UC4eYXhJI4-7wSWc8UNRwD4A';
+  const xml=await readFeed('https://www.youtube.com/feeds/videos.xml?channel_id='+channel,'xml');
+  if(/<!DOCTYPE/i.test(xml))return [];
+  const rows:DiscoveredNews[]=[],stack:string[]=[];
+  let fields:Record<string,string>={};
+  for(const [token] of xml.matchAll(/<!\[CDATA\[[\s\S]*?\]\]>|<!--[\s\S]*?-->|<[^>]*>|[^<]+/g)){
+    if(token.startsWith('<?')||token.startsWith('<!--'))continue;
+    if(token.startsWith('<')&&!token.startsWith('<![CDATA[')){
+      const name=/^<\/?([\w:.-]+)/.exec(token)?.[1];if(!name)return [];
+      if(token.startsWith('</')){
+        if(stack.pop()!==name)return [];
+        if(name==='entry'&&stack.join('/')==='feed'){
+          const title=fields.title?.trim(),id=fields['yt:videoId'];
+          if(fields['yt:channelId']===channel&&/^[\w-]{11}$/.test(id??'')&&clean(title,300)&&!sensitive.test(title)&&fresh(Date.parse(fields.published),7*24*hour))
+            rows.push({title,url:'https://www.youtube.com/watch?v='+id,country:'US',language:'English',publisher:'NPR Music',observedAt:new Date().toISOString(),provider:'publisher_feed'});
+          fields={};
+        }
+      }else if(!token.endsWith('/>')){stack.push(name);if(stack.length>40)return []}
+    }else if(stack.length===3&&stack[0]==='feed'&&stack[1]==='entry'&&['title','yt:channelId','yt:videoId','published'].includes(stack[2])){
+      const field=stack[2];fields[field]=(fields[field]??'')+(token.startsWith('<![CDATA[')?token.slice(9,-3):unescapeXml(token));
+    }
+  }
+  return rows;
+}
+
 async function gdeltRows(country:string):Promise<DiscoveredNews[]> {
   const market=gdeltMarkets[country];
   if(!market)return [];
@@ -208,7 +235,9 @@ export async function discoverMarketSources(country:string,target:number):Promis
   const preferred=global?[chartCandidates.slice(0,1),rss.slice(0,1)]:[rss.slice(0,1),chartCandidates.slice(0,1)];
   const rows=unique([...preferred,rss,chartCandidates],limit);
   const [videos,reports]=await Promise.all([
-    limit>=3&&market!=='SO'?musicVideoRows(market).catch(()=>[]):[],
+    global||market==='US'?publicMusicVideoLeads().catch(()=>[]):market==='SO'&&rows.length<limit?
+      readFeed('https://feeds.bbci.co.uk/somali/rss.xml','xml').then(xml=>rssRows(xml,{name:'BBC Somali',url:'https://feeds.bbci.co.uk/somali/rss.xml',hosts:['www.bbc.com','www.bbc.co.uk'],language:'Somali',mixed:true},'SO')).catch(()=>[]):
+      limit>=3&&market!=='SO'?musicVideoRows(market).catch(()=>[]):[],
     rows.length<limit?gdeltRows(feedCountry).catch(()=>[]):[],
   ]);
   return unique([...preferred,videos.slice(0,1),rows,reports,videos],limit);
