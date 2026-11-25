@@ -145,18 +145,29 @@ export function createWorker(app) {
       }
       return result;
     },
-    async scheduled(_controller,env,ctx) {
+    async scheduled(_controller,env) {
       // Preserve the existing authenticated self-service cron jobs and bindings.
       if (!env.UGT_CRON_SECRET || !env.WORKER_SELF_REFERENCE) return;
-      for (const job of ['content-announcements','ticket-sweeper','payment-reconcile','email-delivery','editorial','urban-news']) {
-        ctx.waitUntil(Promise.resolve().then(()=>env.WORKER_SELF_REFERENCE.fetch(new Request('https://urbangangtour.co.ke/api/internal/cron/'+job,{
-          method:'POST',headers:{'x-ugt-cron':env.UGT_CRON_SECRET},
-        }))).then(response=>{
-          if(!response.ok){console.warn('[scheduled-job]',job,'http_failure',response.status);throw new Error('scheduled_job_failed');}
-        },()=>{
-          console.warn('[scheduled-job]',job,'transport_failure');throw new Error('scheduled_job_failed');
-        }));
+      const jobs=['payment-reconcile','urban-news','ticket-sweeper','editorial','email-delivery','content-announcements'];
+      let failed=false;
+      async function dispatch(job){
+        try {
+          const response=await env.WORKER_SELF_REFERENCE.fetch(new Request('https://urbangangtour.co.ke/api/internal/cron/'+job,{
+            method:'POST',headers:{'x-ugt-cron':env.UGT_CRON_SECRET},
+          }));
+          // Drain the small job result before reusing this connection slot.
+          await response.arrayBuffer();
+          if(!response.ok){failed=true;console.warn('[scheduled-job]',job,'http_failure',response.status);}
+        }catch{
+          failed=true;console.warn('[scheduled-job]',job,'transport_failure');
+        }
       }
+      // Each self-binding also needs downstream connections. Keep room for those
+      // requests and finish every job before notifying the scheduler of a failure.
+      for(let i=0;i<jobs.length;i+=2){
+        await Promise.all(jobs.slice(i,i+2).map(dispatch));
+      }
+      if(failed)throw new Error('scheduled_job_failed');
     },
   };
 }
