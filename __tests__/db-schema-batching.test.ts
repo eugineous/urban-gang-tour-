@@ -43,3 +43,11 @@ it('propagates an atomic transaction failure while logging no SQL or driver secr
  const log=vi.spyOn(console,'error').mockImplementation(()=>{}),error=Object.assign(new Error('password=private'),{code:'40P01'});
  try{mock.transaction.mockRejectedValue(error);await expect(qSchema('CREATE TABLE x(id INT)')).rejects.toBe(error);expect(log).toHaveBeenCalledWith('schema_bootstrap_failed',{code:'40P01'});expect(mock.transaction).toHaveBeenCalledOnce()}finally{log.mockRestore()}
 });
+it('classifies upstream limits without logging the provider response or credentials',async()=>{
+ const log=vi.spyOn(console,'error').mockImplementation(()=>{});
+ try{
+  mock.transaction.mockRejectedValue(new Error('Server error (HTTP status 402): compute time quota exceeded private-detail'));
+  await expect(qSchema('SELECT 1')).rejects.toThrow();
+  expect(log).toHaveBeenCalledWith('schema_bootstrap_failed',{code:'unclassified',httpStatus:402,category:'compute_quota'});
+ }finally{log.mockRestore()}
+});

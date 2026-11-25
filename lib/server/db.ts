@@ -111,7 +111,20 @@ export async function qSchema(sql: string | readonly string[]): Promise<void> {
     ]);
   } catch (error) {
     const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code) ? error.code : 'unclassified';
-    console.error('schema_bootstrap_failed', { code });
+    const message=error instanceof Error?error.message:'';
+    const http=/^Server error \(HTTP status ([45]\d\d)\)/.exec(message)?.[1];
+    const category=[
+      ['compute_quota', /compute.{0,40}(?:limit|quota|allowance)|(?:limit|quota|allowance).{0,40}compute/i],
+      ['transfer_quota', /transfer.{0,40}(?:limit|quota|allowance)|(?:limit|quota|allowance).{0,40}transfer/i],
+      ['provider_quota', /quota|payment required|usage limit|plan limit/i],
+      ['endpoint_suspended', /endpoint.{0,40}(?:suspend|disable)|project.{0,40}suspend/i],
+      ['endpoint_missing', /endpoint.{0,40}(?:not found|does not exist)/i],
+      ['authentication', /password authentication|invalid credential|authentication failed/i],
+      ['provider_rate_limit', /rate limit|too many requests/i],
+      ['connection_limit', /too many connections|too many clients/i],
+      ['transport', /error connecting|fetch failed|connection reset|timed? ?out/i],
+    ].find(([,pattern])=>(pattern as RegExp).test(message))?.[0];
+    console.error('schema_bootstrap_failed', {code,...(http?{httpStatus:Number(http)}:{}),...(category?{category}:{})});
     throw error;
   }
 }
