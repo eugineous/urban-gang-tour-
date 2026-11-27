@@ -34,8 +34,11 @@ describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolate
   const record=await createUrbanNewsCandidate({...source,provider:'apple_chart',url:'https://music.apple.com/ke/album/test/1?i=2',title:'Fixture leads the Kenya chart',publisher:'Apple Music'},'owner','fixture-chart-first');
   expect(record.draft.evidence[0]).toMatchObject({checked:true,role:'primary',rights:'public_facts'});expect(record.liveRevision).toBeNull();
   expect(record.draft.body[0]).toContain('2026-11-17');
-  const live=await publishUrbanNews(approve(record,record.draft),'owner');
-  expect(live.liveRevision).toBe(record.revision);
+  await expect(publishUrbanNews(approve(record,record.draft),'owner')).rejects.toThrow('news_image_rights_required');
+  const withPhoto={...record.draft,image:draft.image,imageAlt:draft.imageAlt,imageRights:draft.imageRights};
+  const saved=await saveUrbanNewsDraft(record.id,record.revision,withPhoto,'owner');
+  const live=await publishUrbanNews(approve(saved,withPhoto),'owner');
+  expect(live.liveRevision).toBe(saved.revision);
   await retractUrbanNews(live.id,live.revision,'End isolated chart fixture.','owner');
  });
  it('deduplicates canonical discovery and response replays without changing legacy content',async()=>{
