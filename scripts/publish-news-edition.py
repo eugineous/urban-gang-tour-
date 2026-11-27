@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 
 OUTLETS = {
     'KE': ('The Standard Entertainment', {'www.standardmedia.co.ke', 'www.tnx.africa'}),
+    'KE_SPORT': ('The Standard Sport', {'www.standardmedia.co.ke'}),
     'UG': ('Matooke Republic', {'www.matookerepublic.com'}),
     'NG': ('NotJustOk', {'notjustok.com'}),
     'GB': ('BBC News', {'www.bbc.co.uk', 'www.bbc.com'}),
@@ -34,6 +35,17 @@ TOPICS = [
 ]
 def adapt(title, publisher, market):
     """Publish only when a supported headline gives enough facts for an original brief."""
+    if market == 'KE_SPORT':
+        callup = re.fullmatch(r'(.{2,90}?) earns (.{2,80}) call-up', title, re.I)
+        if callup:
+            player, team = callup.groups()
+            return f'{player} called up by {team}', f'{publisher} reports that {player} has been called up by {team}.'
+        matchup = re.fullmatch(r'(.{2,80}?) (?:beat|defeat|edge) (.{2,80}?) (\d{1,3})[-–](\d{1,3})', title, re.I)
+        if matchup:
+            win, lose, points, opponent = matchup.groups()
+            if int(points)>int(opponent):
+                return f'{win} take the win against {lose}', f'{publisher} reported a {points}–{opponent} victory for {win} over {lose}.'
+        return None
     if market == 'TZ':
         swahili = re.fullmatch(r'(.{2,65}) (?:atoa|azindua) wimbo mpya [“‘"\'](.{1,80})[”’"\']', title, re.I)
         if swahili:
@@ -107,7 +119,7 @@ for market, (publisher, hosts) in OUTLETS.items():
         reported = ' '.join((entry.findtext('title') or '').split())
         if market in ('TZ', 'SO') and not re.search(r'Tanzania|Dar es Salaam|Tanzanian|Soomaali|Muqdisho|Somalia', reported, re.I):
             continue
-        topic = next((label for label, pattern in TOPICS if pattern.search(reported)), None)
+        topic = 'Sport' if market=='KE_SPORT' else next((label for label, pattern in TOPICS if pattern.search(reported)), None)
         if not topic or not 12 <= len(reported) <= 190 or SENSITIVE.search(reported):
             continue
         adapted = adapt(reported, publisher, market)
@@ -130,7 +142,7 @@ for market, (publisher, hosts) in OUTLETS.items():
             continue
         seen.add(story_id)
         photo = media['licensed_image'](entry, hosts)
-        candidates.append(dict(imageCandidate=photo,id=story_id, country=market, topic=topic, publisher=publisher, url=url,
+        candidates.append(dict(imageCandidate=photo,id=story_id, country=market.split('_')[0], topic=topic, publisher=publisher, url=url,
                                headline=headline, body=body, sourceHeadline=reported, sourceDate=date.isoformat(), publishedAt=now.isoformat()))
     drafts_by_market[market] = sorted(candidates, key=lambda story: story['sourceDate'], reverse=True)
 

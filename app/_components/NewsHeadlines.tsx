@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useId} from 'react';
+import {useEffect, useId, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {defineCatalogue} from '@/lib/i18n/messages';
 import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
@@ -8,9 +8,10 @@ import {publicationDate} from '@/lib/shared/publication-date';
 import DocumentLink from '@/ui/components/DocumentLink';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
 import type {NewsCard} from './NewsCards';
+import {automaticPopupWasShown,markAutomaticPopupShown} from '@/lib/client/automatic-popup';
 import styles from './UrbanNews.module.css';
 
-const refreshInterval = 30 * 60_000;
+const refreshInterval = 5 * 60_000;
 const breakingWindow = 6 * 60 * 60_000;
 
 const labels = defineCatalogue({
@@ -44,27 +45,70 @@ export function watchNewsRefresh(refresh: () => void) {
   };
 }
 
-export default function NewsHeadlines({posts, now}: {posts: (NewsCard & {href?:string})[]; now?: number}) {
+export default function NewsHeadlines({posts, now, alerts=false}: {posts: (NewsCard & {href?:string})[]; now?: number;alerts?:boolean}) {
   const router = useRouter();
-  useEffect(() => watchNewsRefresh(() => router.refresh()), [router]);
-  const heading = useId();
+  const strip = useRef<HTMLUListElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const [paused,setPaused]=useState(false);
+  const heading = useId(), dialogTitle=useId();
   const t = useMessages(labels);
-  if (!posts.length) return null;
-
   const sorted = newestPublishedFirst(posts);
   const breaking = sorted.filter(post => {
-    if (now === undefined || !/^breaking(?: news)?\s*:/i.test(post.headline)) return false;
+    if (now === undefined || post.newsVerification!=='confirmed' || !/^breaking(?: news)?\s*:/i.test(post.headline)) return false;
     const timestamp = publicationDate(post.datePublished)?.dateTime;
     if (!timestamp || timestamp.length === 10) return false;
     const age = now - Date.parse(timestamp);
     return age >= 0 && age < breakingWindow;
   });
-  const headlines = (breaking.length ? breaking : sorted).slice(0, 5);
+  const news = breaking[0];
+  const breakingId=news?.slug;
+  const href=(post:NewsCard&{href?:string})=>post.href||'/blog/'+encodeURIComponent(post.slug);
+  useEffect(() => watchNewsRefresh(() => router.refresh()), [router]);
+  useEffect(()=>{
+    if(!breakingId||paused)return;
+    const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
+    let rest=0;
+    const timer=window.setInterval(()=>{
+      const element=strip.current;
+      if(!element||document.hidden||motion.matches||element.matches(':hover, :focus-within')||dialog.current?.open)return;
+      const end=element.scrollWidth-element.clientWidth;
+      if(end<4)return;
+      if(element.scrollLeft>=end-2){
+        if(++rest>24){element.scrollLeft=0;rest=0;}
+      }else element.scrollLeft+=2;
+    },60);
+    return ()=>window.clearInterval(timer);
+  },[breakingId,paused]);
+  useEffect(()=>{
+    if(!alerts||!breakingId)return;
+    const timer=window.setTimeout(()=>{
+      const popup=dialog.current;
+      const consent=document.querySelector('[data-privacy-preferences]');
+      if(!popup||popup.open||document.hidden||automaticPopupWasShown()||
+        document.querySelector('dialog[open]')||consent?.getClientRects().length)return;
+      popup.showModal();
+      markAutomaticPopupShown();
+    },7000);
+    return ()=>window.clearTimeout(timer);
+  },[alerts,breakingId]);
+  if (!sorted.length) return null;
+  const headlines=(breaking.length?breaking:sorted).slice(0,5);
 
-  return <nav className={styles.headlines} aria-labelledby={heading}>
-    <h2 id={heading}>{t(breaking.length ? 'breaking' : 'headlines')}</h2>
-    <ul>{headlines.map(post => <li key={post.slug}>
-      <DocumentLink href={post.href||'/blog/' + encodeURIComponent(post.slug)} lang="en-KE">{post.headline}</DocumentLink>
+  return <nav className={styles.headlines} data-breaking={!!news||undefined} aria-labelledby={heading}>
+    <h2 id={heading}>{t(news?'breaking':'headlines')}</h2>
+    <ul ref={strip} onPointerDown={()=>{if(news)setPaused(true);}}>{headlines.map(post=><li key={post.slug}>
+      <DocumentLink href={href(post)} lang="en-KE">{post.headline}</DocumentLink>
     </li>)}</ul>
+    {news&&<div className={styles.headlineControls}>
+      <button type="button" aria-pressed={paused} onClick={()=>setPaused(value=>!value)}>{paused?'Resume':'Pause'}</button>
+      {alerts&&<button type="button" ref={trigger} onClick={()=>{if(!dialog.current?.open)dialog.current?.showModal();}}>Alert</button>}
+    </div>}
+    {news&&alerts&&<dialog ref={dialog} className={styles.newsAlert} aria-labelledby={dialogTitle} onClose={()=>trigger.current?.focus()}>
+      <p>{t('breaking')}</p><h2 id={dialogTitle}>{news.headline.replace(/^breaking(?: news)?\s*:\s*/i,'')}</h2>
+      <p>{news.description}</p>
+      <div><DocumentLink href={href(news)}>Read the story</DocumentLink>
+        <form method="dialog"><button type="submit" autoFocus>Close</button></form></div>
+    </dialog>}
   </nav>;
 }

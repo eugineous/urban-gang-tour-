@@ -68,5 +68,32 @@
     "photo": "mogadishu",
     "kind": "feature",
     "references": []
+  },
+  {
+    "id": "690495ad23bdb0aa3a5b75ae",
+    "country": "KE",
+    "publisher": "The Standard Sport",
+    "url": "https://www.standardmedia.co.ke/sports/article/2001563178/heartbreak-as-thunder-crash-out-of-2027-bal-race-on-home-soil",
+    "headline": "Nairobi City Thunder’s BAL campaign ends against Patriots",
+    "body": "Nairobi City Thunder lost 83–75 to South Sudan’s Patriots in their final group game at Kasarani Indoor Arena. The defeat ended the Kenyan champions’ bid to qualify for the 2027 Basketball Africa League.",
+    "paragraphs": [
+      "The result sent Patriots through to the semifinals. FIBA reported that the South Sudanese club won three games in this stage of the Road to BAL, a first for its sides at the qualifiers according to Patriots coach Ajou Deng.",
+      "Thunder had reached the league after hosting the East Division qualifiers in each of the previous two editions. This time, despite playing the decisive game in Nairobi, the club finished outside the qualifying places."
+    ],
+    "sourceHeadline": "Heartbreak as Thunder crash out of 2027 BAL race on home soil",
+    "topic": "Sport",
+    "sourceDate": "2026-11-27T12:28:54Z",
+    "publishedAt": "2026-11-27T14:40:57+00:00",
+    "kind": "reported",
+    "references": [
+      {
+        "label": "FIBA · match report",
+        "url": "https://www.fiba.basketball/en/news/hosts-thunder-knocked-out-of-the-2027-bal-race"
+      },
+      {
+        "label": "Citizen Digital · score and venue",
+        "url": "https://citizen.digital/article/nairobi-city-thunder-knocked-out-of-2027-bal-race-n394645"
+      }
+    ]
   }
 ]

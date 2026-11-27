@@ -14,7 +14,7 @@ const outlets = {
   TZ: {publisher:'BBC News Swahili', hosts:['www.bbc.co.uk','www.bbc.com'], country:'Tanzania'},
   SO: {publisher:'BBC News Somali', hosts:['www.bbc.co.uk','www.bbc.com'], country:'Somalia'},
 } as const;
-const topics = ['Music','Screen','Culture'] as const;
+const topics = ['Music','Screen','Culture','Sport'] as const;
 const dayFormat = new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Nairobi'});
 const validDay = /^20\d\d-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
 const validId = /^[a-f0-9]{24}$/;
@@ -50,7 +50,8 @@ export function parsePublisherBriefs(input:unknown,limit=45):PublisherBrief[] {
   return input.flatMap(row=>{
     if(!isObject(row)||typeof row.country!=='string'||!Object.hasOwn(outlets,row.country))return [];
     const outlet=outlets[row.country as keyof typeof outlets];
-    if(row.publisher!==outlet.publisher||!topics.some(topic=>topic===row.topic)||
+    const publisher=outlet.publisher===row.publisher?outlet.publisher:row.country==='KE'&&row.publisher==='The Standard Sport'?'The Standard Sport':null;
+    if(!publisher||!topics.some(topic=>topic===row.topic)||
       !storyText(row.sourceHeadline,190)||!storyText(row.headline,230)||!storyText(row.body,450)||typeof row.sourceDate!=='string'||
       !Number.isFinite(Date.parse(row.sourceDate))||typeof row.publishedAt!=='string'||
       !Number.isFinite(Date.parse(row.publishedAt))||Date.parse(row.publishedAt)>Date.now()+60000)return [];
@@ -59,7 +60,7 @@ export function parsePublisherBriefs(input:unknown,limit=45):PublisherBrief[] {
     if(url.protocol!=='https:'||!outlet.hosts.some(host=>host===url.hostname)||
       typeof row.id!=='string'||row.id!==createHash('sha256').update(url.href).digest('hex').slice(0,24))return [];
     const sourcePhoto=parsePhoto(row.sourcePhoto,outlet.hosts);
-    return [{...(sourcePhoto?{sourcePhoto}:{}),id:row.id,url:url.href,publisher:outlet.publisher,country:row.country as keyof typeof outlets,
+    return [{...(sourcePhoto?{sourcePhoto}:{}),id:row.id,url:url.href,publisher,country:row.country as keyof typeof outlets,
       topic:row.topic as PublisherBrief['topic'],headline:row.headline,body:row.body,sourceHeadline:row.sourceHeadline,sourceDate:row.sourceDate,publishedAt:row.publishedAt}];
   });
 }

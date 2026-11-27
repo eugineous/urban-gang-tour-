@@ -1,6 +1,7 @@
 import {Suspense} from 'react';
 import UrbanNewsFrontPage from '@/app/_components/UrbanNewsFrontPage';
 import {getKenyaXLinks} from '@/lib/server/urban-news-briefs';
+import {rankTrending} from '@/lib/shared/news-ranking';
 import {readNewsDesk} from '@/app/_lib/news-desk';
 import UrbanMusicChart from '@/app/_components/UrbanMusicChart';
 import type {Metadata} from 'next';
@@ -29,14 +30,14 @@ export default async function BlogIndex({searchParams}:Props={}){
   const newsMode=urbanNewsEnabled();
   const query=newsArchiveQuery(await searchParams,{newsMode});
   if(newsMode){
-    const [{visible,pageCount,current},xLinks]=await Promise.all([readNewsDesk(query),(!query.country||query.country==='KE')?getKenyaXLinks():[]]);
+    const [{visible,pageCount,current,matches},xLinks]=await Promise.all([readNewsDesk(query),(!query.country||query.country==='KE')?getKenyaXLinks():[]]);
     if(query.page>pageCount){
       if(current)notFound();
       return <section className="wrap"><h1>Urban News</h1><p role="status">Stories are temporarily unavailable.</p></section>;
     }
-    const items=visible.map(story=>({...story,date:story.datePublished,country:story.newsCountry}));
-    const headlines=visible.map(story=>({...story,description:story.summary}));
-    return <><JsonLd data={structuredDataForPath('/blog')}/><UrbanNewsFrontPage stories={items} latest={headlines} query={query} now={requestTime()} pages={pageCount} xLinks={xLinks}
+    const now=requestTime();
+    const trending=rankTrending(matches,now);
+    return <><JsonLd data={structuredDataForPath('/blog')}/><UrbanNewsFrontPage stories={visible} trending={trending} query={query} now={now} pages={pageCount} xLinks={xLinks}
       trend={(!query.country||query.country==='KE')&&!query.q&&query.page===1?<Suspense fallback={null}><UrbanMusicChart/></Suspense>:undefined}/></>;
   }
   const feed=await getBlogPosts(true).then(posts=>({posts,current:true}),()=>({posts:[],current:false}));
