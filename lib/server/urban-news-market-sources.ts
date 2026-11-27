@@ -122,7 +122,7 @@ async function readFeed(url:string,format:'xml'|'json'):Promise<string> {
   const abort=new AbortController();
   const timer=setTimeout(()=>abort.abort(),4500);
   try {
-    const response=await fetch(url,{signal:abort.signal,cache:'no-store',redirect:'error',headers:{Accept:format==='xml'?'application/rss+xml, application/atom+xml, application/xml, text/xml':'application/json'}});
+    const response=await fetch(url,{signal:abort.signal,cache:'no-store',redirect: 'manual',headers:{Accept:format==='xml'?'application/rss+xml, application/atom+xml, application/xml, text/xml':'application/json'}});
     const mime=response.headers.get('content-type')??'';
     const allowed=format==='xml'?/^(?:application\/(?:rss\+xml|atom\+xml|xml)|text\/xml)\b/i:/^application\/json\b/i;
     const limit=512*1024;

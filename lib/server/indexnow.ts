@@ -50,7 +50,7 @@ export async function pingIndexNow(paths: string[]): Promise<void> {
         urlList,
       }),
       signal: controller.signal,
-      redirect: 'error',
+      redirect: 'manual',
     });
     // Fetch resolves on rejected HTTP statuses too. Record only the bounded
     // status, never provider bodies, submitted URLs or exception contents.

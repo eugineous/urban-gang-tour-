@@ -87,7 +87,7 @@ export async function paystackInit(params: {
   try {
     const r = await fetch(`${API}/transaction/initialize`, {
       method: 'POST',
-      redirect: 'error',
+      redirect: 'manual',
       signal: controller.signal,
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
@@ -95,6 +95,10 @@ export async function paystackInit(params: {
       },
       body: JSON.stringify(payload),
     });
+    if (r.status >= 300 && r.status < 400) {
+      await r.body?.cancel();
+      return { ok: false, outcome: 'unknown', error: 'paystack_redirect', requestPayload: payload };
+    }
     const d: any = await r.json().catch(() => ({}));
     if (!r.ok || d.status !== true || !trustedCheckoutUrl(d.data?.authorization_url)) {
       // Even a 4xx may mean an already-existing reference/session. Once the
@@ -120,10 +124,14 @@ export async function paystackVerify(reference: string): Promise<{
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     const r = await fetch(`${API}/transaction/verify/${encodeURIComponent(reference)}`, {
-      redirect: 'error',
+      redirect: 'manual',
       signal: controller.signal,
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
+    if (!r.ok) {
+      await r.body?.cancel();
+      return { ok: false };
+    }
     const d: any = await r.json().catch(() => ({}));
     const data = d.data;
     const statuses = ['abandoned', 'failed', 'ongoing', 'pending', 'processing', 'queued', 'reversed', 'success'];
@@ -159,6 +167,7 @@ export async function paystackCreateSubaccount(
   if (!paystackConfigured()) return { ok: false, error: 'not_configured' };
   try {
     const r = await fetch(`${API}/subaccount`, {
+      redirect: 'manual',
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
@@ -200,6 +209,7 @@ export async function paystackListBanks(): Promise<PaystackBank[]> {
   if (!paystackConfigured()) return bankCache?.data || [];
   try {
     const r = await fetch(`${API}/bank?country=kenya&currency=KES`, {
+      redirect: 'manual',
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
     const d: any = await r.json().catch(() => ({}));

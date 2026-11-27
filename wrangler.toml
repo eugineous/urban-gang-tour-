@@ -1,7 +1,7 @@
 name = "urban-gang-tour"
 main = "worker.js"
 compatibility_date = "2024-09-23"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat", "cache_option_enabled"]
 
 [vars]
 URBAN_NEWS_ENABLED = "true"

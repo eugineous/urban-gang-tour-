@@ -83,7 +83,7 @@ it('builds automatic briefs only from fresh, exact Apple song rows with safe lab
  const fetch=vi.fn(async()=>Response.json({feed}));
  vi.stubGlobal('fetch',fetch);
  expect(await fetchAutomaticChartRows('KE')).toMatchObject([{title:expect.stringContaining('ranks No. 4'),url:good.url}]);
- expect(fetch).toHaveBeenCalledWith(marketChartUrl('KE'),expect.objectContaining({redirect:'error',cache:'no-store'}));
+ expect(fetch).toHaveBeenCalledWith(marketChartUrl('KE'),expect.objectContaining({redirect: 'manual',cache:'no-store'}));
  feed={...feed,updated:'2020-01-01T00:00:00Z'};
  expect(await fetchAutomaticChartRows('KE')).toEqual([]);
  feed={...base,id:marketChartUrl('UG'),results:rows};
