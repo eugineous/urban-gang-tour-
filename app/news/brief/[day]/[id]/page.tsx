@@ -11,6 +11,7 @@ import styles from '@/app/music/kenya-chart/report.module.css';
 
 type Props={params:Promise<{day:string;id:string}>};
 const timestamp=new Intl.DateTimeFormat('en-KE',{dateStyle:'long',timeStyle:'short',timeZone:'Africa/Nairobi'});
+const sourceDay=new Intl.DateTimeFormat('en-KE',{dateStyle:'long',timeZone:'Africa/Nairobi'});
 
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const {day,id}=await params;
@@ -32,6 +33,7 @@ export default async function PublisherBriefPage({params}:Props){
  const country=briefCountry(brief),photo=briefPhoto(brief);
  const path=publisherBriefHref(brief);
  const references=[{url:brief.url,label:brief.publisher},...(brief.references??[])];
+ const datedSource=/^\d{4}-\d{2}-\d{2}$/.test(brief.sourceDate);
  const paragraphs=(brief.paragraphs??[]).flatMap(block=>block.split(/\n\s*\n/)).filter(Boolean);
  const readNext=(await getPublisherBriefs(brief.country)).filter(story=>story.id!==brief.id&&briefPhoto(story)).slice(0,3);
  return <article className={styles.report} lang="en-KE">
@@ -54,7 +56,7 @@ export default async function PublisherBriefPage({params}:Props){
      <p className={styles.lede}><ArticleInline text={brief.body}/></p>
      {paragraphs.map((paragraph,index)=><ArticleText key={index} paragraph={paragraph}/>)}
    </div>
-   <p>{brief.publisher} published the source on <time dateTime={brief.sourceDate}>{timestamp.format(new Date(brief.sourceDate))} EAT</time>.</p>
+   <p>{brief.publisher} published the source on <time dateTime={brief.sourceDate}>{datedSource?sourceDay.format(new Date(brief.sourceDate)):timestamp.format(new Date(brief.sourceDate))+' EAT'}</time>.</p>
    <ShareBar url={SITE.domain+path} title={brief.headline}/>
    <footer><h2>Sources</h2><ul>{references.map(source=><li key={source.url}><a href={source.url} rel="external noopener noreferrer">{source.label} ↗</a></li>)}</ul><Link href="/contact-us">Report a correction ↗</Link></footer>
    {readNext.length>0&&<aside className={styles.readNext}><h2>Read next</h2><ul>{readNext.map(story=><li key={story.id}><Link href={publisherBriefHref(story)}>{story.headline}</Link></li>)}</ul></aside>}
