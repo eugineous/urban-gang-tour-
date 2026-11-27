@@ -22,9 +22,13 @@ jobs:
           ref: urban-news-feeds
           path: source-data
       - run: python3 scripts/collect-news-feeds.py source-data/feeds.json
+      - run: python3 scripts/publish-news-edition.py source-data
+        env:
+          UGT_DAILY_BRIEFS: ${{ vars.UGT_DAILY_BRIEFS || '10' }}
       - working-directory: source-data
         run: |
-          git add -- feeds.json
+          git add -- feeds.json latest-briefs.json
+          if [ -d editions ]; then git add -- editions; fi
           if ! git diff --cached --quiet; then
             git -c user.name='Urban News sources' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Refresh publisher metadata and chart positions'
             git push origin HEAD:urban-news-feeds
