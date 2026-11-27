@@ -26,6 +26,7 @@
 .featureGrid[data-supporting] .leadImage{aspect-ratio:2/1}
 .leadImage,.cardImage{overflow:hidden;background:#efdfeb}
 .leadImage img,.cardImage img{width:100%;height:100%;object-fit:cover;display:block}
+.leadImage img{object-position:center 25%}
 .leadCopy{display:flex;flex-direction:column;justify-content:center;padding:clamp(1.1rem,2.4vw,1.9rem)}
 .lead h3{font-size:clamp(1.7rem,3.55vw,3rem);line-height:1.05;letter-spacing:-.05em;margin:.35rem 0;overflow-wrap:anywhere}
 .leadCopy>p:not(.credit){color:#534654;margin:.45rem 0 1rem;line-height:1.5}
@@ -73,6 +74,7 @@
 .empty{margin:1rem 0;border:1px solid var(--news-divider);padding:1rem;border-radius:.55rem}
 .pagination{display:flex;gap:1rem;align-items:center;margin-top:1rem}
 .page a:focus-visible,.page button:focus-visible,.page input:focus-visible,.page summary:focus-visible,.homeDesk a:focus-visible{outline:2px solid var(--news-magenta);outline-offset:3px}
+@media(min-width:1024px){:global(html:not([data-phone-viewport=wide])) .page{padding-block-start:calc(89px + clamp(1.8rem,3.6vw,3.2rem))}}
 @media(max-width:760px){
  .page{padding:1.4rem 1.05rem 3rem}
  .masthead p{display:none}
