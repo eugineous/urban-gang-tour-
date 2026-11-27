@@ -97,5 +97,82 @@
     "source": "https://commons.wikimedia.org/wiki/File:Diamond_Platnumz.jpg",
     "width": 625,
     "smallWidth": 480
+  },
+  "sauti-sol-2013": {
+    "path": "/news/photos/sauti-sol-2013-960.webp",
+    "small": "/news/photos/sauti-sol-2013-480.webp",
+    "alt": "Sauti Sol in 2013, with Bien-Aimé Baraza at right",
+    "credit": "Navisco",
+    "license": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseLabel": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sauti-Sol.jpg",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "lamu-dhow-race": {
+    "path": "/news/photos/lamu-dhow-race-960.webp",
+    "small": "/news/photos/lamu-dhow-race-480.webp",
+    "alt": "Dhows race at the 2012 Lamu Cultural Festival",
+    "credit": "Ali Ahmed",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Lamu_Boats.jpg",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "nairobi-national-museum": {
+    "path": "/news/photos/nairobi-national-museum-960.webp",
+    "small": "/news/photos/nairobi-national-museum-480.webp",
+    "alt": "The entrance to Nairobi National Museum in 2015",
+    "credit": "Ruslik0",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Nairobi_National_Museum_01.JPG",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "eliud-kipchoge-berlin": {
+    "path": "/news/photos/eliud-kipchoge-berlin-960.webp",
+    "small": "/news/photos/eliud-kipchoge-berlin-480.webp",
+    "alt": "Eliud Kipchoge runs the 2022 Berlin Marathon",
+    "credit": "Desitlicheresguruweil",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Eliud_Kipchoge_in_Berlin.jpg",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "nairobi-matatu-2025": {
+    "path": "/news/photos/nairobi-matatu-2025-960.webp",
+    "small": "/news/photos/nairobi-matatu-2025-480.webp",
+    "alt": "A decorated Nairobi matatu photographed in 2025",
+    "credit": "New York-air",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Matatu_parking_at_Tribe_Hotel_in_Nairobi.jpg",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "lupita-nyongo-berlinale": {
+    "path": "/news/photos/lupita-nyongo-berlinale-960.webp",
+    "small": "/news/photos/lupita-nyongo-berlinale-480.webp",
+    "alt": "Lupita Nyong’o at the opening of the 2024 Berlinale",
+    "credit": "Martin Kraft",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:MKr348250_Lupita_Nyong%27o_%28Berlinale_2024%29.jpg",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "faces-of-kenya-runway": {
+    "path": "/news/photos/faces-of-kenya-runway-960.webp",
+    "small": "/news/photos/faces-of-kenya-runway-480.webp",
+    "alt": "A model in an orange dress at the 2015 Faces of Kenya runway show",
+    "credit": "Virginieortis",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Faces_of_Kenya_-_Back_of_woman_on_catwalk.jpg",
+    "width": 239,
+    "smallWidth": 239
   }
 }
