@@ -39,3 +39,36 @@ export function selectNewsEdition<T extends RankableNews>(items:readonly T[],pre
  if(matchingCoverage)return{ranked,matchingCoverage};
  return{matchingCoverage,ranked:ranked.sort((a,b)=>Date.parse(b.item.datePublished||b.item.date||'')-Date.parse(a.item.datePublished||a.item.date||'')||(a.item.slug||a.item.id||'').localeCompare(b.item.slug||b.item.id||'')).map(row=>({item:row.item,reasons:['latest'] as NewsRankReason[]}))};
 }
+type RankableStory = {
+  href:string;
+  headline:string;
+  section:string;
+  datePublished:string;
+  sourceCount:number;
+  newsVerification?:string;
+  sourceDate?:string;
+};
+
+const HOUR = 3600_000;
+
+/** Rank live, sourced stories by freshness and corroboration. Never estimate views. */
+export function rankTrending<T extends RankableStory>(stories:readonly T[],now:number,limit=5):T[]{
+  const ranked=stories.flatMap(story=>{
+    const published=Date.parse(story.datePublished);
+    const sourceDate=story.sourceDate?Date.parse(story.sourceDate):published;
+    const age=(now-Math.min(published,sourceDate))/HOUR;
+    if(!Number.isFinite(age)||age<0||age>72||story.sourceCount<1||story.newsVerification==='developing')return [];
+    const score=70*Math.exp(-age/24)+Math.min(story.sourceCount-1,3)*12+(story.newsVerification==='confirmed'?12:0);
+    return [{story,score}];
+  }).sort((a,b)=>b.score-a.score||a.story.href.localeCompare(b.story.href));
+  const result:T[]=[];
+  const seen=new Set<string>();
+  for(const {story} of ranked){
+    const topic=story.headline.toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+    if(seen.has(story.href)||seen.has(topic))continue;
+    seen.add(story.href);seen.add(topic);
+    result.push(story);
+    if(result.length===limit)break;
+  }
+  return result;
+}

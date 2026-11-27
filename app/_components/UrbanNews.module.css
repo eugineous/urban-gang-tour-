@@ -66,3 +66,13 @@
   .card a:focus-visible .art img,.card a:active .art img {transform:scale(1.025)}
   @media (hover:hover) { .card a:hover .art img {transform:scale(1.025)} }
 }
+
+.headlines[data-breaking]{background:#f7e7f0;border-bottom-color:#a90060;padding-inline:.65rem;border-radius:.5rem}
+.headlineControls{display:flex;gap:.25rem;flex:none;align-items:center}
+.headlineControls button,.newsAlert button{min-height:40px;border:1px solid #d8b3cb;border-radius:999px;background:white;color:#8c004f;padding:.2rem .7rem;font-weight:650}
+.newsAlert{width:min(calc(100vw - 2rem),32rem);border:1px solid #bd407e;border-radius:1.1rem;background:#fff9fd;color:#241520;padding:1.45rem;box-shadow:0 1.1rem 4rem #24152050}
+.newsAlert::backdrop{background:#26142183}
+.newsAlert h2{font-size:clamp(1.45rem,5vw,2rem);color:#211622;margin:.45rem 0;overflow-wrap:anywhere}
+.newsAlert>p:first-child{font-weight:750;color:#930057}
+.newsAlert>div{display:flex;align-items:center;justify-content:space-between;gap:.65rem;margin-top:.8rem}
+@media(prefers-reduced-motion:reduce){.headlineControls button[aria-pressed]{display:none}}

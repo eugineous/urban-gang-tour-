@@ -8,13 +8,13 @@ vi.mock('next/navigation', () => ({useRouter: () => ({refresh: vi.fn()})}));
 const now = Date.parse('2026-11-24T12:00:00Z');
 function story(slug: string, headline: string, hoursAgo: number): NewsCard {
   return {slug, headline, datePublished: new Date(now - hoursAgo * 3_600_000).toISOString(),
-    section: 'music', description: '', image: '', newsVerification: 'developing'};
+    section: 'music', description: '', image: '', newsVerification: 'confirmed'};
 }
 function markup(posts: NewsCard[]) {
   return renderToStaticMarkup(createElement(NewsHeadlines, {posts, now}));
 }
 
-it('links recent editorial breaking headlines, ignoring verification status alone', () => {
+it('links recent editorial breaking headlines, only for confirmed coverage', () => {
   const html = markup([story('fresh', 'Studio release', 0), story('explicit title', 'Breaking: Venue closes', 1)]);
   expect(html).toContain('Breaking news</h2>');
   expect(html).toContain('href="/blog/explicit%20title"');
@@ -29,14 +29,14 @@ it('uses a chronological headline rail for ordinary coverage and expired breakin
 });
 
 afterEach(() => {vi.useRealTimers(); vi.unstubAllGlobals()});
-it('refreshes visible readers every thirty minutes and catches up once after a hidden interval', () => {
+it('refreshes visible readers every five minutes and catches up once after a hidden interval', () => {
   vi.useFakeTimers();
   const tab = Object.assign(new EventTarget(), {visibilityState: 'visible'});
   vi.stubGlobal('document', tab);
   vi.stubGlobal('window', {setTimeout, clearTimeout});
   const refresh = vi.fn();
   const stop = watchNewsRefresh(refresh);
-  vi.advanceTimersByTime(29 * 60_000);
+  vi.advanceTimersByTime(4 * 60_000);
   expect(refresh).not.toHaveBeenCalled();
   vi.advanceTimersByTime(60_000);
   expect(refresh).toHaveBeenCalledTimes(1);
@@ -48,10 +48,17 @@ it('refreshes visible readers every thirty minutes and catches up once after a h
   tab.dispatchEvent(new Event('visibilitychange'));
   tab.dispatchEvent(new Event('visibilitychange'));
   expect(refresh).toHaveBeenCalledTimes(2);
-  vi.advanceTimersByTime(30 * 60_000);
+  vi.advanceTimersByTime(5 * 60_000);
   expect(refresh).toHaveBeenCalledTimes(3);
   stop();
   vi.advanceTimersByTime(3_600_000);
   tab.dispatchEvent(new Event('visibilitychange'));
   expect(refresh).toHaveBeenCalledTimes(3);
+});
+
+it('leaves developing stories in the normal rail even when the headline says breaking',()=>{
+  const html=markup([{...story('developing','Breaking: Unconfirmed report',1),newsVerification:'developing'}]);
+  expect(html).toContain('Headlines</h2>');
+  expect(html).not.toContain('Breaking news</h2>');
+  expect(html).not.toContain('<dialog');
 });

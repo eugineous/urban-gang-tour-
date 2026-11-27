@@ -2,28 +2,28 @@ import HostedSite from '@/ui/components/HostedSite';
 import {LiveCommerce} from './LiveCommerce';
 import {BookingForm} from './BookingForm';
 import {getBlogPostSummaries} from '@/app/_lib/blog';
-import {readPublicEvents,type PublicEvent} from '@/lib/server/public-events';
-import {readPublicProducts,type PublicProduct} from '@/lib/server/public-products';
+import {readPublicEvents} from '@/lib/server/public-events';
+import {readPublicProducts} from '@/lib/server/public-products';
 import {readWebsiteContent} from '@/lib/server/website-content';
 import {requestTime} from '@/lib/server/request-time';
 import {newestPublishedFirst} from '@/lib/shared/newsroom-chronology';
 import {MediaCatalogProvider} from '@/ui/components/MediaLibrary';
 import type {InstagramArchive} from '@/lib/instagram-public.mjs';
-export async function RenderedPage({pathName,initialInstagramArchive}:{pathName:string;initialInstagramArchive?:InstagramArchive}){
+export async function RenderedPage({pathName,initialInstagramArchive,homeNews}:{pathName:string;initialInstagramArchive?:InstagramArchive;homeNews?:React.ReactNode}){
  if(pathName==='/shop')return <LiveCommerce initialProducts={await readPublicProducts().catch(()=>undefined)}/>;
  if(pathName==='/book')return <BookingForm/>;
  const presenter=pathName.startsWith('/author/');
  const home=pathName==='/';
  const [published,events,products,pageContent]=await Promise.all([
-  (home||pathName==='/blog'||presenter)?getBlogPostSummaries():Promise.resolve([]),
-  (presenter||['/', '/events', '/portfolio', '/about', '/the-gang', '/proof'].includes(pathName))?readPublicEvents().catch(()=>[] as PublicEvent[]):Promise.resolve([]),
-  home?readPublicProducts().catch(()=>[] as PublicProduct[]):Promise.resolve([]),
+  ((home&&!homeNews)||pathName==='/blog'||presenter)?getBlogPostSummaries():Promise.resolve([]),
+  (presenter||['/', '/events', '/portfolio', '/about', '/the-gang', '/proof'].includes(pathName))?readPublicEvents().catch(()=>undefined):Promise.resolve([]),
+  home?readPublicProducts().catch(()=>undefined):Promise.resolve([]),
   readWebsiteContent(pathName==='/the-gang'?'/about':pathName),
  ]);
  // Index cards need excerpts only. Do not serialize the full newsroom and all
  // article bodies into the home page's hydration payload.
  const ordered=newestPublishedFirst(published);
  const posts=(home?ordered.slice(0,3):ordered).map(p=>({id:p.slug,headline:p.headline,date:p.datePublished,section:p.section,img:p.image,dek:p.description,...(p.newsCountry?{newsCountry:p.newsCountry}:{}),...(p.newsVerification?{newsVerification:p.newsVerification}:{})}));
- const page=<HostedSite path={pathName} screens={[]} products={products} events={events} posts={posts} pageContent={pageContent} initialNow={requestTime()}/>;
+ const page=<HostedSite path={pathName} screens={[]} products={products??[]} events={events??[]} homeCurrent={{events:events!==undefined,products:products!==undefined}} homeNews={homeNews} posts={posts} pageContent={pageContent} initialNow={requestTime()}/>;
  return pathName==='/gallery'||pathName.startsWith('/gallery/')||pathName==='/reels'?<MediaCatalogProvider initialArchive={initialInstagramArchive}>{page}</MediaCatalogProvider>:page;
 }

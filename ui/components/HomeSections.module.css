@@ -49,3 +49,6 @@
 @media(prefers-reduced-motion:reduce){.home :global(.home-experiences .project-card img),.home :global(.portfolio-highlights .collection-card img),.symbol{transition:none!important}.question[open] .answer{animation:none}.home :global(.project-card:hover img),.home :global(.collection-card:hover img){transform:none!important}}
 :global(html[data-focus-view=true]) .home :global(.home-experiences .project-card img),:global(html[data-focus-view=true]) .home :global(.portfolio-highlights .collection-card img),:global(html[data-focus-view=true]) .symbol{transition:none!important;transform:none!important}
 :global(html[data-focus-view=true]) .question[open] .answer{animation:none}
+
+.mobileShowreel{display:none}
+@media(max-width:760px),(max-device-width:600px) and (pointer:coarse){.mobileShowreel{display:block;padding-inline:20px}}

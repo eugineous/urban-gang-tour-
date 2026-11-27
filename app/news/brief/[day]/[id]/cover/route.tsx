@@ -2,7 +2,7 @@ import {ImageResponse} from 'next/og';
 import {briefCountry,getPublisherBrief} from '@/lib/server/urban-news-briefs';
 import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
 
-const palette={Music:['#63043b','#f7128d'],Screen:['#30215b','#9476f1'],Culture:['#3f162d','#fb9d28']};
+const palette={Music:['#63043b','#f7128d'],Screen:['#30215b','#9476f1'],Culture:['#3f162d','#fb9d28'],Sport:['#192c49','#56d9db']};
 
 export async function GET(_request:Request,{params}:{params:Promise<{day:string;id:string}>}){
  const {day,id}=await params;

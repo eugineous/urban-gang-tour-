@@ -1,7 +1,8 @@
 name: Refresh public newsroom sources
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '2-57/5 * * * *'
+    - cron: '13,43 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -22,11 +23,14 @@ jobs:
           ref: urban-news-feeds
           path: source-data
       - run: python3 scripts/collect-news-feeds.py source-data/feeds.json
+        env:
+          UGT_PRESS_ONLY: ${{ github.event_name == 'schedule' && github.event.schedule != '13,43 * * * *' && 'true' || 'false' }}
       - run: python3 -m pip install "Pillow==12.3.0"
       - run: python3 scripts/publish-news-edition.py source-data
         env:
           UGT_DAILY_BRIEFS: ${{ vars.UGT_DAILY_BRIEFS || '10' }}
-      - run: python3 scripts/collect-news-x.py source-data
+      - if: github.event_name != 'schedule' || github.event.schedule == '13,43 * * * *'
+        run: python3 scripts/collect-news-x.py source-data
         env:
           X_BEARER_TOKEN: ${{ secrets.UGT_X_BEARER_TOKEN }}
       - working-directory: source-data

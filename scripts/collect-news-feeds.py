@@ -1,6 +1,7 @@
 """Capture public chart facts and attributed RSS headline metadata for the reader fallback."""
 import concurrent.futures
 import json
+import os
 import sys
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -10,6 +11,7 @@ MEDIA = '{http://search.yahoo.com/mrss/}'
 MARKETS = 'ke ug tz so gb us se nl kz in ng za gh rw'.split()
 PRESS = {
     'KE': 'https://www.standardmedia.co.ke/rss/entertainment.php',
+    'KE_SPORT': 'https://www.standardmedia.co.ke/rss/sports.php',
     'UG': 'https://www.matookerepublic.com/category/entertainment/feed/',
     'NG': 'https://notjustok.com/feed/',
     'GB': 'https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml',
@@ -58,6 +60,8 @@ def collect(job):
 
 if __name__ == '__main__':
     jobs = [('charts', country.upper(), f'https://rss.marketingtools.apple.com/api/v2/{country}/music/most-played/10/songs.json') for country in MARKETS]
+    if os.environ.get('UGT_PRESS_ONLY') == 'true':
+        jobs=[]
     jobs.extend(('press', country, url) for country, url in PRESS.items())
     try:
         with open(sys.argv[1]) as previous:

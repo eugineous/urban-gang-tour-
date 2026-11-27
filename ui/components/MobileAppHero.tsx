@@ -17,7 +17,7 @@ const copy=defineCatalogue({
  ru:{school:'Школьные шоу',campus:'Концерты в вузах',hosting:'Ведение мероприятий',role:'Ведущие ТВ и мероприятий',events:'Найдите своё событие',book:'Заказать нас',explore:'Все события',recent:'Недавнее событие · архив',upcoming:'Предстоящее событие',available:'События и билеты',video:'Посмотрите нас в деле',watch:'Смотреть видео',failed:'Не удалось загрузить видео.',retry:'Повторить загрузку',videos:'Другие видео',advertise:'Разместить событие'},
  es:{school:'Espectáculos escolares',campus:'Conciertos universitarios',hosting:'Presentación en directo',role:'Presentadores de TV y eventos',events:'Tu próximo evento',book:'Reservarnos',explore:'Explorar eventos',recent:'Evento reciente · archivo',upcoming:'Próximo evento',available:'Eventos y entradas',video:'Míranos en acción',watch:'Reproducir vídeo',failed:'No se pudo cargar el vídeo.',retry:'Reintentar vídeo',videos:'Más vídeos',advertise:'Publicar tu evento'},
 });
-export function MobileAppHero({events=[],now=0,current=true}:{events?:OwnedEvent[];now?:number;current?:boolean}={}){
+export function MobileAppHero({events=[],now=0,current=true,deferVideo=false}:{events?:OwnedEvent[];now?:number;current?:boolean;deferVideo?:boolean}={}){
  const t=useMessages(copy),motion=useMessages(ambientMessages),items=homepagePosterEvents(events,now,current);
  return <section className={styles.hero} data-mobile-app-hero aria-label="Urban Gang Tour">
   <div className={styles.stage}>
@@ -33,6 +33,12 @@ export function MobileAppHero({events=[],now=0,current=true}:{events?:OwnedEvent
    </a>
    <MobileEventPoster key={items.map(item=>String(item.event.id)).join('|')} items={items} labels={{title:t('events'),recent:t('recent'),upcoming:t('upcoming'),available:t('available'),explore:t('explore'),pause:motion('pauseEvents'),resume:motion('resumeEvents')}}/>
   </div>
-  <MobileBookingVideo labels={{title:t('video'),play:t('watch'),failed:t('failed'),retry:t('retry'),videos:t('videos'),book:t('book'),advertise:t('advertise')}}/>
+  {!deferVideo&&<MobileHomeVideo/>}
  </section>;
+}
+
+
+export function MobileHomeVideo(){
+ const t=useMessages(copy);
+ return <MobileBookingVideo labels={{title:t('video'),play:t('watch'),failed:t('failed'),retry:t('retry'),videos:t('videos'),book:t('book'),advertise:t('advertise')}}/>;
 }
