@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1c87bd1df16d7af93e559445",
+    "country": "KE",
+    "topic": "Music",
+    "publisher": "The Standard Entertainment",
+    "url": "https://www.tnx.africa/entertainment/article/2001563187/sunquick-backs-kodong-klan-s-all-hands-on-deck-nairobi-concert",
+    "headline": "Kodong Klan brings All Hands On Deck to Nairobi",
+    "body": "Kodong Klan will play Nairobi’s ASK Grounds on 28 November. The concert features solo sets from members of the Kenyan collective, a joint finale and a guest performance by Keteh.",
+    "sourceHeadline": "Sunquick backs Kodong Klan's 'All Hands-on Deck' Nairobi concert",
+    "sourceDate": "2026-11-27T16:05:10+03:00",
+    "publishedAt": "2026-11-27T17:09:07.398598+03:00",
+    "paragraphs": [
+      "Bensoul, Charisma, Coster Ojwang, Mordecai Dex, Okello Max, Onyach Pala and Ywaya Tajiri are on the bill, according to Music In Africa. Keteh will bring songs from Safari Ya Mapenzi, including Umebant.",
+      "The Standard’s entertainment desk also reported that Sunquick is backing the show. For anyone following Nairobi’s live-music scene, the draw is a chance to hear artists who usually play separately share the same stage."
+    ],
+    "references": [
+      {
+        "label": "Music In Africa · concert details and lineup",
+        "url": "https://musicinafrica.net/magazine/kenya-kodong-klan-to-stage-all-hands-on-deck-concert-in-nairobi/"
+      },
+      {
+        "label": "House of Kodong · official lineup and livestream",
+        "url": "https://houseofkodong.africa/live/"
+      }
+    ],
+    "photo": "nairobi",
+    "kind": "reported"
+  },
+  {
+    "id": "bea1c1bd2577f0853377069a",
+    "country": "TZ",
+    "publisher": "Apple Music",
+    "url": "https://music.apple.com/tz/album/usela/6824504050?i=6824504051",
+    "headline": "Ibraah’s “Usela” tops Apple Music’s Tanzania chart",
+    "sourceHeadline": "Ibraah’s “Usela” tops Apple Music’s Tanzania chart",
+    "topic": "Music",
+    "body": "Ibraah is at No. 1 in Apple Music’s 27 November Tanzania update. His track “Usela” leads the storefront’s most-played songs list.",
+    "paragraphs": [
+      "“Tse Monate” is second. The track credits Diamond Platnumz, Xduppy and DJ Maphorisa, alongside Focalistic, Uncool MC, Angekebabuye mc and Ricky Lenyora.",
+      "The list measures activity on Apple Music in Tanzania. Apple’s feed provides ranking positions and track credits."
+    ],
+    "publishedAt": "2026-11-27T17:21:00.876458+03:00",
+    "sourceDate": "2026-11-27T14:12:21Z",
+    "kind": "reported",
+    "references": [
+      {
+        "label": "Apple Music · Tanzania chart data",
+        "url": "https://rss.marketingtools.apple.com/api/v2/tz/music/most-played/10/songs.json"
+      }
+    ]
+  },
+  {
+    "id": "9f9808d75f65ca195d681a77",
+    "country": "SO",
+    "publisher": "Music In Africa",
+    "url": "https://musicinafrica.net/directory-professional/somalia-archive-library-system-roma-tre/",
+    "headline": "Where to find recordings of Somali music, poetry and radio",
+    "sourceHeadline": "Where to find recordings of Somali music, poetry and radio",
+    "topic": "Music",
+    "body": "Somalia’s recorded culture has a home online through the Somali Studies Centre at Roma Tre University. Its archive includes traditional music, spoken poetry, radio broadcasts from Mogadishu and recordings of plays.",
+    "paragraphs": [
+      "Music In Africa’s directory traces the collection to research collaborations with Somali institutions. It describes traditional recordings collected by Francesco Giannattasio and conversations recorded in the 1980s with members of the Academy of Arts and Science in Mogadishu.",
+      "For listeners exploring Somali music beyond current releases, the collection gives a starting point for hearing how music, radio and spoken word were recorded alongside one another."
+    ],
+    "publishedAt": "2026-11-27T17:21:00.876475+03:00",
+    "sourceDate": "2015-10-22T09:00:00Z",
+    "photo": "mogadishu",
+    "kind": "feature",
+    "references": []
+  }
+]

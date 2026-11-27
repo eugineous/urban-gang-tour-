@@ -9,6 +9,9 @@ import re
 import sys
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 import xml.etree.ElementTree as ET
+
+from runpy import run_path
+media = run_path(str(Path(__file__).with_name('news-media.py')))
 from zoneinfo import ZoneInfo
 
 OUTLETS = {
@@ -16,6 +19,8 @@ OUTLETS = {
     'UG': ('Matooke Republic', {'www.matookerepublic.com'}),
     'NG': ('NotJustOk', {'notjustok.com'}),
     'GB': ('BBC News', {'www.bbc.co.uk', 'www.bbc.com'}),
+    'TZ': ('BBC News Swahili', {'www.bbc.co.uk', 'www.bbc.com'}),
+    'SO': ('BBC News Somali', {'www.bbc.co.uk', 'www.bbc.com'}),
 }
 SENSITIVE = re.compile(
     r'\b(arrest\w*|accus\w*|alleg\w*|arbitrat\w*|charged|crime\w*|police|lawsuit\w*|died|dies|death|murder\w*|'
@@ -23,12 +28,22 @@ SENSITIVE = re.compile(
     r'politic\w*|president\w*|minister\w*|campaign\w*|election\w*|state house)\b', re.I
 )
 TOPICS = [
-    ('Music', re.compile(r'\b(album|song|singer|artist|rapper|music|lyrics|tour|band|playlist|concert|performance)\w*\b', re.I)),
+    ('Music', re.compile(r'\b(album|song|singer|artist|rapper|music|lyrics|tour|band|playlist|concert|performance|wimbo|muziki|hees|muusig)\w*\b', re.I)),
     ('Screen', re.compile(r'\b(film|cinema|actor|actress|hollywood|netflix|television|series|show|studio)\w*\b', re.I)),
     ('Culture', re.compile(r'\b(festival|book|theatre|theater|fashion|award|comedy|art|culture|literature)\w*\b', re.I)),
 ]
-def adapt(title, publisher):
+def adapt(title, publisher, market):
     """Publish only when a supported headline gives enough facts for an original brief."""
+    if market == 'TZ':
+        swahili = re.fullmatch(r'(.{2,65}) (?:atoa|azindua) wimbo mpya [“‘"\'](.{1,80})[”’"\']', title, re.I)
+        if swahili:
+            artist, song = swahili.groups()
+            return f'{artist} releases “{song}”', f'{publisher} reports that {artist} has put out a new song called “{song}”.'
+    if market == 'SO':
+        somali = re.fullmatch(r'(.{2,65}) oo soo saaray hees cusub [“‘"\'](.{1,80})[”’"\']', title, re.I)
+        if somali:
+            artist, song = somali.groups()
+            return f'{artist} releases “{song}”', f'{publisher} reports that {artist} has released a new song called “{song}”.'
     lyrics = re.fullmatch(r'(.{1,95}?) Lyrics by (.{1,90})', title, re.I)
     if lyrics:
         song, performers = lyrics.groups()
@@ -90,10 +105,12 @@ for market, (publisher, hosts) in OUTLETS.items():
     candidates = []
     for entry in ET.fromstring(xml).findall('./channel/item'):
         reported = ' '.join((entry.findtext('title') or '').split())
+        if market in ('TZ', 'SO') and not re.search(r'Tanzania|Dar es Salaam|Tanzanian|Soomaali|Muqdisho|Somalia', reported, re.I):
+            continue
         topic = next((label for label, pattern in TOPICS if pattern.search(reported)), None)
         if not topic or not 12 <= len(reported) <= 190 or SENSITIVE.search(reported):
             continue
-        adapted = adapt(reported, publisher)
+        adapted = adapt(reported, publisher, market)
         if not adapted:
             continue
         headline, body = adapted
@@ -112,14 +129,20 @@ for market, (publisher, hosts) in OUTLETS.items():
         if story_id in seen:
             continue
         seen.add(story_id)
-        candidates.append(dict(id=story_id, country=market, topic=topic, publisher=publisher, url=url,
+        photo = media['licensed_image'](entry, hosts)
+        candidates.append(dict(imageCandidate=photo,id=story_id, country=market, topic=topic, publisher=publisher, url=url,
                                headline=headline, body=body, sourceHeadline=reported, sourceDate=date.isoformat(), publishedAt=now.isoformat()))
     drafts_by_market[market] = sorted(candidates, key=lambda story: story['sourceDate'], reverse=True)
 
 for offset in range(max((len(group) for group in drafts_by_market.values()), default=0)):
     for group in drafts_by_market.values():
         if len(stories) < limit and offset < len(group):
-            stories.append(group[offset])
+            story=group[offset]
+            photo=story.pop('imageCandidate',None)
+            if photo:
+                image=media['store_photo'](photo,story['id'],root)
+                if image: story['sourcePhoto']=image
+            stories.append(story)
 
 if stories:
     today.write_text(json.dumps(dict(day=day, stories=stories), ensure_ascii=False, separators=(',', ':')))
@@ -132,3 +155,9 @@ for age in range(3):
 (root / 'latest-briefs.json').write_text(json.dumps(recent, ensure_ascii=False, separators=(',', ':')))
 if len(sys.argv) > 2 and sys.argv[2] != '-':
     Path(sys.argv[2]).write_text(json.dumps(recent, ensure_ascii=False, separators=(',', ':')))
+
+
+archived = []
+for file in sorted(editions.glob('20??-??-??.json'), reverse=True)[:90]:
+    archived.extend(json.loads(file.read_text())['stories'])
+(root / 'archive-briefs.json').write_text(json.dumps(archived, ensure_ascii=False, separators=(',', ':')))

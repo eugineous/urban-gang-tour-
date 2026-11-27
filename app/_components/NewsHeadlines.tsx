@@ -44,7 +44,7 @@ export function watchNewsRefresh(refresh: () => void) {
   };
 }
 
-export default function NewsHeadlines({posts, now}: {posts: NewsCard[]; now?: number}) {
+export default function NewsHeadlines({posts, now}: {posts: (NewsCard & {href?:string})[]; now?: number}) {
   const router = useRouter();
   useEffect(() => watchNewsRefresh(() => router.refresh()), [router]);
   const heading = useId();
@@ -64,7 +64,7 @@ export default function NewsHeadlines({posts, now}: {posts: NewsCard[]; now?: nu
   return <nav className={styles.headlines} aria-labelledby={heading}>
     <h2 id={heading}>{t(breaking.length ? 'breaking' : 'headlines')}</h2>
     <ul>{headlines.map(post => <li key={post.slug}>
-      <DocumentLink href={'/blog/' + encodeURIComponent(post.slug)} lang="en-KE">{post.headline}</DocumentLink>
+      <DocumentLink href={post.href||'/blog/' + encodeURIComponent(post.slug)} lang="en-KE">{post.headline}</DocumentLink>
     </li>)}</ul>
   </nav>;
 }

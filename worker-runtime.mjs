@@ -69,11 +69,16 @@ export function createWorker(app) {
           try{
             const headers=new Headers(request.headers);headers.set('Accept','application/json');
             for(const key of ['RSC','Next-Router-State-Tree','Next-Router-Prefetch','Next-Url'])headers.delete(key);
-            const feed=await app.fetch(new Request(new URL('/api/site-data/posts',url),{headers}),env,ctx);
+            const endpoint=new URL(newsOptions.newsMode?'/api/site-data/news-desk':'/api/site-data/posts',url);
+            if(newsOptions.newsMode)endpoint.search=url.search;
+            const feed=await app.fetch(new Request(endpoint,{headers}),env,ctx);
             if(!feed.ok)unavailable=true;
             else{
               const data=await feed.json();
-              if(data.ok!==true||!Array.isArray(data.posts)||!data.posts.every(post=>post&&typeof post==='object'&&!Array.isArray(post)&&typeof post.id==='string'&&post.id&&typeof post.headline==='string'))unavailable=true;
+              if(newsOptions.newsMode){
+                if(!Number.isSafeInteger(data.pageCount)||data.pageCount<1)unavailable=true;
+                else missing=query.page>data.pageCount;
+              }else if(data.ok!==true||!Array.isArray(data.posts)||!data.posts.every(post=>post&&typeof post==='object'&&!Array.isArray(post)&&typeof post.id==='string'&&post.id&&typeof post.headline==='string'))unavailable=true;
               else missing=query.page>newsArchive(data.posts,query,newsOptions).pageCount;
             }
           }catch{unavailable=true}
