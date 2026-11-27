@@ -26,7 +26,7 @@ export async function GET() {
       <pubDate>${publicationInstant(p.datePublished).toUTCString()}</pubDate>
       <description>${esc(p.description)}</description>
       <category>${esc(p.section)}</category>
-      <media:content url="${esc(publicImageUrl(p.image))}" medium="image" />
+      ${p.image?`<media:content url="${esc(publicImageUrl(p.image))}" medium="image" />`:''}
     </item>`;
   }).join('\n');
 

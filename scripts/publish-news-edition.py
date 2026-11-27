@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 
 from runpy import run_path
 media = run_path(str(Path(__file__).with_name('news-media.py')))
+blocked = run_path(str(Path(__file__).with_name('news-policy.py')))['blocked']
 from zoneinfo import ZoneInfo
 
 OUTLETS = {
@@ -69,11 +70,6 @@ def adapt(title, publisher, market):
         extra = f' The concert marks {milestone}, the outlet reports.' if milestone else ''
         return (f'{artist} is bringing “{event}” to {venue}',
                 f'{venue} will host {artist} for a concert called “{event}”, according to {publisher}.'+extra)
-    sponsor = re.fullmatch(r'(.+?) backs (.+?)[’\']s [‘\'](.+?)[’\'] (.+?) concert', title, re.I)
-    if sponsor:
-        sponsor, artist, event, city = sponsor.groups()
-        return (f'{artist} lands backing for its {city} concert',
-                f'{sponsor} is backing “{event}”, the {city} concert by {artist}, according to {publisher}.')
     departures = re.fullmatch(r'(.+?) will not return for new (.+?) series', title, re.I)
     if departures:
         cast, broadcaster = departures.groups()
@@ -120,7 +116,7 @@ for market, (publisher, hosts) in OUTLETS.items():
         if market in ('TZ', 'SO') and not re.search(r'Tanzania|Dar es Salaam|Tanzanian|Soomaali|Muqdisho|Somalia', reported, re.I):
             continue
         topic = 'Sport' if market=='KE_SPORT' else next((label for label, pattern in TOPICS if pattern.search(reported)), None)
-        if not topic or not 12 <= len(reported) <= 190 or SENSITIVE.search(reported):
+        if not topic or not 12 <= len(reported) <= 190 or SENSITIVE.search(reported) or blocked(reported, entry.findtext('link')):
             continue
         adapted = adapt(reported, publisher, market)
         if not adapted:
@@ -142,6 +138,8 @@ for market, (publisher, hosts) in OUTLETS.items():
             continue
         seen.add(story_id)
         photo = media['licensed_image'](entry, hosts)
+        if not photo or blocked(photo['alt'],photo['url']):
+            continue
         candidates.append(dict(imageCandidate=photo,id=story_id, country=market.split('_')[0], topic=topic, publisher=publisher, url=url,
                                headline=headline, body=body, sourceHeadline=reported, sourceDate=date.isoformat(), publishedAt=now.isoformat()))
     drafts_by_market[market] = sorted(candidates, key=lambda story: story['sourceDate'], reverse=True)
@@ -151,10 +149,10 @@ for offset in range(max((len(group) for group in drafts_by_market.values()), def
         if len(stories) < limit and offset < len(group):
             story=group[offset]
             photo=story.pop('imageCandidate',None)
-            if photo:
-                image=media['store_photo'](photo,story['id'],root)
-                if image: story['sourcePhoto']=image
-            stories.append(story)
+            image=media['store_photo'](photo,story['id'],root) if photo else None
+            if image:
+                story['sourcePhoto']=image
+                stories.append(story)
 
 if stories:
     today.write_text(json.dumps(dict(day=day, stories=stories), ensure_ascii=False, separators=(',', ':')))

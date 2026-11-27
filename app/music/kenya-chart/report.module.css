@@ -24,3 +24,12 @@
 .credit {margin:1.5rem 0}
 .credit img {margin-bottom:.45rem}
 .credit figcaption {color:#5e5260;font-size:.81rem}
+
+.articleCopy{font-size:clamp(1.02rem,2.35vw,1.18rem);line-height:1.72;color:#2a2029}
+.articleCopy p{margin-block:1em}
+.articleCopy strong{font-weight:760;color:#2d1227}
+.articleCopy blockquote{margin:1.6rem 0 .6rem;padding:1rem 1.2rem;border-left:4px solid #a60060;background:#f8edf5;color:#4e203c;font-size:1.2em;line-height:1.4}
+.articleCopy blockquote+p{font-size:.85em;margin-top:.25rem}
+.report a:focus-visible{outline:2px solid #a60060;outline-offset:3px}
+.readNext{border-top:1px solid #d6cdd4;margin-top:1.6rem}
+.readNext ul{padding-left:1.2rem}

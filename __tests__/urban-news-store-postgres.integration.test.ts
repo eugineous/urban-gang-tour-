@@ -17,7 +17,7 @@ import {dispatchArticleAnnouncement,dispatchDueArticleAnnouncements} from '@/lib
 import {trashStory,restoreStory} from '@/lib/server/story-workspace';
 import {POST as saveLegacyStory} from '@/app/api/admin/save/route';
 const source:DiscoveredNews={url:'https://example.test/fixture?utm_source=one',title:'Fixture announcement',publisher:'Fixture publisher',country:'KE',language:'en',observedAt:'2026-11-17T00:00:00Z',provider:'manual'};
-const draft:UrbanNewsDraft={headline:'Fictional fixture music announcement',dek:'Fixture reporting only.',body:['The fictional fixture artist announced a release.'],category:'music',country:'KE',verification:'attributed',subjectKind:'public_figure',risk:'routine',evidence:[{id:'source-1',url:'https://example.test/fixture',publisher:'Fixture publisher',title:'Fixture announcement',observedAt:'2026-11-17T00:00:00Z',publishedAt:null,excerpt:'Private excerpt NEVER public',rights:'public_facts',role:'primary',independenceKey:'fixture-publisher',checked:true}],claims:[{text:'A fixture release was announced.',evidenceIds:['source-1']}],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:'Prepared with AI assistance and reviewed.'};
+const draft:UrbanNewsDraft={headline:'Fictional fixture music announcement',dek:'Fixture reporting only.',body:['The fictional fixture artist announced a release.'],category:'music',country:'KE',verification:'attributed',subjectKind:'public_figure',risk:'routine',evidence:[{id:'source-1',url:'https://example.test/fixture',publisher:'Fixture publisher',title:'Fixture announcement',observedAt:'2026-11-17T00:00:00Z',publishedAt:null,excerpt:'Private excerpt NEVER public',rights:'public_facts',role:'primary',independenceKey:'fixture-publisher',checked:true}],claims:[{text:'A fixture release was announced.',evidenceIds:['source-1']}],image:'/media/admin-stories/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/photo.webp',imageAlt:'Licensed fixture photo',imageRights:'licensed',author:'Urban News',disclosure:'Prepared with AI assistance and reviewed.'};
 const approve=(item:{id:string;revision:number;liveRevision:number|null},d=draft)=>({id:item.id,expectedRevision:item.revision,expectedLiveRevision:item.liveRevision,approvedHash:urbanNewsDraftHash(d),checks:{facts:true,rights:true,attribution:true}});
 const it=(name:string,run:()=>Promise<void>)=>testCase(name,run,30000);
 describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolated SQL publication',()=>{
@@ -34,8 +34,11 @@ describe.skipIf(process.env.UGT_URBAN_NEWS_PG_FIXTURE!=='1')('Urban News isolate
   const record=await createUrbanNewsCandidate({...source,provider:'apple_chart',url:'https://music.apple.com/ke/album/test/1?i=2',title:'Fixture leads the Kenya chart',publisher:'Apple Music'},'owner','fixture-chart-first');
   expect(record.draft.evidence[0]).toMatchObject({checked:true,role:'primary',rights:'public_facts'});expect(record.liveRevision).toBeNull();
   expect(record.draft.body[0]).toContain('2026-11-17');
-  const live=await publishUrbanNews(approve(record,record.draft),'owner');
-  expect(live.liveRevision).toBe(record.revision);
+  await expect(publishUrbanNews(approve(record,record.draft),'owner')).rejects.toThrow('news_image_rights_required');
+  const withPhoto={...record.draft,image:draft.image,imageAlt:draft.imageAlt,imageRights:draft.imageRights};
+  const saved=await saveUrbanNewsDraft(record.id,record.revision,withPhoto,'owner');
+  const live=await publishUrbanNews(approve(saved,withPhoto),'owner');
+  expect(live.liveRevision).toBe(saved.revision);
   await retractUrbanNews(live.id,live.revision,'End isolated chart fixture.','owner');
  });
  it('deduplicates canonical discovery and response replays without changing legacy content',async()=>{

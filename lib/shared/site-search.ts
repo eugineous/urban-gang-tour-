@@ -1,7 +1,7 @@
 import {isEventIndexable} from '@/lib/server/event-lifecycle';
 export type SiteSearchGroup='news'|'events'|'shop'|'films'|'people';
 export type SiteSearchResult={group:SiteSearchGroup;items:{title:string;description:string;href:string}[]};
-type News={slug:string;headline:string;description?:string;section?:string;datePublished:string;status?:string;published?:boolean};
+type News={slug:string;href?:string;headline:string;description?:string;section?:string;datePublished:string;status?:string;published?:boolean};
 type Event={slug:string;name:string;description?:string;venue?:string;city?:string;status:string};
 type Product={id:string;name:string;description?:string;category?:string;active?:boolean};
 type Film={id:string;kind:string;title:string;collection:string;src:string;poster:string|null;adult:boolean;originalCaption?:string};
@@ -17,7 +17,7 @@ export function searchPublicSite(input:SiteSearchInput,query:unknown,now:number)
  const groups:Record<SiteSearchGroup,SiteSearchResult['items']>={news:[],events:[],shop:[],films:[],people:[]};
  const seen=new Set<string>();
  function add(group:SiteSearchGroup,title:string,description:string|undefined,href:string){if(groups[group].length>=8||seen.has(href))return;seen.add(href);groups[group].push({title:title.slice(0,300),description:(description||'').slice(0,240),href})}
- for(const row of input.news.slice(0,5000)){const date=Date.parse(row.datePublished);if(!/^[\w-]{1,180}$/.test(row.slug)||row.published===false||(row.status!==undefined&&row.status!=='published')||!Number.isFinite(date)||date>now)continue;if(matches(row.headline,row.description,row.section))add('news',row.headline,row.description,'/blog/'+encodeURIComponent(row.slug))}
+ for(const row of input.news.slice(0,5000)){const date=Date.parse(row.datePublished);if(!/^[\w-]{1,180}$/.test(row.slug)||row.published===false||(row.status!==undefined&&row.status!=='published')||!Number.isFinite(date)||date>now)continue;if(matches(row.headline,row.description,row.section))add('news',row.headline,row.description,row.href&&/^\/news\/brief\/20\d\d-\d\d-\d\d\/[a-f0-9]{24}$/.test(row.href)?row.href:'/blog/'+encodeURIComponent(row.slug))}
  for(const row of input.events.slice(0,5000)){if(!isEventIndexable(row.status)||!row.slug)continue;if(matches(row.name,row.description,row.venue,row.city))add('events',row.name,row.description,'/events/'+encodeURIComponent(row.slug))}
  for(const row of input.products.slice(0,5000)){if(row.active===false||!row.id)continue;if(matches(row.name,row.description,row.category))add('shop',row.name,row.description,'/shop/'+encodeURIComponent(row.id))}
  const seenFilms=new Set<string>();for(const row of input.films.slice(0,5000)){if(row.kind!=='video'||row.adult||!row.src||!row.poster||seenFilms.has(row.src))continue;seenFilms.add(row.src);if(matches(row.title,row.originalCaption,row.collection))add('films',row.title,row.originalCaption,'/watch?clip='+encodeURIComponent(row.id)+'#film-'+encodeURIComponent(row.id))}

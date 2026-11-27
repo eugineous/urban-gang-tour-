@@ -5,6 +5,10 @@ import os
 import sys
 import urllib.request
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from runpy import run_path
+
+blocked = run_path(str(Path(__file__).with_name('news-policy.py')))['blocked']
 
 MEDIA = '{http://search.yahoo.com/mrss/}'
 
@@ -40,7 +44,11 @@ def collect(job):
         if b'<!DOCTYPE' in payload.upper():
             raise ValueError('DTD')
         channel = ET.SubElement(root := ET.Element('rss'), 'channel')
-        for entry in ET.fromstring(payload).findall('./channel/item')[:15]:
+        for entry in ET.fromstring(payload).findall('./channel/item')[:30]:
+            if blocked(entry.findtext('title'), entry.findtext('description'), *[field.text for field in entry.findall('category')]):
+                continue
+            if len(channel) >= 15:
+                break
             item = ET.SubElement(channel, 'item')
             for key in ('title', 'link', 'pubDate'):
                 ET.SubElement(item, key).text = (entry.findtext(key) or '')[:900]

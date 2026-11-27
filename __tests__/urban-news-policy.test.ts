@@ -1,7 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {urbanNewsDraftHash,validateUrbanNewsDraft,validateNewsPublication,canonicalNewsUrl} from '@/lib/server/urban-news-policy';
 import type {UrbanNewsDraft} from '@/lib/shared/urban-news';
-export const checkedDraft:UrbanNewsDraft={headline:'A fictional music announcement',dek:'Fixture reporting only.',body:['The fictional artist announced a fixture release.'],category:'music',country:'KE',verification:'attributed',subjectKind:'public_figure',risk:'routine',evidence:[{id:'source-1',url:'https://example.test/announcement',publisher:'Fixture publisher',title:'Fixture announcement',observedAt:'2026-11-17T00:00:00Z',publishedAt:null,excerpt:'The fictional artist announced a fixture release.',rights:'public_facts',role:'primary',independenceKey:'fixture-publisher',checked:true}],claims:[{text:'A release was announced.',evidenceIds:['source-1']}],image:'',imageAlt:'',imageRights:'none',author:'Urban News',disclosure:'Prepared with AI assistance; reviewed by an editor.'};
+export const checkedDraft:UrbanNewsDraft={headline:'A fictional music announcement',dek:'Fixture reporting only.',body:['The fictional artist announced a fixture release.'],category:'music',country:'KE',verification:'attributed',subjectKind:'public_figure',risk:'routine',evidence:[{id:'source-1',url:'https://example.test/announcement',publisher:'Fixture publisher',title:'Fixture announcement',observedAt:'2026-11-17T00:00:00Z',publishedAt:null,excerpt:'The fictional artist announced a fixture release.',rights:'public_facts',role:'primary',independenceKey:'fixture-publisher',checked:true}],claims:[{text:'A release was announced.',evidenceIds:['source-1']}],image:'/media/admin-stories/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/photo.webp',imageAlt:'Licensed fixture photo',imageRights:'licensed',author:'Urban News',disclosure:'Prepared with AI assistance; reviewed by an editor.'};
 describe('Urban News editorial policy',()=>{
  it('hashes the full saved revision including evidence with stable object ordering',()=>{
   expect(urbanNewsDraftHash(checkedDraft)).toMatch(/^[a-f0-9]{64}$/);
@@ -33,4 +33,12 @@ describe('Urban News editorial policy',()=>{
  it('rejects normalized impossible evidence dates instead of emitting invented source publication dates',()=>{
   expect(()=>validateUrbanNewsDraft({...checkedDraft,evidence:[{...checkedDraft.evidence[0],publishedAt:'2026-02-30T12:00:00Z'}]})).toThrow('invalid_news_evidence');
  });
+});
+
+it('holds drafts without a real photo and rejects paid promotions, gambling and adult material',()=>{
+ const checks={facts:true,rights:true,attribution:true};
+ expect(()=>validateNewsPublication({...checkedDraft,image:'',imageAlt:'',imageRights:'none'},checks)).toThrow('news_image_rights_required');
+ for(const title of ['Sponsored content about a fixture', 'Gambling campaign', '18+ release', 'Story with nudity']){
+  expect(()=>validateNewsPublication({...checkedDraft,headline:title},checks)).toThrow('news_editorial_exclusion');
+ }
 });

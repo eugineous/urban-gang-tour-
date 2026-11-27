@@ -6,7 +6,9 @@
     "credit": "MTV International",
     "license": "https://creativecommons.org/licenses/by/3.0",
     "licenseLabel": "CC BY 3.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tiwa_Savage_EMA_2018.png"
+    "source": "https://commons.wikimedia.org/wiki/File:Tiwa_Savage_EMA_2018.png",
+    "width": 414,
+    "smallWidth": 313
   },
   "stonebwoy": {
     "path": "/news/photos/stonebwoy-960.webp",
@@ -15,7 +17,9 @@
     "credit": "Gilbertasante1234",
     "license": "https://creativecommons.org/licenses/by-sa/4.0",
     "licenseLabel": "CC BY-SA 4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Stonebwoy_Burniton.JPG"
+    "source": "https://commons.wikimedia.org/wiki/File:Stonebwoy_Burniton.JPG",
+    "width": 640,
+    "smallWidth": 320
   },
   "nikita-kering": {
     "path": "/news/photos/nikita-kering-960.webp",
@@ -24,7 +28,9 @@
     "credit": "Capital FM",
     "license": "https://creativecommons.org/licenses/by/3.0",
     "licenseLabel": "CC BY 3.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Nikita_Kering_Cap_FM.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:Nikita_Kering_Cap_FM.jpg",
+    "width": 468,
+    "smallWidth": 468
   },
   "nairobi": {
     "path": "/news/photos/nairobi-960.webp",
@@ -33,7 +39,9 @@
     "credit": "Timothy A. Gonsalves",
     "license": "https://creativecommons.org/licenses/by-sa/4.0",
     "licenseLabel": "CC BY-SA 4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Nairobi_Skyline_Savannah_Kenya_May19_R1600687.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:Nairobi_Skyline_Savannah_Kenya_May19_R1600687.jpg",
+    "width": 960,
+    "smallWidth": 480
   },
   "mogadishu": {
     "path": "/news/photos/mogadishu-960.webp",
@@ -42,6 +50,52 @@
     "credit": "Isma4l",
     "license": "https://creativecommons.org/licenses/by-sa/4.0",
     "licenseLabel": "CC BY-SA 4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Mogadishu_Skyline_14th_picture.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:Mogadishu_Skyline_14th_picture.jpg",
+    "width": 622,
+    "smallWidth": 311
+  },
+  "aar-maanta": {
+    "path": "/news/photos/aar-maanta-960.webp",
+    "small": "/news/photos/aar-maanta-480.webp",
+    "alt": "Somali musician Aar Maanta",
+    "credit": "Abdullahi",
+    "license": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseLabel": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Aar_Maanta.jpg",
+    "width": 960,
+    "smallWidth": 480
+  },
+  "rachael-magoola": {
+    "path": "/news/photos/rachael-magoola-960.webp",
+    "small": "/news/photos/rachael-magoola-480.webp",
+    "alt": "Rachael Magoola in an official portrait",
+    "credit": "Ssemmanda will",
+    "license": "https://creativecommons.org/publicdomain/zero/1.0",
+    "licenseLabel": "CC0",
+    "source": "https://commons.wikimedia.org/wiki/File:Magoola_Rachel_Miriel.jpg",
+    "width": 918,
+    "smallWidth": 459
+  },
+  "taylor-ongwae": {
+    "path": "/news/photos/taylor-ongwae-960.webp",
+    "small": "/news/photos/taylor-ongwae-480.webp",
+    "alt": "Nairobi City Thunder’s Taylor Ongwae during his college career, in a 2014 file photograph",
+    "credit": "Dennis Adair",
+    "license": "https://creativecommons.org/licenses/by-sa/2.0",
+    "licenseLabel": "CC BY-SA 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tylor_Ongwae.jpg",
+    "width": 661,
+    "smallWidth": 410
+  },
+  "diamond": {
+    "path": "/news/photos/diamond-960.webp",
+    "small": "/news/photos/diamond-480.webp",
+    "alt": "Tanzanian musician Diamond Platnumz in a file photograph",
+    "credit": "Peter Bennett / ZIFF",
+    "license": "https://creativecommons.org/licenses/by/2.0",
+    "licenseLabel": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Diamond_Platnumz.jpg",
+    "width": 625,
+    "smallWidth": 480
   }
 }

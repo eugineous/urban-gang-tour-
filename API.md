@@ -1408,6 +1408,10 @@ See [provider setup](docs/platform-integration-operations.md#qwencloud-provider-
 credential. Public `/api/site-data/posts`, `/blog`, feeds and sitemaps all share
 the currently selected publication predicate. See [operations](docs/urban-news-operations.md).
 
+`GET /api/site-data/news-preview` is a public, rate-limited read for the news
+link on other pages. It returns the latest photo-ready Kenya report as
+`{headline,path}` or `null` while Urban News is disabled or no report is ready.
+
 ### Private reading preferences
 
 `GET /api/account/news-preferences` returns only the authenticated buyer’s

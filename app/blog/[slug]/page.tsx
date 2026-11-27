@@ -38,9 +38,9 @@ export async function generateMetadata(
     alternates: { canonical: url, types: { 'application/rss+xml': `${SITE.domain}/feed.xml` } },
     openGraph: {
       type: 'article', title: post.headline, description: post.description, url,
-      images: [{ url: img }], publishedTime: post.datePublished, modifiedTime: post.dateModified,
+      ...(post.image?{images:[{url:img}]}:{}), publishedTime: post.datePublished, modifiedTime: post.dateModified,
     },
-    twitter: { card: 'summary_large_image', title: post.headline, description: post.description, images: [img] },
+    twitter: { card: 'summary_large_image', title: post.headline, description: post.description, ...(post.image?{images:[img]}:{}) },
   };
 }
 

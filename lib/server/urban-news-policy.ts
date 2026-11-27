@@ -1,3 +1,4 @@
+import {blockedNewsMaterial,realNewsImage} from '@/lib/shared/urban-news-editing';
 import {createHash} from 'node:crypto';
 import {isIP} from 'node:net';
 import {NEWS_CATEGORIES,type UrbanNewsDraft,type NewsPublication} from '@/lib/shared/urban-news';
@@ -58,5 +59,6 @@ export function validateNewsPublication(draft:UrbanNewsDraft,checks:NewsPublicat
  const checked=new Set(draft.evidence.filter(evidence=>evidence.checked).map(evidence=>evidence.id));
  if(draft.claims.some(claim=>!claim.evidenceIds.length||claim.evidenceIds.some(id=>!checked.has(id))))throw Error('news_claim_evidence_required');
  if(draft.verification==='confirmed'&&!draft.evidence.some(evidence=>evidence.role==='primary')&&new Set(draft.evidence.map(evidence=>evidence.independenceKey.toLowerCase())).size<2)throw Error('news_independent_sources_required');
- if(draft.image&&(draft.imageRights==='none'||!draft.imageAlt.trim()))throw Error('news_image_rights_required');
+ if(blockedNewsMaterial(draft.headline,draft.dek,...draft.body,...draft.evidence.flatMap(evidence=>[evidence.title,evidence.url])))throw Error('news_editorial_exclusion');
+ if(!realNewsImage(draft.image)||draft.imageRights==='none'||!draft.imageAlt.trim())throw Error('news_image_rights_required');
 }

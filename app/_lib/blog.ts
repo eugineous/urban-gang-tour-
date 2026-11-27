@@ -1,3 +1,4 @@
+import {blockedNewsMaterial,realNewsImage} from '@/lib/shared/urban-news-editing';
 import { SITE } from '@/lib/site';
 import {publicImageUrl} from '@/lib/public-image-url';
 import { cached } from '@/lib/server/microcache';
@@ -43,7 +44,7 @@ function postSummary(r: BlogPostSummaryRow): BlogPostSummary {
   return {
     slug:r.slug,headline:r.headline,
     datePublished:r.publication_time ? new Date(r.publication_time).toISOString() : iso(r.date),
-    section:r.section || 'News',image:r.image || '/assets/poster.png',description:r.dek || '',
+    section:r.section || 'News',image:urbanNewsEnabled()?realNewsImage(r.image??undefined):r.image||'/assets/poster.png',description:r.dek || '',
     imageAlt:r.public_asset?.alt,
     ...(r.public_country?{newsCountry:r.public_country}:{}),...(r.public_verification?{newsVerification:r.public_verification}:{}),
   };
@@ -56,7 +57,7 @@ export async function getBlogPostSummaries(throwOnError=false): Promise<BlogPost
       const key='blog-published-post-summaries'+(urbanNewsEnabled()?':urban-news':'');
       const sql=getPublicPostSummarySelect();
       const rows = await cached(key, 1_000, () => q<BlogPostSummaryRow>(sql), false);
-      return rows.map(postSummary);
+      return rows.filter(row=>!urbanNewsEnabled()||!blockedNewsMaterial(row.headline,row.dek??undefined)).map(postSummary);
     }
   } catch(error) { if(throwOnError)throw error; }
   return [];
@@ -76,7 +77,7 @@ export async function getBlogPosts(throwOnError=false): Promise<BlogPost[]> {
       const sql=getPublicPostSelect();
       const rows = await cached(key, 1_000, () => q(sql), false);
       if (rows.length) {
-        return rows.map((r: any) => ({
+        return rows.filter((row)=>!urbanNewsEnabled()||!blockedNewsMaterial(row.headline,row.dek,...(Array.isArray(row.body)?row.body:[]))).map((r: any) => ({
           ...postSummary(r),
           dateModified: r.modification_time||r.updated_at ? new Date(Math.max(new Date(r.modification_time||r.updated_at).getTime(),r.publication_time?new Date(r.publication_time).getTime():0)).toISOString() : iso(r.date),
           body: Array.isArray(r.body) ? r.body : [],
@@ -103,7 +104,7 @@ export function articleJsonLd(post: BlogPost) {
     datePublished: post.datePublished,
     dateModified: post.dateModified,
     articleSection: post.section,
-    ...(post.newsRevision&&post.image==='/assets/pwa-512.png'?{}:{image:[publicImageUrl(post.image)]}),
+    ...(post.image?{image:[publicImageUrl(post.image)]}:{}),
     description: post.description,
     articleBody: post.body.join('\n\n'),
     mainEntityOfPage: url,

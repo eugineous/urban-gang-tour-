@@ -11,7 +11,7 @@ import styles from './UrbanNewsFrontPage.module.css';
 
 export type NewsDeskStory={
   href:string;slug:string;headline:string;summary:string;description:string;section:string;
-  image:string;imageAlt?:string;imageSmall?:string;newsCountry?:string;datePublished:string;
+  image:string;imageAlt?:string;imageSrcSet?:string;newsCountry?:string;datePublished:string;
   sourceCount:number;sourceDate?:string;newsVerification?:NewsVerification;
 };
 const calendar=new Intl.DateTimeFormat('en-KE',{month:'short',day:'numeric',timeZone:'Africa/Nairobi'});
@@ -29,13 +29,14 @@ export function storyCategoryLinks(query:NewsArchiveQuery){
 }
 
 function StoryImage({story,lead=false}:{story:NewsDeskStory;lead?:boolean}){
-  return <img src={story.image} srcSet={story.imageSmall?`${story.imageSmall} 480w, ${story.image} 960w`:undefined}
+  if(!story.image)return null;
+  return <img src={story.image} srcSet={story.imageSrcSet}
     sizes={lead?'(max-width:760px) 94vw, 720px':'(max-width:760px) 45vw, 400px'}
     alt={story.imageAlt||''} width={1200} height={675} loading={lead?'eager':'lazy'} fetchPriority={lead?'high':'auto'} decoding="async"/>;
 }
 export function StoryTile({story}:{story:NewsDeskStory}){
   return <article className={styles.card} data-news-story={story.href}><Link href={story.href}>
-    <div className={styles.cardImage}><StoryImage story={story}/></div>
+    {story.image&&<div className={styles.cardImage}><StoryImage story={story}/></div>}
     <StoryCredit story={story}/><h3>{story.headline}</h3>
   </Link></article>;
 }
@@ -65,9 +66,9 @@ export default function UrbanNewsFrontPage({stories,trending,query,now,pages,tre
       </div>
     </header>
     <NewsHeadlines posts={stories} now={now} alerts/>
-    {lead?<article className={styles.lead} data-news-story={lead.href}>
+    {lead?<article className={styles.lead} data-news-story={lead.href} data-has-photo={!!lead.image}>
       <Link href={lead.href}>
-        <div className={styles.leadImage}><StoryImage story={lead} lead/></div>
+        {lead.image&&<div className={styles.leadImage}><StoryImage story={lead} lead/></div>}
         <div className={styles.leadCopy}><StoryCredit story={lead}/><h2>{lead.headline}</h2><p>{lead.summary}</p><span>Read story <Icons.ArrowUpRight size={17} aria-hidden="true"/></span></div>
       </Link>
     </article>:<p className={styles.empty}>{filtered?'No stories matched this search.':`There are no published stories for ${marketName} yet.`}</p>}

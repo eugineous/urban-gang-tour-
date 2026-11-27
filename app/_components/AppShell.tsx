@@ -5,6 +5,7 @@ import BackToTop from './BackToTop';
 import {shellMessages,navigationMessageKey,navigationGroupKey} from '@/ui/i18n/catalogues/shell';
 import {discoveryMessages} from '@/ui/i18n/catalogues/urban-discovery';
 import {useMessages} from '@/ui/i18n/LanguageProvider';
+import NewsPreviewStrip from './NewsPreviewStrip';
 import RouteLoading from './RouteLoading';
 import {Suspense,useEffect,useRef,useState,type CSSProperties} from 'react';
 import {ShoppingCart,Ticket,ArrowUpRight,MagnifyingGlass} from '@phosphor-icons/react';
@@ -94,6 +95,7 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
  const operational=path.startsWith('/admin')||path.startsWith('/organizer/dashboard');
  if(operational||/^\/(t|tickets|receipt|verify)(\/|$)/.test(path))return <><InteractionCraft/><main id="main-content" tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main></>;
  const critical=/^\/(shop|checkout|pay|book|account|my-tickets|organizer|cart|orders|receipt|tickets|t|verify)(\/|$)/.test(path);
+ const preview=newsMode&&/^\/(events|shop|author|about|experience|partners|clients|gallery|watch|portfolio|proof|faq|ticketing)(?:\/|$)/.test(path);
  const HomeLink=newsMode&&!critical?ReaderLink:'a';
  return <>
   <InteractionCraft/>
@@ -119,7 +121,7 @@ function PathShell({children,path,events,initialNow,newsMode}:{children:React.Re
    <div className="menu-groups">{(newsMode?[{title:'Urban News',items:[['News','/blog'],['Watch','/watch'],['For you','/for-you'],['Reading preferences','/news-preferences'],['Search','/search']]},...menuGroups]:menuGroups).map(group=><nav key={group.title} aria-label={groupLabel(group.title)}>{group.items.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}><span className="menu-link-copy"><strong>{navLabel(label,href)}</strong></span><span aria-hidden="true">→</span></a>)}</nav>)}</div>
    <div className="menu-bottom"><nav className="menu-account-links" aria-label={t('nav.accountHelp')}>{utilityLinks.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)} aria-current={isNavigationCurrent(path,href)?'page':undefined}>{navLabel(label,href)}</a>)}</nav></div>
   </dialog>
-  <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}><Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
+  <main id="main-content" data-public-surface={path.startsWith('/organizer')?undefined:critical?'transaction':'editorial'} inert={open} className={`application-content ${/^\/(blog|events)\/.+/.test(path)?'detail-offset':''}`} tabIndex={-1}>{preview&&<NewsPreviewStrip/>}<Suspense fallback={<RouteLoading/>}>{children}</Suspense></main>
   {!critical&&path!=='/'&&path!=='/reels'&&path!=='/offline'&&path!=='/apply'&&<EventPlacements events={events} initialNow={initialNow} path={path}/>}
   {path!=='/apply'&&<CampaignDisplays path={path} paused={open||focus}/>}
   {!critical&&path!=='/apply'&&<BookingInvitation paused={open||focus}/>}
