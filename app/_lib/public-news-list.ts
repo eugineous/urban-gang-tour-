@@ -10,7 +10,7 @@ export async function getPublicNewsList(){
     ...briefs.map(brief=>{
       const path=publisherBriefHref(brief);
       return {path,headline:brief.headline,description:brief.body,section:brief.topic,
-        image:briefPhoto(brief)?.path||path+'/cover',schemaType:'NewsArticle',datePublished:new Date(brief.publishedAt).toISOString(),dateModified:new Date(brief.publishedAt).toISOString()};
+        image:briefPhoto(brief)?.path||'',schemaType:'NewsArticle',datePublished:new Date(brief.publishedAt).toISOString(),dateModified:new Date(brief.publishedAt).toISOString()};
     }),
   ].sort((a,b)=>publicationInstant(b.datePublished).getTime()-publicationInstant(a.datePublished).getTime());
 }

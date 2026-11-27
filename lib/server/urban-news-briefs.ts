@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import reports from '../../data/urban-news-reports.json';
 import photos from '../../data/urban-news-photos.json';
 import bundledBriefs from '../../data/urban-news-local-briefs.json';
+import {blockedNewsMaterial} from '@/lib/shared/urban-news-editing';
 import {cached} from './microcache';
 import {canonicalNewsUrl} from './urban-news-policy';
 
@@ -36,6 +37,7 @@ export type PublisherBrief = {
   references?:{url:string;label:string}[];
   photo?:string;
   kind?:string;
+  categories?:string[];
   sourcePhoto?:SourcePhoto;
 };
 const storyText=(value:unknown,max:number):value is string=>typeof value==='string'&&value.length>=12&&value.length<=max&&!/[<>\p{Cf}\u0000-\u001f]/u.test(value);
@@ -51,7 +53,7 @@ export function parsePublisherBriefs(input:unknown,limit=45):PublisherBrief[] {
     if(!isObject(row)||typeof row.country!=='string'||!Object.hasOwn(outlets,row.country))return [];
     const outlet=outlets[row.country as keyof typeof outlets];
     const publisher=outlet.publisher===row.publisher?outlet.publisher:row.country==='KE'&&row.publisher==='The Standard Sport'?'The Standard Sport':null;
-    if(!publisher||!topics.some(topic=>topic===row.topic)||
+    if(!publisher||blockedNewsMaterial(row.headline as string,row.sourceHeadline as string,row.body as string,row.url as string)||!topics.some(topic=>topic===row.topic)||
       !storyText(row.sourceHeadline,190)||!storyText(row.headline,230)||!storyText(row.body,450)||typeof row.sourceDate!=='string'||
       !Number.isFinite(Date.parse(row.sourceDate))||typeof row.publishedAt!=='string'||
       !Number.isFinite(Date.parse(row.publishedAt))||Date.parse(row.publishedAt)>Date.now()+60000)return [];
@@ -95,7 +97,7 @@ async function readEdition(path:string,maxBytes=80_000) {
   }finally{reader.releaseLock()}
 }
 
-const editorialReports=reports as PublisherBrief[];
+const editorialReports=(reports as PublisherBrief[]).filter(brief=>!blockedNewsMaterial(brief.headline,brief.body,...(brief.paragraphs??[])));
 function mergeReports(rows:PublisherBrief[]) {
   return [...new Map([...rows,...editorialReports].map(story=>[story.id,story])).values()]
     .sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
@@ -112,13 +114,16 @@ export async function getBriefArchive(){
 export function briefPhoto(brief:PublisherBrief) {
   if(brief.sourcePhoto){
     const href=publisherBriefHref(brief)+'/photo/';
-    return {...brief.sourcePhoto,path:href+'960',small:href+'480'};
+    return {...brief.sourcePhoto,path:href+'960',srcSet:undefined};
   }
   let key=brief.photo;
   if(!key&&/\bTiwa Savage\b/i.test(brief.sourceHeadline))key='tiwa-savage';
   if(!key&&/\bStonebwoy\b/i.test(brief.sourceHeadline))key='stonebwoy';
   if(!key&&/\bNikita Kering\b/i.test(brief.sourceHeadline))key='nikita-kering';
-  return key&&Object.hasOwn(photos,key)?photos[key as keyof typeof photos]:undefined;
+  if(!key&&/\bRach(?:ael|eal) Magoola\b/i.test(brief.sourceHeadline))key='rachael-magoola';
+  if(!key||['nairobi','mogadishu'].includes(key)||!Object.hasOwn(photos,key))return;
+  const photo=photos[key as keyof typeof photos];
+  return {...photo,srcSet:photo.smallWidth<photo.width?`${photo.small} ${photo.smallWidth}w, ${photo.path} ${photo.width}w`:undefined};
 }
 
 export async function getPublisherBriefs(country?:string) {

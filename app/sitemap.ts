@@ -45,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: modifiedAt(p.dateModified),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
+    ...(p.image?{images:[new URL(p.image,SITE.domain).href]}:{}),
   }));
 
   // Plain RSC pages that live outside the dc-runtime ROUTES registry

@@ -182,7 +182,7 @@ export async function publishUrbanNews(input:NewsPublication,actor:string):Promi
   FROM urban_news_candidates candidate WHERE id=$1 AND revision=$2 AND live_revision IS NOT DISTINCT FROM $3::int AND draft_hash=$4 AND stage<>'archived' FOR UPDATE
  ), projection AS (
   INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,editorial_managed,social_automation_enabled,urban_news_id,urban_news_revision,urban_news_hash,urban_news_public,updated_at)
-  SELECT $5,draft->>'headline',draft->>'category',CASE WHEN draft->>'image'='' THEN '/assets/pwa-512.png' ELSE draft->>'image' END,draft->>'dek',draft->'body',true,
+  SELECT $5,draft->>'headline',draft->>'category',draft->>'image',draft->>'dek',draft->'body',true,
    (COALESCE(CASE WHEN published_at<=now() THEN published_at END,GREATEST(COALESCE($7::timestamptz,now()),now())) AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,id,revision,draft_hash,
    $6::jsonb||jsonb_build_object('scheduledAt',GREATEST(COALESCE($7::timestamptz,now()),now()),'publishedAt',COALESCE(CASE WHEN published_at<=now() THEN published_at END,GREATEST(COALESCE($7::timestamptz,now()),now())),'modifiedAt',GREATEST(COALESCE($7::timestamptz,now()),now())),now()
   FROM eligible WHERE NOT(has_live AND COALESCE($7::timestamptz>now(),false))
@@ -242,7 +242,7 @@ export async function releaseApprovedUrbanNews(limit=10):Promise<{released:numbe
   ORDER BY candidate.updated_at LIMIT $1 FOR UPDATE OF candidate SKIP LOCKED
  ), projection AS (
   UPDATE posts SET headline=candidate.draft->>'headline',section=candidate.draft->>'category',dek=candidate.draft->>'dek',body=candidate.draft->'body',
-   image=CASE WHEN candidate.draft->>'image'='' THEN '/assets/pwa-512.png' ELSE candidate.draft->>'image' END,
+   image=candidate.draft->>'image',
    urban_news_revision=candidate.revision,urban_news_hash=candidate.draft_hash,
    urban_news_public=(candidate.approval->'public')||jsonb_build_object('scheduledAt',candidate.approval->>'scheduledAt','publishedAt',LEAST(candidate.published_at,now()),'modifiedAt',CASE WHEN posts.urban_news_revision=candidate.revision THEN posts.urban_news_public->>'modifiedAt' ELSE now()::text END),
    social_automation_enabled=false,updated_at=now()
@@ -310,7 +310,7 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
    if(!refreshed.length)continue;
    revision=Number(refreshed[0].revision);
   }
-  const snapshot={...publicSnapshot(draft,revision,hash,null),publicationMethod:'automatic_chart',imageAlt:'Urban News record illustration for the music charts',sources:[...draft.evidence.map(e=>({id:e.id,url:e.url,publisher:e.publisher,title:e.title,publishedAt:e.publishedAt})),{id:'chart-track',publisher:'Apple Music',title:lead.title,url:lead.url,publishedAt:null}],disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
+  const snapshot={...publicSnapshot(draft,revision,hash,null),publicationMethod:'automatic_chart',imageAlt:'',sources:[...draft.evidence.map(e=>({id:e.id,url:e.url,publisher:e.publisher,title:e.title,publishedAt:e.publishedAt})),{id:'chart-track',publisher:'Apple Music',title:lead.title,url:lead.url,publishedAt:null}],disclosure:'Automatically compiled from Apple Music’s public song rankings.'};
   const rows=await q(`WITH allowance AS MATERIALIZED (${chartAllowance}), eligible AS MATERIALIZED (
    SELECT c.id FROM urban_news_candidates c JOIN urban_news_revisions r ON r.candidate_id=c.id AND r.revision=$13
    WHERE c.id=$4 AND c.revision=$13 AND c.live_revision IS NULL AND c.published_at IS NULL AND c.stage='discovered'
@@ -323,7 +323,7 @@ export async function publishScheduledChartBrief(configRevision:number,lease:str
    ON CONFLICT DO NOTHING RETURNING candidate_id
   ), projection AS (
    INSERT INTO posts(slug,headline,section,image,dek,body,published,date,editorial_status,editorial_managed,social_automation_enabled,urban_news_id,urban_news_revision,urban_news_hash,urban_news_public,updated_at)
-   SELECT $9,c.draft->>'headline','music','/news/chart-edition.svg',c.draft->>'dek',c.draft->'body',true,
+   SELECT $9,c.draft->>'headline','music','',c.draft->>'dek',c.draft->'body',true,
     (now() AT TIME ZONE 'Africa/Nairobi')::date,'live',false,false,c.id,$13,c.draft_hash,
     $10::jsonb||jsonb_build_object('scheduledAt',now(),'publishedAt',now(),'modifiedAt',now()),now()
    FROM urban_news_candidates c JOIN reserved ON reserved.candidate_id=c.id RETURNING urban_news_id

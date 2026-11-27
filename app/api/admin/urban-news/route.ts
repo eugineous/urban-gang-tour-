@@ -46,7 +46,7 @@ function failure(error:unknown){
  if(code==='news_not_found')return reply({error:code},404);
  if(code==='news_conflict'||code==='news_capacity_reached'||code==='news_config_changed')return reply({error:code},409);
  if(code.startsWith('invalid_news_'))return reply({error:'invalid_news_request'},400);
- const review=['news_correction_note_required','news_evidence_required','news_review_checks_required','news_risk_review_required','news_sensitive_notes_required','news_claim_evidence_required','news_independent_sources_required','news_image_rights_required','news_incomplete_draft'];
+ const review=['news_correction_note_required','news_evidence_required','news_review_checks_required','news_risk_review_required','news_sensitive_notes_required','news_claim_evidence_required','news_independent_sources_required','news_image_rights_required','news_editorial_exclusion','news_incomplete_draft'];
  if(review.includes(code))return reply({error:code},422);
  return reply({error:'newsroom_unavailable'},503);
 }

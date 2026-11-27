@@ -7,6 +7,8 @@ on:
       - 'app/admin/UrbanNews*'
       - 'app/api/admin/urban-news/**'
       - '__tests__/urban-news*'
+      - 'scripts/*news*.py'
+      - 'data/urban-news-*.json'
       - '.github/workflows/urban-news-review.yml'
   workflow_dispatch:
 
@@ -25,6 +27,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit --incremental false
-      - run: npx vitest run __tests__/urban-news-budget-community.test.ts __tests__/urban-news-admin.test.ts __tests__/urban-news-providers.test.ts __tests__/urban-news-automation.test.ts
-      - run: UGT_URBAN_NEWS_PG_FIXTURE=1 UGT_QWEN_PG_FIXTURE=1 npx vitest run __tests__/urban-news-provider-postgres.integration.test.ts __tests__/qwen-provider-postgres.integration.test.ts
+      - run: npx vitest run __tests__/urban-news-budget-community.test.ts __tests__/urban-news-admin.test.ts __tests__/urban-news-providers.test.ts __tests__/urban-news-automation.test.ts __tests__/urban-news-policy.test.ts __tests__/urban-news-local-briefs.test.ts
+      - run: UGT_URBAN_NEWS_PG_FIXTURE=1 UGT_QWEN_PG_FIXTURE=1 npx vitest run __tests__/urban-news-provider-postgres.integration.test.ts __tests__/urban-news-store-postgres.integration.test.ts __tests__/qwen-provider-postgres.integration.test.ts
       - run: npx eslint lib/shared/urban-news.ts lib/shared/urban-news-community.ts lib/server/urban-news-budget.ts lib/server/urban-news-secrets.ts lib/server/urban-news-automation.ts lib/server/urban-news-providers.ts app/admin/UrbanNewsDesk.tsx app/admin/UrbanNewsCommunityReplies.tsx app/api/admin/urban-news/route.ts

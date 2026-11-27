@@ -11,8 +11,7 @@
     "sourceDate": "2026-11-27T16:05:10+03:00",
     "publishedAt": "2026-11-27T17:09:07.398598+03:00",
     "paragraphs": [
-      "Bensoul, Charisma, Coster Ojwang, Mordecai Dex, Okello Max, Onyach Pala and Ywaya Tajiri are on the bill, according to Music In Africa. Keteh will bring songs from Safari Ya Mapenzi, including Umebant.",
-      "The Standard’s entertainment desk also reported that Sunquick is backing the show. For anyone following Nairobi’s live-music scene, the draw is a chance to hear artists who usually play separately share the same stage."
+      "Bensoul, Charisma, Coster Ojwang, Mordecai Dex, Okello Max, Onyach Pala and Ywaya Tajiri are on the bill, according to Music In Africa. Keteh will bring songs from Safari Ya Mapenzi, including Umebant."
     ],
     "references": [
       {
@@ -24,7 +23,6 @@
         "url": "https://houseofkodong.africa/live/"
       }
     ],
-    "photo": "nairobi",
     "kind": "reported"
   },
   {
@@ -65,7 +63,6 @@
     ],
     "publishedAt": "2026-11-27T17:21:00.876475+03:00",
     "sourceDate": "2015-10-22T09:00:00Z",
-    "photo": "mogadishu",
     "kind": "feature",
     "references": []
   },
@@ -77,8 +74,10 @@
     "headline": "Nairobi City Thunder’s BAL campaign ends against Patriots",
     "body": "Nairobi City Thunder lost 83–75 to South Sudan’s Patriots in their final group game at Kasarani Indoor Arena. The defeat ended the Kenyan champions’ bid to qualify for the 2027 Basketball Africa League.",
     "paragraphs": [
-      "The result sent Patriots through to the semifinals. FIBA reported that the South Sudanese club won three games in this stage of the Road to BAL, a first for its sides at the qualifiers according to Patriots coach Ajou Deng.",
-      "Thunder had reached the league after hosting the East Division qualifiers in each of the previous two editions. This time, despite playing the decisive game in Nairobi, the club finished outside the qualifying places."
+      "Patriots advanced to the semifinals. FIBA reported that the club won three games in this stage of qualifying. Coach Ajou Deng described the milestone after the game.",
+      "> This is the first time we [South Sudan clubs] have won three games in the Road to BAL.",
+      "— Ajou Deng, Patriots head coach, [speaking to FIBA](https://www.fiba.basketball/en/news/hosts-thunder-knocked-out-of-the-2027-bal-race)",
+      "Thunder had reached the league after hosting the East Division qualifiers in each of the previous two years. The club’s squad includes **Taylor Ongwae**, pictured here during his earlier college career."
     ],
     "sourceHeadline": "Heartbreak as Thunder crash out of 2027 BAL race on home soil",
     "topic": "Sport",
@@ -93,6 +92,110 @@
       {
         "label": "Citizen Digital · score and venue",
         "url": "https://citizen.digital/article/nairobi-city-thunder-knocked-out-of-2027-bal-race-n394645"
+      }
+    ],
+    "photo": "taylor-ongwae"
+  },
+  {
+    "id": "58d98c645b3724d9c8cfc401",
+    "country": "UG",
+    "topic": "Music",
+    "publisher": "Matooke Republic",
+    "url": "https://www.matookerepublic.com/entertainment/events/20261126/kingdom-kampala-to-host-racheal-magoolas-still-shining-concert-as-singer-celebrates-60th-birthday-and-40-years-in-music",
+    "headline": "Racheal Magoola is bringing “Still Shining” to Kingdom Kampala",
+    "body": "Kingdom Kampala will host Racheal Magoola for a concert called “Still Shining”, according to Matooke Republic. The concert marks 60th birthday and 40 years in music, the outlet reports.",
+    "sourceHeadline": "Kingdom Kampala to host Racheal Magoola’s ‘Still Shining’ Concert as singer celebrates 60th birthday and 40 years in music",
+    "sourceDate": "2026-11-26T09:52:54+00:00",
+    "publishedAt": "2026-11-27T17:09:07.398598+03:00",
+    "photo": "rachael-magoola",
+    "kind": "reported",
+    "paragraphs": [
+      "The show is called **Still Shining**. Matooke Republic says it marks two milestones for the singer, her 60th birthday and four decades in music.",
+      "The venue named in the report is **Kingdom Kampala**."
+    ]
+  },
+  {
+    "id": "2ca8f47ad98009d6d5d87050",
+    "country": "KE",
+    "publisher": "TNX Africa",
+    "url": "https://www.tnx.africa/entertainment/article/2001562928/nikita-kering-eyes-hollywood-connections-after-tyler-perry-studios-visit",
+    "headline": "Nikita Kering visits Tyler Perry Studios in Atlanta",
+    "sourceHeadline": "Nikita Kering visits Tyler Perry Studios in Atlanta",
+    "body": "Kenyan singer-songwriter Nikita Kering visited Tyler Perry Studios during a trip to the United States. TNX Africa and Mpasho both reported the Atlanta stop.",
+    "paragraphs": [
+      "TNX Africa linked the visit to the **International Visitor Leadership Program**, a U.S. State Department exchange programme. It described the trip in the context of opportunities for Kenya’s creative economy.",
+      "The studio visit brought the Kenyan musician into a film and television setting. The photo on this page is from an earlier Capital FM interview."
+    ],
+    "sourceDate": "2026-11-24T11:47:59Z",
+    "publishedAt": "2026-11-27T15:02:11+00:00",
+    "photo": "nikita-kering",
+    "topic": "Screen",
+    "kind": "reported",
+    "categories": [
+      "celebrity",
+      "music"
+    ],
+    "references": [
+      {
+        "label": "Mpasho · coverage of the Atlanta visit",
+        "url": "https://beta.mpasho.co.ke/entertainment/2026-11-25-nikita-kerings-us-trip-leads-her-to-tyler-perry-studios"
+      }
+    ]
+  },
+  {
+    "id": "3d086ab8596c1128b2c67c80",
+    "country": "TZ",
+    "publisher": "Apple Music",
+    "url": "https://music.apple.com/tz/album/tse-monate-feat-focalistic-uncool-mc-angekebabuye-mc/6825750247?i=6825750250",
+    "headline": "Diamond Platnumz and his collaborators take “Tse Monate” to No. 2 in Tanzania",
+    "sourceHeadline": "Diamond Platnumz and his collaborators take “Tse Monate” to No. 2 in Tanzania",
+    "body": "“Tse Monate” by Diamond Platnumz, Xduppy and DJ Maphorisa reached No. 2 in Apple Music’s Tanzania chart update for 27 November.",
+    "paragraphs": [
+      "The collaboration was released on **30 October 2026**. Apple Music credits Focalistic, Uncool MC, Angekebabuye mc and Ricky Lenyora as featured performers.",
+      "The ranking refers to plays on Apple Music in Tanzania. Soundcharts also listed the song at No. 2 in its 27 November chart."
+    ],
+    "sourceDate": "2026-11-27T14:12:21Z",
+    "publishedAt": "2026-11-27T15:02:11+00:00",
+    "photo": "diamond",
+    "topic": "Music",
+    "kind": "reported",
+    "categories": [],
+    "references": [
+      {
+        "label": "Soundcharts · Tanzania rankings",
+        "url": "https://www.soundcharts.com/en/charts/apple-music/tanzania"
+      }
+    ]
+  },
+  {
+    "id": "188911d5621d2f40dc6063ae",
+    "country": "SO",
+    "publisher": "Music In Africa",
+    "url": "https://musicinafrica.net/directory/aar-maanta/",
+    "headline": "Aar Maanta brings dhaanto and qaraami into his own sound",
+    "sourceHeadline": "Aar Maanta brings dhaanto and qaraami into his own sound",
+    "body": "Somali-British musician Aar Maanta brings different strands of Somali music into the same set. His catalogue draws on **dhaanto** and **qaraami**, according to his Music In Africa profile.",
+    "paragraphs": [
+      "Greenbelt’s artist profile traces his collaborations across generations and genres. It names Somali singers **Maryam Mursal** and **Ahmed “Hudeydi” Ismail Hussein** alongside Algerian raï singer Abdelkader Saadoun.",
+      "Aar Maanta is a useful starting point for listeners exploring how Somali music travels between East Africa and the diaspora. The photo shows the artist."
+    ],
+    "sourceDate": "2016-05-04T09:00:00Z",
+    "publishedAt": "2026-11-27T15:02:11+00:00",
+    "photo": "aar-maanta",
+    "topic": "Culture",
+    "kind": "feature",
+    "categories": [
+      "music",
+      "creators"
+    ],
+    "references": [
+      {
+        "label": "Greenbelt · artist and collaborator profile",
+        "url": "https://www.greenbelt.org.uk/artists/aar-maanta/"
+      },
+      {
+        "label": "PRIO · public conversation with Aar Maanta",
+        "url": "https://ccc.prio.org/events/15"
       }
     ]
   }

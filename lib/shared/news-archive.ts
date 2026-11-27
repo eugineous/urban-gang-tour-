@@ -6,7 +6,7 @@ export const NEWS_PAGE_SIZE=12;
 export type NewsArchiveQuery={q:string;category:string;page:number;country?:string};
 export type NewsArchiveParams=Record<string,string|string[]|undefined>;
 export type NewsArchiveOptions={newsMode?:boolean};
-type Story={id?:string;slug?:string;headline:string;section?:string;dek?:string;description?:string;date?:unknown;datePublished?:unknown;newsCountry?:string};
+type Story={id?:string;slug?:string;headline:string;section?:string;dek?:string;description?:string;date?:unknown;datePublished?:unknown;newsCountry?:string;categories?:string[]};
 
 /** Duplicate/unknown inputs never become alternate archive URLs or unbounded offsets. */
 export function newsArchiveQuery(params:NewsArchiveParams={},options:NewsArchiveOptions={}):NewsArchiveQuery{
@@ -37,7 +37,7 @@ export function newsArchive<T extends Story>(posts:readonly T[],query:NewsArchiv
  const seen=new Set<string>();
  const published=newestPublishedFirst(posts).filter(story=>{const id=story.slug??story.id;if(!id||seen.has(id))return false;seen.add(id);return true;});
  const search=query.q.toLowerCase();
- const matches=published.filter(story=>(query.category==='all'||newsStoryCategory(story,options)?.id===query.category)&&(!options.newsMode||!query.country||story.newsCountry?.toUpperCase()===query.country.toUpperCase())&&`${story.headline} ${story.dek??story.description??''} ${story.section||''} ${(story.slug??story.id??'').replaceAll('-',' ')}`.toLowerCase().includes(search));
+ const matches=published.filter(story=>(query.category==='all'||newsStoryCategory(story,options)?.id===query.category||story.categories?.includes(query.category))&&(!options.newsMode||!query.country||story.newsCountry?.toUpperCase()===query.country.toUpperCase())&&`${story.headline} ${story.dek??story.description??''} ${story.section||''} ${(story.slug??story.id??'').replaceAll('-',' ')}`.toLowerCase().includes(search));
  const pageCount=Math.max(1,Math.ceil(matches.length/NEWS_PAGE_SIZE));
  return {published,matches,pageCount,visible:matches.slice((query.page-1)*NEWS_PAGE_SIZE,query.page*NEWS_PAGE_SIZE)};
 }

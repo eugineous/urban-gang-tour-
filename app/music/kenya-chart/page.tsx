@@ -33,7 +33,6 @@ export default async function KenyaChartReport() {
       {chart && <p>Apple Music chart updated <time dateTime={chart.updated}>{date} EAT</time></p>}
     </header>
     {chart ? <>
-      <img className={styles.cover} src="/news/chart-edition.svg" width="800" height="450" alt="Urban News chart edition, illustrated with a vinyl record"/>
       {leader && <p className={styles.lede}>Kenya’s most-played song on Apple Music is “{leader.title}”. {second
         ? <>The track by {leader.artist} sits one place ahead of “{second.title}” by {second.artist}.</>
         : <>Apple lists {leader.artist} as the artist on the No. 1 track.</>}</p>}
