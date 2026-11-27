@@ -47,6 +47,7 @@ type RankableStory = {
   sourceCount:number;
   newsVerification?:string;
   sourceDate?:string;
+  kind?:string;
 };
 
 const HOUR = 3600_000;
@@ -57,8 +58,8 @@ export function rankTrending<T extends RankableStory>(stories:readonly T[],now:n
     const published=Date.parse(story.datePublished);
     const sourceDate=story.sourceDate?Date.parse(story.sourceDate):published;
     const age=(now-Math.min(published,sourceDate))/HOUR;
-    if(!Number.isFinite(age)||age<0||age>72||story.sourceCount<1||story.newsVerification==='developing')return [];
-    const score=70*Math.exp(-age/24)+Math.min(story.sourceCount-1,3)*12+(story.newsVerification==='confirmed'?12:0);
+    if(!Number.isFinite(age)||age<0||age>7*24||published>now||sourceDate>now||story.kind==='feature'||story.sourceCount<1||story.newsVerification==='developing')return [];
+    const score=70*Math.exp(-age/36)+Math.min(story.sourceCount-1,3)*12+(story.newsVerification==='confirmed'?12:0);
     return [{story,score}];
   }).sort((a,b)=>b.score-a.score||a.story.href.localeCompare(b.story.href));
   const result:T[]=[];
@@ -71,4 +72,29 @@ export function rankTrending<T extends RankableStory>(stories:readonly T[],now:n
     if(result.length===limit)break;
   }
   return result;
+}
+
+/** Keep room for Latest and prefer a mix of desks in the feature grid. */
+export function selectNewsFront<T extends {href:string;section:string;kind?:string}>(stories:readonly T[],feature=true){
+  if(!feature||!stories.length)return {top:[],latest:stories};
+  const limit=Math.min(4,Math.max(1,Math.floor(stories.length/2)));
+  const candidates=[...stories.filter(story=>story.kind!=='feature'),...stories.filter(story=>story.kind==='feature')];
+  const lead=candidates[0];
+  const topics=new Set([lead.section.toLowerCase()]);
+  const top=[lead];
+  for(const story of candidates.slice(1)){
+    if(top.length>=limit)break;
+    const topic=story.section.toLowerCase();
+    if(topics.has(topic))continue;
+    topics.add(topic);
+    top.push(story);
+  }
+  const selected=new Set(top.map(story=>story.href));
+  for(const story of candidates){
+    if(top.length>=limit)break;
+    if(selected.has(story.href))continue;
+    selected.add(story.href);
+    top.push(story);
+  }
+  return {top,latest:stories.filter(story=>!selected.has(story.href))};
 }

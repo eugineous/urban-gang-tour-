@@ -21,7 +21,7 @@ export async function readNewsDesk(query:NewsArchiveQuery) {
       const href=publisherBriefHref(brief),photo=briefPhoto(brief);
       return {
         slug:brief.id,href,headline:brief.headline,summary:brief.body,description:brief.body,image:photo?.path||'',
-        imageAlt:photo?.alt,imageSrcSet:photo?.srcSet,section:brief.topic,categories:brief.categories,
+        imageAlt:photo?.alt,imageSrcSet:photo?.srcSet,section:brief.topic,categories:brief.categories,kind:brief.kind,
         datePublished:brief.publishedAt,newsCountry:brief.country,sourceDate:brief.sourceDate,
         newsVerification:'attributed' as const,sourceCount:sourceCount([brief.url,...(brief.references??[]).map(source=>source.url)]),
       };

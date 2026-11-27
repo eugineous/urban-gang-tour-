@@ -1,9 +1,7 @@
-import {Suspense} from 'react';
 import UrbanNewsFrontPage from '@/app/_components/UrbanNewsFrontPage';
 import {getKenyaXLinks} from '@/lib/server/urban-news-briefs';
 import {rankTrending} from '@/lib/shared/news-ranking';
 import {readNewsDesk} from '@/app/_lib/news-desk';
-import UrbanMusicChart from '@/app/_components/UrbanMusicChart';
 import type {Metadata} from 'next';
 import {metadataForPathDynamic} from '@/app/_lib/seo';
 import {newsIndexJsonLd,structuredDataForPath} from '@/app/_lib/jsonld';
@@ -22,7 +20,7 @@ export async function generateMetadata({searchParams}:Props={}):Promise<Metadata
  const newsMode=urbanNewsEnabled();
  const query=newsArchiveQuery(await searchParams,{newsMode});
  const base=await metadataForPathDynamic('/blog');
- if(newsMode){const countryName=query.country&&query.country!=='Global'?new Intl.DisplayNames(['en'],{type:'region'}).of(query.country):'Kenya and East Africa'; const title='Urban News | '+countryName+' entertainment and music',description='Read Urban News entertainment stories, music releases and culture coverage from '+countryName+'.';Object.assign(base,{title,description,openGraph:{...base.openGraph,title,description},twitter:{...base.twitter,title,description}});}
+ if(newsMode){const countryName=query.country&&query.country!=='Global'?new Intl.DisplayNames(['en'],{type:'region'}).of(query.country):query.country==='Global'?'World':'Kenya'; const title='Urban News | '+countryName+' entertainment, sport and culture',description='Read the latest entertainment, music, screen, sport and culture stories in the '+countryName+' edition of Urban News.';Object.assign(base,{title,description,openGraph:{...base.openGraph,title,description},twitter:{...base.twitter,title,description}});}
  const url=SITE.domain+newsArchiveHref(query);
  return {...base,alternates:{...base.alternates,canonical:url},openGraph:{...base.openGraph,url},...(query.q||query.category!=='all'?{robots:{index:false,follow:true}}:{})};
 }
@@ -37,8 +35,7 @@ export default async function BlogIndex({searchParams}:Props={}){
     }
     const now=requestTime();
     const trending=rankTrending(matches,now);
-    return <><JsonLd data={structuredDataForPath('/blog')}/><UrbanNewsFrontPage stories={visible} trending={trending} query={query} now={now} pages={pageCount} xLinks={xLinks}
-      trend={(!query.country||query.country==='KE')&&!query.q&&query.page===1?<Suspense fallback={null}><UrbanMusicChart/></Suspense>:undefined}/></>;
+    return <><JsonLd data={structuredDataForPath('/blog')}/><UrbanNewsFrontPage stories={visible} trending={trending} query={query} now={now} pages={pageCount} xLinks={xLinks}/></>;
   }
   const feed=await getBlogPosts(true).then(posts=>({posts,current:true}),()=>({posts:[],current:false}));
   const posts=newestPublishedFirst(feed.posts);
