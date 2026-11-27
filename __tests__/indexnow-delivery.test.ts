@@ -25,7 +25,7 @@ describe('bounded canonical IndexNow delivery', () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock.mock.calls[0][0]).toBe('https://api.indexnow.org/indexnow');
     expect(payload()).toEqual({ host: 'urbangangtour.co.ke', key: 'db2a35cb019b2d7ae6e257a25e899f96', keyLocation: origin + '/db2a35cb019b2d7ae6e257a25e899f96.txt', urlList: [origin + '/', origin + '/events', origin + '/blog/current-story', origin + '/feed.xml', origin + '/news-sitemap.xml'] });
-    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', redirect: 'error' });
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', redirect: 'manual' });
     expect(warning).not.toHaveBeenCalled();
   });
   it('does not submit external origins, ambiguous paths, query tokens or fragments', async () => {

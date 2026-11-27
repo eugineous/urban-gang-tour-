@@ -10,7 +10,7 @@ async function provider(){const value=await import('@/lib/server/urban-news-prov
 it('bounds GDELT metadata, canonicalizes duplicate URLs and never treats images as licensed evidence',async()=>{
  const api=await provider();const fetcher=vi.fn(async()=>new Response(JSON.stringify({articles:[{url:'https://artist.example/story?utm_source=feed#top',title:'New album',domain:'artist.example',seendate:'20261117T100000Z',language:'English',sourcecountry:'Kenya',socialimage:'https://publisher.example/copyright.jpg'},{url:'https://artist.example/story',title:'Duplicate'},{url:'http://127.0.0.1/private',title:'Unsafe'}]}),{headers:{'Content-Type':'application/json'}}));vi.stubGlobal('fetch',fetcher);
  const result=await api.fetchDiscoveredNews();expect(result).toHaveLength(1);expect(result[0]).toEqual({url:'https://artist.example/story',title:'New album',publisher:'artist.example',country:'Kenya',language:'English',observedAt:'2026-11-17T10:00:00.000Z',provider:'gdelt'});
- const [url,options]=fetcher.mock.calls[0] as unknown as [string,RequestInit];expect(new URL(url).origin+new URL(url).pathname).toBe('https://api.gdeltproject.org/api/v2/doc/doc');expect(new URL(url).searchParams.get('maxrecords')).toBe('50');expect(options.redirect).toBe('error');
+ const [url,options]=fetcher.mock.calls[0] as unknown as [string,RequestInit];expect(new URL(url).origin+new URL(url).pathname).toBe('https://api.gdeltproject.org/api/v2/doc/doc');expect(new URL(url).searchParams.get('maxrecords')).toBe('50');expect(options.redirect).toBe('manual');
 });
 
 it('rejects non-JSON and oversized discovery bodies with bounded errors',async()=>{
@@ -76,7 +76,7 @@ it('checks the Kenyan chart identity and freshness before preparing attributed e
 it('keeps NVIDIA credentials on its own endpoint and distinguishes rejected credentials',async()=>{
  const api=await provider(),fetcher=vi.fn(async()=>new Response('',{status:401}));vi.stubGlobal('fetch',fetcher);
  await expect(api.draftFromEvidence('nvidia','nvidia/nemotron-3.5-lightning-30b-a3b','fixture-nvidia-key',draft)).rejects.toThrow('provider_auth_rejected');
- expect(fetcher).toHaveBeenCalledWith('https://integrate.api.nvidia.com/v1/chat/completions',expect.objectContaining({redirect:'error'}));
+ expect(fetcher).toHaveBeenCalledWith('https://integrate.api.nvidia.com/v1/chat/completions',expect.objectContaining({redirect: 'manual'}));
 });
 it('checks saved Qwen access without generating or sending a prompt',async()=>{
  const api=await provider(),fetcher=vi.fn(async()=>Response.json({data:[{id:'qwen-flash'}]}));vi.stubGlobal('fetch',fetcher);
@@ -87,7 +87,7 @@ it('checks saved Qwen access without generating or sending a prompt',async()=>{
 it.each([200,403,401])('separates NVIDIA account authentication (%i) from the anonymous model list',async status=>{
  const api=await provider(),model='nvidia/nemotron-3.5-lightning-30b-a3b';
  const fetcher=vi.fn(async(url:string,options:RequestInit)=>{
-  expect(options).toMatchObject({method:'GET',redirect:'error'});
+  expect(options).toMatchObject({method:'GET',redirect: 'manual'});
   expect(options.body).toBeUndefined();
   if(url==='https://api.ngc.nvidia.com/v2/users/me'){
    expect(options.headers).toMatchObject({Authorization:'Bearer fixture-only'});

@@ -31,7 +31,7 @@ describe('Paystack initialization uncertainty', () => {
   it('accepts the documented HTTPS checkout host and forbids redirects', async () => {
     request.mockResolvedValue(Response.json({ status: true, data: { authorization_url: 'https://checkout.paystack.com/safe123' } }));
     expect(await paystackInit(init)).toMatchObject({ ok: true, url: 'https://checkout.paystack.com/safe123', requestPayload: { amount: 120000, currency: 'KES', reference: 'ORD-SAFE123' } });
-    expect(request.mock.calls[0][1]).toMatchObject({ redirect: 'error', signal: expect.any(AbortSignal) });
+    expect(request.mock.calls[0][1]).toMatchObject({ redirect: 'manual', signal: expect.any(AbortSignal) });
   });
   it.each(['https://checkout.paystack.com.evil.invalid/a', 'http://checkout.paystack.com/a', 'https://evil.invalid/a', 'https://user@checkout.paystack.com/a', 'https://checkout.paystack.com:8443/a', 'javascript:alert(1)', '/checkout'])('does not expose an untrusted checkout URL %s', async url => {
     request.mockResolvedValue(Response.json({ status: true, data: { authorization_url: url } }));
@@ -74,7 +74,7 @@ describe('Paystack verification identity', () => {
   it('returns provider identity and exact integer subunits for a verified KES payment', async () => {
     request.mockResolvedValue(Response.json({ status: true, data: verified }));
     expect(await paystackVerify(init.reference)).toEqual({ ok: true, paid: true, amountKes: 1200, amountSubunit: 120000, reference: init.reference, currency: 'KES', status: 'success' });
-    expect(request.mock.calls[0][1]).toMatchObject({ redirect: 'error', signal: expect.any(AbortSignal) });
+    expect(request.mock.calls[0][1]).toMatchObject({ redirect: 'manual', signal: expect.any(AbortSignal) });
   });
   it.each([
     { reference: 'ORD-OTHER123' }, { reference: undefined }, { currency: 'USD' }, { currency: undefined },
@@ -88,4 +88,14 @@ describe('Paystack verification identity', () => {
     request.mockResolvedValue(Response.json({ status: true, data: { ...verified, status: 'pending' } }));
     expect(await paystackVerify(init.reference)).toMatchObject({ ok: true, paid: false, reference: init.reference, currency: 'KES', status: 'pending' });
   });
+});
+
+it('keeps a redirected checkout uncertain without resending the payment or treating a redirect as verified', async () => {
+  request.mockImplementation(async () => new Response(null, {
+    status: 307, headers: { Location: 'https://example.invalid' },
+  }));
+  expect(await paystackInit(init)).toMatchObject({ ok: false, outcome: 'unknown', error: 'paystack_redirect' });
+  expect(await paystackVerify(init.reference)).toEqual({ ok: false });
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(request.mock.calls.every(([url, options]) => String(url).startsWith('https://api.paystack.co/') && options?.redirect === 'manual')).toBe(true);
 });
