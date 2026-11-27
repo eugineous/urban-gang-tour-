@@ -1,5 +1,5 @@
 import {urbanNewsEnabled} from '@/lib/server/urban-news-mode';
-import { getBlogPosts } from '@/app/_lib/blog';
+import {getPublicNewsList} from '@/app/_lib/public-news-list';
 import { SITE } from '@/lib/site';
 import {publicationInstant} from '@/lib/editorial-time';
 import {publicImageUrl} from '@/lib/public-image-url';
@@ -12,13 +12,13 @@ export const dynamic = 'force-dynamic';
 // rel="alternate" link every page now carries (see app/_lib/seo.ts).
 export async function GET() {
   const newsMode=await urbanNewsEnabled();
-  const posts = (await getBlogPosts()).slice(0, 50);
+  const posts = (await getPublicNewsList()).slice(0, 50);
 
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const items = posts.map((p) => {
-    const url = `${SITE.domain}/blog/${p.slug}`;
+    const url = `${SITE.domain}${p.path}`;
     return `    <item>
       <title>${esc(p.headline)}</title>
       <link>${url}</link>

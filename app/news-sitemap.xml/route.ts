@@ -1,4 +1,4 @@
-import { getBlogPosts } from '@/app/_lib/blog';
+import {getPublicNewsList} from '@/app/_lib/public-news-list';
 import { SITE } from '@/lib/site';
 import {publicationInstant} from '@/lib/editorial-time';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 // News crawls this far more aggressively than the regular sitemap. Older
 // stories stay in /sitemap.xml.
 export async function GET() {
-  const posts = await getBlogPosts();
+  const posts = await getPublicNewsList();
   const now=Date.now(),cutoff = now - 48 * 3600_000;
   const fresh = posts.filter((p) => {const time=publicationInstant(p.datePublished).getTime();return p.schemaType!=='BlogPosting'&&time>=cutoff&&time<=now;}).slice(0,1000);
 
@@ -17,7 +17,7 @@ export async function GET() {
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const urls = fresh.map((p) => `  <url>
-    <loc>${SITE.domain}/blog/${p.slug}</loc>
+    <loc>${SITE.domain}${p.path}</loc>
     <news:news>
       <news:publication>
         <news:name>Urban News — Urban Gang Tour</news:name>

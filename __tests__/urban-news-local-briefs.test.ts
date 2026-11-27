@@ -3,7 +3,7 @@ import seed from '../data/urban-news-local-briefs.json';
 import {getPublisherBrief,getPublisherBriefs,parsePublisherBriefs,publisherBriefHref} from '../lib/server/urban-news-briefs';
 import {invalidate} from '../lib/server/microcache';
 
-const story=seed[0];
+const story=seed[1];
 const [day,id]=publisherBriefHref(story as Parameters<typeof publisherBriefHref>[0]).split('/').slice(-2);
 afterEach(()=>{
   vi.unstubAllGlobals();
@@ -32,5 +32,12 @@ it('uses the same original publish date if the external snapshot is unavailable'
   expect((await getPublisherBriefs()).find(item=>item.id===id)?.publishedAt).toBe(story.publishedAt);
   expect((await getPublisherBrief(day,id))?.url).toBe(story.url);
   vi.setSystemTime(new Date(Date.parse(story.publishedAt)+96*3600_000));
-  expect(await getPublisherBriefs()).toEqual([]);
+  expect((await getPublisherBriefs()).some(item=>item.id===id)).toBe(false);
+});
+
+it('keeps the original-media license and rejects ordinary image URLs without reuse terms',()=>{
+  const sourcePhoto={source:'https://www.matookerepublic.com/image.jpg',license:'https://creativecommons.org/licenses/by/4.0',credit:'Staff Photographer',licenseLabel:'CC BY 4.0',alt:'The performer on stage'};
+  expect(parsePublisherBriefs([{...story,sourcePhoto}])[0].sourcePhoto).toEqual(sourcePhoto);
+  expect(parsePublisherBriefs([{...story,sourcePhoto:{...sourcePhoto,license:'https://example.com/terms'}}])[0].sourcePhoto).toBeUndefined();
+  expect(parsePublisherBriefs([{...story,sourcePhoto:{...sourcePhoto,source:'https://unrelated.example/photos.jpg'}}])[0].sourcePhoto).toBeUndefined();
 });

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import publicDesignRoutes from '@/data/public-page-routes.json';
 import { ROUTES, SITE } from '@/lib/site';
-import { getBlogPosts } from './_lib/blog';
+import {getPublicNewsList} from './_lib/public-news-list';
 import { hasDb, q } from '@/lib/server/db';
 import { PUBLIC_EVENT_STATUSES } from '@/lib/server/event-lifecycle';
 import {publicPartnerDetails} from '@/lib/partner-events';
@@ -37,10 +37,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   pages.push({url:SITE.domain+'/watch',changeFrequency:'weekly',priority:0.6});
+  for(const country of ['KE','UG','TZ','SO'])pages.push({url:SITE.domain+'/blog?country='+country,changeFrequency:'daily',priority:0.7});
   pages.push({url:SITE.domain+'/editorial-policy',changeFrequency:'monthly',priority:0.4});
 
-  const posts = (await getBlogPosts()).map((p) => ({
-    url: `${SITE.domain}/blog/${encodeURIComponent(p.slug)}`,
+  const posts = (await getPublicNewsList()).map((p) => ({
+    url: `${SITE.domain}${p.path}`,
     lastModified: modifiedAt(p.dateModified),
     changeFrequency: 'monthly' as const,
     priority: 0.6,

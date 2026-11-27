@@ -1,0 +1,47 @@
+{
+  "tiwa-savage": {
+    "path": "/news/photos/tiwa-savage-960.webp",
+    "small": "/news/photos/tiwa-savage-480.webp",
+    "alt": "Tiwa Savage at the 2018 MTV Europe Music Awards",
+    "credit": "MTV International",
+    "license": "https://creativecommons.org/licenses/by/3.0",
+    "licenseLabel": "CC BY 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tiwa_Savage_EMA_2018.png"
+  },
+  "stonebwoy": {
+    "path": "/news/photos/stonebwoy-960.webp",
+    "small": "/news/photos/stonebwoy-480.webp",
+    "alt": "Stonebwoy in a portrait photograph",
+    "credit": "Gilbertasante1234",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Stonebwoy_Burniton.JPG"
+  },
+  "nikita-kering": {
+    "path": "/news/photos/nikita-kering-960.webp",
+    "small": "/news/photos/nikita-kering-480.webp",
+    "alt": "Nikita Kering in a Capital FM interview",
+    "credit": "Capital FM",
+    "license": "https://creativecommons.org/licenses/by/3.0",
+    "licenseLabel": "CC BY 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Nikita_Kering_Cap_FM.jpg"
+  },
+  "nairobi": {
+    "path": "/news/photos/nairobi-960.webp",
+    "small": "/news/photos/nairobi-480.webp",
+    "alt": "Nairobi skyline viewed from the savannah",
+    "credit": "Timothy A. Gonsalves",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Nairobi_Skyline_Savannah_Kenya_May19_R1600687.jpg"
+  },
+  "mogadishu": {
+    "path": "/news/photos/mogadishu-960.webp",
+    "small": "/news/photos/mogadishu-480.webp",
+    "alt": "File photograph of the Mogadishu skyline",
+    "credit": "Isma4l",
+    "license": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseLabel": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Mogadishu_Skyline_14th_picture.jpg"
+  }
+}

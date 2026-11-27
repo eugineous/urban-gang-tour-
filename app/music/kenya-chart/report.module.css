@@ -20,3 +20,7 @@
 }
 
 .cover {display:block;width:100%;height:auto;border-radius:.75rem;margin:1rem 0}
+
+.credit {margin:1.5rem 0}
+.credit img {margin-bottom:.45rem}
+.credit figcaption {color:#5e5260;font-size:.81rem}

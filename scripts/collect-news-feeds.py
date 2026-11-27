@@ -5,12 +5,16 @@ import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
+MEDIA = '{http://search.yahoo.com/mrss/}'
+
 MARKETS = 'ke ug tz so gb us se nl kz in ng za gh rw'.split()
 PRESS = {
     'KE': 'https://www.standardmedia.co.ke/rss/entertainment.php',
     'UG': 'https://www.matookerepublic.com/category/entertainment/feed/',
     'NG': 'https://notjustok.com/feed/',
     'GB': 'https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml',
+    'TZ': 'https://feeds.bbci.co.uk/swahili/rss.xml',
+    'SO': 'https://feeds.bbci.co.uk/somali/rss.xml',
 }
 FIELDS = ('id', 'artistName', 'name', 'kind', 'url')
 
@@ -38,6 +42,13 @@ def collect(job):
             item = ET.SubElement(channel, 'item')
             for key in ('title', 'link', 'pubDate'):
                 ET.SubElement(item, key).text = (entry.findtext(key) or '')[:900]
+            for original in entry.findall(MEDIA+'content')[:3]:
+                media = ET.SubElement(item, MEDIA+'content', {key:original.get(key, '')[:1000] for key in ('type','url')})
+                for name in ('license','credit','title'):
+                    field = original.find(MEDIA+name)
+                    if field is not None:
+                        field_copy=ET.SubElement(media,MEDIA+name,{'href':field.get('href','')[:1000]})
+                        field_copy.text=(field.text or '')[:300]
         if not len(channel):
             raise ValueError('empty feed')
         return kind, country, ET.tostring(root, encoding='unicode')
