@@ -75,10 +75,11 @@ export function rankTrending<T extends RankableStory>(stories:readonly T[],now:n
 }
 
 /** Keep room for Latest and prefer a mix of desks in the feature grid. */
-export function selectNewsFront<T extends {href:string;section:string;kind?:string}>(stories:readonly T[],feature=true){
+export function selectNewsFront<T extends Pick<RankableStory,'href'|'section'|'kind'|'sourceDate'|'datePublished'>>(stories:readonly T[],feature=true){
   if(!feature||!stories.length)return {top:[],latest:stories};
   const limit=Math.min(4,Math.max(1,Math.floor(stories.length/2)));
-  const candidates=[...stories.filter(story=>story.kind!=='feature'),...stories.filter(story=>story.kind==='feature')];
+  const sourceTime=(story:T)=>Date.parse(story.sourceDate||story.datePublished)||0;
+  const candidates=[...stories].sort((a,b)=>Number(a.kind==='feature')-Number(b.kind==='feature')||sourceTime(b)-sourceTime(a));
   const lead=candidates[0];
   const topics=new Set([lead.section.toLowerCase()]);
   const top=[lead];
